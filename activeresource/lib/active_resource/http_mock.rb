@@ -57,7 +57,7 @@ module ActiveResource
         # def post(path, request_headers = {}, body = nil, status = 200, response_headers = {})
         #   @responses[Request.new(:post, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
         # end
-        module_eval <<-EOE, __FILE__, __LINE__
+        module_eval <<-EOE, __FILE__, __LINE__ + 1
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
             @responses << [Request.new(:#{method}, path, nil, request_headers), Response.new(body || "", status, response_headers)]
           end
@@ -125,7 +125,7 @@ module ActiveResource
         #   self.class.requests << request
         #   self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for #{request}"))
         # end
-        module_eval <<-EOE, __FILE__, __LINE__
+        module_eval <<-EOE, __FILE__, __LINE__ + 1
           def #{method}(path, #{'body, ' if has_body}headers)
             request = ActiveResource::Request.new(:#{method}, path, #{has_body ? 'body, ' : 'nil, '}headers)
             self.class.requests << request

@@ -22,7 +22,7 @@ module I18n
 
         def compile_if_an_interpolation(string)
           if interpolated_str?(string)
-            string.instance_eval <<-RUBY_EVAL, __FILE__, __LINE__
+            string.instance_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
               def i18n_interpolate(v = {})
                 "#{compiled_interpolation_body(string)}"
               end

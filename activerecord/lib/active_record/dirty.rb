@@ -173,7 +173,7 @@ module ActiveRecord
       def alias_attribute_with_dirty(new_name, old_name)
         alias_attribute_without_dirty(new_name, old_name)
         DIRTY_SUFFIXES.each do |suffix|
-          module_eval <<-STR, __FILE__, __LINE__+1
+          module_eval <<-STR, __FILE__, __LINE__ + 1
             def #{new_name}#{suffix}; self.#{old_name}#{suffix}; end  # def subject_changed?; self.title_changed?; end
           STR
         end

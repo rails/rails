@@ -239,11 +239,11 @@ module ActiveRecord
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
             # end
-            class_eval %{
+            class_eval <<-EOS, __FILE__, __LINE__ + 1
               def #{association_name}_attributes=(attributes)
                 assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
               end
-            }, __FILE__, __LINE__
+            EOS
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
           end

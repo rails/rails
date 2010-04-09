@@ -115,7 +115,7 @@ module ActionController
     end
 
     %w(edit new).each do |action|
-      module_eval <<-EOT, __FILE__, __LINE__
+      module_eval <<-EOT, __FILE__, __LINE__ + 1
         def #{action}_polymorphic_url(record_or_hash, options = {})         # def edit_polymorphic_url(record_or_hash, options = {})
           polymorphic_url(                                                  #   polymorphic_url(
             record_or_hash,                                                 #     record_or_hash,

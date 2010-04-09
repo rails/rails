@@ -208,7 +208,7 @@ module ActiveRecord
           end
 
           begin
-            class_eval(method_definition, __FILE__, __LINE__)
+            class_eval(method_definition, __FILE__)
           rescue SyntaxError => err
             generated_methods.delete(attr_name)
             if logger
