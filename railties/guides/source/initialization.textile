@@ -1911,15 +1911,13 @@ The next method to be called here would be +definition+  and it is defined like 
   end
 </ruby>
 
-We do not have +settings[:disabled_shared_gems]+ set to true so this will execute the code under the +else+. The +ENV["GEM_PATH"]+ will resemble +/usr/local/lib/ruby/gems/1.9.1:/home/you/.gem/ruby/1.9.1:/usr/local/lib/ruby/gems/1.9.1+
-
-TODO: Why the duplicates? Added an issue: http://github.com/carlhuda/bundler/issues#issue/249
+We do not have +settings[:disabled_shared_gems]+ set to true so this will execute the code under the +else+. The +ENV["GEM_PATH"]+ will resemble +/usr/local/lib/ruby/gems/1.9.1:/home/you/.gem/ruby/1.9.1+
 
 And +ENV["GEM_HOME"]+ will be the path to the gems installed into your home directory by Bundler, something resembling +/home/you/.bundle/ruby/1.9.1+.
 
 After +configure_gem_home_and_path+ is done the +definition+ method goes about creating a +Definition+ from either +Gemfile.lock+ if it exists, or the +gemfile+ previously located. +Gemfile.lock+ only exists if +bundle lock+ has been ran and so far it has not.
 
-+Definition.from_lock+ is defined in _lib/definition.rb_:
++Definition.from_gemfile+ is defined in _lib/bundler/definition.rb_:
 
 <ruby>
   def self.from_gemfile(gemfile)
@@ -1933,7 +1931,7 @@ After +configure_gem_home_and_path+ is done the +definition+ method goes about c
   end
 </ruby>
 
-Now that the +gemfile+ is located +Dsl.evaluate+ goes about loading it. The code for this can be found in _lib/dsl.rb_:
+Now that the +gemfile+ is located +Dsl.evaluate+ goes about loading it. The code for this can be found in _lib/bundler/dsl.rb_:
 
 <ruby>
   def self.evaluate(gemfile)
@@ -2103,11 +2101,118 @@ The +initialize+ method in +Gem::Dependency+ is defined:
   end
 </ruby>
 
-The +version_requirements+ that was passed in here 
+The +version_requirements+ that was passed in here will be inspected by +Gem::Requirement.create+ and return, for our +3.0.0beta2+ version string a +Gem::Requirement+ object:
 
+<ruby>
+  #<Gem::Requirement:0x101dd8c20 @requirements=[["=", #<Gem::Version "3.0.0beta2">]]>
+</ruby>
 
+Going back to +Bundler::Dependency+, the next line simply sets +@autorequire+ to +nil+ and the next line is a little more interesting:
 
+<ruby>
+  @autorequire = nil
+  @groups      = Array(options["group"] || :default).map { |g| g.to_sym }
+</ruby>
 
+Here, bundler sets the +groups+ variable to be whatever +group+ we've set for this gem and also demonstrates through code that the +group+ option allows for multiple groups, so in the _Gemfile_ we can specify the same gem for multiple groups:
+
+<ruby>
+  group :test, :cucumber do
+    gem 'faker'
+  end
+</ruby>
+ 
+The final lines in +initialize+ work on the +require+ option which is not passed:
+
+<ruby>
+  if options.key?('require')
+    @autorequire = Array(options['require'] || [])
+  end
+</ruby>
+
+If it were to be used in the _Gemfile_, it would look like this:
+
+<ruby>
+  gem 'thinking-sphinx', :require => "thinking_sphinx"
+</ruby>
+
+So far, this is what simply loading the _Gemfile_ does.
+
+h3. Bring forth the gems
+
+Now that the _Gemfile_ has finished being parsed, the next line is:
+
+<ruby>
+  builder.to_definition
+</ruby>
+
+This method is defined in _lib/bundler/dsl.rb_ and does this:
+
+<ruby>
+  def to_definition
+    Definition.new(@dependencies, @sources)
+  end
+</ruby>
+
+The +Bundler::Definition#initialize+ method is this:
+
+<ruby>
+  def initialize(dependencies, sources)
+    @dependencies = dependencies
+    @sources = sources
+  end
+</ruby>
+
+Now Bundler has a +Bundler::Definition+ object to be passed back to the +load+ method from _lib/bundler.rb_:
+
+<ruby>
+  def load(gemfile = default_gemfile)
+    root = Pathname.new(gemfile).dirname
+    Runtime.new root, definition(gemfile)
+  end
+</ruby>
+
+The +Bundler::Runtime+ class inherits from +Bundler::Environment+ and the reason this is pointed out is because +super+ is used in the +initialize+ method in +Bundler::Runtime+:
+
+<ruby>
+  super
+  if locked?
+    write_rb_lock
+  end
+</ruby>
+
+Thankfully, the +Bundler::Environment#initialize+ method is nothing too complex:
+
+<ruby>
+  def initialize(root, definition)
+    @root = root
+    @definition = definition
+  end
+</ruby>
+
+The +locked?+ method checks if the _Gemfile.lock_ or _.bundler/environment.rb_ files exist:
+
+<ruby>
+  def locked?
+    File.exist?("#{root}/Gemfile.lock") || File.exist?("#{root}/.bundle/environment.rb")
+  end
+</ruby>
+
+And if they do will call +write_rb_lock+:
+
+<ruby>
+  def write_rb_lock
+    shared_helpers = File.read(File.expand_path("../shared_helpers.rb", __FILE__))
+    template = File.read(File.expand_path("../templates/environment.erb", __FILE__))
+    erb = ERB.new(template, nil, '-')
+    FileUtils.mkdir_p(rb_lock_file.dirname)
+    File.open(rb_lock_file, 'w') do |f|
+      f.puts erb.result(binding)
+    end
+  end
+</ruby>
+
+This will write out to _.bundler/environment.rb_ the state of the current environment.
 
 
 h3. Firing it up!
