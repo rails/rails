@@ -8,90 +8,54 @@ require 'active_support/core_ext/object/blank'
 
 module ActionView
   module Helpers
-    # Form helpers are designed to make working with models much easier
-    # compared to using just standard HTML elements by providing a set of
-    # methods for creating forms based on your models. This helper generates
-    # the HTML for forms, providing a method for each sort of input
-    # (e.g., text, password, select, and so on). When the form is submitted
-    # (i.e., when the user hits the submit button or <tt>form.submit</tt> is
-    # called via JavaScript), the form inputs will be bundled into the
-    # <tt>params</tt> object and passed back to the controller.
+    # Form helpers are designed to make working with resources much easier
+    # compared to using vanilla HTML.
     #
-    # There are two types of form helpers: those that specifically work with
-    # model attributes and those that don't. This helper deals with those that
-    # work with model attributes; to see an example of form helpers that don't
-    # work with model attributes, check the ActionView::Helpers::FormTagHelper
-    # documentation.
+    # There are methods to generate all kinds of input fields and the form
+    # element itself. They get convenient names, IDs, endpoints, etc. so that
+    # you can work at the model level. Thanks to conventions in the HTML they
+    # generate controllers receive form data nicely structured in +params+.
     #
-    # The core method of this helper, form_for, gives you the ability to create
-    # a form for a model instance; for example, let's say that you have a model
-    # <tt>Person</tt> and want to create a new instance of it:
+    # Model-based forms are created with +form_for+. That method yields a form
+    # builder that knows the model the form is about. The form builder is thus
+    # able to generate default values for input fields that correspond to model
+    # attributes, and also convenient element names, IDs, endpoints, etc.
     #
-    #     # Note: a @person variable will have been created in the controller.
-    #     # For example: @person = Person.new
-    #     <%= form_for @person do |f| %>
-    #       <%= f.text_field :first_name %>
-    #       <%= f.text_field :last_name %>
-    #       <%= submit_tag 'Create' %>
-    #     <% end %>
+    # Conventions in the generated field names allow controllers to receive form
+    # data nicely structured in +params+ with no effort on your side.
     #
-    # The HTML generated for this would be:
+    # For example, to create a new +Person+ resource you typically set up a new
+    # instance in <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
+    # write the form in <tt>new.html.erb</tt> this way:
     #
-    #     <form action="/persons/create" method="post">
-    #       <input id="person_first_name" name="person[first_name]" size="30" type="text" />
-    #       <input id="person_last_name" name="person[last_name]" size="30" type="text" />
-    #       <input name="commit" type="submit" value="Create" />
-    #     </form>
+    #   <%= form_for @person do |f| %>
+    #     <%= f.text_field :first_name %>
+    #     <%= f.text_field :last_name %>
+    #     <%= f.submit %>
+    #   <% end %>
     #
-    # If you are using a partial for your form fields, you can use this shortcut:
+    # The HTML generated for this would be (modulus formatting):
     #
-    #     <%= form_for @person do |form| %>
-    #       <%= render form %>
-    #       <%= submit_tag 'Create' %>
-    #     <% end %>
+    #   <form action="/people" class="new_person" id="new_person" method="post">
+    #     <div style="margin:0;padding:0;display:inline">
+    #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
+    #     </div>
+    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" />
+    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" />
+    #     <input id="person_submit" name="commit" type="submit" value="Create Person" />
+    #   </form>
     #
-    # This example will render the <tt>people/_form</tt> partial, setting a
-    # local variable called <tt>form</tt> which references the yielded
-    # FormBuilder. The <tt>params</tt> object created when this form is
-    # submitted would look like:
+    # Because of the names of the input fields, the controller gets a <tt>:person</tt>
+    # nested hash in +params+ with the corresponding first and last names. That hash
+    # is ready to be passed to <tt>Person.create</tt> like this:
     #
-    #     {"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
+    #   if person = Person.create(params[:person])
+    #     # success
+    #   else
+    #     # error handling
+    #   end
     #
-    # The params hash has a nested <tt>person</tt> value, which can therefore
-    # be accessed with <tt>params[:person]</tt> in the controller. If were
-    # editing/updating an instance (e.g., <tt>Person.find(1)</tt> rather than
-    # <tt>Person.new</tt> in the controller), the objects attribute values are
-    # filled into the form (e.g., the <tt>person_first_name</tt> field would
-    # have that person's first name in it).
-    #
-    # If the object name contains square brackets the id for the object will be
-    # inserted. For example:
-    #
-    #   <%= text_field "person[]", "name" %>
-    #
-    # ...will generate the following ERb.
-    #
-    #   <input type="text" id="person_<%= @person.id %>_name" name="person[<%= @person.id %>][name]" value="<%= @person.name %>" />
-    #
-    # If the helper is being used to generate a repetitive sequence of similar
-    # form elements, for example in a partial used by
-    # <tt>render_collection_of_partials</tt>, the <tt>index</tt> option may
-    # come in handy. Example:
-    #
-    #   <%= text_field "person", "name", "index" => 1 %>
-    #
-    # ...becomes...
-    #
-    #   <input type="text" id="person_1_name" name="person[1][name]" value="<%= @person.name %>" />
-    #
-    # An <tt>index</tt> option may also be passed to <tt>form_for</tt> and
-    # <tt>fields_for</tt>.  This automatically applies the <tt>index</tt> to
-    # all the nested fields.
-    #
-    # There are also methods for helping to build form tags in
-    # link:classes/ActionView/Helpers/FormOptionsHelper.html,
-    # link:classes/ActionView/Helpers/DateHelper.html, and
-    # link:classes/ActionView/Helpers/ActiveRecordHelper.html
+    # That's how you tipically work with resources.
     module FormHelper
       extend ActiveSupport::Concern
 
