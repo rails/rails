@@ -43,7 +43,7 @@ module Rails
       end
 
       def load_once_paths
-        @eager_load_paths ||= paths.load_once
+        @load_once_paths ||= paths.load_once
       end
 
       def load_paths
