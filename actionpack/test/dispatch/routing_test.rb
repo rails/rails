@@ -186,6 +186,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
+
+      namespace :controller => :api do
+        resource :token
+      end
+
+      namespace :path => :api do
+        resource :me
+      end
     end
   end
 
@@ -939,6 +947,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_raise(ActionController::RoutingError) { get '/dashboard', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
       get '/dashboard', {}, {'REMOTE_ADDR' => '192.168.1.100'}
       assert_equal 'dashboards#show', @response.body
+    end
+  end
+
+  def test_controller_namespace
+    with_test_routes do
+      get '/token'
+      assert_equal 'api/tokens#show', @response.body
+      assert_equal '/token', token_path
+    end
+  end
+
+  def test_path_namespace
+    with_test_routes do
+      get '/api/me'
+      assert_equal 'mes#show', @response.body
+      assert_equal '/api/me', me_path
     end
   end
 

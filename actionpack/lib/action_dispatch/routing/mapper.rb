@@ -323,8 +323,21 @@ module ActionDispatch
           scope(controller.to_sym) { yield }
         end
 
-        def namespace(path)
-          scope(path.to_s, :name_prefix => path.to_s, :controller_namespace => path.to_s) { yield }
+        def namespace(path_or_options)
+          options =
+            case path_or_options
+            when String, Symbol
+              path = path_or_options.to_s
+              { :path => path,
+                :name_prefix => path,
+                :controller_namespace => path }
+            when Hash
+              { :path => path_or_options[:path],
+                :controller_namespace => path_or_options[:controller] }
+            else
+              raise ArgumentError, "Unknown namespace: #{path_or_options.inspect}"
+            end
+          scope(options) { yield }
         end
 
         def constraints(constraints = {})

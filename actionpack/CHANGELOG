@@ -1,4 +1,21 @@
-*Rails 3.0.0 [Edge] (pending)*
+*Rails 3.0.0 [beta 3] (pending)*
+
+* Routes can be selectively namespaced by path or controller module. [Jeremy Kemper]
+
+    # /users => Admin::UsersController
+    namespace :controller => 'admin' do
+      resources :users
+    end
+
+    # /admin/users => UsersController
+    namespace :path => 'admin' do
+      resources :users
+    end
+
+    # /admin/users => Admin::UsersController
+    namespace :admin do
+      resources :users
+    end
 
 * Added #favicon_link_tag, it uses #image_path so in particular the favicon gets an asset ID [fxn]
 
