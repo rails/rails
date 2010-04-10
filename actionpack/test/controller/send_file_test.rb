@@ -73,7 +73,7 @@ class SendFileTest < ActionController::TestCase
 
     assert_equal @controller.file_path, response.headers['X-Sendfile']
     assert response.body.blank?
-    assert !response.etag?
+    assert !response.etag?, response.etag.inspect
   end
 
   def test_data

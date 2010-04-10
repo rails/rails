@@ -1590,7 +1590,7 @@ class EtagRenderTest < ActionController::TestCase
 
   def test_render_blank_body_shouldnt_set_etag
     get :blank_response
-    assert !@response.etag?
+    assert !@response.etag?, @response.etag.inspect
   end
 
   def test_render_200_should_set_etag
@@ -1609,7 +1609,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_have_no_content_length_when_match
     @request.if_none_match = etag_for("hello david")
     get :render_hello_world_from_variable
-    assert !@response.headers.has_key?("Content-Length"), @response.headers['Content-Length']
+    assert !@response.headers.has_key?("Content-Length"), @response.headers['Content-Length'].inspect
   end
 
   def test_render_against_etag_request_should_200_when_no_match
