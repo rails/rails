@@ -1,5 +1,11 @@
 *Rails 3.0.0 [beta 3] (pending)*
 
+* Removed verify method in controllers. [JV]
+  It's now available as a plugin at http://github.com/rails/verification
+
+* Removed input, form, error_messages_for and error_message_on from views. [JV]
+  It's now available as a plugin at http://github.com/rails/dynamic_form
+
 * Routes can be scoped by controller module. [Jeremy Kemper]
 
     # /session => Auth::SessionsController
