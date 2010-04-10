@@ -11,11 +11,6 @@ module ActionView
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
-    # There are methods to generate all kinds of input fields and the form
-    # element itself. They get convenient names, IDs, endpoints, etc. so that
-    # you can work at the model level. Thanks to conventions in the HTML they
-    # generate controllers receive form data nicely structured in +params+.
-    #
     # Model-based forms are created with +form_for+. That method yields a form
     # builder that knows the model the form is about. The form builder is thus
     # able to generate default values for input fields that correspond to model
