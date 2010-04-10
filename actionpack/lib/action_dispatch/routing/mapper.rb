@@ -323,21 +323,9 @@ module ActionDispatch
           scope(controller.to_sym) { yield }
         end
 
-        def namespace(path_or_options)
-          options =
-            case path_or_options
-            when String, Symbol
-              path = path_or_options.to_s
-              { :path => path,
-                :name_prefix => path,
-                :controller_namespace => path }
-            when Hash
-              { :path => path_or_options[:path],
-                :controller_namespace => path_or_options[:controller] }
-            else
-              raise ArgumentError, "Unknown namespace: #{path_or_options.inspect}"
-            end
-          scope(options) { yield }
+        def namespace(path)
+          path = path.to_s
+          scope(:path => path, :name_prefix => path, :module => path) { yield }
         end
 
         def constraints(constraints = {})
@@ -376,12 +364,12 @@ module ActionDispatch
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_controller_namespace_scope(parent, child)
+          def merge_module_scope(parent, child)
             parent ? "#{parent}/#{child}" : child
           end
 
           def merge_controller_scope(parent, child)
-            @scope[:controller_namespace] ? "#{@scope[:controller_namespace]}/#{child}" : child
+            @scope[:module] ? "#{@scope[:module]}/#{child}" : child
           end
 
           def merge_resources_path_names_scope(parent, child)

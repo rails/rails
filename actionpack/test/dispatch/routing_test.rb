@@ -187,11 +187,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
 
-      namespace :controller => :api do
+      scope :module => 'api' do
         resource :token
       end
 
-      namespace :path => :api do
+      scope :path => 'api' do
         resource :me
         match '/' => 'mes#index'
       end
@@ -951,7 +951,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_controller_namespace
+  def test_module_scope
     with_test_routes do
       get '/token'
       assert_equal 'api/tokens#show', @response.body
@@ -959,7 +959,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_path_namespace
+  def test_path_scope
     with_test_routes do
       get '/api/me'
       assert_equal 'mes#show', @response.body
