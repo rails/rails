@@ -437,7 +437,7 @@ div.code_container, div.important, div.caution, div.warning, div.note, div.info 
 /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
 spurious blank area below with the box background. */
 div.important p, div.caution p, div.warning p, div.note p, div.info p {
-    margin-bottom: 0px;
+    margin-bottom: 1em;
 }
 
 /* Edge Badge
