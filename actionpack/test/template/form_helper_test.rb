@@ -1518,6 +1518,11 @@ class FormHelperTest < ActionView::TestCase
     assert_equal expected, output_buffer
   end
 
+  def test_fields_for_returns_block_result
+    output = fields_for(Post.new) { |f| "fields" }
+    assert_equal "fields", output
+  end
+
   protected
     def comments_path(post)
       "/posts/#{post.id}/comments"

@@ -528,7 +528,7 @@ module ActionView
 
         builder = options[:builder] || ActionView::Base.default_form_builder
 
-        with_output_buffer do
+        capture do
           yield builder.new(object_name, object, self, options, block)
         end
       end
