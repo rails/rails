@@ -193,6 +193,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       namespace :path => :api do
         resource :me
+        match '/' => 'mes#index'
       end
     end
   end
@@ -963,6 +964,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/api/me'
       assert_equal 'mes#show', @response.body
       assert_equal '/api/me', me_path
+
+      get '/api'
+      assert_equal 'mes#index', @response.body
     end
   end
 
