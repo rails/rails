@@ -1,5 +1,14 @@
 <%%= form_for(@<%= singular_name %>) do |f| %>
-  <%%= f.error_messages %>
+  <%% if @<%= singular_name %>.errors.any? %>
+  <div id="errorExplanation">
+    <h2>The following errors prohibited this form from being saved:</h2>
+    <ul>
+    <%% @<%= singular_name %>.errors.full_messages.each do |msg| %>
+      <li><%%= msg %></li>
+    <%% end %>
+    </ul>
+  </div>
+  <%% end %>
 
 <% for attribute in attributes -%>
   <div class="field">

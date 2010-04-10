@@ -35,10 +35,10 @@ div.field, div.actions {
 }
 
 #errorExplanation {
-  width: 400px;
+  width: 450px;
   border: 2px solid red;
   padding: 7px;
-  padding-bottom: 12px;
+  padding-bottom: 0;
   margin-bottom: 20px;
   background-color: #f0f0f0;
 }
@@ -49,14 +49,9 @@ div.field, div.actions {
   padding: 5px 5px 5px 15px;
   font-size: 12px;
   margin: -7px;
+  margin-bottom: 0px;
   background-color: #c00;
   color: #fff;
-}
-
-#errorExplanation p {
-  color: #333;
-  margin-bottom: 0;
-  padding: 5px;
 }
 
 #errorExplanation ul li {
