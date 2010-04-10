@@ -142,6 +142,11 @@ module ActiveModel
       to_a.size
     end
 
+    # Returns true if there are any errors, false if not.
+    def empty?
+      all? { |k, v| v && v.empty? }
+    end
+
     # Returns an xml formatted representation of the Errors hash.
     # 
     #   p.errors.add(:name, "can't be blank")

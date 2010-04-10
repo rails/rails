@@ -78,7 +78,7 @@ module Rails::Generators
     end
 
     def create_app_files
-      directory "app"
+      directory 'app'
     end
 
     def create_config_files
@@ -137,7 +137,7 @@ module Rails::Generators
     end
 
     def create_public_stylesheets_files
-      directory "public/stylesheets"
+      empty_directory_with_gitkeep "public/stylesheets"
     end
 
     def create_prototype_files

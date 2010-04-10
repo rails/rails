@@ -1,0 +1,5 @@
+Description:
+    Copies scaffold stylesheets to public/stylesheets/.
+
+Examples:
+    `rails generate stylesheets`

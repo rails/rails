@@ -131,7 +131,7 @@ class Array
     require 'builder' unless defined?(Builder)
 
     options = options.dup
-    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)) : "records"
+    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)).tr('/', '_') : "records"
     options[:children] ||= options[:root].singularize
     options[:indent]   ||= 2
     options[:builder]  ||= Builder::XmlMarkup.new(:indent => options[:indent])

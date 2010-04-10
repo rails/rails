@@ -501,16 +501,53 @@ module ActionView
         end
       end
 
+      # Web browsers cache favicons. If you just throw a <tt>favicon.ico</tt> into the document
+      # root of your application and it changes later, clients that have it in their cache
+      # won't see the update. Using this helper prevents that because it appends an asset ID:
+      #
+      #   <%= favicon_link_tag %>
+      #
+      # generates
+      #
+      #   <link href="/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #
+      # You may specify a different file in the first argument:
+      #
+      #   <%= favicon_link_tag 'favicon.ico' %>
+      #
+      # That's passed to +path_to_image+ as is, so it gives
+      #
+      #   <link href="/images/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #
+      # The helper accepts an additional options hash where you can override "rel" and "type".
+      #
+      # For example, Mobile Safari looks for a different LINK tag, pointing to an image that
+      # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
+      # The following call would generate such a tag:
+      #
+      #   <%= favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png' %>
+      #
+      def favicon_link_tag(source='/favicon.ico', options={})
+        tag('link', {
+          :rel  => 'shortcut icon',
+          :type => 'image/vnd.microsoft.icon',
+          :href => path_to_image(source)
+        }.merge(options.symbolize_keys))
+      end
+
       # Computes the path to an image asset in the public images directory.
       # Full paths from the document root will be passed through.
-      # Used internally by +image_tag+ to build the image path.
+      # Used internally by +image_tag+ to build the image path:
       #
-      # ==== Examples
-      #   image_path("edit")                                         # => /images/edit
-      #   image_path("edit.png")                                     # => /images/edit.png
-      #   image_path("icons/edit.png")                               # => /images/icons/edit.png
-      #   image_path("/icons/edit.png")                              # => /icons/edit.png
-      #   image_path("http://www.railsapplication.com/img/edit.png") # => http://www.railsapplication.com/img/edit.png
+      #   image_path("edit")                                         # => "/images/edit"
+      #   image_path("edit.png")                                     # => "/images/edit.png"
+      #   image_path("icons/edit.png")                               # => "/images/icons/edit.png"
+      #   image_path("/icons/edit.png")                              # => "/icons/edit.png"
+      #   image_path("http://www.railsapplication.com/img/edit.png") # => "http://www.railsapplication.com/img/edit.png"
+      #
+      # If you have images as application resources this method may conflict with their named routes.
+      # The alias +path_to_image+ is provided to avoid that. Rails uses the alias internally, and
+      # plugin authors are encouraged to do so.
       def image_path(source)
         compute_public_path(source, 'images')
       end
@@ -590,7 +627,7 @@ module ActionView
         end
 
         if mouseover = options.delete(:mouseover)
-          options[:onmouseover] = "this.src='#{image_path(mouseover)}'"
+          options[:onmouseover] = "this.src='#{path_to_image(mouseover)}'"
           options[:onmouseout]  = "this.src='#{src}'"
         end
 

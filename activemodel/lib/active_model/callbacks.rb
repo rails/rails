@@ -105,7 +105,7 @@ module ActiveModel
     end
 
     def _define_before_model_callback(klass, callback) #:nodoc:
-      klass.class_eval <<-CALLBACK, __FILE__, __LINE__
+      klass.class_eval <<-CALLBACK, __FILE__, __LINE__ + 1
         def self.before_#{callback}(*args, &block)
           set_callback(:#{callback}, :before, *args, &block)
         end
@@ -113,7 +113,7 @@ module ActiveModel
     end
 
     def _define_around_model_callback(klass, callback) #:nodoc:
-      klass.class_eval <<-CALLBACK, __FILE__, __LINE__
+      klass.class_eval <<-CALLBACK, __FILE__, __LINE__ + 1
         def self.around_#{callback}(*args, &block)
           set_callback(:#{callback}, :around, *args, &block)
         end
@@ -121,7 +121,7 @@ module ActiveModel
     end
 
     def _define_after_model_callback(klass, callback) #:nodoc:
-      klass.class_eval <<-CALLBACK, __FILE__, __LINE__
+      klass.class_eval <<-CALLBACK, __FILE__, __LINE__ + 1
         def self.after_#{callback}(*args, &block)
           options = args.extract_options!
           options[:prepend] = true

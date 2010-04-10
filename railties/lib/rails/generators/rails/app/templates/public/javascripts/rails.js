@@ -1,15 +1,8 @@
 document.observe("dom:loaded", function() {
-  var authToken = $$('meta[name=csrf-token]').first().readAttribute('content'),
-    authParam = $$('meta[name=csrf-param]').first().readAttribute('content'),
-    formTemplate = '<form method="#{method}" action="#{action}">\
-      #{realmethod}<input name="#{param}" value="#{token}" type="hidden">\
-      </form>',
-    realmethodTemplate = '<input name="_method" value="#{method}" type="hidden">';
-
   function handleRemote(element) {
     var method, url, params;
 
-    if (element.tagName.toLowerCase() == 'form') {
+    if (element.tagName.toLowerCase() === 'form') {
       method = element.readAttribute('method') || 'post';
       url    = element.readAttribute('action');
       params = element.serialize(true);
@@ -39,65 +32,81 @@ document.observe("dom:loaded", function() {
     element.fire("ajax:after");
   }
 
+  function handleMethod(element) {
+    var method, url, token_name, token;
+
+    method     = element.readAttribute('data-method');
+    url        = element.readAttribute('href');
+    csrf_param = $$('meta[name=csrf-param]').first();
+    csrf_token = $$('meta[name=csrf-token]').first();
+
+    var form = new Element('form', { method: "POST", action: url, style: "display: none;" });
+    element.parentNode.appendChild(form);
+
+    if (method != 'post') {
+      var field = new Element('input', { type: 'hidden', name: '_method', value: method });
+      form.appendChild(field);
+    }
+
+    if (csrf_param) {
+      var param = csrf_param.readAttribute('content');
+      var token = csrf_token.readAttribute('content');
+      var field = new Element('input', { type: 'hidden', name: param, value: token });
+      form.appendChild(field);
+    }
+
+    form.submit();
+  }
+
   $(document.body).observe("click", function(event) {
-    var message = event.element().readAttribute('data-confirm');
+    var message = event.findElement().readAttribute('data-confirm');
     if (message && !confirm(message)) {
       event.stop();
       return false;
     }
 
-    var element = event.findElement("a[data-remote=true]");
+    var element = event.findElement("a[data-remote]");
     if (element) {
       handleRemote(element);
       event.stop();
+      return true;
     }
 
     var element = event.findElement("a[data-method]");
-    if (element && element.readAttribute('data-remote') != 'true') {
-      var method = element.readAttribute('data-method'),
-        piggyback = method.toLowerCase() != 'post',
-        formHTML = formTemplate.interpolate({
-          method: 'POST',
-          realmethod: piggyback ? realmethodTemplate.interpolate({ method: method }) : '',
-          action: element.readAttribute('href'),
-          token: authToken,
-          param: authParam
-        });
-
-      var form = new Element('div').update(formHTML).down().hide();
-      this.insert({ bottom: form });
-
-      form.submit();
+    if (element) {
+      handleMethod(element);
       event.stop();
+      return true;
     }
   });
 
   // TODO: I don't think submit bubbles in IE
   $(document.body).observe("submit", function(event) {
-    var message = event.element().readAttribute('data-confirm');
+    var element = event.findElement(),
+        message = element.readAttribute('data-confirm');
     if (message && !confirm(message)) {
       event.stop();
       return false;
     }
 
-    var inputs = event.element().select("input[type=submit][data-disable-with]");
+    var inputs = element.select("input[type=submit][data-disable-with]");
     inputs.each(function(input) {
       input.disabled = true;
       input.writeAttribute('data-original-value', input.value);
       input.value = input.readAttribute('data-disable-with');
     });
 
-    var element = event.findElement("form[data-remote=true]");
+    var element = event.findElement("form[data-remote]");
     if (element) {
       handleRemote(element);
       event.stop();
     }
   });
 
-  $(document.body).observe("ajax:complete", function(event) {
-    var element = event.element();
+  $(document.body).observe("ajax:after", function(event) {
+    var element = event.findElement();
 
-    if (element.tagName.toLowerCase() == 'form') {
+    if (element.tagName.toLowerCase() === 'form') {
       var inputs = element.select("input[type=submit][disabled=true][data-disable-with]");
       inputs.each(function(input) {
         input.value = input.readAttribute('data-original-value');

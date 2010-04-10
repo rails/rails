@@ -30,7 +30,6 @@ module ActionController
 
       Cookies,
       Flash,
-      Verification,
       RequestForgeryProtection,
       Streaming,
       RecordIdentifier,

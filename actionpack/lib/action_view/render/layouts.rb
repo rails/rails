@@ -48,7 +48,7 @@ module ActionView
     #
     def _layout_for(name = nil, &block) #:nodoc:
       if !block || name
-        @_content_for[name || :layout]
+        @_content_for[name || :layout].html_safe
       else
         capture(&block)
       end

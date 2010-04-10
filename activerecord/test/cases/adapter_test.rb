@@ -81,12 +81,6 @@ class AdapterTest < ActiveRecord::TestCase
     def test_encoding
       assert_not_nil @connection.encoding
     end
-
-    def test_all_schemas
-      @connection.create_schema(:test_schema, :postgres)
-      assert @connection.all_schemas.include?('test_schema')
-      @connection.drop_schema(:test_schema)
-    end
   end
 
   def test_table_alias

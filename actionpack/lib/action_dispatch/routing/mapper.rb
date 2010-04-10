@@ -324,7 +324,8 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope(path.to_s, :name_prefix => path.to_s, :controller_namespace => path.to_s) { yield }
+          path = path.to_s
+          scope(:path => path, :name_prefix => path, :module => path) { yield }
         end
 
         def constraints(constraints = {})
@@ -363,15 +364,15 @@ module ActionDispatch
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_controller_namespace_scope(parent, child)
+          def merge_module_scope(parent, child)
             parent ? "#{parent}/#{child}" : child
           end
 
           def merge_controller_scope(parent, child)
-            @scope[:controller_namespace] ? "#{@scope[:controller_namespace]}/#{child}" : child
+            @scope[:module] ? "#{@scope[:module]}/#{child}" : child
           end
 
-          def merge_resources_path_names_scope(parent, child)
+          def merge_path_names_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
@@ -520,7 +521,7 @@ module ActionDispatch
 
         def initialize(*args) #:nodoc:
           super
-          @scope[:resources_path_names] = @set.resources_path_names
+          @scope[:path_names] = @set.resources_path_names
         end
 
         def resource(*resources, &block)
@@ -636,7 +637,7 @@ module ActionDispatch
             return self
           end
 
-          resources_path_names = options.delete(:path_names)
+          path_names = options.delete(:path_names)
 
           if args.first.is_a?(Symbol)
             action = args.first
@@ -653,7 +654,7 @@ module ActionDispatch
               end
             else
               with_exclusive_name_prefix(action) do
-                return match("#{action_path(action, resources_path_names)}(.:format)", options.reverse_merge(:to => action))
+                return match("#{action_path(action, path_names)}(.:format)", options.reverse_merge(:to => action))
               end
             end
           end
@@ -681,7 +682,7 @@ module ActionDispatch
 
         private
           def action_path(name, path_names = nil)
-            path_names ||= @scope[:resources_path_names]
+            path_names ||= @scope[:path_names]
             path_names[name.to_sym] || name.to_s
           end
 
@@ -692,7 +693,7 @@ module ActionDispatch
             end
 
             if path_names = options.delete(:path_names)
-              scope(:resources_path_names => path_names) do
+              scope(:path_names => path_names) do
                 send(method, resources.pop, options, &block)
               end
               return true

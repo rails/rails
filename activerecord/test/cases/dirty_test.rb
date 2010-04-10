@@ -54,6 +54,89 @@ class DirtyTest < ActiveRecord::TestCase
     assert_nil pirate.catchphrase_change
   end
 
+  def test_time_attributes_changes_with_time_zone
+    in_time_zone 'Paris' do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
+
+      # New record - no changes.
+      pirate = target.new
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
+
+      # Saved - no changes.
+      pirate.catchphrase = 'arrrr, time zone!!'
+      pirate.save!
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
+
+      # Change created_on.
+      old_created_on = pirate.created_on
+      pirate.created_on = Time.now - 1.day
+      assert pirate.created_on_changed?
+      assert_kind_of ActiveSupport::TimeWithZone, pirate.created_on_was
+      assert_equal old_created_on, pirate.created_on_was
+    end
+  end
+
+  def test_time_attributes_changes_without_time_zone_by_skip
+    in_time_zone 'Paris' do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
+
+      target.skip_time_zone_conversion_for_attributes = [:created_on]
+
+      # New record - no changes.
+      pirate = target.new
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
+
+      # Saved - no changes.
+      pirate.catchphrase = 'arrrr, time zone!!'
+      pirate.save!
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
+
+      # Change created_on.
+      old_created_on = pirate.created_on
+      pirate.created_on = Time.now + 1.day
+      assert pirate.created_on_changed?
+      # kind_of does not work because
+      # ActiveSupport::TimeWithZone.name == 'Time'
+      assert_equal Time, pirate.created_on_was.class
+      assert_equal old_created_on, pirate.created_on_was
+    end
+  end
+
+  def test_time_attributes_changes_without_time_zone
+
+    target = Class.new(ActiveRecord::Base)
+    target.table_name = 'pirates'
+
+    target.time_zone_aware_attributes = false
+
+    # New record - no changes.
+    pirate = target.new
+    assert !pirate.created_on_changed?
+    assert_nil pirate.created_on_change
+
+    # Saved - no changes.
+    pirate.catchphrase = 'arrrr, time zone!!'
+    pirate.save!
+    assert !pirate.created_on_changed?
+    assert_nil pirate.created_on_change
+
+    # Change created_on.
+    old_created_on = pirate.created_on
+    pirate.created_on = Time.now + 1.day
+    assert pirate.created_on_changed?
+    # kind_of does not work because
+    # ActiveSupport::TimeWithZone.name == 'Time'
+    assert_equal Time, pirate.created_on_was.class
+    assert_equal old_created_on, pirate.created_on_was
+  end
+
+
   def test_aliased_attribute_changes
     # the actual attribute here is name, title is an
     # alias setup via alias_attribute
@@ -405,5 +488,17 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.parrot_id_changed?
       assert_equal %w(parrot_id), pirate.changed
       assert_nil pirate.parrot_id_was
+    end
+
+    def in_time_zone(zone)
+      old_zone  = Time.zone
+      old_tz    = ActiveRecord::Base.time_zone_aware_attributes
+
+      Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
+      ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
+      yield
+    ensure
+      Time.zone = old_zone
+      ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end

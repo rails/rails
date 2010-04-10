@@ -172,6 +172,27 @@ module ApplicationTests
       assert $prepared
     end
 
+    test "config.encoding sets the default encoding" do
+      add_to_config <<-RUBY
+        config.encoding = "utf-8"
+      RUBY
+
+      require "#{app_path}/config/application"
+
+      unless RUBY_VERSION < '1.9'
+        assert_equal Encoding.find("utf-8"), Encoding.default_external
+      end
+    end
+
+    test "config.paths.public sets Rails.public_path" do
+      add_to_config <<-RUBY
+        config.paths.public = "somewhere"
+      RUBY
+
+      require "#{app_path}/config/application"
+      assert_equal File.join(app_path, "somewhere"), Rails.public_path
+    end
+
     def make_basic_app
       require "rails"
       require "action_controller/railtie"

@@ -106,4 +106,13 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     assert_response 405
     assert_match /ActionController::MethodNotAllowed/, body
   end
+
+  test "does not show filtered parameters" do
+    @app = DevelopmentApp
+
+    get "/", {"foo"=>"bar"}, {'action_dispatch.show_exceptions' => true,
+      'action_dispatch.parameter_filter' => [:foo]}
+    assert_response 500
+    assert_match "&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body
+  end
 end

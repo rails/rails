@@ -1136,21 +1136,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
     end
 
-    def test_migrator_interleaved_migrations
-      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
-
-      assert_nothing_raised do
-        ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2")
-      end
-
-      Person.reset_column_information
-      assert Person.column_methods_hash.include?(:last_name)
-
-      assert_nothing_raised do
-        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/interleaved/pass_3")
-      end
-    end
-
     def test_migrator_db_has_no_schema_migrations_table
       # Oracle adapter raises error if semicolon is present as last character
       if current_adapter?(:OracleAdapter)
@@ -1362,16 +1347,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    def test_migration_should_be_run_without_logger
-      previous_logger = ActiveRecord::Base.logger
-      ActiveRecord::Base.logger = nil
-      assert_nothing_raised do
-        ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-      end
-    ensure
-      ActiveRecord::Base.logger = previous_logger
-    end
-
     protected
       def with_env_tz(new_tz = 'US/Eastern')
         old_tz, ENV['TZ'] = ENV['TZ'], new_tz
@@ -1456,6 +1431,45 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
   end # SexyMigrationsTest
+
+  class MigrationLoggerTest < ActiveRecord::TestCase
+    def setup
+      Object.send(:remove_const, :InnocentJointable)
+    end
+
+    def test_migration_should_be_run_without_logger
+      previous_logger = ActiveRecord::Base.logger
+      ActiveRecord::Base.logger = nil
+      assert_nothing_raised do
+        ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
+      end
+    ensure
+      ActiveRecord::Base.logger = previous_logger
+    end
+  end
+
+  class InterleavedMigrationsTest < ActiveRecord::TestCase
+    def setup
+      Object.send(:remove_const, :PeopleHaveLastNames)
+    end
+
+    def test_migrator_interleaved_migrations
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
+
+      assert_nothing_raised do
+        ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2")
+      end
+
+      Person.reset_column_information
+      assert Person.column_methods_hash.include?(:last_name)
+
+      Object.send(:remove_const, :PeopleHaveLastNames)
+      Object.send(:remove_const, :InnocentJointable)
+      assert_nothing_raised do
+        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/interleaved/pass_3")
+      end
+    end
+  end
 
   class ChangeTableMigrationsTest < ActiveRecord::TestCase
     def setup

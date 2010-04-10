@@ -1,4 +1,21 @@
-*Rails 3.0.0 [Edge] (pending)*
+*Rails 3.0.0 [beta 3] (pending)*
+
+* Removed verify method in controllers. [JV]
+  It's now available as a plugin at http://github.com/rails/verification
+
+* Removed input, form, error_messages_for and error_message_on from views. [JV]
+  It's now available as a plugin at http://github.com/rails/dynamic_form
+
+* Routes can be scoped by controller module. [Jeremy Kemper]
+
+    # /session => Auth::SessionsController
+    scope :module => 'auth' do
+      resource :session
+    end
+
+* Added #favicon_link_tag, it uses #image_path so in particular the favicon gets an asset ID [fxn]
+
+* Fixed that default locale templates should be used if the current locale template is missing [DHH]
 
 * Added all the new HTML5 form types as individual form tag methods (search, url, number, etc) #3646 [Stephen Celis]
 
