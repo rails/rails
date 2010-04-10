@@ -6,15 +6,6 @@ module ActionController
         deprecated_config_writer(option, message)
       end
 
-      # This method has been moved to ActionDispatch::Request.filter_parameters
-      def filter_parameter_logging(*args, &block)
-        ActiveSupport::Deprecation.warn("Setting filter_parameter_logging in ActionController is deprecated and has no longer effect, please set 'config.filter_parameters' in config/application.rb instead", caller)
-        filter = Rails.application.config.filter_parameters
-        filter.concat(args)
-        filter << block if block
-        filter
-      end
-
       def deprecated_config_reader(option, message = nil)
         message ||= "Reading #{option} directly from ActionController::Base is deprecated. " \
                     "Please read it from config.#{option}"
@@ -135,6 +126,25 @@ module ActionController
         use_accept_header
       end
     end
+
+    module DeprecatedBehavior
+      # This method has been moved to ActionDispatch::Request.filter_parameters
+      def filter_parameter_logging(*args, &block)
+        ActiveSupport::Deprecation.warn("Setting filter_parameter_logging in ActionController is deprecated and has no longer effect, please set 'config.filter_parameters' in config/application.rb instead", caller)
+        filter = Rails.application.config.filter_parameters
+        filter.concat(args)
+        filter << block if block
+        filter
+      end
+
+      # This was moved to a plugin
+      def verify(*args)
+        ActiveSupport::Deprecation.warn "verify was removed from Rails and is now available as a plugin. " <<
+          "Please install it with `rails plugin install git://github.com/rails/verification.git`.", caller
+      end
+    end
+
+    extend DeprecatedBehavior
 
     deprecated_config_writer :session_store
     deprecated_config_writer :session_options

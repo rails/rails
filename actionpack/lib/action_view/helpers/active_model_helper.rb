@@ -16,7 +16,7 @@ module ActionView
       %w(input form error_messages_for error_message_on).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args)
-            ActiveSupport::Deprecation.warn "#{method} was removed from Rails and is now available as plugin. " <<
+            ActiveSupport::Deprecation.warn "#{method} was removed from Rails and is now available as a plugin. " <<
               "Please install it with `rails plugin install git://github.com/rails/dynamic_form.git`.", caller
           end
         RUBY
@@ -27,7 +27,7 @@ module ActionView
       %w(error_messages error_message_on).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args)
-            ActiveSupport::Deprecation.warn "f.#{method} was removed from Rails and is now available as plugin. " <<
+            ActiveSupport::Deprecation.warn "f.#{method} was removed from Rails and is now available as a plugin. " <<
               "Please install it with `rails plugin install git://github.com/rails/dynamic_form.git`.", caller
           end
         RUBY
