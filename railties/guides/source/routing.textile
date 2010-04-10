@@ -609,10 +609,10 @@ resources :photos, :path_names => { :new => 'make', :edit => 'change' }
 
 This would cause the routing to recognize URLs such as
 
-<pre>
+<plain>
 /photos/make
 /photos/1/change
-</pre>
+</plain>
 
 NOTE: The actual action names aren't changed by this option. The two URLs shown would still route to the new and edit actions.
 
