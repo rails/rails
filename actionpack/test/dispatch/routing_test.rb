@@ -140,7 +140,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       namespace :account do
         match 'shorthand'
-        match 'description', :to => "account#description", :as => "description"
+        match 'description', :to => "description", :as => "description"
         resource :subscription, :credit, :credit_card
 
         root :to => "account#index"
@@ -864,7 +864,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       assert_equal '/account', account_root_path
       get '/account'
-      assert_equal 'account#index', @response.body
+      assert_equal 'account/account#index', @response.body
     end
   end
 
