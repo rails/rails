@@ -97,7 +97,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_money_values
     assert_equal 567.89, @first_money.wealth
-    assert_equal -567.89, @second_money.wealth
+    assert_equal(-567.89, @second_money.wealth)
   end
 
   def test_number_values
