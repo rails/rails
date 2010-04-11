@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrap'
+
 module ActiveRecord
   module Associations
     # This is the root class of all association proxies:
@@ -55,7 +57,7 @@ module ActiveRecord
         @owner, @reflection = owner, reflection
         @updated = false
         reflection.check_validity!
-        Array(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
+        Array.wrap(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset
       end
 

@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
@@ -26,7 +27,7 @@ module ActiveRecord
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             value = build_where(*args)
-            new_relation.#{query_method}_values += [*value] if value.present?
+            new_relation.#{query_method}_values += Array.wrap(value) if value.present?
             new_relation
           end
         CEVAL
