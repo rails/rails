@@ -65,7 +65,7 @@ module ActionView
     # a person. If <tt>@person</tt> is an existing record with name "John Smith" and ID 256,
     # the code above as is would yield instead:
     #
-    #   <form action="/people/256" class="edit_person" id="edit_person_1" method="post">
+    #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
     #     <div style="margin:0;padding:0;display:inline">
     #       <input name="_method" type="hidden" value="put" />
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
