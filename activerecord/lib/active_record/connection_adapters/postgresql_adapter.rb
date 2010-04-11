@@ -670,8 +670,30 @@ module ActiveRecord
       def tables(name = nil)
         query(<<-SQL, name).map { |row| row[0] }
           SELECT tablename
+          FROM pg_tables
+          WHERE schemaname = ANY (current_schemas(false))
+        SQL
+      end
+
+      def table_exists?(name)
+        name          = name.to_s
+        schema, table = name.split('.', 2)
+
+        unless table # A table was provided without a schema
+          table  = schema
+          schema = nil
+        end
+
+        if name =~ /^"/ # Handle quoted table names
+          table  = name
+          schema = nil
+        end
+
+        query(<<-SQL).first[0].to_i > 0
+            SELECT COUNT(*)
             FROM pg_tables
-           WHERE schemaname = ANY (current_schemas(false))
+            WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
+            #{schema ? "AND schemaname = '#{schema}'" : ''}
         SQL
       end
 
