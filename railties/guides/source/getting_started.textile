@@ -232,13 +232,13 @@ If you choose to use MySQL instead of the shipped Sqlite3 database, your +config
 
 <yaml>
 development:
-adapter: mysql
-encoding: utf8
-database: blog_development
-pool: 5
-username: root
-password:
-socket: /tmp/mysql.sock
+  adapter: mysql
+  encoding: utf8
+  database: blog_development
+  pool: 5
+  username: root
+  password:
+  socket: /tmp/mysql.sock
 </yaml>
 
 If your development computer's MySQL installation includes a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the +development+ section as appropriate.
@@ -249,12 +249,12 @@ Finally if you choose to use PostgreSQL, your +config/database.yml+ will be cust
 
 <yaml>
 development:
-adapter: postgresql
-encoding: unicode
-database: blog_development
-pool: 5
-username: blog
-password:
+  adapter: postgresql
+  encoding: unicode
+  database: blog_development
+  pool: 5
+  username: blog
+  password:
 </yaml>
 
 Change the username and password in the +development+ section as appropriate.
