@@ -27,6 +27,14 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/account.rb", /class Account < Admin::Account/
   end
 
+  def test_model_with_namespace
+    run_generator ["admin/account"]
+    assert_file "app/models/admin.rb", /module Admin/
+    assert_file "app/models/admin.rb", /def self\.table_name_prefix/
+    assert_file "app/models/admin.rb", /'admin_'/
+    assert_file "app/models/admin/account.rb", /class Admin::Account < ActiveRecord::Base/
+  end
+
   def test_migration
     run_generator
     assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
