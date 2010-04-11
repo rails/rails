@@ -3,6 +3,7 @@ require 'set'
 require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/time'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/class/inheritable_attributes'
@@ -341,15 +342,15 @@ module ActiveRecord #:nodoc:
     #
     # If you are organising your models within modules you can add a prefix to the models within a namespace by defining
     # a singleton method in the parent module called table_name_prefix which returns your chosen prefix.
-    cattr_accessor :table_name_prefix, :instance_writer => false
-    @@table_name_prefix = ""
+    class_attribute :table_name_prefix, :instance_writer => false
+    self.table_name_prefix = ""
 
     ##
     # :singleton-method:
     # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
     # "people_basecamp"). By default, the suffix is the empty string.
-    cattr_accessor :table_name_suffix, :instance_writer => false
-    @@table_name_suffix = ""
+    class_attribute :table_name_suffix, :instance_writer => false
+    self.table_name_suffix = ""
 
     ##
     # :singleton-method:
