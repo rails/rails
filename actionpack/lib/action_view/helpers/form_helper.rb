@@ -11,21 +11,25 @@ module ActionView
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
-    # Model-based forms are created with +form_for+. That method yields a form
+    # Forms for models are created with +form_for+. That method yields a form
     # builder that knows the model the form is about. The form builder is thus
     # able to generate default values for input fields that correspond to model
-    # attributes, and also convenient element names, IDs, endpoints, etc.
+    # attributes, and also convenient names, IDs, endpoints, etc.
     #
     # Conventions in the generated field names allow controllers to receive form
     # data nicely structured in +params+ with no effort on your side.
     #
-    # For example, to create a new +Person+ resource you typically set up a new
-    # instance in <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # write the form in <tt>new.html.erb</tt> this way:
+    # For example, to create a new person you typically set up a new instance of
+    # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
+    # pass it to +form_for+:
     #
     #   <%= form_for @person do |f| %>
-    #     <%= f.text_field :first_name %>
-    #     <%= f.text_field :last_name %>
+    #     <%= f.label :first_name %>:
+    #     <%= f.text_field :first_name %><br />
+    #
+    #     <%= f.label :last_name %>:
+    #     <%= f.text_field :last_name %><br />
+    #
     #     <%= f.submit %>
     #   <% end %>
     #
@@ -35,16 +39,54 @@ module ActionView
     #     <div style="margin:0;padding:0;display:inline">
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
-    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" />
-    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" />
+    #     <label for="person_first_name">First name</label>:
+    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" /><br />
+    #
+    #     <label for="person_last_name">Last name</label>:
+    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" /><br />
+    #
     #     <input id="person_submit" name="commit" type="submit" value="Create Person" />
     #   </form>
     #
-    # Because of the names of the input fields, the controller gets a <tt>:person</tt>
-    # nested hash in +params+ with the corresponding first and last names. That hash
-    # is ready to be passed to <tt>Person.create</tt> like this:
+    # As you see, the HTML reflects knowledge about the resource in several spots,
+    # like the path the form should be submitted to, or the names of the input fields.
     #
-    #   if person = Person.create(params[:person])
+    # In particular, thanks to the conventions followed in the generated field names, the
+    # controller gets a nested hash <tt>params[:person]</tt> with the person attributes
+    # set in the form. That hash is ready to be passed to <tt>Person.create</tt>:
+    #
+    #   if @person = Person.create(params[:person])
+    #     # success
+    #   else
+    #     # error handling
+    #   end
+    #
+    # Interestingly, the exact same view code in the previous example can be used to edit
+    # a person. If <tt>@person</tt> is an existing record with name "John Smith" and ID 256,
+    # the code above as is would yield instead:
+    #
+    #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
+    #     <div style="margin:0;padding:0;display:inline">
+    #       <input name="_method" type="hidden" value="put" />
+    #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
+    #     </div>
+    #     <label for="person_first_name">First name</label>:
+    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" value="John" /><br />
+    #
+    #     <label for="person_last_name">Last name</label>:
+    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" value="Smith" /><br />
+    #
+    #     <input id="person_submit" name="commit" type="submit" value="Update Person" />
+    #   </form>
+    #
+    # Note that the endpoint, default values, and submit button label are tailored for <tt>@person</tt>.
+    # That works that way because the involved helpers know whether the resource is a new record or not,
+    # and generate HTML accordingly.
+    #
+    # The controller would receive the form data again in <tt>params[:person]</tt>, ready to be
+    # passed to <tt>Person#update_attributes</tt>:
+    #
+    #   if @person.update_attributes(params[:person])
     #     # success
     #   else
     #     # error handling
