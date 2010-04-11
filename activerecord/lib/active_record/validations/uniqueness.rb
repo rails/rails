@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrap'
+
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator
@@ -19,7 +21,7 @@ module ActiveRecord
 
         relation = table.where(sql, *params)
 
-        Array(options[:scope]).each do |scope_item|
+        Array.wrap(options[:scope]).each do |scope_item|
           scope_value = record.send(scope_item)
           relation = relation.where(scope_item => scope_value)
         end

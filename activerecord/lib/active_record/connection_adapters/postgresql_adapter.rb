@@ -54,6 +54,12 @@ module ActiveRecord
         super(name, self.class.extract_value_from_default(default), sql_type, null)
       end
 
+      # :stopdoc:
+      class << self
+        attr_accessor :money_precision
+      end
+      # :startdoc:
+
       private
         def extract_limit(sql_type)
           case sql_type
@@ -71,9 +77,11 @@ module ActiveRecord
 
         # Extracts the precision from PostgreSQL-specific data types.
         def extract_precision(sql_type)
-          # Actual code is defined dynamically in PostgreSQLAdapter.connect
-          # depending on the server specifics
-          super
+          if sql_type == 'money'
+            self.class.money_precision
+          else
+            super
+          end
         end
 
         # Maps PostgreSQL-specific data types to logical Rails types.
@@ -83,18 +91,18 @@ module ActiveRecord
             when /^(?:real|double precision)$/
               :float
             # Monetary types
-            when /^money$/
+            when 'money'
               :decimal
             # Character types
             when /^(?:character varying|bpchar)(?:\(\d+\))?$/
               :string
             # Binary data types
-            when /^bytea$/
+            when 'bytea'
               :binary
             # Date/time types
             when /^timestamp with(?:out)? time zone$/
               :datetime
-            when /^interval$/
+            when 'interval'
               :string
             # Geometric types
             when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
@@ -106,16 +114,16 @@ module ActiveRecord
             when /^bit(?: varying)?(?:\(\d+\))?$/
               :string
             # XML type
-            when /^xml$/
+            when 'xml'
               :xml
             # Arrays
             when /^\D+\[\]$/
               :string
             # Object identifier types
-            when /^oid$/
+            when 'oid'
               :integer
             # UUID type
-            when /^uuid$/
+            when 'uuid'
               :string
             # Small and big integer types
             when /^(?:small|big)int$/
@@ -383,9 +391,9 @@ module ActiveRecord
       def quote(value, column = nil) #:nodoc:
         if value.kind_of?(String) && column && column.type == :binary
           "#{quoted_string_prefix}'#{escape_bytea(value)}'"
-        elsif value.kind_of?(String) && column && column.sql_type =~ /^xml$/
+        elsif value.kind_of?(String) && column && column.sql_type == 'xml'
           "xml E'#{quote_string(value)}'"
-        elsif value.kind_of?(Numeric) && column && column.sql_type =~ /^money$/
+        elsif value.kind_of?(Numeric) && column && column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
           "'#{value.to_s}'"
         elsif value.kind_of?(String) && column && column.sql_type =~ /^bit/
@@ -925,7 +933,7 @@ module ActiveRecord
         # Construct a clean list of column names from the ORDER BY clause, removing
         # any ASC/DESC modifiers
         order_columns = order_by.split(',').collect { |s| s.split.first }
-        order_columns.delete_if &:blank?
+        order_columns.delete_if(&:blank?)
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 
         # Return a DISTINCT ON() clause that's distinct on the columns we want but includes
@@ -989,17 +997,8 @@ module ActiveRecord
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
           # should know about this but can't detect it there, so deal with it here.
-          money_precision = (postgresql_version >= 80300) ? 19 : 10
-          PostgreSQLColumn.module_eval(<<-end_eval)
-            def extract_precision(sql_type)  # def extract_precision(sql_type)
-              if sql_type =~ /^money$/       #   if sql_type =~ /^money$/
-                #{money_precision}           #     19
-              else                           #   else
-                super                        #     super
-              end                            #   end
-            end                              # end
-          end_eval
-
+          PostgreSQLColumn.money_precision =
+            (postgresql_version >= 80300) ? 19 : 10
           configure_connection
         end
 

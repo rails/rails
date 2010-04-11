@@ -55,6 +55,14 @@ module ActionDispatch
               path = args.first
             end
 
+            if @scope[:module] && options[:to]
+              if options[:to].to_s.include?("#")
+                options[:to] = "#{@scope[:module]}/#{options[:to]}"
+              elsif @scope[:controller].nil?
+                options[:to] = "#{@scope[:module]}##{options[:to]}"
+              end
+            end
+
             path = normalize_path(path)
 
             if using_match_shorthand?(path, options)

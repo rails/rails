@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/conversions'
 
 module ActiveRecord #:nodoc:
@@ -186,7 +187,7 @@ module ActiveRecord #:nodoc:
     end
 
     def serializable_method_attributes
-      Array(options[:methods]).inject([]) do |method_attributes, name|
+      Array.wrap(options[:methods]).inject([]) do |method_attributes, name|
         method_attributes << MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
         method_attributes
       end

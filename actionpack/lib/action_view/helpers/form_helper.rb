@@ -8,90 +8,91 @@ require 'active_support/core_ext/object/blank'
 
 module ActionView
   module Helpers
-    # Form helpers are designed to make working with models much easier
-    # compared to using just standard HTML elements by providing a set of
-    # methods for creating forms based on your models. This helper generates
-    # the HTML for forms, providing a method for each sort of input
-    # (e.g., text, password, select, and so on). When the form is submitted
-    # (i.e., when the user hits the submit button or <tt>form.submit</tt> is
-    # called via JavaScript), the form inputs will be bundled into the
-    # <tt>params</tt> object and passed back to the controller.
+    # Form helpers are designed to make working with resources much easier
+    # compared to using vanilla HTML.
     #
-    # There are two types of form helpers: those that specifically work with
-    # model attributes and those that don't. This helper deals with those that
-    # work with model attributes; to see an example of form helpers that don't
-    # work with model attributes, check the ActionView::Helpers::FormTagHelper
-    # documentation.
+    # Forms for models are created with +form_for+. That method yields a form
+    # builder that knows the model the form is about. The form builder is thus
+    # able to generate default values for input fields that correspond to model
+    # attributes, and also convenient names, IDs, endpoints, etc.
     #
-    # The core method of this helper, form_for, gives you the ability to create
-    # a form for a model instance; for example, let's say that you have a model
-    # <tt>Person</tt> and want to create a new instance of it:
+    # Conventions in the generated field names allow controllers to receive form
+    # data nicely structured in +params+ with no effort on your side.
     #
-    #     # Note: a @person variable will have been created in the controller.
-    #     # For example: @person = Person.new
-    #     <%= form_for @person do |f| %>
-    #       <%= f.text_field :first_name %>
-    #       <%= f.text_field :last_name %>
-    #       <%= submit_tag 'Create' %>
-    #     <% end %>
+    # For example, to create a new person you typically set up a new instance of
+    # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
+    # pass it to +form_for+:
     #
-    # The HTML generated for this would be:
+    #   <%= form_for @person do |f| %>
+    #     <%= f.label :first_name %>:
+    #     <%= f.text_field :first_name %><br />
     #
-    #     <form action="/persons/create" method="post">
-    #       <input id="person_first_name" name="person[first_name]" size="30" type="text" />
-    #       <input id="person_last_name" name="person[last_name]" size="30" type="text" />
-    #       <input name="commit" type="submit" value="Create" />
-    #     </form>
+    #     <%= f.label :last_name %>:
+    #     <%= f.text_field :last_name %><br />
     #
-    # If you are using a partial for your form fields, you can use this shortcut:
+    #     <%= f.submit %>
+    #   <% end %>
     #
-    #     <%= form_for :person, @person do |form| %>
-    #       <%= render :partial => f %>
-    #       <%= submit_tag 'Create' %>
-    #     <% end %>
+    # The HTML generated for this would be (modulus formatting):
     #
-    # This example will render the <tt>people/_form</tt> partial, setting a
-    # local variable called <tt>form</tt> which references the yielded
-    # FormBuilder. The <tt>params</tt> object created when this form is
-    # submitted would look like:
+    #   <form action="/people" class="new_person" id="new_person" method="post">
+    #     <div style="margin:0;padding:0;display:inline">
+    #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
+    #     </div>
+    #     <label for="person_first_name">First name</label>:
+    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" /><br />
     #
-    #     {"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
+    #     <label for="person_last_name">Last name</label>:
+    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" /><br />
     #
-    # The params hash has a nested <tt>person</tt> value, which can therefore
-    # be accessed with <tt>params[:person]</tt> in the controller. If were
-    # editing/updating an instance (e.g., <tt>Person.find(1)</tt> rather than
-    # <tt>Person.new</tt> in the controller), the objects attribute values are
-    # filled into the form (e.g., the <tt>person_first_name</tt> field would
-    # have that person's first name in it).
+    #     <input id="person_submit" name="commit" type="submit" value="Create Person" />
+    #   </form>
     #
-    # If the object name contains square brackets the id for the object will be
-    # inserted. For example:
+    # As you see, the HTML reflects knowledge about the resource in several spots,
+    # like the path the form should be submitted to, or the names of the input fields.
     #
-    #   <%= text_field "person[]", "name" %>
+    # In particular, thanks to the conventions followed in the generated field names, the
+    # controller gets a nested hash <tt>params[:person]</tt> with the person attributes
+    # set in the form. That hash is ready to be passed to <tt>Person.create</tt>:
     #
-    # ...will generate the following ERb.
+    #   if @person = Person.create(params[:person])
+    #     # success
+    #   else
+    #     # error handling
+    #   end
     #
-    #   <input type="text" id="person_<%= @person.id %>_name" name="person[<%= @person.id %>][name]" value="<%= @person.name %>" />
+    # Interestingly, the exact same view code in the previous example can be used to edit
+    # a person. If <tt>@person</tt> is an existing record with name "John Smith" and ID 256,
+    # the code above as is would yield instead:
     #
-    # If the helper is being used to generate a repetitive sequence of similar
-    # form elements, for example in a partial used by
-    # <tt>render_collection_of_partials</tt>, the <tt>index</tt> option may
-    # come in handy. Example:
+    #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
+    #     <div style="margin:0;padding:0;display:inline">
+    #       <input name="_method" type="hidden" value="put" />
+    #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
+    #     </div>
+    #     <label for="person_first_name">First name</label>:
+    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" value="John" /><br />
     #
-    #   <%= text_field "person", "name", "index" => 1 %>
+    #     <label for="person_last_name">Last name</label>:
+    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" value="Smith" /><br />
     #
-    # ...becomes...
+    #     <input id="person_submit" name="commit" type="submit" value="Update Person" />
+    #   </form>
     #
-    #   <input type="text" id="person_1_name" name="person[1][name]" value="<%= @person.name %>" />
+    # Note that the endpoint, default values, and submit button label are tailored for <tt>@person</tt>.
+    # That works that way because the involved helpers know whether the resource is a new record or not,
+    # and generate HTML accordingly.
     #
-    # An <tt>index</tt> option may also be passed to <tt>form_for</tt> and
-    # <tt>fields_for</tt>.  This automatically applies the <tt>index</tt> to
-    # all the nested fields.
+    # The controller would receive the form data again in <tt>params[:person]</tt>, ready to be
+    # passed to <tt>Person#update_attributes</tt>:
     #
-    # There are also methods for helping to build form tags in
-    # link:classes/ActionView/Helpers/FormOptionsHelper.html,
-    # link:classes/ActionView/Helpers/DateHelper.html, and
-    # link:classes/ActionView/Helpers/ActiveRecordHelper.html
+    #   if @person.update_attributes(params[:person])
+    #     # success
+    #   else
+    #     # error handling
+    #   end
+    #
+    # That's how you tipically work with resources.
     module FormHelper
       extend ActiveSupport::Concern
 
@@ -129,9 +130,8 @@ module ActionView
       #     Admin?    : <%= f.check_box :admin %><br />
       #   <% end %>
       #
-      # There, the first argument is a symbol or string with the name of the
-      # object the form is about, and also the name of the instance variable
-      # the object is stored in.
+      # There, the argument is a symbol or string with the name of the
+      # object the form is about.
       #
       # The form builder acts as a regular form helper that somehow carries the
       # model. Thus, the idea is that
@@ -142,26 +142,7 @@ module ActionView
       #
       #   <%= text_field :person, :first_name %>
       #
-      # If the instance variable is not <tt>@person</tt> you can pass the actual
-      # record as the second argument:
-      #
-      #   <%= form_for :person, person do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # In that case you can think
-      #
-      #   <%= f.text_field :first_name %>
-      #
-      # gets expanded to
-      #
-      #   <%= text_field :person, :first_name, :object => person %>
-      #
-      # You can even display error messages of the wrapped model this way:
-      #
-      #   <%= f.error_messages %>
-      #
-      # In any of its variants, the rightmost argument to +form_for+ is an
+      # The rightmost argument to +form_for+ is an
       # optional hash of options:
       #
       # * <tt>:url</tt> - The URL the form is submitted to. It takes the same
@@ -177,7 +158,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <%= form_for :person, @person do |f| %>
+      #   <%= form_for @person do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -203,7 +184,7 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -213,15 +194,22 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # expands to
+      # is equivalent to something like:
       #
-      #   <%= form_for :post, Post.new, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
       # You can also overwrite the individual conventions, like this:
       #
       #   <%= form_for(@post, :url => super_post_path(@post)) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # If you have an object that needs to be represented as a different
+      # parameter, like a Client that acts as a Person:
+      #
+      #   <%= form_for(@post, :as => :client do |f| %>
       #     ...
       #   <% end %>
       #
@@ -245,13 +233,13 @@ module ActionView
       #
       # Example:
       #
-      #   <%= form_for(:post, @post, :remote => true, :html => { :id => 'create-post', :method => :put }) do |f| %>
+      #   <%= form_for(@post, :remote => true) do |f| %>
       #     ...
       #   <% end %>
       #
       # The HTML generated for this would be:
       #
-      #   <form action='http://www.example.com' id='create-post' method='post' data-remote='true'>
+      #   <form action='http://www.example.com' method='post' data-remote='true'>
       #     <div style='margin:0;padding:0;display:inline'>
       #       <input name='_method' type='hidden' value='put' />
       #     </div>
@@ -265,7 +253,7 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   <%= form_for :person, @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
+      #   <%= form_for @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= text_area :person, :biography %>

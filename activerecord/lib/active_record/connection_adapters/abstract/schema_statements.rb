@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrap'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
@@ -267,7 +269,7 @@ module ActiveRecord
       # generates
       #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
       def add_index(table_name, column_name, options = {})
-        column_names = Array(column_name)
+        column_names = Array.wrap(column_name)
         index_name   = index_name(table_name, :column => column_names)
 
         if Hash === options # legacy support, since this param was a string
@@ -297,7 +299,7 @@ module ActiveRecord
       def index_name(table_name, options) #:nodoc:
         if Hash === options # legacy support
           if options[:column]
-            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+            "index_#{table_name}_on_#{Array.wrap(options[:column]) * '_and_'}"
           elsif options[:name]
             options[:name]
           else
