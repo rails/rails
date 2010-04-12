@@ -103,7 +103,7 @@ The default +environment.rb+ files has instructions on how to add locales from a
 # The internationalization framework can be changed
 # to have another default locale (standard is :en) or more load paths.
 # All files from config/locales/*.rb,yml are added automatically.
-# config.i18n.load_path << Dir[File.join(Rails.root, 'my', 'locales', '*.{rb,yml}')]
+# config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
 # config.i18n.default_locale = :de
 </ruby>
 
@@ -117,8 +117,7 @@ To tell the I18n library where it can find your custom translation files you can
 # in config/initializers/locale.rb
 
 # tell the I18n library where to find your translations
-I18n.load_path << Dir[ File.join(Rails.root, 'lib', 'locale', 
-  '*.{rb,yml}') ]
+I18n.load_path << Dir[Rails.root.join('lib', 'locale', '*.{rb,yml}')]
 
 # set default locale to something other than :en
 I18n.default_locale = :pt
@@ -423,7 +422,8 @@ NOTE: The default locale loading mechanism in Rails does not load locale files i
 
 <ruby>
   # config/environment.rb
-  config.i18n.load_path += Dir[File.join(Rails.root, 'config', 'locales', '**', '*.{rb,yml}')]
+  config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.{rb,yml}')]
+
 </ruby>
 
 Do check the "Rails i18n Wiki":http://rails-i18n.org/wiki for list of tools available for managing translations.
