@@ -52,6 +52,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match 'global/:action'
       end
 
+      match "/local/:action", :controller => "local"
+
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
       end
@@ -412,6 +414,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/global/export', export_request_path
       assert_equal '/global/hide_notice', global_hide_notice_path
       assert_equal '/export/123/foo.txt', export_download_path(:id => 123, :file => 'foo.txt')
+    end
+  end
+
+  def test_local
+    with_test_routes do
+      get '/local/dashboard'
+      assert_equal 'local#dashboard', @response.body
     end
   end
 

@@ -124,10 +124,12 @@ module ActionDispatch
                 controller, action = to.split('#')
                 { :controller => controller, :action => action }
               when Symbol
-                { :action => to.to_s }.merge(default_controller ? { :controller => default_controller } : {})
+                { :action => to.to_s }
               else
-                default_controller ? { :controller => default_controller } : {}
+                {}
               end
+
+              defaults[:controller] ||= @options[:controller] || default_controller
 
               if defaults[:controller].blank? && segment_keys.exclude?("controller")
                 raise ArgumentError, "missing :controller"
