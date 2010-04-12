@@ -525,19 +525,25 @@ module ActionMailer #:nodoc:
       content_type = headers[:content_type]
       parts_order  = headers[:parts_order]
 
-      # Merge defaults from class
+      # Handle defaults
       headers = headers.reverse_merge(self.class.default)
-      charset = headers.delete(:charset)
-
-      # Quote fields
       headers[:subject] ||= default_i18n_subject
-      set_fields!(headers, charset)
+
+      # Apply charset at the beginning so all fields are properly quoted
+      m.charset = charset = headers[:charset]
+
+      # Set configure delivery behavior
+      wrap_delivery_behavior!(headers.delete(:delivery_method))
+
+      # Assign all headers except parts_order, content_type and body
+      assignable = headers.except(:parts_order, :content_type, :body)
+      assignable.each { |k, v| m[k] = v }
 
       # Render the templates and blocks
       responses, explicit_order = collect_responses_and_parts_order(headers, &block)
-      create_parts_from_responses(m, responses, charset)
+      create_parts_from_responses(m, responses)
 
-      # Finally setup content type and parts order
+      # Setup content type, reapply charset and handle parts order
       m.content_type = set_content_type(m, content_type, headers[:content_type])
       m.charset      = charset
 
@@ -547,12 +553,6 @@ module ActionMailer #:nodoc:
         m.body.sort_parts!
       end
 
-      # Set configure delivery behavior
-      wrap_delivery_behavior!(headers.delete(:delivery_method))
-
-      # Remove any missing configuration header and assign all others
-      headers.except!(:parts_order, :content_type)
-      headers.each { |k, v| m[k] = v }
       m
     end
 
@@ -575,17 +575,6 @@ module ActionMailer #:nodoc:
     def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
       I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
-    end
-
-    def set_fields!(headers, charset) #:nodoc:
-      m = @_message
-      m.charset = charset
-      m.subject  ||= headers.delete(:subject)  if headers[:subject]
-      m.to       ||= headers.delete(:to)       if headers[:to]
-      m.from     ||= headers.delete(:from)     if headers[:from]
-      m.cc       ||= headers.delete(:cc)       if headers[:cc]
-      m.bcc      ||= headers.delete(:bcc)      if headers[:bcc]
-      m.reply_to ||= headers.delete(:reply_to) if headers[:reply_to]
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
@@ -630,16 +619,16 @@ module ActionMailer #:nodoc:
       end
     end
 
-    def create_parts_from_responses(m, responses, charset) #:nodoc:
+    def create_parts_from_responses(m, responses) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
         responses[0].each { |k,v| m[k] = v }
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
         container.content_type = "multipart/alternative"
-        responses.each { |r| insert_part(container, r, charset) }
+        responses.each { |r| insert_part(container, r, m.charset) }
         m.add_part(container)
       else
-        responses.each { |r| insert_part(m, r, charset) }
+        responses.each { |r| insert_part(m, r, m.charset) }
       end
     end
 

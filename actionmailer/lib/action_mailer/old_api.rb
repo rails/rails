@@ -143,7 +143,7 @@ module ActionMailer
       { :content_type => content_type,
         :content_disposition => content_disposition }.merge(params)
     end
-    
+
     def create_mail 
       m = @_message
 
@@ -228,6 +228,17 @@ module ActionMailer
         :content_disposition => "inline",
         :body => body
       )
+    end
+
+    def set_fields!(headers, charset) #:nodoc:
+      m = @_message
+      m.charset = charset
+      m.subject  ||= headers.delete(:subject)  if headers[:subject]
+      m.to       ||= headers.delete(:to)       if headers[:to]
+      m.from     ||= headers.delete(:from)     if headers[:from]
+      m.cc       ||= headers.delete(:cc)       if headers[:cc]
+      m.bcc      ||= headers.delete(:bcc)      if headers[:bcc]
+      m.reply_to ||= headers.delete(:reply_to) if headers[:reply_to]
     end
 
     def split_content_type(ct) 
