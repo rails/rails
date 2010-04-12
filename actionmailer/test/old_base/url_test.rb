@@ -29,13 +29,12 @@ class UrlTestMailer < ActionMailer::Base
 end
 
 class ActionMailerUrlTest < Test::Unit::TestCase
-  include ActionMailer::Quoting
 
-  def encode( text, charset="utf-8" )
+  def encode( text, charset="UTF-8" )
     quoted_printable( text, charset )
   end
 
-  def new_mail( charset="utf-8" )
+  def new_mail( charset="UTF-8" )
     mail = Mail.new
     mail.mime_version = "1.0"
     if charset

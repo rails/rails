@@ -147,8 +147,8 @@ module ActionMailer
     def create_mail 
       m = @_message
 
-      quote_fields!({:subject => subject, :to => recipients, :from => from,
-                    :bcc => bcc, :cc => cc, :reply_to => reply_to}, charset)
+      set_fields!({:subject => subject, :to => recipients, :from => from,
+                   :bcc => bcc, :cc => cc, :reply_to => reply_to}, charset)
 
       m.mime_version = mime_version    unless mime_version.nil?
       m.date         = sent_on.to_time rescue sent_on if sent_on

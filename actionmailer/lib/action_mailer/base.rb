@@ -207,7 +207,7 @@ module ActionMailer #:nodoc:
   #   scores instead of hyphens, so <tt>Content-Transfer-Encoding:</tt>
   #   becomes <tt>:content_transfer_encoding</tt>. The defaults set by Action Mailer are:
   #   * <tt>:mime_version => "1.0"</tt>
-  #   * <tt>:charset      => "utf-8",</tt>
+  #   * <tt>:charset      => "UTF-8",</tt>
   #   * <tt>:content_type => "text/plain",</tt>
   #   * <tt>:parts_order  => [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
@@ -264,7 +264,7 @@ module ActionMailer #:nodoc:
   #   (i.e. multiple parts are assembled from templates which specify the content type in their
   #   filenames) this variable controls how the parts are ordered.
   class Base < AbstractController::Base
-    include DeliveryMethods, Quoting
+    include DeliveryMethods
     abstract!
 
     include AbstractController::Logger
@@ -286,7 +286,7 @@ module ActionMailer #:nodoc:
     class_attribute :default_params
     self.default_params = {
       :mime_version => "1.0",
-      :charset      => "utf-8",
+      :charset      => "UTF-8",
       :content_type => "text/plain",
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
@@ -531,7 +531,7 @@ module ActionMailer #:nodoc:
 
       # Quote fields
       headers[:subject] ||= default_i18n_subject
-      quote_fields!(headers, charset)
+      set_fields!(headers, charset)
 
       # Render the templates and blocks
       responses, explicit_order = collect_responses_and_parts_order(headers, &block)
@@ -577,15 +577,15 @@ module ActionMailer #:nodoc:
       I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
     end
 
-    # TODO: Move this into Mail
-    def quote_fields!(headers, charset) #:nodoc:
+    def set_fields!(headers, charset) #:nodoc:
       m = @_message
-      m.subject  ||= quote_if_necessary(headers.delete(:subject), charset)          if headers[:subject]
-      m.to       ||= quote_address_if_necessary(headers.delete(:to), charset)       if headers[:to]
-      m.from     ||= quote_address_if_necessary(headers.delete(:from), charset)     if headers[:from]
-      m.cc       ||= quote_address_if_necessary(headers.delete(:cc), charset)       if headers[:cc]
-      m.bcc      ||= quote_address_if_necessary(headers.delete(:bcc), charset)      if headers[:bcc]
-      m.reply_to ||= quote_address_if_necessary(headers.delete(:reply_to), charset) if headers[:reply_to]
+      m.charset = charset
+      m.subject  ||= headers.delete(:subject)  if headers[:subject]
+      m.to       ||= headers.delete(:to)       if headers[:to]
+      m.from     ||= headers.delete(:from)     if headers[:from]
+      m.cc       ||= headers.delete(:cc)       if headers[:cc]
+      m.bcc      ||= headers.delete(:bcc)      if headers[:bcc]
+      m.reply_to ||= headers.delete(:reply_to) if headers[:reply_to]
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
