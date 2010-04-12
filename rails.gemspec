@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
   s.rubyforge_project = 'rails'
-  
+
   s.files = []
   s.require_path = []
 
@@ -24,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency('activeresource', version)
   s.add_dependency('actionmailer',   version)
   s.add_dependency('railties',       version)
-  s.add_dependency('bundler',        '>= 0.9.14')
+  s.add_dependency('bundler',        '>= 0.9.19')
 end
