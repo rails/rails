@@ -527,10 +527,7 @@ module ActionView
         end
 
         builder = options[:builder] || ActionView::Base.default_form_builder
-
-        capture do
-          yield builder.new(object_name, object, self, options, block)
-        end
+        capture(builder.new(object_name, object, self, options, block), &block)
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
