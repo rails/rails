@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 3] (pending)*
 
+* Improve transliteration quality.  #4374 [Norman Clarke]
+
 * Speed up and add Ruby 1.9 support for ActiveSupport::Multibyte::Chars#tidy_bytes.  #4350 [Norman Clarke]
 
 
