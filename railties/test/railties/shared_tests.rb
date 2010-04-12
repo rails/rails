@@ -264,7 +264,7 @@ YAML
         Rails.application.routes.draw do
           namespace :admin do
             namespace :foo do
-              match "bar", :to => "admin/foo/bar#index"
+              match "bar", :to => "bar#index"
             end
           end
         end
