@@ -24,8 +24,7 @@ module AbstractController
     end
 
     def locale=(value)
-      @i18n_config.locale = value
-      @lookup_context.update_details(:locale => @i18n_config.locale)
+      @lookup_context.locale = value
     end
   end
 

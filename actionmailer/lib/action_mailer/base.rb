@@ -375,6 +375,11 @@ module ActionMailer #:nodoc:
       process(method_name, *args) if method_name
     end
 
+    def process(*args) #:nodoc:
+      lookup_context.skip_default_locale!
+      super
+    end
+
     # Allows you to pass random and unusual headers to the new +Mail::Message+ object
     # which will add them to itself.
     # 
