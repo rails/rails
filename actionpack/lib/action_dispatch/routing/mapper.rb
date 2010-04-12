@@ -129,7 +129,10 @@ module ActionDispatch
                 {}
               end
 
-              defaults[:controller] ||= @options[:controller] || default_controller
+              defaults[:controller] ||= default_controller
+
+              defaults.delete(:controller) if defaults[:controller].blank?
+              defaults.delete(:action)     if defaults[:action].blank?
 
               if defaults[:controller].blank? && segment_keys.exclude?("controller")
                 raise ArgumentError, "missing :controller"
@@ -177,7 +180,11 @@ module ActionDispatch
           end
 
           def default_controller
-            @scope[:controller].to_s if @scope[:controller]
+            if @options[:controller]
+              @options[:controller].to_s
+            elsif @scope[:controller]
+              @scope[:controller].to_s
+            end
           end
       end
 
