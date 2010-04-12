@@ -974,7 +974,7 @@ Once we have made the new comment, we send the user back to the +post_path(@post
 <% end %>
 
 <h2>Add a comment:</h2>
-<% form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@post, @post.comments.build]) do |f| %>
   <%= f.error_messages %>
 
   <div class="field">

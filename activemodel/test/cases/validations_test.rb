@@ -97,6 +97,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
+  def test_errors_empty_after_errors_on_check
+    t = Topic.new
+    assert t.errors[:id].empty?
+    assert t.errors.empty?
+  end
+
   def test_validates_each
     hits = 0
     Topic.validates_each(:title, :content, [:title, :content]) do |record, attr|

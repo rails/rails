@@ -1,5 +1,6 @@
-require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
@@ -1707,9 +1708,9 @@ module ActiveRecord
             silence_warnings do
               self.parent.const_set(extension_module_name, Module.new(&block_extension))
             end
-            Array(extensions).push("#{self.parent}::#{extension_module_name}".constantize)
+            Array.wrap(extensions).push("#{self.parent}::#{extension_module_name}".constantize)
           else
-            Array(extensions)
+            Array.wrap(extensions)
           end
         end
 

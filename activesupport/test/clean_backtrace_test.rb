@@ -9,6 +9,11 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   test "backtrace should not contain prefix when it has been filtered out" do
     assert_equal "/my/class.rb", @bc.clean([ "/my/prefix/my/class.rb" ]).first
   end
+
+  test "backtrace cleaner should allow removing filters" do
+    @bc.remove_filters!
+    assert_equal "/my/prefix/my/class.rb", @bc.clean(["/my/prefix/my/class.rb"]).first
+  end
   
   test "backtrace should contain unaltered lines if they dont match a filter" do
     assert_equal "/my/other_prefix/my/class.rb", @bc.clean([ "/my/other_prefix/my/class.rb" ]).first

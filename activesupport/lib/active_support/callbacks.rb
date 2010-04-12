@@ -387,7 +387,7 @@ module ActiveSupport
         send("_update_#{symbol}_superclass_callbacks")
         body = send("_#{symbol}_callbacks").compile(nil)
 
-        body, line = <<-RUBY_EVAL, __LINE__
+        body, line = <<-RUBY_EVAL, __LINE__ + 1
           def _run_#{symbol}_callbacks(key = nil, &blk)
             if self.class.send("_update_#{symbol}_superclass_callbacks")
               self.class.__define_runner(#{symbol.inspect})

@@ -26,6 +26,7 @@ module Rails
         :orm => '-o',
         :resource_controller => '-c',
         :scaffold_controller => '-c',
+        :stylesheets => '-y',
         :template_engine => '-e',
         :test_framework => '-t'
       },
@@ -50,6 +51,7 @@ module Rails
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :singleton => false,
+        :stylesheets => true,
         :test_framework => nil,
         :template_engine => :erb
       },

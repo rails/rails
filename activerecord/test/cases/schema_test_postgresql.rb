@@ -52,6 +52,21 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
+  def test_table_exists?
+    [Thing1, Thing2, Thing3, Thing4].each do |klass|
+      name = klass.table_name
+      assert @connection.table_exists?(name), "'#{name}' table should exist"
+    end
+  end
+
+  def test_table_exists_wrong_schema
+    assert(!@connection.table_exists?("foo.things"), "table should not exist")
+  end
+
+  def test_table_exists_quoted_table
+    assert(@connection.table_exists?('"things.table"'), "table should exist")
+  end
+
   def test_with_schema_prefixed_table_name
     assert_nothing_raised do
       assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{TABLE_NAME}")

@@ -52,6 +52,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match 'global/:action'
       end
 
+      match "/local/:action", :controller => "local"
+
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
       end
@@ -140,7 +142,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       namespace :account do
         match 'shorthand'
-        match 'description', :to => "account#description", :as => "description"
+        match 'description', :to => "description", :as => "description"
         resource :subscription, :credit, :credit_card
 
         root :to => "account#index"
@@ -186,6 +188,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
+
+      scope :module => 'api' do
+        resource :token
+      end
+
+      scope :path => 'api' do
+        resource :me
+        match '/' => 'mes#index'
+      end
     end
   end
 
@@ -403,6 +414,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/global/export', export_request_path
       assert_equal '/global/hide_notice', global_hide_notice_path
       assert_equal '/export/123/foo.txt', export_download_path(:id => 123, :file => 'foo.txt')
+    end
+  end
+
+  def test_local
+    with_test_routes do
+      get '/local/dashboard'
+      assert_equal 'local#dashboard', @response.body
     end
   end
 
@@ -855,7 +873,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       assert_equal '/account', account_root_path
       get '/account'
-      assert_equal 'account#index', @response.body
+      assert_equal 'account/account#index', @response.body
     end
   end
 
@@ -939,6 +957,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_raise(ActionController::RoutingError) { get '/dashboard', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
       get '/dashboard', {}, {'REMOTE_ADDR' => '192.168.1.100'}
       assert_equal 'dashboards#show', @response.body
+    end
+  end
+
+  def test_module_scope
+    with_test_routes do
+      get '/token'
+      assert_equal 'api/tokens#show', @response.body
+      assert_equal '/token', token_path
+    end
+  end
+
+  def test_path_scope
+    with_test_routes do
+      get '/api/me'
+      assert_equal 'mes#show', @response.body
+      assert_equal '/api/me', me_path
+
+      get '/api'
+      assert_equal 'mes#index', @response.body
     end
   end
 

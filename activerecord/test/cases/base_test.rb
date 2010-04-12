@@ -579,9 +579,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
-  def test_table_name_guesses
-    classes = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard]
+  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard]
 
+  def test_table_name_guesses
     assert_equal "topics", Topic.table_name
 
     assert_equal "categories", Category.table_name
@@ -592,9 +592,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "credit_card_pin_numbers", CreditCard::SubPinNumber.table_name
     assert_equal "categories", CreditCard::Brand.table_name
     assert_equal "master_credit_cards", MasterCreditCard.table_name
+  ensure
+    GUESSED_CLASSES.each(&:reset_table_name)
+  end
 
+  def test_singular_table_name_guesses
     ActiveRecord::Base.pluralize_table_names = false
-    classes.each(&:reset_table_name)
+    GUESSED_CLASSES.each(&:reset_table_name)
 
     assert_equal "category", Category.table_name
     assert_equal "smarts", Smarts.table_name
@@ -604,10 +608,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "credit_card_pin_number", CreditCard::SubPinNumber.table_name
     assert_equal "category", CreditCard::Brand.table_name
     assert_equal "master_credit_card", MasterCreditCard.table_name
-
+  ensure
     ActiveRecord::Base.pluralize_table_names = true
-    classes.each(&:reset_table_name)
+    GUESSED_CLASSES.each(&:reset_table_name)
+  end
 
+  def test_table_name_guesses_with_prefixes_and_suffixes
     ActiveRecord::Base.table_name_prefix = "test_"
     Category.reset_table_name
     assert_equal "test_categories", Category.table_name
@@ -620,8 +626,15 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = ""
     Category.reset_table_name
     assert_equal "categories", Category.table_name
+  ensure
+    ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ""
+    GUESSED_CLASSES.each(&:reset_table_name)
+  end
 
+  def test_singular_table_name_guesses_with_prefixes_and_suffixes
     ActiveRecord::Base.pluralize_table_names = false
+
     ActiveRecord::Base.table_name_prefix = "test_"
     Category.reset_table_name
     assert_equal "test_category", Category.table_name
@@ -634,9 +647,40 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = ""
     Category.reset_table_name
     assert_equal "category", Category.table_name
-
+  ensure
     ActiveRecord::Base.pluralize_table_names = true
-    classes.each(&:reset_table_name)
+    ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ""
+    GUESSED_CLASSES.each(&:reset_table_name)
+  end
+
+  def test_table_name_guesses_with_inherited_prefixes_and_suffixes
+    GUESSED_CLASSES.each(&:reset_table_name)
+
+    CreditCard.table_name_prefix = "test_"
+    CreditCard.reset_table_name
+    Category.reset_table_name
+    assert_equal "test_credit_cards", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+    CreditCard.table_name_suffix = "_test"
+    CreditCard.reset_table_name
+    Category.reset_table_name
+    assert_equal "test_credit_cards_test", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+    CreditCard.table_name_prefix = ""
+    CreditCard.reset_table_name
+    Category.reset_table_name
+    assert_equal "credit_cards_test", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+    CreditCard.table_name_suffix = ""
+    CreditCard.reset_table_name
+    Category.reset_table_name
+    assert_equal "credit_cards", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+  ensure
+    CreditCard.table_name_prefix = ""
+    CreditCard.table_name_suffix = ""
+    GUESSED_CLASSES.each(&:reset_table_name)
   end
 
   def test_destroy_all

@@ -398,7 +398,7 @@ module ActionView
 
       # Displays an image which when clicked will submit the form.
       #
-      # <tt>source</tt> is passed to AssetTagHelper#image_path
+      # <tt>source</tt> is passed to AssetTagHelper#path_to_image
       #
       # ==== Options
       # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm

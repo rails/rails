@@ -135,7 +135,7 @@ The +post+ partial wraps the post's +body+ in a +div+ with the +id+ of the post 
 *posts/_post.html.erb*
 
 <ruby>
-<% div_for(post) do %>
+<%= div_for(post) do %>
   <p><%= post.body %></p>
 <% end %>
 </ruby>
@@ -158,7 +158,7 @@ You can also render a block of code within a partial layout instead of calling +
 
 <ruby>
 <% render(:layout => 'box', :locals => {:post => @post}) do %>
-  <% div_for(post) do %>
+  <%= div_for(post) do %>
     <p><%= post.body %></p>
   <% end %>
 <% end %>
@@ -654,7 +654,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 
 <ruby>
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
-<% form_for :person, @person, :url => { :action => "create" } do |f| %>
+<%= form_for :person, @person, :url => { :action => "create" } do |f| %>
   <%= f.text_field :first_name %>
   <%= f.text_field :last_name %>
   <%= submit_tag 'Create' %>
@@ -695,7 +695,7 @@ h5. fields_for
 Creates a scope around a specific model object like form_for, but doesn‘t create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
 <ruby>
-<% form_for @person, :url => { :action => "update" } do |person_form| %>
+<%= form_for @person, :url => { :action => "update" } do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
 
@@ -719,7 +719,7 @@ h5. form_for
 Creates a form and a scope around a specific model object that is used as a base for questioning about values for the fields.
 
 <ruby>
-<% form_for @post do |f| %>
+<%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
   <%= f.text_field :title %><br />
   <%= f.label :body, 'Body' %>:
@@ -957,7 +957,7 @@ h5. field_set_tag
 Creates a field set for grouping HTML form elements.
 
 <ruby>
-<% field_set_tag do %>
+<%= field_set_tag do %>
   <p><%= text_field_tag 'name' %></p>
 <% end %>
 # => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
@@ -970,10 +970,10 @@ Creates a file upload field.
 If you are using file uploads then you will also need to set the multipart option for the form tag:
 
 <ruby>
-<%= form_tag { :action => "post" }, { :multipart => true } %>
+<%= form_tag { :action => "post" }, { :multipart => true } do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
-<%= end_form_tag %>
+<% end %>
 </ruby>
 
 Example output:
@@ -988,9 +988,9 @@ h5. form_tag
 Starts a form tag that points the action to an url configured with +url_for_options+ just like +ActionController::Base#url_for+.
 
 <ruby>
-<% form_tag '/posts' do -%>
+<%= form_tag '/posts' do %>
   <div><%= submit_tag 'Save' %></div>
-<% end -%>
+<% end %>
 # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
 </ruby>
 
@@ -1251,7 +1251,7 @@ h5. remote_form_for
 Creates a form that will submit using XMLHttpRequest in the background instead of the regular reloading POST arrangement and a scope around a specific resource that is used as a base for questioning about values for the fields.
 
 <ruby>
-<% remote_form_for(@post) do |f| %>
+<%= remote_form_for(@post) do |f| %>
   ...
 <% end %>
 </ruby>

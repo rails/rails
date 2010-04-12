@@ -58,7 +58,7 @@ module ActionView
 
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
-      @frozen_formats = false
+      @frozen_formats, @skip_default_locale = false, false
       self.view_paths = view_paths
       self.update_details(details, true)
     end
@@ -147,7 +147,13 @@ module ActionView
         super(value)
       end
 
-      # Overload locale to return a symbol instead of array
+      # Do not use the default locale on template lookup.
+      def skip_default_locale!
+        @skip_default_locale = true
+        self.locale = nil
+      end
+
+      # Overload locale to return a symbol instead of array.
       def locale
         @details[:locale].first
       end
@@ -160,7 +166,8 @@ module ActionView
           config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
           config.locale = value
         end
-        super(_locale_defaults)
+
+        super(@skip_default_locale ? I18n.locale : _locale_defaults)
       end
 
       # Update the details keys by merging the given hash into the current

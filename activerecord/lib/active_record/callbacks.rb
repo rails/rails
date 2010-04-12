@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrap'
+
 module ActiveRecord
   # Callbacks are hooks into the lifecycle of an Active Record object that allow you to trigger logic
   # before or after an alteration of the object state. This can be used to make sure that associated and
@@ -250,7 +252,7 @@ module ActiveRecord
       def before_validation(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
-          options[:if] = Array(options[:if])
+          options[:if] = Array.wrap(options[:if])
           options[:if] << "@_on_validate == :#{options[:on]}"
         end
         set_callback(:validation, :before, *args, &block)
@@ -259,7 +261,7 @@ module ActiveRecord
       def after_validation(*args, &block)
         options = args.extract_options!
         options[:prepend] = true
-        options[:if] = Array(options[:if])
+        options[:if] = Array.wrap(options[:if])
         options[:if] << "!halted && value != false"
         options[:if] << "@_on_validate == :#{options[:on]}" if options[:on]
         set_callback(:validation, :after, *(args << options), &block)

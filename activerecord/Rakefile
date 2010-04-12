@@ -50,6 +50,7 @@ end
     t.libs << "test" << connection_path
     t.test_files=Dir.glob( "test/cases/**/*_test{,_#{adapter_short}}.rb" ).sort
     t.verbose = true
+    t.warning = true
   }
 
   task "isolated_test_#{adapter}" do

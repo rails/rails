@@ -122,7 +122,7 @@ h5. Standard form
 Start out with a regular RESTful form:
 
 <erb>
-<% form_for @person do |f| %>
+<%= form_for @person do |f| %>
   <%= f.text_field :name %>
 <% end %>
 </erb>
@@ -140,7 +140,7 @@ h5. Nested form for a single associated object
 Now add a nested form for the +address+ association:
 
 <erb>
-<% form_for @person do |f| %>
+<%= form_for @person do |f| %>
   <%= f.text_field :name %>
   
   <% f.fields_for :address do |af| %>
@@ -181,7 +181,7 @@ h5. Nested form for a collection of associated objects
 The form code for an association collection is pretty similar to that of a single associated object:
 
 <erb>
-<% form_for @person do |f| %>
+<%= form_for @person do |f| %>
   <%= f.text_field :name %>
   
   <% f.fields_for :projects do |pf| %>

@@ -1790,6 +1790,8 @@ Now that Rails has finished loading all the Railties by way of +require 'rails/a
   Bundler.require :default, Rails.env
 </ruby>
 
+NOTE: It is worth mentioning here that you are not tied to using Bundler with Rails 3, but it is (of course) advised that you do. To "turn off" Bundler, comment out or remove the corresponding lines in _config/application.rb_ and _config/boot.rb_.
+
 Bundler was +require+'d back in _config/boot.rb_ and now we'll dive into the internals of Bundler to determine precisely what this line accomplishes.
 
 h4. +Bundler.require+
@@ -1909,15 +1911,13 @@ The next method to be called here would be +definition+  and it is defined like 
   end
 </ruby>
 
-We do not have +settings[:disabled_shared_gems]+ set to true so this will execute the code under the +else+. The +ENV["GEM_PATH"]+ will resemble +/usr/local/lib/ruby/gems/1.9.1:/home/you/.gem/ruby/1.9.1:/usr/local/lib/ruby/gems/1.9.1+
-
-TODO: Why the duplicates? Added an issue: http://github.com/carlhuda/bundler/issues#issue/249
+We do not have +settings[:disabled_shared_gems]+ set to true so this will execute the code under the +else+. The +ENV["GEM_PATH"]+ will resemble +/usr/local/lib/ruby/gems/1.9.1:/home/you/.gem/ruby/1.9.1+
 
 And +ENV["GEM_HOME"]+ will be the path to the gems installed into your home directory by Bundler, something resembling +/home/you/.bundle/ruby/1.9.1+.
 
 After +configure_gem_home_and_path+ is done the +definition+ method goes about creating a +Definition+ from either +Gemfile.lock+ if it exists, or the +gemfile+ previously located. +Gemfile.lock+ only exists if +bundle lock+ has been ran and so far it has not.
 
-+Definition.from_lock+ is defined in _lib/definition.rb_:
++Definition.from_gemfile+ is defined in _lib/bundler/definition.rb_:
 
 <ruby>
   def self.from_gemfile(gemfile)
@@ -1931,7 +1931,7 @@ After +configure_gem_home_and_path+ is done the +definition+ method goes about c
   end
 </ruby>
 
-Now that the +gemfile+ is located +Dsl.evaluate+ goes about loading it. The code for this can be found in _lib/dsl.rb_:
+Now that the +gemfile+ is located +Dsl.evaluate+ goes about loading it. The code for this can be found in _lib/bundler/dsl.rb_:
 
 <ruby>
   def self.evaluate(gemfile)
@@ -2021,7 +2021,7 @@ This sets up a couple of important things initially. If you specify a gem like t
   gem 'rails', "2.3.4"
 </ruby>
 
-This sets +options+ to be an empty hash, but +version+ to be +"2.3.4"+. TODO: How does one pass options and versions?
+This sets +options+ to be an empty hash, but +version+ to be +"2.3.4"+. TODO: How does one pass options and versions at the same time?
 
 In the Gemfile for a default Rails project, the first +gem+ line is:
 
@@ -2054,9 +2054,219 @@ This line will check that +options+ contains no deprecated options by using the 
   end
 </ruby>
 
-+_normalize_hash+ will convert all the keys in the +opts+ hash to strings.
++_normalize_hash+ will convert all the keys in the +opts+ hash to strings. There is neither a +git+ or a +path+ key in the +opts+ hash so the next couple of lines are ignored, then the +source+ and +group+ keys are set up.
 
+TODO: Maybe it is best to cover what would happen in the case these lines did exist?
 
+The next line goes about defining a dependency for this gem:
+
+<ruby>
+  @dependencies << Dependency.new(name, version, options)
+</ruby>
+
+This class is defined like this:
+
+<ruby>
+  module Bundler
+    class Dependency < Gem::Dependency
+      attr_reader :autorequire
+      attr_reader :groups
+
+      def initialize(name, version, options = {}, &blk)
+        super(name, version)
+
+        @autorequire = nil
+        @groups      = Array(options["group"] || :default).map { |g| g.to_sym }
+        @source      = options["source"]
+
+        if options.key?('require')
+          @autorequire = Array(options['require'] || [])
+        end
+      end
+    end
+  end
+</ruby>
+
+The +initialize+ method in +Gem::Dependency+ is defined:
+
+<ruby>
+  def initialize(name, version_requirements, type=:runtime)
+    @name = name
+    unless TYPES.include? type
+      raise ArgumentError, "Valid types are #{TYPES.inspect}, not #{@type.inspect}"
+    end
+    @type = type
+    @version_requirements = Gem::Requirement.create version_requirements
+    @version_requirement = nil   # Avoid warnings.
+  end
+</ruby>
+
+The +version_requirements+ that was passed in here will be inspected by +Gem::Requirement.create+ and return, for our +3.0.0beta2+ version string a +Gem::Requirement+ object:
+
+<ruby>
+  #<Gem::Requirement:0x101dd8c20 @requirements=[["=", #<Gem::Version "3.0.0beta2">]]>
+</ruby>
+
+Going back to +Bundler::Dependency+, the next line simply sets +@autorequire+ to +nil+ and the next line is a little more interesting:
+
+<ruby>
+  @autorequire = nil
+  @groups      = Array(options["group"] || :default).map { |g| g.to_sym }
+</ruby>
+
+Here, bundler sets the +groups+ variable to be whatever +group+ we've set for this gem and also demonstrates through code that the +group+ option allows for multiple groups, so in the _Gemfile_ we can specify the same gem for multiple groups:
+
+<ruby>
+  group :test, :cucumber do
+    gem 'faker'
+  end
+</ruby>
+ 
+The final lines in +initialize+ work on the +require+ option which is not passed:
+
+<ruby>
+  if options.key?('require')
+    @autorequire = Array(options['require'] || [])
+  end
+</ruby>
+
+If it were to be used in the _Gemfile_, it would look like this:
+
+<ruby>
+  gem 'thinking-sphinx', :require => "thinking_sphinx"
+</ruby>
+
+So far, this is what simply loading the _Gemfile_ does.
+
+h3. Bring forth the gems
+
+Now that the _Gemfile_ has finished being parsed, the next line is:
+
+<ruby>
+  builder.to_definition
+</ruby>
+
+This method is defined in _lib/bundler/dsl.rb_ and does this:
+
+<ruby>
+  def to_definition
+    Definition.new(@dependencies, @sources)
+  end
+</ruby>
+
+The +Bundler::Definition#initialize+ method is this:
+
+<ruby>
+  def initialize(dependencies, sources)
+    @dependencies = dependencies
+    @sources = sources
+  end
+</ruby>
+
+Now Bundler has a +Bundler::Definition+ object to be passed back to the +load+ method from _lib/bundler.rb_:
+
+<ruby>
+  def load(gemfile = default_gemfile)
+    root = Pathname.new(gemfile).dirname
+    Runtime.new root, definition(gemfile)
+  end
+</ruby>
+
+The +Bundler::Runtime+ class inherits from +Bundler::Environment+ and the reason this is pointed out is because +super+ is used in the +initialize+ method in +Bundler::Runtime+:
+
+<ruby>
+  super
+  if locked?
+    write_rb_lock
+  end
+</ruby>
+
+Thankfully, the +Bundler::Environment#initialize+ method is nothing too complex:
+
+<ruby>
+  def initialize(root, definition)
+    @root = root
+    @definition = definition
+  end
+</ruby>
+
+The +locked?+ method checks if the _Gemfile.lock_ or _.bundler/environment.rb_ files exist:
+
+<ruby>
+  def locked?
+    File.exist?("#{root}/Gemfile.lock") || File.exist?("#{root}/.bundle/environment.rb")
+  end
+</ruby>
+
+And if they do will call +write_rb_lock+:
+
+<ruby>
+  def write_rb_lock
+    shared_helpers = File.read(File.expand_path("../shared_helpers.rb", __FILE__))
+    template = File.read(File.expand_path("../templates/environment.erb", __FILE__))
+    erb = ERB.new(template, nil, '-')
+    FileUtils.mkdir_p(rb_lock_file.dirname)
+    File.open(rb_lock_file, 'w') do |f|
+      f.puts erb.result(binding)
+    end
+  end
+</ruby>
+
+This will write out to _.bundler/environment.rb_ the state of the current environment.
+
+Now a quick refresher. Bundler is still evaulating the code for the +require+ in _lib/bundler.rb_, and the +groups+ variable here is an +Array+ containing two elements: +:default+ and the current Rails environment: +development+:
+
+<ruby>
+  def require(*groups)
+    gemfile = default_gemfile
+    load(gemfile).require(*groups)
+  end
+</ruby>
+
+The second +require+ method here:
+
+<ruby>
+  load(gemfile).require(*groups)
+</ruby>
+
+Is defined on _bundler/runtime.rb_:
+
+<ruby>
+  def require(*groups)
+    groups.map! { |g| g.to_sym }
+    groups = [:default] if groups.empty?
+    autorequires = autorequires_for_groups(*groups)
+
+    groups.each do |group|
+      (autorequires[group] || [[]]).each do |path, explicit|
+        if explicit
+          Kernel.require(path)
+        else
+          begin
+            Kernel.require(path)
+          rescue LoadError
+          end
+        end
+      end
+    end
+  end
+</ruby>
+
+This method does TODO: Describe what magic this undertakes.
+
+The first method to be called here is +autorequires_for_groups+:
+
+<ruby>
+  def autorequires_for_groups(*groups)
+    groups.map! { |g| g.to_sym }
+    autorequires = Hash.new { |h,k| h[k] = [] }
+
+    ordered_deps = []
+    specs_for(*groups).each do |g|
+      dep = @definition.dependencies.find{|d| d.name == g.name }
+      ordered_deps << dep if dep && !ordered_deps.include?(dep)
+    end
+</ruby>
 
 
 h3. Firing it up!

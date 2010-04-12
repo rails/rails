@@ -19,7 +19,7 @@ module ActiveSupport #:nodoc:
     #   bad.explicit_checking_method "T".mb_chars.downcase.to_s
     #
     # The default Chars implementation assumes that the encoding of the string is UTF-8, if you want to handle different
-    # encodings you can write your own multibyte string handler and configure it through 
+    # encodings you can write your own multibyte string handler and configure it through
     # ActiveSupport::Multibyte.proxy_class.
     #
     #   class CharsForUTF32
@@ -458,8 +458,10 @@ module ActiveSupport #:nodoc:
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
-      def tidy_bytes
-        chars(self.class.tidy_bytes(@wrapped_string))
+      #
+      # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP1252 or ISO-8859-1.
+      def tidy_bytes(force = false)
+        chars(self.class.tidy_bytes(@wrapped_string, force))
       end
 
       %w(lstrip rstrip strip reverse upcase downcase tidy_bytes capitalize).each do |method|
@@ -528,7 +530,7 @@ module ActiveSupport #:nodoc:
               unpacked << codepoints[marker..pos-1]
               marker = pos
             end
-          end 
+          end
           unpacked
         end
 
@@ -644,33 +646,80 @@ module ActiveSupport #:nodoc:
           codepoints
         end
 
-        # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
-        def tidy_bytes(string)
-          string.split(//u).map do |c|
-            c.force_encoding(Encoding::ASCII) if c.respond_to?(:force_encoding)
+        def tidy_byte(byte)
+          if byte < 160
+            [UCD.cp1252[byte] || byte].pack("U").unpack("C*")
+          elsif byte < 192
+            [194, byte]
+          else
+            [195, byte - 64]
+          end
+        end
+        private :tidy_byte
 
-            if !ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8'].match(c)
-              n = c.unpack('C')[0]
-              n < 128 ? n.chr :
-              n < 160 ? [UCD.cp1252[n] || n].pack('U') :
-              n < 192 ? "\xC2" + n.chr : "\xC3" + (n-64).chr
+        # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
+        #
+        # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP-1252 or ISO-8859-1.
+        def tidy_bytes(string, force = false)
+          if force
+            return string.unpack("C*").map do |b|
+              tidy_byte(b)
+            end.flatten.compact.pack("C*").unpack("U*").pack("U*")
+          end
+
+          bytes = string.unpack("C*")
+          conts_expected = 0
+          last_lead = 0
+
+          bytes.each_index do |i|
+
+            byte          = bytes[i]
+            is_ascii      = byte < 128
+            is_cont       = byte > 127 && byte < 192
+            is_lead       = byte > 191 && byte < 245
+            is_unused     = byte > 240
+            is_restricted = byte > 244
+
+            # Impossible or highly unlikely byte? Clean it.
+            if is_unused || is_restricted
+              bytes[i] = tidy_byte(byte)
+            elsif is_cont
+              # Not expecting contination byte? Clean up. Otherwise, now expect one less.
+              conts_expected == 0 ? bytes[i] = tidy_byte(byte) : conts_expected -= 1
             else
-              c
+              if conts_expected > 0
+                # Expected continuation, but got ASCII or leading? Clean backwards up to
+                # the leading byte.
+                (1..(i - last_lead)).each {|j| bytes[i - j] = tidy_byte(bytes[i - j])}
+                conts_expected = 0
+              end
+              if is_lead
+                # Final byte is leading? Clean it.
+                if i == bytes.length - 1
+                  bytes[i] = tidy_byte(bytes.last)
+                else
+                  # Valid leading byte? Expect continuations determined by position of
+                  # first zero bit, with max of 3.
+                  conts_expected = byte < 224 ? 1 : byte < 240 ? 2 : 3
+                  last_lead = i
+                end
+              end
             end
-          end.join
+          end
+          bytes.empty? ? "" : bytes.flatten.compact.pack("C*").unpack("U*").pack("U*")
         end
       end
 
       protected
-        
+
         def translate_offset(byte_offset) #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
-          
+
           if @wrapped_string.respond_to?(:force_encoding)
             @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
           end
-          
+
           begin
             @wrapped_string[0...byte_offset].unpack('U*').length
           rescue ArgumentError => e

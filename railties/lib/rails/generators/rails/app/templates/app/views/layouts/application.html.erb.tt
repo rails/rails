@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= app_const_base %></title>
+  <%%= stylesheet_link_tag :all %>
+  <%%= javascript_include_tag :defaults %>
+  <%%= csrf_meta_tag %>
+</head>
+<body>
+
+<%%= yield %>
+
+</body>
+</html>

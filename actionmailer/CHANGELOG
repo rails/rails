@@ -1,9 +1,23 @@
+* Removed all quoting.rb type files from ActionMailer and put Mail 2.2.0 in instead [ML]
+
+* Lot of updates to various test cases that now work better with the new Mail and so have different expectations
+
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Added interceptors and observers from Mail [ML]
 
     ActionMailer::Base.register_interceptor calls Mail.register_interceptor
     ActionMailer::Base.register_observer calls Mail.register_observer
+
+* Mail::Part now no longer has nil as a default charset, it is always set to something, and defaults to UTF-8
+
+* Added explict setting of charset in set_fields! method to make sure Mail has the user defined default
+
+* Removed quoting.rb and refactored for Mail to take responsibility of all quoting and auto encoding requirements for the header.
+
+* Fixed several tests which had incorrect encoding.
+
+* Changed all utf-8 to UTF-8 for consistency
 
 * Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
 

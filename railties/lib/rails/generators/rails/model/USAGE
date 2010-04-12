@@ -15,6 +15,10 @@ Description:
     Finally, if --parent option is given, it's used as superclass of the
     created model. This allows you create Single Table Inheritance models.
 
+    If you pass a namespaced model name (e.g. admin/account or Admin::Account)
+    then the generator will create a module with a table_name_prefix method
+    to prefix the model's table name with the module name (e.g. admin_account)
+
 Examples:
     `rails generate model account`
 
@@ -28,3 +32,14 @@ Examples:
     `rails generate model post title:string body:text published:boolean`
 
         Creates a Post model with a string title, text body, and published flag.
+
+    `rails generate model admin/account`
+
+        For ActiveRecord and TestUnit it creates:
+
+            Module:     app/models/admin.rb
+            Model:      app/models/admin/account.rb
+            Test:       test/unit/admin/account_test.rb
+            Fixtures:   test/fixtures/admin_accounts.yml
+            Migration:  db/migrate/XXX_add_admin_accounts.rb
+

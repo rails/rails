@@ -1314,12 +1314,12 @@ class FormHelperTest < ActionView::TestCase
 
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
-      src = <<-END_SRC
+      src, line = <<-END_SRC, __LINE__ + 1
         def #{selector}(field, *args, &proc)
           ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
         end
       END_SRC
-      class_eval src, __FILE__, __LINE__
+      class_eval src, __FILE__, line
     end
   end
 
@@ -1364,43 +1364,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   ensure
     ActionView::Base.default_form_builder = old_default_form_builder
-  end
-
-  def test_default_form_builder_with_active_record_helpers
-    assert_deprecated do
-      form_for(:post, @post) do |f|
-         concat f.error_message_on('author_name')
-         concat f.error_messages
-      end
-    end
-
-    expected = %(<form action='http://www.example.com' method='post'>) +
-               %(<div class='formError'>can't be empty</div>) +
-               %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>) +
-               %(</form>)
-
-    assert_dom_equal expected, output_buffer
-
-  end
-
-  def test_default_form_builder_no_instance_variable
-    post = @post
-    @post = nil
-
-    assert_deprecated do
-      form_for(:post, post) do |f|
-         concat f.error_message_on('author_name')
-         concat f.error_messages
-      end
-    end
-
-    expected = %(<form action='http://www.example.com' method='post'>) +
-               %(<div class='formError'>can't be empty</div>) +
-               %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>) +
-               %(</form>)
-
-    assert_dom_equal expected, output_buffer
-
   end
 
   def test_fields_for_with_labelled_builder
@@ -1553,6 +1516,11 @@ class FormHelperTest < ActionView::TestCase
 
     expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0;display:inline\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, output_buffer
+  end
+
+  def test_fields_for_returns_block_result
+    output = fields_for(Post.new) { |f| "fields" }
+    assert_equal "fields", output
   end
 
   protected

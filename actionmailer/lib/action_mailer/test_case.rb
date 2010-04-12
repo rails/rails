@@ -8,7 +8,7 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
-    include Quoting, TestHelper
+    include TestHelper
 
     setup :initialize_test_deliveries
     setup :set_expected_mail
@@ -48,11 +48,11 @@ module ActionMailer
 
     private
       def charset
-        "utf-8"
+        "UTF-8"
       end
 
       def encode(subject)
-        quoted_printable(subject, charset)
+        Mail::Encodings.q_value_encode(subject, charset)
       end
 
       def read_fixture(action)

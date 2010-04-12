@@ -15,7 +15,7 @@ module ActiveRecord
 
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
-            base.class_eval <<-end_code, __FILE__, __LINE__
+            base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}_with_query_dirty(*args)        # def update_with_query_dirty(*args)
                 clear_query_cache if @query_cache_enabled       #   clear_query_cache if @query_cache_enabled
                 #{method_name}_without_query_dirty(*args)       #   update_without_query_dirty(*args)
@@ -32,7 +32,6 @@ module ActiveRecord
       # Enable the query cache within the block.
       def cache
         old, @query_cache_enabled = @query_cache_enabled, true
-        @query_cache ||= {}
         yield
       ensure
         clear_query_cache
@@ -54,7 +53,7 @@ module ActiveRecord
       # the same SQL query and repeatedly return the same result each time, silently
       # undermining the randomness you were expecting.
       def clear_query_cache
-        @query_cache.clear if @query_cache
+        @query_cache.clear
       end
 
       def select_all_with_query_cache(*args)

@@ -207,7 +207,7 @@ module ActionMailer #:nodoc:
   #   scores instead of hyphens, so <tt>Content-Transfer-Encoding:</tt>
   #   becomes <tt>:content_transfer_encoding</tt>. The defaults set by Action Mailer are:
   #   * <tt>:mime_version => "1.0"</tt>
-  #   * <tt>:charset      => "utf-8",</tt>
+  #   * <tt>:charset      => "UTF-8",</tt>
   #   * <tt>:content_type => "text/plain",</tt>
   #   * <tt>:parts_order  => [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
@@ -264,7 +264,7 @@ module ActionMailer #:nodoc:
   #   (i.e. multiple parts are assembled from templates which specify the content type in their
   #   filenames) this variable controls how the parts are ordered.
   class Base < AbstractController::Base
-    include DeliveryMethods, Quoting
+    include DeliveryMethods
     abstract!
 
     include AbstractController::Logger
@@ -286,7 +286,7 @@ module ActionMailer #:nodoc:
     class_attribute :default_params
     self.default_params = {
       :mime_version => "1.0",
-      :charset      => "utf-8",
+      :charset      => "UTF-8",
       :content_type => "text/plain",
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
@@ -373,6 +373,11 @@ module ActionMailer #:nodoc:
       super()
       @_message = Mail.new
       process(method_name, *args) if method_name
+    end
+
+    def process(*args) #:nodoc:
+      lookup_context.skip_default_locale!
+      super
     end
 
     # Allows you to pass random and unusual headers to the new +Mail::Message+ object
@@ -525,19 +530,25 @@ module ActionMailer #:nodoc:
       content_type = headers[:content_type]
       parts_order  = headers[:parts_order]
 
-      # Merge defaults from class
+      # Handle defaults
       headers = headers.reverse_merge(self.class.default)
-      charset = headers.delete(:charset)
-
-      # Quote fields
       headers[:subject] ||= default_i18n_subject
-      quote_fields!(headers, charset)
+
+      # Apply charset at the beginning so all fields are properly quoted
+      m.charset = charset = headers[:charset]
+
+      # Set configure delivery behavior
+      wrap_delivery_behavior!(headers.delete(:delivery_method))
+
+      # Assign all headers except parts_order, content_type and body
+      assignable = headers.except(:parts_order, :content_type, :body)
+      assignable.each { |k, v| m[k] = v }
 
       # Render the templates and blocks
       responses, explicit_order = collect_responses_and_parts_order(headers, &block)
-      create_parts_from_responses(m, responses, charset)
+      create_parts_from_responses(m, responses)
 
-      # Finally setup content type and parts order
+      # Setup content type, reapply charset and handle parts order
       m.content_type = set_content_type(m, content_type, headers[:content_type])
       m.charset      = charset
 
@@ -547,12 +558,6 @@ module ActionMailer #:nodoc:
         m.body.sort_parts!
       end
 
-      # Set configure delivery behavior
-      wrap_delivery_behavior!(headers.delete(:delivery_method))
-
-      # Remove any missing configuration header and assign all others
-      headers.except!(:parts_order, :content_type)
-      headers.each { |k, v| m[k] = v }
       m
     end
 
@@ -575,17 +580,6 @@ module ActionMailer #:nodoc:
     def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
       I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
-    end
-
-    # TODO: Move this into Mail
-    def quote_fields!(headers, charset) #:nodoc:
-      m = @_message
-      m.subject  ||= quote_if_necessary(headers.delete(:subject), charset)          if headers[:subject]
-      m.to       ||= quote_address_if_necessary(headers.delete(:to), charset)       if headers[:to]
-      m.from     ||= quote_address_if_necessary(headers.delete(:from), charset)     if headers[:from]
-      m.cc       ||= quote_address_if_necessary(headers.delete(:cc), charset)       if headers[:cc]
-      m.bcc      ||= quote_address_if_necessary(headers.delete(:bcc), charset)      if headers[:bcc]
-      m.reply_to ||= quote_address_if_necessary(headers.delete(:reply_to), charset) if headers[:reply_to]
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
@@ -630,16 +624,16 @@ module ActionMailer #:nodoc:
       end
     end
 
-    def create_parts_from_responses(m, responses, charset) #:nodoc:
+    def create_parts_from_responses(m, responses) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
         responses[0].each { |k,v| m[k] = v }
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
         container.content_type = "multipart/alternative"
-        responses.each { |r| insert_part(container, r, charset) }
+        responses.each { |r| insert_part(container, r, m.charset) }
         m.add_part(container)
       else
-        responses.each { |r| insert_part(m, r, charset) }
+        responses.each { |r| insert_part(m, r, m.charset) }
       end
     end
 

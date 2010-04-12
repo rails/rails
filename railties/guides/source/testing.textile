@@ -84,7 +84,7 @@ h5. ERb'in It Up
 ERb allows you embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb when you load fixtures. This allows you to use Ruby to help you generate some sample data.
 
 <erb>
-<% earth_size = 20 -%>
+<% earth_size = 20 %>
 mercury:
   size: <%= earth_size / 50 %>
   brightest_on: <%= 113.days.ago.to_s(:db) %>

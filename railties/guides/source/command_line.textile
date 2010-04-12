@@ -18,12 +18,12 @@ h3. Command Line Basics
 
 There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
 
-* rails console
-* rails server
-* rake
-* rails generate
-* rails dbconsole
-* rails app_name
+* <tt>rails console</tt>
+* <tt>rails server</tt>
+* <tt>rake</tt>
+* <tt>rails generate</tt>
+* <tt>rails dbconsole</tt>
+* <tt>rails app_name</tt>
 
 Let's create a simple Rails application to step through each of these commands in context.
 
@@ -246,9 +246,13 @@ $ rake db:migrate
 
 INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
 
-Let's see the interface Rails created for us. rails server; http://localhost:3000/high_scores
+Let's see the interface Rails created for us.
 
-We can create new high scores (55,160 on Space Invaders!)
+<shell>
+$ rails server
+</shell>
+
+Go to your browser and open "http://localhost:3000/high_scores":http://localhost:3000/high_scores, now we can create new high scores (55,160 on Space Invaders!)
 
 h4. +rails console+
 
@@ -260,12 +264,12 @@ h4. +rails dbconsole+
 
 h4. +rails plugin+
 
-The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command *discover*, which sifts through repositories looking for plugins, or call *source* to add a specific repository of plugins, or you can specify the plugin location directly.
+The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command +discover+, which sifts through repositories looking for plugins, or call +source+ to add a specific repository of plugins, or you can specify the plugin location directly.
 
-Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but *instead*, just set a field?
+Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but instead, just set a field?
 
-There is such a thing! The plugin we're installing is called "acts_as_paranoid", and it lets models implement a "deleted_at" column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
-==================================================================================
+There is such a thing! The plugin we're installing is called +acts_as_paranoid+, and it lets models implement a +deleted_at+ column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
+
 <shell>
 $ rails plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
 + ./CHANGELOG

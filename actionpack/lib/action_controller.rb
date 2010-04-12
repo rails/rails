@@ -33,7 +33,6 @@ module ActionController
     autoload :Streaming
     autoload :Testing
     autoload :UrlFor
-    autoload :Verification
   end
 
   autoload :Dispatcher,      'action_controller/deprecated/dispatcher'
