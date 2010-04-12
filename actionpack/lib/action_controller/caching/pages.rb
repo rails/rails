@@ -41,7 +41,7 @@ module ActionController #:nodoc:
         ##
         # :singleton-method:
         # The cache directory should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>.
-        # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>RAILS_ROOT + "/public"</tt>). Changing
+        # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing
         # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
         # web server to look in the new location for cached files.
         @@page_cache_directory = ''
