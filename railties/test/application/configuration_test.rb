@@ -285,5 +285,41 @@ module ApplicationTests
       get "/"
       assert last_response.body =~ /csrf\-param/
     end
+
+    test "config.action_controller.perform_caching = true" do
+        make_basic_app do |app|
+          app.config.action_controller.perform_caching = true
+        end
+
+      class ::OmgController < ActionController::Base
+        caches_action :index
+        def index
+          render :text => rand(1000)
+        end
+      end
+
+      get "/"
+      res = last_response.body
+      get "/"
+      assert_equal res, last_response.body # value should be unchanged
+    end
+
+    test "config.action_controller.perform_caching = false" do
+      make_basic_app do |app|
+        app.config.action_controller.perform_caching = false
+      end
+
+      class ::OmgController < ActionController::Base
+        caches_action :index
+        def index
+          render :text => rand(1000)
+        end
+      end
+
+      get "/"
+      res = last_response.body
+      get "/"
+      assert_not_equal res, last_response.body
+    end
   end
 end
