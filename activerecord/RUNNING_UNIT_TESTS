@@ -14,7 +14,7 @@ connection.rb otherwise (on Postgres, at least) tests for default values will fa
 
 The easiest way to run the unit tests is through Rake. The default task runs
 the entire test suite for all the adapters. You can also run the suite on just
-one adapter by using the tasks test_mysql, test_sqlite, test_postgresql or any
+one adapter by using the tasks test_mysql, test_sqlite3, test_postgresql or any
 of the other test_ tasks. For more information, checkout the full array of rake
 tasks with "rake -T"
 
