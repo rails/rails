@@ -1,4 +1,4 @@
-require "active_support/core_ext/object"
+require "active_support/core_ext/kernel/singleton_class"
 
 class Proc #:nodoc:
   def bind(object)
