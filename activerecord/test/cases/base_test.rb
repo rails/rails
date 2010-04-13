@@ -2053,6 +2053,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert !SubStiPost.descends_from_active_record?
   end
 
+  def test_base_subclasses_is_public_method
+    assert ActiveRecord::Base.public_methods.include?("subclasses")
+  end
+
   def test_find_on_abstract_base_class_doesnt_use_type_condition
     old_class = LooseDescendant
     Object.send :remove_const, :LooseDescendant
@@ -2199,14 +2203,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
     assert_equal "<company>", xml.first(9)
     assert xml.include?(%(<arbitrary-element>#{value}</arbitrary-element>))
-  end
-
-  def test_type_name_with_module_should_handle_beginning
-    ActiveRecord::Base.store_full_sti_class = false
-    assert_equal 'ActiveRecord::Person', ActiveRecord::Base.send(:type_name_with_module, 'Person')
-    assert_equal '::Person', ActiveRecord::Base.send(:type_name_with_module, '::Person')
-  ensure
-    ActiveRecord::Base.store_full_sti_class = true
   end
 
   def test_to_param_should_return_string

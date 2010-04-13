@@ -197,6 +197,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resource :me
         match '/' => 'mes#index'
       end
+
+      match "whatever/:controller(/:action(/:id))"
     end
   end
 
@@ -976,6 +978,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/api'
       assert_equal 'mes#index', @response.body
+    end
+  end
+
+  def test_url_generator_for_generic_route
+    with_test_routes do
+      get 'whatever/foo/bar'
+      assert_equal 'foo#bar', @response.body
+
+      assert_equal 'http://www.example.com/whatever/foo/bar/1',
+        url_for(:controller => "foo", :action => "bar", :id => 1)
     end
   end
 

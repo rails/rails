@@ -188,7 +188,10 @@ module InflectorTestCases
   StringToParameterizedAndNormalized = {
     "Malmö"                               => "malmo",
     "Garçons"                             => "garcons",
-    "Ops\331"                            => "ops"
+    "Ops\331"                             => "opsu",
+    "Ærøskøbing"                          => "aeroskobing",
+    "Aßlar"                               => "asslar",
+    "Japanese: 日本語"                    => "japanese"
   }
 
   UnderscoreToHuman = {
