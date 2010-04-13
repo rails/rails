@@ -1275,11 +1275,10 @@ module ActiveRecord #:nodoc:
           with_scope(method_scoping, :overwrite, &block)
         end
 
-        # ActiveRecord::Base utilizes the inherited hook to know about new subclasses.
-        # You can access the list of currently loaded ActiveRecord::Base subclasses using this accessor.
+        # Returns a list of all subclasses of this class, meaning all descendants.
         def subclasses
           @@subclasses[self] ||= []
-          @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
+          @@subclasses[self] + @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
 
         public :subclasses
