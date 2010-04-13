@@ -1,3 +1,8 @@
+*Rails 3.0.0 [beta 3] (April 13th, 2010)*
+
+* No changes
+
+
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * #new_record? and #destroyed? were removed from ActiveModel::Lint. Use
