@@ -453,6 +453,16 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal 'Privateers Greed', @pirate.send(@association_name).last.name
   end
 
+  def test_should_not_load_association_when_updating_existing_records
+    @pirate.reload
+    @pirate.send(association_setter, [{ :id => @child_1.id, :name => 'Grace OMalley' }])
+    assert ! @pirate.send(@association_name).loaded?
+
+    @pirate.save
+    assert ! @pirate.send(@association_name).loaded?
+    assert_equal 'Grace OMalley', @child_1.reload.name
+  end
+
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
     @child_1.stubs(:id).returns('ABC1X')
     @child_2.stubs(:id).returns('ABC2X')
@@ -507,7 +517,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_ignore_new_associated_records_if_a_reject_if_proc_returns_false
     @alternate_params[association_getter]['baz'] = {}
-    assert_no_difference("@pirate.send(@association_name).length") do
+    assert_no_difference("@pirate.send(@association_name).count") do
       @pirate.attributes = @alternate_params
     end
   end

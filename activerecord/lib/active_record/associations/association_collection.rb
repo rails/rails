@@ -451,6 +451,16 @@ module ActiveRecord
           records
         end
 
+        def add_record_to_target_with_callbacks(record)
+          callback(:before_add, record)
+          yield(record) if block_given?
+          @target ||= [] unless loaded?
+          @target << record unless @reflection.options[:uniq] && @target.include?(record)
+          callback(:after_add, record)
+          set_inverse_instance(record, @owner)
+          record
+        end
+
       private
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
@@ -473,16 +483,6 @@ module ActiveRecord
           else
             add_record_to_target_with_callbacks(record)
           end
-        end
-
-        def add_record_to_target_with_callbacks(record)
-          callback(:before_add, record)
-          yield(record) if block_given?
-          @target ||= [] unless loaded?
-          @target << record unless @reflection.options[:uniq] && @target.include?(record)
-          callback(:after_add, record)
-          set_inverse_instance(record, @owner)
-          record
         end
 
         def remove_records(*records)
