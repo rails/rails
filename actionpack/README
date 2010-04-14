@@ -155,20 +155,20 @@ A short rundown of the major features:
     map.connect 'clients/:client_name/:project_name/:controller/:action'
 
     Accessing /clients/37signals/basecamp/project/dash calls ProjectController#dash with
-    { "client_name" => "37signals", "project_name" => "basecamp" } in params[:params]
+    { "client_name" => "37signals", "project_name" => "basecamp" }.
     
-    From that URL, you can rewrite the redirect in a number of ways:
+    From that URL you can redirect providing new parameters in a number of ways:
     
-    redirect_to(:action => "edit") =>
-      /clients/37signals/basecamp/project/dash
+    redirect_to :action => "edit"
+    # /clients/37signals/basecamp/project/edit
 
-    redirect_to(:client_name => "nextangle", :project_name => "rails") =>
-      /clients/nextangle/rails/project/dash
+    redirect_to :client_name => "nextangle", :project_name => "rails"
+    # /clients/nextangle/rails/project/dash
 
   {Learn more}[link:classes/ActionController/Base.html]
 
 
-* Javascript and Ajax integration
+* JavaScript and Ajax integration
 
     link_to_function "Greeting", "alert('Hello world!')"
     link_to_remote "Delete this post", :update => "posts", 
