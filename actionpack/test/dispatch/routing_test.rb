@@ -144,6 +144,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :sheep
 
+      resources :clients do
+        namespace :google do
+          resource :account
+        end
+      end
+
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
@@ -811,6 +817,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/admin/subscription'
       assert_equal 'account/admin/subscriptions#show', @response.body
       assert_equal '/account/admin/subscription', account_admin_subscription_path
+    end
+  end
+  
+  def test_namespace_nested_in_resources
+    with_test_routes do
+      get '/clients/1/google/account'
+      assert_equal '/clients/1/google/account', client_google_account_path(1)
+      
+      assert_equal 'google/accounts#show', @response.body
     end
   end
 

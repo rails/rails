@@ -679,6 +679,14 @@ module ActionDispatch
           end
         end
 
+        def namespace(path)
+          if @scope[:scope_level] == :resources
+            nested { super }
+          else
+            super
+          end
+        end
+
         def match(*args)
           options = args.extract_options!
 
