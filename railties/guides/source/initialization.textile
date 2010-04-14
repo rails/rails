@@ -1819,7 +1819,7 @@ On the surface, this looks like a simple class inheritance. There's more underne
   end
 </ruby>
 
-We do not already have a +Rails.application+, so instead this resorts to calling +super+. +Rails::Application+ descends from +Rails::Engine+ and so will call the +inherited+ method in +Rails::Engine+, but before that it's important to note that +called_from+ is defined an +attr_accessor+ on +Rails::Engine+:
+We do not already have a +Rails.application+, so instead this resorts to calling +super+. +Rails::Application+ descends from +Rails::Engine+ and so will call the +inherited+ method in +Rails::Engine+ (in _railties/lib/rails/engine.rb_), but before that it's important to note that +called_from+ is defined an +attr_accessor+ on +Rails::Engine+ and that +YourApp::Application+ is not an +abstract_railtie+:
 
 <ruby>
   def inherited(base)
@@ -1835,8 +1835,68 @@ We do not already have a +Rails.application+, so instead this resorts to calling
   end
 </ruby>
 
-This +called_from+ setting looks a little overwhelming to begin with, but the short end of it is that it returns the route to your application's config directory, something like: _/home/you/yourapp/config_. After +called_from+ has been set, +super+ is again called and this means the +Rails::Railtie#inherited+ method.
-  
+This +called_from+ setting looks a little overwhelming to begin with, but the short end of it is that it returns the route to your application's config directory, something like: _/home/you/yourapp/config_. After +called_from+ has been set, +super+ is again called and this means the +Rails::Railtie#inherited+ method (in _railties/lib/rails/railtie.rb_):
+
+<ruby>
+  def inherited(base)
+    unless base.abstract_railtie?
+      base.send(:include, self::Configurable)
+      subclasses << base
+    end
+  end  
+</ruby>
+
+Again, +YourApp::Application+ will return false for +abstract_railtie+ and so the code inside the +unless+ will be ran. The first line:
+
+<ruby>
+  base.send(:include, self::Configurable)
+</ruby>
+
+includes the +self::Configurable+ module, with self being +Rails::Application+ in this context:
+
+<ruby>
+  module Rails
+    class Application
+      module Configurable
+        def self.included(base)
+          base.extend ClassMethods
+        end
+
+        module ClassMethods
+          def inherited(base)
+            raise "You cannot inherit from a Rails::Application child"
+          end
+        end
+
+        def config
+          @config ||= Application::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
+        end
+      end
+    end
+  end
+</ruby>
+
+The inclusion of the +Rails::Application::Configurable+ module triggers the +included+ method in here which extends +YourApp::Application+ with the +Rails::Application::Configurable::ClassMethods+.
+
+Now that the chain of +super+ calls is done, we'll go back to the original +inherited+ method in +Rails::Application+ and the final line in this method:
+
+<ruby>
+  Rails.application = base.instance
+</ruby>
+
++base+ in this case is +YourApp::Application+ and calling +instance+ on this will return an instance of +YourApp::Application+ through the +instance+ method defined here:
+
+<ruby>
+  def instance
+    if self == Rails::Application
+      Rails.application
+    else
+      @@instance ||= new
+    end
+  end
+</ruby>
+
++self+ in this case is +YourApp::Application+, so it won't match to +Rails::Application+ so instead the +new+ method is called which calls the +initialize+ method.
 
 
 
