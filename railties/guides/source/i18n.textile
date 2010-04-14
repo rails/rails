@@ -129,7 +129,7 @@ However, you would probably like to *provide support for more locales* in your a
 
 WARNING: You may be tempted to store the chosen locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "_RESTful_":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
 
-The _setting part_ is easy. You can set the locale in a +before_filter+ in the ApplicationController like this:
+The _setting part_ is easy. You can set the locale in a +before_filter+ in the Application Controller like this:
 
 <ruby>
 before_filter :set_locale
@@ -152,7 +152,7 @@ One option you have is to set the locale from the domain name where your applica
 * It is very trivial to implement in Rails.
 * Search engines seem to like that content in different languages lives at different, inter-linked domains.
 
-You can implement it like this in your +ApplicationController+:
+You can implement it like this in your Application Controller:
 
 <ruby>
 before_filter :set_locale
@@ -167,7 +167,7 @@ end
 #   127.0.0.1 application.it
 #   127.0.0.1 application.pl
 # in your /etc/hosts file to try this out locally
-def extract_locale_from_tld
+def extract_locale_from_uri
   parsed_locale = request.host.split('.').last
   I18n.available_locales.include?(parsed_locale.to_sym) ? parsed_locale  : nil
 end
@@ -206,7 +206,7 @@ Getting the locale from +params+ and setting it accordingly is not hard; includi
 
 Rails contains infrastructure for "centralizing dynamic decisions about the URLs" in its "+ApplicationController#default_url_options+":http://api.rubyonrails.org/classes/ActionController/Base.html#M000515, which is useful precisely in this scenario: it enables us to set "defaults" for "+url_for+":http://api.rubyonrails.org/classes/ActionController/Base.html#M000503 and helper methods dependent on it (by implementing/overriding this method).
 
-We can include something like this in our ApplicationController then:
+We can include something like this in our Application Controller then:
 
 <ruby>
 # app/controllers/application_controller.rb
