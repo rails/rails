@@ -530,7 +530,7 @@ You can get a list of Rake tasks available to you, which will often depend on yo
 rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
 rake db:charset                           # Retrieves the charset for the current environment's database
 rake db:collation                         # Retrieves the collation for the current environment's database
-rake db:create                            # Create the database defined in config/database.yml for the current RAILS_ENV
+rake db:create                            # Create the database defined in config/database.yml for the current Rails.env
 ...
 ...
 rake tmp:pids:clear                       # Clears all files in tmp/pids

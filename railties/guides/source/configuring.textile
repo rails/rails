@@ -163,7 +163,7 @@ WARNING: Threadsafe operation in incompatible with the normal workings of develo
 
 The caching code adds two additional settings:
 
-* +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +RAILS_ROOT + "/public"+).
+* +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +Rails.root + "/public"+).
 
 * +ActionController::Base.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
 

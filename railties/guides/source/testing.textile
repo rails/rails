@@ -65,7 +65,7 @@ YAML-formatted fixtures are a very human-friendly way to describe your sample da
 Here's a sample YAML fixture file:
 
 <yaml>
-# low & behold!  I am a YAML comment!
+# lo & behold!  I am a YAML comment!
 david:
  name: David Heinemeier Hansson
  birthday: 1979-10-15

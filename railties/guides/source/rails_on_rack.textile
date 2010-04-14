@@ -49,7 +49,7 @@ Middlewares used in the code above are primarily useful only in the development 
 
 |_.Middleware|_.Purpose|
 |+Rails::Rack::LogTailer+|Appends log file output to console|
-|+ActionDispatch::Static+|Serves static files inside +RAILS_ROOT/public+ directory|
+|+ActionDispatch::Static+|Serves static files inside +Rails.root/public+ directory|
 |+Rails::Rack::Debugger+|Starts Debugger|
 
 h4. +rackup+
@@ -57,7 +57,7 @@ h4. +rackup+
 To use +rackup+ instead of Rails' +rails server+, you can put the following inside +config.ru+ of your Rails application's root directory:
 
 <ruby>
-# RAILS_ROOT/config.ru
+# Rails.root/config.ru
 require "config/environment"
 
 use Rails::Rack::LogTailer
@@ -214,7 +214,7 @@ config.middleware.clear
 </ruby>
 
 <br />
-<strong>Add a +config.ru+ file to +RAILS_ROOT+</strong>
+<strong>Add a +config.ru+ file to +Rails.root+</strong>
 
 <ruby>
 # config.ru

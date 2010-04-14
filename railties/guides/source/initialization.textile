@@ -844,7 +844,7 @@ The ActiveRecord Railtie takes care of hooking ActiveRecord into Rails. This dep
 
 TODO: Quotify.
 
-<text>
+<plain>
   Active Record connects business objects and database tables to create a persistable domain model where logic and data are presented in one wrapping. It's an implementation of the object-relational mapping (ORM) pattern by the same name as described by Martin Fowler:
 
     "An object that wraps a row in a database table or view, encapsulates 
@@ -854,7 +854,7 @@ TODO: Quotify.
   lack of associations and inheritance. By adding a simple domain language-like set of macros to describe
   the former and integrating the Single Table Inheritance pattern for the latter, Active Record narrows the
   gap of functionality between the data mapper and active record approach.
-</text>
+</plain>
 
 h5. +require "active_record/railtie"+
 
@@ -989,13 +989,13 @@ This Railtie is +require+'d by ActiveRecord's Railtie.
 
 From the ActiveModel readme:
 
-<text>
+<plain>
   Prior to Rails 3.0, if a plugin or gem developer wanted to be able to have an object interact with Action Pack helpers, it was required to either copy chunks of code from Rails, or monkey patch entire helpers to make them handle objects that did not look like Active Record.  This generated code duplication and fragile applications that broke on upgrades. 
   
   Active Model is a solution for this problem.
 
   Active Model provides a known set of interfaces that your objects can implement to then present a common interface to the Action Pack helpers.
-</text>
+</plain>
 
 
 h5. +require "active_model/railtie"+
@@ -1249,9 +1249,9 @@ In _encoding.rb_ it's used to define a constant that's now been deprecated:
 
 Now when you reference +ActiveSupport::JSON::CircularReferenceError+ you'll receive a warning:
 
-<text>
+<plain>
   ActiveSupport::JSON::CircularReferenceError is deprecated! Use Encoding::CircularReferenceError instead.
-</text>
+</plain>
 
 h5. +require "active_support/deprecation"+
 
@@ -2266,6 +2266,12 @@ The first method to be called here is +autorequires_for_groups+:
       dep = @definition.dependencies.find{|d| d.name == g.name }
       ordered_deps << dep if dep && !ordered_deps.include?(dep)
     end
+</ruby>
+
+The +specs_for+ method here:
+
+<ruby>
+  
 </ruby>
 
 
