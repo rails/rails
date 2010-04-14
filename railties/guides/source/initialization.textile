@@ -2114,7 +2114,7 @@ Going back to +Bundler::Dependency+, the next line simply sets +@autorequire+ to
   @groups      = Array(options["group"] || :default).map { |g| g.to_sym }
 </ruby>
 
-Here, bundler sets the +groups+ variable to be whatever +group+ we've set for this gem and also demonstrates through code that the +group+ option allows for multiple groups, so in the _Gemfile_ we can specify the same gem for multiple groups:
+Here, bundler sets the +groups+ variable to be whatever +group+ we've set for this gem and also demonstrates through code that the +group+ option allows for multiple groups, so in the _Gemfile_ you can specify the same gem for multiple groups:
 
 <ruby>
   group :test, :cucumber do
@@ -2223,7 +2223,7 @@ Now a quick refresher. Bundler is still evaulating the code for the +require+ in
   end
 </ruby>
 
-The second +require+ method here:
+The +load+ method returns a +Bundler::Runtime+ object. The second +require+ method here:
 
 <ruby>
   load(gemfile).require(*groups)
@@ -2252,9 +2252,9 @@ Is defined on _bundler/runtime.rb_:
   end
 </ruby>
 
-This method does TODO: Describe what magic this undertakes.
+This method does TODO: Describe what magic this undertakes when you've gone through the rest of the source.
 
-The first method to be called here is +autorequires_for_groups+:
+The first method to be called here is +autorequires_for_groups+ and this method is defined in _bundler/environment.rb_:
 
 <ruby>
   def autorequires_for_groups(*groups)
@@ -2268,11 +2268,81 @@ The first method to be called here is +autorequires_for_groups+:
     end
 </ruby>
 
-The +specs_for+ method here:
+The +specs_for+ method looks like this:
 
 <ruby>
-  
+  def specs_for(groups)
+    deps = dependencies.select { |d| (d.groups & groups).any? }
+    specs.for(deps)
+  end
 </ruby>
+
+The first line here:
+
+<ruby>
+  deps = dependencies.select { |d| (d.groups & groups).any? }
+</ruby>
+
+Goes through all the +dependencies+ defined and checks to see if their +groups+ match any of the +groups+ defined and returns the ones that are for the groups that are requested.
+
+The next line firstly calls the +specs+ method:
+
+<ruby>
+  specs.for(deps)
+</ruby>
+
+Which is defined like this:
+
+<ruby>
+  def specs
+    @specs ||= resolve_locally || resolve_remotely
+  end
+</ruby>
+
+This attempts to resolve the dependencies locally, and if it cannot then it will attempt to resolve them remotely. Firstly, `resolve_locally`:
+
+<ruby>
+  def resolve_locally
+    resolve(:local_specs, index)
+  end
+</ruby>
+
+The resolve method is defined like this:
+
+<ruby>
+  def resolve(type, index)
+    source_requirements = {}
+    actual_dependencies.each do |dep|
+      next unless dep.source && dep.source.respond_to?(type)
+      source_requirements[dep.name] = dep.source.send(type)
+    end
+
+    # Run a resolve against the locally available gems
+    Resolver.resolve(actual_dependencies, index, source_requirements)
+  end
+</ruby>
+
+The +actual_dependencies+ referenced is defined back in _bundler/runtime.rb_:
+
+<ruby>
+  def actual_dependencies
+    @definition.actual_dependencies
+  end
+</ruby>
+
+And the +@definition+ here is a +Bundler::Definition+ object, so that means the +actual_dependencies+ method called here is defined in _bundler/definition.rb_:
+
+<ruby>
+  def actual_dependencies
+    @actual_dependencies ||= @details["specs"].map do |args|
+      name, details = args.to_a.flatten
+      details["source"] = sources[details["source"]] if details.include?("source")
+      Bundler::Dependency.new(name, details.delete("version"), details)
+    end
+  end
+</ruby>
+
+
 
 
 h3. Firing it up!
