@@ -1796,6 +1796,49 @@ Bundler was +require+'d back in _config/boot.rb_, and so that is what makes it a
 
 The +Bundler.require+ method adds all the gems not specified inside a +group+ in the +Gemfile+ and the ones specified in groups for the +Rails.env+ (in this case, _development_), to the load path. This is how an application is able to find them.
 
+The rest of this file is spent defining your application's main class. This is it without the comments:
+
+<ruby>
+  module YourApp
+    class Application < Rails::Application
+      config.encoding = "utf-8"
+      config.filter_parameters += [:password]
+    end
+  end
+</ruby>
+
+h3. Return to Rails
+
+On the surface, this looks like a simple class inheritance. There's more underneath though. back in +Rails::Application+, the +inherited+ method is defined:
+
+<ruby>
+  def inherited(base)
+    raise "You cannot have more than one Rails::Application" if Rails.application
+    super
+    Rails.application = base.instance
+  end
+</ruby>
+
+We do not already have a +Rails.application+, so instead this resorts to calling +super+. +Rails::Application+ descends from +Rails::Engine+ and so will call the +inherited+ method in +Rails::Engine+, but before that it's important to note that +called_from+ is defined an +attr_accessor+ on +Rails::Engine+:
+
+<ruby>
+  def inherited(base)
+    unless base.abstract_railtie?
+      base.called_from = begin
+        # Remove the line number from backtraces making sure we don't leave anything behind
+        call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
+        File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-\.]*/lib/rails|rack[\w\-\.]*/lib/rack] })
+      end
+    end
+
+    super
+  end
+</ruby>
+
+This +called_from+ setting looks a little overwhelming to begin with, but the short end of it is that it returns the route to your application's config directory, something like: _/home/you/yourapp/config_. After +called_from+ has been set, +super+ is again called and this means the +Rails::Railtie#inherited+ method.
+  
+
+
 
 
 h3. Firing it up!
