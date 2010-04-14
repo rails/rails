@@ -30,6 +30,8 @@ $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include
 
 require 'active_support'
 require 'active_model'
+require 'arel'
+require 'i18n'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
