@@ -510,28 +510,28 @@ class BaseTest < ActiveSupport::TestCase
 
   # Rendering
   test "you can specify a different template for implicit render" do
-    mail = BaseMailer.implicit_different_template('implicit_multipart')
+    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
   end
 
   test "you can specify a different template for explicit render" do
-    mail = BaseMailer.explicit_different_template('explicit_multipart_templates')
+    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
     assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
   test "you can specify a different layout" do
-    mail = BaseMailer.different_layout('different_layout')
+    mail = BaseMailer.different_layout('different_layout').deliver
     assert_equal("HTML -- HTML", mail.html_part.body.decoded)
     assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
   end
 
   test "you can specify the template path for implicit lookup" do
-    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer')
+    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver
     assert_equal("Welcome from another path", mail.body.encoded)
 
-    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer'])
+    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver
     assert_equal("Welcome from another path", mail.body.encoded)
   end
   

@@ -148,6 +148,7 @@ module ActionController
 
     deprecated_config_writer :session_store
     deprecated_config_writer :session_options
+    deprecated_config_accessor :perform_caching
     deprecated_config_accessor :relative_url_root, "relative_url_root is ineffective. Please stop using it"
     deprecated_config_accessor :assets_dir
     deprecated_config_accessor :javascripts_dir

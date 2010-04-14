@@ -209,7 +209,7 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-unless RUBY_PLATFORM =~ /(:?mswin|mingw|bccwin)/
+unless RUBY_PLATFORM =~ /mswin|mingw/
   class LayoutSymlinkedTest < LayoutTest
     layout "symlinked/symlinked_layout"
   end

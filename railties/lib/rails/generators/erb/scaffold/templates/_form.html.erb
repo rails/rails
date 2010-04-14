@@ -1,13 +1,14 @@
 <%%= form_for(@<%= singular_name %>) do |f| %>
   <%% if @<%= singular_name %>.errors.any? %>
-  <div id="errorExplanation">
-    <h2><%%= pluralize(@<%= singular_name %>.errors.count, "error") %> prohibited this <%= singular_name %> from being saved:</h2>
-    <ul>
-    <%% @<%= singular_name %>.errors.full_messages.each do |msg| %>
-      <li><%%= msg %></li>
-    <%% end %>
-    </ul>
-  </div>
+    <div id="error_explanation">
+      <h2><%%= pluralize(@<%= singular_name %>.errors.count, "error") %> prohibited this <%= singular_name %> from being saved:</h2>
+
+      <ul>
+      <%% @<%= singular_name %>.errors.full_messages.each do |msg| %>
+        <li><%%= msg %></li>
+      <%% end %>
+      </ul>
+    </div>
   <%% end %>
 
 <% for attribute in attributes -%>

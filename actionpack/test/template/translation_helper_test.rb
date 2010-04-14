@@ -25,7 +25,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translation_of_an_array_with_html
     expected = '<a href="#">foo</a><a href="#">bar</a>'
-    I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(['<a href="#">foo</a>', '<a href="#">bar</a>'])
+    I18n.expects(:translate).with(["foo", "bar", "html"], :raise => true).returns(['<a href="#">foo</a>', '<a href="#">bar</a>'])
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
     assert_equal expected, @view.render(:file => "test/array_translation")
   end
@@ -46,5 +46,20 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.expects(:translate).with("test.scoped_array_translation.foo.bar", :raise => true).returns(["foo", "bar"])
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
     assert_equal "foobar", @view.render(:file => "test/scoped_array_translation")
+  end
+  
+  def test_translate_does_not_mark_plain_text_as_safe_html
+    I18n.expects(:translate).with("hello", :raise => true).returns("Hello World")
+    assert_equal false, translate("hello").html_safe?
+  end
+
+  def test_translate_marks_translations_named_html_as_safe_html
+    I18n.expects(:translate).with("html", :raise => true).returns("<a>Hello World</a>")
+    assert translate("html").html_safe?
+  end
+
+  def test_translate_marks_translations_with_a_html_suffix_as_safe_html
+    I18n.expects(:translate).with("hello_html", :raise => true).returns("<a>Hello World</a>")
+    assert translate("hello_html").html_safe?
   end
 end
