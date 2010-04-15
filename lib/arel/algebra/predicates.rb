@@ -4,8 +4,16 @@ module Arel
       def or(other_predicate)
         Or.new(self, other_predicate)
       end
+      
+      def |(other_predicate)
+        Or.new(self, other_predicate)
+      end
 
       def and(other_predicate)
+        And.new(self, other_predicate)
+      end
+      
+      def &(other_predicate)
         And.new(self, other_predicate)
       end
       
