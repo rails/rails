@@ -52,7 +52,7 @@ module ActionController #:nodoc:
     private
 
       def cache_configured?
-        perform_caching && cache_store
+        config.perform_caching && cache_store
       end
     end
 

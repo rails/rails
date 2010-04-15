@@ -39,7 +39,7 @@ module ActionView
     private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        if controller.perform_caching
+        if controller.config.perform_caching
           if controller.fragment_exist?(name, options)
             controller.read_fragment(name, options)
           else

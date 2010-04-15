@@ -61,7 +61,7 @@ module ActionController #:nodoc:
         # Expires the page that was cached with the +path+ as a key. Example:
         #   expire_page "/lists/show"
         def expire_page(path)
-          return unless perform_caching
+          return unless config.perform_caching
           path = page_cache_path(path)
 
           instrument_page_cache :expire_page, path do
@@ -72,7 +72,7 @@ module ActionController #:nodoc:
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
         def cache_page(content, path)
-          return unless perform_caching
+          return unless config.perform_caching
           path = page_cache_path(path)
 
           instrument_page_cache :write_page, path do
@@ -92,7 +92,7 @@ module ActionController #:nodoc:
         #   # cache the index action except for JSON requests
         #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
         def caches_page(*actions)
-          return unless perform_caching
+          return unless config.perform_caching
           options = actions.extract_options!
           after_filter({:only => actions}.merge(options)) { |c| c.cache_page }
         end
@@ -116,7 +116,7 @@ module ActionController #:nodoc:
       # Expires the page that was cached with the +options+ as a key. Example:
       #   expire_page :controller => "lists", :action => "show"
       def expire_page(options = {})
-        return unless perform_caching
+        return unless config.perform_caching
 
         if options.is_a?(Hash)
           if options[:action].is_a?(Array)
@@ -135,7 +135,7 @@ module ActionController #:nodoc:
       # If no options are provided, the requested url is used. Example:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = nil)
-        return unless perform_caching && caching_allowed
+        return unless config.perform_caching && caching_allowed
 
         path = case options
           when Hash
