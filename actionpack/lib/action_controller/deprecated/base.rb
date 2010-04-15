@@ -153,7 +153,6 @@ module ActionController
     deprecated_config_accessor :asset_path
     deprecated_config_accessor :helpers_path
     deprecated_config_accessor :javascripts_dir
-    deprecated_config_accessor :logger
     deprecated_config_accessor :page_cache_directory
     deprecated_config_accessor :page_cache_extension
     deprecated_config_accessor :protected_instance_variables
