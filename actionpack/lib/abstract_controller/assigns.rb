@@ -6,7 +6,7 @@ module AbstractController
     def view_assigns
       hash = {}
       variables  = instance_variable_names
-      variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
+      variables -= config.protected_instance_variables if config.respond_to?(:protected_instance_variables)
       variables.each { |name| hash[name] = instance_variable_get(name) }
       hash
     end
