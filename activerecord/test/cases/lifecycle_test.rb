@@ -7,6 +7,14 @@ require 'models/comment'
 
 class SpecialDeveloper < Developer; end
 
+class SalaryChecker < ActiveRecord::Observer
+  observe :special_developer
+
+  def before_save(developer)
+    return developer.salary > 80000
+  end
+end
+
 class TopicaAuditor < ActiveRecord::Observer
   observe :topic
 
@@ -158,5 +166,17 @@ class LifecycleTest < ActiveRecord::TestCase
     comment.valid?
     assert_equal [ValidatedComment, ValidatedComment, ValidatedCommentObserver], callers,
       "model callbacks did not fire before observers were notified"
+  end
+
+  test "able to save developer" do
+    SalaryChecker.instance # activate
+    developer = SpecialDeveloper.new :name => 'Roger', :salary => 100000
+    assert developer.save, "developer with normal salary failed to save"
+  end
+
+  test "unable to save developer with low salary" do
+    SalaryChecker.instance # activate
+    developer = SpecialDeveloper.new :name => 'Rookie', :salary => 50000
+    assert !developer.save, "allowed to save a developer with too low salary"
   end
 end
