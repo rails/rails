@@ -3,6 +3,7 @@ require 'models/topic'
 require 'models/developer'
 require 'models/reply'
 require 'models/minimalistic'
+require 'models/comment'
 
 class SpecialDeveloper < Developer; end
 
@@ -54,6 +55,28 @@ class MultiObserver < ActiveRecord::Observer
 
   def after_find(record)
     @record = record
+  end
+end
+
+class ValidatedComment < Comment
+  attr_accessor :callers
+
+  before_validation :record_callers
+
+  after_validation do
+    record_callers
+  end
+
+  def record_callers
+    callers << self.class if callers
+  end
+end
+
+class ValidatedCommentObserver < ActiveRecord::Observer
+  attr_accessor :callers
+
+  def after_validation(model)
+    callers << self.class if callers
   end
 end
 
@@ -124,5 +147,16 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_invalid_observer
     assert_raise(ArgumentError) { Topic.observers = Object.new; Topic.instantiate_observers }
+  end
+
+  test "model callbacks fire before observers are notified" do
+    callers = []
+
+    comment = ValidatedComment.new
+    comment.callers = ValidatedCommentObserver.instance.callers = callers
+
+    comment.valid?
+    assert_equal [ValidatedComment, ValidatedComment, ValidatedCommentObserver], callers,
+      "model callbacks did not fire before observers were notified"
   end
 end
