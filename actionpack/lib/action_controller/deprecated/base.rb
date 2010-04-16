@@ -154,7 +154,6 @@ module ActionController
     deprecated_config_accessor :helpers_path
     deprecated_config_accessor :javascripts_dir
     deprecated_config_accessor :page_cache_directory
-    deprecated_config_accessor :page_cache_extension
     deprecated_config_accessor :protected_instance_variables
     deprecated_config_accessor :relative_url_root, "relative_url_root is ineffective. Please stop using it"
     deprecated_config_accessor :stylesheets_dir
