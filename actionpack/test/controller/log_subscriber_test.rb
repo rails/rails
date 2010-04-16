@@ -143,7 +143,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_with_fragment_cache
-    ActionController::Base.perform_caching = true
+    @controller.config.perform_caching = true
     get :with_fragment_cache
     wait
 
@@ -151,11 +151,11 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match /Exist fragment\? views\/foo/, logs[1]
     assert_match /Write fragment views\/foo/, logs[2]
   ensure
-    ActionController::Base.perform_caching = true
+    @controller.config.perform_caching = true
   end
 
   def test_with_page_cache
-    ActionController::Base.perform_caching = true
+    @controller.config.perform_caching = true
     get :with_page_cache
     wait
 
@@ -163,7 +163,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match /Write page/, logs[1]
     assert_match /\/index\.html/, logs[1]
   ensure
-    ActionController::Base.perform_caching = true
+    @controller.config.perform_caching = true
   end
 
   def logs

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/try'
 
 # The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
 #
@@ -205,8 +206,8 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        @current_period ||= tzinfo.current_period
-        @current_period.utc_offset
+        @current_period ||= tzinfo.try(:current_period)
+        @current_period.try(:utc_offset)
       end
     end
 

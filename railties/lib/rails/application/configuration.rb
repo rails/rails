@@ -53,7 +53,7 @@ module Rails
           paths.vendor.plugins     "vendor/plugins"
 
           if File.exists?("#{root}/test/mocks/#{Rails.env}")
-            ActiveSupport::Deprecation.warn "\"RAILS_ROOT/test/mocks/#{Rails.env}\" won't be added " <<
+            ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<
               "automatically to load paths anymore in future releases"
             paths.mocks_path  "test/mocks", :load_path => true, :glob => Rails.env
           end

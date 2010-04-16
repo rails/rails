@@ -113,7 +113,7 @@ CODE
 
 Similarly +lib()+ creates a file in the +lib/+ directory and +vendor()+ creates a file in the +vendor/+ directory.
 
-There is even +file()+, which accepts a relative path from +RAILS_ROOT+ and creates all the directories/file needed :
+There is even +file()+, which accepts a relative path from +Rails.root+ and creates all the directories/file needed :
 
 <ruby>
 file 'app/components/foo.rb', <<-CODE
