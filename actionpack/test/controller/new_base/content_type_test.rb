@@ -21,15 +21,10 @@ module ContentType
 
     self.view_paths = [ActionView::FixtureResolver.new(
       "content_type/implied/i_am_html_erb.html.erb"         => "Hello world!",
-      "content_type/implied/i_am_xml_erb.xml.erb"          => "<xml>Hello world!</xml>",
+      "content_type/implied/i_am_xml_erb.xml.erb"           => "<xml>Hello world!</xml>",
       "content_type/implied/i_am_html_builder.html.builder" => "xml.p 'Hello'",
-      "content_type/implied/i_am_xml_builder.xml.builder"  => "xml.awesome 'Hello'"
+      "content_type/implied/i_am_xml_builder.xml.builder"   => "xml.awesome 'Hello'"
     )]
-
-    def i_am_html_erb()     end
-    def i_am_xml_erb()      end
-    def i_am_html_builder() end
-    def i_am_xml_builder()  end
   end
 
   class CharsetController < ActionController::Base
