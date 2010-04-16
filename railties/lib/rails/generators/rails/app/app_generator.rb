@@ -55,6 +55,7 @@ module Rails::Generators
                         :desc => "Show this help message and quit"
 
     def initialize(*args)
+      raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
       super
       if !options[:skip_activerecord] && !DATABASES.include?(options[:database])
         raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."

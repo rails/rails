@@ -58,6 +58,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "public/stylesheets/application.css"
   end
 
+  def test_options_before_application_name_raises_an_error
+    content = capture(:stderr){ run_generator(["--skip-activerecord", destination_root]) }
+    assert_equal "Options should be given after the application name. For details run: rails --help\n", content
+  end
+  
   def test_name_collision_raises_an_error
     content = capture(:stderr){ run_generator [File.join(destination_root, "generate")] }
     assert_equal "Invalid application name generate. Please give a name which does not match one of the reserved rails words.\n", content
