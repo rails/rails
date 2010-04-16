@@ -2054,7 +2054,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_base_subclasses_is_public_method
-    assert ActiveRecord::Base.public_methods.include?("subclasses")
+    assert ActiveRecord::Base.public_methods.map(&:to_sym).include?(:subclasses)
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
