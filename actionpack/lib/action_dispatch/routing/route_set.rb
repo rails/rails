@@ -1,5 +1,6 @@
 require 'rack/mount'
 require 'forwardable'
+require 'active_support/core_ext/object/to_query'
 require 'action_dispatch/routing/deprecated_mapper'
 
 module ActionDispatch
