@@ -148,7 +148,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * mime-types-1.16.gem
 * polyglot-0.3.1.gem
 * rack-1.1.0.gem
-* rack-mount-0.6.1.gem
+* rack-mount-0.6.3.gem
 * rack-test-0.5.3.gem
 * rails-3.0.0.beta1.gem
 * railties-3.0.0.beta1.gem
