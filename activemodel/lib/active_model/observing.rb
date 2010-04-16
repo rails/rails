@@ -52,6 +52,10 @@ module ActiveModel
         end
       end
 
+      def count_observers
+        @observer_instances.size
+      end
+
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
