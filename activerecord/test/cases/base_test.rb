@@ -708,55 +708,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert Topic.find(2).approved?
   end
 
-  def test_increment_counter
-    Topic.increment_counter("replies_count", 1)
-    assert_equal 2, Topic.find(1).replies_count
-
-    Topic.increment_counter("replies_count", 1)
-    assert_equal 3, Topic.find(1).replies_count
-  end
-
-  def test_decrement_counter
-    Topic.decrement_counter("replies_count", 2)
-    assert_equal(-1, Topic.find(2).replies_count)
-
-    Topic.decrement_counter("replies_count", 2)
-    assert_equal(-2, Topic.find(2).replies_count)
-  end
-
-  def test_reset_counters
-    assert_equal 1, Topic.find(1).replies_count
-
-    Topic.increment_counter("replies_count", 1)
-    assert_equal 2, Topic.find(1).replies_count
-
-    Topic.reset_counters(1, :replies)
-    assert_equal 1, Topic.find(1).replies_count
-  end
-
-  def test_update_counter
-    category = categories(:general)
-    assert_nil category.categorizations_count
-    assert_equal 2, category.categorizations.count
-
-    Category.update_counters(category.id, "categorizations_count" => category.categorizations.count)
-    category.reload
-    assert_not_nil category.categorizations_count
-    assert_equal 2, category.categorizations_count
-
-    Category.update_counters(category.id, "categorizations_count" => category.categorizations.count)
-    category.reload
-    assert_not_nil category.categorizations_count
-    assert_equal 4, category.categorizations_count
-
-    category_2 = categories(:technology)
-    count_1, count_2 = (category.categorizations_count || 0), (category_2.categorizations_count || 0)
-    Category.update_counters([category.id, category_2.id], "categorizations_count" => 2)
-    category.reload; category_2.reload
-    assert_equal count_1 + 2, category.categorizations_count
-    assert_equal count_2 + 2, category_2.categorizations_count
-  end
-
   def test_update_all
     assert_equal Topic.count, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
