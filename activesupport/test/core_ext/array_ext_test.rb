@@ -304,10 +304,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
   class Namespaced < Hash
   end
   def test_to_xml_with_namespaced_classes
-    xml = [
-      Namespaced.new :name => "David"
-    ].to_xml
-
+    xml = [Namespaced.new(:name => "David")].to_xml
     assert_match(/<array\-to\-xml\-tests\-namespaceds/, xml)
   end
 
