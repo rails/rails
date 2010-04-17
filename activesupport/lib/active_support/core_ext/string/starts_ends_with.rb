@@ -20,12 +20,12 @@ module ActiveSupport #:nodoc:
 
         # Does the string start with the specified +prefix+?
         def starts_with?(prefix)
-          self[0, prefix.length] == prefix
+          prefix.respond_to?(:to_str) && self[0, prefix.length] == prefix
         end
 
         # Does the string end with the specified +suffix+?
         def ends_with?(suffix)
-          self[-suffix.length, suffix.length] == suffix
+          suffix.respond_to?(:to_str) && self[-suffix.length, suffix.length] == suffix
         end
       end
     end
