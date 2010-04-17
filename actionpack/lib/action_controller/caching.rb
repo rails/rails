@@ -63,8 +63,9 @@ module ActionController #:nodoc:
     included do
       extend ConfigMethods
 
-      @@perform_caching = true
-      cattr_accessor :perform_caching
+      delegate :perform_caching, :perform_caching=, :to => :config
+      singleton_class.delegate :perform_caching, :perform_caching=, :to => :config
+      self.perform_caching = true
     end
 
 
