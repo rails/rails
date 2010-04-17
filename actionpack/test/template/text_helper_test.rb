@@ -368,17 +368,16 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_auto_link_other_protocols
-    silence_warnings do
-      begin
-        old_re_value = ActionView::Helpers::TextHelper::AUTO_LINK_RE
-        ActionView::Helpers::TextHelper.const_set :AUTO_LINK_RE, %r{(ftp://)[^\s<]+}
-        link_raw = 'ftp://example.com/file.txt'
-        link_result = generate_result(link_raw)
-        assert_equal %(Download #{link_result}), auto_link("Download #{link_raw}")
-      ensure
-        ActionView::Helpers::TextHelper.const_set :AUTO_LINK_RE, old_re_value
-      end
-    end
+    ftp_raw = 'ftp://example.com/file.txt'
+    assert_equal %(Download #{generate_result(ftp_raw)}), auto_link("Download #{ftp_raw}")
+    
+    file_scheme   = 'file:///home/username/RomeoAndJuliet.pdf'
+    z39_scheme    = 'z39.50r://host:696/db'
+    chrome_scheme = 'chrome://package/section/path'
+    view_source   = 'view-source:http://en.wikipedia.org/wiki/URI_scheme'
+    assert_equal generate_result(z39_scheme), auto_link(z39_scheme)
+    assert_equal generate_result(chrome_scheme), auto_link(chrome_scheme)
+    assert_equal generate_result(view_source), auto_link(view_source)
   end
 
   def test_auto_link_already_linked
