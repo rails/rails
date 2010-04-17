@@ -935,8 +935,9 @@ module ActiveRecord #:nodoc:
       def reset_counters(id, *counters)
         object = find(id)
         counters.each do |association|
-          child_class = reflect_on_association(association).klass
-          counter_name = child_class.reflect_on_association(self.name.downcase.to_sym).counter_cache_column
+          child_class = reflect_on_association(association.to_sym).klass
+          belongs_name = self.name.demodulize.underscore.to_sym
+          counter_name = child_class.reflect_on_association(belongs_name).counter_cache_column
           value = object.send(association).count
 
           connection.update(<<-CMD, "#{name} UPDATE")
@@ -945,6 +946,7 @@ module ActiveRecord #:nodoc:
             WHERE #{connection.quote_column_name(primary_key)} = #{quote_value(object.id)}
           CMD
         end
+        return true
       end
 
       # A generic "counter updater" implementation, intended primarily to be
