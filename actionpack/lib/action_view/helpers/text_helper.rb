@@ -537,7 +537,7 @@ module ActionView
         end
 
         AUTO_LINK_RE = %r{
-            ( https?:// | www\. )
+            (?: ([\w+.:-]+:)// | www\. )
             [^\s<]+
           }x unless const_defined?(:AUTO_LINK_RE)
 
@@ -548,7 +548,7 @@ module ActionView
         def auto_link_urls(text, html_options = {})
           link_attributes = html_options.stringify_keys
           text.gsub(AUTO_LINK_RE) do
-            href = $&
+            scheme, href = $1, $&
             punctuation = []
             left, right = $`, $'
             # detect already linked URLs and URLs in the middle of a tag
@@ -566,7 +566,7 @@ module ActionView
               end
 
               link_text = block_given?? yield(href) : href
-              href = 'http://' + href unless href =~ %r{^[a-z]+://}i
+              href = 'http://' + href unless scheme
 
               content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation.reverse.join('')
             end
