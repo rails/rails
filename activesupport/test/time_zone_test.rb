@@ -282,7 +282,7 @@ class TimeZoneTest < Test::Unit::TestCase
 
   def test_unknown_zone_with_utc_offset
     zone = ActiveSupport::TimeZone.create("bogus", -21_600)
-    assert_equal -21_600, zone.utc_offset
+    assert_equal(-21_600, zone.utc_offset)
   end
 
   def test_new
