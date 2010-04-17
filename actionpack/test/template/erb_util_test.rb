@@ -4,12 +4,12 @@ class ErbUtilTest < Test::Unit::TestCase
   include ERB::Util
 
   ERB::Util::HTML_ESCAPE.each do |given, expected|
-    define_method "test_html_escape_#{expected.gsub /\W/, ''}" do
+    define_method "test_html_escape_#{expected.gsub(/\W/, '')}" do
       assert_equal expected, html_escape(given)
     end
 
     unless given == '"'
-      define_method "test_json_escape_#{expected.gsub /\W/, ''}" do
+      define_method "test_json_escape_#{expected.gsub(/\W/, '')}" do
         assert_equal ERB::Util::JSON_ESCAPE[given], json_escape(given)
       end
     end
