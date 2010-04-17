@@ -3,7 +3,11 @@ require 'active_support/core_ext/time/publicize_conversion_methods'
 require 'active_support/core_ext/time/calculations'
 
 class String
-  # 'a'.ord == 'a'[0] for Ruby 1.9 forward compatibility.
+  # Returns the ASCII code of the first character of the string, assuming it belongs to ASCII.
+  #
+  # This method is defined for Ruby 1.9 forward compatibility on ASCII characters.
+  #
+  # See also <tt>ActiveSupport::Multibyte::Chars#ord</tt>.
   def ord
     self[0]
   end unless method_defined?(:ord)
