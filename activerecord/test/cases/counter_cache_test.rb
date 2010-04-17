@@ -7,6 +7,14 @@ require 'models/categorization'
 class CounterCacheTest < ActiveRecord::TestCase
   fixtures :topics, :categories, :categorizations
 
+  class SpecialTopic < ::Topic
+    has_many :special_replies, :foreign_key => 'parent_id'
+  end
+
+  class SpecialReply < ::Reply
+    belongs_to :special_topic, :foreign_key => 'parent_id', :counter_cache => 'replies_count'
+  end
+
   setup do
     @topic = Topic.find(1)
   end
@@ -30,6 +38,23 @@ class CounterCacheTest < ActiveRecord::TestCase
     # check that it gets reset
     assert_difference '@topic.reload.replies_count', -1 do
       Topic.reset_counters(@topic.id, :replies)
+    end
+  end
+  
+  test "reset counters with string argument" do
+    Topic.increment_counter('replies_count', @topic.id)
+
+    assert_difference '@topic.reload.replies_count', -1 do
+      Topic.reset_counters(@topic.id, 'replies')
+    end
+  end
+
+  test "reset counters with modularized and camelized classnames" do
+    special = SpecialTopic.create!(:title => 'Special')
+    SpecialTopic.increment_counter(:replies_count, special.id)
+
+    assert_difference 'special.reload.replies_count', -1 do
+      SpecialTopic.reset_counters(special.id, :special_replies)
     end
   end
 
