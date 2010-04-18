@@ -3,11 +3,27 @@ require 'active_support/core_ext/time/publicize_conversion_methods'
 require 'active_support/core_ext/time/calculations'
 
 class String
-  # Returns the ASCII code of the first character of the string, assuming it belongs to ASCII.
+  # Returns the codepoint of the first character of the string, assuming a
+  # single-byte character encoding:
   #
-  # This method is defined for Ruby 1.9 forward compatibility on ASCII characters.
+  #   "a".ord # => 97
+  #   "à".ord # => 224, in ISO-8859-1
   #
-  # See also <tt>ActiveSupport::Multibyte::Chars#ord</tt>.
+  # This method is defined in Ruby 1.8 for Ruby 1.9 forward compatibility on
+  # these character encodings.
+  #
+  # <tt>ActiveSupport::Multibyte::Chars#ord</tt> is forward compatible with
+  # Ruby 1.9 on UTF8 strings:
+  #
+  #   "a".mb_chars.ord # => 97
+  #   "à".mb_chars.ord # => 224, in UTF8
+  #
+  # Note that the 224 is different in both examples. In ISO-8859-1 "à" is
+  # represented as a single byte, 224. In UTF8 it is represented with two
+  # bytes, namely 195 and 160, but its Unicode codepoint is 224. If we
+  # call +ord+ on the UTF8 string "à" the return value will be 195. That is
+  # not an error, because UTF8 is unsupported, the call itself would be
+  # bogus.
   def ord
     self[0]
   end unless method_defined?(:ord)
