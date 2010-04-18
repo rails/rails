@@ -4,6 +4,7 @@ require 'models/post'
 require 'models/author'
 require 'models/tagging'
 require 'models/comment'
+require 'models/company_in_module'
 
 class XmlSerializationTest < ActiveRecord::TestCase
   def test_should_serialize_default_root
