@@ -49,13 +49,6 @@ class String
     def is_utf8?
       ActiveSupport::Multibyte::Chars.consumes?(self)
     end
-
-    unless '1.8.7 and later'.respond_to?(:chars)
-      def chars
-        ActiveSupport::Deprecation.warn('String#chars has been deprecated in favor of String#mb_chars.', caller)
-        mb_chars
-      end
-    end
   else
     def mb_chars #:nodoc
       self

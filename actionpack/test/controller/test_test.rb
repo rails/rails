@@ -113,6 +113,11 @@ XML
       render :nothing => true
     end
 
+    def test_assigns
+      @foo = "foo"
+      render :nothing => true
+    end
+
     private
       def rescue_action(e)
         raise e
@@ -228,6 +233,17 @@ XML
     assert_equal "OK", @response.body
     process :test_only_one_param, :right => true
     assert_equal "OK", @response.body
+  end
+
+  def test_assigns
+    process :test_assigns
+    # assigns can be accessed using assigns(key)
+    # or assigns[key], where key is a string or
+    # a symbol
+    assert_equal "foo", assigns(:foo)
+    assert_equal "foo", assigns("foo")
+    assert_equal "foo", assigns[:foo]
+    assert_equal "foo", assigns["foo"]
   end
 
   def test_assert_tag_tag
