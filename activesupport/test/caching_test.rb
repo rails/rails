@@ -185,6 +185,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.write('foo', bar)
     assert_nothing_raised { bar.gsub!(/.*/, 'baz') }
   end
+
+  def test_multi_get
+    @cache.write('foo', 1)
+    @cache.write('goo', 2)
+    result = @cache.read_multi('foo', 'goo')
+    assert_equal({'foo' => 1, 'goo' => 2}, result)
+  end
 end
 
 uses_memcached 'memcached backed store' do
