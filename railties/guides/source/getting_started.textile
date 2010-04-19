@@ -87,7 +87,7 @@ Action View manages the views of your Rails application. It can create both HTML
 
 h5. Action Dispatch
 
-Action Dispatch handles routing of web requests and dispatches them as you want, either to your application, any other Rack application.
+Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.
 
 h5. Action Mailer
 
