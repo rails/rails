@@ -1022,7 +1022,11 @@ class BaseTest < Test::Unit::TestCase
     joe = Person.find(6)
     json = joe.encode
     Person.format = :xml
-    assert_equal json, '{"person":{"person":{"name":"Joe","id":6}}}'
+
+    assert_match %r{^\{"person":\{"person":\{}, json
+    assert_match %r{"id":6}, json
+    assert_match %r{"name":"Joe"}, json
+    assert_match %r{\}\}\}$}, json
   end
 
   def test_to_param_quacks_like_active_record
