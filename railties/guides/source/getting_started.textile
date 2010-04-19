@@ -363,7 +363,7 @@ The scaffold generator will build 15 files in your application, along with some 
 |app/views/posts/edit.html.erb                |A view to edit an existing post|
 |app/views/posts/show.html.erb                |A view to display a single post|
 |app/views/posts/new.html.erb                 |A view to create a new post|
-|app/views/posts/_form.html.erb               |A view to control the overall look and feel of the other posts views|
+|app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
 |app/views/layouts/posts.html.erb             |A view to control the overall look and feel of the other posts views|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |app/helpers/posts_helper.rb                  |Helper functions to be used from the posts views|
