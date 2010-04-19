@@ -168,6 +168,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_raise(ActiveSupport::FrozenObjectError) { @cache.read('foo').gsub!(/.*/, 'baz') }
     assert_equal 'bar', @cache.read('foo')
   end
+
+  def test_multi_get
+    @cache.write('foo', 1)
+    @cache.write('goo', 2)
+    result = @cache.read_multi('foo', 'goo')
+    assert_equal({'foo' => 1, 'goo' => 2}, result)
+  end
 end
 
 uses_memcached 'memcached backed store' do

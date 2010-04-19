@@ -19,6 +19,12 @@ module ActiveSupport
         @data = {}
       end
 
+      def read_multi(*names)
+        results = {}
+        names.each { |n| results[n] = read(n) }
+        results
+      end
+
       def read(name, options = nil)
         super
         @data[name]
@@ -39,7 +45,7 @@ module ActiveSupport
         @data.delete_if { |k,v| k =~ matcher }
       end
 
-      def exist?(name,options = nil)
+      def exist?(name, options = nil)
         super
         @data.has_key?(name)
       end
