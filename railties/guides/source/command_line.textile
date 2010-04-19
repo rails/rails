@@ -237,7 +237,7 @@ The migration requires that we *migrate*, that is, run some Ruby code (living in
 
 <shell>
 $ rake db:migrate
-(in /Users/mikel/rails_programs/commandsapp)
+(in /home/foobar/commandsapp)
 ==  CreateHighScores: migrating ===============================================
 -- create_table(:high_scores)
    -> 0.0026s
@@ -332,7 +332,7 @@ Active Resource version   3.0.0
 Action Mailer version     3.0.0
 Active Support version    3.0.0
 Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::RemoteIp, Rack::Sendfile, ActionDispatch::Callbacks, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::MethodOverride, ActionDispatch::Head
-Application root          /home/myapp
+Application root          /home/foobar/commandsapp
 Environment               development
 </shell>
 
@@ -525,7 +525,7 @@ You can get a list of Rake tasks available to you, which will often depend on yo
 
 <shell>
  rake --tasks
-(in /home/developer/commandsapp)
+(in /home/foobar/commandsapp)
 rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
 rake db:charset                           # Retrieves the charset for the current environment's database
 rake db:collation                         # Retrieves the collation for the current environment's database
