@@ -10,6 +10,19 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/#{migration}.rb", /class ChangeTitleBodyFromPosts < ActiveRecord::Migration/
   end
 
+  def test_migrations_generated_simultaneously
+    migrations = ["change_title_body_from_posts", "change_email_from_comments"]
+
+    first_migration_number, second_migration_number = migrations.collect do |migration|
+      run_generator [migration]
+      file_name = migration_file_name "db/migrate/#{migration}.rb"
+
+      File.basename(file_name).split('_').first
+    end
+
+    assert_not_equal first_migration_number, second_migration_number
+  end
+
   def test_migration_with_class_name
     migration = "ChangeTitleBodyFromPosts"
     run_generator [migration]

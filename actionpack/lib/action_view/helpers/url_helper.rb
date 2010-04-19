@@ -504,7 +504,7 @@ module ActionView
           "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>"
+          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
         elsif encode == "hex"
           email_address_encoded = ''
           email_address_obfuscated.each_byte do |c|

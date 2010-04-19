@@ -230,18 +230,6 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
     assert !BYTE_STRING.is_utf8?
   end
 
-  if RUBY_VERSION < '1.8.7'
-    def test_core_ext_adds_chars
-      assert UNICODE_STRING.respond_to?(:chars)
-    end
-
-    def test_chars_warns_about_deprecation
-      assert_deprecated("String#chars") do
-        ''.chars
-      end
-    end
-  end
-
   if RUBY_VERSION < '1.9'
     def test_mb_chars_returns_self_when_kcode_not_set
       with_kcode('none') do
