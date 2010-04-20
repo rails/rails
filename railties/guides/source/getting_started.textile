@@ -395,7 +395,7 @@ class CreatePosts < ActiveRecord::Migration
 end
 </ruby>
 
-The above migration creates two methods, +up+, called when you run this migration into the database, and +down+ in case you need to reverse the changes made by this migration at a later date.  The +up+ command in this case creates a +posts+ table with two string columns and a text column.  It also is creating two timestamp fields to track record creation and updating.  More information about Rails migrations can be found in the "Rails Database Migrations":migrations.html guide.
+The above migration creates two methods, +up+, called when you run this migration into the database, and +down+ in case you need to reverse the changes made by this migration at a later date.  The +up+ command in this case creates a +posts+ table with two string columns and a text column.  It also creates two timestamp fields to track record creation and updating.  More information about Rails migrations can be found in the "Rails Database Migrations":migrations.html guide.
 
 At this point, you can use a rake command to run the migration:
 
@@ -504,7 +504,7 @@ def index
 end
 </ruby>
 
-This code sets the +@posts+ instance variable to an array of all posts in the database. +Post.all+ calls the +Post+ model to return all of the posts that are currently in the database, with no limiting conditions.
++Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array containing the posts which has been saved in an instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
