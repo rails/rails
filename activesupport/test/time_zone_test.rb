@@ -40,7 +40,7 @@ class TimeZoneTest < Test::Unit::TestCase
     end
 
     define_method("test_zones_map_for_#{name}") do
-      assert_equal ActiveSupport::TimeZone::ZONES_MAP[zone.name], zone
+      assert_equal ActiveSupport::TimeZone.zones_map[zone.name], zone
     end
   end
 

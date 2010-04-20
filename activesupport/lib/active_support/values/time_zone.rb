@@ -304,73 +304,6 @@ module ActiveSupport
       nil
     end
 
-    unless const_defined?(:ZONES)
-      ZONES = []
-      ZONES_MAP = {}
-      [[-39_600, "International Date Line West", "Midway Island", "Samoa" ],
-       [-36_000, "Hawaii" ],
-       [-32_400, "Alaska" ],
-       [-28_800, "Pacific Time (US & Canada)", "Tijuana" ],
-       [-25_200, "Mountain Time (US & Canada)", "Chihuahua", "Mazatlan",
-                 "Arizona" ],
-       [-21_600, "Central Time (US & Canada)", "Saskatchewan", "Guadalajara",
-                 "Mexico City", "Monterrey", "Central America" ],
-       [-18_000, "Eastern Time (US & Canada)", "Indiana (East)", "Bogota",
-                 "Lima", "Quito" ],
-       [-16_200, "Caracas" ],
-       [-14_400, "Atlantic Time (Canada)", "La Paz", "Santiago" ],
-       [-12_600, "Newfoundland" ],
-       [-10_800, "Brasilia", "Buenos Aires", "Georgetown", "Greenland" ],
-       [ -7_200, "Mid-Atlantic" ],
-       [ -3_600, "Azores", "Cape Verde Is." ],
-       [      0, "Dublin", "Edinburgh", "Lisbon", "London", "Casablanca",
-                 "Monrovia", "UTC" ],
-       [  3_600, "Belgrade", "Bratislava", "Budapest", "Ljubljana", "Prague",
-                 "Sarajevo", "Skopje", "Warsaw", "Zagreb", "Brussels",
-                 "Copenhagen", "Madrid", "Paris", "Amsterdam", "Berlin",
-                 "Bern", "Rome", "Stockholm", "Vienna",
-                 "West Central Africa" ],
-       [  7_200, "Bucharest", "Cairo", "Helsinki", "Kyev", "Riga", "Sofia",
-                 "Tallinn", "Vilnius", "Athens", "Istanbul", "Minsk",
-                 "Jerusalem", "Harare", "Pretoria" ],
-       [ 10_800, "Moscow", "St. Petersburg", "Volgograd", "Kuwait", "Riyadh",
-                 "Nairobi", "Baghdad" ],
-       [ 12_600, "Tehran" ],
-       [ 14_400, "Abu Dhabi", "Muscat", "Baku", "Tbilisi", "Yerevan" ],
-       [ 16_200, "Kabul" ],
-       [ 18_000, "Ekaterinburg", "Islamabad", "Karachi", "Tashkent" ],
-       [ 19_800, "Chennai", "Kolkata", "Mumbai", "New Delhi", "Sri Jayawardenepura" ],
-       [ 20_700, "Kathmandu" ],
-       [ 21_600, "Astana", "Dhaka", "Almaty",
-                 "Novosibirsk" ],
-       [ 23_400, "Rangoon" ],
-       [ 25_200, "Bangkok", "Hanoi", "Jakarta", "Krasnoyarsk" ],
-       [ 28_800, "Beijing", "Chongqing", "Hong Kong", "Urumqi",
-                 "Kuala Lumpur", "Singapore", "Taipei", "Perth", "Irkutsk",
-                 "Ulaan Bataar" ],
-       [ 32_400, "Seoul", "Osaka", "Sapporo", "Tokyo", "Yakutsk" ],
-       [ 34_200, "Darwin", "Adelaide" ],
-       [ 36_000, "Canberra", "Melbourne", "Sydney", "Brisbane", "Hobart",
-                 "Vladivostok", "Guam", "Port Moresby" ],
-       [ 39_600, "Magadan", "Solomon Is.", "New Caledonia" ],
-       [ 43_200, "Fiji", "Kamchatka", "Marshall Is.", "Auckland",
-                 "Wellington" ],
-       [ 46_800, "Nuku'alofa" ]].
-      each do |offset, *places|
-        places.each do |place|
-          place.freeze
-          zone = new(place, offset)
-          ZONES << zone
-          ZONES_MAP[place] = zone
-        end
-      end
-      ZONES.sort!
-      ZONES.freeze
-
-      US_ZONES = ZONES.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
-      US_ZONES.freeze
-    end
-
     class << self
       alias_method :create, :new
 
@@ -385,7 +318,68 @@ module ActiveSupport
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all
-        ZONES
+        @zones ||= zones_map.values.sort
+      end
+
+      def zones_map
+        unless defined?(@zones_map)
+          @zones_map = {}
+          [[-39_600, "International Date Line West", "Midway Island", "Samoa" ],
+           [-36_000, "Hawaii" ],
+           [-32_400, "Alaska" ],
+           [-28_800, "Pacific Time (US & Canada)", "Tijuana" ],
+           [-25_200, "Mountain Time (US & Canada)", "Chihuahua", "Mazatlan",
+                     "Arizona" ],
+           [-21_600, "Central Time (US & Canada)", "Saskatchewan", "Guadalajara",
+                     "Mexico City", "Monterrey", "Central America" ],
+           [-18_000, "Eastern Time (US & Canada)", "Indiana (East)", "Bogota",
+                     "Lima", "Quito" ],
+           [-16_200, "Caracas" ],
+           [-14_400, "Atlantic Time (Canada)", "La Paz", "Santiago" ],
+           [-12_600, "Newfoundland" ],
+           [-10_800, "Brasilia", "Buenos Aires", "Georgetown", "Greenland" ],
+           [ -7_200, "Mid-Atlantic" ],
+           [ -3_600, "Azores", "Cape Verde Is." ],
+           [      0, "Dublin", "Edinburgh", "Lisbon", "London", "Casablanca",
+                     "Monrovia", "UTC" ],
+           [  3_600, "Belgrade", "Bratislava", "Budapest", "Ljubljana", "Prague",
+                     "Sarajevo", "Skopje", "Warsaw", "Zagreb", "Brussels",
+                     "Copenhagen", "Madrid", "Paris", "Amsterdam", "Berlin",
+                     "Bern", "Rome", "Stockholm", "Vienna",
+                     "West Central Africa" ],
+           [  7_200, "Bucharest", "Cairo", "Helsinki", "Kyev", "Riga", "Sofia",
+                     "Tallinn", "Vilnius", "Athens", "Istanbul", "Minsk",
+                     "Jerusalem", "Harare", "Pretoria" ],
+           [ 10_800, "Moscow", "St. Petersburg", "Volgograd", "Kuwait", "Riyadh",
+                     "Nairobi", "Baghdad" ],
+           [ 12_600, "Tehran" ],
+           [ 14_400, "Abu Dhabi", "Muscat", "Baku", "Tbilisi", "Yerevan" ],
+           [ 16_200, "Kabul" ],
+           [ 18_000, "Ekaterinburg", "Islamabad", "Karachi", "Tashkent" ],
+           [ 19_800, "Chennai", "Kolkata", "Mumbai", "New Delhi", "Sri Jayawardenepura" ],
+           [ 20_700, "Kathmandu" ],
+           [ 21_600, "Astana", "Dhaka", "Almaty",
+                     "Novosibirsk" ],
+           [ 23_400, "Rangoon" ],
+           [ 25_200, "Bangkok", "Hanoi", "Jakarta", "Krasnoyarsk" ],
+           [ 28_800, "Beijing", "Chongqing", "Hong Kong", "Urumqi",
+                     "Kuala Lumpur", "Singapore", "Taipei", "Perth", "Irkutsk",
+                     "Ulaan Bataar" ],
+           [ 32_400, "Seoul", "Osaka", "Sapporo", "Tokyo", "Yakutsk" ],
+           [ 34_200, "Darwin", "Adelaide" ],
+           [ 36_000, "Canberra", "Melbourne", "Sydney", "Brisbane", "Hobart",
+                     "Vladivostok", "Guam", "Port Moresby" ],
+           [ 39_600, "Magadan", "Solomon Is.", "New Caledonia" ],
+           [ 43_200, "Fiji", "Kamchatka", "Marshall Is.", "Auckland",
+                     "Wellington" ],
+           [ 46_800, "Nuku'alofa" ]].
+           each do |offset, *places|
+             places.each do |place|
+               @zones_map[place] = create(place, offset)
+             end
+           end
+        end
+        @zones_map
       end
 
       # Locate a specific time zone object. If the argument is a string, it
@@ -396,7 +390,7 @@ module ActiveSupport
       def [](arg)
         case arg
           when String
-            ZONES_MAP[arg] ||= lookup(arg)
+            zones_map[arg] ||= lookup(arg)
           when Numeric, ActiveSupport::Duration
             arg *= 3600 if arg.abs <= 13
             all.find { |z| z.utc_offset == arg.to_i }
@@ -408,7 +402,7 @@ module ActiveSupport
       # A convenience method for returning a collection of TimeZone objects
       # for time zones in the USA.
       def us_zones
-        US_ZONES
+        @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
       
       private
