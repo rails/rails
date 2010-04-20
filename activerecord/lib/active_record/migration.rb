@@ -384,9 +384,13 @@ module ActiveRecord
     class << self
       def migrate(migrations_path, target_version = nil)
         case
-          when target_version.nil?              then up(migrations_path, target_version)
-          when current_version > target_version then down(migrations_path, target_version)
-          else                                       up(migrations_path, target_version)
+          when target_version.nil?
+            up(migrations_path, target_version)
+          when current_version == 0 && target_version == 0
+          when current_version > target_version
+            down(migrations_path, target_version)
+          else
+            up(migrations_path, target_version)
         end
       end
 
