@@ -148,6 +148,14 @@ NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +
 
 WARNING: Sending out one email should only take a fraction of a second, if you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like delayed job.
 
+h4. Auto encoding header values
+
+ActionMailer now handles the auto encoding of multibyte characters inside of headers and bodies.
+
+If you are using UTF-8 as your character set, you do not have to do anything special, just go ahead and send in UTF-8 data to the address fields, subject, keywords, filenames or body of the email and ActionMailer will auto encode it into quoted printable for you in the case of a header field or Base64 encode any body parts that are non US-ASCII.
+
+For more complex examples, such as defining alternate character sets or self encoding text first, please refer to the Mail library.
+
 h4. Complete List of Action Mailer Methods
 
 There are just three methods that you need to send pretty much any email message:
