@@ -317,9 +317,7 @@ module ActiveSupport
     # TODO: Preload instead of lazy load for thread safety
     def self.find_tzinfo(name)
       require 'tzinfo' unless defined?(::TZInfo)
-      ::TZInfo::Timezone.get(MAPPING[name] || name)
-    rescue TZInfo::InvalidTimezoneIdentifier
-      nil
+      ::TZInfo::TimezoneProxy.new(MAPPING[name] || name)
     end
 
     unless const_defined?(:ZONES)
