@@ -172,6 +172,7 @@ module ActiveSupport
 
     include Comparable
     attr_reader :name
+    attr_reader :tzinfo
 
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
@@ -180,7 +181,7 @@ module ActiveSupport
     def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
       @utc_offset = utc_offset
-      @tzinfo = tzinfo
+      @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
       @current_period = nil
     end
 
@@ -290,10 +291,6 @@ module ActiveSupport
     # Available so that TimeZone instances respond like TZInfo::Timezone instances
     def period_for_local(time, dst=true)
       tzinfo.period_for_local(time, dst)
-    end
-
-    def tzinfo
-      @tzinfo ||= TimeZone.find_tzinfo(name)
     end
 
     # TODO: Preload instead of lazy load for thread safety
