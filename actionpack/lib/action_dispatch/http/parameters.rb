@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   module Http
