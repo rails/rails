@@ -117,17 +117,20 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
     assert_equal Time.local_time(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
+    assert_equal nil, "".to_time
   end
-  
+
   def test_string_to_datetime
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
     assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
     assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
     assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"), "2039-02-27T23:50:19.275038-04:00".to_datetime
+    assert_equal nil, "".to_datetime
   end
-  
+
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
+    assert_equal nil, "".to_date
   end
 
   def test_access
@@ -255,7 +258,7 @@ end
   string.rb - Interpolation for String.
 
   Copyright (C) 2005-2009 Masao Mutoh
- 
+
   You may redistribute it and/or modify it under the same
   license terms as Ruby.
 =end
