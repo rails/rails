@@ -9,6 +9,10 @@ module Arel
         '='
       end
 
+      def not_predicate_sql
+        '!='
+      end
+
       Object.send(:include, self)
     end
   end

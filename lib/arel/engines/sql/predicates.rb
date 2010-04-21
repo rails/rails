@@ -27,7 +27,9 @@ module Arel
     end
 
     class Not < Binary
-      def predicate_sql; '!=' end
+      def predicate_sql
+        operand2.not_predicate_sql
+      end
     end
 
     class GreaterThanOrEqualTo < Binary
