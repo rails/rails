@@ -139,6 +139,10 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great title"))
   end
 
+  def test_label_with_block
+    assert_dom_equal('<label for="post_title">The title, please:</label>', label(:post, :title) { "The title, please:" })
+  end
+
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title")
@@ -448,7 +452,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for
     assert_deprecated do
       form_for(:post, @post, :html => { :id => 'create-post' }) do |f|
-        concat f.label(:title)
+        concat f.label(:title) { "The Title" }
         concat f.text_field(:title)
         concat f.text_area(:body)
         concat f.check_box(:secret)
@@ -458,7 +462,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
-      "<label for='post_title'>Title</label>" +
+      "<label for='post_title'>The Title</label>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -485,7 +489,7 @@ class FormHelperTest < ActionView::TestCase
       "<input name='other_name[title]' size='30' id='other_name_title' value='Hello World' type='text' />" +
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='other_name[secret]' value='0' type='hidden' />" +
-      "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" + 
+      "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" +
       "<input name='commit' id='other_name_submit' value='Create post' type='submit' /></form>"
 
     assert_dom_equal expected, output_buffer
