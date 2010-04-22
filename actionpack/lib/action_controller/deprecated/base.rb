@@ -1,33 +1,16 @@
 module ActionController
   class Base
-    class << self
-      def deprecated_config_accessor(option, message = nil)
-        deprecated_config_reader(option, message)
-        deprecated_config_writer(option, message)
+    # Deprecated methods. Wrap them in a module so they can be overwritten by plugins
+    # (like the verify method.)
+    module DeprecatedBehavior #:nodoc:
+      def relative_url_root
+        ActiveSupport::Deprecation.warn "ActionController::Base.relative_url_root is ineffective. " <<
+          "Please stop using it.", caller
       end
 
-      def deprecated_config_reader(option, message = nil)
-        message ||= "Reading #{option} directly from ActionController::Base is deprecated. " \
-                    "Please read it from config.#{option}"
-
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{option}
-            ActiveSupport::Deprecation.warn #{message.inspect}, caller
-            config.#{option}
-          end
-        RUBY
-      end
-
-      def deprecated_config_writer(option, message = nil)
-        message ||= "Setting #{option} directly on ActionController::Base is deprecated. " \
-                    "Please set it on config.action_controller.#{option}"
-
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{option}=(val)
-            ActiveSupport::Deprecation.warn #{message.inspect}, caller
-            config.#{option} = val
-          end
-        RUBY
+      def relative_url_root=
+        ActiveSupport::Deprecation.warn "ActionController::Base.relative_url_root= is ineffective. " <<
+          "Please stop using it.", caller
       end
 
       def consider_all_requests_local
@@ -125,9 +108,7 @@ module ActionController
       def use_accept_header=(val)
         use_accept_header
       end
-    end
 
-    module DeprecatedBehavior
       # This method has been moved to ActionDispatch::Request.filter_parameters
       def filter_parameter_logging(*args, &block)
         ActiveSupport::Deprecation.warn("Setting filter_parameter_logging in ActionController is deprecated and has no longer effect, please set 'config.filter_parameters' in config/application.rb instead", caller)
@@ -145,17 +126,6 @@ module ActionController
     end
 
     extend DeprecatedBehavior
-
-    deprecated_config_writer :session_options
-    deprecated_config_writer :session_store
-
-    deprecated_config_accessor :assets_dir
-    deprecated_config_accessor :asset_path
-    deprecated_config_accessor :helpers_path
-    deprecated_config_accessor :javascripts_dir
-    deprecated_config_accessor :page_cache_directory
-    deprecated_config_accessor :relative_url_root, "relative_url_root is ineffective. Please stop using it"
-    deprecated_config_accessor :stylesheets_dir
 
     delegate :consider_all_requests_local, :consider_all_requests_local=,
              :allow_concurrency, :allow_concurrency=, :to => :"self.class"

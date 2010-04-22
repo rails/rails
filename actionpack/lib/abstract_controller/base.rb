@@ -1,4 +1,4 @@
-require 'active_support/ordered_options'
+require 'active_support/configurable'
 
 module AbstractController
   class Error < StandardError; end
@@ -7,6 +7,8 @@ module AbstractController
   class Base
     attr_internal :response_body
     attr_internal :action_name
+
+    include ActiveSupport::Configurable
 
     class << self
       attr_reader :abstract
@@ -27,14 +29,6 @@ module AbstractController
       # useful for initializers which need to add behavior to all controllers.
       def descendants
         @descendants ||= []
-      end
-
-      def config
-        @config ||= ActiveSupport::InheritableOptions.new(superclass < Base ? superclass.config : {})
-      end
-
-      def configure
-        yield config
       end
 
       # A list of all internal methods for a controller. This finds the first
@@ -99,10 +93,6 @@ module AbstractController
 
     abstract!
 
-    def config
-      @config ||= ActiveSupport::InheritableOptions.new(self.class.config)
-    end
-
     # Calls the action going through the entire action dispatch stack.
     #
     # The actual method that is called is determined by calling
@@ -133,6 +123,7 @@ module AbstractController
     end
 
     private
+
       # Returns true if the name can be considered an action. This can
       # be overridden in subclasses to modify the semantics of what
       # can be considered an action.

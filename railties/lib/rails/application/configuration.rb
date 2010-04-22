@@ -128,12 +128,12 @@ module Rails
         end
       end
 
-    protected
-
       def session_options
         return @session_options unless @session_store == :cookie_store
         @session_options.merge(:secret => @secret_token)
       end
+
+    protected
 
       def default_middleware_stack
         ActionDispatch::MiddlewareStack.new.tap do |middleware|
