@@ -58,9 +58,9 @@ end
 Here is a quick explanation of the items presented in the preceding method. For a full list of all available options, please have a look further down at the Complete List of ActionMailer user-settable attributes section.
 
 * <tt>default Hash</tt> - This is a hash of default values for any email you send, in this case we are setting the <tt>:from</tt> header to a value for all messages in this class, this can be overridden on a per email basis
-* +mail+ - The actual email message, we are passing the <tt>:to</tt> and <tt>:subject</tt> headers in|
+* +mail+ - The actual email message, we are passing the <tt>:to</tt> and <tt>:subject</tt> headers in.
 
-And instance variables we define in the method become available for use in the view.
+Just like controllers, any instance variables we define in the method become available for use in the views.
 
 h5. Create a Mailer View
 
@@ -104,9 +104,9 @@ When you call the +mail+ method now, Action Mailer will detect the two templates
 
 h5. Wire It Up So That the System Sends the Email When a User Signs Up
 
-There are three ways to achieve this. One is to send the email from the controller that sends the email, another is to put it in a +before_create+ callback in the user model, and the last one is to use an observer on the user model. Whether you use the second or third methods is up to you, but staying away from the first is recommended. Not because it's wrong, but because it keeps your controller clean, and keeps all logic related to the user model within the user model. This way, whichever way a user is created (from a web form, or from an API call, for example), we are guaranteed that the email will be sent.
+There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model.  However, in Rails 3, mailers are really just another way to render a view.  Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead.  Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
 
-Let's see how we would go about wiring it up using an observer.
+Setting this up is painfully simple.
 
 First off, we need to create a simple +User+ scaffold:
 
@@ -115,35 +115,38 @@ $ rails generate scaffold user name:string email:string login:string
 $ rake db:migrate
 </shell>
 
-Now that we have a user model to play with, edit +config/application.rb+ and register the observer:
+Now that we have a user model to play with, we will just edit the +app/controllers/users_controller.rb+ make it instruct the UserMailer to deliver an email to the newly created user by editing the create action and inserting a call to <tt>UserMailer.welcome_email</tt> right after the user is successfully saved:
 
 <ruby>
-module MailerGuideCode
-  class Application < Rails::Application
-    # ...
-    config.active_record.observers = :user_observer
+class UsersController < ApplicationController
+  # POST /users
+  # POST /users.xml
+  def create
+    @user = User.new(params[:user])
+
+    respond_to do |format|
+      if @user.save
+        # Tell the UserMailer to send a welcome Email after save
+        UserMailer.welcome_email(@user).deliver
+
+        format.html { redirect_to(@user, :notice => 'User was successfully created.') }
+        format.xml  { render :xml => @user, :status => :created, :location => @user }
+      else
+        format.html { render :action => "new" }
+        format.xml  { render :xml => @user.errors, :status => :unprocessable_entity }
+      end
+    end
   end
 end
 </ruby>
 
-You can make a +app/observers+ directory and Rails will automatically load it for you (Rails will automatically load anything in the +app+ directory as of version 3.0)
-
-Now create a file called +user_observer.rb+ in +app/observers+ and make it look like:
-
-<ruby>
-class UserObserver < ActiveRecord::Observer
-  def after_create(user)
-    UserMailer.welcome_email(user).deliver
-  end
-end
-</ruby>
-
-Notice how we call <tt>UserMailer.welcome_email(user)</tt>? Even though in the <tt>user_mailer.rb</tt> file we defined an instance method, we are calling the method_name +welcome_email(user)+ on the class.  This is a peculiarity of Action Mailer.
-
-NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+ however in Rails 3.0 this has been deprecated in favour of just calling the method name itself.
+This provides a much simpler implementation that does not require the registering of observers and the like.
 
 The method +welcome_email+ returns a Mail::Message object which can then just be told +deliver+ to send itself out.
 
+NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+ however in Rails 3.0 this has been deprecated in favour of just calling the method name itself.
+
+WARNING: Sending out one email should only take a fraction of a second, if you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like delayed job.
 
 h4. Complete List of Action Mailer Methods
 
@@ -160,20 +163,22 @@ Defining custom headers are simple, you can do it one of three ways:
 * Defining a header field as a parameter to the +mail+ method:
 
 <ruby>
-mail(:x_spam => value)
+mail("X-Spam" => value)
 </ruby>
 
 * Passing in a key value assignment to the +headers+ method:
 
 <ruby>
-headers[:x_spam] = value
+headers["X-Spam"] = value
 </ruby>
 
 * Passing a hash of key value pairs to the +headers+ method:
 
 <ruby>
-headers {:x_spam => value, :x_special => another_value}
+headers {"X-Spam" => value, "X-Special" => another_value}
 </ruby>
+
+TIP: All <tt>X-Value</tt> headers per the RFC2822 can appear more than one time. If you want to delete an <tt>X-Value</tt> header, you need to assign it a value of <tt>nil</tt>.
 
 h5. Adding Attachments
 
@@ -325,7 +330,7 @@ class UserMailer < ActionMailer::Base
 end
 </ruby>
 
-The above will send a multipart email with an attachment, properly nested with the top level being <tt>mixed/multipart</tt> and the first part being a <tt>mixed/alternative</tt> containing the plain text and HTML email messages.
+The above will send a multipart email with an attachment, properly nested with the top level being <tt>multipart/mixed</tt> and the first part being a <tt>multipart/alternative</tt> containing the plain text and HTML email messages.
 
 h3. Receiving Emails
 

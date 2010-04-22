@@ -129,7 +129,7 @@ However, you would probably like to *provide support for more locales* in your a
 
 WARNING: You may be tempted to store the chosen locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "_RESTful_":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
 
-The _setting part_ is easy. You can set the locale in a +before_filter+ in the ApplicationController like this:
+The _setting part_ is easy. You can set the locale in a +before_filter+ in the +ApplicationController+ like this:
 
 <ruby>
 before_filter :set_locale
@@ -158,7 +158,7 @@ You can implement it like this in your +ApplicationController+:
 before_filter :set_locale
 
 def set_locale
-  I18n.locale = extract_locale_from_uri
+  I18n.locale = extract_locale_from_tld
 end
 
 # Get locale from top-level domain or return nil if such locale is not available
@@ -206,7 +206,7 @@ Getting the locale from +params+ and setting it accordingly is not hard; includi
 
 Rails contains infrastructure for "centralizing dynamic decisions about the URLs" in its "+ApplicationController#default_url_options+":http://api.rubyonrails.org/classes/ActionController/Base.html#M000515, which is useful precisely in this scenario: it enables us to set "defaults" for "+url_for+":http://api.rubyonrails.org/classes/ActionController/Base.html#M000503 and helper methods dependent on it (by implementing/overriding this method).
 
-We can include something like this in our ApplicationController then:
+We can include something like this in our +ApplicationController+ then:
 
 <ruby>
 # app/controllers/application_controller.rb

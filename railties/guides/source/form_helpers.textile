@@ -752,6 +752,7 @@ h3. Building Complex Forms
 
 Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:
 
+* As of Rails 2.3, Rails includes "Nested Attributes":./2_3_release_notes.html#nested-attributes and "Nested Object Forms":./2_3_release_notes.html#nested-object-forms
 * Ryan Bates' series of Railscasts on "complex forms":http://railscasts.com/episodes/75
 * Handle Multiple Models in One Form from "Advanced Rails Recipes":http://media.pragprog.com/titles/fr_arr/multiple_models_one_form.pdf
 * Eloy Duran's "complex-forms-examples":http://github.com/alloy/complex-form-examples/ application

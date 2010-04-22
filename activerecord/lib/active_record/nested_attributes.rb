@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
   module NestedAttributes #:nodoc:

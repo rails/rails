@@ -64,10 +64,11 @@ module ActionDispatch
             end
 
             path = normalize_path(path)
+            path_without_format = path.sub(/\(\.:format\)$/, '')
 
-            if using_match_shorthand?(path, options)
-              options[:to] ||= path[1..-1].sub(%r{/([^/]*)$}, '#\1')
-              options[:as] ||= path[1..-1].gsub("/", "_")
+            if using_match_shorthand?(path_without_format, options)
+              options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              options[:as] ||= path_without_format[1..-1].gsub("/", "_")
             end
 
             [ path, options ]

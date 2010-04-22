@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
 
@@ -30,8 +31,8 @@ module ActionView
     include ActionController::PolymorphicRoutes
     include ActionController::RecordIdentifier
 
+    include AbstractController::Helpers
     include ActionView::Helpers
-    include ActionController::Helpers
 
     class_inheritable_accessor :helper_class
     attr_accessor :controller, :output_buffer, :rendered

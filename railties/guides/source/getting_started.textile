@@ -87,7 +87,7 @@ Action View manages the views of your Rails application. It can create both HTML
 
 h5. Action Dispatch
 
-Action Dispatch handles routing of web requests and dispatches them as you want, either to your application, any other Rack application.
+Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.
 
 h5. Action Mailer
 
@@ -356,19 +356,19 @@ The scaffold generator will build 15 files in your application, along with some 
 |_.File                                       |_.Purpose|
 |db/migrate/20100207214725_create_posts.rb.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/models/post.rb                           |The Post model|
-|test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/fixtures/posts.yml                      |Dummy posts for use in testing|
 |app/controllers/posts_controller.rb          |The Posts controller|
 |app/views/posts/index.html.erb               |A view to display an index of all posts |
 |app/views/posts/edit.html.erb                |A view to edit an existing post|
 |app/views/posts/show.html.erb                |A view to display a single post|
 |app/views/posts/new.html.erb                 |A view to create a new post|
-|app/views/posts/_form.html.erb               |A view to control the overall look and feel of the other posts views|
-|app/views/layouts/posts.html.erb             |A view to control the overall look and feel of the other posts views|
+|app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
+|app/views/layouts/posts.html.erb             |A view to control the overall look and feel of the other post views|
+|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
+|test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
-|app/helpers/posts_helper.rb                  |Helper functions to be used from the posts views|
-|config/routes.rb                             |Edited to include routing information for posts|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
+|config/routes.rb                             |Edited to include routing information for posts|
 |public/stylesheets/scaffold.css              |Cascading style sheet to make the scaffolded views look better|
 
 h4. Running a Migration

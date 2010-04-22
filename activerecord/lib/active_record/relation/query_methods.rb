@@ -187,15 +187,13 @@ module ActiveRecord
     def build_where(*args)
       return if args.blank?
 
-      builder = PredicateBuilder.new(table.engine)
-
       opts = args.first
       case opts
       when String, Array
         @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-        builder.build_from_hash(attributes, table)
+        PredicateBuilder.new(table.engine).build_from_hash(attributes, table)
       else
         opts
       end

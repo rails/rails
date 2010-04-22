@@ -26,7 +26,7 @@ class FixturesTest < ActiveRecord::TestCase
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
                  movies projects subscribers topics tasks )
-  MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-_\w]*/
+  MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
   def test_clean_fixtures
     FIXTURES.each do |name|

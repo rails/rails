@@ -121,13 +121,11 @@ class ObserverTest < ActiveModel::TestCase
     foo = Foo.new
     FooObserver.instance.stub = stub
     FooObserver.instance.stub.expects(:event_with).with(foo)
-    Foo.send(:changed)
     Foo.send(:notify_observers, :on_spec, foo)
   end
 
   test "skips nonexistent observer event" do
     foo = Foo.new
-    Foo.send(:changed)
     Foo.send(:notify_observers, :whatever, foo)
   end
 end

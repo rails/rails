@@ -2662,10 +2662,6 @@ h3. Extensions to +Process+
 
 ...
 
-h3. Extensions to +Pathname+
-
-...
-
 h3. Extensions to +File+
 
 h4. +atomic_write+

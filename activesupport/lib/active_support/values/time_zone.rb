@@ -190,6 +190,7 @@ module ActiveSupport
 
     include Comparable
     attr_reader :name
+    attr_reader :tzinfo
 
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
@@ -198,7 +199,7 @@ module ActiveSupport
     def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
       @utc_offset = utc_offset
-      @tzinfo = tzinfo
+      @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
       @current_period = nil
     end
 
@@ -310,32 +311,10 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst)
     end
 
-    def tzinfo
-      @tzinfo ||= TimeZone.find_tzinfo(name)
-    end
-
     # TODO: Preload instead of lazy load for thread safety
     def self.find_tzinfo(name)
       require 'tzinfo' unless defined?(::TZInfo)
-      ::TZInfo::Timezone.get(MAPPING[name] || name)
-    rescue TZInfo::InvalidTimezoneIdentifier
-      nil
-    end
-
-    unless const_defined?(:ZONES)
-      ZONES = []
-      ZONES_MAP = {}
-      MAPPING.each_key do |place|
-        place.freeze
-        zone = new(place)
-        ZONES << zone
-        ZONES_MAP[place] = zone
-      end
-      ZONES.sort!
-      ZONES.freeze
-
-      US_ZONES = ZONES.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
-      US_ZONES.freeze
+      ::TZInfo::TimezoneProxy.new(MAPPING[name] || name)
     end
 
     class << self
@@ -352,7 +331,11 @@ module ActiveSupport
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all
-        ZONES
+        @zones ||= zones_map.values.sort
+      end
+
+      def zones_map
+        @zones_map ||= Hash[MAPPING.map { |place, _| [place, create(place)] }]
       end
 
       # Locate a specific time zone object. If the argument is a string, it
@@ -363,7 +346,7 @@ module ActiveSupport
       def [](arg)
         case arg
           when String
-            ZONES_MAP[arg] ||= lookup(arg)
+            zones_map[arg] ||= lookup(arg)
           when Numeric, ActiveSupport::Duration
             arg *= 3600 if arg.abs <= 13
             all.find { |z| z.utc_offset == arg.to_i }
@@ -375,7 +358,7 @@ module ActiveSupport
       # A convenience method for returning a collection of TimeZone objects
       # for time zones in the USA.
       def us_zones
-        US_ZONES
+        @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
 
       private

@@ -1,4 +1,3 @@
-require 'observer'
 require 'singleton'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
@@ -7,10 +6,6 @@ require 'active_support/core_ext/string/inflections'
 module ActiveModel
   module Observing
     extend ActiveSupport::Concern
-
-    included do
-      extend Observable
-    end
 
     module ClassMethods
       # Activates the observers assigned. Examples:
@@ -41,6 +36,26 @@ module ActiveModel
         observers.each { |o| instantiate_observer(o) }
       end
 
+      def add_observer(observer)
+        unless observer.respond_to? :update
+          raise ArgumentError, "observer needs to respond to `update'"
+        end
+        @observer_instances ||= []
+        @observer_instances << observer
+      end
+
+      def notify_observers(*arg)
+        if defined? @observer_instances
+          for observer in @observer_instances
+            observer.update(*arg)
+          end
+        end
+      end
+
+      def count_observers
+        @observer_instances.size
+      end
+
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
@@ -56,7 +71,6 @@ module ActiveModel
         # Notify observers when the observed class is subclassed.
         def inherited(subclass)
           super
-          changed
           notify_observers :observed_class_inherited, subclass
         end
     end
@@ -70,7 +84,6 @@ module ActiveModel
       #   notify_observers(:after_save)
       # end
       def notify_observers(method)
-        self.class.changed
         self.class.notify_observers(method, self)
       end
   end

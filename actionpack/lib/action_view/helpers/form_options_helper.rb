@@ -444,7 +444,7 @@ module ActionView
           body << content_tag(:optgroup, options_for_select(group[1], selected_key), :label => group[0])
         end
 
-        body
+        body.html_safe
       end
 
       # Returns a string of option tags for pretty much any time zone in the

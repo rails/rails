@@ -823,9 +823,12 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal(-18_000, Time.zone.utc_offset)
   end
 
-  def test_time_zone_setter_with_non_identifying_argument_returns_nil
+  def test_time_zone_setter_with_invalid_zone
     Time.zone = 'foo'
-    assert_equal nil, Time.zone
+    assert_not_nil Time.zone
+    assert_equal 'foo', Time.zone.name
+    assert_raise(TZInfo::InvalidTimezoneIdentifier) { Time.zone.utc_offset }
+
     Time.zone = -15.hours
     assert_equal nil, Time.zone
   end

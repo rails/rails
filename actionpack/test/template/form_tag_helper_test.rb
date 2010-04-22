@@ -3,9 +3,6 @@ require 'abstract_unit'
 class FormTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
-  # include ActiveSupport::Configurable
-  # DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
-
   def setup
     super
     @controller = BasicController.new

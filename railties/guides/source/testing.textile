@@ -108,7 +108,7 @@ tag is considered Ruby code. When this fixture is loaded, the +size+ attribute o
 
 h5. Fixtures in Action
 
-Rails by default automatically loads all fixtures from the 'test/fixtures' folder for your unit and functional test. Loading involves three steps:
+Rails by default automatically loads all fixtures from the +test/fixtures+ folder for your unit and functional test. Loading involves three steps:
 
 * Remove any existing data from the table corresponding to the fixture
 * Load the fixture data into the table
@@ -142,7 +142,7 @@ In Rails, unit tests are what you write to test your models.
 
 For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. I will be using examples from this generated code and would be supplementing it with additional examples where necessary.
 
-NOTE: For more information on Rails _scaffolding_, refer to "Getting Started with Rails":getting_started.html
+NOTE: For more information on Rails <i>scaffolding</i>, refer to "Getting Started with Rails":getting_started.html
 
 When you use +rails generate scaffold+, for a resource among other things it creates a test stub in the +test/unit+ folder:
 
@@ -221,9 +221,9 @@ $ rake db:migrate
 $ rake db:test:load
 </shell>
 
-Above +rake db:migrate+ runs any pending migrations on the _development_ environment and updates +db/schema.rb+. +rake db:test:load+ recreates the test database from the current db/schema.rb. On subsequent attempts it is a good to first run +db:test:prepare+ as it first checks for pending migrations and warns you appropriately.
+Above +rake db:migrate+ runs any pending migrations on the _development_ environment and updates +db/schema.rb+. +rake db:test:load+ recreates the test database from the current +db/schema.rb+. On subsequent attempts it is a good to first run +db:test:prepare+ as it first checks for pending migrations and warns you appropriately.
 
-NOTE: +db:test:prepare+ will fail with an error if db/schema.rb doesn't exists.
+NOTE: +db:test:prepare+ will fail with an error if +db/schema.rb+ doesn't exists.
 
 h5. Rake Tasks for Preparing your Application for Testing
 
@@ -256,7 +256,7 @@ This will run all the test methods from the test case.
 
 You can also run a particular test method from the test case by using the +-n+ switch with the +test method name+.
 
-<pre>
+<shell>
 $ ruby unit/post_test.rb -n test_truth
 
 Loaded suite unit/post_test
@@ -265,7 +265,7 @@ Started
 Finished in 0.023513 seconds.
 
 1 tests, 1 assertions, 0 failures, 0 errors
-</pre>
+</shell>
 
 The +.+ (dot) above indicates a passing test. When a test fails you see an +F+; when a test throws an error you see an +E+ in its place. The last line of the output is the summary.
 
@@ -280,7 +280,7 @@ end
 
 Let us run this newly added test.
 
-<pre>
+<shell>
 $ ruby unit/post_test.rb -n test_should_not_save_post_without_title
 Loaded suite -e
 Started
@@ -292,7 +292,7 @@ test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
 <false> is not true.
 
 1 tests, 1 assertions, 1 failures, 0 errors
-</pre>
+</shell>
 
 In the output, +F+ denotes a failure. You can see the corresponding trace shown under +1)+ along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable every assertion provides an optional message parameter, as shown here:
 
@@ -305,12 +305,12 @@ end
 
 Running this test shows the friendlier assertion message:
 
-<pre>
+<shell>
   1) Failure:
 test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
 Saved the post without a title.
 <false> is not true.
-</pre>
+</shell>
 
 Now to get this test to pass we can add a model level validation for the _title_ field.
 
@@ -322,7 +322,7 @@ end
 
 Now the test should pass. Let us verify by running the test again:
 
-<pre>
+<shell>
 $ ruby unit/post_test.rb -n test_should_not_save_post_without_title
 Loaded suite unit/post_test
 Started
@@ -330,7 +330,7 @@ Started
 Finished in 0.193608 seconds.
 
 1 tests, 1 assertions, 0 failures, 0 errors
-</pre>
+</shell>
 
 Now if you noticed we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
 
@@ -348,7 +348,7 @@ end
 
 Now you can see even more output in the console from running the tests:
 
-<pre>
+<shell>
 $ ruby unit/post_test.rb -n test_should_report_error
 Loaded suite -e
 Started
@@ -361,7 +361,7 @@ NameError: undefined local variable or method `some_undefined_variable' for #<Po
     /test/unit/post_test.rb:6:in `test_should_report_error'
 
 1 tests, 0 assertions, 0 failures, 1 errors
-</pre>
+</shell>
 
 Notice the 'E' in the output. It denotes a test with error.
 
@@ -446,7 +446,7 @@ test "should get index" do
 end
 </ruby>
 
-In the +test_should_get_index+ test, Rails simulates a request on the action called index, making sure the request was successful and also ensuring that it assigns a valid +posts+ instance variable.
+In the +test_should_get_index+ test, Rails simulates a request on the action called +index+, making sure the request was successful and also ensuring that it assigns a valid +posts+ instance variable.
 
 The +get+ method kicks off the web request and populates the results into the response. It accepts 4 arguments:
 

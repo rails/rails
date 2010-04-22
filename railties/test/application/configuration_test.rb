@@ -292,9 +292,12 @@ module ApplicationTests
         end
 
       class ::OmgController < ActionController::Base
+        @@count = 0
+
         caches_action :index
         def index
-          render :text => rand(1000)
+          @@count += 1
+          render :text => @@count
         end
       end
 
@@ -310,9 +313,12 @@ module ApplicationTests
       end
 
       class ::OmgController < ActionController::Base
+        @@count = 0
+
         caches_action :index
         def index
-          render :text => rand(1000)
+          @@count += 1
+          render :text => @@count
         end
       end
 

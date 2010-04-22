@@ -4,6 +4,7 @@ require 'models/post'
 require 'models/author'
 require 'models/tagging'
 require 'models/comment'
+require 'models/company_in_module'
 
 class XmlSerializationTest < ActiveRecord::TestCase
   def test_should_serialize_default_root
@@ -79,7 +80,7 @@ class DefaultXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_yaml
-    assert_match %r{<preferences type=\"yaml\">--- \n:gem: ruby\n</preferences>}, @xml
+    assert_match %r{<preferences type=\"yaml\">---\s?\n:gem: ruby\n</preferences>}, @xml
   end
 end
 
