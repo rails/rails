@@ -505,4 +505,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test 'emits normal string yaml' do
     assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
   end
+
+  test 'yaml output using +' do
+    assert_equal "--- foobar\n", ('foo' + 'bar').to_yaml
+  end
+
+  test 'yaml output using <<' do
+    assert_equal "--- foobar\n", ('foo' << 'bar').to_yaml
+  end
 end

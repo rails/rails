@@ -123,7 +123,7 @@ class String
   end
 
   def html_safe?
-    defined?(@_rails_html_safe) && @_rails_html_safe
+    defined?(@_rails_html_safe)
   end
 
   def html_safe!
@@ -145,7 +145,7 @@ class String
   def concat_with_safety(other_or_fixnum)
     result = concat_without_safety(other_or_fixnum)
     unless html_safe? && also_html_safe?(other_or_fixnum)
-      @_rails_html_safe = false
+      remove_instance_variable(:@_rails_html_safe) if defined?(@_rails_html_safe)
     end
     result
   end
