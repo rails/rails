@@ -61,6 +61,7 @@ class HashExtTest < Test::Unit::TestCase
   end
 
   def test_symbolize_keys_for_hash_with_indifferent_access
+    assert_instance_of Hash, @symbols.with_indifferent_access.symbolize_keys
     assert_equal @symbols, @symbols.with_indifferent_access.symbolize_keys
     assert_equal @symbols, @strings.with_indifferent_access.symbolize_keys
     assert_equal @symbols, @mixed.with_indifferent_access.symbolize_keys
@@ -83,12 +84,14 @@ class HashExtTest < Test::Unit::TestCase
   end
 
   def test_stringify_keys_for_hash_with_indifferent_access
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @symbols.with_indifferent_access.stringify_keys
     assert_equal @strings, @symbols.with_indifferent_access.stringify_keys
     assert_equal @strings, @strings.with_indifferent_access.stringify_keys
     assert_equal @strings, @mixed.with_indifferent_access.stringify_keys
   end
 
   def test_stringify_keys_bang_for_hash_with_indifferent_access
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @symbols.with_indifferent_access.dup.stringify_keys!
     assert_equal @strings, @symbols.with_indifferent_access.dup.stringify_keys!
     assert_equal @strings, @strings.with_indifferent_access.dup.stringify_keys!
     assert_equal @strings, @mixed.with_indifferent_access.dup.stringify_keys!
