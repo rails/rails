@@ -422,7 +422,6 @@ class UrlHelperControllerTest < ActionController::TestCase
     end
 
     def show_overriden_url_for
-      params = { :controller => 'c', :action => 'a' }
       render :inline => "<%= url_for params.merge(:controller => 'url_helper_controller_test/url_helper', :action => 'show_url_for') %>"
     end
 
