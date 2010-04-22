@@ -257,6 +257,16 @@ module AbstractController
         assert_equal second_class.default_url_options[:host], second_host
       end
 
+      def test_with_stringified_keys
+        assert_equal("/c/a", W.new.url_for('controller' => 'c', 'action' => 'a', 'only_path' => true))
+        assert_equal("/c", W.new.url_for('controller' => 'c', 'only_path' => true))
+      end
+
+      def test_with_hash_with_indifferent_access
+        assert_equal("/c/a", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
+        assert_equal("/c", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'only_path' => true)))
+      end
+
       private
         def extract_params(url)
           url.split('?', 2).last.split('&').sort
