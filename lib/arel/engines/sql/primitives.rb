@@ -34,6 +34,10 @@ module Arel
       value.equality_predicate_sql
     end
 
+    def not_predicate_sql
+      value.not_predicate_sql
+    end
+
     def to_sql(formatter = Sql::WhereCondition.new(relation))
       formatter.value value
     end
