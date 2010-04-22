@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 # This class has dubious semantics and we only have it so that
 # people can write params[:key] instead of params['key']
 # and they get the same value for both keys.
