@@ -111,8 +111,8 @@ module ActiveSupport
       super(convert_key(key))
     end
 
-    undef :stringify_keys!
-    def stringify_keys; to_hash.stringify_keys end
+    def stringify_keys!; self end
+    def stringify_keys; to_hash end
     undef :symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys end
     def to_options!; self end

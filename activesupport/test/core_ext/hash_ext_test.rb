@@ -89,9 +89,9 @@ class HashExtTest < Test::Unit::TestCase
   end
 
   def test_stringify_keys_bang_for_hash_with_indifferent_access
-    assert_raise(NoMethodError) { @symbols.with_indifferent_access.dup.stringify_keys! }
-    assert_raise(NoMethodError) { @strings.with_indifferent_access.dup.stringify_keys! }
-    assert_raise(NoMethodError) { @mixed.with_indifferent_access.dup.stringify_keys! }
+    assert_equal @strings, @symbols.with_indifferent_access.dup.stringify_keys!
+    assert_equal @strings, @strings.with_indifferent_access.dup.stringify_keys!
+    assert_equal @strings, @mixed.with_indifferent_access.dup.stringify_keys!
   end
 
   def test_indifferent_assorted
