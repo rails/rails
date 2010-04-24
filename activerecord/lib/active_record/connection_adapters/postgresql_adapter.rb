@@ -326,21 +326,13 @@ module ActiveRecord
         if @connection.respond_to?(:unescape_bytea)
           self.class.instance_eval do
             define_method(:unescape_bytea) do |value|
-              if value =~ /\\\d{3}/
-                @connection.unescape_bytea(value)
-              else
-                value
-              end
+              @connection.unescape_bytea(value) if value
             end
           end
         elsif PGconn.respond_to?(:unescape_bytea)
           self.class.instance_eval do
             define_method(:unescape_bytea) do |value|
-              if value =~ /\\\d{3}/
-                PGconn.unescape_bytea(value)
-              else
-                value
-              end
+              PGconn.unescape_bytea(value) if value
             end
           end
         else
