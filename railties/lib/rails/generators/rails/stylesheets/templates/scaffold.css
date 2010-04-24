@@ -20,15 +20,11 @@ div.field, div.actions {
   margin-bottom: 10px;
 }
 
-.notice {
+#notice {
   color: green;
 }
 
-.alert {
-  color: red;
-}
-
-.fieldWithErrors {
+.field_with_errors {
   padding: 2px;
   background-color: red;
   display: table;
