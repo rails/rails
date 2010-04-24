@@ -11,12 +11,12 @@ module ActiveRecord
           when String, ActiveSupport::Multibyte::Chars
             value = value.to_s
             if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
-              "#{quoted_string_prefix}'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
+              "'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
             elsif column && [:integer, :float].include?(column.type)
               value = column.type == :integer ? value.to_i : value.to_f
               value.to_s
             else
-              "#{quoted_string_prefix}'#{quote_string(value)}'" # ' (for ruby-mode)
+              "'#{quote_string(value)}'" # ' (for ruby-mode)
             end
           when NilClass                 then "NULL"
           when TrueClass                then (column && column.type == :integer ? '1' : quoted_true)
@@ -28,7 +28,7 @@ module ActiveRecord
             if value.acts_like?(:date) || value.acts_like?(:time)
               "'#{quoted_date(value)}'"
             else
-              "#{quoted_string_prefix}'#{quote_string(value.to_yaml)}'"
+              "'#{quote_string(value.to_yaml)}'"
             end
         end
       end
@@ -59,10 +59,6 @@ module ActiveRecord
 
       def quoted_date(value)
         value.to_s(:db)
-      end
-
-      def quoted_string_prefix
-        ''
       end
     end
   end
