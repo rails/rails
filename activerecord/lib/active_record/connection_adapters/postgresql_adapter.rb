@@ -292,77 +292,15 @@ module ActiveRecord
       # QUOTING ==================================================
 
       # Escapes binary strings for bytea input to the database.
-      def escape_bytea(original_value)
-        if @connection.respond_to?(:escape_bytea)
-          self.class.instance_eval do
-            define_method(:escape_bytea) do |value|
-              @connection.escape_bytea(value) if value
-            end
-          end
-        elsif PGconn.respond_to?(:escape_bytea)
-          self.class.instance_eval do
-            define_method(:escape_bytea) do |value|
-              PGconn.escape_bytea(value) if value
-            end
-          end
-        else
-          self.class.instance_eval do
-            define_method(:escape_bytea) do |value|
-              if value
-                result = ''
-                value.each_byte { |c| result << sprintf('\\\\%03o', c) }
-                result
-              end
-            end
-          end
-        end
-        escape_bytea(original_value)
+      def escape_bytea(value)
+        @connection.escape_bytea(value) if value
       end
 
       # Unescapes bytea output from a database to the binary string it represents.
       # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
       #       on escaped binary output from database drive.
-      def unescape_bytea(original_value)
-        # In each case, check if the value actually is escaped PostgreSQL bytea output
-        # or an unescaped Active Record attribute that was just written.
-        if PGconn.respond_to?(:unescape_bytea)
-          self.class.instance_eval do
-            define_method(:unescape_bytea) do |value|
-              if value =~ /\\\d{3}/
-                PGconn.unescape_bytea(value)
-              else
-                value
-              end
-            end
-          end
-        else
-          self.class.instance_eval do
-            define_method(:unescape_bytea) do |value|
-              if value =~ /\\\d{3}/
-                result = ''
-                i, max = 0, value.size
-                while i < max
-                  char = value[i]
-                  if char == ?\\
-                    if value[i+1] == ?\\
-                      char = ?\\
-                      i += 1
-                    else
-                      char = value[i+1..i+3].oct
-                      i += 3
-                    end
-                  end
-                  result << char
-                  i += 1
-                end
-                result
-              else
-                value
-              end
-            end
-          end
-        end
-        unescape_bytea(original_value)
+      def unescape_bytea(value)
+        @connection.unescape_bytea(value) if value
       end
 
       # Quotes PostgreSQL-specific data types for SQL input.
@@ -386,28 +324,9 @@ module ActiveRecord
         end
       end
 
-      # Quotes strings for use in SQL input in the postgres driver for better performance.
-      def quote_string(original_value) #:nodoc:
-        if @connection.respond_to?(:escape)
-          self.class.instance_eval do
-            define_method(:quote_string) do |s|
-              @connection.escape(s)
-            end
-          end
-        elsif PGconn.respond_to?(:escape)
-          self.class.instance_eval do
-            define_method(:quote_string) do |s|
-              PGconn.escape(s)
-            end
-          end
-        else
-          # There are some incorrectly compiled postgres drivers out there
-          # that don't define PGconn.escape.
-          self.class.instance_eval do
-            remove_method(:quote_string)
-          end
-        end
-        quote_string(original_value)
+      # Quotes strings for use in SQL input.
+      def quote_string(s) #:nodoc:
+        @connection.escape(s)
       end
 
       # Checks the following cases:
