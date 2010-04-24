@@ -566,8 +566,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_string_sanitation
-    assert_not_equal "#{ActiveRecord::Base.connection.quoted_string_prefix}'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
-    assert_equal "#{ActiveRecord::Base.connection.quoted_string_prefix}'something; select table'", ActiveRecord::Base.sanitize("something; select table")
+    assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
+    assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
   end
 
   def test_count
