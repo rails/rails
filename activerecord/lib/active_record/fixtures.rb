@@ -3,8 +3,9 @@ require 'yaml'
 require 'csv'
 require 'zlib'
 require 'active_support/dependencies'
-require 'active_support/core_ext/logger'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/logger'
 
 if RUBY_VERSION < '1.9'
   module YAML #:nodoc:
@@ -868,8 +869,8 @@ module ActiveRecord
       end
 
       def setup_fixture_accessors(table_names = nil)
-        table_names = [table_names] if table_names && !table_names.respond_to?(:each)
-        (table_names || fixture_table_names).each do |table_name|
+        table_names = Array.wrap(table_names || fixture_table_names)
+        table_names.each do |table_name|
           table_name = table_name.to_s.tr('.', '_')
 
           define_method(table_name) do |*fixtures|
