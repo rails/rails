@@ -1,3 +1,4 @@
+# encoding: us-ascii
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'action_controller/routing/route_set'

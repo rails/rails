@@ -1,3 +1,4 @@
+# encoding: us-ascii
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -25,29 +26,29 @@
 #++
 
 # = TMail - The EMail Swiss Army Knife for Ruby
-# 
+#
 # The TMail library provides you with a very complete way to handle and manipulate EMails
 # from within your Ruby programs.
-# 
+#
 # Used as the backbone for email handling by the Ruby on Rails and Nitro web frameworks as
 # well as a bunch of other Ruby apps including the Ruby-Talk mailing list to newsgroup email
 # gateway, it is a proven and reliable email handler that won't let you down.
-# 
+#
 # Originally created by Minero Aoki, TMail has been recently picked up by Mikel Lindsaar and
 # is being actively maintained.  Numerous backlogged bug fixes have been applied as well as
 # Ruby 1.9 compatibility and a swath of documentation to boot.
-# 
+#
 # TMail allows you to treat an email totally as an object and allow you to get on with your
 # own programming without having to worry about crafting the perfect email address validation
 # parser, or assembling an email from all it's component parts.
-# 
+#
 # TMail handles the most complex part of the email - the header.  It generates and parses
 # headers and provides you with instant access to their innards through simple and logically
 # named accessor and setter methods.
-# 
+#
 # TMail also provides a wrapper to Net/SMTP as well as Unix Mailbox handling methods to
 # directly read emails from your unix mailbox, parse them and use them.
-# 
+#
 # Following is the comprehensive list of methods to access TMail::Mail objects.  You can also
 # check out TMail::Mail, TMail::Address and TMail::Headers for other lists.
 module TMail
@@ -57,9 +58,9 @@ module TMail
 
   # Provides a new email boundary to separate parts of the email.  This is a random
   # string based off the current time, so should be fairly unique.
-  # 
+  #
   # For Example:
-  # 
+  #
   #  TMail.new_boundary
   #  #=> "mimepart_47bf656968207_25a8fbb80114"
   #  TMail.new_boundary
@@ -70,12 +71,12 @@ module TMail
 
   # Provides a new email message ID.  You can use this to generate unique email message
   # id's for your email so you can track them.
-  # 
-  # Optionally takes a fully qualified domain name (default to the current hostname 
+  #
+  # Optionally takes a fully qualified domain name (default to the current hostname
   # returned by Socket.gethostname) that will be appended to the message ID.
-  # 
+  #
   # For Example:
-  # 
+  #
   #  email.message_id = TMail.new_message_id
   #  #=> "<47bf66845380e_25a8fbb80332@baci.local.tmail>"
   #  email.to_s
@@ -102,10 +103,10 @@ module TMail
   @uniq = 0
 
   #:startdoc:
-  
+
   # Text Utils provides a namespace to define TOKENs, ATOMs, PHRASEs and CONTROL characters that
   # are OK per RFC 2822.
-  # 
+  #
   # It also provides methods you can call to determine if a string is safe
   module TextUtils
 
@@ -118,19 +119,19 @@ module TMail
     ATOM_UNSAFE   = /[#{Regexp.quote aspecial}#{control}#{lwsp}]/n
     PHRASE_UNSAFE = /[#{Regexp.quote aspecial}#{control}]/n
     TOKEN_UNSAFE  = /[#{Regexp.quote tspecial}#{control}#{lwsp}]/n
-    
+
     # Returns true if the string supplied is free from characters not allowed as an ATOM
     def atom_safe?( str )
       not ATOM_UNSAFE === str
     end
 
-    # If the string supplied has ATOM unsafe characters in it, will return the string quoted 
+    # If the string supplied has ATOM unsafe characters in it, will return the string quoted
     # in double quotes, otherwise returns the string unmodified
     def quote_atom( str )
       (ATOM_UNSAFE === str) ? dquote(str) : str
     end
 
-    # If the string supplied has PHRASE unsafe characters in it, will return the string quoted 
+    # If the string supplied has PHRASE unsafe characters in it, will return the string quoted
     # in double quotes, otherwise returns the string unmodified
     def quote_phrase( str )
       (PHRASE_UNSAFE === str) ? dquote(str) : str
@@ -141,7 +142,7 @@ module TMail
       not TOKEN_UNSAFE === str
     end
 
-    # If the string supplied has TOKEN unsafe characters in it, will return the string quoted 
+    # If the string supplied has TOKEN unsafe characters in it, will return the string quoted
     # in double quotes, otherwise returns the string unmodified
     def quote_token( str )
       (TOKEN_UNSAFE === str) ? dquote(str) : str
@@ -163,7 +164,7 @@ module TMail
     def unquote( str )
       str =~ /^"(.*?)"$/m ? $1 : str
     end
-    
+
     # Provides a method to join a domain name by it's parts and also makes it
     # ATOM safe by quoting it as needed
     def join_domain( arr )
@@ -256,7 +257,7 @@ module TMail
 
 
     MESSAGE_ID = /<[^\@>]+\@[^>]+>/
-    
+
     def message_id?( str )
       MESSAGE_ID === str
     end
@@ -267,7 +268,7 @@ module TMail
     def mime_encoded?( str )
       MIME_ENCODED === str
     end
-  
+
 
     def decode_params( hash )
       new = Hash.new
@@ -329,7 +330,7 @@ module TMail
         end
       end
     end
-    
+
     # AppleMail generates illegal character contained Content-Type parameter like:
     #   name==?ISO-2022-JP?B?...=?=
     # so quote. (This case is only value fits in one line.)
@@ -338,11 +339,11 @@ module TMail
         head, should_quoted, tail = $~.captures
         # head: "; name="
         # should_quoted: "=?ISO-2022-JP?B?...=?="
-    
+
         head << quote_token(should_quoted) << tail
       }
     end
-    
+
     # AppleMail generates name=filename attributes in the content type that
     # contain spaces.  Need to handle this so the TMail Parser can.
     def quote_unquoted_name
@@ -353,9 +354,9 @@ module TMail
         head  << quote_token(should_quoted) << tail
       }
     end
-    
+
     #:startdoc:
-    
+
   end
 
 end

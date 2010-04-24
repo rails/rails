@@ -1,3 +1,4 @@
+# encoding: us-ascii
 # scanner_r.rb
 #
 #--
