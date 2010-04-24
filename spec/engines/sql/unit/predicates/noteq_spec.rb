@@ -13,7 +13,7 @@ module Arel
       describe '#to_sql' do
         describe 'when relating to a non-nil value' do
           it "manufactures a not predicate" do
-            sql = Not.new(@attribute1, @attribute2).to_sql
+            sql = Inequality.new(@attribute1, @attribute2).to_sql
 
             adapter_is :mysql do
               sql.should be_like(%Q{`users`.`id` != `photos`.`user_id`})
@@ -35,7 +35,7 @@ module Arel
           end
 
           it "manufactures an is null predicate" do
-            sql = Not.new(@attribute1, @nil).to_sql
+            sql = Inequality.new(@attribute1, @nil).to_sql
 
             adapter_is :mysql do
               sql.should be_like(%Q{`users`.`id` IS NOT NULL})
@@ -54,7 +54,7 @@ module Arel
         describe "when relating to a nil Value" do
           it "manufactures an IS NULL predicate" do
             value = nil.bind(@relation1)
-            sql = Not.new(@attribute1, value).to_sql
+            sql = Inequality.new(@attribute1, value).to_sql
 
             adapter_is :mysql do
               sql.should be_like(%Q{`users`.`id` IS NOT NULL})

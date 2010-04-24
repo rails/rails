@@ -9,10 +9,6 @@ module Arel
         'IS NOT'
       end
 
-      def not_predicate_sql
-        'IS NOT'
-      end
-
       NilClass.send(:include, self)
     end
   end

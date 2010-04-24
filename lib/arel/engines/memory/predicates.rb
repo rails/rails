@@ -52,7 +52,7 @@ module Arel
       def operator; :== end
     end
 
-    class Inequality < Equality
+    class Inequality < Binary
       def eval(row)
         operand1.eval(row) != operand2.eval(row)
       end
