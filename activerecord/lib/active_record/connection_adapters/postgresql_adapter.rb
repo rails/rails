@@ -2,26 +2,12 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 
-begin
-  require_library_or_gem 'pg'
-rescue LoadError => e
-  begin
-    require_library_or_gem 'postgres'
-    class PGresult
-      alias_method :nfields, :num_fields unless self.method_defined?(:nfields)
-      alias_method :ntuples, :num_tuples unless self.method_defined?(:ntuples)
-      alias_method :ftype, :type unless self.method_defined?(:ftype)
-      alias_method :cmd_tuples, :cmdtuples unless self.method_defined?(:cmd_tuples)
-    end
-  rescue LoadError
-    raise e
-  end
-end
-
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.postgresql_connection(config) # :nodoc:
+      require 'pg'
+
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
