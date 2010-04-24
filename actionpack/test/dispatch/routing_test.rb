@@ -1000,6 +1000,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_assert_recognizes_account_overview
+    with_test_routes do
+      assert_recognizes({:controller => "account", :action => "overview"}, "/account/overview")
+    end
+  end
+
   private
     def with_test_routes
       yield
