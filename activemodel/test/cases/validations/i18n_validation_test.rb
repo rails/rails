@@ -217,15 +217,15 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_validates_numericality_of_only_integer_generates_message
     Person.validates_numericality_of :title, :only_integer => true
-    @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => nil})
+    @person.title = '0.0'
+    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :default => nil})
     @person.valid?
   end
 
   def test_validates_numericality_of_only_integer_generates_message_with_custom_default_message
     Person.validates_numericality_of :title, :only_integer => true, :message => 'custom'
-    @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => 'custom'})
+    @person.title = '0.0'
+    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :default => 'custom'})
     @person.valid?
   end
 
@@ -441,20 +441,20 @@ class I18nValidationTest < ActiveModel::TestCase
   # validates_numericality_of with :only_integer w/o mocha
 
   def test_validates_numericality_of_only_integer_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:not_a_number => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:not_a_number => 'global message'}}
+    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:not_an_integer => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en', :errors => {:messages => {:not_an_integer => 'global message'}}
 
     Person.validates_numericality_of :title, :only_integer => true
-    @person.title = 'a'
+    @person.title = '1.0'
     @person.valid?
     assert_equal ['custom message'], @person.errors[:title]
   end
 
   def test_validates_numericality_of_only_integer_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:not_a_number => 'global message'}}
+    I18n.backend.store_translations 'en', :errors => {:messages => {:not_an_integer => 'global message'}}
 
     Person.validates_numericality_of :title, :only_integer => true
-    @person.title = 'a'
+    @person.title = '1.0'
     @person.valid?
     assert_equal ['global message'], @person.errors[:title]
   end
