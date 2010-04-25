@@ -91,7 +91,7 @@ Action Dispatch handles routing of web requests and dispatches them as you want,
 
 h5. Action Mailer
 
-Action Mailer is a framework for building e-mail services. You can use Action Mailer to send emails based on flexible templates, or to receive and process incoming email.
+Action Mailer is a framework for building e-mail services. You can use Action Mailer to receive and process incoming email and send simple plain text or complex multipart emails based on flexible templates.
 
 h5. Active Model
 
@@ -1128,7 +1128,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 
 The second render just defines the partial template we want to render, <tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that string and realise that you want to render the <tt>_form.html.erb</tt> file in the <tt>app/views/comments</tt> directory.
 
-The +@post+ object is available any partials rendered in the view because we defined it as an instance variable.
+The +@post+ object is available to any partials rendered in the view because we defined it as an instance variable.
 
 h3. Deleting Comments
 
@@ -1440,6 +1440,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
+* April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits:html#raasdnil
 * April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits:html#raasdnil
 * January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits:html#raasdnil
