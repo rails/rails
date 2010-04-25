@@ -55,7 +55,7 @@ class UserMailer < ActionMailer::Base
 end
 </ruby>
 
-Here is a quick explanation of the items presented in the preceding method. For a full list of all available options, please have a look further down at the Complete List of ActionMailer user-settable attributes section.
+Here is a quick explanation of the items presented in the preceding method. For a full list of all available options, please have a look further down at the Complete List of Action Mailer user-settable attributes section.
 
 * <tt>default Hash</tt> - This is a hash of default values for any email you send, in this case we are setting the <tt>:from</tt> header to a value for all messages in this class, this can be overridden on a per email basis
 * +mail+ - The actual email message, we are passing the <tt>:to</tt> and <tt>:subject</tt> headers in.
@@ -150,7 +150,7 @@ WARNING: Sending out one email should only take a fraction of a second, if you a
 
 h4. Auto encoding header values
 
-ActionMailer now handles the auto encoding of multibyte characters inside of headers and bodies.
+Action Mailer now handles the auto encoding of multibyte characters inside of headers and bodies.
 
 If you are using UTF-8 as your character set, you do not have to do anything special, just go ahead and send in UTF-8 data to the address fields, subject, keywords, filenames or body of the email and ActionMailer will auto encode it into quoted printable for you in the case of a header field or Base64 encode any body parts that are non US-ASCII.
 

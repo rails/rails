@@ -845,9 +845,9 @@ Testing mailer classes requires some specific tools to do a thorough job.
 
 h4. Keeping the Postman in Check
 
-Your +ActionMailer+ classes -- like every other part of your Rails application -- should be tested to ensure that it is working as expected.
+Your mailer classes -- like every other part of your Rails application -- should be tested to ensure that it is working as expected.
 
-The goals of testing your +ActionMailer+ classes are to ensure that:
+The goals of testing your mailer classes are to ensure that:
 
 * emails are being processed (created and sent)
 * the email content is correct (subject, sender, body, etc)
