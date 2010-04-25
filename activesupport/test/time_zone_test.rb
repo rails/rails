@@ -274,6 +274,17 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { ActiveSupport::TimeZone[false] }
   end
 
+  def test_unknown_zone_shouldnt_have_tzinfo_nor_utc_offset
+    zone = ActiveSupport::TimeZone.create("bogus")
+    assert_nil zone.tzinfo
+    assert_nil zone.utc_offset
+  end
+
+  def test_unknown_zone_with_utc_offset
+    zone = ActiveSupport::TimeZone.create("bogus", -21_600)
+    assert_equal(-21_600, zone.utc_offset)
+  end
+
   def test_new
     assert_equal ActiveSupport::TimeZone["Central Time (US & Canada)"], ActiveSupport::TimeZone.new("Central Time (US & Canada)")
   end

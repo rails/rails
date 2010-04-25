@@ -53,15 +53,15 @@ class PageCachingTest < ActionController::TestCase
   def setup
     super
 
-    ActionController::Base.perform_caching = true
-
     @request = ActionController::TestRequest.new
     @request.host = 'hostname.com'
     @request.env.delete('PATH_INFO')
 
-    @response   = ActionController::TestResponse.new
     @controller = PageCachingTestController.new
+    @controller.perform_caching = true
     @controller.cache_store = :file_store, FILE_STORE_PATH
+
+    @response   = ActionController::TestResponse.new
 
     @params = {:controller => 'posts', :action => 'index', :only_path => true}
 
@@ -71,7 +71,7 @@ class PageCachingTest < ActionController::TestCase
 
   def teardown
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
-    ActionController::Base.perform_caching = false
+    @controller.perform_caching = false
   end
 
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
@@ -538,9 +538,9 @@ end
 class FragmentCachingTest < ActionController::TestCase
   def setup
     super
-    ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
     @controller = FragmentCachingTestController.new
+    @controller.perform_caching = true
     @controller.cache_store = @store
     @params = {:controller => 'posts', :action => 'index'}
     @request = ActionController::TestRequest.new
@@ -564,7 +564,7 @@ class FragmentCachingTest < ActionController::TestCase
   end
 
   def test_read_fragment_with_caching_disabled
-    ActionController::Base.perform_caching = false
+    @controller.perform_caching = false
     @store.write('views/name', 'value')
     assert_nil @controller.read_fragment('name')
   end
@@ -576,7 +576,7 @@ class FragmentCachingTest < ActionController::TestCase
   end
 
   def test_fragment_exist_with_caching_disabled
-    ActionController::Base.perform_caching = false
+    @controller.perform_caching = false
     @store.write('views/name', 'value')
     assert !@controller.fragment_exist?('name')
     assert !@controller.fragment_exist?('other_name')
@@ -590,7 +590,7 @@ class FragmentCachingTest < ActionController::TestCase
 
   def test_write_fragment_with_caching_disabled
     assert_nil @store.read('views/name')
-    ActionController::Base.perform_caching = false
+    @controller.perform_caching = false
     assert_equal 'value', @controller.write_fragment('name', 'value')
     assert_nil @store.read('views/name')
   end
@@ -614,7 +614,7 @@ class FragmentCachingTest < ActionController::TestCase
   end
 
   def test_fragment_for_with_disabled_caching
-    ActionController::Base.perform_caching = false
+    @controller.perform_caching = false
 
     @store.write('views/expensive', 'fragment content')
     fragment_computed = false
@@ -688,9 +688,9 @@ end
 class FunctionalFragmentCachingTest < ActionController::TestCase
   def setup
     super
-    ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
     @controller = FunctionalCachingController.new
+    @controller.perform_caching = true
     @controller.cache_store = @store
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new

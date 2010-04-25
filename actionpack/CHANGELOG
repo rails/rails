@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Add support for shorthand routes like /projects/status(.:format)  #4423 [Diego Carrion]
+
 * Changed translate helper so that it doesn’t mark every translation as safe HTML. Only keys with a "_html" suffix and keys named "html" are considered to be safe HTML. All other translations are left untouched. [Craig Davey]
 
 

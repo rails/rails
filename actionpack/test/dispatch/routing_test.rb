@@ -54,6 +54,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match "/local/:action", :controller => "local"
 
+      match "/projects/status(.:format)"
+
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
       end
@@ -423,6 +425,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/local/dashboard'
       assert_equal 'local#dashboard', @response.body
+    end
+  end
+
+  def test_projects_status
+    with_test_routes do
+      assert_equal '/projects/status', url_for(:controller => 'projects', :action => 'status', :only_path => true)
+      assert_equal '/projects/status.json', url_for(:controller => 'projects', :action => 'status', :format => 'json', :only_path => true)
     end
   end
 

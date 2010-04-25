@@ -33,6 +33,7 @@ module I18n
     config.i18n = ActiveSupport::OrderedOptions.new
     config.i18n.railties_load_path = []
     config.i18n.load_path = []
+    config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 
     initializer "i18n.initialize" do
       ActiveSupport.on_load(:i18n) do
@@ -53,12 +54,46 @@ module I18n
           app.config.i18n.load_path.unshift(*value)
         when :load_path
           I18n.load_path += value
+        when :fallbacks
+          init_fallbacks(value) if value && validate_fallbacks(value)
         else
           I18n.send("#{setting}=", value)
         end
       end
 
       I18n.reload!
+    end
+
+    class << self
+      protected
+
+        def init_fallbacks(fallbacks)
+          include_fallbacks_module
+          args = case fallbacks
+          when ActiveSupport::OrderedOptions
+            [*(fallbacks[:defaults] || []) << fallbacks[:map]].compact
+          when Hash, Array
+            Array.wrap(fallbacks)
+          else # TrueClass
+            []
+          end
+          I18n.fallbacks = I18n::Locale::Fallbacks.new(*args)
+        end
+
+        def include_fallbacks_module
+          I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
+        end
+      
+        def validate_fallbacks(fallbacks)
+          case fallbacks
+          when ActiveSupport::OrderedOptions
+            !fallbacks.empty?
+          when TrueClass, Array, Hash
+            true
+          else
+            raise "Unexpected fallback type #{fallbacks.inspect}"
+          end
+        end
     end
   end
 end

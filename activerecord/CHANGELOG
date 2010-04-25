@@ -1,3 +1,8 @@
+*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+
+* Observers can prevent records from saving by returning false, just like before_save and friends.  #4087 [Mislav Marohnić]
+
+
 *Rails 3.0.0 [beta 3] (April 13th, 2010)*
 
 * Add Relation extensions. [Pratik Naik]

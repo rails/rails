@@ -96,7 +96,8 @@ module ActiveRecord
     end
 
     def self.method_added(method)
-      self.observed_methods += [method] if ActiveRecord::Callbacks::CALLBACKS.include?(method.to_sym)
+      method = method.to_sym
+      observed_methods << method if ActiveRecord::Callbacks::CALLBACKS.include?(method)
     end
 
     protected
@@ -104,16 +105,27 @@ module ActiveRecord
         observed_classes.sum([]) { |klass| klass.send(:subclasses) }
       end
 
+      def observe_callbacks?
+        self.class.observed_methods.any?
+      end
+
       def add_observer!(klass)
         super
+        define_callbacks klass if observe_callbacks?
+      end
 
-        # Check if a notifier callback was already added to the given class. If
-        # it was not, add it.
+      def define_callbacks(klass)
+        existing_methods = klass.instance_methods.map(&:to_sym)
+        observer = self
+        observer_name = observer.class.name.underscore.gsub('/', '__')
+
         self.class.observed_methods.each do |method|
-          callback = :"_notify_observers_for_#{method}"
-          if (klass.instance_methods & [callback, callback.to_s]).empty?
-            klass.class_eval "def #{callback}; notify_observers(:#{method}); end"
-            klass.send(method, callback)
+          callback = :"_notify_#{observer_name}_for_#{method}"
+          unless existing_methods.include? callback
+            klass.send(:define_method, callback) do  # def _notify_user_observer_for_before_save
+              observer.update(method, self)          #   observer.update(:before_save, self)
+            end                                      # end
+            klass.send(method, callback)             # before_save :_notify_user_observer_for_before_save
           end
         end
       end

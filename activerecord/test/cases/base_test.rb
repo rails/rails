@@ -2054,7 +2054,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_base_subclasses_is_public_method
-    assert ActiveRecord::Base.public_methods.include?("subclasses")
+    assert ActiveRecord::Base.public_methods.map(&:to_sym).include?(:subclasses)
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
@@ -2095,7 +2095,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal written_on_in_current_timezone, xml.elements["//written-on"].text
     assert_equal "datetime" , xml.elements["//written-on"].attributes['type']
 
-    assert_equal "--- Have a nice day\n" , xml.elements["//content"].text
+    assert_match(/^--- Have a nice day\n/ , xml.elements["//content"].text)
+    assert_equal 'Have a nice day' , YAML.load(xml.elements["//content"].text)
     assert_equal "yaml" , xml.elements["//content"].attributes['type']
 
     assert_equal "david@loudthinking.com", xml.elements["//author-email-address"].text

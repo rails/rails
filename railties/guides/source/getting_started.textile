@@ -87,7 +87,7 @@ Action View manages the views of your Rails application. It can create both HTML
 
 h5. Action Dispatch
 
-Action Dispatch handles routing of web requests and dispatches them as you want, either to your application, any other Rack application.
+Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.
 
 h5. Action Mailer
 
@@ -356,19 +356,18 @@ The scaffold generator will build 15 files in your application, along with some 
 |_.File                                       |_.Purpose|
 |db/migrate/20100207214725_create_posts.rb.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/models/post.rb                           |The Post model|
-|test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/fixtures/posts.yml                      |Dummy posts for use in testing|
 |app/controllers/posts_controller.rb          |The Posts controller|
 |app/views/posts/index.html.erb               |A view to display an index of all posts |
 |app/views/posts/edit.html.erb                |A view to edit an existing post|
 |app/views/posts/show.html.erb                |A view to display a single post|
 |app/views/posts/new.html.erb                 |A view to create a new post|
-|app/views/posts/_form.html.erb               |A view to control the overall look and feel of the other posts views|
-|app/views/layouts/posts.html.erb             |A view to control the overall look and feel of the other posts views|
+|app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
+|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
+|test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
-|app/helpers/posts_helper.rb                  |Helper functions to be used from the posts views|
-|config/routes.rb                             |Edited to include routing information for posts|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
+|config/routes.rb                             |Edited to include routing information for posts|
 |public/stylesheets/scaffold.css              |Cascading style sheet to make the scaffolded views look better|
 
 h4. Running a Migration
@@ -395,7 +394,7 @@ class CreatePosts < ActiveRecord::Migration
 end
 </ruby>
 
-The above migration creates two methods, +up+, called when you run this migration into the database, and +down+ in case you need to reverse the changes made by this migration at a later date.  The +up+ command in this case creates a +posts+ table with two string columns and a text column.  It also is creating two timestamp fields to track record creation and updating.  More information about Rails migrations can be found in the "Rails Database Migrations":migrations.html guide.
+The above migration creates two methods, +up+, called when you run this migration into the database, and +down+ in case you need to reverse the changes made by this migration at a later date.  The +up+ command in this case creates a +posts+ table with two string columns and a text column.  It also creates two timestamp fields to track record creation and updating.  More information about Rails migrations can be found in the "Rails Database Migrations":migrations.html guide.
 
 At this point, you can use a rake command to run the migration:
 
@@ -504,7 +503,7 @@ def index
 end
 </ruby>
 
-This code sets the +@posts+ instance variable to an array of all posts in the database. +Post.all+ calls the +Post+ model to return all of the posts that are currently in the database, with no limiting conditions.
++Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array containing the posts which has been saved in an instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
@@ -551,18 +550,18 @@ TIP: For more details on the rendering process, see "Layouts and Rendering in Ra
 
 h4. Customizing the Layout
 
-The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. The +rails generate scaffold+ command automatically created a default layout, +app/views/layouts/posts.html.erb+, for the posts. Open this layout in your editor and modify the +body+ tag:
+The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. In previous versions of Rails, the +rails generate scaffold+ command would automatically create a controller specific layout, like +app/views/layouts/posts.html.erb+, for the posts controller. However this has been changed in Rails 3.0. A application specific +layout+ is used for all the controllers and can be found in +app/views/layouts/application.html.erb+. Open this layout in your editor and modify the +body+ tag:
 
 <erb>
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Posts: <%= controller.action_name %></title>
-  <%= stylesheet_link_tag 'scaffold' %>
+  <title>Blog</title>
+  <%= stylesheet_link_tag :all %>
+  <%= javascript_include_tag :defaults %>
+  <%= csrf_meta_tag %>
 </head>
 <body style="background: #EEEEEE;">
-
-<p class="notice"><%= notice %></p>
 
 <%= yield %>
 
@@ -603,7 +602,16 @@ If you take a look at +views/posts/_form.html.erb+ file, you will see the follow
 
 <erb>
 <%= form_for(@post) do |f| %>
-  <%= f.error_messages %>
+  <% if @post.errors.any? %>
+  <div id="errorExplanation">
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+    <ul>
+    <% @post.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+  <% end %>
 
   <div class="field">
     <%= f.label :name %><br />

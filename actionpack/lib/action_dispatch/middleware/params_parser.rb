@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/conversions.rb'
 require 'action_dispatch/http/request'
 
 module ActionDispatch

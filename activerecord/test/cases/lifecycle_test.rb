@@ -3,8 +3,17 @@ require 'models/topic'
 require 'models/developer'
 require 'models/reply'
 require 'models/minimalistic'
+require 'models/comment'
 
 class SpecialDeveloper < Developer; end
+
+class SalaryChecker < ActiveRecord::Observer
+  observe :special_developer
+
+  def before_save(developer)
+    return developer.salary > 80000
+  end
+end
 
 class TopicaAuditor < ActiveRecord::Observer
   observe :topic
@@ -54,6 +63,28 @@ class MultiObserver < ActiveRecord::Observer
 
   def after_find(record)
     @record = record
+  end
+end
+
+class ValidatedComment < Comment
+  attr_accessor :callers
+
+  before_validation :record_callers
+
+  after_validation do
+    record_callers
+  end
+
+  def record_callers
+    callers << self.class if callers
+  end
+end
+
+class ValidatedCommentObserver < ActiveRecord::Observer
+  attr_accessor :callers
+
+  def after_validation(model)
+    callers << self.class if callers
   end
 end
 
@@ -124,5 +155,28 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_invalid_observer
     assert_raise(ArgumentError) { Topic.observers = Object.new; Topic.instantiate_observers }
+  end
+
+  test "model callbacks fire before observers are notified" do
+    callers = []
+
+    comment = ValidatedComment.new
+    comment.callers = ValidatedCommentObserver.instance.callers = callers
+
+    comment.valid?
+    assert_equal [ValidatedComment, ValidatedComment, ValidatedCommentObserver], callers,
+      "model callbacks did not fire before observers were notified"
+  end
+
+  test "able to save developer" do
+    SalaryChecker.instance # activate
+    developer = SpecialDeveloper.new :name => 'Roger', :salary => 100000
+    assert developer.save, "developer with normal salary failed to save"
+  end
+
+  test "unable to save developer with low salary" do
+    SalaryChecker.instance # activate
+    developer = SpecialDeveloper.new :name => 'Rookie', :salary => 50000
+    assert !developer.save, "allowed to save a developer with too low salary"
   end
 end

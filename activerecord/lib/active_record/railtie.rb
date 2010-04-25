@@ -70,13 +70,17 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.load_observers" do
-      ActiveSupport.on_load(:active_record) { instantiate_observers }
-
+    initializer "active_record.add_observer_hook", :after=>"active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Callbacks.to_prepare(:activerecord_instantiate_observers) do
           ActiveRecord::Base.instantiate_observers
         end
+      end
+    end
+
+    initializer "active_record.instantiate_observers", :after=>"active_record.initialize_database" do
+      ActiveSupport.on_load(:active_record) do
+        instantiate_observers
       end
     end
 

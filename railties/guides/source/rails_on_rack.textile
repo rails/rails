@@ -247,7 +247,7 @@ class Poller
     if env["PATH_INFO"] =~ /^\/poller/
       [200, {"Content-Type" => "text/html"}, ["Hello, World!"]]
     else
-      [404, {"Content-Type" => "text/html"}, ["Not Found"]]
+      [404, {"Content-Type" => "text/html", "X-Cascade" => "pass"}, ["Not Found"]]
     end
   end
 end
@@ -257,23 +257,13 @@ Metal applications within +app/metal+ folders in plugins will also be discovered
 
 Metal applications are an optimization. You should make sure to "understand the related performance implications":http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal before using it.
 
+WARNING: To continue the Metal chain execution, return an +X-Cascade+ HTTP header with a value of +pass+.
+
 h4. Execution Order
 
-All Metal Applications are executed by +Rails::Rack::Metal+ middleware, which is a part of the +ActionController::MiddlewareStack+ chain.
+All Metal Applications are executed in alphabetical order of their filenames, so +aaa.rb+ will come before +bbb.rb+ in the metal chain.
 
-Here's the primary method responsible for running the Metal applications:
-
-<ruby>
-def call(env)
-  @metals.keys.each do |app|
-    result = app.call(env)
-    return result unless result[0].to_i == 404
-  end
-  @app.call(env)
-end
-</ruby>
-
-In the code above, +@metals+ is an ordered hash of metal applications. Due to the default alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+You can override the default ordering in your environment. Simply add a line like the following to +config/application.rb+
 
 It is, however, possible to override the default ordering in your environment. Simply add a line like the following to +config/environment.rb+
 
@@ -282,8 +272,6 @@ config.metals = ["Bbb", "Aaa"]
 </ruby>
 
 Each string in the array should be the name of your metal class. If you do this then be warned that any metal applications not listed will not be loaded.
-
-WARNING: Metal applications cannot return the HTTP Status +404+ to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning +404+ is a requirement.
 
 h3. Resources
 

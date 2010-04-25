@@ -3,13 +3,13 @@ require 'action_dispatch/middleware/flash'
 module ActionDispatch
   module TestProcess
     def assigns(key = nil)
-      assigns = {}
+      assigns = {}.with_indifferent_access
       @controller.instance_variable_names.each do |ivar|
         next if ActionController::Base.protected_instance_variables.include?(ivar)
         assigns[ivar[1..-1]] = @controller.instance_variable_get(ivar)
       end
 
-      key.nil? ? assigns : assigns[key.to_s]
+      key.nil? ? assigns : assigns[key]
     end
 
     def session
