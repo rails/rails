@@ -25,7 +25,7 @@ class SendFileController < ActionController::Base
   end
 
   def multibyte_text_data
-    send_data("Кирилица\n祝您好運", options)
+    send_data("Кирилица\n祝您好運.", options)
   end
 end
 
@@ -128,7 +128,7 @@ class SendFileTest < ActionController::TestCase
 
     assert_equal 'image/png', @controller.content_type
   end
-  
+
 
   def test_send_file_headers_with_bad_symbol
     options = {

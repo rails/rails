@@ -237,8 +237,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     AltRoutes = ActionDispatch::Routing::RouteSet.new(AltRequest)
     AltRoutes.draw do
-      get "/" => XHeader.new, :constraints => {:x_header => /HEADER/}
-      get "/" => AltApp.new
+      get "/" => TestRoutingMapper::TestAltApp::XHeader.new, :constraints => {:x_header => /HEADER/}
+      get "/" => TestRoutingMapper::TestAltApp::AltApp.new
     end
 
     def app
