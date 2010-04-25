@@ -301,7 +301,7 @@ class ReloadableRenderTest < Test::Unit::TestCase
         begin
           result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
-        rescue ActionView::Template::Error => error
+        rescue ActionView::TemplateError => error
           assert_match 'invalid byte sequence in Shift_JIS', error.original_exception.message
         end
       end
@@ -312,7 +312,7 @@ class ReloadableRenderTest < Test::Unit::TestCase
         begin
           result = @view.render(:file => "test/utf8_magic_with_bare_partial.html.erb", :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
-        rescue ActionView::Template::Error => error
+        rescue ActionView::TemplateError => error
           assert_match 'invalid byte sequence in Shift_JIS', error.original_exception.message
         end
       end
