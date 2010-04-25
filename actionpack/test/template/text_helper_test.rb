@@ -1,3 +1,4 @@
+# encoding: us-ascii
 require 'abstract_unit'
 require 'testing_sandbox'
 begin
