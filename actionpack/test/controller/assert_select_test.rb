@@ -1,3 +1,4 @@
+# encoding: utf-8
 #--
 # Copyright (c) 2006 Assaf Arkin (http://labnotes.org)
 # Under MIT and/or CC By license.
@@ -347,7 +348,6 @@ class AssertSelectTest < ActionController::TestCase
       assert_select str, :text => "\343\203\201\343\202\261\343\203\203\343\203\210"
       assert_select str, "\343\203\201\343\202\261\343\203\203\343\203\210"
       if str.respond_to?(:force_encoding)
-        str.force_encoding(Encoding::UTF_8)
         assert_select str, /\343\203\201..\343\203\210/u
         assert_raise(Assertion) { assert_select str, /\343\203\201.\343\203\210/u }
       else
