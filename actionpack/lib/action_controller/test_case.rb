@@ -36,6 +36,7 @@ module ActionController
     end
 
     def teardown_subscriptions
+      ActiveSupport::Notifications.unsubscribe("action_view.render_template")
       ActiveSupport::Notifications.unsubscribe("action_view.render_template!")
     end
 
