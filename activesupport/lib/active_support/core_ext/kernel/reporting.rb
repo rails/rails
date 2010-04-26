@@ -1,3 +1,4 @@
+require 'rbconfig'
 module Kernel
   # Sets $VERBOSE to nil for the duration of the block and back to its original value afterwards.
   #
@@ -37,7 +38,7 @@ module Kernel
   #   puts 'But this will'
   def silence_stream(stream)
     old_stream = stream.dup
-    stream.reopen(RUBY_PLATFORM =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+    stream.reopen(Config::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
     stream.sync = true
     yield
   ensure

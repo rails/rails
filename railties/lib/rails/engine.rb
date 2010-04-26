@@ -1,6 +1,7 @@
 require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
+require 'rbconfig'
 
 module Rails
   # Rails::Engine allows you to wrap a specific Rails application and share it accross
@@ -119,7 +120,7 @@ module Rails
         root = File.exist?("#{root_path}/#{flag}") ? root_path : default
         raise "Could not find root path for #{self}" unless root
 
-        RUBY_PLATFORM =~ /mswin|mingw/ ?
+        Config::CONFIG['host_os'] =~ /mswin|mingw/ ?
           Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
     end
