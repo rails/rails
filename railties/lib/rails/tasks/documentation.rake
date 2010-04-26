@@ -1,3 +1,5 @@
+require 'rake/rdoctask'
+
 namespace :doc do
   def gem_path(gem_name)
     path = $LOAD_PATH.grep(/#{gem_name}[\w.-]*\/lib$/).first
