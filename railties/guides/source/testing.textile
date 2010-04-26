@@ -146,14 +146,14 @@ NOTE: For more information on Rails <i>scaffolding</i>, refer to "Getting Starte
 
 When you use +rails generate scaffold+, for a resource among other things it creates a test stub in the +test/unit+ folder:
 
-<pre>
+<shell>
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
 create  test/unit/post_test.rb
 create  test/fixtures/posts.yml
 ...
-</pre>
+</shell>
 
 The default test stub in +test/unit/post_test.rb+ looks like this:
 
@@ -702,24 +702,24 @@ class UserFlowsTest < ActionController::IntegrationTest
 
   private
 
-    module CustomDsl
-      def browses_site
-        get "/products/all"
-        assert_response :success
-        assert assigns(:products)
-      end
+  module CustomDsl
+    def browses_site
+      get "/products/all"
+      assert_response :success
+      assert assigns(:products)
     end
+  end
 
-    def login(user)
-      open_session do |sess|
-        sess.extend(CustomDsl)
-        u = users(user)
-        sess.https!
-        sess.post "/login", :username => u.username, :password => u.password
-        assert_equal '/welcome', path
-        sess.https!(false)
-      end
+  def login(user)
+    open_session do |sess|
+      sess.extend(CustomDsl)
+      u = users(user)
+      sess.https!
+      sess.post "/login", :username => u.username, :password => u.password
+      assert_equal '/welcome', path
+      sess.https!(false)
     end
+  end
 end
 </ruby>
 
