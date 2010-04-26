@@ -4,6 +4,7 @@ require "fixtures/customer"
 require "fixtures/street_address"
 require "fixtures/beast"
 require "fixtures/proxy"
+require 'active_support/json'
 
 class BaseTest < Test::Unit::TestCase
   def setup
@@ -13,6 +14,7 @@ class BaseTest < Test::Unit::TestCase
     @addy  = { :id => 1, :street => '12345 Street' }.to_xml(:root => 'address')
     @default_request_headers = { 'Content-Type' => 'application/xml' }
     @rick = { :name => "Rick", :age => 25 }.to_xml(:root => "person")
+    @joe   = {'person' => { :id => 6, :name => 'Joe' }}.to_json
     @people = [{ :id => 1, :name => 'Matz' }, { :id => 2, :name => 'David' }].to_xml(:root => 'people')
     @people_david = [{ :id => 2, :name => 'David' }].to_xml(:root => 'people')
     @addresses = [{ :id => 1, :street => '12345 Street' }].to_xml(:root => 'addresses')
@@ -64,6 +66,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/1.xml",                {}, @matz
       mock.get    "/people/2.xml",                {}, @david
+      mock.get    "/people/6.json",               {}, @joe
       mock.get    "/people/5.xml",                {}, @marty
       mock.get    "/people/Greg.xml",             {}, @greg
       mock.get    "/people/4.xml",                {'key' => 'value'}, nil, 404
@@ -1003,6 +1006,18 @@ class BaseTest < Test::Unit::TestCase
     assert xml.starts_with?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
+  end
+
+  def test_to_json_including_root
+    Person.include_root_in_json = true
+    Person.format = :json
+    joe = Person.find(6)
+    json = joe.encode
+    assert_match '{"person":{"person":{', json
+    assert_match '"name":"Joe"', json
+    assert_match '"id":6', json
+  ensure
+    Person.format = :xml
   end
 
   def test_to_param_quacks_like_active_record

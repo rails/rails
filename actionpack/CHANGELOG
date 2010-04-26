@@ -1,5 +1,7 @@
 *2.3.6 (unreleased)*
 
+* JSON: set Base.include_root_in_json = true to include a root value in the JSON: {"post": {"title": ...}}. Mirrors the Active Record option.  #2584 [Matthew Moore, Joe Martinez, Elad Meidar, Santiago Pastorino]
+
 * Ruby 1.9: ERB template encoding using a magic comment at the top of the file.  [Jeremy Kemper]
     <%# encoding: utf-8 %>
 
