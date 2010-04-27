@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/hash/conversions_xml_value'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/inflector'
 
@@ -50,6 +51,8 @@ class Array
   end
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
+
+  include Hash::XmlValue
 
   # Returns a string that represents this array in XML by sending +to_xml+
   # to each element. Active Record collections delegate their representation
@@ -127,34 +130,26 @@ class Array
   #   </messages>
   #
   def to_xml(options = {})
-    raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
     require 'builder' unless defined?(Builder)
 
     options = options.dup
-    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)).tr('/', '_') : "records"
-    options[:children] ||= options[:root].singularize
     options[:indent]   ||= 2
-    options[:builder]  ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]) })
 
-    root     = options.delete(:root).to_s
-    children = options.delete(:children)
+    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)).tr('/', '_') : "objects"
 
-    if !options.has_key?(:dasherize) || options[:dasherize]
-      root = root.dasherize
-    end
 
     options[:builder].instruct! unless options.delete(:skip_instruct)
+    root = rename_key(options[:root].to_s, options)
 
-    opts = options.merge({ :root => children })
+    options[:children] ||= options[:root].singularize
+    attributes = options[:skip_types] ? {} : {:type => "array"}
+    return options[:builder].tag!(root, attributes) if empty?
 
-    xml = options[:builder]
-    if empty?
-      xml.tag!(root, options[:skip_types] ? {} : {:type => "array"})
-    else
-      xml.tag!(root, options[:skip_types] ? {} : {:type => "array"}) {
-        yield xml if block_given?
-        each { |e| e.to_xml(opts.merge({ :skip_instruct => true })) }
-      }
+    options[:builder].__send__(:method_missing, root, attributes) do
+      each { |value| xml_value(options[:children], value, options) }
+      yield options[:builder] if block_given?
     end
   end
+
 end
