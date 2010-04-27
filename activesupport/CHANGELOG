@@ -1,3 +1,8 @@
+*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+
+* JSON: encode objects that don't have a native JSON representation using to_hash, if available, instead of instance_values (the old fallback) or to_s (other encoders' default). Encode BigDecimal and Regexp encode as strings to conform with other encoders. Try to transcode non-UTF-8 strings.  [Jeremy Kemper]
+
+
 *Rails 3.0.0 [beta 3] (April 13th, 2010)*
 
 * HashWithIndifferentAccess: remove inherited symbolize_keys! since its keys are always strings.  [Santiago Pastorino]
