@@ -44,8 +44,8 @@ module ActionController #:nodoc:
         # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing
         # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
         # web server to look in the new location for cached files.
-        singleton_class.delegate :page_cache_directory, :page_cache_directory=, :to => :config
-        self.page_cache_directory = ''
+        config_accessor :page_cache_directory
+        self.page_cache_directory ||= ''
 
         ##
         # :singleton-method:
@@ -53,8 +53,8 @@ module ActionController #:nodoc:
         # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
         # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
         # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
-        singleton_class.delegate :page_cache_extension, :page_cache_extension=, :to => :config
-        self.page_cache_extension = '.html'
+        config_accessor :page_cache_extension
+        self.page_cache_extension ||= '.html'
       end
 
       module ClassMethods

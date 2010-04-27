@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     test "default middleware stack" do
       boot!
 
@@ -83,13 +87,102 @@ module ApplicationTests
       assert middleware.include?("ActionDispatch::Cascade")
     end
 
+    # x_sendfile_header middleware
+    test "config.action_dispatch.x_sendfile_header defaults to ''" do
+      make_basic_app
+
+      class ::OmgController < ActionController::Base
+        def index
+          send_file __FILE__
+        end
+      end
+
+      get "/"
+      assert_equal File.read(__FILE__), last_response.body
+    end
+
+    test "config.action_dispatch.x_sendfile_header can be set" do
+      make_basic_app do |app|
+        app.config.action_dispatch.x_sendfile_header = "X-Sendfile"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          send_file __FILE__
+        end
+      end
+
+      get "/"
+      assert_equal File.expand_path(__FILE__), last_response.headers["X-Sendfile"]
+    end
+
+    test "config.action_dispatch.x_sendfile_header is sent to Rack::Sendfile" do
+      make_basic_app do |app|
+        app.config.action_dispatch.x_sendfile_header = 'X-Lighttpd-Send-File'
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          send_file __FILE__
+        end
+      end
+
+      get "/"
+      assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
+    end
+
+    # remote_ip tests
+    test "remote_ip works" do
+      make_basic_app
+      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1")
+    end
+
+    test "checks IP spoofing by default" do
+      make_basic_app
+      assert_raises(ActionDispatch::RemoteIp::IpSpoofAttackError) do
+        remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1", "HTTP_CLIENT_IP" => "1.1.1.2")
+      end
+    end
+
+    test "can disable IP spoofing check" do
+      make_basic_app do |app|
+        app.config.action_dispatch.ip_spoofing_check = false
+      end
+
+      assert_nothing_raised(ActionDispatch::RemoteIp::IpSpoofAttackError) do
+        assert_equal "1.1.1.2", remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1", "HTTP_CLIENT_IP" => "1.1.1.2")
+      end
+    end
+
+    test "the user can set trusted proxies" do
+      make_basic_app do |app|
+        app.config.action_dispatch.trusted_proxies = /^4\.2\.42\.42$/
+      end
+
+      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "4.2.42.42,1.1.1.1")
+    end
+
     private
+
       def boot!
         require "#{app_path}/config/environment"
       end
 
       def middleware
         AppTemplate::Application.middleware.active.map(&:klass).map(&:name)
+      end
+
+      def remote_ip(env = {})
+        remote_ip = nil
+        env = Rack::MockRequest.env_for("/").merge(env).merge('action_dispatch.show_exceptions' => false)
+
+        endpoint = Proc.new do |e|
+          remote_ip = ActionDispatch::Request.new(e).remote_ip
+          [200, {}, ["Hello"]]
+        end
+
+        Rails.application.middleware.build(endpoint).call(env)
+        remote_ip
       end
   end
 end

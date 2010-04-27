@@ -8,7 +8,6 @@ module AbstractController
 
     included do
       class_attribute :_helpers
-      delegate :_helpers, :to => :'self.class'
       self._helpers = Module.new
     end
 

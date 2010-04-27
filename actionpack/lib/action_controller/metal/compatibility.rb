@@ -21,8 +21,8 @@ module ActionController
         delegate :default_charset=, :to => "ActionDispatch::Response"
       end
 
-      # cattr_reader :protected_instance_variables
-      cattr_accessor :protected_instance_variables
+      # TODO: Update protected instance variables list
+      config_accessor :protected_instance_variables
       self.protected_instance_variables = %w(@assigns @performed_redirect @performed_render
                                              @variables_added @request_origin @url
                                              @parent_controller @action_name

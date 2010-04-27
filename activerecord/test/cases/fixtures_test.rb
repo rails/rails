@@ -16,6 +16,9 @@ require 'models/treasure'
 require 'models/matey'
 require 'models/ship'
 require 'models/book'
+require 'models/admin'
+require 'models/admin/account'
+require 'models/admin/user'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
@@ -507,7 +510,7 @@ class FasterFixturesTest < ActiveRecord::TestCase
 end
 
 class FoxyFixturesTest < ActiveRecord::TestCase
-  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers
+  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers, :"admin/accounts", :"admin/users"
 
   def test_identifies_strings
     assert_equal(Fixtures.identify("foo"), Fixtures.identify("foo"))
@@ -628,6 +631,11 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_supports_sti
     assert_kind_of DeadParrot, parrots(:polly)
     assert_equal pirates(:blackbeard), parrots(:polly).killer
+  end
+
+  def test_namespaced_models
+    assert admin_accounts(:signals37).users.include?(admin_users(:david))
+    assert_equal 2, admin_accounts(:signals37).users.size
   end
 end
 

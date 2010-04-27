@@ -79,12 +79,12 @@ module ActionController
 
     add :js do |js, options|
       self.content_type ||= Mime::JS
-      self.response_body  = js.respond_to?(:to_js) ? js.to_js : js
+      self.response_body  = js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
       self.content_type ||= Mime::XML
-      self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml : xml
+      self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
 
     add :update do |proc, options|

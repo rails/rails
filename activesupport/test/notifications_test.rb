@@ -6,7 +6,9 @@ module Notifications
       ActiveSupport::Notifications.notifier = nil
       @notifier = ActiveSupport::Notifications.notifier
       @events = []
+      @named_events = []
       @subscription = @notifier.subscribe { |*args| @events << event(*args) }
+      @named_subscription = @notifier.subscribe("named.subscription") { |*args| @named_events << event(*args) }
     end
 
     private
@@ -28,6 +30,26 @@ module Notifications
       @notifier.publish :foo
       @notifier.wait
       assert_equal [[:foo]], @events
+    end
+
+    def test_unsubscribing_by_name_removes_a_subscription
+      @notifier.publish "named.subscription", :foo
+      @notifier.wait
+      assert_equal [["named.subscription", :foo]], @named_events
+      @notifier.unsubscribe("named.subscription")
+      @notifier.publish "named.subscription", :foo
+      @notifier.wait
+      assert_equal [["named.subscription", :foo]], @named_events
+    end
+
+    def test_unsubscribing_by_name_leaves_the_other_subscriptions
+      @notifier.publish "named.subscription", :foo
+      @notifier.wait
+      assert_equal [["named.subscription", :foo]], @events
+      @notifier.unsubscribe("named.subscription")
+      @notifier.publish "named.subscription", :foo
+      @notifier.wait
+      assert_equal [["named.subscription", :foo], ["named.subscription", :foo]], @events
     end
 
   private

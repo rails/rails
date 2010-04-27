@@ -128,7 +128,7 @@ module ActionDispatch
         when String
           options
         when nil, Hash
-          _router.url_for(url_options.merge(options || {}))
+          _router.url_for(url_options.merge((options || {}).symbolize_keys))
         else
           polymorphic_url(options)
         end

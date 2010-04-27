@@ -36,6 +36,7 @@ module ActionController
     end
 
     def teardown_subscriptions
+      ActiveSupport::Notifications.unsubscribe("action_view.render_template")
       ActiveSupport::Notifications.unsubscribe("action_view.render_template!")
     end
 
@@ -282,81 +283,160 @@ module ActionController
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
-    include ActionDispatch::TestProcess
-    include ActionController::TemplateAssertions
+    module Behavior
+      extend ActiveSupport::Concern
+      include ActionDispatch::TestProcess
 
-    attr_reader :response, :request
+      attr_reader :response, :request
 
-    # Executes a request simulating GET HTTP method and set/volley the response
-    def get(action, parameters = nil, session = nil, flash = nil)
-      process(action, parameters, session, flash, "GET")
-    end
+      module ClassMethods
 
-    # Executes a request simulating POST HTTP method and set/volley the response
-    def post(action, parameters = nil, session = nil, flash = nil)
-      process(action, parameters, session, flash, "POST")
-    end
+        # Sets the controller class name. Useful if the name can't be inferred from test class.
+        # Expects +controller_class+ as a constant. Example: <tt>tests WidgetController</tt>.
+        def tests(controller_class)
+          self.controller_class = controller_class
+        end
+        
+        def controller_class=(new_class)
+          prepare_controller_class(new_class) if new_class
+          write_inheritable_attribute(:controller_class, new_class)
+        end
 
-    # Executes a request simulating PUT HTTP method and set/volley the response
-    def put(action, parameters = nil, session = nil, flash = nil)
-      process(action, parameters, session, flash, "PUT")
-    end
+        def controller_class
+          if current_controller_class = read_inheritable_attribute(:controller_class)
+            current_controller_class
+          else
+            self.controller_class = determine_default_controller_class(name)
+          end
+        end
 
-    # Executes a request simulating DELETE HTTP method and set/volley the response
-    def delete(action, parameters = nil, session = nil, flash = nil)
-      process(action, parameters, session, flash, "DELETE")
-    end
+        def determine_default_controller_class(name)
+          name.sub(/Test$/, '').constantize
+        rescue NameError
+          nil
+        end
 
-    # Executes a request simulating HEAD HTTP method and set/volley the response
-    def head(action, parameters = nil, session = nil, flash = nil)
-      process(action, parameters, session, flash, "HEAD")
-    end
+        def prepare_controller_class(new_class)
+          new_class.send :include, ActionController::TestCase::RaiseActionExceptions
+        end
 
-    def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
-      @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-      @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-      returning __send__(request_method, action, parameters, session, flash) do
-        @request.env.delete 'HTTP_X_REQUESTED_WITH'
-        @request.env.delete 'HTTP_ACCEPT'
       end
-    end
-    alias xhr :xml_http_request
 
-    def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
-      # Sanity check for required instance variables so we can give an
-      # understandable error message.
-      %w(@routes @controller @request @response).each do |iv_name|
-        if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
-          raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+      # Executes a request simulating GET HTTP method and set/volley the response
+      def get(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "GET")
+      end
+
+      # Executes a request simulating POST HTTP method and set/volley the response
+      def post(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "POST")
+      end
+
+      # Executes a request simulating PUT HTTP method and set/volley the response
+      def put(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "PUT")
+      end
+
+      # Executes a request simulating DELETE HTTP method and set/volley the response
+      def delete(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "DELETE")
+      end
+
+      # Executes a request simulating HEAD HTTP method and set/volley the response
+      def head(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "HEAD")
+      end
+
+      def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
+        @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        returning __send__(request_method, action, parameters, session, flash) do
+          @request.env.delete 'HTTP_X_REQUESTED_WITH'
+          @request.env.delete 'HTTP_ACCEPT'
+        end
+      end
+      alias xhr :xml_http_request
+
+      def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
+        # Sanity check for required instance variables so we can give an
+        # understandable error message.
+        %w(@routes @controller @request @response).each do |iv_name|
+          if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
+            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+          end
+        end
+
+        @request.recycle!
+        @response.recycle!
+        @controller.response_body = nil
+        @controller.formats = nil
+        @controller.params = nil
+
+        @html_document = nil
+        @request.env['REQUEST_METHOD'] = http_method
+
+        parameters ||= {}
+        @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
+
+        @request.session = ActionController::TestSession.new(session) unless session.nil?
+        @request.session["flash"] = @request.flash.update(flash || {})
+        @request.session["flash"].sweep
+
+        @controller.request = @request
+        @controller.params.merge!(parameters)
+        build_request_uri(action, parameters)
+        Base.class_eval { include Testing }
+        @controller.process_with_new_base_test(@request, @response)
+        @request.session.delete('flash') if @request.session['flash'].blank?
+        @response
+      end
+
+      def setup_controller_request_and_response
+        @request = TestRequest.new
+        @response = TestResponse.new
+
+        if klass = self.class.controller_class
+          @controller ||= klass.new rescue nil
+        end
+
+        @request.env.delete('PATH_INFO')
+
+        if @controller
+          @controller.request = @request
+          @controller.params = {}
         end
       end
 
-      @request.recycle!
-      @response.recycle!
-      @controller.response_body = nil
-      @controller.formats = nil
-      @controller.params = nil
+      # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
+      def rescue_action_in_public!
+        @request.remote_addr = '208.77.188.166' # example.com
+      end
 
-      @html_document = nil
-      @request.env['REQUEST_METHOD'] = http_method
+      included do
+        include ActionController::TemplateAssertions
+        include ActionDispatch::Assertions
+        setup :setup_controller_request_and_response
+      end
 
-      parameters ||= {}
-      @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
+    private
 
-      @request.session = ActionController::TestSession.new(session) unless session.nil?
-      @request.session["flash"] = @request.flash.update(flash || {})
-      @request.session["flash"].sweep
+      def build_request_uri(action, parameters)
+        unless @request.env["PATH_INFO"]
+          options = @controller.__send__(:url_options).merge(parameters)
+          options.update(
+            :only_path => true,
+            :action => action,
+            :relative_url_root => nil,
+            :_path_segments => @request.symbolized_path_parameters)
 
-      @controller.request = @request
-      @controller.params.merge!(parameters)
-      build_request_uri(action, parameters)
-      Base.class_eval { include Testing }
-      @controller.process_with_new_base_test(@request, @response)
-      @request.session.delete('flash') if @request.session['flash'].blank?
-      @response
+          url, query_string = @routes.url_for(options).split("?", 2)
+
+          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
+          @request.env["PATH_INFO"] = url
+          @request.env["QUERY_STRING"] = query_string || ""
+        end
+      end
     end
-
-    include ActionDispatch::Assertions
 
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
     # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
@@ -384,78 +464,6 @@ module ActionController
         end
     end
 
-    setup :setup_controller_request_and_response
-
-    @@controller_class = nil
-
-    class << self
-      # Sets the controller class name. Useful if the name can't be inferred from test class.
-      # Expects +controller_class+ as a constant. Example: <tt>tests WidgetController</tt>.
-      def tests(controller_class)
-        self.controller_class = controller_class
-      end
-
-      def controller_class=(new_class)
-        prepare_controller_class(new_class) if new_class
-        write_inheritable_attribute(:controller_class, new_class)
-      end
-
-      def controller_class
-        if current_controller_class = read_inheritable_attribute(:controller_class)
-          current_controller_class
-        else
-          self.controller_class = determine_default_controller_class(name)
-        end
-      end
-
-      def determine_default_controller_class(name)
-        name.sub(/Test$/, '').constantize
-      rescue NameError
-        nil
-      end
-
-      def prepare_controller_class(new_class)
-        new_class.send :include, RaiseActionExceptions
-      end
-    end
-
-    def setup_controller_request_and_response
-      @request = TestRequest.new
-      @response = TestResponse.new
-
-      if klass = self.class.controller_class
-        @controller ||= klass.new rescue nil
-      end
-
-      @request.env.delete('PATH_INFO')
-
-      if @controller
-        @controller.request = @request
-        @controller.params = {}
-      end
-    end
-
-    # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
-    def rescue_action_in_public!
-      @request.remote_addr = '208.77.188.166' # example.com
-    end
-
-    private
-      def build_request_uri(action, parameters)
-        unless @request.env["PATH_INFO"]
-          options = @controller.__send__(:url_options).merge(parameters)
-          options.update(
-            :only_path => true,
-            :action => action,
-            :relative_url_root => nil,
-            :_path_segments => @request.symbolized_path_parameters)
-
-          url, query_string = @routes.url_for(options).split("?", 2)
-
-          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
-          @request.env["PATH_INFO"] = url
-          @request.env["QUERY_STRING"] = query_string || ""
-        end
-      end
-    end
+    include Behavior
+  end
 end

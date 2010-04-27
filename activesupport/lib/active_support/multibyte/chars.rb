@@ -72,8 +72,8 @@ module ActiveSupport #:nodoc:
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
         array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
       end
-      UNICODE_TRAILERS_PAT = /(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+\Z/
-      UNICODE_LEADERS_PAT = /\A(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+/
+      UNICODE_TRAILERS_PAT = /(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+\Z/u
+      UNICODE_LEADERS_PAT = /\A(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+/u
 
       UTF8_PAT = ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8']
 

@@ -52,8 +52,8 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      class_attribute :helpers_path
-      self.helpers_path = []
+      config_accessor :helpers_path
+      self.helpers_path ||= []
     end
 
     module ClassMethods

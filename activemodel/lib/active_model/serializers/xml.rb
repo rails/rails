@@ -1,6 +1,7 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/conversions'
+require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
   module Serializers
@@ -12,8 +13,10 @@ module ActiveModel
         class Attribute #:nodoc:
           attr_reader :name, :value, :type
 
-          def initialize(name, serializable)
+          def initialize(name, serializable, raw_value=nil)
             @name, @serializable = name, serializable
+            @raw_value = raw_value || @serializable.send(name)
+
             @type  = compute_type
             @value = compute_value
           end
@@ -51,20 +54,17 @@ module ActiveModel
 
           protected
             def compute_type
-              value = @serializable.send(name)
-              type = Hash::XML_TYPE_NAMES[value.class.name]
-              type ||= :string if value.respond_to?(:to_str)
+              type = Hash::XML_TYPE_NAMES[@raw_value.class.name]
+              type ||= :string if @raw_value.respond_to?(:to_str)
               type ||= :yaml
               type
             end
 
             def compute_value
-              value = @serializable.send(name)
-
               if formatter = Hash::XML_FORMATTING[type.to_s]
-                value ? formatter.call(value) : nil
+                @raw_value ? formatter.call(@raw_value) : nil
               else
-                value
+                @raw_value
               end
             end
         end
@@ -72,7 +72,7 @@ module ActiveModel
         class MethodAttribute < Attribute #:nodoc:
           protected
             def compute_type
-              Hash::XML_TYPE_NAMES[@serializable.send(name).class.name] || :string
+              Hash::XML_TYPE_NAMES[@raw_value.class.name] || :string
             end
         end
 
@@ -92,25 +92,24 @@ module ActiveModel
         # then because <tt>:except</tt> is set to a default value, the second
         # level model can have both <tt>:except</tt> and <tt>:only</tt> set.  So if
         # <tt>:only</tt> is set, always delete <tt>:except</tt>.
-        def serializable_attribute_names
-          attribute_names = @serializable.attributes.keys.sort
-
+        def serializable_attributes_hash
+          attributes = @serializable.attributes
           if options[:only].any?
-            attribute_names &= options[:only]
+            attributes.slice(*options[:only])
           elsif options[:except].any?
-            attribute_names -= options[:except]
+            attributes.except(*options[:except])
+          else
+            attributes
           end
-
-          attribute_names
         end
 
         def serializable_attributes
-          serializable_attribute_names.collect { |name| Attribute.new(name, @serializable) }
+          serializable_attributes_hash.map { |name, value| self.class::Attribute.new(name, @serializable, value) }
         end
 
         def serializable_method_attributes
           Array.wrap(options[:methods]).inject([]) do |methods, name|
-            methods << MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
+            methods << self.class::MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
             methods
           end
         end

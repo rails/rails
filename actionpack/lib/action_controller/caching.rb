@@ -63,11 +63,9 @@ module ActionController #:nodoc:
     included do
       extend ConfigMethods
 
-      delegate :perform_caching, :perform_caching=, :to => :config
-      singleton_class.delegate :perform_caching, :perform_caching=, :to => :config
-      self.perform_caching = true
+      config_accessor :perform_caching
+      self.perform_caching = true if perform_caching.nil?
     end
-
 
     def caching_allowed?
       request.get? && response.status == 200

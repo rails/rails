@@ -1,3 +1,5 @@
+require 'rake/testtask'
+
 TEST_CHANGES_SINCE = Time.now - 600
 
 # Look up tests for recently modified sources.
@@ -30,7 +32,7 @@ end
 module Kernel
   def silence_stderr
     old_stderr = STDERR.dup
-    STDERR.reopen(RUBY_PLATFORM =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+    STDERR.reopen(Config::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
     STDERR.sync = true
     yield
   ensure

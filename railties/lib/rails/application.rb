@@ -112,15 +112,15 @@ module Rails
 
     def load_tasks
       initialize_tasks
-      super
       railties.all { |r| r.load_tasks }
+      super
       self
     end
 
     def load_generators
       initialize_generators
-      super
       railties.all { |r| r.load_generators }
+      super
       self
     end
 

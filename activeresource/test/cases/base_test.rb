@@ -1015,8 +1015,7 @@ class BaseTest < Test::Unit::TestCase
     assert xml.include?('<id type="integer">1</id>')
   end
 
-  
-  def test_to_json_including_root
+  def test_to_json
     Person.include_root_in_json = true
     Person.format = :json
     joe = Person.find(6)
