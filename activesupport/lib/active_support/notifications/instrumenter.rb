@@ -15,9 +15,13 @@ module ActiveSupport
       # and publish it.
       def instrument(name, payload={})
         time = Time.now
-        result = yield(payload) if block_given?
-        @notifier.publish(name, time, Time.now, @id, payload)
-        result
+        begin
+          yield(payload) if block_given?
+        ensure
+          # Notify in an ensure block so that we can be certain end
+          # events get sent even if an error occurs in the passed-in block
+          @notifier.publish(name, time, Time.now, @id, payload)
+        end
       end
 
       private
