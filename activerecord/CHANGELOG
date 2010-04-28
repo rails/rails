@@ -1,5 +1,9 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Destroy uses optimistic locking. If lock_version on the record you're destroying doesn't match lock_version in the database, a StaleObjectError is raised.  #1966 [Curtis Hawthorne]
+
+* PostgreSQL: drop support for old postgres driver. Use pg 0.9.0 or later.  [Jeremy Kemper]
+
 * Observers can prevent records from saving by returning false, just like before_save and friends.  #4087 [Mislav Marohnić]
 
 

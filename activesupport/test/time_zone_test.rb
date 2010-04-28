@@ -268,16 +268,16 @@ class TimeZoneTest < Test::Unit::TestCase
   end
 
   def test_index
-    assert_nil ActiveSupport::TimeZone["bogus"]
+    assert_not_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[8]
     assert_raise(ArgumentError) { ActiveSupport::TimeZone[false] }
   end
 
-  def test_unknown_zone_shouldnt_have_tzinfo_nor_utc_offset
+  def test_unknown_zone_should_have_tzinfo_but_exception_on_utc_offset
     zone = ActiveSupport::TimeZone.create("bogus")
-    assert_nil zone.tzinfo
-    assert_nil zone.utc_offset
+    assert_instance_of TZInfo::TimezoneProxy, zone.tzinfo
+    assert_raise(TZInfo::InvalidTimezoneIdentifier) { zone.utc_offset }
   end
 
   def test_unknown_zone_with_utc_offset

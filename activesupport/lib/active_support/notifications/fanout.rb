@@ -19,8 +19,8 @@ module ActiveSupport
       end
 
       def unsubscribe(subscriber)
-        @subscribers.delete(subscriber)
         @listeners_for.clear
+        @subscribers.reject! {|s| s.matches?(subscriber)}
       end
 
       def publish(name, *args)
@@ -60,7 +60,7 @@ module ActiveSupport
         end
 
         def publish(*args)
-          return unless matches?(args.first)
+          return unless subscribed_to?(args.first)
           push(*args)
           true
         end
@@ -69,10 +69,20 @@ module ActiveSupport
           true
         end
 
-        private
-          def matches?(name)
-            !@pattern || @pattern =~ name.to_s
+        def subscribed_to?(name)
+          !@pattern || @pattern =~ name.to_s
+        end
+
+        def matches?(subscriber_or_name)
+          case subscriber_or_name
+          when String
+            @pattern && @pattern =~ subscriber_or_name
+          when self
+            true
           end
+        end
+
+        private
 
           def push(*args)
             @block.call(*args)

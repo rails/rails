@@ -3,6 +3,13 @@ require 'controller/fake_models'
 require 'pathname'
 
 class RenderXmlTest < ActionController::TestCase
+  class XmlRenderable
+    def to_xml(options)
+      options[:root] ||= "i-am-xml"
+      "<#{options[:root]}/>"
+    end
+  end
+
   class TestController < ActionController::Base
     protect_from_forgery
 
@@ -20,13 +27,7 @@ class RenderXmlTest < ActionController::TestCase
     end
 
     def render_with_to_xml
-      to_xmlable = Class.new do
-        def to_xml
-          "<i-am-xml/>"
-        end
-      end.new
-
-      render :xml => to_xmlable
+      render :xml => XmlRenderable.new
     end
 
     def formatted_xml_erb
@@ -34,6 +35,10 @@ class RenderXmlTest < ActionController::TestCase
 
     def render_xml_with_custom_content_type
       render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
+    end
+
+    def render_xml_with_custom_options
+      render :xml => XmlRenderable.new, :root => "i-am-THE-xml"
     end
   end
 
@@ -56,6 +61,11 @@ class RenderXmlTest < ActionController::TestCase
   def test_rendering_xml_should_call_to_xml_if_possible
     get :render_with_to_xml
     assert_equal "<i-am-xml/>", @response.body
+  end
+
+  def test_rendering_xml_should_call_to_xml_with_extra_options
+    get :render_xml_with_custom_options
+    assert_equal "<i-am-THE-xml/>", @response.body
   end
 
   def test_rendering_with_object_location_should_set_header_with_url_for

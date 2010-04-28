@@ -1844,8 +1844,7 @@ module ActiveRecord #:nodoc:
       #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
         return if new_attributes.nil?
-        attributes = new_attributes.dup
-        attributes.stringify_keys!
+        attributes = new_attributes.stringify_keys
 
         multi_parameter_attributes = []
         attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes

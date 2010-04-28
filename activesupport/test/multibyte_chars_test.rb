@@ -105,7 +105,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
       @whitespace = "\n\t#{[32, 8195].pack('U*')}"
     else
       # Ruby 1.9 only supports basic whitespace
-      @whitespace = "\n\t ".force_encoding(Encoding::UTF_8)
+      @whitespace = "\n\t "
     end
 
     @byte_order_mark = [65279].pack('U')

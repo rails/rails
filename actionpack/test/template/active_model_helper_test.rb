@@ -27,14 +27,14 @@ class ActiveModelHelperTest < ActionView::TestCase
 
   def test_text_area_with_errors
     assert_dom_equal(
-      %(<div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div>),
+      %(<div class="field_with_errors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div>),
       text_area("post", "body")
     )
   end
 
   def test_text_field_with_errors
     assert_dom_equal(
-      %(<div class="fieldWithErrors"><input id="post_author_name" name="post[author_name]" size="30" type="text" value="" /></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" size="30" type="text" value="" /></div>),
       text_field("post", "author_name")
     )
   end
@@ -42,11 +42,11 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_field_error_proc
     old_proc = ActionView::Base.field_error_proc
     ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
-      %(<div class=\"fieldWithErrors\">#{html_tag} <span class="error">#{[instance.error_message].join(', ')}</span></div>).html_safe
+      %(<div class=\"field_with_errors\">#{html_tag} <span class="error">#{[instance.error_message].join(', ')}</span></div>).html_safe
     end
 
     assert_dom_equal(
-      %(<div class="fieldWithErrors"><input id="post_author_name" name="post[author_name]" size="30" type="text" value="" /> <span class="error">can't be empty</span></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" size="30" type="text" value="" /> <span class="error">can't be empty</span></div>),
       text_field("post", "author_name")
     )
   ensure

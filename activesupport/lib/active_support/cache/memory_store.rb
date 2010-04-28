@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/duplicable'
+require 'monitor'
 
 module ActiveSupport
   module Cache
@@ -6,60 +6,154 @@ module ActiveSupport
     # same process. If you're running multiple Ruby on Rails server processes
     # (which is the case if you're using mongrel_cluster or Phusion Passenger),
     # then this means that your Rails server process instances won't be able
-    # to share cache data with each other. If your application never performs
-    # manual cache item expiry (e.g. when you're using generational cache keys),
-    # then using MemoryStore is ok. Otherwise, consider carefully whether you
-    # should be using this cache store.
+    # to share cache data with each other and this may not be the most
+    # appropriate cache for you.
     #
-    # MemoryStore is not only able to store strings, but also arbitrary Ruby
-    # objects.
+    # This cache has a bounded size specified by the :size options to the
+    # initializer (default is 32Mb). When the cache exceeds the alotted size,
+    # a cleanup will occur which tries to prune the cache down to three quarters
+    # of the maximum size by removing the least recently used entries.
     #
-    # MemoryStore is not thread-safe. Use SynchronizedMemoryStore instead
-    # if you need thread-safety.
+    # MemoryStore is thread-safe.
     class MemoryStore < Store
-      def initialize
+      def initialize(options = nil)
+        options ||= {}
+        super(options)
         @data = {}
+        @key_access = {}
+        @max_size = options[:size] || 32.megabytes
+        @max_prune_time = options[:max_prune_time] || 2
+        @cache_size = 0
+        @monitor = Monitor.new
+        @pruning = false
       end
 
-      def read_multi(*names)
-        results = {}
-        names.each { |n| results[n] = read(n) }
-        results
-      end
-
-      def read(name, options = nil)
-        super do
-          @data[name]
+      def clear(options = nil)
+        synchronize do
+          @data.clear
+          @key_access.clear
+          @cache_size = 0
         end
       end
 
-      def write(name, value, options = nil)
-        super do
-          @data[name] = (value.duplicable? ? value.dup : value).freeze
+      def cleanup(options = nil)
+        options = merged_options(options)
+        instrument(:cleanup, :size => @data.size) do
+          keys = synchronize{ @data.keys }
+          keys.each do |key|
+            entry = @data[key]
+            delete_entry(key, options) if entry && entry.expired?
+          end
         end
       end
 
-      def delete(name, options = nil)
-        super do
-          @data.delete(name)
+      # Prune the cache down so the entries fit within the specified memory size by removing
+      # the least recently accessed entries.
+      def prune(target_size, max_time = nil)
+        return if pruning?
+        @pruning = true
+        begin
+          start_time = Time.now
+          cleanup
+          instrument(:prune, target_size, :from => @cache_size) do
+            keys = synchronize{ @key_access.keys.sort{|a,b| @key_access[a].to_f <=> @key_access[b].to_f} }
+            keys.each do |key|
+              delete_entry(key, options)
+              return if @cache_size <= target_size || (max_time && Time.now - start_time > max_time)
+            end
+          end
+        ensure
+          @pruning = false
+        end
+      end
+
+      # Return true if the cache is currently be pruned to remove older entries.
+      def pruning?
+        @pruning
+      end
+
+      # Increment an integer value in the cache.
+      def increment(name, amount = 1, options = nil)
+        synchronize do
+          options = merged_options(options)
+          if num = read(name, options)
+            num = num.to_i + amount
+            write(name, num, options)
+            num
+          else
+            nil
+          end
+        end
+      end
+
+      # Decrement an integer value in the cache.
+      def decrement(name, amount = 1, options = nil)
+        synchronize do
+          options = merged_options(options)
+          if num = read(name, options)
+            num = num.to_i - amount
+            write(name, num, options)
+            num
+          else
+            nil
+          end
         end
       end
 
       def delete_matched(matcher, options = nil)
-        super do
-          @data.delete_if { |k,v| k =~ matcher }
+        options = merged_options(options)
+        instrument(:delete_matched, matcher.inspect) do
+          matcher = key_matcher(matcher, options)
+          keys = synchronize { @data.keys }
+          keys.each do |key|
+            delete_entry(key, options) if key.match(matcher)
+          end
         end
       end
 
-      def exist?(name, options = nil)
-        super do
-          @data.has_key?(name)
-        end
+      def inspect # :nodoc:
+        "<##{self.class.name} entries=#{@data.size}, size=#{@cache_size}, options=#{@options.inspect}>"
       end
 
-      def clear
-        @data.clear
+      # Synchronize calls to the cache. This should be called wherever the underlying cache implementation
+      # is not thread safe.
+      def synchronize(&block) # :nodoc:
+        @monitor.synchronize(&block)
       end
+
+      protected
+        def read_entry(key, options) # :nodoc:
+          entry = @data[key]
+          synchronize do
+            if entry
+              @key_access[key] = Time.now.to_f
+            else
+              @key_access.delete(key)
+            end
+          end
+          entry
+        end
+
+        def write_entry(key, entry, options) # :nodoc:
+          synchronize do
+            old_entry = @data[key]
+            @cache_size -= old_entry.size if old_entry
+            @cache_size += entry.size
+            @key_access[key] = Time.now.to_f
+            @data[key] = entry
+            prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
+            true
+          end
+        end
+
+        def delete_entry(key, options) # :nodoc:
+          synchronize do
+            @key_access.delete(key)
+            entry = @data.delete(key)
+            @cache_size -= entry.size if entry
+            !!entry
+          end
+        end
     end
   end
 end

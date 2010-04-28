@@ -1,4 +1,43 @@
+*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+
+* Harmonize the caching API and refactor the backends.  #4452 [Brian Durand]
+  All caches:
+  * Add default options to initializer that will be sent to all read, write, fetch, exist?, increment, and decrement
+  * Add support for the :expires_in option to fetch and write for all caches. Cache entries are stored with the create timestamp and a ttl so that expiration can be handled independently of the implementation.
+  * Add support for a :namespace option. This can be used to set a global prefix for cache entries.
+  * Deprecate expand_cache_key on ActiveSupport::Cache and move it to ActionController::Caching and ActionDispatch::Http::Cache since the logic in the method used some Rails specific environment variables and was only used by ActionPack classes. Not very DRY but there didn't seem to be a good shared spot and ActiveSupport really shouldn't be Rails specific.
+  * Add support for :race_condition_ttl to fetch. This setting can prevent race conditions on fetch calls where several processes try to regenerate a recently expired entry at once.
+  * Add support for :compress option to fetch and write which will compress any data over a configurable threshold.
+  * Nil values can now be stored in the cache and are distinct from cache misses for fetch.
+  * Easier API to create new implementations. Just need to implement the methods read_entry, write_entry, and delete_entry instead of overwriting existing methods.
+  * Since all cache implementations support storing objects, update the docs to state that ActiveCache::Cache::Store implementations should store objects. Keys, however, must be strings since some implementations require that.
+  * Increase test coverage.
+  * Document methods which are provided as convenience but which may not be universally available.
+
+  MemoryStore:
+  * MemoryStore can now safely be used as the cache for single server sites.
+  * Make thread safe so that the default cache implementation used by Rails is thread safe. The overhead is minimal and it is still the fastest store available.
+  * Provide :size initialization option indicating the maximum size of the cache in memory (defaults to 32Mb).
+  * Add prune logic that removes the least recently used cache entries to keep the cache size from exceeding the max.
+  * Deprecated SynchronizedMemoryStore since it isn't needed anymore.
+
+  FileStore:
+  * Escape key values so they will work as file names on all file systems, be consistent, and case sensitive
+  * Use a hash algorithm to segment the cache into sub directories so that a large cache doesn't exceed file system limits.
+  * FileStore can be slow so implement the LocalCache strategy to cache reads for the duration of a request.
+  * Add cleanup method to keep the disk from filling up with expired entries.
+  * Fix increment and decrement to use file system locks so they are consistent between processes.
+
+  MemCacheStore:
+  * Support all keys. Previously keys with spaces in them would fail
+  * Deprecate CompressedMemCacheStore since it isn't needed anymore (use :compress => true)
+
+* JSON: encode objects that don't have a native JSON representation using to_hash, if available, instead of instance_values (the old fallback) or to_s (other encoders' default). Encode BigDecimal and Regexp encode as strings to conform with other encoders. Try to transcode non-UTF-8 strings.  [Jeremy Kemper]
+
+
 *Rails 3.0.0 [beta 3] (April 13th, 2010)*
+
+* HashWithIndifferentAccess: remove inherited symbolize_keys! since its keys are always strings.  [Santiago Pastorino]
 
 * Improve transliteration quality.  #4374 [Norman Clarke]
 

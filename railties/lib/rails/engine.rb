@@ -1,6 +1,7 @@
 require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
+require 'rbconfig'
 
 module Rails
   # Rails::Engine allows you to wrap a specific Rails application and share it accross
@@ -119,7 +120,7 @@ module Rails
         root = File.exist?("#{root_path}/#{flag}") ? root_path : default
         raise "Could not find root path for #{self}" unless root
 
-        RUBY_PLATFORM =~ /mswin|mingw/ ?
+        Config::CONFIG['host_os'] =~ /mswin|mingw/ ?
           Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
     end
@@ -166,7 +167,7 @@ module Rails
       paths.app.controllers.to_a.each do |load_path|
         load_path = File.expand_path(load_path)
         Dir["#{load_path}/*/**/*_controller.rb"].collect do |path|
-          namespace = File.dirname(path).sub(/#{load_path}\/?/, '')
+          namespace = File.dirname(path).sub(/#{Regexp.escape(load_path)}\/?/, '')
           app.routes.controller_namespaces << namespace unless namespace.empty?
         end
       end

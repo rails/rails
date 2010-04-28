@@ -1015,14 +1015,17 @@ class BaseTest < Test::Unit::TestCase
     assert xml.include?('<id type="integer">1</id>')
   end
 
-  
-  def test_to_json_including_root
+  def test_to_json
     Person.include_root_in_json = true
     Person.format = :json
     joe = Person.find(6)
     json = joe.encode
     Person.format = :xml
-    assert_equal json, '{"person":{"person":{"name":"Joe","id":6}}}'
+
+    assert_match %r{^\{"person":\{"person":\{}, json
+    assert_match %r{"id":6}, json
+    assert_match %r{"name":"Joe"}, json
+    assert_match %r{\}\}\}$}, json
   end
 
   def test_to_param_quacks_like_active_record

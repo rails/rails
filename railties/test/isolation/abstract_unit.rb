@@ -103,6 +103,25 @@ module TestHelpers
       add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"'
     end
 
+    def make_basic_app
+      require "rails"
+      require "action_controller/railtie"
+
+      app = Class.new(Rails::Application)
+      app.config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+      app.config.session_store :cookie_store, :key => "_myapp_session"
+
+      yield app if block_given?
+      app.initialize!
+
+      app.routes.draw do
+        match "/" => "omg#index"
+      end
+
+      require 'rack/test'
+      extend ::Rack::Test::Methods
+    end
+
     class Bukkit
       attr_reader :path
 

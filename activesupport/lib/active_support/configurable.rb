@@ -1,35 +1,36 @@
-require "active_support/concern"
+require 'active_support/concern'
+require 'active_support/ordered_options'
+require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport
   module Configurable
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def get_config
-        module_parts = name.split("::")
-        modules = [Object]
-        module_parts.each {|name| modules.push modules.last.const_get(name) }
-        modules.reverse_each do |mod|
-          return mod.const_get(:DEFAULT_CONFIG) if const_defined?(:DEFAULT_CONFIG)
-        end
-        {}
-      end
-      
       def config
-        self.config = get_config unless @config
-        @config
+        @config ||= ActiveSupport::InheritableOptions.new(superclass.respond_to?(:config) ? superclass.config : {})
       end
 
-      def config=(hash)
-        @config = ActiveSupport::OrderedOptions.new
-        hash.each do |key, value|
-          @config[key] = value
+      def configure
+        yield config
+      end
+
+      def config_accessor(*names)
+        names.each do |name|
+          code, line = <<-RUBY, __LINE__ + 1
+            def #{name}; config.#{name}; end
+            def #{name}=(value); config.#{name} = value; end
+          RUBY
+
+          singleton_class.class_eval code, __FILE__, line
+          class_eval code, __FILE__, line
         end
       end
     end
 
     def config
-      self.class.config
+      @config ||= ActiveSupport::InheritableOptions.new(self.class.config)
     end
   end
 end

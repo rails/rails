@@ -421,6 +421,10 @@ class UrlHelperControllerTest < ActionController::TestCase
       render :inline => "<%= url_for :controller => 'url_helper_controller_test/url_helper', :action => 'show_url_for' %>"
     end
 
+    def show_overriden_url_for
+      render :inline => "<%= url_for params.merge(:controller => 'url_helper_controller_test/url_helper', :action => 'show_url_for') %>"
+    end
+
     def show_named_route
       render :inline => "<%= show_named_route_#{params[:kind]} %>"
     end
@@ -436,6 +440,11 @@ class UrlHelperControllerTest < ActionController::TestCase
 
   def test_url_for_shows_only_path
     get :show_url_for
+    assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
+  end
+
+  def test_overriden_url_for_shows_only_path
+    get :show_overriden_url_for
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 

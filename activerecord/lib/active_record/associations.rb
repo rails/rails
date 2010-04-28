@@ -1500,7 +1500,16 @@ module ActiveRecord
               when :destroy
                 method_name = "has_many_dependent_destroy_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  send(reflection.name).each { |o| o.destroy }
+                  send(reflection.name).each do |o|
+                    # No point in executing the counter update since we're going to destroy the parent anyway
+                    counter_method = ('belongs_to_counter_cache_before_destroy_for_' + self.class.name.downcase).to_sym
+                    if(o.respond_to? counter_method) then
+                      class << o
+                        self
+                      end.send(:define_method, counter_method, Proc.new {})
+                    end
+                    o.destroy
+                  end
                 end
                 before_destroy method_name
               when :delete_all

@@ -9,6 +9,12 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
+  class Hashlike
+    def to_hash
+      { :a => 1 }
+    end
+  end
+
   class Custom
     def as_json(options)
       'custom'
@@ -19,7 +25,8 @@ class TestJSONEncoding < Test::Unit::TestCase
   FalseTests    = [[ false, %(false) ]]
   NilTests      = [[ nil,   %(null)  ]]
   NumericTests  = [[ 1,     %(1)     ],
-                   [ 2.5,   %(2.5)   ]]
+                   [ 2.5,   %(2.5)   ],
+                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s('F')}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
                    [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],
@@ -35,11 +42,12 @@ class TestJSONEncoding < Test::Unit::TestCase
                    [ :"a b", %("a b")  ]]
 
   ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
+  HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
   VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
                    [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
-  RegexpTests   = [[ /^a/, '/^a/' ], [/^\w{1,2}[a-z]+/ix, '/^\\w{1,2}[a-z]+/ix']]
+  RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
   DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
   TimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
@@ -91,6 +99,15 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
+  if '1.9'.respond_to?(:force_encoding)
+    def test_non_utf8_string_transcodes
+      s = '二'.encode('Shift_JIS')
+      result = ActiveSupport::JSON.encode(s)
+      assert_equal '"\\u4e8c"', result
+      assert_equal Encoding::UTF_8, result.encoding
+    end
+  end
+
   def test_exception_raised_when_encoding_circular_reference
     a = [1]
     a << a
@@ -109,7 +126,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_hash_should_allow_key_filtering_with_except
     assert_equal %({"b":2}), ActiveSupport::JSON.encode({'foo' => 'bar', :b => 2, :c => 3}, :except => ['foo', :c])
   end
-  
+
   def test_time_to_json_includes_local_offset
     ActiveSupport.use_standard_json_time_format = true
     with_env_tz 'US/Eastern' do
@@ -136,7 +153,7 @@ class TestJSONEncoding < Test::Unit::TestCase
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
-    
+
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
       yield

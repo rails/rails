@@ -3,6 +3,14 @@ require 'controller/fake_models'
 require 'pathname'
 
 class RenderJsonTest < ActionController::TestCase
+  class JsonRenderable
+    def as_json(options={})
+      hash = { :a => :b, :c => :d, :e => :f }
+      hash.except!(*options[:except]) if options[:except]
+      hash
+    end
+  end
+
   class TestController < ActionController::Base
     protect_from_forgery
 
@@ -36,6 +44,10 @@ class RenderJsonTest < ActionController::TestCase
 
     def render_json_with_render_to_string
       render :json => {:hello => render_to_string(:partial => 'partial')}
+    end
+
+    def render_json_with_extra_options
+      render :json => JsonRenderable.new, :except => [:c, :e]
     end
   end
 
@@ -89,6 +101,12 @@ class RenderJsonTest < ActionController::TestCase
   def test_render_json_with_render_to_string
     get :render_json_with_render_to_string
     assert_equal '{"hello":"partial html"}', @response.body
+    assert_equal 'application/json', @response.content_type
+  end
+
+  def test_render_json_forwards_extra_options
+    get :render_json_with_extra_options
+    assert_equal '{"a":"b"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 end
