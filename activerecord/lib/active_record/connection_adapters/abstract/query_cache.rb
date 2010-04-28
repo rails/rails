@@ -76,7 +76,7 @@ module ActiveRecord
         def cache_sql(sql)
           result =
             if @query_cache.has_key?(sql)
-              ActiveSupport::Notifications.instrument("active_record.sql", 
+              ActiveSupport::Notifications.instrument("sql.active_record",
                 :sql => sql, :name => "CACHE", :connection_id => self.object_id)
               @query_cache[sql]
             else

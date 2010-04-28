@@ -41,7 +41,7 @@ module ActionView
     def render(view, locals, &block)
       # Notice that we use a bang in this instrumentation because you don't want to
       # consume this in production. This is only slow if it's being listened to.
-      ActiveSupport::Notifications.instrument("action_view.render_template!", :virtual_path => @virtual_path) do
+      ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
         method_name = compile(locals, view)
         view.send(method_name, locals, &block)
       end

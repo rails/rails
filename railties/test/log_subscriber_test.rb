@@ -61,21 +61,21 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_event_is_sent_to_the_registered_class
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    instrument "my_log_subscriber.some_event"
+    instrument "some_event.my_log_subscriber"
     wait
-    assert_equal %w(my_log_subscriber.some_event), @logger.logged(:info)
+    assert_equal %w(some_event.my_log_subscriber), @logger.logged(:info)
   end
 
   def test_event_is_an_active_support_notifications_event
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    instrument "my_log_subscriber.some_event"
+    instrument "some_event.my_log_subscriber"
     wait
     assert_kind_of ActiveSupport::Notifications::Event, @log_subscriber.event
   end
 
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    instrument "my_log_subscriber.unknown_event"
+    instrument "unknown_event.my_log_subscriber"
     wait
     # If we get here, it means that NoMethodError was not raised.
   end
@@ -84,7 +84,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     Rails.logger = nil
     @log_subscriber.expects(:some_event).never
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    instrument "my_log_subscriber.some_event"
+    instrument "some_event.my_log_subscriber"
     wait
   end
 
@@ -110,14 +110,14 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_logging_does_not_die_on_failures
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    instrument "my_log_subscriber.puke"
-    instrument "my_log_subscriber.some_event"
+    instrument "puke.my_log_subscriber"
+    instrument "some_event.my_log_subscriber"
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_equal 'my_log_subscriber.some_event', @logger.logged(:info).last
+    assert_equal 'some_event.my_log_subscriber', @logger.logged(:info).last
 
     assert_equal 1, @logger.logged(:error).size
-    assert_equal 'Could not log "my_log_subscriber.puke" event. RuntimeError: puke', @logger.logged(:error).last
+    assert_equal 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last
   end
 end

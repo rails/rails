@@ -99,7 +99,7 @@ module ActionController #:nodoc:
       end
 
       def instrument_fragment_cache(name, key)
-        ActiveSupport::Notifications.instrument("action_controller.#{name}", :key => key){ yield }
+        ActiveSupport::Notifications.instrument("#{name}.action_controller", :key => key){ yield }
       end
     end
   end

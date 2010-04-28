@@ -211,12 +211,12 @@ module ActionView
         identifier = ((@template = find_template) ? @template.identifier : @path)
 
         if @collection
-          ActiveSupport::Notifications.instrument("action_view.render_collection",
+          ActiveSupport::Notifications.instrument("render_collection.action_view",
             :identifier => identifier || "collection", :count => @collection.size) do
             render_collection
           end
         else
-          content = ActiveSupport::Notifications.instrument("action_view.render_partial",
+          content = ActiveSupport::Notifications.instrument("render_partial.action_view",
             :identifier => identifier) do
             render_partial
           end
