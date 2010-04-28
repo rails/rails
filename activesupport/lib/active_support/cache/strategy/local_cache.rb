@@ -140,7 +140,7 @@ module ActiveSupport
 
         private
           def thread_local_key
-            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{self.object_id}".gsub("/", "_").to_sym
+            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
           end
 
           def local_cache
