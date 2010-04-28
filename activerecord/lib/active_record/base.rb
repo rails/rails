@@ -932,7 +932,7 @@ module ActiveRecord #:nodoc:
       end
 
       def attribute_method?(attribute)
-        super || column_names.include?(attribute.to_s.sub(/=$/, ''))
+        super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
       end
 
       # Set the lookup ancestors for ActiveModel.
