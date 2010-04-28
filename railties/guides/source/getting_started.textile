@@ -953,7 +953,7 @@ end
 
 You'll see a bit more complexity here than you did in the controller for posts. That's a side-effect of the nesting that you've set up; each request for a comment has to keep track of the post to which the comment is attached, thus the initial find action to the Post model to get the post in question.
 
-In addition, the code takes advantage of some of the methods available for an association. For example, in the +new+ method, it calls
+In addition, the code takes advantage of some of the methods available for an association. We use the +create+ method on +@post.comments+ to create and save the comment. This will automatically link the comment so that it belongs to that particular post.
 
 Once we have made the new comment, we send the user back to the +post_path(@post)+ URL.  This runs the +show+ action of the +PostsController+ which then renders the +show.html.erb+ template where we want the comment to show, so then, we'll add that to the +app/view/posts/show.html.erb+.
 
