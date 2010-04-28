@@ -955,7 +955,7 @@ You'll see a bit more complexity here than you did in the controller for posts. 
 
 In addition, the code takes advantage of some of the methods available for an association. We use the +create+ method on +@post.comments+ to create and save the comment. This will automatically link the comment so that it belongs to that particular post.
 
-Once we have made the new comment, we send the user back to the +post_path(@post)+ URL.  This runs the +show+ action of the +PostsController+ which then renders the +show.html.erb+ template where we want the comment to show, so then, we'll add that to the +app/view/posts/show.html.erb+.
+Once we have made the new comment, we send the user back to the original post using the +post_path(@post)+ helper. As we have already seen, this calls the +show+ action of the +PostsController+ which in turn renders the +show.html.erb+ template. This is where we want the comment to show, so let's add that to the +app/view/posts/show.html.erb+.
 
 <erb>
 <p class="notice"><%= notice %></p>
