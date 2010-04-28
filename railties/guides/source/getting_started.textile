@@ -1015,11 +1015,11 @@ Now you can add posts and comments to your blog and have them show up in the rig
 
 h3. Refactorization
 
-Now that we have Posts and Comments working, we can take a look at the +app/views/posts/show.html.erb+ template, it is getting long and awkward, we can use partials to clean this up.
+Now that we have Posts and Comments working, if we take a look at the +app/views/posts/show.html.erb+ template, it's getting long and awkward. We can use partials to clean this up.
 
 h4. Rendering Partial Collections
 
-First will make a comment partial to extract showing all the comments for the post, so make a file +app/views/comments/_comment.html.erb+ and put into it:
+First we will make a comment partial to extract showing all the comments for the post. Create the file +app/views/comments/_comment.html.erb+ and put the following into it:
 
 <erb>
 <p>
