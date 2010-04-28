@@ -686,6 +686,8 @@ end
 The +show+ action uses +Post.find+ to search for a single record in the database by its id value. After finding the record, Rails displays it by using +show.html.erb+:
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
@@ -899,6 +901,8 @@ Like with any blog, our readers will create their comments directly after readin
 So first, we'll wire up the Post show template (+/app/views/posts/show.html.erb+) to let us make a new comment:
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
@@ -954,6 +958,8 @@ In addition, the code takes advantage of some of the methods available for an as
 Once we have made the new comment, we send the user back to the +post_path(@post)+ URL.  This runs the +show+ action of the +PostsController+ which then renders the +show.html.erb+ template where we want the comment to show, so then, we'll add that to the +app/view/posts/show.html.erb+.
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
@@ -1030,6 +1036,8 @@ First will make a comment partial to extract showing all the comments for the po
 Then in the +app/views/posts/show.html.erb+ you can change it to look like the following:
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
@@ -1099,6 +1107,8 @@ Lets also move that new comment section out to it's own partial, again, you crea
 Then you make the +app/views/posts/show.html.erb+ look like the following:
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
@@ -1337,6 +1347,8 @@ Now create the folder <tt>app/views/tags</tt> and make a file in there called <t
 Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to show our tags.
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
@@ -1390,6 +1402,8 @@ end
 Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like this:
 
 <erb>
+<p class="notice"><%= notice %></p>
+
 <p>
   <b>Name:</b>
   <%= @post.name %>
