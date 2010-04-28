@@ -886,12 +886,13 @@ With the model in hand, you can turn your attention to creating a matching contr
 $ rails generate controller Comments
 </shell>
 
-This creates four files:
+This creates four files and one empty directory:
 
 * +app/controllers/comments_controller.rb+ - The controller
 * +app/helpers/comments_helper.rb+ - A view helper file
 * +test/functional/comments_controller_test.rb+ - The functional tests for the controller
 * +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper
+* +app/views/comments/+ - Views of the controller are stored here
 
 Like with any blog, our readers will create their comments directly after reading the post, and once they have added their comment, will be sent back to the post show page to see their comment now listed.  Due to this, our +CommentsController+ is there to provide a method to create comments and delete SPAM comments when they arrive.
 
