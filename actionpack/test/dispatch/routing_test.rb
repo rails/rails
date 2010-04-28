@@ -237,8 +237,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     AltRoutes = ActionDispatch::Routing::RouteSet.new(AltRequest)
     AltRoutes.draw do
-      get "/" => XHeader.new, :constraints => {:x_header => /HEADER/}
-      get "/" => AltApp.new
+      get "/" => TestRoutingMapper::TestAltApp::XHeader.new, :constraints => {:x_header => /HEADER/}
+      get "/" => TestRoutingMapper::TestAltApp::AltApp.new
     end
 
     def app
@@ -997,6 +997,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_equal 'http://www.example.com/whatever/foo/bar/1',
         url_for(:controller => "foo", :action => "bar", :id => 1)
+    end
+  end
+
+  def test_assert_recognizes_account_overview
+    with_test_routes do
+      assert_recognizes({:controller => "account", :action => "overview"}, "/account/overview")
     end
   end
 

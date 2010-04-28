@@ -143,6 +143,12 @@ class BasicController
   end
 end
 
+class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+  setup do
+    @routes = SharedTestRoutes
+  end
+end
+
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|

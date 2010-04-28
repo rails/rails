@@ -64,8 +64,8 @@ class RenderXmlTest < ActionController::TestCase
   end
 
   def test_rendering_xml_should_call_to_xml_with_extra_options
-    get :render_with_to_xml
-    assert_equal "<i-am-xml/>", @response.body
+    get :render_xml_with_custom_options
+    assert_equal "<i-am-THE-xml/>", @response.body
   end
 
   def test_rendering_with_object_location_should_set_header_with_url_for

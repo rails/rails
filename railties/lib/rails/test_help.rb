@@ -35,7 +35,9 @@ class ActionController::TestCase
 end
 
 class ActionDispatch::IntegrationTest
-  include Rails.application.routes.url_helpers
+  setup do
+    @routes = Rails.application.routes
+  end
 end
 
 begin

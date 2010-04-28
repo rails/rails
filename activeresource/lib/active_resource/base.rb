@@ -251,9 +251,6 @@ module ActiveResource
     # The logger for diagnosing and tracing Active Resource calls.
     cattr_accessor :logger
 
-    # Controls the top-level behavior of JSON serialization
-    cattr_accessor :include_root_in_json, :instance_writer => false
-
     class << self
       # Creates a schema for this resource - setting the attributes that are
       # known prior to fetching an instance from the remote system.
@@ -1179,79 +1176,11 @@ module ActiveResource
       !new? && self.class.exists?(to_param, :params => prefix_options)
     end
 
-    # Converts the resource to an XML string representation.
-    #
-    # ==== Options
-    # The +options+ parameter is handed off to the +to_xml+ method on each
-    # attribute, so it has the same options as the +to_xml+ methods in
-    # Active Support.
-    #
-    # * <tt>:indent</tt> - Set the indent level for the XML output (default is +2+).
-    # * <tt>:dasherize</tt> - Boolean option to determine whether or not element names should
-    #   replace underscores with dashes (default is <tt>false</tt>).
-    # * <tt>:skip_instruct</tt> - Toggle skipping the +instruct!+ call on the XML builder
-    #   that generates the XML declaration (default is <tt>false</tt>).
-    #
-    # ==== Examples
-    #   my_group = SubsidiaryGroup.find(:first)
-    #   my_group.to_xml
-    #   # => <?xml version="1.0" encoding="UTF-8"?>
-    #   #    <subsidiary_group> [...] </subsidiary_group>
-    #
-    #   my_group.to_xml(:dasherize => true)
-    #   # => <?xml version="1.0" encoding="UTF-8"?>
-    #   #    <subsidiary-group> [...] </subsidiary-group>
-    #
-    #   my_group.to_xml(:skip_instruct => true)
-    #   # => <subsidiary_group> [...] </subsidiary_group>
-    def to_xml(options={})
-      attributes.to_xml({:root => self.class.element_name}.merge(options))
-    end
-
-    # Coerces to a hash for JSON encoding.
-    #
-    # ==== Options
-    # The +options+ are passed to the +to_json+ method on each
-    # attribute, so the same options as the +to_json+ methods in
-    # Active Support.
-    #
-    # * <tt>:only</tt> - Only include the specified attribute or list of
-    #   attributes in the serialized output. Attribute names must be specified
-    #   as strings.
-    # * <tt>:except</tt> - Do not include the specified attribute or list of
-    #   attributes in the serialized output. Attribute names must be specified
-    #   as strings.
-    #
-    # ==== Examples
-    #   person = Person.new(:first_name => "Jim", :last_name => "Smith")
-    #   person.to_json
-    #   # => {"first_name": "Jim", "last_name": "Smith"}
-    #
-    #   person.to_json(:only => ["first_name"])
-    #   # => {"first_name": "Jim"}
-    #
-    #   person.to_json(:except => ["first_name"])
-    #   # => {"last_name": "Smith"}
-    def as_json(options = nil)
-      attributes.as_json(options)
-    end
-
     # Returns the serialized string representation of the resource in the configured
     # serialization format specified in ActiveResource::Base.format. The options
     # applicable depend on the configured encoding format.
     def encode(options={})
-      case self.class.format
-        when ActiveResource::Formats::XmlFormat
-          self.class.format.encode(attributes, {:root => self.class.element_name}.merge(options))
-        when ActiveResource::Formats::JsonFormat 
-          if ActiveResource::Base.include_root_in_json
-            self.class.format.encode({self.class.element_name => attributes}, options)
-          else
-            self.class.format.encode(attributes, options)
-          end
-        else
-          self.class.format.encode(attributes, options)
-      end
+      send("to_#{self.class.format.extension}", options)
     end
 
     # A method to \reload the attributes of this object from the remote web service.
@@ -1475,5 +1404,7 @@ module ActiveResource
   class Base
     extend ActiveModel::Naming
     include CustomMethods, Observing, Validations
+    include ActiveModel::Serializers::JSON
+    include ActiveModel::Serializers::Xml
   end
 end

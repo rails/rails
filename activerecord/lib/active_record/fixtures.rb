@@ -3,8 +3,9 @@ require 'yaml'
 require 'csv'
 require 'zlib'
 require 'active_support/dependencies'
-require 'active_support/core_ext/logger'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/logger'
 
 if RUBY_VERSION < '1.9'
   module YAML #:nodoc:
@@ -492,6 +493,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
 
   def self.create_fixtures(fixtures_directory, table_names, class_names = {})
     table_names = [table_names].flatten.map { |n| n.to_s }
+    table_names.each { |n| class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/') }
     connection  = block_given? ? yield : ActiveRecord::Base.connection
 
     table_names_to_fetch = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
@@ -502,7 +504,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
           fixtures_map = {}
 
           fixtures = table_names_to_fetch.map do |table_name|
-            fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
+            fixtures_map[table_name] = Fixtures.new(connection, table_name.tr('/', '_'), class_names[table_name.tr('/', '_').to_sym], File.join(fixtures_directory, table_name))
           end
 
           all_loaded_fixtures.update(fixtures_map)
@@ -836,8 +838,8 @@ module ActiveRecord
 
       def fixtures(*table_names)
         if table_names.first == :all
-          table_names = Dir["#{fixture_path}/*.yml"] + Dir["#{fixture_path}/*.csv"]
-          table_names.map! { |f| File.basename(f).split('.')[0..-2].join('.') }
+          table_names = Dir["#{fixture_path}/**/*.{yml,csv}"]
+          table_names.map! { |f| f[(fixture_path.size + 1)..-5] }
         else
           table_names = table_names.flatten.map { |n| n.to_s }
         end
@@ -868,9 +870,9 @@ module ActiveRecord
       end
 
       def setup_fixture_accessors(table_names = nil)
-        table_names = [table_names] if table_names && !table_names.respond_to?(:each)
-        (table_names || fixture_table_names).each do |table_name|
-          table_name = table_name.to_s.tr('.', '_')
+        table_names = Array.wrap(table_names || fixture_table_names)
+        table_names.each do |table_name|
+          table_name = table_name.to_s.tr('./', '_')
 
           define_method(table_name) do |*fixtures|
             force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload

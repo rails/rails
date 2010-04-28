@@ -767,7 +767,7 @@ module ActionView
       end
 
       def grep(variable, pattern, &block)
-        enumerate :grep, :variable => variable, :return => true, :method_args => [pattern], :yield_args => %w(value index), &block
+        enumerate :grep, :variable => variable, :return => true, :method_args => [::ActiveSupport::JSON::Variable.new(pattern.inspect)], :yield_args => %w(value index), &block
       end
 
       def in_groups_of(variable, number, fill_with = nil)

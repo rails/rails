@@ -866,7 +866,6 @@ EOF
     regex = Regexp.escape('Subject: Foo =?UTF-8?Q?=C3=A1=C3=AB=C3=B4=?= =?UTF-8?Q?_=C3=AE=C3=BC=?=')
     assert_match(/#{regex}/, mail.encoded)
     string = "Foo áëô îü"
-    string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
     assert_match(string, mail.subject)
   end
 
@@ -875,7 +874,6 @@ EOF
     regex = Regexp.escape('Subject: Foo =?UTF-8?Q?=C3=A1=C3=AB=C3=B4=?= =?UTF-8?Q?_=C3=AE=C3=BC=?=')
     assert_match(/#{regex}/, mail.encoded)
     string = "Foo áëô îü"
-    string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
     assert_match(string, mail.subject)
   end
 
