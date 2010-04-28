@@ -26,7 +26,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   NilTests      = [[ nil,   %(null)  ]]
   NumericTests  = [[ 1,     %(1)     ],
                    [ 2.5,   %(2.5)   ],
-                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
+                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s('F')}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
                    [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],
@@ -126,7 +126,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_hash_should_allow_key_filtering_with_except
     assert_equal %({"b":2}), ActiveSupport::JSON.encode({'foo' => 'bar', :b => 2, :c => 3}, :except => ['foo', :c])
   end
-  
+
   def test_time_to_json_includes_local_offset
     ActiveSupport.use_standard_json_time_format = true
     with_env_tz 'US/Eastern' do
@@ -153,7 +153,7 @@ class TestJSONEncoding < Test::Unit::TestCase
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
-    
+
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
       yield
