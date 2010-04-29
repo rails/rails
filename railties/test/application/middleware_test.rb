@@ -27,14 +27,14 @@ module ApplicationTests
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
+        "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
-        "ActionDispatch::Head",
-        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
-        "ActiveRecord::QueryCache"
+        "ActionDispatch::Head"
       ], middleware
     end
 
