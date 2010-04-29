@@ -689,17 +689,17 @@ The +show+ action uses +Post.find+ to search for a single record in the database
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
@@ -904,17 +904,17 @@ So first, we'll wire up the Post show template (+/app/views/posts/show.html.erb+
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
@@ -961,29 +961,29 @@ Once we have made the new comment, we send the user back to the original post us
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
 <h2>Comments</h2>
 <% @post.comments.each do |comment| %>
   <p>
-    <strong>Commenter:</strong>
+    <b>Commenter:</b>
     <%= comment.commenter %>
   </p>
 
   <p>
-    <strong>Comment:</strong>
+    <b>Comment:</b>
     <%= comment.body %>
   </p>
 <% end %>
@@ -1023,12 +1023,12 @@ First we will make a comment partial to extract showing all the comments for the
 
 <erb>
 <p>
-  <strong>Commenter:</strong>
+  <b>Commenter:</b>
   <%= comment.commenter %>
 </p>
 
 <p>
-  <strong>Comment:</strong>
+  <b>Comment:</b>
   <%= comment.body %>
 </p>
 </erb>
@@ -1039,17 +1039,17 @@ Then in the +app/views/posts/show.html.erb+ you can change it to look like the f
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
@@ -1110,17 +1110,17 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
@@ -1149,12 +1149,12 @@ So first, let's add the delete link in the +app/views/comments/_comment.html.erb
 
 <erb>
 <p>
-  <strong>Commenter:</strong>
+  <b>Commenter:</b>
   <%= comment.commenter %>
 </p>
 
 <p>
-  <strong>Comment:</strong>
+  <b>Comment:</b>
   <%= comment.body %>
 </p>
 
@@ -1350,22 +1350,22 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to sho
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
 <p>
-  <strong>Tags:</strong>
+  <b>Tags:</b>
   <%= @post.tags.map { |t| t.name }.join(", ") %>
 </p>
 
@@ -1405,22 +1405,22 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 <p class="notice"><%= notice %></p>
 
 <p>
-  <strong>Name:</strong>
+  <b>Name:</b>
   <%= @post.name %>
 </p>
 
 <p>
-  <strong>Title:</strong>
+  <b>Title:</b>
   <%= @post.title %>
 </p>
 
 <p>
-  <strong>Content:</strong>
+  <b>Content:</b>
   <%= @post.content %>
 </p>
 
 <p>
-  <strong>Tags:</strong>
+  <b>Tags:</b>
   <%= join_tags(@post) %>
 </p>
 
