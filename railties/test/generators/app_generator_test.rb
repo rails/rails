@@ -157,7 +157,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path).expects(:open).with(path).returns(template)
+    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
     assert_match /It works!/, silence(:stdout){ generator.invoke }
   end
 
