@@ -273,7 +273,7 @@ end
 
 <ruby>
 scope 'es' do
-  resources :projects, :path_names => { :edit => 'cambiar' }, :as => 'projeto'
+  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'projeto'
 end
 
 # Gives you the edit action with /es/projeto/1/cambiar
