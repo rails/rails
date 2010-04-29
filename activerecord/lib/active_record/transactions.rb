@@ -170,11 +170,6 @@ module ActiveRecord
     # are called on every record saved or destroyed within a transaction immediately after the
     # transaction or savepoint is rolled back.
     #
-    # Additionally, there are callbacks for after_commit_on_create, after_rollback_on_create,
-    # after_commit_on_update, after_rollback_on_update, after_commit_on_destroy, and
-    # after_rollback_on_destroy which are only called if a record is created, updated or destroyed
-    # in the transaction.
-    #
     # These callbacks are useful for interacting with other systems since you will be guaranteed
     # that the callback is only executed when the database is in a permanent state. For example,
     # after_commit is a good spot to put in a hook to clearing a cache since clearing it from

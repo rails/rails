@@ -10,13 +10,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     set_table_name :topics
 
     after_commit{|record| record.send(:do_after_commit, nil)}
-    after_commit_on_create{|record| record.send(:do_after_commit, :create)}
-    after_commit_on_update{|record| record.send(:do_after_commit, :update)}
-    after_commit_on_destroy{|record| record.send(:do_after_commit, :destroy)}
+    after_commit(:on => :create){|record| record.send(:do_after_commit, :create)}
+    after_commit(:on => :update){|record| record.send(:do_after_commit, :update)}
+    after_commit(:on => :destroy){|record| record.send(:do_after_commit, :destroy)}
     after_rollback{|record| record.send(:do_after_rollback, nil)}
-    after_rollback_on_create{|record| record.send(:do_after_rollback, :create)}
-    after_rollback_on_update{|record| record.send(:do_after_rollback, :update)}
-    after_rollback_on_destroy{|record| record.send(:do_after_rollback, :destroy)}
+    after_rollback(:on => :create){|record| record.send(:do_after_rollback, :create)}
+    after_rollback(:on => :update){|record| record.send(:do_after_rollback, :update)}
+    after_rollback(:on => :destroy){|record| record.send(:do_after_rollback, :destroy)}
 
     def history
       @history ||= []
