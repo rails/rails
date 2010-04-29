@@ -11,7 +11,7 @@ command = ARGV.shift
 command = aliases[command] || command
 
 case command
-when 'generate', 'destroy', 'plugin', 'benchmarker', 'performance'
+when 'generate', 'destroy', 'plugin', 'benchmarker', 'profiler'
   require APP_PATH
   Rails::Application.require_environment!
   require "rails/commands/#{command}"
