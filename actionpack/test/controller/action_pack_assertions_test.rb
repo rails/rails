@@ -349,19 +349,41 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_template :partial => '_partial'
   end
 
-  def test_assert_template_with_nil
+  def test_assert_template_with_nil_passes_when_no_template_rendered
     get :nothing
     assert_template nil
   end
 
-  def test_assert_template_with_string
+  def test_assert_template_with_nil_fails_when_template_rendered
     get :hello_world
-    assert_template 'hello_world'
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template nil
+    end
   end
 
-  def test_assert_template_with_symbol
+  def test_assert_template_passes_with_correct_string
+    get :hello_world
+    assert_template 'hello_world'
+    assert_template 'test/hello_world'
+  end
+
+  def test_assert_template_passes_with_correct_symbol
     get :hello_world
     assert_template :hello_world
+  end
+
+  def test_assert_template_fails_with_incorrect_string
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'hello_planet'
+    end
+  end
+
+  def test_assert_template_fails_with_incorrect_symbol
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :hello_planet
+    end
   end
 
   # check if we were rendered by a file-based template?
@@ -386,7 +408,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     process :nothing
     assert_nil @response.redirect_url
   end
-
 
   # check server errors
   def test_server_error_response_code

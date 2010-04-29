@@ -57,7 +57,8 @@ module ActionController
       validate_request!
 
       case options
-      when NilClass, String
+      when NilClass, String, Symbol
+        options = options.to_s if Symbol === options
         rendered = @templates
         msg = build_message(message,
                 "expecting <?> but rendering with <?>",
