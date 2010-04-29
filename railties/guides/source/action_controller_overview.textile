@@ -653,7 +653,7 @@ class ClientsController < ApplicationController
   # Stream a file that has already been generated and stored on disk.
   def download_pdf
     client = Client.find(params[:id])
-    send_data("#{Rails.root}/files/clients/#{client.id}.pdf",
+    send_file("#{Rails.root}/files/clients/#{client.id}.pdf",
               :filename => "#{client.name}.pdf",
               :type => "application/pdf")
   end
