@@ -91,7 +91,7 @@ The +params+ hash is not limited to one-dimensional keys and values. It can cont
 GET /clients?ids[]=1&ids[]=2&ids[]=3
 </pre>
 
-NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5b=3" as "[" and "]" are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
+NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as "[" and "]" are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
 
 The value of +params[:ids]+ will now be +["1", "2", "3"]+. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
