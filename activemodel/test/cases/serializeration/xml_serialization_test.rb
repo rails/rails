@@ -95,6 +95,14 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<awesome type=\"boolean\">false</awesome>}, @contact.to_xml
   end
 
+  test "should serialize array" do
+    assert_match %r{<social type=\"array\">\s*<social>twitter</social>\s*<social>github</social>\s*</social>}, @contact.to_xml(:methods => :social)
+  end
+
+  test "should serialize hash" do
+    assert_match %r{<network>\s*<git type=\"symbol\">github</git>\s*</network>}, @contact.to_xml(:methods => :network)
+  end
+
   test "should serialize yaml" do
     assert_match %r{<preferences type=\"yaml\">--- !ruby/object:OpenStruct \ntable:\s*:name: John\n</preferences>}, @contact.to_xml
   end
