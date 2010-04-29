@@ -116,7 +116,7 @@ the Ruby logger class from inside your controllers. Example:
 
 The result will be a message in your log file along the lines of:
 
-  Mon Oct 08 14:22:29 +1000 2007 Destroyed Weblog ID #1
+  Mon Oct 08 14:22:29 +1000 2007 Destroyed Weblog ID #1!
 
 More information on how to use the logger is at http://www.ruby-doc.org/core/
 
