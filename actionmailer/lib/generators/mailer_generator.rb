@@ -4,6 +4,10 @@ module Rails
       argument :actions, :type => :array, :default => [], :banner => "method method"
       check_class_collision
 
+      def self.source_root
+        File.expand_path("../mailer/templates", __FILE__)
+      end
+
       def create_mailer_file
         template "mailer.rb", File.join('app/mailers', class_path, "#{file_name}.rb")
       end
