@@ -928,7 +928,6 @@ module ActionView
           options[:include_position]     = true
           options[:prefix]             ||= @object_name
           options[:index]                = @auto_index if @auto_index && !options.has_key?(:index)
-          options[:datetime_separator] ||= ' &mdash; '
 
           DateTimeSelector.new(datetime, options, html_options)
         end
