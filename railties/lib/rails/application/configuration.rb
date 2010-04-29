@@ -1,3 +1,4 @@
+require 'active_support/deprecation'
 require 'rails/engine/configuration'
 
 module Rails

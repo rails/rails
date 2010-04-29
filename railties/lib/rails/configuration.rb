@@ -1,3 +1,4 @@
+require 'active_support/deprecation'
 require 'active_support/ordered_options'
 require 'rails/paths'
 require 'rails/rack'
