@@ -45,8 +45,8 @@ suitable for development and deployment of Rails applications. If you have Ruby 
 getting up and running with mongrel is as easy as: <tt>gem install mongrel</tt>.
 More info at: http://mongrel.rubyforge.org
 
-Say other Ruby web servers like Thin and Ebb or regular web servers like Apache or LiteSpeed or
-Lighttpd or IIS. The Ruby web servers are run through Rack and the latter can either be setup to use
+You can also use other Ruby web servers like Thin and Ebb or regular web servers like Apache, LiteSpeed,
+Lighttpd, or IIS. The Ruby web servers are run through Rack and the others can be setup to use
 FCGI or proxy to a pack of Mongrels/Thin/Ebb servers.
 
 == Apache .htaccess example for FCGI/CGI
