@@ -20,6 +20,7 @@ module ApplicationTests
       assert_equal [
         "ActionDispatch::Static",
         "Rack::Lock",
+        "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",

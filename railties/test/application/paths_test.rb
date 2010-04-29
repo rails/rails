@@ -48,7 +48,8 @@ module ApplicationTests
       assert_path @paths.tmp.cache, "tmp", "cache"
       assert_path @paths.config, "config"
       assert_path @paths.config.locales, "config", "locales", "en.yml"
-      assert_path @paths.config.environment, "config", "environments", "development.rb"
+      assert_path @paths.config.environment, "config", "environment.rb"
+      assert_path @paths.config.environments, "config", "environments", "development.rb"
 
       assert_equal root("app", "controllers"), @paths.app.controllers.to_a.first
     end
@@ -61,7 +62,7 @@ module ApplicationTests
     end
 
     test "environments has a glob equal to the current environment" do
-      assert_equal "#{Rails.env}.rb", @paths.config.environment.glob
+      assert_equal "#{Rails.env}.rb", @paths.config.environments.glob
     end
 
     test "load path includes each of the paths in config.paths as long as the directories exist" do

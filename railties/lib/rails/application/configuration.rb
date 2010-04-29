@@ -43,14 +43,15 @@ module Rails
         @paths ||= begin
           paths = super
           paths.app.controllers << builtin_controller if builtin_controller
-          paths.config.database    "config/database.yml"
-          paths.config.environment "config/environments", :glob => "#{Rails.env}.rb"
-          paths.lib.templates      "lib/templates"
-          paths.log                "log/#{Rails.env}.log"
-          paths.tmp                "tmp"
-          paths.tmp.cache          "tmp/cache"
-          paths.vendor             "vendor", :load_path => true
-          paths.vendor.plugins     "vendor/plugins"
+          paths.config.database     "config/database.yml"
+          paths.config.environment  "config/environment.rb"
+          paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
+          paths.lib.templates       "lib/templates"
+          paths.log                 "log/#{Rails.env}.log"
+          paths.tmp                 "tmp"
+          paths.tmp.cache           "tmp/cache"
+          paths.vendor              "vendor", :load_path => true
+          paths.vendor.plugins      "vendor/plugins"
 
           if File.exists?("#{root}/test/mocks/#{Rails.env}")
             ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<
