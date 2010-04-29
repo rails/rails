@@ -1,7 +1,7 @@
+require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/hash/conversions_xml_value'
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/inflector'
+require 'active_support/core_ext/string/inflections'
 
 class Array
   # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
@@ -51,8 +51,6 @@ class Array
   end
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
-
-  include Hash::XmlValue
 
   # Returns a string that represents this array in XML by sending +to_xml+
   # to each element. Active Record collections delegate their representation
@@ -133,22 +131,27 @@ class Array
     require 'builder' unless defined?(Builder)
 
     options = options.dup
-    options[:indent]   ||= 2
-    options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]) })
+    options[:indent]  ||= 2
+    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options[:root]    ||= if first.class.to_s != "Hash" && all? { |e| e.is_a?(first.class) }
+      underscored = ActiveSupport::Inflector.underscore(first.class.name)
+      ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
+    else
+      "objects"
+    end
 
-    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)).tr('/', '_') : "objects"
+    builder = options[:builder]
+    builder.instruct! unless options.delete(:skip_instruct)
 
+    root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
+    children = options.delete(:children) || root.singularize
 
-    options[:builder].instruct! unless options.delete(:skip_instruct)
-    root = rename_key(options[:root].to_s, options)
-
-    options[:children] ||= options[:root].singularize
     attributes = options[:skip_types] ? {} : {:type => "array"}
-    return options[:builder].tag!(root, attributes) if empty?
+    return builder.tag!(root, attributes) if empty?
 
-    options[:builder].__send__(:method_missing, root, attributes) do
-      each { |value| xml_value(options[:children], value, options) }
-      yield options[:builder] if block_given?
+    builder.__send__(:method_missing, root, attributes) do
+      each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
+      yield builder if block_given?
     end
   end
 

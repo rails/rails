@@ -79,8 +79,8 @@ class DefaultXmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<awesome type=\"boolean\">false</awesome>}, @xml
   end
 
-  def test_should_serialize_yaml
-    assert_match %r{<preferences type=\"yaml\">---\s?\n:gem: ruby\n</preferences>}, @xml
+  def test_should_serialize_hash
+    assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @xml
   end
 end
 
