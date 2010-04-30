@@ -21,6 +21,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     %w(
+      .gitignore
+      Gemfile
+      Rakefile
+      config.ru
       app/controllers
       app/helpers
       app/models
