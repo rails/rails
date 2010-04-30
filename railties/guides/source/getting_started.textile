@@ -1191,7 +1191,7 @@ The +destroy+ action will find the post we are looking at, locate the comment wi
 
 h4. Deleting Associated Objects
 
-If you decide at some point to delete a post, you likely want to delete the comments associated with that post as well. You can do so by taking advantage of the association option +dependent+. All you need to do is modify the +post.rb+ as follows:
+If you delete a post then it's associated comments will also need to be deleted. Otherwise they would simply occupy space in the database. Rails allows you to use the +dependent+ option of an association to achieve this. Modify the Post model, +app/models/post.rb+, as follows:
 
 <ruby>
 class Post < ActiveRecord::Base
