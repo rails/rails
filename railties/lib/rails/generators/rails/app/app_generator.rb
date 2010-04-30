@@ -2,12 +2,42 @@ require 'digest/md5'
 require 'active_support/secure_random'
 require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
+require 'open-uri'
+require 'uri'
 
 module Rails
-  class AppBuilder
+  module ActionMethods
+    attr_reader :options
+
     def initialize(generator)
       @generator = generator
       @options   = generator.options
+    end
+
+    private
+      %w(template copy_file directory empty_directory inside
+         empty_directory_with_gitkeep create_file chmod shebang).each do |method|
+        class_eval <<-RUBY
+          def #{method}(*args, &block)
+            @generator.send(:#{method}, *args, &block)
+          end
+        RUBY
+      end
+
+      # TODO: Remove once this is fully in place
+      def method_missing(meth, *args, &block)
+        STDERR.puts "Calling #{meth} with #{args.inspect} with #{block}"
+        @generator.send(meth, *args, &block)
+      end
+  end
+
+  class AppBuilder
+    def rakefile
+      template "Rakefile"
+    end
+
+    def readme
+      copy_file "README"
     end
 
     def gemfile
@@ -81,7 +111,11 @@ module Rails
     end
 
     def javascripts
-      directory "public/javascripts"
+      unless options[:skip_prototype]
+        directory "public/javascripts"
+      else
+        empty_directory_with_gitkeep "public/javascripts"
+      end
     end
 
     def script
@@ -108,23 +142,6 @@ module Rails
     def vendor_plugins
       empty_directory_with_gitkeep "vendor/plugins"
     end
-
-
-  private
-    %w(template copy_file directory empty_directory inside
-       empty_directory_with_gitkeep create_file chmod shebang).each do |method|
-      class_eval <<-RUBY
-        def #{method}(*args, &block)
-          @generator.send(:#{method}, *args, &block)
-        end
-      RUBY
-    end
-
-    # TODO: Remove once this is fully in place
-    def method_missing(meth, *args, &block)
-      STDERR.puts "Calling #{meth} with #{args.inspect} with #{block}"
-      @generator.send(meth, *args, &block)
-    end
   end
 
   module Generators
@@ -142,51 +159,48 @@ module Rails
       attr_accessor :rails_template
       add_shebang_option!
 
-      argument :app_path, :type => :string
+      argument :app_path,               :type => :string
 
-      class_option :database, :type => :string, :aliases => "-d", :default => "sqlite3",
-                              :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+      class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
+                                        :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-      class_option :template, :type => :string, :aliases => "-m",
-                              :desc => "Path to an application template (can be a filesystem path or URL)."
+      class_option :builder,            :type => :string, :aliases => "-b",
+                                        :desc => "Path to an application builder (can be a filesystem path or URL)"
 
-      class_option :dev, :type => :boolean, :default => false,
-                         :desc => "Setup the application with Gemfile pointing to your Rails checkout"
+      class_option :template,           :type => :string, :aliases => "-m",
+                                        :desc => "Path to an application template (can be a filesystem path or URL)."
 
-      class_option :edge, :type => :boolean, :default => false,
-                          :desc => "Setup the application with Gemfile pointing to Rails repository"
+      class_option :dev,                :type => :boolean, :default => false,
+                                        :desc => "Setup the application with Gemfile pointing to your Rails checkout"
 
-      class_option :skip_gemfile, :type => :boolean, :default => false,
-                                       :desc => "Don't create a Gemfile"
+      class_option :edge,               :type => :boolean, :default => false,
+                                        :desc => "Setup the application with Gemfile pointing to Rails repository"
 
-      class_option :skip_activerecord, :type => :boolean, :aliases => "-O", :default => false,
-                                       :desc => "Skip ActiveRecord files"
+      class_option :skip_gemfile,       :type => :boolean, :default => false,
+                                        :desc => "Don't create a Gemfile"
 
-      class_option :skip_testunit, :type => :boolean, :aliases => "-T", :default => false,
-                                   :desc => "Skip TestUnit files"
+      class_option :skip_activerecord,  :type => :boolean, :aliases => "-O", :default => false,
+                                        :desc => "Skip ActiveRecord files"
 
-      class_option :skip_prototype, :type => :boolean, :aliases => "-J", :default => false,
-                                    :desc => "Skip Prototype files"
+      class_option :skip_testunit,      :type => :boolean, :aliases => "-T", :default => false,
+                                        :desc => "Skip TestUnit files"
 
-      class_option :skip_git, :type => :boolean, :aliases => "-G", :default => false,
-                              :desc => "Skip Git ignores and keeps"
+      class_option :skip_prototype,     :type => :boolean, :aliases => "-J", :default => false,
+                                        :desc => "Skip Prototype files"
+
+      class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
+                                        :desc => "Skip Git ignores and keeps"
 
       # Add bin/rails options
-      class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
-                             :desc => "Show Rails version number and quit"
+      class_option :version,            :type => :boolean, :aliases => "-v", :group => :rails,
+                                        :desc => "Show Rails version number and quit"
 
-      class_option :help, :type => :boolean, :aliases => "-h", :group => :rails,
-                          :desc => "Show this help message and quit"
+      class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
+                                        :desc => "Show this help message and quit"
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
         super
-
-        if builder = options[:builder]
-          apply builder
-        end
-
-        @builder = AppBuilder.new(self)
 
         if !options[:skip_activerecord] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
@@ -203,8 +217,8 @@ module Rails
       end
 
       def create_root_files
-        copy_file "README"
-        template "Rakefile"
+        build(:readme)
+        build(:rakefile)
         build(:configru)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
@@ -253,15 +267,10 @@ module Rails
 
       def create_public_stylesheets_files
         build(:stylesheets)
-        empty_directory_with_gitkeep "public/stylesheets"
       end
 
       def create_prototype_files
-        unless options[:skip_prototype]
-          build(:javascripts)
-        else
-          empty_directory_with_gitkeep "public/javascripts"
-        end
+        build(:javascripts)
       end
 
       def create_script_files
@@ -301,8 +310,27 @@ module Rails
         "rails #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
+      def builder
+        @builder ||= begin
+          if path = options[:builder]
+            if URI(path).is_a?(URI::HTTP)
+              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
+            else
+              contents = open(path) {|io| io.read }
+            end
+
+            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
+            instance_eval(&prok)
+          end
+
+          builder_class = defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
+          builder_class.send(:include, ActionMethods)
+          builder_class.new(self)
+        end
+      end
+
       def build(meth, *args)
-        @builder.send(meth, *args) if @builder.respond_to?(meth)
+        builder.send(meth, *args) if builder.respond_to?(meth)
       end
 
       def set_default_accessors!
