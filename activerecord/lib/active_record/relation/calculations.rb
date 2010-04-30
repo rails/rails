@@ -239,11 +239,15 @@ module ActiveRecord
     end
 
     def type_cast_calculated_value(value, column, operation = nil)
-      case operation
-        when 'count' then value.to_i
-        when 'sum'   then type_cast_using_column(value || '0', column)
-        when 'average'   then value && (value.is_a?(Fixnum) ? value.to_f : value).to_d
-        else type_cast_using_column(value, column)
+      if value.is_a?(String) || value.nil?
+        case operation
+          when 'count' then value.to_i
+          when 'sum'   then type_cast_using_column(value || '0', column)
+          when 'average' then value && (value.is_a?(Fixnum) ? value.to_f : value).to_d
+          else type_cast_using_column(value, column)
+        end
+      else
+        value
       end
     end
 
