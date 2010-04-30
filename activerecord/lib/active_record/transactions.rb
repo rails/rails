@@ -163,16 +163,16 @@ module ActiveRecord
     # === Callbacks
     #
     # There are two types of callbacks associated with committing and rolling back transactions:
-    # after_commit and after_rollback.
+    # +after_commit+ and +after_rollback+.
     #
-    # The after_commit callbacks are called on every record saved or destroyed within a
-    # transaction immediately after the  transaction is committed. The after_rollback callbacks
+    # +after_commit+ callbacks are called on every record saved or destroyed within a
+    # transaction immediately after the transaction is committed. +after_rollback+ callbacks
     # are called on every record saved or destroyed within a transaction immediately after the
     # transaction or savepoint is rolled back.
     #
     # These callbacks are useful for interacting with other systems since you will be guaranteed
     # that the callback is only executed when the database is in a permanent state. For example,
-    # after_commit is a good spot to put in a hook to clearing a cache since clearing it from
+    # +after_commit+ is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
     # === Caveats
@@ -180,7 +180,7 @@ module ActiveRecord
     # If you're on MySQL, then do not use DDL operations in nested transactions
     # blocks that are emulated with savepoints. That is, do not execute statements
     # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
-    # releases all savepoints upon executing a DDL operation. When #transaction
+    # releases all savepoints upon executing a DDL operation. When +transaction+
     # is finished and tries to release the savepoint it created earlier, a
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
