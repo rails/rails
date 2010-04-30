@@ -88,10 +88,6 @@ Ruby on Rails Guides
 
 <dl>
 
-<%= guide("Rails on Rack", 'rails_on_rack.html') do %>
-  <p>This guide covers Rails integration with Rack and interfacing with other Rack components.</p>
-<% end %>
-
 <%= guide("Rails Internationalization API", 'i18n.html') do %>
   <p>This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.</p>
 <% end %>
@@ -116,10 +112,6 @@ Ruby on Rails Guides
   <p>This guide covers the various ways of performance testing a Ruby on Rails application.</p>
 <% end %>
 
-<%= guide("The Basics of Creating Rails Plugins", 'plugins.html', :ticket => 32) do %>
-  <p>This guide covers how to build a plugin to extend the functionality of Rails.</p>
-<% end %>
-
 <%= guide("Configuring Rails Applications", 'configuring.html') do %>
   <p>This guide covers the basic configuration settings for a Rails application.</p>
 <% end %>
@@ -135,6 +127,24 @@ Ruby on Rails Guides
 <%= guide("Contributing to Rails", 'contributing_to_rails.html') do %>
   <p>Rails is not &quot;somebody else's framework.&quot; This guide covers a variety of ways that you can get involved in the ongoing development of Rails.</p>
 <% end %>
+</dl>
+
+<h3>Extending Rails</h3>
+
+<dl>
+  <%= guide("The Basics of Creating Rails Plugins", 'plugins.html', :ticket => 32) do %>
+    <p>This guide covers how to build a plugin to extend the functionality of Rails.</p>
+  <% end %>
+
+  <%= guide("Rails on Rack", 'rails_on_rack.html') do %>
+    <p>This guide covers Rails integration with Rack and interfacing with other Rack components.</p>
+  <% end %>
+
+  <%= guide("Adding Generators", 'generators.html') do %>
+    <p>This guide covers the process of adding a brand new generator to your extension
+      or providing an alternative to an element of a built-in Rails generator (such as
+      providing alternative test stubs for the scaffold generator)</p>
+  <% end %>
 </dl>
 
 <h3>Release Notes</h3>
