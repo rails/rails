@@ -38,9 +38,9 @@ class Hash
   # passed to enclose the param names (see example below).
   #
   # ==== Examples
-  #   { :name => 'David', :nationality => 'Danish' }.to_query # => "name=David&nationality=Danish"
+  #   { :name => 'David', :nationality => 'Danish' }.to_param # => "name=David&nationality=Danish"
   #
-  #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user[name]=David&user[nationality]=Danish"
+  #   { :name => 'David', :nationality => 'Danish' }.to_param('user') # => "user[name]=David&user[nationality]=Danish"
   def to_param(namespace = nil)
     collect do |key, value|
       value.to_query(namespace ? "#{namespace}[#{key}]" : key)
