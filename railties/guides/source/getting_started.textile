@@ -542,7 +542,7 @@ The +respond_to+ block handles both HTML and XML calls to this action. If you br
 This view iterates over the contents of the +@posts+ array to display content and links. A few things to note in the view:
 
 * +link_to+ builds a hyperlink to a particular destination
-* +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You'll see a variety of these helpers for the different actions that the controller includes.
+* +edit_post_path+ and +new_post_path+ are helpers that Rails provides as part of RESTful routing. You'll see a variety of these helpers for the different actions that the controller includes.
 
 NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so that any HTML would be escaped before being inserted into the page.  In Rails 3.0, this is now the default.  To get unescaped HTML, you now use +&lt;%= raw post.name %&gt;+.
 
@@ -662,7 +662,7 @@ def create
 end
 </ruby>
 
-The +create+ action instantiates a new Post object from the data supplied by the user on the form, which Rails makes available in the +params+ hash. After successfully saving the new post, returns the appropriate format that the user has requested (HTML in our case). It then redirects the user to the resulting post +show+ action and sets a notice to the user that the Post was successfully created.
+The +create+ action instantiates a new Post object from the data supplied by the user on the form, which Rails makes available in the +params+ hash. After successfully saving the new post, +create+ returns the appropriate format that the user has requested (HTML in our case). It then redirects the user to the resulting post +show+ action and sets a notice to the user that the Post was successfully created.
 
 If the post was not successfully saved, due to a validation error, then the controller returns the user back to the +new+ action with any error messages so that the user has the chance to fix the error and try again.
 
@@ -752,7 +752,7 @@ def update
 end
 </ruby>
 
-In the +update+ action, Rails first uses the +:id+ parameter passed back from the edit view to locate the database record that's being edited. The +update_attributes+ call then takes the rest of the parameters from the request and applies them to this record. If all goes well, the user is redirected to the post's +show+ view. If there are any problems, it's back to +edit+ to correct them.
+In the +update+ action, Rails first uses the +:id+ parameter passed back from the edit view to locate the database record that's being edited. The +update_attributes+ call then takes the rest of the parameters from the request and applies them to this record. If all goes well, the user is redirected to the post's +show+ view. If there are any problems, it's back to the +edit+ view to correct them.
 
 h4. Destroying a Post
 
@@ -774,7 +774,7 @@ The +destroy+ method of an Active Record model instance removes the correspondin
 
 h3. Adding a Second Model
 
-Now that you've seen what's in a model built with scaffolding, it's time to add a second model to the application. The second model will handle comments on blog posts.
+Now that you've seen how a model built with scaffolding looks like, it's time to add a second model to the application. The second model will handle comments on blog posts.
 
 h4. Generating a Model
 
@@ -1464,6 +1464,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
+* April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
 * April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits:html#raasdnil
 * April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits:html#raasdnil
