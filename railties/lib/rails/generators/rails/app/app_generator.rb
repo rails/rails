@@ -258,7 +258,7 @@ module Rails
       end
 
       def create_public_files
-        build(:public)
+        build(:public_directory)
       end
 
       def create_public_image_files
