@@ -5,7 +5,7 @@ module Rails
       check_class_collision
 
       def self.source_root
-        File.expand_path("../mailer/templates", __FILE__)
+        File.expand_path("../templates", __FILE__)
       end
 
       def create_mailer_file

@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/mailer_generator'
+require 'rails/generators/mailer/mailer_generator'
 
 
 class MailerGeneratorTest < Rails::Generators::TestCase
