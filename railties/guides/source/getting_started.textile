@@ -1204,9 +1204,9 @@ end
 
 h3. Security
 
-Before you publish your blog online, you will most likely want to prevent just anyone from being able to add, edit and delete posts or delete comments.
+If you were to publish your blog online, anybody would be able to add, edit and delete posts or delete comments.
 
-Rails provides a very simple http authentication system that will work nicely in this situation.  First, we enable simple HTTP based authentication in our <tt>app/controllers/application_controller.rb</tt>:
+Rails provides a very simple HTTP authentication system that will work nicely in this situation. First, we enable simple HTTP based authentication in our <tt>app/controllers/application_controller.rb</tt>:
 
 <ruby>
 class ApplicationController < ActionController::Base
