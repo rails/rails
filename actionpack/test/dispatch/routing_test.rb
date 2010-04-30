@@ -392,12 +392,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
       assert_equal 'queenbee#index', @response.body
 
-      assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+      get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'}
+      assert_equal 'pass', @response.headers['X-Cascade']
 
       get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
       assert_equal 'queenbee#accounts', @response.body
 
-      assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+      get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'}
+      assert_equal 'pass', @response.headers['X-Cascade']
     end
   end
 
@@ -648,10 +650,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'comments#index', @response.body
       assert_equal '/posts/1/comments', post_comments_path(:post_id => 1)
 
-      assert_raise(ActionController::RoutingError) { post '/posts' }
-      assert_raise(ActionController::RoutingError) { put '/posts/1' }
-      assert_raise(ActionController::RoutingError) { delete '/posts/1' }
-      assert_raise(ActionController::RoutingError) { delete '/posts/1/comments' }
+      post '/posts'
+      assert_equal 'pass', @response.headers['X-Cascade']
+      put '/posts/1'
+      assert_equal 'pass', @response.headers['X-Cascade']
+      delete '/posts/1'
+      assert_equal 'pass', @response.headers['X-Cascade']
+      delete '/posts/1/comments'
+      assert_equal 'pass', @response.headers['X-Cascade']
     end
   end
 
@@ -775,7 +781,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/articles/rails/1'
       assert_equal 'articles#with_id', @response.body
 
-      assert_raise(ActionController::RoutingError) { get '/articles/123/1' }
+      get '/articles/123/1'
+      assert_equal 'pass', @response.headers['X-Cascade']
 
       assert_equal '/articles/rails/1', article_with_title_path(:title => 'rails', :id => 1)
     end
@@ -953,19 +960,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_resource_constraints
     with_test_routes do
-      assert_raise(ActionController::RoutingError) { get '/products/1' }
+      get '/products/1'
+      assert_equal 'pass', @response.headers['X-Cascade']
       get '/products'
       assert_equal 'products#index', @response.body
       get '/products/0001'
       assert_equal 'products#show', @response.body
 
-      assert_raise(ActionController::RoutingError) { get '/products/1/images' }
+      get '/products/1/images'
+      assert_equal 'pass', @response.headers['X-Cascade']
       get '/products/0001/images'
       assert_equal 'images#index', @response.body
       get '/products/0001/images/1'
       assert_equal 'images#show', @response.body
 
-      assert_raise(ActionController::RoutingError) { get '/dashboard', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+      get '/dashboard', {}, {'REMOTE_ADDR' => '10.0.0.100'}
+      assert_equal 'pass', @response.headers['X-Cascade']
       get '/dashboard', {}, {'REMOTE_ADDR' => '192.168.1.100'}
       assert_equal 'dashboards#show', @response.body
     end
