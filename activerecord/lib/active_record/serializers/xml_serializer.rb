@@ -197,7 +197,7 @@ module ActiveRecord #:nodoc:
     # TODO This can likely be cleaned up to simple use ActiveSupport::XmlMini.to_tag as well.
     def add_associations(association, records, opts)
       association_name = association.to_s.singularize
-      merged_options   = options.merge(opts).merge!(:root => association_name)
+      merged_options   = options.merge(opts).merge!(:root => association_name, :skip_instruct => true)
 
       if records.is_a?(Enumerable)
         tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
