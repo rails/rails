@@ -1261,7 +1261,7 @@ Now if you try to create a new post, you will be greeted with a basic HTTP Authe
 
 h3. Building a Multi-Model Form
 
-Another piece of your average blog is the ability to tag posts.  This requires that your application edits more than one thing on a single form.  Rails offers support for nested forms.
+Another feature of your average blog is the ability to tag posts. To implement this feature your application needs to interact with more than one model on a single form. Rails offers support for nested forms.
 
 To demonstrate this, we will add support for giving each post multiple tags, right in the form where you create the post. First, create a new model to hold the tags:
 
@@ -1298,7 +1298,16 @@ We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 <erb>
 <% @post.tags.build %>
 <%= form_for(@post) do |post_form| %>
-  <%= post_form.error_messages %>
+  <% if @post.errors.any? %>
+  <div id="errorExplanation">
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+    <ul>
+    <% @post.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+  <% end %>
 
   <div class="field">
     <%= post_form.label :name %><br />
@@ -1321,9 +1330,9 @@ We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 <% end %>
 </erb>
 
-This example shows another option of the render helper, being able to pass in local variables, in this case, we want the local variable +form+ in the partial to refer to the +post_form+ object.
+Note that we have changed the +f+ in +form_for(@post) do |f|+ to +post_form+ to make it easier to understand what is going on.
 
-You will also note that we also have changed the +f+ in <tt>form_for(@post) do |f|</tt> to <tt>post_form</tt> to clarify what is going on somewhat.
+This example shows another option of the render helper, being able to pass in local variables, in this case, we want the local variable +form+ in the partial to refer to the +post_form+ object.
 
 We also add a <tt>@post.tags.build</tt> at the top of this form, this is to make sure there is a new tag ready to have it's name filled in by the user.  If you do not build the new tag, then the form will not appear as there is no new Tag object ready to create.
 
