@@ -88,9 +88,7 @@ And it will create a new generator as follow:
 
 <ruby>
 class InitializerGenerator < Rails::Generators::NamedBase
-  def self.source_root
-    @source_root ||= File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
-  end
+  source_root File.expand_path("../templates", __FILE__)
 end
 </ruby>
 
@@ -115,9 +113,7 @@ And now let's change the generator to copy this template when invoked:
 
 <ruby>
 class InitializerGenerator < Rails::Generators::NamedBase
-  def self.source_root
-    @source_root ||= File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
-  end
+  source_root File.expand_path("../templates", __FILE__)
 
   def copy_initializer_file
     copy_file "initializer.rb", "config/initializers/#{file_name}.rb"
@@ -135,21 +131,18 @@ We can see that now a initializer named foo was created at +config/initializers/
 
 h3. Generators lookup
 
-Now that we know how to create generators, we must know where Rails looks for generators before invoking them. When we invoke the initializer generator, Rails looks at the following paths in the given order:
+With our first generator created, we must discuss briefly generators lookup. The way Rails finds generators is exactly the same way Ruby find files, i.e. using +$LOAD_PATHS+.
+
+For instance, when you say +rails g initializer foo+, rails knows you want to invoke the initializer generator and then search for the following generators in the $LOAD_PATHS:
 
 <shell>
-RAILS_APP/lib/generators
-RAILS_APP/lib/rails_generators
-RAILS_APP/vendor/plugins/*/lib/generators
-RAILS_APP/vendor/plugins/*/lib/rails_generators
-GEMS_PATH/*/lib/generators
-GEMS_PATH/*/lib/rails_generators
-~/rails/generators
-~/rails/rails_generators
-RAILS_GEM/lib/rails/generators
+rails/generators/initializer/initializer_generator.rb
+generators/initializer/initializer_generator.rb
+rails/generators/initializer_generator.rb
+generators/initializer_generator.rb
 </shell>
 
-First Rails looks for generators in your application, then in plugins and/or gems, then in your home and finally the builtin generators. One very important thing to keep in mind is that in Rails 3.0 and after it only looks for generators in gems being used in your application. So if you have rspec installed as a gem, but it's not declared in your application, Rails won't be able to invoke it.
+If none of them is found, it raises an error message.
 
 h3. Customizing your workflow
 
@@ -183,7 +176,6 @@ $ rails generate scaffold User name:string
       create      app/views/users/show.html.erb
       create      app/views/users/new.html.erb
       create      app/views/users/_form.html.erb
-      create      app/views/layouts/users.html.erb
       invoke    test_unit
       create      test/functional/users_controller_test.rb
       invoke    helper
@@ -284,7 +276,7 @@ end
 end
 </ruby>
 
-Now, when the helper generator is invoked and let's say test unit is configured as test framework, it will try to invoke both +MyHelper::Generators::TestUnitGenerator+ and +TestUnit::Generators::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails hook. To do that, we just need to add:
+Now, when the helper generator is invoked and let's say test unit is configured as test framework, it will try to invoke both +MyHelper::Generators::TestUnitGenerator+ and +TestUnit::Generators::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails generator. To do that, we just need to add:
 
 <ruby>
   # Search for :helper instead of :my_helper
@@ -375,4 +367,6 @@ h3. Changelog
 
 "Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/102
 
-* November 20, 2009: First release version by José Valim
+* April 30, 2010: Reviewed by José Valim
+
+* November 20, 2009: First version by José Valim

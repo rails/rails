@@ -182,16 +182,31 @@ module ActiveRecord #:nodoc:
       options[:except] |= Array.wrap(@serializable.class.inheritance_column)
     end
 
+    def add_extra_behavior
+      add_includes
+    end
+
+    def add_includes
+      procs = options.delete(:procs)
+      @serializable.send(:serializable_add_includes, options) do |association, records, opts|
+        add_associations(association, records, opts)
+      end
+      options[:procs] = procs
+    end
+
+    # TODO This can likely be cleaned up to simple use ActiveSupport::XmlMini.to_tag as well.
     def add_associations(association, records, opts)
+      association_name = association.to_s.singularize
+      merged_options   = options.merge(opts).merge!(:root => association_name, :skip_instruct => true)
+
       if records.is_a?(Enumerable)
-        tag = reformat_name(association.to_s)
-        type = options[:skip_types] ? {} : {:type => "array"}
+        tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
+        type = options[:skip_types] ? { } : {:type => "array"}
 
         if records.empty?
-          builder.tag!(tag, type)
+          @builder.tag!(tag, type)
         else
-          builder.tag!(tag, type) do
-            association_name = association.to_s.singularize
+          @builder.tag!(tag, type) do
             records.each do |record|
               if options[:skip_types]
                 record_type = {}
@@ -200,60 +215,30 @@ module ActiveRecord #:nodoc:
                 record_type = {:type => record_class}
               end
 
-              record.to_xml opts.merge(:root => association_name).merge(record_type)
+              record.to_xml merged_options.merge(record_type)
             end
           end
         end
-      else
-        if record = @serializable.send(association)
-          record.to_xml(opts.merge(:root => association))
-        end
-      end
-    end
-
-    def serialize
-      args = [root]
-      if options[:namespace]
-        args << {:xmlns=>options[:namespace]}
-      end
-
-      if options[:type]
-        args << {:type=>options[:type]}
-      end
-
-      builder.tag!(*args) do
-        add_attributes
-        procs = options.delete(:procs)
-        @serializable.send(:serializable_add_includes, options) { |association, records, opts|
-          add_associations(association, records, opts)
-        }
-        options[:procs] = procs
-        add_procs
-        yield builder if block_given?
+      elsif record = @serializable.send(association)
+        record.to_xml(merged_options)
       end
     end
 
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
-      protected
-        def compute_type
-          type = @serializable.class.serialized_attributes.has_key?(name) ? :yaml : @serializable.class.columns_hash[name].type
+      def compute_type
+        type = @serializable.class.serialized_attributes.has_key?(name) ?
+          super : @serializable.class.columns_hash[name].type
 
-          case type
-            when :text
-              :string
-            when :time
-              :datetime
-            else
-              type
-          end
+        case type
+        when :text
+          :string
+        when :time
+          :datetime
+        else
+          type
         end
-    end
-
-    class MethodAttribute < Attribute #:nodoc:
-      protected
-        def compute_type
-          Hash::XML_TYPE_NAMES[@serializable.send(name).class.name] || :string
-        end
+      end
+      protected :compute_type
     end
   end
 end

@@ -13,4 +13,6 @@ class Contact < ActiveRecord::Base
   column :preferences, :string
 
   serialize :preferences
+
+  belongs_to :alternative, :class_name => 'Contact'
 end

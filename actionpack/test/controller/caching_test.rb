@@ -265,23 +265,27 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_simple_action_cache
     get :index
+    assert_response :success
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test')
     reset!
 
     get :index
+    assert_response :success
     assert_equal cached_time, @response.body
   end
 
   def test_simple_action_not_cached
     get :destroy
+    assert_response :success
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
     assert !fragment_exist?('hostname.com/action_caching_test/destroy')
     reset!
 
     get :destroy
+    assert_response :success
     assert_not_equal cached_time, @response.body
   end
 
@@ -289,12 +293,14 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_action_cache_with_layout
     get :with_layout
+    assert_response :success
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test/with_layout')
     reset!
 
     get :with_layout
+    assert_response :success
     assert_not_equal cached_time, @response.body
     body = body_to_string(read_fragment('hostname.com/action_caching_test/with_layout'))
     assert_equal @response.body, body
@@ -302,12 +308,14 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_action_cache_with_layout_and_layout_cache_false
     get :layout_false
+    assert_response :success
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test/layout_false')
     reset!
 
     get :layout_false
+    assert_response :success
     assert_not_equal cached_time, @response.body
 
     body = body_to_string(read_fragment('hostname.com/action_caching_test/layout_false'))
@@ -317,6 +325,7 @@ class ActionCacheTest < ActionController::TestCase
   def test_action_cache_conditional_options
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
+    assert_response :success
     assert !fragment_exist?('hostname.com/action_caching_test')
   end
 
@@ -325,41 +334,50 @@ class ActionCacheTest < ActionController::TestCase
     @controller.expects(:read_fragment).with('hostname.com/action_caching_test', :expires_in => 1.hour).once
     @controller.expects(:write_fragment).with('hostname.com/action_caching_test', '12345.0', :expires_in => 1.hour).once
     get :index
+    assert_response :success
   end
 
   def test_action_cache_with_custom_cache_path
     get :show
+    assert_response :success
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
     assert fragment_exist?('test.host/custom/show')
     reset!
 
     get :show
+    assert_response :success
     assert_equal cached_time, @response.body
   end
 
   def test_action_cache_with_custom_cache_path_in_block
     get :edit
+    assert_response :success
     assert fragment_exist?('test.host/edit')
     reset!
 
     get :edit, :id => 1
+    assert_response :success
     assert fragment_exist?('test.host/1;edit')
   end
 
   def test_cache_expiration
     get :index
+    assert_response :success
     cached_time = content_to_cache
     reset!
 
     get :index
+    assert_response :success
     assert_equal cached_time, @response.body
     reset!
 
     get :expire
+    assert_response :success
     reset!
 
     get :index
+    assert_response :success
     new_cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     reset!
@@ -376,9 +394,11 @@ class ActionCacheTest < ActionController::TestCase
 
     @request.request_uri = "/action_caching_test/expire.xml"
     get :expire, :format => :xml
+    assert_response :success
     reset!
 
     get :index
+    assert_response :success
     new_cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
   end
@@ -386,12 +406,14 @@ class ActionCacheTest < ActionController::TestCase
   def test_cache_is_scoped_by_subdomain
     @request.host = 'jamis.hostname.com'
     get :index
+    assert_response :success
     jamis_cache = content_to_cache
 
     reset!
 
     @request.host = 'david.hostname.com'
     get :index
+    assert_response :success
     david_cache = content_to_cache
     assert_not_equal jamis_cache, @response.body
 
@@ -399,12 +421,14 @@ class ActionCacheTest < ActionController::TestCase
 
     @request.host = 'jamis.hostname.com'
     get :index
+    assert_response :success
     assert_equal jamis_cache, @response.body
 
     reset!
 
     @request.host = 'david.hostname.com'
     get :index
+    assert_response :success
     assert_equal david_cache, @response.body
   end
 
@@ -433,20 +457,24 @@ class ActionCacheTest < ActionController::TestCase
       end
 
       get :index, :format => 'xml'
+      assert_response :success
       cached_time = content_to_cache
       assert_equal cached_time, @response.body
       assert fragment_exist?('hostname.com/action_caching_test/index.xml')
       reset!
 
       get :index, :format => 'xml'
+      assert_response :success
       assert_equal cached_time, @response.body
       assert_equal 'application/xml', @response.content_type
       reset!
 
       get :expire_xml
+      assert_response :success
       reset!
 
       get :index, :format => 'xml'
+      assert_response :success
       assert_not_equal cached_time, @response.body
     end
   end
@@ -455,6 +483,7 @@ class ActionCacheTest < ActionController::TestCase
     # run it twice to cache it the first time
     get :index, :id => 'content-type', :format => 'xml'
     get :index, :id => 'content-type', :format => 'xml'
+    assert_response :success
     assert_equal 'application/xml', @response.content_type
   end
 
@@ -462,6 +491,7 @@ class ActionCacheTest < ActionController::TestCase
     # run it twice to cache it the first time
     get :show, :format => 'xml'
     get :show, :format => 'xml'
+    assert_response :success
     assert_equal 'application/xml', @response.content_type
   end
 
@@ -469,6 +499,7 @@ class ActionCacheTest < ActionController::TestCase
     # run it twice to cache it the first time
     get :edit, :id => 1, :format => 'xml'
     get :edit, :id => 1, :format => 'xml'
+    assert_response :success
     assert_equal 'application/xml', @response.content_type
   end
 

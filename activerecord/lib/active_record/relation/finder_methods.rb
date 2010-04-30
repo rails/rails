@@ -188,7 +188,6 @@ module ActiveRecord
     def construct_relation_for_association_calculations
       including = (@eager_load_values + @includes_values).uniq
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.joins(arel))
-
       relation = except(:includes, :eager_load, :preload)
       apply_join_dependency(relation, join_dependency)
     end

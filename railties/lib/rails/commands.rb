@@ -1,8 +1,50 @@
-if ARGV.empty?
-  ARGV << '--help'
-end
+ARGV << '--help' if ARGV.empty?
 
-HELP_TEXT = <<-EOT
+aliases = {
+  "g"  => "generate",
+  "c"  => "console",
+  "s"  => "server",
+  "db" => "dbconsole"
+}
+
+command = ARGV.shift
+command = aliases[command] || command
+
+case command
+when 'generate', 'destroy', 'plugin', 'benchmarker', 'profiler'
+  require APP_PATH
+  Rails::Application.require_environment!
+  require "rails/commands/#{command}"
+
+when 'console'
+  require 'rails/commands/console'
+  require APP_PATH
+  Rails::Application.require_environment!
+  Rails::Console.start(Rails::Application)
+
+when 'server'
+  require 'rails/commands/server'
+  Rails::Server.new.tap { |server|
+    require APP_PATH
+    Dir.chdir(Rails::Application.root)
+    server.start
+  }
+
+when 'dbconsole'
+  require 'rails/commands/dbconsole'
+  require APP_PATH
+  Rails::DBConsole.start(Rails::Application)
+
+when 'application', 'runner'
+  require "rails/commands/#{command}"
+
+when '--version', '-v'
+  ARGV.unshift '--version'
+  require 'rails/commands/application'
+
+else
+  puts "Error: Command not recognized" unless %w(-h --help).include?(command)
+  puts <<-EOT
 Usage: rails COMMAND [ARGS]
 
 The most common rails commands are:
@@ -21,53 +63,5 @@ In addition to those, there are:
  runner       Run a piece of code in the application environment
 
 All commands can be run with -h for more information.
-EOT
-
-
-case ARGV.shift
-when 'g', 'generate'
-  require ENV_PATH
-  require 'rails/commands/generate'
-when 'c', 'console'
-  require 'rails/commands/console'
-  require ENV_PATH
-  Rails::Console.start(Rails::Application)
-when 's', 'server'
-  require 'rails/commands/server'
-  # Initialize the server first, so environment options are set
-  server = Rails::Server.new
-  require APP_PATH
-
-  Dir.chdir(Rails::Application.root)
-  server.start
-when 'db', 'dbconsole'
-  require 'rails/commands/dbconsole'
-  require APP_PATH
-  Rails::DBConsole.start(Rails::Application)
-
-when 'application'
-  require 'rails/commands/application'
-when 'destroy'
-  require ENV_PATH
-  require 'rails/commands/destroy'
-when 'benchmarker'
-  require ENV_PATH
-  require 'rails/commands/performance/benchmarker'
-when 'profiler'
-  require ENV_PATH
-  require 'rails/commands/performance/profiler'
-when 'plugin'
-  require APP_PATH
-  require 'rails/commands/plugin'
-when 'runner'
-  require 'rails/commands/runner'
-
-when '--help', '-h'
-  puts HELP_TEXT
-when '--version', '-v'
-  ARGV.unshift '--version'
-  require 'rails/commands/application'
-else
-  puts "Error: Command not recognized"
-  puts HELP_TEXT
+  EOT
 end

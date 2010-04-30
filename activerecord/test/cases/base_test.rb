@@ -2085,6 +2085,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "topic", xml.root.name
     assert_equal "The First Topic" , xml.elements["//title"].text
     assert_equal "David" , xml.elements["//author-name"].text
+    assert_match "Have a nice day", xml.elements["//content"].text
 
     assert_equal "1", xml.elements["//id"].text
     assert_equal "integer" , xml.elements["//id"].attributes['type']
@@ -2094,10 +2095,6 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal written_on_in_current_timezone, xml.elements["//written-on"].text
     assert_equal "datetime" , xml.elements["//written-on"].attributes['type']
-
-    assert_match(/^--- Have a nice day\n/ , xml.elements["//content"].text)
-    assert_equal 'Have a nice day' , YAML.load(xml.elements["//content"].text)
-    assert_equal "yaml" , xml.elements["//content"].attributes['type']
 
     assert_equal "david@loudthinking.com", xml.elements["//author-email-address"].text
 

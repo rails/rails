@@ -291,8 +291,6 @@ module ActionMailer #:nodoc:
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
 
-    ActiveSupport.run_load_hooks(:action_mailer, self)
-
     class << self
 
       def mailer_name
@@ -643,5 +641,6 @@ module ActionMailer #:nodoc:
       container.add_part(part)
     end
 
+    ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end

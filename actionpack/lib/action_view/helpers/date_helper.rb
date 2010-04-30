@@ -589,56 +589,50 @@ module ActionView
         @options      = options.dup
         @html_options = html_options.dup
         @datetime     = datetime
+        @options[:datetime_separator] ||= ' &mdash; '
+        @options[:time_separator]     ||= ' : '
       end
 
       def select_datetime
-        # TODO: Remove tag conditional
-        # Ideally we could just join select_date and select_date for the tag case
+        order = date_order.dup
+        order -= [:hour, :minute, :second]
+        @options[:discard_year]   ||= true unless order.include?(:year)
+        @options[:discard_month]  ||= true unless order.include?(:month)
+        @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
+        @options[:discard_minute] ||= true if @options[:discard_hour]
+        @options[:discard_second] ||= true unless @options[:include_seconds] && !@options[:discard_minute]
+
+        # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
+        # valid (otherwise it could be 31 and february wouldn't be a valid date)
+        if @datetime && @options[:discard_day] && !@options[:discard_month]
+          @datetime = @datetime.change(:day => 1)
+        end
+
         if @options[:tag] && @options[:ignore_date]
           select_time
-        elsif @options[:tag]
-          order = date_order.dup
-          order -= [:hour, :minute, :second]
-
-          @options[:discard_year]   ||= true unless order.include?(:year)
-          @options[:discard_month]  ||= true unless order.include?(:month)
-          @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
-          @options[:discard_minute] ||= true if @options[:discard_hour]
-          @options[:discard_second] ||= true unless @options[:include_seconds] && !@options[:discard_minute]
-
-          # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-          # valid (otherwise it could be 31 and february wouldn't be a valid date)
-          if @datetime && @options[:discard_day] && !@options[:discard_month]
-            @datetime = @datetime.change(:day => 1)
-          end
-
+        else
           [:day, :month, :year].each { |o| order.unshift(o) unless order.include?(o) }
           order += [:hour, :minute, :second] unless @options[:discard_hour]
 
           build_selects_from_types(order)
-        else
-          "#{select_date}#{@options[:datetime_separator]}#{select_time}".html_safe
         end
       end
 
       def select_date
         order = date_order.dup
 
-        # TODO: Remove tag conditional
-        if @options[:tag]
-          @options[:discard_hour]     = true
-          @options[:discard_minute]   = true
-          @options[:discard_second]   = true
+        @options[:discard_hour]     = true
+        @options[:discard_minute]   = true
+        @options[:discard_second]   = true
 
-          @options[:discard_year]   ||= true unless order.include?(:year)
-          @options[:discard_month]  ||= true unless order.include?(:month)
-          @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
+        @options[:discard_year]   ||= true unless order.include?(:year)
+        @options[:discard_month]  ||= true unless order.include?(:month)
+        @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
 
-          # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-          # valid (otherwise it could be 31 and february wouldn't be a valid date)
-          if @datetime && @options[:discard_day] && !@options[:discard_month]
-            @datetime = @datetime.change(:day => 1)
-          end
+        # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
+        # valid (otherwise it could be 31 and february wouldn't be a valid date)
+        if @datetime && @options[:discard_day] && !@options[:discard_month]
+          @datetime = @datetime.change(:day => 1)
         end
 
         [:day, :month, :year].each { |o| order.unshift(o) unless order.include?(o) }
@@ -649,15 +643,12 @@ module ActionView
       def select_time
         order = []
 
-        # TODO: Remove tag conditional
-        if @options[:tag]
-          @options[:discard_month]    = true
-          @options[:discard_year]     = true
-          @options[:discard_day]      = true
-          @options[:discard_second] ||= true unless @options[:include_seconds]
+        @options[:discard_month]    = true
+        @options[:discard_year]     = true
+        @options[:discard_day]      = true
+        @options[:discard_second] ||= true unless @options[:include_seconds]
 
-          order += [:year, :month, :day] unless @options[:ignore_date]
-        end
+        order += [:year, :month, :day] unless @options[:ignore_date]
 
         order += [:hour, :minute]
         order << :second if @options[:include_seconds]
@@ -937,10 +928,8 @@ module ActionView
           options[:include_position]     = true
           options[:prefix]             ||= @object_name
           options[:index]                = @auto_index if @auto_index && !options.has_key?(:index)
-          options[:datetime_separator] ||= ' &mdash; '
-          options[:time_separator]     ||= ' : '
 
-          DateTimeSelector.new(datetime, options.merge(:tag => true), html_options)
+          DateTimeSelector.new(datetime, options, html_options)
         end
 
         def default_datetime(options)

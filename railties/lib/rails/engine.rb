@@ -42,7 +42,7 @@ module Rails
   #     config.load_paths << File.expand_path("../lib/some/path", __FILE__)
   #
   #     initializer "my_engine.add_middleware" do |app|
-  #       app.middlewares.use MyEngine::Middleware
+  #       app.middleware.use MyEngine::Middleware
   #     end
   #   end
   # 

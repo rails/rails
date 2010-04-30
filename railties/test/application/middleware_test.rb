@@ -20,20 +20,21 @@ module ApplicationTests
       assert_equal [
         "ActionDispatch::Static",
         "Rack::Lock",
+        "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
+        "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
-        "ActionDispatch::Head",
-        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
-        "ActiveRecord::QueryCache"
+        "ActionDispatch::Head"
       ], middleware
     end
 

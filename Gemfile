@@ -7,6 +7,9 @@ gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 
 group :mri do
+  gem 'json'
+  gem 'yajl-ruby'
+
   if RUBY_VERSION < '1.9'
     gem "system_timer"
     gem "ruby-debug", ">= 0.10.3"

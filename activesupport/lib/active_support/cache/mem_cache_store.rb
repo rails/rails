@@ -1,5 +1,5 @@
 require 'memcache'
-require 'active_support/core_ext/array/extract_options'
+require 'digest/md5'
 
 module ActiveSupport
   module Cache
@@ -13,8 +13,9 @@ module ActiveSupport
     #   and MemCacheStore will load balance between all available servers. If a
     #   server goes down, then MemCacheStore will ignore it until it goes back
     #   online.
-    # - Time-based expiry support. See #write and the <tt>:expires_in</tt> option.
-    # - Per-request in memory cache for all communication with the MemCache server(s).
+    #
+    # MemCacheStore implements the Strategy::LocalCache strategy which implements
+    # an in memory cache inside of a block.
     class MemCacheStore < Store
       module Response # :nodoc:
         STORED      = "STORED\r\n"
@@ -23,6 +24,8 @@ module ActiveSupport
         NOT_FOUND   = "NOT_FOUND\r\n"
         DELETED     = "DELETED\r\n"
       end
+
+      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/
 
       def self.build_mem_cache(*addresses)
         addresses = addresses.flatten
@@ -45,108 +48,139 @@ module ActiveSupport
       #   require 'memcached' # gem install memcached; uses C bindings to libmemcached
       #   ActiveSupport::Cache::MemCacheStore.new(Memcached::Rails.new("localhost:11211"))
       def initialize(*addresses)
+        addresses = addresses.flatten
+        options = addresses.extract_options!
+        super(options)
+
         if addresses.first.respond_to?(:get)
           @data = addresses.first
         else
-          @data = self.class.build_mem_cache(*addresses)
+          mem_cache_options = options.dup
+          UNIVERSAL_OPTIONS.each{|name| mem_cache_options.delete(name)}
+          @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
 
         extend Strategy::LocalCache
+        extend LocalCacheWithRaw
       end
 
-      # Reads multiple keys from the cache.
-      def read_multi(*keys)
-        @data.get_multi keys
-      end
-
-      def read(key, options = nil) # :nodoc:
-        super do
-          @data.get(key, raw?(options))
+      # Reads multiple keys from the cache using a single call to the
+      # servers for all keys. Options can be passed in the last argument.
+      def read_multi(*names)
+        options = names.extract_options!
+        options = merged_options(options)
+        keys_to_names = names.inject({}){|map, name| map[escape_key(namespaced_key(name, options))] = name; map}
+        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        values = {}
+        raw_values.each do |key, value|
+          entry = deserialize_entry(value)
+          values[keys_to_names[key]] = entry.value unless entry.expired?
         end
-      rescue MemCache::MemCacheError => e
-        logger.error("MemCacheError (#{e}): #{e.message}") if logger
-        nil
+        values
       end
 
-      # Writes a value to the cache.
-      #
-      # Possible options:
-      # - <tt>:unless_exist</tt> - set to true if you don't want to update the cache
-      #   if the key is already set.
-      # - <tt>:expires_in</tt> - the number of seconds that this value may stay in
-      #   the cache. See ActiveSupport::Cache::Store#write for an example.
-      def write(key, value, options = nil)
-        super do
-          method = options && options[:unless_exist] ? :add : :set
-          # memcache-client will break the connection if you send it an integer
-          # in raw mode, so we convert it to a string to be sure it continues working.
-          value = value.to_s if raw?(options)
-          response = @data.send(method, key, value, expires_in(options), raw?(options))
-          response == Response::STORED
+      # Increment a cached value. This method uses the memcached incr atomic
+      # operator and can only be used on values written with the :raw option.
+      # Calling it on a value not stored with :raw will initialize that value
+      # to zero.
+      def increment(name, amount = 1, options = nil) # :nodoc:
+        options = merged_options(options)
+        response = instrument(:increment, name, :amount => amount) do
+          @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue MemCache::MemCacheError => e
-        logger.error("MemCacheError (#{e}): #{e.message}") if logger
-        false
-      end
-
-      def delete(key, options = nil) # :nodoc:
-        super do
-          response = @data.delete(key)
-          response == Response::DELETED
-        end
-      rescue MemCache::MemCacheError => e
-        logger.error("MemCacheError (#{e}): #{e.message}") if logger
-        false
-      end
-
-      def exist?(key, options = nil) # :nodoc:
-        # Doesn't call super, cause exist? in memcache is in fact a read
-        # But who cares? Reading is very fast anyway
-        # Local cache is checked first, if it doesn't know then memcache itself is read from
-        super do
-          !read(key, options).nil?
-        end
-      end
-
-      def increment(key, amount = 1) # :nodoc:
-        response = instrument(:increment, key, :amount => amount) do
-          @data.incr(key, amount)
-        end
-
-        response == Response::NOT_FOUND ? nil : response
+        response == Response::NOT_FOUND ? nil : response.to_i
       rescue MemCache::MemCacheError
         nil
       end
 
-      def decrement(key, amount = 1) # :nodoc:
-        response = instrument(:decrement, key, :amount => amount) do
-          @data.decr(key, amount)
+      # Decrement a cached value. This method uses the memcached decr atomic
+      # operator and can only be used on values written with the :raw option.
+      # Calling it on a value not stored with :raw will initialize that value
+      # to zero.
+      def decrement(name, amount = 1, options = nil) # :nodoc:
+        options = merged_options(options)
+        response = instrument(:decrement, name, :amount => amount) do
+          @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
-
-        response == Response::NOT_FOUND ? nil : response
+        response == Response::NOT_FOUND ? nil : response.to_i
       rescue MemCache::MemCacheError
         nil
       end
 
-      def delete_matched(matcher, options = nil) # :nodoc:
-        # don't do any local caching at present, just pass
-        # through and let the error happen
-        super
-        raise "Not supported by Memcache"
-      end
-
-      def clear
+      # Clear the entire cache on all memcached servers. This method should
+      # be used with care when using a shared cache.
+      def clear(options = nil)
         @data.flush_all
       end
 
+      # Get the statistics from the memcached servers.
       def stats
         @data.stats
       end
 
-      private
-        def raw?(options)
-          options && options[:raw]
+      protected
+        # Read an entry from the cache.
+        def read_entry(key, options) # :nodoc:
+          deserialize_entry(@data.get(escape_key(key), true))
+        rescue MemCache::MemCacheError => e
+          logger.error("MemCacheError (#{e}): #{e.message}") if logger
+          nil
         end
+
+        # Write an entry to the cache.
+        def write_entry(key, entry, options) # :nodoc:
+          method = options && options[:unless_exist] ? :add : :set
+          value = options[:raw] ? entry.value.to_s : entry
+          expires_in = options[:expires_in].to_i
+          if expires_in > 0 && !options[:raw]
+            # Set the memcache expire a few minutes in the future to support race condition ttls on read
+            expires_in += 5.minutes
+          end
+          response = @data.send(method, escape_key(key), value, expires_in, options[:raw])
+          response == Response::STORED
+        rescue MemCache::MemCacheError => e
+          logger.error("MemCacheError (#{e}): #{e.message}") if logger
+          false
+        end
+
+        # Delete an entry from the cache.
+        def delete_entry(key, options) # :nodoc:
+          response = @data.delete(escape_key(key))
+          response == Response::DELETED
+        rescue MemCache::MemCacheError => e
+          logger.error("MemCacheError (#{e}): #{e.message}") if logger
+          false
+        end
+
+      private
+        def escape_key(key)
+          key = key.to_s.gsub(ESCAPE_KEY_CHARS){|match| "%#{match[0].to_s(16).upcase}"}
+          key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
+          key
+        end
+
+        def deserialize_entry(raw_value)
+          if raw_value
+            entry = Marshal.load(raw_value) rescue raw_value
+            entry.is_a?(Entry) ? entry : Entry.new(entry)
+          else
+            nil
+          end
+        end
+
+      # Provide support for raw values in the local cache strategy.
+      module LocalCacheWithRaw # :nodoc:
+        protected
+          def write_entry(key, entry, options) # :nodoc:
+            retval = super
+            if options[:raw] && local_cache && retval
+              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry.expires_at = entry.expires_at
+              local_cache.write_entry(key, raw_entry, options)
+            end
+            retval
+          end
+      end
     end
   end
 end

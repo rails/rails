@@ -6,7 +6,8 @@ module Rails
       include Initializable
 
       initializer :load_environment_config do
-        require_environment!
+        environment = config.paths.config.environments.to_a.first
+        require environment if environment
       end
 
       initializer :load_all_active_support do

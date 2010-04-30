@@ -20,24 +20,19 @@ module Rails
 
       add_runtime_options!
 
-      # Automatically sets the source root based on the class name.
-      #
-      def self.source_root
-        @_rails_source_root ||= begin
-          if base_name && generator_name
-            File.expand_path(File.join(base_name, generator_name, 'templates'), File.dirname(__FILE__))
-          end
-        end
+      # Returns the source root for this generator using default_source_root as default.
+      def self.source_root(path=nil)
+        @_source_root = path if path
+        @_source_root ||= default_source_root
       end
 
       # Tries to get the description from a USAGE file one folder above the source
       # root otherwise uses a default description.
-      #
       def self.desc(description=nil)
         return super if description
-        usage = File.expand_path(File.join(source_root, "..", "USAGE"))
+        usage = source_root && File.expand_path("../USAGE", source_root)
 
-        @desc ||= if File.exist?(usage)
+        @desc ||= if usage && File.exist?(usage)
           File.read(usage)
         else
           "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
@@ -47,7 +42,6 @@ module Rails
       # Convenience method to get the namespace from the class name. It's the
       # same as Thor default except that the Generator at the end of the class
       # is removed.
-      #
       def self.namespace(name=nil)
         return super if name
         @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
@@ -200,7 +194,6 @@ module Rails
       end
 
       # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
-      #
       def self.class_option(name, options={}) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
         options[:aliases] = default_aliases_for_option(name, options)
@@ -208,14 +201,27 @@ module Rails
         super(name, options)
       end
 
+      # Returns the default source root for a given generator. This is used internally
+      # by rails to set its generators source root. If you want to customize your source
+      # root, you should use source_root.
+      def self.default_source_root
+        return unless base_name && generator_name
+        path = File.expand_path(File.join(base_name, generator_name, 'templates'), base_root)
+        path if File.exists?(path)
+      end
+
+      # Returns the base root for a common set of generators. This is used to dynamically
+      # guess the default source root.
+      def self.base_root
+        File.dirname(__FILE__)
+      end
+
       # Cache source root and add lib/generators/base/generator/templates to
       # source paths.
-      #
       def self.inherited(base) #:nodoc:
         super
 
-        # Cache source root, we need to do this, since __FILE__ is a relative value
-        # and can point to wrong directions when inside an specified directory.
+        # Invoke source_root so the default_source_root is set.
         base.source_root
 
         if base.name && base.name !~ /Base$/

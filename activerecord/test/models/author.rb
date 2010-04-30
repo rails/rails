@@ -104,6 +104,10 @@ class Author < ActiveRecord::Base
     "#{id}-#{name}"
   end
 
+  def social
+    %w(twitter github)
+  end
+
   private
     def log_before_adding(object)
       @post_log << "before_adding#{object.id || '<new>'}"

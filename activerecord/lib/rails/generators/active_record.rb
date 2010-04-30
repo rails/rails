@@ -8,16 +8,12 @@ module ActiveRecord
     class Base < Rails::Generators::NamedBase #:nodoc:
       include Rails::Generators::Migration
 
-      def self.source_root
-        @_ar_source_root ||= begin
-          if base_name && generator_name
-            File.expand_path(File.join(base_name, generator_name, 'templates'), File.dirname(__FILE__))
-          end
-        end
+      # Set the current directory as base for the inherited generators.
+      def self.base_root
+        File.dirname(__FILE__)
       end
 
       # Implement the required interface for Rails::Generators::Migration.
-      #
       def self.next_migration_number(dirname) #:nodoc:
         next_migration_number = current_migration_number(dirname) + 1
         if ActiveRecord::Base.timestamped_migrations

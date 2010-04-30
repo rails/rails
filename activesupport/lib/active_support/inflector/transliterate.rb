@@ -3,45 +3,62 @@ require 'active_support/core_ext/string/multibyte'
 
 module ActiveSupport
   module Inflector
-    extend self
 
-    # UTF-8 byte => ASCII approximate UTF-8 byte(s)
-    ASCII_APPROXIMATIONS = {
-      198 => [65, 69],   # Æ => AE
-      208 => 68,         # Ð => D
-      216 => 79,         # Ø => O
-      222 => [84, 104],  # Þ => Þ
-      223 => [115, 115], # ß => ss
-      230 => [97, 101],  # æ => ae
-      240 => 100,        # ð => d
-      248 => 111,        # ø => o
-      254 => [116, 104], # þ => th
-      272 => 68,         # Đ => D
-      273 => 100,        # đ => đ
-      294 => 72,         # Ħ => H
-      295 => 104,        # ħ => h
-      305 => 105,        # ı => i
-      306 => [73, 74],   # Ĳ =>IJ
-      307 => [105, 106], # ĳ => ij
-      312 => 107,        # ĸ => k
-      319 => 76,         # Ŀ => L
-      320 => 108,        # ŀ => l
-      321 => 76,         # Ł => L
-      322 => 108,        # ł => l
-      329 => 110,        # ŉ => n
-      330 => [78, 71],   # Ŋ => NG
-      331 => [110, 103], # ŋ => ng
-      338 => [79, 69],   # Œ => OE
-      339 => [111, 101], # œ => oe
-      358 => 84,         # Ŧ => T
-      359 => 116         # ŧ => t
-    }
-
-    # Replaces accented characters with an ASCII approximation, or deletes it if none exsits.
-    def transliterate(string)
-      ActiveSupport::Multibyte::Chars.new(string).tidy_bytes.normalize(:d).unpack("U*").map do |char|
-        ASCII_APPROXIMATIONS[char] || (char if char < 128)
-      end.compact.flatten.pack("U*")
+    # Replaces non-ASCII characters with an ASCII approximation, or if none
+    # exists, a replacement character which defaults to "?".
+    #
+    #    transliterate("Ærøskøbing")
+    #    # => "AEroskobing"
+    #
+    # Default approximations are provided for Western/Latin characters,
+    # e.g, "ø", "ñ", "é", "ß", etc.
+    #
+    # This method is I18n aware, so you can set up custom approximations for a
+    # locale. This can be useful, for example, to transliterate German's "ü"
+    # and "ö" to "ue" and "oe", or to add support for transliterating Russian
+    # to ASCII.
+    #
+    # In order to make your custom transliterations available, you must set
+    # them as the <tt>i18n.transliterate.rule</tt> i18n key:
+    #
+    #   # Store the transliterations in locales/de.yml
+    #   i18n:
+    #     transliterate:
+    #       ü: "ue"
+    #       ö: "oe"
+    #
+    #   # Or set them using Ruby
+    #   I18n.backend.store_translations(:de, :i18n => {
+    #     :transliterate => {
+    #       :rule => {
+    #         "ü" => "ue",
+    #         "ö" => "oe"
+    #       }
+    #     }
+    #   })
+    #
+    # The value for <tt>i18n.transliterate.rule</tt> can be a simple Hash that maps
+    # characters to ASCII approximations as shown above, or, for more complex
+    # requirements, a Proc:
+    #
+    #   I18n.backend.store_translations(:de, :i18n => {
+    #     :transliterate => {
+    #       :rule => lambda {|string| MyTransliterator.transliterate(string)}
+    #     }
+    #   })
+    #
+    # Now you can have different transliterations for each locale:
+    #
+    #   I18n.locale = :en
+    #   transliterate("Jürgen")
+    #   # => "Jurgen"
+    #
+    #   I18n.locale = :de
+    #   transliterate("Jürgen")
+    #   # => "Juergen"
+    def transliterate(string, replacement = "?")
+      I18n.transliterate(Multibyte::Chars.normalize(
+        Multibyte::Chars.tidy_bytes(string), :c), :replacement => replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
@@ -73,5 +90,6 @@ module ActiveSupport
       end
       parameterized_string.downcase
     end
+
   end
 end
