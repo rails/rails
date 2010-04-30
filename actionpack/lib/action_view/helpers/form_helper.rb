@@ -1165,13 +1165,13 @@ module ActionView
       # submit button label, otherwise, it uses "Update Post".
       #
       # Those labels can be customized using I18n, under the helpers.submit key and accept
-      # the {{model}} as translation interpolation:
+      # the %{model} as translation interpolation:
       #
       #   en:
       #     helpers:
       #       submit:
-      #         create: "Create a {{model}}"
-      #         update: "Confirm changes to {{model}}"
+      #         create: "Create a %{model}"
+      #         update: "Confirm changes to %{model}"
       #
       # It also searches for a key specific for the given object:
       #
