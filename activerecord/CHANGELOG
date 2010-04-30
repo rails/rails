@@ -1,5 +1,7 @@
 *2.3.6 (pending)*
 
+* JSON supports a custom root option: to_json(:root => 'custom')  #4515 [Jatinder Singh]
+
 * Destroy uses optimistic locking. If lock_version on the record you're destroying doesn't match lock_version in the database, a StaleObjectError is raised.  #1966 [Curtis Hawthorne]
 
 * To prefix the table names of all models in a module, define self.table_name_prefix on the module.  #4032 [Andrew White]

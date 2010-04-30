@@ -43,6 +43,20 @@ class JsonSerializationTest < ActiveRecord::TestCase
     Contact.include_root_in_json = false
   end
 
+  def test_should_include_root_in_json
+    Contact.include_root_in_json = true
+    json = @contact.to_json(:root => 'json_contact')
+
+    assert_match %r{^\{"json_contact":\{}, json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"age":16}, json
+    assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_match %r{"awesome":true}, json
+    assert_match %r{"preferences":\{"shows":"anime"\}}, json
+  ensure
+    Contact.include_root_in_json = false
+  end
+
   def test_should_encode_all_encodable_attributes
     json = @contact.to_json
 

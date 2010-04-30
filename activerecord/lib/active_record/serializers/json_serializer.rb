@@ -79,7 +79,7 @@ module ActiveRecord #:nodoc:
 
     def as_json(options = nil) #:nodoc:
       hash = Serializer.new(self, options).serializable_record
-      hash = { self.class.model_name.element => hash } if include_root_in_json
+      hash = { options[:root] || self.class.model_name.element => hash } if include_root_in_json
       hash
     end
 
