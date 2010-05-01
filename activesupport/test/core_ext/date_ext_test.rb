@@ -176,13 +176,13 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_yesterday_constructor
-    assert_equal Date.today - 1, Date.yesterday
+    assert_equal Date.current - 1, Date.yesterday
   end
 
   def test_tomorrow_constructor
-    assert_equal Date.today + 1, Date.tomorrow
+    assert_equal Date.current + 1, Date.tomorrow
   end
-
+  
   def test_since
     assert_equal Time.local(2005,2,21,0,0,45), Date.new(2005,2,21).since(45)
   end
