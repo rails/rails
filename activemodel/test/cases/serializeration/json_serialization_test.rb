@@ -37,6 +37,22 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
+  test "should include custom root in json" do
+    begin
+      Contact.include_root_in_json = true
+      json = @contact.to_json(:root => 'json_contact')
+
+      assert_match %r{^\{"json_contact":\{}, json
+      assert_match %r{"name":"Konata Izumi"}, json
+      assert_match %r{"age":16}, json
+      assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+      assert_match %r{"awesome":true}, json
+      assert_match %r{"preferences":\{"shows":"anime"\}}, json
+    ensure
+      Contact.include_root_in_json = false
+    end
+  end
+
   test "should encode all encodable attributes" do
     json = @contact.to_json
 

@@ -1,3 +1,8 @@
+*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+
+* JSON supports a custom root option: to_json(:root => 'custom')  #4515 [Jatinder Singh]
+
+
 *Rails 3.0.0 [beta 3] (April 13th, 2010)*
 
 * No changes
