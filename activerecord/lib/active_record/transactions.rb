@@ -31,10 +31,10 @@ module ActiveRecord
     #     mary.deposit(100)
     #   end
     #
-    # This example will only take money from David and give to Mary if neither
-    # +withdrawal+ nor +deposit+ raises an exception. Exceptions will force a
-    # ROLLBACK that returns the database to the state before the transaction was
-    # begun. Be aware, though, that the objects will _not_ have their instance
+    # This example will only take money from David and give it to Mary if neither
+    # +withdrawal+ nor +deposit+ raise an exception. Exceptions will force a
+    # ROLLBACK that returns the database to the state before the transaction
+    # began. Be aware, though, that the objects will _not_ have their instance
     # data returned to their pre-transactional state.
     #
     # == Different Active Record classes in a single transaction
@@ -44,16 +44,16 @@ module ActiveRecord
     # that class. This is because transactions are per-database connection, not
     # per-model.
     #
-    # In this example a <tt>Balance</tt> record is transactionally saved even
-    # though <tt>transaction</tt> is called on the <tt>Account</tt> class:
+    # In this example a +balance+ record is transactionally saved even
+    # though +transaction+ is called on the +Account+ class:
     #
     #   Account.transaction do
     #     balance.save!
     #     account.save!
     #   end
     #
-    # Note that the +transaction+ method is also available as a model instance
-    # method. For example, you can also do this:
+    # The +transaction+ method is also available as a model instance method.
+    # For example, you can also do this:
     #
     #   balance.transaction do
     #     balance.save!
@@ -62,9 +62,9 @@ module ActiveRecord
     #
     # == Transactions are not distributed across database connections
     #
-    # A transaction acts on a single database connection.  If you have
+    # A transaction acts on a single database connection. If you have
     # multiple class-specific databases, the transaction will not protect
-    # interaction among them.  One workaround is to begin a transaction
+    # interaction among them. One workaround is to begin a transaction
     # on each class whose models you alter:
     #
     #   Student.transaction do
@@ -74,16 +74,22 @@ module ActiveRecord
     #     end
     #   end
     #
-    # This is a poor solution, but full distributed transactions are beyond
+    # This is a poor solution, but fully distributed transactions are beyond
     # the scope of Active Record.
     #
-    # == Save and destroy are automatically wrapped in a transaction
+    # == +save+ and +destroy+ are automatically wrapped in a transaction
     #
-    # Both Base#save and Base#destroy come wrapped in a transaction that ensures
-    # that whatever you do in validations or callbacks will happen under the
-    # protected cover of a transaction. So you can use validations to check for
-    # values that the transaction depends on or you can raise exceptions in the
-    # callbacks to rollback, including <tt>after_*</tt> callbacks.
+    # Both +save+ and +destroy+ come wrapped in a transaction that ensures
+    # that whatever you do in validations or callbacks will happen under its
+    # protected cover. So you can use validations to check for values that 
+    # the transaction depends on or you can raise exceptions in the callbacks
+    # to rollback, including <tt>after_*</tt> callbacks.
+    #
+    # As a consequence changes to the database are not seen outside your connection
+    # until the operation is complete. For example, if you try to update the index
+    # of a search engine in +after_save+ the indexer won't see the updated record.
+    # The +after_commit+ callback is the only one that is triggered once the update
+    # is committed. See below.
     #
     # == Exception handling and rolling back
     #
@@ -91,14 +97,14 @@ module ActiveRecord
     # be propagated (after triggering the ROLLBACK), so you should be ready to
     # catch those in your application code.
     #
-    # One exception is the ActiveRecord::Rollback exception, which will trigger
+    # One exception is the <tt>ActiveRecord::Rollback</tt> exception, which will trigger
     # a ROLLBACK when raised, but not be re-raised by the transaction block.
     #
-    # *Warning*: one should not catch ActiveRecord::StatementInvalid exceptions
-    # inside a transaction block. StatementInvalid exceptions indicate that an
+    # *Warning*: one should not catch <tt>ActiveRecord::StatementInvalid</tt> exceptions
+    # inside a transaction block. <tt>ActiveRecord::StatementInvalid</tt> exceptions indicate that an
     # error occurred at the database level, for example when a unique constraint
     # is violated. On some database systems, such as PostgreSQL, database errors
-    # inside a transaction causes the entire transaction to become unusable
+    # inside a transaction cause the entire transaction to become unusable
     # until it's restarted from the beginning. Here is an example which
     # demonstrates the problem:
     #
@@ -120,11 +126,12 @@ module ActiveRecord
     #     #     ignored until end of transaction block"
     #   end
     #
-    # One should restart the entire transaction if a StatementError occurred.
+    # One should restart the entire transaction if an
+    # <tt>ActiveRecord::StatementInvalid</tt> occurred.
     #
     # == Nested transactions
     #
-    # #transaction calls can be nested. By default, this makes all database
+    # +transaction+ calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
     # transaction. For example:
     #
@@ -139,7 +146,7 @@ module ActiveRecord
     #   User.find(:all)  # => empty
     #
     # It is also possible to requires a sub-transaction by passing
-    # <tt>:requires_new => true</tt>.  If anything goes wrong, the
+    # <tt>:requires_new => true</tt>. If anything goes wrong, the
     # database rolls back to the beginning of the sub-transaction
     # without rolling back the parent transaction. For example:
     #
