@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.has_rdoc = false
 
   s.add_dependency('rake',          '>= 0.8.3')
-  s.add_dependency('thor',          '~> 0.13.4')
+  s.add_dependency('thor',          '~> 0.13.6')
   s.add_dependency('activesupport', version)
   s.add_dependency('actionpack',    version)
 end

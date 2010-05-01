@@ -29,6 +29,15 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_equal 2, authors[1].categorizations.size
   end
 
+  def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
+    assert_nothing_raised do
+      Author.joins(:posts).eager_load(:comments).where(:posts => {:taggings_count => 1}).all
+    end
+    authors = Author.joins(:posts).eager_load(:comments).where(:posts => {:taggings_count => 1}).all
+    assert_equal 1, assert_no_queries { authors.size }
+    assert_equal 9, assert_no_queries { authors[0].comments.size }
+  end
+
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
     authors = Author.find(:all, :include=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id")
     assert_equal 2, authors.size

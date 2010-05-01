@@ -931,6 +931,10 @@ module ActiveRecord #:nodoc:
         subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
+      def attribute_method?(attribute)
+        super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
+      end
+
       # Set the lookup ancestors for ActiveModel.
       def lookup_ancestors #:nodoc:
         klass = self

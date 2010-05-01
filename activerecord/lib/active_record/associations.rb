@@ -1737,12 +1737,30 @@ module ActiveRecord
             build(associations)
           end
 
+          def graft(*associations)
+            associations.each do |association|
+              join_associations.detect {|a| association == a} ||
+              build(association.reflection.name, association.find_parent_in(self), association.join_class)
+            end
+            self
+          end
+
           def join_associations
             @joins[1..-1].to_a
           end
 
           def join_base
             @joins[0]
+          end
+
+          def count_aliases_from_table_joins(name)
+            quoted_name = join_base.active_record.connection.quote_table_name(name.downcase)
+            join_sql = join_base.table_joins.to_s.downcase
+            join_sql.blank? ? 0 :
+              # Table names
+              join_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
+              # Table aliases
+              join_sql.scan(/join(?:\s+\w+)?\s+\S+\s+#{quoted_name}\son/).size
           end
 
           def instantiate(rows)
@@ -1789,22 +1807,22 @@ module ActiveRecord
           end
 
           protected
-            def build(associations, parent = nil)
+            def build(associations, parent = nil, join_class = Arel::InnerJoin)
               parent ||= @joins.last
               case associations
                 when Symbol, String
                   reflection = parent.reflections[associations.to_s.intern] or
                   raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
                   @reflections << reflection
-                  @joins << build_join_association(reflection, parent)
+                  @joins << build_join_association(reflection, parent).with_join_class(join_class)
                 when Array
                   associations.each do |association|
-                    build(association, parent)
+                    build(association, parent, join_class)
                   end
                 when Hash
                   associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-                    build(name, parent)
-                    build(associations[name])
+                    build(name, parent, join_class)
+                    build(associations[name], nil, join_class)
                   end
                 else
                   raise ConfigurationError, associations.inspect
@@ -1881,6 +1899,12 @@ module ActiveRecord
               @table_joins   = joins
             end
 
+            def ==(other)
+              other.is_a?(JoinBase) &&
+              other.active_record == active_record &&
+              other.table_joins == table_joins
+            end
+
             def aliased_prefix
               "t0"
             end
@@ -1944,6 +1968,27 @@ module ActiveRecord
               if [:has_many, :has_one].include?(reflection.macro) && reflection.options[:through]
                 @aliased_join_table_name = aliased_table_name_for(reflection.through_reflection.klass.table_name, "_join")
               end
+            end
+
+            def ==(other)
+              other.is_a?(JoinAssociation) &&
+              other.reflection == reflection &&
+              other.parent == parent
+            end
+
+            def find_parent_in(other_join_dependency)
+              other_join_dependency.joins.detect do |join|
+                self.parent == join
+              end
+            end
+
+            def join_class
+              @join_class ||= Arel::InnerJoin
+            end
+
+            def with_join_class(join_class)
+              @join_class = join_class
+              self
             end
 
             def association_join
@@ -2045,27 +2090,25 @@ module ActiveRecord
             end
 
             def join_relation(joining_relation, join = nil)
-              if (relations = relation).is_a?(Array)
-                joining_relation.joins(Relation::JoinOperation.new(relations.first, Arel::OuterJoin, association_join.first)).
-                  joins(Relation::JoinOperation.new(relations.last, Arel::OuterJoin, association_join.last))
-              else
-                joining_relation.joins(Relation::JoinOperation.new(relations, Arel::OuterJoin, association_join))
-              end
+              joining_relation.joins(self.with_join_class(Arel::OuterJoin))
             end
 
             protected
 
               def aliased_table_name_for(name, suffix = nil)
-                if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{active_record.connection.quote_table_name name.downcase}\son}
-                  @join_dependency.table_aliases[name] += 1
+                if @join_dependency.table_aliases[name].zero?
+                  @join_dependency.table_aliases[name] = @join_dependency.count_aliases_from_table_joins(name)
                 end
 
-                unless @join_dependency.table_aliases[name].zero?
-                  # if the table name has been used, then use an alias
+                if !@join_dependency.table_aliases[name].zero? # We need an alias
                   name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
-                  table_index = @join_dependency.table_aliases[name]
                   @join_dependency.table_aliases[name] += 1
-                  name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
+                  if @join_dependency.table_aliases[name] == 1 # First time we've seen this name
+                    # Also need to count the aliases from the table_aliases to avoid incorrect count
+                    @join_dependency.table_aliases[name] += @join_dependency.count_aliases_from_table_joins(name)
+                  end
+                  table_index = @join_dependency.table_aliases[name]
+                  name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
                 else
                   @join_dependency.table_aliases[name] += 1
                 end

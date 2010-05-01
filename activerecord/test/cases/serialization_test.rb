@@ -44,4 +44,11 @@ class SerializationTest < ActiveRecord::TestCase
       assert_equal @contact_attributes[:awesome], contact.awesome, "For #{format}"
     end
   end
+
+  def test_serialize_should_xml_skip_instruct_for_included_records
+    @contact.alternative = Contact.new(:name => 'Copa Cabana')
+    @serialized = @contact.to_xml(:include => [ :alternative ])
+    assert_equal @serialized.index('<?xml '), 0
+    assert_nil @serialized.index('<?xml ', 1)
+  end
 end

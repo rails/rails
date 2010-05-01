@@ -1,5 +1,3 @@
 class <%= class_name %>Generator < Rails::Generators::NamedBase
-  def self.source_root
-    @source_root ||= File.expand_path('../templates', __FILE__)
-  end
+  source_root File.expand_path('../templates', __FILE__)
 end

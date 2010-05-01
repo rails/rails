@@ -2,6 +2,40 @@ require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 
+DEFAULT_APP_FILES = %w(
+  .gitignore
+  Gemfile
+  Rakefile
+  config.ru
+  app/controllers
+  app/helpers
+  app/models
+  app/views/layouts
+  config/environments
+  config/initializers
+  config/locales
+  db
+  doc
+  lib
+  lib/tasks
+  log
+  public/images
+  public/javascripts
+  public/stylesheets
+  script/rails
+  test/fixtures
+  test/functional
+  test/integration
+  test/performance
+  test/unit
+  vendor
+  vendor/plugins
+  tmp/sessions
+  tmp/sockets
+  tmp/cache
+  tmp/pids
+)
+
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments [destination_root]
@@ -20,35 +54,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_application_skeleton_is_created
     run_generator
 
-    %w(
-      app/controllers
-      app/helpers
-      app/models
-      app/views/layouts
-      config/environments
-      config/initializers
-      config/locales
-      db
-      doc
-      lib
-      lib/tasks
-      log
-      public/images
-      public/javascripts
-      public/stylesheets
-      script/rails
-      test/fixtures
-      test/functional
-      test/integration
-      test/performance
-      test/unit
-      vendor
-      vendor/plugins
-      tmp/sessions
-      tmp/sockets
-      tmp/cache
-      tmp/pids
-    ).each{ |path| assert_file path }
+    DEFAULT_APP_FILES.each{ |path| assert_file path }
   end
 
   def test_application_controller_and_layout_files
@@ -56,6 +62,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/application_controller.rb", /layout 'application'/
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag :all/
     assert_no_file "public/stylesheets/application.css"
+  end
+
+  def test_options_before_application_name_raises_an_error
+    content = capture(:stderr){ run_generator(["--skip-activerecord", destination_root]) }
+    assert_equal "Options should be given after the application name. For details run: rails --help\n", content
   end
 
   def test_name_collision_raises_an_error
@@ -152,7 +163,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path).expects(:open).with(path).returns(template)
+    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
     assert_match /It works!/, silence(:stdout){ generator.invoke }
   end
 
@@ -188,10 +199,66 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
   end
 
-  protected
+protected
 
-    def action(*args, &block)
-      silence(:stdout){ generator.send(*args, &block) }
-    end
+  def action(*args, &block)
+    silence(:stdout){ generator.send(*args, &block) }
+  end
 
+end
+
+class CustomAppGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+  tests Rails::Generators::AppGenerator
+
+  arguments [destination_root]
+
+  def setup
+    super
+    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
+  end
+
+  def teardown
+    super
+    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    Object.class_eval { remove_const :AppBuilder if const_defined?(:AppBuilder) }
+  end
+
+  def test_builder_option_with_empty_app_builder
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/empty_builder.rb"])
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
+  def test_builder_option_with_simple_app_builder
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/simple_builder.rb"])
+    (DEFAULT_APP_FILES - ['config.ru']).each{ |path| assert_no_file path }
+    assert_file "config.ru", %[run proc { |env| [200, { "Content-Type" => "text/html" }, ["Hello World"]] }]
+  end
+
+  def test_builder_option_with_tweak_app_builder
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/tweak_builder.rb"])
+    DEFAULT_APP_FILES.each{ |path| assert_file path }
+    assert_file "config.ru", %[run proc { |env| [200, { "Content-Type" => "text/html" }, ["Hello World"]] }]
+  end
+
+  def test_builder_option_with_http
+    path = "http://gist.github.com/103208.txt"
+    template = "class AppBuilder; end"
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    capture(:stdout) { generator.invoke }
+
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
+protected
+
+  def action(*args, &block)
+    silence(:stdout){ generator.send(*args, &block) }
+  end
 end

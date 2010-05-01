@@ -1,5 +1,11 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* OAuth 2: HTTP Token Authorization support to complement Basic and Digest Authorization.  [Rick Olson]
+
+* Fixed inconsistencies in form builder and view helpers #4432 [Neeraj Singh]
+
+* Both :xml and :json renderers now forwards the given options to the model, allowing you to invoke them as render :xml => @projects, :include => :tasks [José Valim, Yehuda Katz]
+
 * Renamed the field error CSS class from fieldWithErrors to field_with_errors for consistency.  [Jeremy Kemper]
 
 * Add support for shorthand routes like /projects/status(.:format)  #4423 [Diego Carrion]

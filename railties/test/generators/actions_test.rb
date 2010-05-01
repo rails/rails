@@ -209,7 +209,7 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_readme
     run_generator
-    Rails::Generators::AppGenerator.expects(:source_root).returns(destination_root)
+    Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
     assert_match(/Welcome to Rails/, action(:readme, "README"))
   end
 

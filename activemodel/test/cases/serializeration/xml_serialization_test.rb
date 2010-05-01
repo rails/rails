@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'models/contact'
 require 'active_support/core_ext/object/instance_variables'
+require 'ostruct'
 
 class Contact
   extend ActiveModel::Naming
@@ -23,7 +24,9 @@ class XmlSerializationTest < ActiveModel::TestCase
     @contact.age = 25
     @contact.created_at = Time.utc(2006, 8, 1)
     @contact.awesome = false
-    @contact.preferences = { :gem => 'ruby' }
+    customer = OpenStruct.new
+    customer.name = "John"
+    @contact.preferences = customer
   end
 
   test "should serialize default root" do
@@ -92,8 +95,16 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<awesome type=\"boolean\">false</awesome>}, @contact.to_xml
   end
 
+  test "should serialize array" do
+    assert_match %r{<social type=\"array\">\s*<social>twitter</social>\s*<social>github</social>\s*</social>}, @contact.to_xml(:methods => :social)
+  end
+
+  test "should serialize hash" do
+    assert_match %r{<network>\s*<git type=\"symbol\">github</git>\s*</network>}, @contact.to_xml(:methods => :network)
+  end
+
   test "should serialize yaml" do
-    assert_match %r{<preferences type=\"yaml\">--- \n:gem: ruby\n</preferences>}, @contact.to_xml
+    assert_match %r{<preferences type=\"yaml\">--- !ruby/object:OpenStruct \ntable:\s*:name: John\n</preferences>}, @contact.to_xml
   end
 
   test "should call proc on object" do

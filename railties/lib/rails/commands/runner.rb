@@ -36,7 +36,8 @@ ARGV.delete(code_or_file)
 
 ENV["RAILS_ENV"] = options[:environment]
 
-require ENV_PATH
+require APP_PATH
+Rails::Application.require_environment!
 
 begin
   if code_or_file.nil?

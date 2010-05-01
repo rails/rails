@@ -211,7 +211,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
     ].to_xml(:skip_instruct => true, :indent => 0)
 
-    assert_equal '<records type="array"><record>', xml.first(30)
+    assert_equal '<objects type="array"><object>', xml.first(30)
     assert xml.include?(%(<age type="integer">26</age>)), xml
     assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), xml
     assert xml.include?(%(<name>David</name>)), xml
@@ -233,7 +233,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0)
 
-    assert_equal "<records><record>", xml.first(17)
+    assert_equal "<objects><object>", xml.first(17)
     assert xml.include?(%(<street-address>Paulina</street-address>))
     assert xml.include?(%(<name>David</name>))
     assert xml.include?(%(<street-address>Evergreen</street-address>))
@@ -245,7 +245,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => false)
 
-    assert_equal "<records><record>", xml.first(17)
+    assert_equal "<objects><object>", xml.first(17)
     assert xml.include?(%(<street_address>Paulina</street_address>))
     assert xml.include?(%(<street_address>Evergreen</street_address>))
   end
@@ -255,7 +255,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => true)
 
-    assert_equal "<records><record>", xml.first(17)
+    assert_equal "<objects><object>", xml.first(17)
     assert xml.include?(%(<street-address>Paulina</street-address>))
     assert xml.include?(%(<street-address>Evergreen</street-address>))
   end
@@ -319,7 +319,7 @@ class ArrayExtractOptionsTests < Test::Unit::TestCase
     assert_equal({}, options)
     assert_equal [hash], array
   end
-
+  
   def test_extract_options_extracts_extractable_subclass
     hash = ExtractableHashSubclass.new
     hash[:foo] = 1

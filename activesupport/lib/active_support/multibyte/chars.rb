@@ -75,8 +75,6 @@ module ActiveSupport #:nodoc:
       UNICODE_TRAILERS_PAT = /(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+\Z/u
       UNICODE_LEADERS_PAT = /\A(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+/u
 
-      UTF8_PAT = ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8']
-
       attr_reader :wrapped_string
       alias to_s wrapped_string
       alias to_str wrapped_string
@@ -409,25 +407,11 @@ module ActiveSupport #:nodoc:
       # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
       # passing strings to databases and validations.
       #
-      # * <tt>str</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
       #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
       #   ActiveSupport::Multibyte.default_normalization_form
       def normalize(form=ActiveSupport::Multibyte.default_normalization_form)
-        # See http://www.unicode.org/reports/tr15, Table 1
-        codepoints = self.class.u_unpack(@wrapped_string)
-        chars(case form
-          when :d
-            self.class.reorder_characters(self.class.decompose_codepoints(:canonical, codepoints))
-          when :c
-            self.class.compose_codepoints(self.class.reorder_characters(self.class.decompose_codepoints(:canonical, codepoints)))
-          when :kd
-            self.class.reorder_characters(self.class.decompose_codepoints(:compatability, codepoints))
-          when :kc
-            self.class.compose_codepoints(self.class.reorder_characters(self.class.decompose_codepoints(:compatability, codepoints)))
-          else
-            raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*'))
+        chars(self.class.normalize(@wrapped_string, form))
       end
 
       # Performs canonical decomposition on all the characters.
@@ -659,7 +643,7 @@ module ActiveSupport #:nodoc:
 
         # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
         #
-        # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP-1252 or ISO-8859-1.
+        # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP1252 or ISO-8859-1.
         def tidy_bytes(string, force = false)
           if force
             return string.unpack("C*").map do |b|
@@ -708,6 +692,31 @@ module ActiveSupport #:nodoc:
           end
           bytes.empty? ? "" : bytes.flatten.compact.pack("C*").unpack("U*").pack("U*")
         end
+
+        # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
+        # passing strings to databases and validations.
+        #
+        # * <tt>string</tt> - The string to perform normalization on.
+        # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
+        #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
+        #   ActiveSupport::Multibyte.default_normalization_form
+        def normalize(string, form=ActiveSupport::Multibyte.default_normalization_form)
+          # See http://www.unicode.org/reports/tr15, Table 1
+          codepoints = u_unpack(string)
+          case form
+            when :d
+              reorder_characters(decompose_codepoints(:canonical, codepoints))
+            when :c
+              compose_codepoints(reorder_characters(decompose_codepoints(:canonical, codepoints)))
+            when :kd
+              reorder_characters(decompose_codepoints(:compatability, codepoints))
+            when :kc
+              compose_codepoints(reorder_characters(decompose_codepoints(:compatability, codepoints)))
+            else
+              raise ArgumentError, "#{form} is not a valid normalization variant", caller
+          end.pack('U*')
+        end
+
       end
 
       protected

@@ -133,6 +133,9 @@ module ActiveModel
         _validators[attribute.to_sym]
       end
 
+      def attribute_method?(attribute)
+        method_defined?(attribute)
+      end
     private
 
       def _merge_attributes(attr_names)

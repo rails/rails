@@ -1136,6 +1136,25 @@ if ActiveRecord::Base.connection.supports_migrations?
       load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
     end
 
+    def test_target_version_zero_should_run_only_once
+      # migrate up to 1
+      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
+
+      # migrate down to 0
+      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
+
+      # now unload the migrations that have been defined
+      PeopleHaveLastNames.unloadable
+      ActiveSupport::Dependencies.remove_unloadable_constants!
+
+      # migrate down to 0 again
+      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
+
+      assert !defined? PeopleHaveLastNames
+    ensure
+      load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+    end
+
     def test_migrator_db_has_no_schema_migrations_table
       # Oracle adapter raises error if semicolon is present as last character
       if current_adapter?(:OracleAdapter)

@@ -85,7 +85,7 @@ module Rails
     delegate :metal_loader, :to => :config
 
     def require_environment!
-      environment = config.paths.config.environment.to_a.first
+      environment = paths.config.environment.to_a.first
       require environment if environment
     end
 
@@ -153,7 +153,7 @@ module Rails
       require "rails/tasks"
       task :environment do
         $rails_rake_task = true
-        initialize!
+        require_environment!
       end
     end
 
