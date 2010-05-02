@@ -10,8 +10,6 @@ ActionView::Template::register_template_handler :mab,
 
 ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/layout_tests/' ]
 
-require "fixture_template"
-
 class LayoutTest < ActionController::Base
   def self.controller_path; 'views' end
   def self._implied_layout_name; to_s.underscore.gsub(/_controller$/, '') ; end
