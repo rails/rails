@@ -179,6 +179,8 @@ module Notifications
 
       drain
       assert_equal 1, @events.size
+      assert_equal Hash[:payload => "notifications",
+        :exception => ["RuntimeError", "FAIL"]], @events.last.payload
     end
 
     def test_event_is_pushed_even_without_block

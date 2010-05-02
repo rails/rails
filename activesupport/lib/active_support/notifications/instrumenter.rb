@@ -12,14 +12,16 @@ module ActiveSupport
       end
 
       # Instrument the given block by measuring the time taken to execute it
-      # and publish it.
+      # and publish it. Notice that events get sent even if an error occurs
+      # in the passed-in block
       def instrument(name, payload={})
         time = Time.now
         begin
           yield(payload) if block_given?
+        rescue Exception => e
+          payload[:exception] = [e.class.name, e.message]
+          raise e
         ensure
-          # Notify in an ensure block so that we can be certain end
-          # events get sent even if an error occurs in the passed-in block
           @notifier.publish(name, time, Time.now, @id, payload)
         end
       end
