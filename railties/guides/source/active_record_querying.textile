@@ -17,7 +17,7 @@ If you're used to using raw SQL to find database records then, generally, you wi
 
 Code examples throughout this guide will refer to one or more of the following models:
 
-TIP: All of the following models uses +id+ as the primary key, unless specified otherwise.
+TIP: All of the following models use +id+ as the primary key, unless specified otherwise.
 
 <br />
 
