@@ -113,6 +113,15 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
   end
+  
+  class ProcMailer < ActionMailer::Base
+    default :to => 'system@test.lindsaar.net',
+            'X-Proc-Method' => Proc.new { Time.now.to_i.to_s }
+
+    def welcome
+      mail
+    end
+  end
 
   test "method call to mail does not raise error" do
     assert_nothing_raised { BaseMailer.welcome }
@@ -559,6 +568,14 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.welcome
     MyInterceptor.expects(:delivering_email).with(mail)
     mail.deliver
+  end
+  
+  test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
+    mail1 = ProcMailer.welcome
+    yesterday = 1.day.ago
+    Time.stubs(:now).returns(yesterday)
+    mail2 = ProcMailer.welcome
+    assert(mail1['X-Proc-Method'].to_s.to_i > mail2['X-Proc-Method'].to_s.to_i)
   end
 
   protected

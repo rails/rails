@@ -528,8 +528,13 @@ module ActionMailer #:nodoc:
       content_type = headers[:content_type]
       parts_order  = headers[:parts_order]
 
+      # Call all the procs (if any)
+      default_values = self.class.default.merge(self.class.default) do |k,v|
+        v.respond_to?(:call) ? v.call : v
+      end
+      
       # Handle defaults
-      headers = headers.reverse_merge(self.class.default)
+      headers = headers.reverse_merge(default_values)
       headers[:subject] ||= default_i18n_subject
 
       # Apply charset at the beginning so all fields are properly quoted
