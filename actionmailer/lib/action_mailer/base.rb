@@ -13,7 +13,7 @@ module ActionMailer #:nodoc:
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from ActionMailer::Base. Emails are defined by creating methods
+  # The generated model inherits from <tt>ActionMailer::Base</tt>. Emails are defined by creating methods
   # within the model which are then used to set variables to be used in the mail template, to
   # change options on the mail, or to add attachments.
   #
@@ -185,7 +185,7 @@ module ActionMailer #:nodoc:
   #
   # = Observing and Intercepting Mails
   # 
-  # ActionMailer provides hooks into the Mail observer and interceptor methods.  These allow you to
+  # Action Mailer provides hooks into the Mail observer and interceptor methods.  These allow you to
   # register objects that are called during the mail delivery life cycle.
   # 
   # An observer object must implement the <tt>:delivered_email(message)</tt> method which will be
@@ -198,7 +198,7 @@ module ActionMailer #:nodoc:
   #
   # = Default Hash
   # 
-  # ActionMailer provides some intelligent defaults for your emails, these are usually specified in a
+  # Action Mailer provides some intelligent defaults for your emails, these are usually specified in a
   # default method inside the class definition:
   # 
   #   class Notifier < ActionMailer::Base
@@ -214,7 +214,7 @@ module ActionMailer #:nodoc:
   # * <tt>:parts_order  => [ "text/plain", "text/enriched", "text/html" ]</tt>
   # 
   # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid <tt>Mail::Message</tt> header fields,
-  # but ActionMailer translates them appropriately and sets the correct values.
+  # but Action Mailer translates them appropriately and sets the correct values.
   # 
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
   # an underscorised symbol, so the following will work:
@@ -224,7 +224,7 @@ module ActionMailer #:nodoc:
   #             :content_description => 'This is a description'
   #   end
   # 
-  # Finally, ActionMailer also supports passing <tt>Proc</tt> objects into the default hash, so you
+  # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
   # can define methods that evaluate as the message is being generated:
   # 
   #   class Notifier < ActionMailer::Base
@@ -478,7 +478,7 @@ module ActionMailer #:nodoc:
     # Both methods accept a headers hash. This hash allows you to specify the most used headers
     # in an email message, these are:
     # 
-    # * <tt>:subject</tt> - The subject of the message, if this is omitted, ActionMailer will
+    # * <tt>:subject</tt> - The subject of the message, if this is omitted, Action Mailer will
     #   ask the Rails I18n class for a translated <tt>:subject</tt> in the scope of
     #   <tt>[:actionmailer, mailer_scope, action_name]</tt> or if this is missing, will translate the
     #   humanized version of the <tt>action_name</tt>
