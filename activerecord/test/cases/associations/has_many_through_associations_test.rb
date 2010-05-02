@@ -388,6 +388,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
+  def test_has_many_association_through_a_has_many_association_to_self
+    sarah = Person.create!(:first_name => 'Sarah', :primary_contact_id => people(:susan).id, :gender => 'F', :number1_fan_id => 1)
+    john = Person.create!(:first_name => 'John', :primary_contact_id => sarah.id, :gender => 'M', :number1_fan_id => 1)
+    assert_equal sarah.agents, [john]
+    assert_equal people(:susan).agents_of_agents, [john]
+  end
+
   def test_collection_singular_ids_getter_with_string_primary_keys
     book = books(:awdr)
     assert_equal 2, book.subscriber_ids.size
