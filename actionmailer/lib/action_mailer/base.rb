@@ -530,7 +530,7 @@ module ActionMailer #:nodoc:
 
       # Call all the procs (if any)
       default_values = self.class.default.merge(self.class.default) do |k,v|
-        v.respond_to?(:call) ? v.call : v
+        v.respond_to?(:call) ? v.bind(self).call : v
       end
       
       # Handle defaults

@@ -116,11 +116,19 @@ class BaseTest < ActiveSupport::TestCase
   
   class ProcMailer < ActionMailer::Base
     default :to => 'system@test.lindsaar.net',
-            'X-Proc-Method' => Proc.new { Time.now.to_i.to_s }
+            'X-Proc-Method' => Proc.new { Time.now.to_i.to_s },
+            :subject => Proc.new { give_a_greeting }
 
     def welcome
       mail
     end
+    
+    private
+    
+    def give_a_greeting
+      "Thanks for signing up this afternoon"
+    end
+    
   end
 
   test "method call to mail does not raise error" do
@@ -576,6 +584,11 @@ class BaseTest < ActiveSupport::TestCase
     Time.stubs(:now).returns(yesterday)
     mail2 = ProcMailer.welcome
     assert(mail1['X-Proc-Method'].to_s.to_i > mail2['X-Proc-Method'].to_s.to_i)
+  end
+  
+  test "we can call other defined methods on the class as needed" do
+    mail = ProcMailer.welcome
+    assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
   protected
