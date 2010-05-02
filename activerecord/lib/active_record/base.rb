@@ -1362,7 +1362,8 @@ module ActiveRecord #:nodoc:
         def replace_bind_variables(statement, values) #:nodoc:
           raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
-          statement.gsub('?') { quote_bound_value(bound.shift) }
+          c = connection
+          statement.gsub('?') { quote_bound_value(bound.shift, c) }
         end
 
         def replace_named_bind_variables(statement, bind_vars) #:nodoc:
@@ -1394,15 +1395,15 @@ module ActiveRecord #:nodoc:
           expanded
         end
 
-        def quote_bound_value(value) #:nodoc:
+        def quote_bound_value(value, c = connection) #:nodoc:
           if value.respond_to?(:map) && !value.acts_like?(:string)
             if value.respond_to?(:empty?) && value.empty?
-              connection.quote(nil)
+              c.quote(nil)
             else
-              value.map { |v| connection.quote(v) }.join(',')
+              value.map { |v| c.quote(v) }.join(',')
             end
           else
-            connection.quote(value)
+            c.quote(value)
           end
         end
 
