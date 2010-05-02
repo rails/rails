@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'bigdecimal'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/delegation'
