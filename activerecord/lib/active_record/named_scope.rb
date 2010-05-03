@@ -99,11 +99,7 @@ module ActiveRecord
           block_given? ? relation.extending(Module.new(&block)) : relation
         end
 
-        singleton_class.instance_eval do
-          define_method name do |*args|
-            scopes[name].call(*args)
-          end
-        end
+        singleton_class.send :define_method, name, &scopes[name]
       end
 
       def named_scope(*args, &block)
