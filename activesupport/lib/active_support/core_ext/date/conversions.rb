@@ -1,5 +1,6 @@
 require 'date'
 require 'active_support/inflector'
+require 'active_support/core_ext/time/calculations'
 
 class Date
   DATE_FORMATS = {
