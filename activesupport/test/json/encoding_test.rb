@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'bigdecimal'
+require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/json'
 
 class TestJSONEncoding < Test::Unit::TestCase
@@ -26,7 +28,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   NilTests      = [[ nil,   %(null)  ]]
   NumericTests  = [[ 1,     %(1)     ],
                    [ 2.5,   %(2.5)   ],
-                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s('F')}") ]]
+                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
                    [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],
