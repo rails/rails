@@ -24,7 +24,7 @@ module ActiveSupport
     #   # Store the transliterations in locales/de.yml
     #   i18n:
     #     transliterate:
-    #       :rule
+    #       rule:
     #         ü: "ue"
     #         ö: "oe"
     #
