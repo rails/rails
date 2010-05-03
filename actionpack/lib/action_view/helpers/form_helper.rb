@@ -1179,7 +1179,7 @@ module ActionView
       #     helpers:
       #       submit:
       #         post:
-      #           create: "Add {{model}}"
+      #           create: "Add %{model}"
       #
       def submit(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)

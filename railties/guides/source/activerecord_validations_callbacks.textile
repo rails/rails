@@ -234,7 +234,7 @@ This helper validates that the attributes' values are not included in a given se
 <ruby>
 class Account < ActiveRecord::Base
   validates_exclusion_of :subdomain, :in => %w(www),
-    :message => "Subdomain {{value}} is reserved."
+    :message => "Subdomain %{value} is reserved."
 end
 </ruby>
 
@@ -262,7 +262,7 @@ This helper validates that the attributes' values are included in a given set. I
 <ruby>
 class Coffee < ActiveRecord::Base
   validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "{{value}} is not a valid size"
+    :message => "%{value} is not a valid size"
 end
 </ruby>
 
@@ -290,12 +290,12 @@ The possible length constraint options are:
 * +:in+ (or +:within+) - The attribute length must be included in a given interval. The value for this option must be a range.
 * +:is+ - The attribute length must be equal to the given value.
 
-The default error messages depend on the type of length validation being performed. You can personalize these messages using the +:wrong_length+, +:too_long+, and +:too_short+ options and <tt>{{count}}</tt> as a placeholder for the number corresponding to the length constraint being used. You can still use the +:message+ option to specify an error message.
+The default error messages depend on the type of length validation being performed. You can personalize these messages using the +:wrong_length+, +:too_long+, and +:too_short+ options and <tt>%{count}</tt> as a placeholder for the number corresponding to the length constraint being used. You can still use the +:message+ option to specify an error message.
 
 <ruby>
 class Person < ActiveRecord::Base
   validates_length_of :bio, :maximum => 1000,
-    :too_long => "{{count}} characters is the maximum allowed"
+    :too_long => "%{count} characters is the maximum allowed"
 end
 </ruby>
 
@@ -307,8 +307,8 @@ class Essay < ActiveRecord::Base
     :minimum   => 300,
     :maximum   => 400,
     :tokenizer => lambda { |str| str.scan(/\w+/) },
-    :too_short => "must have at least {{count}} words",
-    :too_long  => "must have at most {{count}} words"
+    :too_short => "must have at least %{count} words",
+    :too_long  => "must have at most %{count} words"
 end
 </ruby>
 
@@ -337,11 +337,11 @@ end
 
 Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the following options to add constraints to acceptable values:
 
-* +:greater_than+ - Specifies the value must be greater than the supplied value. The default error message for this option is "_must be greater than {{count}}_".
-* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to {{count}}_".
-* +:equal_to+ - Specifies the value must be equal to the supplied value. The default error message for this option is "_must be equal to {{count}}_".
-* +:less_than+ - Specifies the value must be less than the supplied value. The default error message for this option is "_must be less than {{count}}_".
-* +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less or equal to {{count}}_".
+* +:greater_than+ - Specifies the value must be greater than the supplied value. The default error message for this option is "_must be greater than %{count}_".
+* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to %{count}_".
+* +:equal_to+ - Specifies the value must be equal to the supplied value. The default error message for this option is "_must be equal to %{count}_".
+* +:less_than+ - Specifies the value must be less than the supplied value. The default error message for this option is "_must be less than %{count}_".
+* +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less or equal to %{count}_".
 * +:odd+ - Specifies the value must be an odd number if set to true. The default error message for this option is "_must be odd_".
 * +:even+ - Specifies the value must be an even number if set to true. The default error message for this option is "_must be even_".
 
@@ -469,7 +469,7 @@ The +:allow_nil+ option skips the validation when the value being validated is +
 <ruby>
 class Coffee < ActiveRecord::Base
   validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "{{value}} is not a valid size", :allow_nil => true
+    :message => "%{value} is not a valid size", :allow_nil => true
 end
 </ruby>
 

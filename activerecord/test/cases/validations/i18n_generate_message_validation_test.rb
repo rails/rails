@@ -15,7 +15,7 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   end
 
   def test_generate_message_invalid_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :invalid, :default => 'custom message {{value}}', :value => 'title')
+    assert_equal 'custom message title', @topic.errors.generate_message(:title, :invalid, :default => 'custom message %{value}', :value => 'title')
   end
 
   # validates_uniqueness_of: generate_message(attr_name, :taken, :default => configuration[:message])
@@ -24,7 +24,7 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   end
 
   def test_generate_message_taken_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :taken, :default => 'custom message {{value}}', :value => 'title')
+    assert_equal 'custom message title', @topic.errors.generate_message(:title, :taken, :default => 'custom message %{value}', :value => 'title')
   end
 
   # ActiveRecord#RecordInvalid exception

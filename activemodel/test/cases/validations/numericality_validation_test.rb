@@ -126,13 +126,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_numeric_message
-    Topic.validates_numericality_of :approved, :less_than => 4, :message => "smaller than {{count}}"
+    Topic.validates_numericality_of :approved, :less_than => 4, :message => "smaller than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 10)
 
     assert !topic.valid?
     assert_equal ["smaller than 4"], topic.errors[:approved]
 
-    Topic.validates_numericality_of :approved, :greater_than => 4, :message => "greater than {{count}}"
+    Topic.validates_numericality_of :approved, :greater_than => 4, :message => "greater than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 1)
 
     assert !topic.valid?
