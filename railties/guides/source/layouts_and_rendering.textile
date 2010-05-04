@@ -895,7 +895,7 @@ The +audio_tag+ helper builds an HTML 5 +&lt;audio&gt;+ tag to the specified fil
 <%= audio_tag "music.mp3" %>
 </erb>
 
-You can supply a path to the image if you like:
+You can supply a path to the audio file if you like:
 
 <erb>
 <%= audio_tag "music/first_song.mp3" %>
