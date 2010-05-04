@@ -19,5 +19,19 @@ module ApplicationTests
       ::Rails.application.load_tasks
       assert $task_loaded
     end
+
+    def test_environment_is_required_in_rake_tasks
+      app_file "config/environment.rb", <<-RUBY
+        SuperMiddleware = Struct.new(:app)
+
+        Rails::Application.configure do
+          config.middleware.use SuperMiddleware
+        end
+
+        Rails::Application.initialize!
+      RUBY
+
+      assert_match "SuperMiddleware", Dir.chdir(app_path){ `rake middleware` }
+    end
   end
 end

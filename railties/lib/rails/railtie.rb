@@ -1,6 +1,7 @@
 require 'rails/initializable'
 require 'rails/configuration'
 require 'active_support/inflector'
+require 'active_support/deprecation'
 
 module Rails
   # Railtie is the core of the Rails Framework and provides several hooks to extend

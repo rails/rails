@@ -23,9 +23,9 @@ module ActionController
         :path       => (request.fullpath rescue "unknown")
       }
 
-      ActiveSupport::Notifications.instrument("action_controller.start_processing", raw_payload.dup)
+      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
 
-      ActiveSupport::Notifications.instrument("action_controller.process_action", raw_payload) do |payload|
+      ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
         result = super
         payload[:status] = response.status
         append_info_to_payload(payload)
@@ -42,20 +42,20 @@ module ActionController
     end
 
     def send_file(path, options={})
-      ActiveSupport::Notifications.instrument("action_controller.send_file",
+      ActiveSupport::Notifications.instrument("send_file.action_controller",
         options.merge(:path => path)) do
         super
       end
     end
 
     def send_data(data, options = {})
-      ActiveSupport::Notifications.instrument("action_controller.send_data", options) do
+      ActiveSupport::Notifications.instrument("send_data.action_controller", options) do
         super
       end
     end
 
     def redirect_to(*args)
-      ActiveSupport::Notifications.instrument("action_controller.redirect_to") do |payload|
+      ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
         result = super
         payload[:status]   = self.status
         payload[:location] = self.location

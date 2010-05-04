@@ -1,7 +1,7 @@
 en:
   errors:
     # The default format use in full error messages.
-    format: "{{attribute}} {{message}}"
+    format: "%{attribute} %{message}"
 
     # The values :model, :attribute and :value are always available for interpolation
     # The value :count is available when applicable. Can be used for pluralization.
@@ -13,15 +13,15 @@ en:
       accepted: "must be accepted"
       empty: "can't be empty"
       blank: "can't be blank"
-      too_long: "is too long (maximum is {{count}} characters)"
-      too_short: "is too short (minimum is {{count}} characters)"
-      wrong_length: "is the wrong length (should be {{count}} characters)"
+      too_long: "is too long (maximum is %{count} characters)"
+      too_short: "is too short (minimum is %{count} characters)"
+      wrong_length: "is the wrong length (should be %{count} characters)"
       not_a_number: "is not a number"
       not_an_integer: "must be an integer"
-      greater_than: "must be greater than {{count}}"
-      greater_than_or_equal_to: "must be greater than or equal to {{count}}"
-      equal_to: "must be equal to {{count}}"
-      less_than: "must be less than {{count}}"
-      less_than_or_equal_to: "must be less than or equal to {{count}}"
+      greater_than: "must be greater than %{count}"
+      greater_than_or_equal_to: "must be greater than or equal to %{count}"
+      equal_to: "must be equal to %{count}"
+      less_than: "must be less than %{count}"
+      less_than_or_equal_to: "must be less than or equal to %{count}"
       odd: "must be odd"
       even: "must be even"

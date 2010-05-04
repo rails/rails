@@ -122,6 +122,8 @@ module ActiveRecord
         requires_new = options[:requires_new] || !last_transaction_joinable
 
         transaction_open = false
+        @_current_transaction_records ||= []
+
         begin
           if block_given?
             if requires_new || open_transactions == 0
@@ -132,6 +134,7 @@ module ActiveRecord
               end
               increment_open_transactions
               transaction_open = true
+              @_current_transaction_records.push([])
             end
             yield
           end
@@ -141,8 +144,10 @@ module ActiveRecord
             decrement_open_transactions
             if open_transactions == 0
               rollback_db_transaction
+              rollback_transaction_records(true)
             else
               rollback_to_savepoint
+              rollback_transaction_records(false)
             end
           end
           raise unless database_transaction_rollback.is_a?(ActiveRecord::Rollback)
@@ -157,18 +162,33 @@ module ActiveRecord
           begin
             if open_transactions == 0
               commit_db_transaction
+              commit_transaction_records
             else
               release_savepoint
+              save_point_records = @_current_transaction_records.pop
+              unless save_point_records.blank?
+                @_current_transaction_records.push([]) if @_current_transaction_records.empty?
+                @_current_transaction_records.last.concat(save_point_records)
+              end
             end
           rescue Exception => database_transaction_rollback
             if open_transactions == 0
               rollback_db_transaction
+              rollback_transaction_records(true)
             else
               rollback_to_savepoint
+              rollback_transaction_records(false)
             end
             raise
           end
         end
+      end
+
+      # Register a record with the current transaction so that its after_commit and after_rollback callbacks
+      # can be called.
+      def add_transaction_record(record)
+        last_batch = @_current_transaction_records.last
+        last_batch << record if last_batch
       end
 
       # Begins the transaction (and turns off auto-committing).
@@ -266,6 +286,42 @@ module ActiveRecord
             limit.to_s.split(',').map{ |i| i.to_i }.join(',')
           else
             limit.to_i
+          end
+        end
+
+        # Send a rollback message to all records after they have been rolled back. If rollback
+        # is false, only rollback records since the last save point.
+        def rollback_transaction_records(rollback) #:nodoc
+          if rollback
+            records = @_current_transaction_records.flatten
+            @_current_transaction_records.clear
+          else
+            records = @_current_transaction_records.pop
+          end
+
+          unless records.blank?
+            records.uniq.each do |record|
+              begin
+                record.rolledback!(rollback)
+              rescue Exception => e
+                record.logger.error(e) if record.respond_to?(:logger)
+              end
+            end
+          end
+        end
+
+        # Send a commit message to all records after they have been committed.
+        def commit_transaction_records #:nodoc
+          records = @_current_transaction_records.flatten
+          @_current_transaction_records.clear
+          unless records.blank?
+            records.uniq.each do |record|
+              begin
+                record.committed!
+              rescue Exception => e
+                record.logger.error(e) if record.respond_to?(:logger)
+              end
+            end
           end
         end
     end

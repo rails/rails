@@ -16,12 +16,12 @@ module ActionController
       @templates = Hash.new(0)
       @layouts = Hash.new(0)
 
-      ActiveSupport::Notifications.subscribe("action_view.render_template") do |name, start, finish, id, payload|
+      ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
         @layouts[path] += 1
       end
 
-      ActiveSupport::Notifications.subscribe("action_view.render_template!") do |name, start, finish, id, payload|
+      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
@@ -36,8 +36,8 @@ module ActionController
     end
 
     def teardown_subscriptions
-      ActiveSupport::Notifications.unsubscribe("action_view.render_template")
-      ActiveSupport::Notifications.unsubscribe("action_view.render_template!")
+      ActiveSupport::Notifications.unsubscribe("render_template.action_view")
+      ActiveSupport::Notifications.unsubscribe("!render_template.action_view")
     end
 
     # Asserts that the request was rendered with the appropriate template file or partials
@@ -57,7 +57,8 @@ module ActionController
       validate_request!
 
       case options
-      when NilClass, String
+      when NilClass, String, Symbol
+        options = options.to_s if Symbol === options
         rendered = @templates
         msg = build_message(message,
                 "expecting <?> but rendering with <?>",

@@ -33,11 +33,11 @@ class FormHelperTest < ActionView::TestCase
     I18n.backend.store_translations 'submit', {
       :helpers => {
         :submit => {
-          :create => 'Create {{model}}',
-          :update => 'Confirm {{model}} changes',
+          :create => 'Create %{model}',
+          :update => 'Confirm %{model} changes',
           :submit => 'Save changes',
           :another_post => {
-            :update => 'Update your {{model}}'
+            :update => 'Update your %{model}'
           }
         }
       }

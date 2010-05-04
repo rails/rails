@@ -53,7 +53,7 @@ h4. Generate the Plugin Skeleton
 
 Rails ships with a plugin generator which creates a basic plugin skeleton. Pass the plugin name, either 'CamelCased' or 'under_scored', as an argument. Pass +--with-generator+ to add an example generator also.
 
-This creates a plugin in 'vendor/plugins' including an 'init.rb' and 'README' as well as standard 'lib', 'task', and 'test' directories.
+This creates a plugin in +vendor/plugins+ including an +init.rb+ and +README+ as well as standard +lib+, +task+, and +test+ directories.
 
 Examples:
 <shell>
@@ -104,27 +104,27 @@ To make it easy to organize your files and to make the plugin more compatible wi
     `-- init.rb
 </shell>
 
-*vendor/plugins/yaffle/init.rb*
-
 <ruby>
+# vendor/plugins/yaffle/init.rb
+
 require 'yaffle'
 </ruby>
 
-Now you can add any 'require' statements to 'lib/yaffle.rb' and keep 'init.rb' clean.
+Now you can add any +require+ statements to +lib/yaffle.rb+ and keep +init.rb+ clean.
 
 h3. Tests
 
 In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  To setup your plugin to allow for easy testing you'll need to add 3 files:
 
- * A 'database.yml' file with all of your connection strings
- * A 'schema.rb' file with your table definitions
+ * A +database.yml+ file with all of your connection strings
+ * A +schema.rb+ file with your table definitions
  * A test helper method that sets up the database
 
 h4. Test Setup
 
-*vendor/plugins/yaffle/test/database.yml:*
-
 <yaml>
+# vendor/plugins/yaffle/test/database.yml
+
 sqlite:
   :adapter: sqlite
   :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
@@ -150,9 +150,9 @@ mysql:
 
 For this guide you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following:
 
-*vendor/plugins/yaffle/test/schema.rb:*
-
 <ruby>
+# vendor/plugins/yaffle/test/schema.rb
+
 ActiveRecord::Schema.define(:version => 0) do
   create_table :hickwalls, :force => true do |t|
     t.string :name
@@ -170,9 +170,9 @@ ActiveRecord::Schema.define(:version => 0) do
 end
 </ruby>
 
-*vendor/plugins/yaffle/test/test_helper.rb:*
-
 <ruby>
+# vendor/plugins/yaffle/test/test_helper.rb
+
 ENV['RAILS_ENV'] = 'test'
 ENV['RAILS_ROOT'] ||= File.dirname(__FILE__) + '/../../../..'
 
@@ -213,11 +213,11 @@ Now whenever you write a test that requires the database, you can call 'load_sch
 
 h4. Run the Plugin Tests
 
-Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in 'vendor/plugins/yaffle/test/yaffle_test.rb' with a sample test.  Replace the contents of that file with:
-
-*vendor/plugins/yaffle/test/yaffle_test.rb:*
+Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct. By default rails generates a file in +vendor/plugins/yaffle/test/yaffle_test.rb+ with a sample test. Replace the contents of that file with:
 
 <ruby>
+# vendor/plugins/yaffle/test/yaffle_test.rb
+
 require File.dirname(__FILE__) + '/test_helper.rb'
 
 class YaffleTest < Test::Unit::TestCase
@@ -264,7 +264,7 @@ Finished in 0.002236 seconds.
 1 test, 1 assertion, 0 failures, 0 errors
 </shell>
 
-By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in database.yml, pass the DB environment variable to rake:
+By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in +database.yml+, pass the DB environment variable to rake:
 
 <shell>
 rake DB=sqlite
@@ -281,9 +281,9 @@ This section will explain how to add a method to String that will be available a
 
 In this example you will add a method to String named +to_squawk+.  To begin, create a new test file with a few assertions:
 
-* *vendor/plugins/yaffle/test/core_ext_test.rb*
-
 <ruby>
+# vendor/plugins/yaffle/test/core_ext_test.rb
+
 require File.dirname(__FILE__) + '/test_helper.rb'
 
 class CoreExtTest < Test::Unit::TestCase
@@ -311,19 +311,19 @@ NoMethodError: undefined method `to_squawk' for "Hello World":String
 
 Great - now you are ready to start development.
 
-Then in 'lib/yaffle.rb' require 'lib/core_ext.rb':
-
-* *vendor/plugins/yaffle/lib/yaffle.rb*
+Then in +lib/yaffle.rb+ require +lib/core_ext.rb+:
 
 <ruby>
+# vendor/plugins/yaffle/lib/yaffle.rb
+
 require "yaffle/core_ext"
 </ruby>
 
-Finally, create the 'core_ext.rb' file and add the 'to_squawk' method:
-
-* *vendor/plugins/yaffle/lib/yaffle/core_ext.rb*
+Finally, create the +core_ext.rb+ file and add the +to_squawk+ method:
 
 <ruby>
+# vendor/plugins/yaffle/lib/yaffle/core_ext.rb
+  
 String.class_eval do
   def to_squawk
     "squawk! #{self}".strip
@@ -331,7 +331,7 @@ String.class_eval do
 end
 </ruby>
 
-To test that your method does what it says it does, run the unit tests with +rake+ from your plugin directory.  To see this in action, fire up a console and start squawking:
+To test that your method does what it says it does, run the unit tests with +rake+ from your plugin directory. To see this in action, fire up a console and start squawking:
 
 <shell>
 $ rails console
@@ -345,13 +345,13 @@ When Rails loads plugins it looks for a file named +init.rb+.  However, when the
 
 NOTE: The plugins loader also looks for +rails/init.rb+, but that one is deprecated in favor of the top-level +init.rb+ aforementioned.
 
-Under certain circumstances if you reopen classes or modules in +init.rb+ you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from +init.rb+, as shown above.
+Under certain circumstances if you reopen classes or modules in +init.rb+ you may inadvertently create a new class, rather than reopening an existing class. A better alternative is to reopen the class in a different file, and require that file from +init.rb+, as shown above.
 
 If you must reopen a class in +init.rb+ you can use +module_eval+ or +class_eval+ to avoid any issues:
 
-* *vendor/plugins/yaffle/init.rb*
-
 <ruby>
+# vendor/plugins/yaffle/init.rb
+
 Hash.class_eval do
   def is_a_special_hash?
     true
@@ -361,9 +361,9 @@ end
 
 Another way is to explicitly define the top-level module space for all modules and classes, like +::Hash+:
 
-* *vendor/plugins/yaffle/init.rb*
-
 <ruby>
+# vendor/plugins/yaffle/init.rb
+
 class ::Hash
   def is_a_special_hash?
     true

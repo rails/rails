@@ -103,6 +103,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_remote_false
+    assert_dom_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :remote => false)
+    )
+  end
+
   def test_button_to_enabled_disabled
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",
@@ -202,6 +209,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       "<a href=\"http://www.example.com\" data-remote=\"true\">Hello</a>",
       link_to("Hello", "http://www.example.com", :remote => true)
+    )
+  end
+
+  def test_link_to_with_remote_false
+    assert_dom_equal(
+      "<a href=\"http://www.example.com\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :remote => false)
     )
   end
 

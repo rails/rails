@@ -531,7 +531,7 @@ In many cases you want to abstract your translations so that *variables can be i
 All options besides +:default+ and +:scope+ that are passed to +#translate+ will be interpolated to the translation:
 
 <ruby>
-I18n.backend.store_translations :en, :thanks => 'Thanks {{name}}!'
+I18n.backend.store_translations :en, :thanks => 'Thanks %{name}!'
 I18n.translate :thanks, :name => 'Jeremy'
 # => 'Thanks Jeremy!'
 </ruby>
@@ -547,7 +547,7 @@ The +:count+ interpolation variable has a special role in that it both is interp
 <ruby>
 I18n.backend.store_translations :en, :inbox => {
   :one => '1 message',
-  :other => '{{count}} messages'
+  :other => '%{count} messages'
 }
 I18n.translate :inbox, :count => 2
 # => '2 messages'
@@ -711,7 +711,7 @@ h5. Error Message Interpolation
 
 The translated model name, translated attribute name, and value are always available for interpolation.
 
-So, for example, instead of the default error message +"can not be blank"+ you could use the attribute name like this : +"Please fill in your {{attribute}}"+.
+So, for example, instead of the default error message +"can not be blank"+ you could use the attribute name like this : +"Please fill in your %{attribute}"+.
 
 * +count+, where available, can be used for pluralization if present:
 
@@ -750,8 +750,8 @@ en:
     errors:
       template:
         header:
-          one:   "1 error prohibited this {{model}} from being saved"
-          other: "{{count}} errors prohibited this {{model}} from being saved"
+          one:   "1 error prohibited this %{model} from being saved"
+          other: "%{count} errors prohibited this %{model} from being saved"
         body:    "There were problems with the following fields:"
 </yaml>
 

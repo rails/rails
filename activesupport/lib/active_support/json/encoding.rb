@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'bigdecimal'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/big_decimal/conversions' # for #to_s
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/delegation'
@@ -178,6 +179,14 @@ class Numeric
 end
 
 class BigDecimal
+  # A BigDecimal would be naturally represented as a JSON number. Most libraries,
+  # however, parse non-integer JSON numbers directly as floats. Clients using
+  # those libraries would get in general a wrong number and no way to recover
+  # other than manually inspecting the string with the JSON code itself.
+  #
+  # That's why a JSON string is returned. The JSON literal is not numeric, but if
+  # the other end knows by contract that the data is supposed to be a BigDecimal,
+  # it still has the chance to post-process the string and get the real value.
   def as_json(options = nil) to_s end #:nodoc:
 end
 

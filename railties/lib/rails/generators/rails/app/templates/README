@@ -45,8 +45,8 @@ suitable for development and deployment of Rails applications. If you have Ruby 
 getting up and running with mongrel is as easy as: <tt>gem install mongrel</tt>.
 More info at: http://mongrel.rubyforge.org
 
-Say other Ruby web servers like Thin and Ebb or regular web servers like Apache or LiteSpeed or
-Lighttpd or IIS. The Ruby web servers are run through Rack and the latter can either be setup to use
+You can also use other Ruby web servers like Thin and Ebb or regular web servers like Apache, LiteSpeed,
+Lighttpd, or IIS. The Ruby web servers are run through Rack and the others can be setup to use
 FCGI or proxy to a pack of Mongrels/Thin/Ebb servers.
 
 == Apache .htaccess example for FCGI/CGI
@@ -116,14 +116,14 @@ the Ruby logger class from inside your controllers. Example:
 
 The result will be a message in your log file along the lines of:
 
-  Mon Oct 08 14:22:29 +1000 2007 Destroyed Weblog ID #1
+  Mon Oct 08 14:22:29 +1000 2007 Destroyed Weblog ID #1!
 
 More information on how to use the logger is at http://www.ruby-doc.org/core/
 
 Also, Ruby documentation can be found at http://www.ruby-lang.org/ including:
 
 * The Learning Ruby (Pickaxe) Book: http://www.ruby-doc.org/docs/ProgrammingRuby/
-* Learn to Program: http://pine.fm/LearnToProgram/  (a beginners guide)
+* Learn to Program: http://pine.fm/LearnToProgram/  (a beginner's guide)
 
 These two online (and free) books will bring you up to speed on the Ruby language
 and also on programming in general.

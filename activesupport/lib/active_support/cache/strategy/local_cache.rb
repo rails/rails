@@ -56,6 +56,13 @@ module ActiveSupport
           @middleware ||= begin
             klass = Class.new
             klass.class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+              class << self
+                def name
+                  "ActiveSupport::Cache::Strategy::LocalCache"
+                end
+                alias :to_s :name
+              end
+
               def initialize(app)
                 @app = app
               end
@@ -67,11 +74,6 @@ module ActiveSupport
                 Thread.current[:#{thread_local_key}] = nil
               end
             EOS
-
-            def klass.to_s
-              "ActiveSupport::Cache::Strategy::LocalCache"
-            end
-
             klass
           end
         end
@@ -140,7 +142,7 @@ module ActiveSupport
 
         private
           def thread_local_key
-            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{self.object_id}".gsub("/", "_").to_sym
+            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
           end
 
           def local_cache

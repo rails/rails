@@ -1,6 +1,7 @@
+require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/inflector'
+require 'active_support/core_ext/string/inflections'
 
 class Array
   # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
@@ -127,34 +128,31 @@ class Array
   #   </messages>
   #
   def to_xml(options = {})
-    raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
     require 'builder' unless defined?(Builder)
 
     options = options.dup
-    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)).tr('/', '_') : "records"
-    options[:children] ||= options[:root].singularize
-    options[:indent]   ||= 2
-    options[:builder]  ||= Builder::XmlMarkup.new(:indent => options[:indent])
-
-    root     = options.delete(:root).to_s
-    children = options.delete(:children)
-
-    if !options.has_key?(:dasherize) || options[:dasherize]
-      root = root.dasherize
+    options[:indent]  ||= 2
+    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options[:root]    ||= if first.class.to_s != "Hash" && all? { |e| e.is_a?(first.class) }
+      underscored = ActiveSupport::Inflector.underscore(first.class.name)
+      ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
+    else
+      "objects"
     end
 
-    options[:builder].instruct! unless options.delete(:skip_instruct)
+    builder = options[:builder]
+    builder.instruct! unless options.delete(:skip_instruct)
 
-    opts = options.merge({ :root => children })
+    root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
+    children = options.delete(:children) || root.singularize
 
-    xml = options[:builder]
-    if empty?
-      xml.tag!(root, options[:skip_types] ? {} : {:type => "array"})
-    else
-      xml.tag!(root, options[:skip_types] ? {} : {:type => "array"}) {
-        yield xml if block_given?
-        each { |e| e.to_xml(opts.merge({ :skip_instruct => true })) }
-      }
+    attributes = options[:skip_types] ? {} : {:type => "array"}
+    return builder.tag!(root, attributes) if empty?
+
+    builder.__send__(:method_missing, root, attributes) do
+      each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
+      yield builder if block_given?
     end
   end
+
 end

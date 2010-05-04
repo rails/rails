@@ -61,13 +61,8 @@ module ActiveRecord
     # Setup database middleware after initializers have run
     initializer "active_record.initialize_database_middleware", :after => "action_controller.set_configs" do |app|
       middleware = app.config.middleware
-      if middleware.include?("ActiveRecord::SessionStore")
-        middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
-        middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::QueryCache
-      else
-        middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
-        middleware.use ActiveRecord::QueryCache
-      end
+      middleware.insert_after "::ActionDispatch::Callbacks", ActiveRecord::QueryCache
+      middleware.insert_after "::ActionDispatch::Callbacks", ActiveRecord::ConnectionAdapters::ConnectionManagement
     end
 
     initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|

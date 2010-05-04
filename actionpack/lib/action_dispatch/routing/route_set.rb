@@ -6,10 +6,6 @@ require 'action_dispatch/routing/deprecated_mapper'
 module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
-      NotFound = lambda { |env|
-        raise ActionController::RoutingError, "No route matches #{env['PATH_INFO'].inspect}"
-      }
-
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher #:nodoc:
@@ -224,7 +220,6 @@ module ActionDispatch
       def finalize!
         return if @finalized
         @finalized = true
-        @set.add_route(NotFound)
         @set.freeze
       end
 

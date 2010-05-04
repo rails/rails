@@ -35,6 +35,7 @@ module ActionController
       RecordIdentifier,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
+      HttpAuthentication::Token::ControllerMethods,
 
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.

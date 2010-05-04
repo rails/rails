@@ -490,12 +490,8 @@ module ActiveRecord
         execute "ROLLBACK"
       end
 
-      if defined?(PGconn::PQTRANS_IDLE)
-        # The ruby-pg driver supports inspecting the transaction status,
-        # while the ruby-postgres driver does not.
-        def outside_transaction?
-          @connection.transaction_status == PGconn::PQTRANS_IDLE
-        end
+      def outside_transaction?
+        @connection.transaction_status == PGconn::PQTRANS_IDLE
       end
 
       def create_savepoint

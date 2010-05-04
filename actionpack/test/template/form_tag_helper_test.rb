@@ -59,6 +59,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_remote_false
+    actual = form_tag({}, :remote => false)
+    expected = %(<form action="http://www.example.com" method="post">)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_with_block_in_erb
     output_buffer = form_tag("http://example.com") { concat "Hello world!" }
 

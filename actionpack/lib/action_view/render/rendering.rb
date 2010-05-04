@@ -52,7 +52,7 @@ module ActionView
       locals = options[:locals] || {}
       layout = find_layout(layout) if layout
 
-      ActiveSupport::Notifications.instrument("action_view.render_template",
+      ActiveSupport::Notifications.instrument("render_template.action_view",
         :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
 
         content = template.render(self, locals) { |*name| _layout_for(*name) }

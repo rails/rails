@@ -1,3 +1,4 @@
+require 'active_support/deprecation'
 require 'rails/engine/configuration'
 
 module Rails
@@ -43,14 +44,15 @@ module Rails
         @paths ||= begin
           paths = super
           paths.app.controllers << builtin_controller if builtin_controller
-          paths.config.database    "config/database.yml"
-          paths.config.environment "config/environments", :glob => "#{Rails.env}.rb"
-          paths.lib.templates      "lib/templates"
-          paths.log                "log/#{Rails.env}.log"
-          paths.tmp                "tmp"
-          paths.tmp.cache          "tmp/cache"
-          paths.vendor             "vendor", :load_path => true
-          paths.vendor.plugins     "vendor/plugins"
+          paths.config.database     "config/database.yml"
+          paths.config.environment  "config/environment.rb"
+          paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
+          paths.lib.templates       "lib/templates"
+          paths.log                 "log/#{Rails.env}.log"
+          paths.tmp                 "tmp"
+          paths.tmp.cache           "tmp/cache"
+          paths.vendor              "vendor", :load_path => true
+          paths.vendor.plugins      "vendor/plugins"
 
           if File.exists?("#{root}/test/mocks/#{Rails.env}")
             ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<
@@ -142,7 +144,7 @@ module Rails
           middleware.use('::Rack::Runtime')
           middleware.use('::Rails::Rack::Logger')
           middleware.use('::ActionDispatch::ShowExceptions', lambda { consider_all_requests_local }, :if => lambda { action_dispatch.show_exceptions })
-          middleware.use("::ActionDispatch::RemoteIp", lambda { action_dispatch.ip_spoofing_check }, lambda { action_dispatch.trusted_proxies })
+          middleware.use('::ActionDispatch::RemoteIp', lambda { action_dispatch.ip_spoofing_check }, lambda { action_dispatch.trusted_proxies })
           middleware.use('::Rack::Sendfile', lambda { action_dispatch.x_sendfile_header })
           middleware.use('::ActionDispatch::Callbacks', lambda { !cache_classes })
           middleware.use('::ActionDispatch::Cookies')

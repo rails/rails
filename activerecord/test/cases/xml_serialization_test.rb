@@ -79,8 +79,8 @@ class DefaultXmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<awesome type=\"boolean\">false</awesome>}, @xml
   end
 
-  def test_should_serialize_yaml
-    assert_match %r{<preferences type=\"yaml\">---\s?\n:gem: ruby\n</preferences>}, @xml
+  def test_should_serialize_hash
+    assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @xml
   end
 end
 
@@ -232,6 +232,14 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert types.include?('SpecialPost')
     assert types.include?('Post')
     assert types.include?('StiPost')
+  end
+
+  def test_should_produce_xml_for_methods_returning_array
+    xml = authors(:david).to_xml(:methods => :social)
+    array = Hash.from_xml(xml)['author']['social']
+    assert_equal 2, array.size
+    assert array.include? 'twitter'
+    assert array.include? 'github'
   end
 
 end

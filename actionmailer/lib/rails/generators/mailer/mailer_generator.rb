@@ -1,6 +1,8 @@
 module Rails
   module Generators
     class MailerGenerator < NamedBase
+      source_root File.expand_path("../templates", __FILE__)
+
       argument :actions, :type => :array, :default => [], :banner => "method method"
       check_class_collision
 

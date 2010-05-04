@@ -20,7 +20,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of_with_formatted_message
-    Topic.validates_exclusion_of( :title, :in => %w( abe monkey ), :message => "option {{value}} is restricted" )
+    Topic.validates_exclusion_of( :title, :in => %w( abe monkey ), :message => "option %{value} is restricted" )
 
     assert Topic.create("title" => "something", "content" => "abc")
 

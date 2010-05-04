@@ -344,25 +344,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     end
   end
 
-  def test_assert_template_with_partial
-    get :partial
-    assert_template :partial => '_partial'
-  end
-
-  def test_assert_template_with_nil
-    get :nothing
-    assert_template nil
-  end
-
-  def test_assert_template_with_string
-    get :hello_world
-    assert_template 'hello_world'
-  end
-
-  def test_assert_template_with_symbol
-    get :hello_world
-    assert_template :hello_world
-  end
 
   # check if we were rendered by a file-based template?
   def test_rendered_action
@@ -386,7 +367,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     process :nothing
     assert_nil @response.redirect_url
   end
-
 
   # check server errors
   def test_server_error_response_code
@@ -535,6 +515,52 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     # success
   rescue
     flunk "assert_response failed to handle failure response with missing, but optional, exception."
+  end
+end
+
+class AssertTemplateTest < ActionController::TestCase
+  tests ActionPackAssertionsController
+
+  def test_with_partial
+    get :partial
+    assert_template :partial => '_partial'
+  end
+
+  def test_with_nil_passes_when_no_template_rendered
+    get :nothing
+    assert_template nil
+  end
+
+  def test_with_nil_fails_when_template_rendered
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template nil
+    end
+  end
+
+  def test_passes_with_correct_string
+    get :hello_world
+    assert_template 'hello_world'
+    assert_template 'test/hello_world'
+  end
+
+  def test_passes_with_correct_symbol
+    get :hello_world
+    assert_template :hello_world
+  end
+
+  def test_fails_with_incorrect_string
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'hello_planet'
+    end
+  end
+
+  def test_fails_with_incorrect_symbol
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :hello_planet
+    end
   end
 end
 

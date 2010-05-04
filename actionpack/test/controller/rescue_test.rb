@@ -326,7 +326,8 @@ class RescueTest < ActionController::IntegrationTest
   end
 
   test 'rescue routing exceptions' do
-    @app = ActionDispatch::Rescue.new(SharedTestRoutes) do
+    raiser = proc { |env| raise ActionController::RoutingError, "Did not handle the request" }
+    @app = ActionDispatch::Rescue.new(raiser) do
       rescue_from ActionController::RoutingError, lambda { |env| [200, {"Content-Type" => "text/html"}, ["Gotcha!"]] }
     end
 
@@ -335,7 +336,8 @@ class RescueTest < ActionController::IntegrationTest
   end
 
   test 'unrescued exception' do
-    @app = ActionDispatch::Rescue.new(SharedTestRoutes)
+    raiser = proc { |env| raise ActionController::RoutingError, "Did not handle the request" }
+    @app = ActionDispatch::Rescue.new(raiser)
     assert_raise(ActionController::RoutingError) { get '/b00m' }
   end
 

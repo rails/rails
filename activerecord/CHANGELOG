@@ -1,5 +1,9 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* New callbacks: after_commit and after_rollback. Do expensive operations like image thumbnailing after_commit instead of after_save.  #2991 [Brian Durand]
+
+* Serialized attributes are not converted to YAML if they are any of the formats that can be serialized to XML (like Hash, Array and Strings). [José Valim]
+
 * Destroy uses optimistic locking. If lock_version on the record you're destroying doesn't match lock_version in the database, a StaleObjectError is raised.  #1966 [Curtis Hawthorne]
 
 * PostgreSQL: drop support for old postgres driver. Use pg 0.9.0 or later.  [Jeremy Kemper]
