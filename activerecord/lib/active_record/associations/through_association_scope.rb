@@ -21,9 +21,17 @@ module ActiveRecord
         construct_owner_attributes(@reflection)
       end
 
+      def aliased_through_table
+        name = @reflection.through_reflection.table_name
+
+        @reflection.table_name == name ?
+          @reflection.through_reflection.klass.arel_table.alias(name + "_join") :
+          @reflection.through_reflection.klass.arel_table
+      end
+
       # Build SQL conditions from attributes, qualified by table name.
       def construct_conditions
-        table = @reflection.through_reflection.klass.arel_table
+        table = aliased_through_table
         conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
           table[attr].eq(value)
         end
@@ -53,7 +61,7 @@ module ActiveRecord
       end
 
       def construct_joins
-        right = @reflection.through_reflection.klass.arel_table
+        right = aliased_through_table
         left  = @reflection.klass.arel_table
 
         conditions = []
