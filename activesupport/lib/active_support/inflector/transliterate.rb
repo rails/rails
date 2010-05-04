@@ -24,8 +24,9 @@ module ActiveSupport
     #   # Store the transliterations in locales/de.yml
     #   i18n:
     #     transliterate:
-    #       ü: "ue"
-    #       ö: "oe"
+    #       rule:
+    #         ü: "ue"
+    #         ö: "oe"
     #
     #   # Or set them using Ruby
     #   I18n.backend.store_translations(:de, :i18n => {

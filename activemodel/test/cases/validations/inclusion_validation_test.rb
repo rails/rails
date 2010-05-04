@@ -44,7 +44,7 @@ class InclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_inclusion_of_with_formatted_message
-    Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ), :message => "option {{value}} is not in the list" )
+    Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ), :message => "option %{value} is not in the list" )
 
     assert Topic.create("title" => "a", "content" => "abc").valid?
 

@@ -22,7 +22,7 @@ module Rails
   #
   #   Rails::LogSubscriber.add :active_record, ActiveRecord::Railtie::LogSubscriber.new
   #
-  # So whenever a "active_record.sql" notification arrive to Rails::LogSubscriber,
+  # So whenever a "sql.active_record" notification arrive to Rails::LogSubscriber,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
   # the sql method.
   #
@@ -54,7 +54,7 @@ module Rails
       log_subscribers << log_subscriber
 
       log_subscriber.public_methods(false).each do |event|
-        notifier.subscribe("#{namespace}.#{event}") do |*args|
+        notifier.subscribe("#{event}.#{namespace}") do |*args|
           next if log_subscriber.logger.nil?
 
           begin

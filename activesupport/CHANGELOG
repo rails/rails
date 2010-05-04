@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Deprecate {{}} as interpolation syntax for I18n in favor of %{} [José Valim]
+
 * Array#to_xml is more powerful and able to handle the same types as Hash#to_xml #4490 [Neeraj Singh]
 
 * Harmonize the caching API and refactor the backends.  #4452 [Brian Durand]

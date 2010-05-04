@@ -109,7 +109,7 @@ module ActionController #:nodoc:
           end
 
           def instrument_page_cache(name, path)
-            ActiveSupport::Notifications.instrument("action_controller.#{name}", :path => path){ yield }
+            ActiveSupport::Notifications.instrument("#{name}.action_controller", :path => path){ yield }
           end
       end
 

@@ -516,7 +516,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
             # Cap primary key sequences to max(pk).
             if connection.respond_to?(:reset_pk_sequence!)
               table_names.each do |table_name|
-                connection.reset_pk_sequence!(table_name)
+                connection.reset_pk_sequence!(table_name.tr('/', '_'))
               end
             end
           end

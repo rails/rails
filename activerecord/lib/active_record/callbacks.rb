@@ -17,8 +17,13 @@ module ActiveRecord
   # * (-) <tt>create</tt>
   # * (5) <tt>after_create</tt>
   # * (6) <tt>after_save</tt>
+  # * (7) <tt>after_commit</tt>
   #
-  # That's a total of eight callbacks, which gives you immense power to react and prepare for each state in the
+  # Also, an <tt>after_rollback</tt> callback can be configured to be triggered whenever a rollback is issued.
+  # Check out <tt>ActiveRecord::Transactions</tt> for more details about <tt>after_commit</tt> and
+  # <tt>after_rollback</tt>.
+  #
+  # That's a total of ten callbacks, which gives you immense power to react and prepare for each state in the
   # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, except that each
   # <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
   #

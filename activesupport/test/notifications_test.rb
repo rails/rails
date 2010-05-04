@@ -168,7 +168,7 @@ module Notifications
       assert_equal Hash[:payload => "notifications"], @events.last.payload
     end
 
-    def test_instrument_does_not_publish_when_exception_is_raised
+    def test_instrument_publishes_when_exception_is_raised
       begin
         instrument(:awesome, :payload => "notifications") do
           raise "FAIL"
@@ -178,7 +178,9 @@ module Notifications
       end
 
       drain
-      assert_equal 0, @events.size
+      assert_equal 1, @events.size
+      assert_equal Hash[:payload => "notifications",
+        :exception => ["RuntimeError", "FAIL"]], @events.last.payload
     end
 
     def test_event_is_pushed_even_without_block

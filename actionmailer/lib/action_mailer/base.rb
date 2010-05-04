@@ -354,7 +354,7 @@ module ActionMailer #:nodoc:
       #     end
       #   end
       def receive(raw_mail)
-        ActiveSupport::Notifications.instrument("action_mailer.receive") do |payload|
+        ActiveSupport::Notifications.instrument("receive.action_mailer") do |payload|
           mail = Mail.new(raw_mail)
           set_payload_for_mail(payload, mail)
           new.receive(mail)
@@ -366,7 +366,7 @@ module ActionMailer #:nodoc:
       # when you call <tt>:deliver</tt> on the Mail::Message, calling +deliver_mail+ directly
       # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
-        ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
+        ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           self.set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
         end
@@ -566,8 +566,13 @@ module ActionMailer #:nodoc:
       content_type = headers[:content_type]
       parts_order  = headers[:parts_order]
 
+      # Call all the procs (if any)
+      default_values = self.class.default.merge(self.class.default) do |k,v|
+        v.respond_to?(:call) ? v.bind(self).call : v
+      end
+      
       # Handle defaults
-      headers = headers.reverse_merge(self.class.default)
+      headers = headers.reverse_merge(default_values)
       headers[:subject] ||= default_i18n_subject
 
       # Apply charset at the beginning so all fields are properly quoted

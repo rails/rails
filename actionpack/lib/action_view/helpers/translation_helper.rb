@@ -20,7 +20,7 @@ module ActionView
         options[:raise] = true
         translation = I18n.translate(scope_key_by_partial(key), options)
         translation = (translation.respond_to?(:join) ? translation.join : translation)
-        if html_safe_translation_key? key
+        if html_safe_translation_key?(key)
           translation.html_safe
         else
           translation
@@ -53,12 +53,8 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          last_key = if key.is_a? Array
-            key.last
-          else
-            key.to_s.split('.').last
-          end
-          (last_key == "html") || (last_key.ends_with? "_html")
+          key = key.is_a?(Array) ? key.last : key.to_s
+          key =~ /(\b|_|\.)html$/
         end
     end
   end

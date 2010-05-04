@@ -58,7 +58,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_format
-    I18n.backend.store_translations('en', :errors => {:format => "Field {{attribute}} {{message}}"})
+    I18n.backend.store_translations('en', :errors => {:format => "Field %{attribute} %{message}"})
     @person.errors.add('name', 'empty')
     assert_equal ["Field Name empty"], @person.errors.full_messages
   end
