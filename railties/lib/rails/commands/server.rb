@@ -83,7 +83,7 @@ module Rails
         :environment => (ENV['RAILS_ENV'] || "development").dup,
         :daemonize   => false,
         :debugger    => false,
-        :pid         => "tmp/pids/server.pid"
+        :pid         => File.expand_path("tmp/pids/server.pid")
       })
     end
   end
