@@ -48,6 +48,20 @@ module ActionView
         assert test_case.ancestors.include?(AnotherTestHelper)
         assert_equal 'Howdy!', from_another_helper
       end
+
+      test "determine_default_helper_class returns nil if name.sub(/Test$/, '').constantize resolves to a class" do
+        assert_nil self.class.determine_default_helper_class("String")
+      end
+
+      test "delegates notice to request.flash" do
+        _view.request.flash.expects(:notice).with("this message")
+        _view.notice("this message")
+      end
+
+      test "delegates alert to request.flash" do
+        _view.request.flash.expects(:alert).with("this message")
+        _view.alert("this message")
+      end
     end
 
     class ClassMethodsTest < ActionView::TestCase
