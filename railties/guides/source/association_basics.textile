@@ -1262,7 +1262,7 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6(:has_many-group). +:group+
+h6(#has_many-group). +:group+
 
 The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
 
