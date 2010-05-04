@@ -20,6 +20,13 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_to_time
     assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
     assert_equal Time.local_time(2039, 2, 21), Date.new(2039, 2, 21).to_time
+    silence_warnings do
+      0.upto(138) do |year|
+        [:utc, :local].each do |format|
+          assert_equal year, Date.new(year).to_time(format).year
+        end
+      end
+    end  
   end
 
   def test_to_datetime
@@ -89,7 +96,6 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,3,31), Date.new(2005,3,20).end_of_month
     assert_equal Date.new(2005,2,28), Date.new(2005,2,20).end_of_month
     assert_equal Date.new(2005,4,30), Date.new(2005,4,20).end_of_month
-
   end
 
   def test_beginning_of_year

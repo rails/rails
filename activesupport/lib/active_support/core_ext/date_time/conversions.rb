@@ -1,5 +1,6 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/time/conversions'
+require 'active_support/core_ext/date_time/calculations'
 
 class DateTime
   # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
@@ -71,6 +72,11 @@ class DateTime
   def to_datetime
     self
   end unless method_defined?(:to_datetime)
+
+  def self.civil_from_format(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0)
+    offset = utc_or_local.to_sym == :local ? local_offset : 0
+    civil(year, month, day, hour, min, sec, offset)
+  end
 
   # Converts datetime to an appropriate format for use in XML
   def xmlschema
