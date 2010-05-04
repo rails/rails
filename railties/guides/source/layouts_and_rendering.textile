@@ -806,7 +806,7 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to Images with +image_tag+
 
-The +image_tag+ helper builds an HTML +&lt;image /&gt;+ tag to the specified file. By default, files are loaded from +public/images+, note, you must specify the extension, previous versions of Rails would allow you to just call the image name and would append +.png+ if no extension was given, Rails 3.0 does not.
+The +image_tag+ helper builds an HTML +&lt;img /&gt;+ tag to the specified file. By default, files are loaded from +public/images+, note, you must specify the extension, previous versions of Rails would allow you to just call the image name and would append +.png+ if no extension was given, Rails 3.0 does not.
 
 <erb>
 <%= image_tag "header.png" %>
@@ -1154,7 +1154,7 @@ h4. Using Nested Layouts
 
 You may find that your application requires a layout that differs slightly from your regular application layout to support one particular controller. Rather than repeating the main layout and editing it, you can accomplish this by using nested layouts (sometimes called sub-templates). Here's an example:
 
-Suppose you have the follow +ApplicationController+ layout:
+Suppose you have the following +ApplicationController+ layout:
 
 * +app/views/layouts/application.html.erb+
 
