@@ -10,8 +10,8 @@ module ActiveRecord
     ##
     # :singleton-method:
     # The connection handler
-    cattr_accessor :connection_handler, :instance_writer => false
-    @@connection_handler = ConnectionAdapters::ConnectionHandler.new
+    class_inheritable_accessor :connection_handler, :instance_writer => false
+    self.connection_handler = ConnectionAdapters::ConnectionHandler.new
 
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work that isn't
@@ -54,7 +54,7 @@ module ActiveRecord
           raise AdapterNotSpecified unless defined?(Rails.env)
           establish_connection(Rails.env)
         when ConnectionSpecification
-          @@connection_handler.establish_connection(name, spec)
+          self.connection_handler.establish_connection(name, spec)
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
