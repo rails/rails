@@ -802,7 +802,7 @@ will either assign an existing client object with the name "Ryan" to the client 
 
 h3. Finding by SQL
 
-If you'd like to use your own SQL to find records in a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even the underlying query returns just a single record. For example you could run this query:
+If you'd like to use your own SQL to find records in a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
 
 <ruby>
 Client.find_by_sql("SELECT * FROM clients 
