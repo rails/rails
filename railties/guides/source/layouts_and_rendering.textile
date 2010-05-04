@@ -747,7 +747,7 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with +stylesheet_link_tag+
 
-The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.cs+:
+The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.css+:
 
 <erb>
 <%= stylesheet_link_tag "main" %>
