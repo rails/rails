@@ -84,15 +84,15 @@ module Arel
     module Predications
       methods = {
         :eq => "Equality",
-        :noteq => "Inequality",
+        :not_eq => "Inequality",
         :lt => "LessThan",
         :lteq => "LessThanOrEqualTo",
         :gt => "GreaterThan",
         :gteq => "GreaterThanOrEqualTo",
         :matches => "Match",
-        :notmatches => "NotMatch",
+        :not_matches => "NotMatch",
         :in => "In",
-        :notin => "NotIn"
+        :not_in => "NotIn"
       }
       
       def self.predication(name, klass)

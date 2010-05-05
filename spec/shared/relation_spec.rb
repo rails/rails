@@ -35,9 +35,9 @@ share_examples_for 'A Relation' do
       @relation.where(@relation[:age].eq(@pivot[@relation[:age]])).should have_rows(expected)
     end
 
-    it "finds rows with a noteq predicate" do
+    it "finds rows with a not eq predicate" do
       expected = @expected.select { |r| r[@relation[:age]] != @pivot[@relation[:age]] }
-      @relation.where(@relation[:age].noteq(@pivot[@relation[:age]])).should have_rows(expected)
+      @relation.where(@relation[:age].not_eq(@pivot[@relation[:age]])).should have_rows(expected)
     end
 
     it "finds rows with a less than predicate" do
@@ -67,7 +67,7 @@ share_examples_for 'A Relation' do
     
     it "finds rows with a not matches predicate" do
       expected = @expected.select { |r| r[@relation[:name]] !~ /#{@pivot[@relation[:name]]}/ }
-      @relation.where(@relation[:name].notmatches(/#{@pivot[@relation[:name]]}/)).should have_rows(expected)
+      @relation.where(@relation[:name].not_matches(/#{@pivot[@relation[:name]]}/)).should have_rows(expected)
     end
 
     it "finds rows with an in predicate" do
@@ -77,7 +77,7 @@ share_examples_for 'A Relation' do
     
     it "finds rows with a not in predicate" do
       expected = @expected.select {|r| !(r[@relation[:age]] >=3 && r[@relation[:age]] <= 20)}
-      @relation.where(@relation[:age].notin(3..20)).should have_rows(expected)
+      @relation.where(@relation[:age].not_in(3..20)).should have_rows(expected)
     end
     
     it "finds rows with a not predicate" do
