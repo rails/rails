@@ -1009,7 +1009,10 @@ class BaseTest < Test::Unit::TestCase
 
   def test_to_xml
     matz = Person.find(1)
-    xml = matz.encode
+    encode = matz.encode
+    xml = matz.to_xml
+
+    assert encode, xml
     assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
@@ -1019,9 +1022,11 @@ class BaseTest < Test::Unit::TestCase
     Person.include_root_in_json = true
     Person.format = :json
     joe = Person.find(6)
-    json = joe.encode
+    encode = joe.encode
+    json = joe.to_json
     Person.format = :xml
 
+    assert encode, json
     assert_match %r{^\{"person":\{"person":\{}, json
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
