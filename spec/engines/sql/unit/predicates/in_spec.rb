@@ -99,6 +99,28 @@ module Arel
             end
           end
         end
+        
+        describe 'when relating to a range with an excluded end' do
+          before do
+            @range = 1...3
+          end
+
+          it 'manufactures sql with a >= and <' do
+            sql = In.new(@attribute, @range).to_sql
+
+            adapter_is :mysql do
+              sql.should be_like(%Q{(`users`.`id` >= 1 AND `users`.`id` < 3)})
+            end
+
+            adapter_is :oracle do
+              sql.should be_like(%Q{("USERS"."ID" >= 1 AND "USERS"."ID" < 3)})
+            end
+
+            adapter_is_not :mysql, :oracle do
+              sql.should be_like(%Q{("users"."id" >= 1 AND "users"."id" < 3)})
+            end
+          end
+        end
 
         describe 'when relating to a time range' do
           before do

@@ -35,29 +35,59 @@ share_examples_for 'A Relation' do
       @relation.where(@relation[:age].eq(@pivot[@relation[:age]])).should have_rows(expected)
     end
 
+    it "finds rows with an equal to complement predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] != @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].eq(@pivot[@relation[:age]]).complement).should have_rows(expected)
+    end
+
     it "finds rows with a not eq predicate" do
       expected = @expected.select { |r| r[@relation[:age]] != @pivot[@relation[:age]] }
       @relation.where(@relation[:age].not_eq(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+    
+    it "finds rows with an not eq complement predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] == @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].not_eq(@pivot[@relation[:age]]).complement).should have_rows(expected)
     end
 
     it "finds rows with a less than predicate" do
       expected = @expected.select { |r| r[@relation[:age]] < @pivot[@relation[:age]] }
       @relation.where(@relation[:age].lt(@pivot[@relation[:age]])).should have_rows(expected)
     end
+    
+    it "finds rows with a less than complement predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] >= @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].lt(@pivot[@relation[:age]]).complement).should have_rows(expected)
+    end
 
     it "finds rows with a less than or equal to predicate" do
       expected = @expected.select { |r| r[@relation[:age]] <= @pivot[@relation[:age]] }
       @relation.where(@relation[:age].lteq(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+    
+    it "finds rows with a less than or equal to complement predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] > @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].lteq(@pivot[@relation[:age]]).complement).should have_rows(expected)
     end
 
     it "finds rows with a greater than predicate" do
       expected = @expected.select { |r| r[@relation[:age]] > @pivot[@relation[:age]] }
       @relation.where(@relation[:age].gt(@pivot[@relation[:age]])).should have_rows(expected)
     end
+    
+    it "finds rows with a greater than complement predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] <= @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].gt(@pivot[@relation[:age]]).complement).should have_rows(expected)
+    end
 
     it "finds rows with a greater than or equal to predicate" do
       expected = @expected.select { |r| r[@relation[:age]] >= @pivot[@relation[:age]] }
       @relation.where(@relation[:age].gteq(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+    
+    it "finds rows with a greater than or equal to complement predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] < @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].gteq(@pivot[@relation[:age]]).complement).should have_rows(expected)
     end
 
     it "finds rows with a matches predicate" do
@@ -65,9 +95,19 @@ share_examples_for 'A Relation' do
       @relation.where(@relation[:name].matches(/#{@pivot[@relation[:name]]}/)).should have_rows(expected)
     end
     
+    it "finds rows with a matches complement predicate" do
+      expected = @expected.select { |r| r[@relation[:name]] !~ /#{@pivot[@relation[:name]]}/ }
+      @relation.where(@relation[:name].matches(/#{@pivot[@relation[:name]]}/).complement).should have_rows(expected)
+    end
+    
     it "finds rows with a not matches predicate" do
       expected = @expected.select { |r| r[@relation[:name]] !~ /#{@pivot[@relation[:name]]}/ }
       @relation.where(@relation[:name].not_matches(/#{@pivot[@relation[:name]]}/)).should have_rows(expected)
+    end
+    
+    it "finds rows with a not matches complement predicate" do
+      expected = @expected.select { |r| r[@relation[:name]] =~ /#{@pivot[@relation[:name]]}/ }
+      @relation.where(@relation[:name].not_matches(/#{@pivot[@relation[:name]]}/).complement).should have_rows(expected)
     end
 
     it "finds rows with an in predicate" do
@@ -75,24 +115,39 @@ share_examples_for 'A Relation' do
       @relation.where(@relation[:age].in(3..20)).should have_rows(expected)
     end
     
+    it "finds rows with an in complement predicate" do
+      expected = @expected.select {|r| !(r[@relation[:age]] >=3 && r[@relation[:age]] <= 20)}
+      @relation.where(@relation[:age].in(3..20).complement).should have_rows(expected)
+    end
+    
     it "finds rows with a not in predicate" do
       expected = @expected.select {|r| !(r[@relation[:age]] >=3 && r[@relation[:age]] <= 20)}
       @relation.where(@relation[:age].not_in(3..20)).should have_rows(expected)
     end
     
-    it "finds rows with a not predicate" do
-      expected = @expected.select {|r| !(r[@relation[:age]] >= 3 && r[@relation[:age]] <= 20)}
-      @relation.where(@relation[:age].in(3..20).not).should have_rows(expected)
+    it "finds rows with a not in complement predicate" do
+      expected = @expected.select {|r| r[@relation[:age]] >=3 && r[@relation[:age]] <= 20}
+      @relation.where(@relation[:age].not_in(3..20).complement).should have_rows(expected)
     end
     
-    it "finds rows with a grouped predicate of class Any" do
+    it "finds rows with a polyadic predicate of class Any" do
       expected = @expected.select {|r| [2,4,8,16].include?(r[@relation[:age]])}
       @relation.where(@relation[:age].in_any([2,4], [8, 16])).should have_rows(expected)
     end
     
-    it "finds rows with a grouped predicate of class All" do
+    it "finds rows with a polyadic predicate of class Any complement" do
+      expected = @expected.select {|r| ![2,4,8,16].include?(r[@relation[:age]])}
+      @relation.where(@relation[:age].in_any([2,4], [8, 16]).complement).should have_rows(expected)
+    end
+    
+    it "finds rows with a polyadic predicate of class All" do
       expected = @expected.select {|r| r[@relation[:name]] =~ /Name/ && r[@relation[:name]] =~ /1/}
       @relation.where(@relation[:name].matches_all(/Name/, /1/)).should have_rows(expected)
+    end
+    
+    it "finds rows with a polyadic predicate of class All complement" do
+      expected = @expected.select {|r| !(r[@relation[:name]] =~ /Name/ && r[@relation[:name]] =~ /1/)}
+      @relation.where(@relation[:name].matches_all(/Name/, /1/).complement).should have_rows(expected)
     end
   end
 
