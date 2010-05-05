@@ -54,7 +54,8 @@ module Rails
         name, version = args
 
         # Deal with deprecated options
-        { :env => :only, :lib => :require_as }.each do |old, new|
+        { :env => :group, :only => :group,
+          :lib => :require, :require_as => :require }.each do |old, new|
           next unless options[old]
           options[new] = options.delete(old)
           ActiveSupport::Deprecation.warn "#{old.inspect} option in gem is deprecated, use #{new.inspect} instead"
