@@ -80,7 +80,7 @@ module ActiveModel
       # 
       #   end
       # 
-      # Provivdes you with:
+      # Provides you with:
       # 
       #   AttributePerson.primary_key
       #   # => "sysid"
