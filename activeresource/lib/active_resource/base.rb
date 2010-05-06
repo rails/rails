@@ -551,11 +551,22 @@ module ActiveResource
         @headers ||= {}
       end
 
-      # Do not include any modules in the default element name. This makes it easier to seclude ARes objects
-      # in a separate namespace without having to set element_name repeatedly.
-      attr_accessor_with_default(:element_name)    { ActiveSupport::Inflector.underscore(to_s.split("::").last) } #:nodoc:
+      def element_name
+        model_name.element
+      end
 
-      attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
+      def element_name=(value)
+        model_name.element = value
+      end
+
+      def collection_name
+        model_name.collection
+      end
+
+      def collection_name=(value)
+        model_name.collection = value
+      end
+
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
 
       # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)

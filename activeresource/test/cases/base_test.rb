@@ -1018,6 +1018,23 @@ class BaseTest < Test::Unit::TestCase
     assert xml.include?('<id type="integer">1</id>')
   end
 
+  def test_to_xml_with_element_name
+    old_elem_name = Person.element_name
+    matz = Person.find(1)
+    Person.element_name = 'ruby_creator'
+    encode = matz.encode
+    xml = matz.to_xml
+
+    assert encode, xml
+    assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
+    assert xml.include?('<ruby-creator>')
+    assert xml.include?('<name>Matz</name>')
+    assert xml.include?('<id type="integer">1</id>')
+    assert xml.include?('</ruby-creator>')
+  ensure
+    Person.element_name = old_elem_name
+  end
+
   def test_to_json
     Person.include_root_in_json = true
     Person.format = :json
@@ -1031,6 +1048,25 @@ class BaseTest < Test::Unit::TestCase
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
     assert_match %r{\}\}\}$}, json
+  end
+
+  def test_to_json_with_element_name
+    old_elem_name = Person.element_name
+    Person.include_root_in_json = true
+    Person.format = :json
+    joe = Person.find(6)
+    Person.element_name = 'ruby_creator'
+    encode = joe.encode
+    json = joe.to_json
+    Person.format = :xml
+
+    assert encode, json
+    assert_match %r{^\{"ruby_creator":\{"person":\{}, json
+    assert_match %r{"id":6}, json
+    assert_match %r{"name":"Joe"}, json
+    assert_match %r{\}\}\}$}, json
+  ensure
+    Person.element_name = old_elem_name
   end
 
   def test_to_param_quacks_like_active_record
