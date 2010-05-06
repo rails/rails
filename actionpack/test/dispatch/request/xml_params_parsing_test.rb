@@ -16,6 +16,19 @@ class XmlParamsParsingTest < ActionController::IntegrationTest
     TestController.last_request_parameters = nil
   end
 
+  test "parses a strict rack.input" do
+    class Linted
+      def call(env)
+        bar = env['action_dispatch.request.request_parameters']['foo']
+        result = "<ok>#{bar}</ok>"
+        [200, {"Content-Type" => "application/xml", "Content-Length" => result.length.to_s}, result]
+      end
+    end
+    req = Rack::MockRequest.new(ActionDispatch::ParamsParser.new(Linted.new))
+    resp = req.post('/', "CONTENT_TYPE" => "application/xml", :input => "<foo>bar</foo>", :lint => true)
+    assert_equal "<ok>bar</ok>", resp.body
+  end
+
   test "parses hash params" do
     with_test_routing do
       xml = "<person><name>David</name></person>"

@@ -38,7 +38,7 @@ module ActionDispatch
         when Proc
           strategy.call(request.raw_post)
         when :xml_simple, :xml_node
-          data = Hash.from_xml(request.body) || {}
+          data = Hash.from_xml(request.body.read) || {}
           request.body.rewind if request.body.respond_to?(:rewind)
           data.with_indifferent_access
         when :yaml
