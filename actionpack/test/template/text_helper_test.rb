@@ -44,10 +44,6 @@ class TextHelperTest < ActionView::TestCase
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
 
-  def test_simple_format_should_escape_unsafe_input
-    assert_equal "<p>&lt;b&gt; test with unsafe string &lt;/b&gt;</p>", simple_format("<b> test with unsafe string </b>")
-  end
-
   def test_simple_format_should_not_escape_safe_input
     assert_equal "<p><b> test with safe string </b></p>", simple_format("<b> test with safe string </b>".html_safe)
   end
