@@ -1942,15 +1942,17 @@ module ActiveRecord #:nodoc:
               # end
               self.class_eval <<-EOS, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)
-                  guard_protected_attributes = false
-
-                  if args[0].is_a?(Hash)
-                    guard_protected_attributes = true
-                    attributes = args[0].with_indifferent_access
-                    find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
-                  else
-                    find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  attributes = [:#{attribute_names.join(',:')}]
+                  protected_attributes_for_create = unprotected_attributes_for_create = {}
+                  args.each_with_index do |arg, i|
+                    if arg.is_a?(Hash)
+                      protected_attributes_for_create = args[i].with_indifferent_access
+                    else
+                      unprotected_attributes_for_create[attributes[i]] = args[i]
+                    end
                   end
+
+                  find_attributes = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes)
 
                   options = { :conditions => find_attributes }
                   set_readonly_option!(options)
@@ -1958,7 +1960,10 @@ module ActiveRecord #:nodoc:
                   record = find(:first, options)
 
                   if record.nil?
-                    record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
+                    record = self.new do |r|
+                      r.send(:attributes=, protected_attributes_for_create, true) unless protected_attributes_for_create.empty?
+                      r.send(:attributes=, unprotected_attributes_for_create, false) unless unprotected_attributes_for_create.empty?
+                    end
                     #{'yield(record) if block_given?'}
                     #{'record.save' if instantiator == :create}
                     record

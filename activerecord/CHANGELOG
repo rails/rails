@@ -1,5 +1,7 @@
 *2.3.6 (pending)*
 
+* find_or_create_by_attr(value, ...) works when attr is protected.  #4457 [Santiago Pastorino, Marc-André Lafortune]
+
 * JSON supports a custom root option: to_json(:root => 'custom')  #4515 [Jatinder Singh]
 
 * Destroy uses optimistic locking. If lock_version on the record you're destroying doesn't match lock_version in the database, a StaleObjectError is raised.  #1966 [Curtis Hawthorne]
