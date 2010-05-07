@@ -4,16 +4,8 @@ module Arel
       def or(other_predicate)
         Or.new(self, other_predicate)
       end
-      
-      def |(other_predicate)
-        Or.new(self, other_predicate)
-      end
 
       def and(other_predicate)
-        And.new(self, other_predicate)
-      end
-      
-      def &(other_predicate)
         And.new(self, other_predicate)
       end
       
@@ -22,17 +14,7 @@ module Arel
       end
       
       def not
-        complement
-      end
-      
-      if respond_to?('!') # Nice! We're running Ruby 1.9 and can override the inherited BasicObject#!
-        def empty?        # Need to define empty? to keep Object#blank? from going haywire
-          false
-        end
-        
-        define_method('!') do
-          self.complement
-        end
+        self.complement
       end
     end
     
