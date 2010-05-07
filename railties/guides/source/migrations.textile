@@ -84,7 +84,11 @@ h4. What's in a Name
 
 Migrations are stored in files in +db/migrate+, one for each migration class. The name of the file is of the form +YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The name of the migration class (CamelCased version) should match the latter part of the file name. For example +20080906120000_create_products.rb+ should define +CreateProducts+ and +20080906120001_add_details_to_products.rb+ should define +AddDetailsToProducts+. If you do feel the need to change the file name then you <em>have to</em> update the name of the class inside or Rails will complain about a missing class.
 
-Internally Rails only uses the migration's number (the timestamp) to identify them. Prior to Rails 2.1 the migration number started at 1 and was incremented each time a migration was generated. With multiple developers it was easy for these to clash requiring you to rollback migrations and renumber them. With Rails 2.1 this is largely avoided by using the creation time of the migration to identify them. You can revert to the old numbering scheme by setting +config.active_record.timestamped_migrations+ to +false+ in +config/environment.rb+.
+Internally Rails only uses the migration's number (the timestamp) to identify them. Prior to Rails 2.1 the migration number started at 1 and was incremented each time a migration was generated. With multiple developers it was easy for these to clash requiring you to rollback migrations and renumber them. With Rails 2.1 this is largely avoided by using the creation time of the migration to identify them. You can revert to the old numbering scheme by adding the following line to +config/application.rb+.
+
+<ruby>
+config.active_record.timestamped_migrations = false
+</ruby>
 
 The combination of timestamps and recording which migrations have been run allows Rails to handle common situations that occur with multiple developers.
 
