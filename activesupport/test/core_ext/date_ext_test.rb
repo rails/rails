@@ -145,6 +145,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(1999,2,28), Date.new(2000,2,29).last_year
   end
 
+  def test_last_year_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1583,10,14).last_year
+  end
+
   def test_next_year
     assert_equal Date.new(2006,6,5), Date.new(2005,6,5).next_year
   end
@@ -153,14 +157,26 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2001,2,28), Date.new(2000,2,29).next_year
   end
 
+  def test_next_year_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1581,10,10).next_year
+  end
+
   def test_yesterday
     assert_equal Date.new(2005,2,21), Date.new(2005,2,22).yesterday
     assert_equal Date.new(2005,2,28), Date.new(2005,3,2).yesterday.yesterday
   end
 
+  def test_yesterday_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).yesterday
+  end
+
   def test_tomorrow
     assert_equal Date.new(2005,2,23), Date.new(2005,2,22).tomorrow
     assert_equal Date.new(2005,3,2),  Date.new(2005,2,28).tomorrow.tomorrow
+  end
+
+  def test_tomorrow_in_calendar_reform
+    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).tomorrow
   end
 
   def test_advance
@@ -172,6 +188,17 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2013,10,3), Date.new(2005,2,28).advance(:years => 7, :months => 19, :days => 5)
     assert_equal Date.new(2013,10,17), Date.new(2005,2,28).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
     assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(:years => 1) #leap day plus one year
+  end
+
+  def test_advance_calendar_reform
+    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(:days => 1)
+    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(:days => -1)
+    5.upto(14) do |day|
+      assert_equal Date.new(1582,10,4), Date.new(1582,9,day).advance(:months => 1)
+      assert_equal Date.new(1582,10,4), Date.new(1582,11,day).advance(:months => -1)
+      assert_equal Date.new(1582,10,4), Date.new(1581,10,day).advance(:years => 1)
+      assert_equal Date.new(1582,10,4), Date.new(1583,10,day).advance(:years => -1)
+    end
   end
 
   def test_next_week
