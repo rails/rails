@@ -234,7 +234,7 @@ module ActiveRecord
     end
 
     def find_or_instantiator_by_attributes(match, attributes, *args)
-      protected_attributes_for_create = unprotected_attributes_for_create = {}
+      protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
       args.each_with_index do |arg, i|
         if arg.is_a?(Hash)
           protected_attributes_for_create = args[i].with_indifferent_access
