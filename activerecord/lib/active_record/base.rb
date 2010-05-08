@@ -1943,7 +1943,7 @@ module ActiveRecord #:nodoc:
               self.class_eval <<-EOS, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)
                   attributes = [:#{attribute_names.join(',:')}]
-                  protected_attributes_for_create = unprotected_attributes_for_create = {}
+                  protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
                   args.each_with_index do |arg, i|
                     if arg.is_a?(Hash)
                       protected_attributes_for_create = args[i].with_indifferent_access
