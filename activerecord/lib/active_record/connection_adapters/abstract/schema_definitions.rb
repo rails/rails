@@ -256,7 +256,7 @@ module ActiveRecord
         end
     end
 
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths) #:nodoc:
+    class IndexDefinition < Struct.new(:table, :name, :unique, :columns) #:nodoc:
     end
 
     # Abstract representation of a column definition. Instances of this type
