@@ -20,7 +20,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     assert t.valid?
 
     t.title_confirmation = "Parallel Lives"
-    assert !t.valid?
+    assert t.invalid?
 
     t.title_confirmation = nil
     t.title = "Parallel Lives"
@@ -33,11 +33,11 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   def test_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.create("title" => "We should be confirmed","title_confirmation" => "")
-    assert !t.save
+    t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+    assert t.invalid?
 
     t.title_confirmation = "We should be confirmed"
-    assert t.save
+    assert t.valid?
   end
 
   def test_validates_confirmation_of_for_ruby_class
