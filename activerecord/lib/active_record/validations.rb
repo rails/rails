@@ -74,7 +74,7 @@ module ActiveRecord
       def valid?
         errors.clear
 
-        @_on_validate = new_record? ? :create : :update
+        self.validation_context = new_record? ? :create : :update
         _run_validate_callbacks
 
         deprecated_callback_method(:validate)
@@ -86,6 +86,10 @@ module ActiveRecord
         end
 
         errors.empty?
+      end
+
+      def invalid?
+        !valid?
       end
     end
   end

@@ -44,7 +44,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_error_on_create
     r = WrongReply.new
     r.title = "Wrong Create"
-    assert !r.valid?
+    assert !r.save
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
