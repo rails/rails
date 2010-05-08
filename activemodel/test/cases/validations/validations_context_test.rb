@@ -1,11 +1,9 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
 
-class ValidationsContextTest < ActiveRecord::TestCase
-  include ActiveModel::TestsDatabase
+class ValidationsContextTest < ActiveModel::TestCase
 
   def teardown
     Topic.reset_callbacks(:validate)

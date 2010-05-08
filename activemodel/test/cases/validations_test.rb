@@ -1,13 +1,11 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
 require 'models/reply'
 require 'models/custom_reader'
 
 class ValidationsTest < ActiveModel::TestCase
-  include ActiveModel::TestsDatabase
 
   def setup
     Topic._validators.clear
@@ -166,15 +164,15 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new :title => ''
     assert t.invalid?
 
-    assert_equal :title, key = t.errors.keys.first
-    assert_equal "can't be blank", t.errors[key].first
-    assert_equal 'is too short (minimum is 2 characters)', t.errors[key].second
-    assert_equal :author_name, key = t.errors.keys.second
-    assert_equal "can't be blank", t.errors[key].first
-    assert_equal :author_email_address, key = t.errors.keys.third
-    assert_equal 'will never be valid', t.errors[key].first
-    assert_equal :content, key = t.errors.keys.fourth
-    assert_equal 'is too short (minimum is 2 characters)', t.errors[key].first
+    assert_equal :title, key = t.errors.keys[0]
+    assert_equal "can't be blank", t.errors[key][0]
+    assert_equal 'is too short (minimum is 2 characters)', t.errors[key][1]
+    assert_equal :author_name, key = t.errors.keys[1]
+    assert_equal "can't be blank", t.errors[key][0]
+    assert_equal :author_email_address, key = t.errors.keys[2]
+    assert_equal 'will never be valid', t.errors[key][0]
+    assert_equal :content, key = t.errors.keys[3]
+    assert_equal 'is too short (minimum is 2 characters)', t.errors[key][0]
   end
 
   def test_invalid_should_be_the_opposite_of_valid
