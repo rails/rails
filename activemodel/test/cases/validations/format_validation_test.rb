@@ -3,7 +3,6 @@ require 'cases/helper'
 require 'cases/tests_database'
 
 require 'models/topic'
-require 'models/developer'
 require 'models/person'
 
 class PresenceValidationTest < ActiveModel::TestCase

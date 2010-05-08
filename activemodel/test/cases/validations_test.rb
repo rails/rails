@@ -4,7 +4,6 @@ require 'cases/tests_database'
 
 require 'models/topic'
 require 'models/reply'
-require 'models/developer'
 require 'models/custom_reader'
 
 class ValidationsTest < ActiveModel::TestCase
