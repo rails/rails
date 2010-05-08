@@ -9,10 +9,6 @@ module ActiveRecord
     end
 
     included do
-      [:destroy, :save, :save!].each do |method|
-        alias_method_chain method, :transactions
-      end
-
       define_model_callbacks :commit, :commit_on_update, :commit_on_create, :commit_on_destroy, :only => :after
       define_model_callbacks :rollback, :rollback_on_update, :rollback_on_create, :rollback_on_destroy
     end
@@ -213,16 +209,18 @@ module ActiveRecord
       self.class.transaction(&block)
     end
 
-    def destroy_with_transactions #:nodoc:
-      with_transaction_returning_status(:destroy_without_transactions)
+    def destroy #:nodoc:
+      with_transaction_returning_status { super }
     end
 
-    def save_with_transactions(*args) #:nodoc:
-      rollback_active_record_state! { with_transaction_returning_status(:save_without_transactions, *args) }
+    def save(*) #:nodoc:
+      rollback_active_record_state! do
+        with_transaction_returning_status { super }
+      end
     end
 
-    def save_with_transactions! #:nodoc:
-      with_transaction_returning_status(:save_without_transactions!)
+    def save!(*) #:nodoc:
+      with_transaction_returning_status { super }
     end
 
     # Reset id and @new_record if the transaction rolls back.
@@ -279,11 +277,11 @@ module ActiveRecord
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
-    def with_transaction_returning_status(method, *args)
+    def with_transaction_returning_status
       status = nil
       self.class.transaction do
         add_to_transaction
-        status = send(method, *args)
+        status = yield
         raise ActiveRecord::Rollback unless status
       end
       status

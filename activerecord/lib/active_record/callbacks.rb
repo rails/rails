@@ -233,10 +233,6 @@ module ActiveRecord
     ]
 
     included do
-      [:create_or_update, :valid?, :create, :update, :destroy].each do |method|
-        alias_method_chain method, :callbacks
-      end
-
       extend ActiveModel::Callbacks
 
       define_callbacks :validation, :terminator => "result == false", :scope => [:kind, :name]
@@ -273,38 +269,13 @@ module ActiveRecord
       end
     end
 
-    def create_or_update_with_callbacks #:nodoc:
-      _run_save_callbacks do
-        create_or_update_without_callbacks
-      end
-    end
-    private :create_or_update_with_callbacks
-
-    def create_with_callbacks #:nodoc:
-      _run_create_callbacks do
-        create_without_callbacks
-      end
-    end
-    private :create_with_callbacks
-
-    def update_with_callbacks(*args) #:nodoc:
-      _run_update_callbacks do
-        update_without_callbacks(*args)
-      end
-    end
-    private :update_with_callbacks
-
-    def valid_with_callbacks? #:nodoc:
+    def valid?(*) #:nodoc:
       @_on_validate = new_record? ? :create : :update
-      _run_validation_callbacks do
-        valid_without_callbacks?
-      end
+      _run_validation_callbacks { super }
     end
 
-    def destroy_with_callbacks #:nodoc:
-      _run_destroy_callbacks do
-        destroy_without_callbacks
-      end
+    def destroy #:nodoc:
+      _run_destroy_callbacks { super }
     end
 
     def deprecated_callback_method(symbol) #:nodoc:
@@ -312,6 +283,19 @@ module ActiveRecord
         ActiveSupport::Deprecation.warn("Overwriting #{symbol} in your models has been deprecated, please use Base##{symbol} :method_name instead")
         send(symbol)
       end
+    end
+
+  private
+    def create_or_update #:nodoc:
+      _run_save_callbacks { super }
+    end
+
+    def create #:nodoc:
+      _run_create_callbacks { super }
+    end
+
+    def update(*) #:nodoc:
+      _run_update_callbacks { super }
     end
   end
 end

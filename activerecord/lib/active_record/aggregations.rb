@@ -253,6 +253,7 @@ module ActiveRecord
                       raise ArgumentError, 'Converter must be a symbol denoting the converter method to call or a Proc to be invoked.'
                     end
                 end
+
                 mapping.each { |pair| self[pair.first] = part.send(pair.last) }
                 instance_variable_set("@#{name}", part.freeze)
               end

@@ -48,10 +48,6 @@ module ActiveRecord
         cattr_accessor :lock_optimistically, :instance_writer => false
         self.lock_optimistically = true
 
-        alias_method_chain :update, :lock
-        alias_method_chain :destroy, :lock
-        alias_method_chain :attributes_from_column_definition, :lock
-
         class << self
           alias_method :locking_column=, :set_locking_column
         end
@@ -62,8 +58,8 @@ module ActiveRecord
       end
 
       private
-        def attributes_from_column_definition_with_lock
-          result = attributes_from_column_definition_without_lock
+        def attributes_from_column_definition
+          result = super
 
           # If the locking column has no default value set,
           # start the lock version at zero.  Note we can't use
@@ -77,8 +73,8 @@ module ActiveRecord
           return result
         end
 
-        def update_with_lock(attribute_names = @attributes.keys) #:nodoc:
-          return update_without_lock(attribute_names) unless locking_enabled?
+        def update(attribute_names = @attributes.keys) #:nodoc:
+          return super unless locking_enabled?
           return 0 if attribute_names.empty?
 
           lock_col = self.class.locking_column
@@ -97,7 +93,6 @@ module ActiveRecord
               )
             ).arel.update(arel_attributes_values(false, false, attribute_names))
 
-
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"
             end
@@ -111,8 +106,8 @@ module ActiveRecord
           end
         end
 
-        def destroy_with_lock #:nodoc:
-          return destroy_without_lock unless locking_enabled?
+        def destroy #:nodoc:
+          return super unless locking_enabled?
 
           unless new_record?
             lock_col = self.class.locking_column
@@ -135,12 +130,6 @@ module ActiveRecord
 
       module ClassMethods
         DEFAULT_LOCKING_COLUMN = 'lock_version'
-
-        def self.extended(base)
-          class <<base
-            alias_method_chain :update_counters, :lock
-          end
-        end
 
         # Is optimistic locking enabled for this table? Returns true if the
         # +lock_optimistically+ flag is set to true (which it is, by default)
@@ -173,9 +162,9 @@ module ActiveRecord
 
         # Make sure the lock version column gets updated when counters are
         # updated.
-        def update_counters_with_lock(id, counters)
+        def update_counters(id, counters)
           counters = counters.merge(locking_column => 1) if locking_enabled?
-          update_counters_without_lock(id, counters)
+          super
         end
       end
     end
