@@ -67,18 +67,16 @@ module ActiveRecord
       relation = relation.except(:order).order(batch_order).limit(batch_size)
       records = relation.where(primary_key.gteq(start)).all
 
-      key_value = self.primary_key.name
-
       while records.any?
         yield records
 
         break if records.size < batch_size
 
-        last_value = records.last.send(key_value)
-
-        raise "You must include the primary key if you define a select" unless last_value.present?
-
-        records = relation.where(primary_key.gt(last_value)).all
+        if primary_key_offset = records.last.id
+          records = relation.where(primary_key.gt(primary_key_offset)).all
+        else
+          raise "Primary key not included in the custom select clause"
+        end
       end
     end
 
