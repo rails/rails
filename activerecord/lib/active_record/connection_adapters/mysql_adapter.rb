@@ -454,10 +454,11 @@ module ActiveRecord
           if current_index != row[2]
             next if row[2] == "PRIMARY" # skip the primary key
             current_index = row[2]
-            indexes << IndexDefinition.new(row[0], row[2], row[1] == "0", [])
+            indexes << IndexDefinition.new(row[0], row[2], row[1] == "0", [], [])
           end
 
           indexes.last.columns << row[4]
+          indexes.last.lengths << row[7]
         end
         result.free
         indexes
@@ -585,6 +586,20 @@ module ActiveRecord
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         where_sql
       end
+
+      protected
+        def quoted_columns_for_index(column_names, options = {})
+          length = options[:length] if options.is_a?(Hash)
+
+          quoted_column_names = case length
+          when Hash
+            column_names.map {|name| length[name] ? "#{quote_column_name(name)}(#{length[name]})" : quote_column_name(name) }
+          when Fixnum
+            column_names.map {|name| "#{quote_column_name(name)}(#{length})"}
+          else
+            column_names.map {|name| quote_column_name(name) }
+          end
+        end
 
       private
         def connect
