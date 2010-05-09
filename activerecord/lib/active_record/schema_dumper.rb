@@ -177,6 +177,7 @@ HEADER
             statment_parts << index.columns.inspect
             statment_parts << (':name => ' + index.name.inspect)
             statment_parts << ':unique => true' if index.unique
+            statment_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index.lengths.compact.present?
 
             '  ' + statment_parts.join(', ')
           end
