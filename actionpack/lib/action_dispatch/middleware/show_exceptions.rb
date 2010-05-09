@@ -133,14 +133,10 @@ module ActionDispatch
         return unless logger
 
         ActiveSupport::Deprecation.silence do
-          if ActionView::Template::Error === exception
-            logger.fatal(exception.to_s)
-          else
-            logger.fatal(
-              "\n#{exception.class} (#{exception.message}):\n  " +
-              clean_backtrace(exception).join("\n  ") + "\n\n"
-            )
-          end
+          message = "\n#{exception.class} (#{exception.message}):\n"
+          message << exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
+          message << exception.backtrace.join("\n  ")
+          logger.fatal("#{message}\n\n")
         end
       end
 
