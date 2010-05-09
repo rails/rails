@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'cases/tests_database'
 
 require 'models/person'
 

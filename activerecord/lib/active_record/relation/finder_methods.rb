@@ -234,20 +234,24 @@ module ActiveRecord
     end
 
     def find_or_instantiator_by_attributes(match, attributes, *args)
-      guard_protected_attributes = false
-
-      if args[0].is_a?(Hash)
-        guard_protected_attributes = true
-        attributes_for_create = args[0].with_indifferent_access
-        conditions = attributes_for_create.slice(*attributes).symbolize_keys
-      else
-        attributes_for_create = conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
+      protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
+      args.each_with_index do |arg, i|
+        if arg.is_a?(Hash)
+          protected_attributes_for_create = args[i].with_indifferent_access
+        else
+          unprotected_attributes_for_create[attributes[i]] = args[i]
+        end
       end
+
+      conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
 
       record = where(conditions).first
 
       unless record
-        record = @klass.new { |r| r.send(:attributes=, attributes_for_create, guard_protected_attributes) }
+        record = @klass.new do |r|
+          r.send(:attributes=, protected_attributes_for_create, true) unless protected_attributes_for_create.empty?
+          r.send(:attributes=, unprotected_attributes_for_create, false) unless unprotected_attributes_for_create.empty?
+        end
         yield(record) if block_given?
         record.save if match.instantiator == :create
       end

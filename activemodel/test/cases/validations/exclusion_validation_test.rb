@@ -1,12 +1,10 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
 require 'models/person'
 
 class ExclusionValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestsDatabase
 
   def teardown
     Topic.reset_callbacks(:validate)
@@ -15,17 +13,17 @@ class ExclusionValidationTest < ActiveModel::TestCase
   def test_validates_exclusion_of
     Topic.validates_exclusion_of( :title, :in => %w( abe monkey ) )
 
-    assert Topic.create("title" => "something", "content" => "abc").valid?
-    assert !Topic.create("title" => "monkey", "content" => "abc").valid?
+    assert Topic.new("title" => "something", "content" => "abc").valid?
+    assert Topic.new("title" => "monkey", "content" => "abc").invalid?
   end
 
   def test_validates_exclusion_of_with_formatted_message
     Topic.validates_exclusion_of( :title, :in => %w( abe monkey ), :message => "option %{value} is restricted" )
 
-    assert Topic.create("title" => "something", "content" => "abc")
+    assert Topic.new("title" => "something", "content" => "abc")
 
-    t = Topic.create("title" => "monkey")
-    assert !t.valid?
+    t = Topic.new("title" => "monkey")
+    assert t.invalid?
     assert t.errors[:title].any?
     assert_equal ["option monkey is restricted"], t.errors[:title]
   end

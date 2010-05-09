@@ -40,6 +40,11 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).to_time
   end
 
+  def test_civil_from_format
+    assert_equal DateTime.civil(2010, 5, 4, 0, 0, 0, DateTime.local_offset), DateTime.civil_from_format(:local, 2010, 5, 4)
+    assert_equal DateTime.civil(2010, 5, 4, 0, 0, 0, 0), DateTime.civil_from_format(:utc, 2010, 5, 4)
+  end
+
   def test_seconds_since_midnight
     assert_equal 1,DateTime.civil(2005,1,1,0,0,1).seconds_since_midnight
     assert_equal 60,DateTime.civil(2005,1,1,0,1,0).seconds_since_midnight

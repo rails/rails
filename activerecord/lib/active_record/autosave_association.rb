@@ -130,8 +130,6 @@ module ActiveRecord
     ASSOCIATION_TYPES = %w{ has_one belongs_to has_many has_and_belongs_to_many }
 
     included do
-      alias_method_chain :reload, :autosave_associations
-
       ASSOCIATION_TYPES.each do |type|
         send("valid_keys_for_#{type}_association") << :autosave
       end
@@ -196,9 +194,9 @@ module ActiveRecord
     end
 
     # Reloads the attributes of the object as usual and removes a mark for destruction.
-    def reload_with_autosave_associations(options = nil)
+    def reload(options = nil)
       @marked_for_destruction = false
-      reload_without_autosave_associations(options)
+      super
     end
 
     # Marks this record to be destroyed as part of the parents save transaction.

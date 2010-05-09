@@ -1,11 +1,9 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
 
-class ValidatesWithTest < ActiveRecord::TestCase
-  include ActiveModel::TestsDatabase
+class ValidatesWithTest < ActiveModel::TestCase
 
   def teardown
     Topic.reset_callbacks(:validate)
@@ -55,7 +53,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
   test "vaidation with class that adds errors" do
     Topic.validates_with(ValidatorThatAddsErrors)
     topic = Topic.new
-    assert !topic.valid?, "A class that adds errors causes the record to be invalid"
+    assert topic.invalid?, "A class that adds errors causes the record to be invalid"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
@@ -65,23 +63,10 @@ class ValidatesWithTest < ActiveRecord::TestCase
     assert topic.valid?, "A class that does not add errors does not cause the record to be invalid"
   end
 
-  test "with a class that adds errors on update and a new record" do
-    Topic.validates_with(ValidatorThatAddsErrors, :on => :update)
-    topic = Topic.new
-    assert topic.valid?, "Validation doesn't run on create if 'on' is set to update"
-  end
-
-  test "with a class that adds errors on create and a new record" do
-    Topic.validates_with(ValidatorThatAddsErrors, :on => :create)
-    topic = Topic.new
-    assert !topic.valid?, "Validation does run on create if 'on' is set to create"
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
-  end
-
   test "with multiple classes" do
     Topic.validates_with(ValidatorThatAddsErrors, OtherValidatorThatAddsErrors)
     topic = Topic.new
-    assert !topic.valid?
+    assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
     assert topic.errors[:base].include?(OTHER_ERROR_MESSAGE)
   end
@@ -95,7 +80,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
   test "with if statements that return true" do
     Topic.validates_with(ValidatorThatAddsErrors, :if => "1 == 1")
     topic = Topic.new
-    assert !topic.valid?
+    assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
@@ -108,7 +93,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
   test "with unless statements that returns false" do
     Topic.validates_with(ValidatorThatAddsErrors, :unless => "1 == 2")
     topic = Topic.new
-    assert !topic.valid?
+    assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
@@ -121,7 +106,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
     Topic.validates_with(validator, :if => "1 == 1", :foo => :bar)
     assert topic.valid?
   end
- 
+
   test "calls setup method of validator passing in self when validator has setup method" do
     topic = Topic.new
     validator = stub_everything
@@ -132,7 +117,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
     Topic.validates_with(validator)
     assert topic.valid?
   end
-  
+
   test "doesn't call setup method of validator when validator has no setup method" do
     topic = Topic.new
     validator = stub_everything
@@ -147,14 +132,14 @@ class ValidatesWithTest < ActiveRecord::TestCase
   test "validates_with with options" do
     Topic.validates_with(ValidatorThatValidatesOptions, :field => :first_name)
     topic = Topic.new
-    assert !topic.valid?
+    assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
   test "validates_with each validator" do
     Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content])
     topic = Topic.new :title => "Title", :content => "Content"
-    assert !topic.valid?
+    assert topic.invalid?
     assert_equal ["Value is Title"], topic.errors[:title]
     assert_equal ["Value is Content"], topic.errors[:content]
   end
@@ -174,7 +159,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
   test "each validator skip nil values if :allow_nil is set to true" do
     Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content], :allow_nil => true)
     topic = Topic.new :content => ""
-    assert !topic.valid?
+    assert topic.invalid?
     assert topic.errors[:title].empty?
     assert_equal ["Value is "], topic.errors[:content]
   end

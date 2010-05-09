@@ -5,23 +5,16 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base)
-          base.class_eval do
-            alias_method_chain :columns, :query_cache
-            alias_method_chain :select_all, :query_cache
-          end
-
           dirties_query_cache base, :insert, :update, :delete
         end
 
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
-              def #{method_name}_with_query_dirty(*args)        # def update_with_query_dirty(*args)
-                clear_query_cache if @query_cache_enabled       #   clear_query_cache if @query_cache_enabled
-                #{method_name}_without_query_dirty(*args)       #   update_without_query_dirty(*args)
-              end                                               # end
-                                                                #
-              alias_method_chain :#{method_name}, :query_dirty  # alias_method_chain :update, :query_dirty
+              def #{method_name}(*)                         # def update_with_query_dirty(*args)
+                clear_query_cache if @query_cache_enabled   #   clear_query_cache if @query_cache_enabled
+                super                                       #   update_without_query_dirty(*args)
+              end                                           # end
             end_code
           end
         end
@@ -56,19 +49,19 @@ module ActiveRecord
         @query_cache.clear
       end
 
-      def select_all_with_query_cache(*args)
+      def select_all(*args)
         if @query_cache_enabled
-          cache_sql(args.first) { select_all_without_query_cache(*args) }
+          cache_sql(args.first) { super }
         else
-          select_all_without_query_cache(*args)
+          super
         end
       end
 
-      def columns_with_query_cache(*args)
+      def columns(*)
         if @query_cache_enabled
-          @query_cache["SHOW FIELDS FROM #{args.first}"] ||= columns_without_query_cache(*args)
+          @query_cache["SHOW FIELDS FROM #{args.first}"] ||= super
         else
-          columns_without_query_cache(*args)
+          super
         end
       end
 

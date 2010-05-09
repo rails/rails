@@ -1,13 +1,10 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
-require 'models/developer'
 require 'models/person'
 
 class NumericalityValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestsDatabase
 
   def teardown
     Topic.reset_callbacks(:validate)
@@ -33,8 +30,8 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, :allow_nil => true
 
-    invalid!(JUNK)
-    valid!(NIL + BLANK + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    invalid!(JUNK + BLANK)
+    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
@@ -47,8 +44,8 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
 
-    invalid!(JUNK + FLOATS + BIGDECIMAL + INFINITY)
-    valid!(NIL + BLANK + INTEGERS)
+    invalid!(JUNK + BLANK + FLOATS + BIGDECIMAL + INFINITY)
+    valid!(NIL + INTEGERS)
   end
 
   def test_validates_numericality_with_greater_than
@@ -166,7 +163,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   def invalid!(values, error = nil)
     with_each_topic_approved_value(values) do |topic, value|
-      assert !topic.valid?, "#{value.inspect} not rejected as a number"
+      assert topic.invalid?, "#{value.inspect} not rejected as a number"
       assert topic.errors[:approved].any?, "FAILED for #{value.inspect}"
       assert_equal error, topic.errors[:approved].first if error
     end

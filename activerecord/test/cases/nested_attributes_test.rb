@@ -6,6 +6,8 @@ require "models/parrot"
 require "models/treasure"
 require "models/man"
 require "models/interest"
+require "models/owner"
+require "models/pet"
 require 'active_support/hash_with_indifferent_access'
 
 module AssertRaiseWithMessage
@@ -705,5 +707,28 @@ class TestNestedAttributesLimit < ActiveRecord::TestCase
                                                       'bar' => { :name => 'Blown Away' },
                                                       'car' => { :name => 'The Happening' }} }
     end
+  end
+end
+
+class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
+  fixtures :owners, :pets
+
+  def setup
+    Owner.accepts_nested_attributes_for :pets
+
+    @owner = owners(:ashley)
+    @pet1, @pet2 = pets(:chew), pets(:mochi)
+
+    @params = {
+      :pets_attributes => {
+        '0' => { :id => @pet1.id, :name => 'Foo' },
+        '1' => { :id => @pet2.id, :name => 'Bar' }
+      }
+    }
+  end
+
+  def test_should_update_existing_records_with_non_standard_primary_key
+    @owner.update_attributes(@params)
+    assert_equal ['Foo', 'Bar'], @owner.pets.map(&:name)
   end
 end

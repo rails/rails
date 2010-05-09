@@ -166,6 +166,38 @@ module Rails
       end
     end
 
+    def self.hidden_namespaces
+      @hidden_namespaces ||= begin
+        orm      = options[:rails][:orm]
+        test     = options[:rails][:test_framework]
+        template = options[:rails][:template_engine]
+
+        [
+          "rails",
+          "#{orm}:migration",
+          "#{orm}:model",
+          "#{orm}:observer",
+          "#{test}:controller",
+          "#{test}:helper",
+          "#{test}:integration",
+          "#{test}:mailer",
+          "#{test}:model",
+          "#{test}:observer",
+          "#{test}:scaffold",
+          "#{test}:view",
+          "#{template}:controller",
+          "#{template}:scaffold"
+        ]
+      end
+    end
+
+    class << self
+      def hide_namespaces(*namespaces)
+        hidden_namespaces.concat(namespaces)
+      end
+      alias hide_namespace hide_namespaces
+    end
+
     # Show help message with available generators.
     def self.help(command = 'generate')
       lookup!
@@ -197,9 +229,7 @@ module Rails
       rails.delete("app")
       print_list("rails", rails)
 
-      groups.delete("active_record") if options[:rails][:orm] == :active_record
-      groups.delete("test_unit")     if options[:rails][:test_framework] == :test_unit
-      groups.delete("erb")           if options[:rails][:template_engine] == :erb
+      hidden_namespaces.each {|n| groups.delete(n.to_s) }
 
       groups.sort.each { |b, n| print_list(b, n) }
     end
@@ -208,9 +238,17 @@ module Rails
 
       # Prints a list of generators.
       def self.print_list(base, namespaces) #:nodoc:
+        namespaces = namespaces.reject do |n|
+          hidden_namespaces.include?(n)
+        end
+
         return if namespaces.empty?
         puts "#{base.camelize}:"
-        namespaces.each { |namespace| puts("  #{namespace}") }
+
+        namespaces.each do |namespace|
+          puts("  #{namespace}")
+        end
+
         puts
       end
 

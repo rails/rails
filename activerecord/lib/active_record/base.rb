@@ -480,110 +480,6 @@ module ActiveRecord #:nodoc:
         connection.select_value(sql, "#{name} Count").to_i
       end
 
-      # Resets one or more counter caches to their correct value using an SQL
-      # count query.  This is useful when adding new counter caches, or if the
-      # counter has been corrupted or modified directly by SQL.
-      #
-      # ==== Parameters
-      #
-      # * +id+ - The id of the object you wish to reset a counter on.
-      # * +counters+ - One or more counter names to reset
-      #
-      # ==== Examples
-      #
-      #   # For Post with id #1 records reset the comments_count
-      #   Post.reset_counters(1, :comments)
-      def reset_counters(id, *counters)
-        object = find(id)
-        counters.each do |association|
-          child_class = reflect_on_association(association).klass
-          counter_name = child_class.reflect_on_association(self.name.downcase.to_sym).counter_cache_column
-
-          connection.update("UPDATE #{quoted_table_name} SET #{connection.quote_column_name(counter_name)} = #{object.send(association).count} WHERE #{connection.quote_column_name(primary_key)} = #{quote_value(object.id)}", "#{name} UPDATE")
-        end
-      end
-
-      # A generic "counter updater" implementation, intended primarily to be
-      # used by increment_counter and decrement_counter, but which may also
-      # be useful on its own. It simply does a direct SQL update for the record
-      # with the given ID, altering the given hash of counters by the amount
-      # given by the corresponding value:
-      #
-      # ==== Parameters
-      #
-      # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
-      # * +counters+ - An Array of Hashes containing the names of the fields
-      #   to update as keys and the amount to update the field by as values.
-      #
-      # ==== Examples
-      #
-      #   # For the Post with id of 5, decrement the comment_count by 1, and
-      #   # increment the action_count by 1
-      #   Post.update_counters 5, :comment_count => -1, :action_count => 1
-      #   # Executes the following SQL:
-      #   # UPDATE posts
-      #   #    SET comment_count = comment_count - 1,
-      #   #        action_count = action_count + 1
-      #   #  WHERE id = 5
-      #
-      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
-      #   Post.update_counters [10, 15], :comment_count => 1
-      #   # Executes the following SQL:
-      #   # UPDATE posts
-      #   #    SET comment_count = comment_count + 1,
-      #   #  WHERE id IN (10, 15)
-      def update_counters(id, counters)
-        updates = counters.inject([]) { |list, (counter_name, increment)|
-          sign = increment < 0 ? "-" : "+"
-          list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
-        }.join(", ")
-
-        if id.is_a?(Array)
-          ids_list = id.map {|i| quote_value(i)}.join(', ')
-          condition = "IN  (#{ids_list})"
-        else
-          condition = "= #{quote_value(id)}"
-        end
-
-        update_all(updates, "#{connection.quote_column_name(primary_key)} #{condition}")
-      end
-
-      # Increment a number field by one, usually representing a count.
-      #
-      # This is used for caching aggregate values, so that they don't need to be computed every time.
-      # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is
-      # shown it would have to run an SQL query to find how many posts and comments there are.
-      #
-      # ==== Parameters
-      #
-      # * +counter_name+ - The name of the field that should be incremented.
-      # * +id+ - The id of the object that should be incremented.
-      #
-      # ==== Examples
-      #
-      #   # Increment the post_count column for the record with an id of 5
-      #   DiscussionBoard.increment_counter(:post_count, 5)
-      def increment_counter(counter_name, id)
-        update_counters(id, counter_name => 1)
-      end
-
-      # Decrement a number field by one, usually representing a count.
-      #
-      # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
-      #
-      # ==== Parameters
-      #
-      # * +counter_name+ - The name of the field that should be decremented.
-      # * +id+ - The id of the object that should be decremented.
-      #
-      # ==== Examples
-      #
-      #   # Decrement the post_count column for the record with an id of 5
-      #   DiscussionBoard.decrement_counter(:post_count, 5)
-      def decrement_counter(counter_name, id)
-        update_counters(id, counter_name => -1)
-      end
-
       # Attributes named in this macro are protected from mass-assignment,
       # such as <tt>new(attributes)</tt>,
       # <tt>update_attributes(attributes)</tt>, or
@@ -1623,186 +1519,6 @@ module ActiveRecord #:nodoc:
         quote_value(id, column_for_attribute(self.class.primary_key))
       end
 
-      # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
-      def new_record?
-        @new_record
-      end
-
-      # Returns true if this object has been destroyed, otherwise returns false.
-      def destroyed?
-        @destroyed
-      end
-
-      # Returns if the record is persisted, i.e. it's not a new record and it was not destroyed.
-      def persisted?
-        !(new_record? || destroyed?)
-      end
-
-      # :call-seq:
-      #   save(options)
-      #
-      # Saves the model.
-      #
-      # If the model is new a record gets created in the database, otherwise
-      # the existing record gets updated.
-      #
-      # By default, save always run validations. If any of them fail the action
-      # is cancelled and +save+ returns +false+. However, if you supply
-      # :validate => false, validations are bypassed altogether. See
-      # ActiveRecord::Validations for more information.
-      #
-      # There's a series of callbacks associated with +save+. If any of the
-      # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
-      # +save+ returns +false+. See ActiveRecord::Callbacks for further
-      # details.
-      def save
-        create_or_update
-      end
-
-      # Saves the model.
-      #
-      # If the model is new a record gets created in the database, otherwise
-      # the existing record gets updated.
-      #
-      # With <tt>save!</tt> validations always run. If any of them fail
-      # ActiveRecord::RecordInvalid gets raised. See ActiveRecord::Validations
-      # for more information.
-      #
-      # There's a series of callbacks associated with <tt>save!</tt>. If any of
-      # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
-      # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
-      # ActiveRecord::Callbacks for further details.
-      def save!
-        create_or_update || raise(RecordNotSaved)
-      end
-
-      # Deletes the record in the database and freezes this instance to
-      # reflect that no changes should be made (since they can't be
-      # persisted). Returns the frozen instance.
-      #
-      # The row is simply removed with a SQL +DELETE+ statement on the
-      # record's primary key, and no callbacks are executed.
-      #
-      # To enforce the object's +before_destroy+ and +after_destroy+
-      # callbacks, Observer methods, or any <tt>:dependent</tt> association
-      # options, use <tt>#destroy</tt>.
-      def delete
-        self.class.delete(id) if persisted?
-        @destroyed = true
-        freeze
-      end
-
-      # Deletes the record in the database and freezes this instance to reflect that no changes should
-      # be made (since they can't be persisted).
-      def destroy
-        if persisted?
-          self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
-        end
-
-        @destroyed = true
-        freeze
-      end
-
-      # Returns an instance of the specified +klass+ with the attributes of the current record. This is mostly useful in relation to
-      # single-table inheritance structures where you want a subclass to appear as the superclass. This can be used along with record
-      # identification in Action Pack to allow, say, <tt>Client < Company</tt> to do something like render <tt>:partial => @client.becomes(Company)</tt>
-      # to render that instance using the companies/company partial instead of clients/client.
-      #
-      # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
-      # instance will affect the other.
-      def becomes(klass)
-        became = klass.new
-        became.instance_variable_set("@attributes", @attributes)
-        became.instance_variable_set("@attributes_cache", @attributes_cache)
-        became.instance_variable_set("@new_record", new_record?)
-        became.instance_variable_set("@destroyed", destroyed?)
-        became
-      end
-
-      # Updates a single attribute and saves the record without going through the normal validation procedure.
-      # This is especially useful for boolean flags on existing records. The regular +update_attribute+ method
-      # in Base is replaced with this when the validations module is mixed in, which it is by default.
-      def update_attribute(name, value)
-        send("#{name}=", value)
-        save(:validate => false)
-      end
-
-      # Updates all the attributes from the passed-in Hash and saves the record. If the object is invalid, the saving will
-      # fail and false will be returned.
-      def update_attributes(attributes)
-        self.attributes = attributes
-        save
-      end
-
-      # Updates an object just like Base.update_attributes but calls save! instead of save so an exception is raised if the record is invalid.
-      def update_attributes!(attributes)
-        self.attributes = attributes
-        save!
-      end
-
-      # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
-      # The increment is performed directly on the underlying attribute, no setter is invoked.
-      # Only makes sense for number-based attributes. Returns +self+.
-      def increment(attribute, by = 1)
-        self[attribute] ||= 0
-        self[attribute] += by
-        self
-      end
-
-      # Wrapper around +increment+ that saves the record. This method differs from
-      # its non-bang version in that it passes through the attribute setter.
-      # Saving is not subjected to validation checks. Returns +true+ if the
-      # record could be saved.
-      def increment!(attribute, by = 1)
-        increment(attribute, by).update_attribute(attribute, self[attribute])
-      end
-
-      # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
-      # The decrement is performed directly on the underlying attribute, no setter is invoked.
-      # Only makes sense for number-based attributes. Returns +self+.
-      def decrement(attribute, by = 1)
-        self[attribute] ||= 0
-        self[attribute] -= by
-        self
-      end
-
-      # Wrapper around +decrement+ that saves the record. This method differs from
-      # its non-bang version in that it passes through the attribute setter.
-      # Saving is not subjected to validation checks. Returns +true+ if the
-      # record could be saved.
-      def decrement!(attribute, by = 1)
-        decrement(attribute, by).update_attribute(attribute, self[attribute])
-      end
-
-      # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
-      # if the predicate returns +true+ the attribute will become +false+. This
-      # method toggles directly the underlying value without calling any setter.
-      # Returns +self+.
-      def toggle(attribute)
-        self[attribute] = !send("#{attribute}?")
-        self
-      end
-
-      # Wrapper around +toggle+ that saves the record. This method differs from
-      # its non-bang version in that it passes through the attribute setter.
-      # Saving is not subjected to validation checks. Returns +true+ if the
-      # record could be saved.
-      def toggle!(attribute)
-        toggle(attribute).update_attribute(attribute, self[attribute])
-      end
-
-      # Reloads the attributes of this object from the database.
-      # The optional options argument is passed to find when reloading so you
-      # may do e.g. record.reload(:lock => true) to reload the same record with
-      # an exclusive row lock.
-      def reload(options = nil)
-        clear_aggregation_cache
-        clear_association_cache
-        @attributes.update(self.class.send(:with_exclusive_scope) { self.class.find(self.id, options) }.instance_variable_get('@attributes'))
-        @attributes_cache = {}
-        self
-      end
-
       # Returns true if the given attribute is in the attributes hash
       def has_attribute?(attr_name)
         @attributes.has_key?(attr_name.to_s)
@@ -1980,40 +1696,6 @@ module ActiveRecord #:nodoc:
       end
 
     private
-      def create_or_update
-        raise ReadOnlyRecord if readonly?
-        result = new_record? ? create : update
-        result != false
-      end
-
-      # Updates the associated record with values matching those of the instance attributes.
-      # Returns the number of affected rows.
-      def update(attribute_names = @attributes.keys)
-        attributes_with_values = arel_attributes_values(false, false, attribute_names)
-        return 0 if attributes_with_values.empty?
-        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).arel.update(attributes_with_values)
-      end
-
-      # Creates a record with values matching those of the instance attributes
-      # and returns its id.
-      def create
-        if self.id.nil? && connection.prefetch_primary_key?(self.class.table_name)
-          self.id = connection.next_sequence_value(self.class.sequence_name)
-        end
-
-        attributes_values = arel_attributes_values
-
-        new_id = if attributes_values.empty?
-          self.class.unscoped.insert connection.empty_insert_statement_value
-        else
-          self.class.unscoped.insert attributes_values
-        end
-
-        self.id ||= new_id
-
-        @new_record = false
-        id
-      end
 
       # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendant.
       # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to do Reply.new without having to
@@ -2097,17 +1779,6 @@ module ActiveRecord #:nodoc:
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
         instance_eval("%@#{sql.gsub('@', '\@')}@")
-      end
-
-      # Initializes the attributes array with keys matching the columns from the linked table and
-      # the values matching the corresponding default value of that column, so
-      # that a new instance, or one populated from a passed-in Hash, still has all the attributes
-      # that instances loaded from the database would.
-      def attributes_from_column_definition
-        self.class.columns.inject({}) do |attributes, column|
-          attributes[column.name] = column.default unless column.name == self.class.primary_key
-          attributes
-        end
       end
 
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
@@ -2225,12 +1896,14 @@ module ActiveRecord #:nodoc:
   end
 
   Base.class_eval do
+    include ActiveRecord::Persistence
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
     extend ActiveSupport::Benchmarkable
 
     include ActiveModel::Conversion
     include Validations
+    extend CounterCache
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
     include AttributeMethods::Read, AttributeMethods::Write, AttributeMethods::BeforeTypeCast, AttributeMethods::Query

@@ -55,7 +55,7 @@ module Rails
       end
 
       case config["adapter"]
-      when "mysql"
+      when /^mysql/
         args = {
           'host'      => '--host',
           'port'      => '--port',
