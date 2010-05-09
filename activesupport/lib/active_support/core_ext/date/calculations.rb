@@ -181,6 +181,7 @@ class Date
     result = self + days_to_sunday.days
     self.acts_like?(:time) ? result.end_of_day : result
   end
+  alias :sunday :end_of_week
   alias :at_end_of_week :end_of_week
 
   # Returns a new Date/DateTime representing the start of the given day in next week (default is Monday).
