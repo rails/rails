@@ -57,6 +57,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,11,28), Date.new(2005,12,04).beginning_of_week #sunday
   end
 
+  def test_beginning_of_week_in_calendar_reform
+    assert_equal Date.new(1582,10,1), Date.new(1582,10,15).beginning_of_week #friday
+  end
+
   def test_beginning_of_month
     assert_equal Date.new(2005,2,1), Date.new(2005,2,22).beginning_of_month
   end
@@ -77,6 +81,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2008,3,2), Date.new(2008,2,29).end_of_week #friday
     assert_equal Date.new(2008,3,2), Date.new(2008,3,01).end_of_week #saturday
     assert_equal Date.new(2008,3,2), Date.new(2008,3,02).end_of_week #sunday
+  end
+
+  def test_end_of_week_in_calendar_reform
+    assert_equal Date.new(1582,10,17), Date.new(1582,10,4).end_of_week #thursday
   end
 
   def test_end_of_quarter
@@ -190,7 +198,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(:years => 1) #leap day plus one year
   end
 
-  def test_advance_calendar_reform
+  def test_advance_in_calendar_reform
     assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(:days => 1)
     assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(:days => -1)
     5.upto(14) do |day|
@@ -206,6 +214,11 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,3,4), Date.new(2005,2,22).next_week(:friday)
     assert_equal Date.new(2006,10,30), Date.new(2006,10,23).next_week
     assert_equal Date.new(2006,11,1), Date.new(2006,10,23).next_week(:wednesday)
+  end
+
+  def test_next_week_in_calendar_reform
+    assert_equal Date.new(1582,10,15), Date.new(1582,9,30).next_week(:friday)
+    assert_equal Date.new(1582,10,18), Date.new(1582,10,4).next_week
   end
 
   def test_next_month_on_31st
