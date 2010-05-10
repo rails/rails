@@ -1468,10 +1468,10 @@ h3. Changelog
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
-* April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits:html#raasdnil
+* April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits.html#raasdnil
 * April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits:html#raasdnil
-* January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits:html#raasdnil
+* February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits.html#raasdnil
+* January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits.html#raasdnil
 * July 18, 2009: Minor cleanup in anticipation of Rails 2.3.3 by "Mike Gunderloy":credits.html#mgunderloy
 * February 1, 2009: Updated for Rails 2.3 by "Mike Gunderloy":credits.html#mgunderloy
 * November 3, 2008: Formatting patch from Dave Rothlisberger
