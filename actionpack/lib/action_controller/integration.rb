@@ -355,6 +355,8 @@ module ActionController
           # used in integration tests.
           @response.extend(TestResponseBehavior)
 
+          body.close if body.respond_to?(:close)
+
           return @status
         rescue MultiPartNeededException
           boundary = "----------XnJLe9ZIbbGUYtzPQJ16u1"
