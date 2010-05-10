@@ -17,6 +17,7 @@ class WrongReply < Reply
   validate :check_empty_title
   validate :check_content_mismatch, :on => :create
   validate :check_wrong_update, :on => :update
+  validate :check_title_is_secret, :on => :special_case
 
   def check_empty_title
     errors[:title] << "Empty" unless attribute_present?("title")
@@ -38,6 +39,10 @@ class WrongReply < Reply
 
   def check_wrong_update
     errors[:title] << "is Wrong Update" if attribute_present?("title") && title == "Wrong Update"
+  end
+
+  def check_title_is_secret
+    errors[:title] << "Invalid" unless title == "secret"
   end
 end
 

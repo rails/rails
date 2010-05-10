@@ -62,6 +62,23 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
+  def test_error_on_given_context
+    r = WrongReply.new
+    assert !r.valid?(:special_case)
+    assert "Invalid", r.errors[:title].join
+
+    r.title = "secret"
+    r.content = "Good"
+    assert r.valid?(:special_case)
+
+    r.title = nil
+    assert !r.save(:context => :special_case)
+    assert "Invalid", r.errors[:title].join
+
+    r.title = "secret"
+    assert r.save(:context => :special_case)
+  end
+
   def test_invalid_record_exception
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
