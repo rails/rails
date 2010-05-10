@@ -58,8 +58,9 @@ module ActiveSupport
     #   transliterate("Jürgen")
     #   # => "Juergen"
     def transliterate(string, replacement = "?")
-      I18n.transliterate(Multibyte::Chars.normalize(
-        Multibyte::Chars.tidy_bytes(string), :c), :replacement => replacement)
+      I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
+        ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
+          :replacement => replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.

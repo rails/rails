@@ -245,11 +245,9 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
         assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
       end
     end
-  end
-
-  if RUBY_VERSION >= '1.9'
-    def test_mb_chars_returns_string
-      assert_kind_of String, UNICODE_STRING.mb_chars
+  else
+    def test_mb_chars_returns_instance_of_proxy_class
+      assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
     end
   end
 end

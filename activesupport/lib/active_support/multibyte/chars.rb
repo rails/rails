@@ -34,52 +34,12 @@ module ActiveSupport #:nodoc:
     #
     #   ActiveSupport::Multibyte.proxy_class = CharsForUTF32
     class Chars
-      # Hangul character boundaries and properties
-      HANGUL_SBASE = 0xAC00
-      HANGUL_LBASE = 0x1100
-      HANGUL_VBASE = 0x1161
-      HANGUL_TBASE = 0x11A7
-      HANGUL_LCOUNT = 19
-      HANGUL_VCOUNT = 21
-      HANGUL_TCOUNT = 28
-      HANGUL_NCOUNT = HANGUL_VCOUNT * HANGUL_TCOUNT
-      HANGUL_SCOUNT = 11172
-      HANGUL_SLAST = HANGUL_SBASE + HANGUL_SCOUNT
-      HANGUL_JAMO_FIRST = 0x1100
-      HANGUL_JAMO_LAST = 0x11FF
-
-      # All the unicode whitespace
-      UNICODE_WHITESPACE = [
-        (0x0009..0x000D).to_a, # White_Space # Cc   [5] <control-0009>..<control-000D>
-        0x0020,                # White_Space # Zs       SPACE
-        0x0085,                # White_Space # Cc       <control-0085>
-        0x00A0,                # White_Space # Zs       NO-BREAK SPACE
-        0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        0x180E,                # White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
-        (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
-        0x2028,                # White_Space # Zl       LINE SEPARATOR
-        0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR
-        0x202F,                # White_Space # Zs       NARROW NO-BREAK SPACE
-        0x205F,                # White_Space # Zs       MEDIUM MATHEMATICAL SPACE
-        0x3000,                # White_Space # Zs       IDEOGRAPHIC SPACE
-      ].flatten.freeze
-
-      # BOM (byte order mark) can also be seen as whitespace, it's a non-rendering character used to distinguish
-      # between little and big endian. This is not an issue in utf-8, so it must be ignored.
-      UNICODE_LEADERS_AND_TRAILERS = UNICODE_WHITESPACE + [65279] # ZERO-WIDTH NO-BREAK SPACE aka BOM
-
-      # Returns a regular expression pattern that matches the passed Unicode codepoints
-      def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
-      end
-      UNICODE_TRAILERS_PAT = /(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+\Z/u
-      UNICODE_LEADERS_PAT = /\A(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+/u
 
       attr_reader :wrapped_string
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      if '1.9'.respond_to?(:force_encoding)
+      if RUBY_VERSION >= "1.9"
         # Creates a new Chars instance by wrapping _string_.
         def initialize(string)
           @wrapped_string = string
@@ -113,12 +73,6 @@ module ActiveSupport #:nodoc:
         true
       end
 
-      # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
-      # +false+ otherwise.
-      def self.wants?(string)
-        $KCODE == 'UTF8' && consumes?(string)
-      end
-
       # Returns +true+ when the proxy class can handle the string. Returns +false+ otherwise.
       def self.consumes?(string)
         # Unpack is a little bit faster than regular expressions.
@@ -130,30 +84,122 @@ module ActiveSupport #:nodoc:
 
       include Comparable
 
-      # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
-      # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
-      # See <tt>String#<=></tt> for more details.
-      #
-      # Example:
-      #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
-      def <=>(other)
-        @wrapped_string <=> other.to_s
-      end
+      if RUBY_VERSION < "1.9"
+        # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
+        # +false+ otherwise.
+        def self.wants?(string)
+          $KCODE == 'UTF8' && consumes?(string)
+        end
 
-      # Returns a new Chars object containing the _other_ object concatenated to the string.
-      #
-      # Example:
-      #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
-      def +(other)
-        self << other
-      end
+        # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
+        # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
+        # See <tt>String#<=></tt> for more details.
+        #
+        # Example:
+        #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
+        def <=>(other)
+          @wrapped_string <=> other.to_s
+        end
 
-      # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
-      #
-      # Example:
-      #   'Café périferôl'.mb_chars =~ /ô/ #=> 12
-      def =~(other)
-        translate_offset(@wrapped_string =~ other)
+        # Returns a new Chars object containing the _other_ object concatenated to the string.
+        #
+        # Example:
+        #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
+        def +(other)
+          self << other
+        end
+
+        # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
+        #
+        # Example:
+        #   'Café périferôl'.mb_chars =~ /ô/ #=> 12
+        def =~(other)
+          translate_offset(@wrapped_string =~ other)
+        end
+
+        # Inserts the passed string at specified codepoint offsets.
+        #
+        # Example:
+        #   'Café'.mb_chars.insert(4, ' périferôl').to_s #=> "Café périferôl"
+        def insert(offset, fragment)
+          unpacked = Unicode.u_unpack(@wrapped_string)
+          unless offset > unpacked.length
+            @wrapped_string.replace(
+              Unicode.u_unpack(@wrapped_string).insert(offset, *Unicode.u_unpack(fragment)).pack('U*')
+            )
+          else
+            raise IndexError, "index #{offset} out of string"
+          end
+          self
+        end
+
+        # Returns +true+ if contained string contains _other_. Returns +false+ otherwise.
+        #
+        # Example:
+        #   'Café'.mb_chars.include?('é') #=> true
+        def include?(other)
+          # We have to redefine this method because Enumerable defines it.
+          @wrapped_string.include?(other)
+        end
+
+        # Returns the position _needle_ in the string, counting in codepoints. Returns +nil+ if _needle_ isn't found.
+        #
+        # Example:
+        #   'Café périferôl'.mb_chars.index('ô') #=> 12
+        #   'Café périferôl'.mb_chars.index(/\w/u) #=> 0
+        def index(needle, offset=0)
+          wrapped_offset = first(offset).wrapped_string.length
+          index = @wrapped_string.index(needle, wrapped_offset)
+          index ? (Unicode.u_unpack(@wrapped_string.slice(0...index)).size) : nil
+        end
+
+        # Returns the position _needle_ in the string, counting in
+        # codepoints, searching backward from _offset_ or the end of the
+        # string. Returns +nil+ if _needle_ isn't found.
+        #
+        # Example:
+        #   'Café périferôl'.mb_chars.rindex('é') #=> 6
+        #   'Café périferôl'.mb_chars.rindex(/\w/u) #=> 13
+        def rindex(needle, offset=nil)
+          offset ||= length
+          wrapped_offset = first(offset).wrapped_string.length
+          index = @wrapped_string.rindex(needle, wrapped_offset)
+          index ? (Unicode.u_unpack(@wrapped_string.slice(0...index)).size) : nil
+        end
+
+        # Returns the number of codepoints in the string
+        def size
+          Unicode.u_unpack(@wrapped_string).size
+        end
+        alias_method :length, :size
+
+        # Strips entire range of Unicode whitespace from the right of the string.
+        def rstrip
+          chars(@wrapped_string.gsub(Unicode::TRAILERS_PAT, ''))
+        end
+
+        # Strips entire range of Unicode whitespace from the left of the string.
+        def lstrip
+          chars(@wrapped_string.gsub(Unicode::LEADERS_PAT, ''))
+        end
+
+        # Strips entire range of Unicode whitespace from the right and left of the string.
+        def strip
+          rstrip.lstrip
+        end
+
+        # Returns the codepoint of the first character in the string.
+        #
+        # Example:
+        #   'こんにちは'.mb_chars.ord #=> 12371
+        def ord
+          Unicode.u_unpack(@wrapped_string)[0]
+        end
+
+      else
+        def =~(other)
+          @wrapped_string =~ other
+        end
       end
 
       # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
@@ -163,56 +209,6 @@ module ActiveSupport #:nodoc:
       #   'Café périferôl'.mb_chars.split(/é/).map { |part| part.upcase.to_s } #=> ["CAF", " P", "RIFERÔL"]
       def split(*args)
         @wrapped_string.split(*args).map { |i| i.mb_chars }
-      end
-
-      # Inserts the passed string at specified codepoint offsets.
-      #
-      # Example:
-      #   'Café'.mb_chars.insert(4, ' périferôl').to_s #=> "Café périferôl"
-      def insert(offset, fragment)
-        unpacked = self.class.u_unpack(@wrapped_string)
-        unless offset > unpacked.length
-          @wrapped_string.replace(
-            self.class.u_unpack(@wrapped_string).insert(offset, *self.class.u_unpack(fragment)).pack('U*')
-          )
-        else
-          raise IndexError, "index #{offset} out of string"
-        end
-        self
-      end
-
-      # Returns +true+ if contained string contains _other_. Returns +false+ otherwise.
-      #
-      # Example:
-      #   'Café'.mb_chars.include?('é') #=> true
-      def include?(other)
-        # We have to redefine this method because Enumerable defines it.
-        @wrapped_string.include?(other)
-      end
-
-      # Returns the position _needle_ in the string, counting in codepoints. Returns +nil+ if _needle_ isn't found.
-      #
-      # Example:
-      #   'Café périferôl'.mb_chars.index('ô') #=> 12
-      #   'Café périferôl'.mb_chars.index(/\w/u) #=> 0
-      def index(needle, offset=0)
-        wrapped_offset = first(offset).wrapped_string.length
-        index = @wrapped_string.index(needle, wrapped_offset)
-        index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
-      end
-
-      # Returns the position _needle_ in the string, counting in
-      # codepoints, searching backward from _offset_ or the end of the
-      # string. Returns +nil+ if _needle_ isn't found.
-      #
-      # Example:
-      #   'Café périferôl'.mb_chars.rindex('é') #=> 6
-      #   'Café périferôl'.mb_chars.rindex(/\w/u) #=> 13
-      def rindex(needle, offset=nil)
-        offset ||= length
-        wrapped_offset = first(offset).wrapped_string.length
-        index = @wrapped_string.rindex(needle, wrapped_offset)
-        index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
       end
 
       # Like <tt>String#[]=</tt>, except instead of byte offsets you specify character offsets.
@@ -234,7 +230,7 @@ module ActiveSupport #:nodoc:
         if args.first.is_a?(Regexp)
           @wrapped_string[*args] = replace_by
         else
-          result = self.class.u_unpack(@wrapped_string)
+          result = Unicode.u_unpack(@wrapped_string)
           if args[0].is_a?(Fixnum)
             raise IndexError, "index #{args[0]} out of string" if args[0] >= result.length
             min = args[0]
@@ -247,10 +243,10 @@ module ActiveSupport #:nodoc:
           else
             needle = args[0].to_s
             min = index(needle)
-            max = min + self.class.u_unpack(needle).length - 1
+            max = min + Unicode.u_unpack(needle).length - 1
             range = Range.new(min, max)
           end
-          result[range] = self.class.u_unpack(replace_by)
+          result[range] = Unicode.u_unpack(replace_by)
           @wrapped_string.replace(result.pack('U*'))
         end
       end
@@ -294,33 +290,13 @@ module ActiveSupport #:nodoc:
         justify(integer, :center, padstr)
       end
 
-      # Strips entire range of Unicode whitespace from the right of the string.
-      def rstrip
-        chars(@wrapped_string.gsub(UNICODE_TRAILERS_PAT, ''))
-      end
-
-      # Strips entire range of Unicode whitespace from the left of the string.
-      def lstrip
-        chars(@wrapped_string.gsub(UNICODE_LEADERS_PAT, ''))
-      end
-
-      # Strips entire range of Unicode whitespace from the right and left of the string.
-      def strip
-        rstrip.lstrip
-      end
-
-      # Returns the number of codepoints in the string
-      def size
-        self.class.u_unpack(@wrapped_string).size
-      end
-      alias_method :length, :size
 
       # Reverses all characters in the string.
       #
       # Example:
       #   'Café'.mb_chars.reverse.to_s #=> 'éfaC'
       def reverse
-        chars(self.class.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
+        chars(Unicode.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
       end
 
       # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
@@ -336,15 +312,15 @@ module ActiveSupport #:nodoc:
         elsif (args.size == 2 && !args[1].is_a?(Numeric))
           raise TypeError, "cannot convert #{args[1].class} into Integer" # Do as if we were native
         elsif args[0].kind_of? Range
-          cps = self.class.u_unpack(@wrapped_string).slice(*args)
+          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
           result = cps.nil? ? nil : cps.pack('U*')
         elsif args[0].kind_of? Regexp
           result = @wrapped_string.slice(*args)
         elsif args.size == 1 && args[0].kind_of?(Numeric)
-          character = self.class.u_unpack(@wrapped_string)[args[0]]
+          character = Unicode.u_unpack(@wrapped_string)[args[0]]
           result = character.nil? ? nil : [character].pack('U')
         else
-          result = self.class.u_unpack(@wrapped_string).slice(*args).pack('U*')
+          result = Unicode.u_unpack(@wrapped_string).slice(*args).pack('U*')
         end
         result.nil? ? nil : chars(result)
       end
@@ -372,20 +348,12 @@ module ActiveSupport #:nodoc:
         slice(0...translate_offset(limit))
       end
 
-      # Returns the codepoint of the first character in the string.
-      #
-      # Example:
-      #   'こんにちは'.mb_chars.ord #=> 12371
-      def ord
-        self.class.u_unpack(@wrapped_string)[0]
-      end
-
       # Convert characters in the string to uppercase.
       #
       # Example:
       #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s #=> "LAURENT, OÙ SONT LES TESTS ?"
       def upcase
-        apply_mapping :uppercase_mapping
+        chars(Unicode.apply_mapping @wrapped_string, :uppercase_mapping)
       end
 
       # Convert characters in the string to lowercase.
@@ -393,7 +361,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s #=> "věda a výzkum"
       def downcase
-        apply_mapping :lowercase_mapping
+        chars(Unicode.apply_mapping @wrapped_string, :lowercase_mapping)
       end
 
       # Converts the first character to uppercase and the remainder to lowercase.
@@ -409,9 +377,9 @@ module ActiveSupport #:nodoc:
       #
       # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
       #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
-      #   ActiveSupport::Multibyte.default_normalization_form
-      def normalize(form=ActiveSupport::Multibyte.default_normalization_form)
-        chars(self.class.normalize(@wrapped_string, form))
+      #   ActiveSupport::Multibyte::Unicode.default_normalization_form
+      def normalize(form = nil)
+        chars(Unicode.normalize(@wrapped_string, form))
       end
 
       # Performs canonical decomposition on all the characters.
@@ -420,7 +388,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length #=> 2
       #   'é'.mb_chars.decompose.to_s.length #=> 3
       def decompose
-        chars(self.class.decompose_codepoints(:canonical, self.class.u_unpack(@wrapped_string)).pack('U*'))
+        chars(Unicode.decompose_codepoints(:canonical, Unicode.u_unpack(@wrapped_string)).pack('U*'))
       end
 
       # Performs composition on all the characters.
@@ -429,7 +397,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length #=> 3
       #   'é'.mb_chars.compose.to_s.length #=> 2
       def compose
-        chars(self.class.compose_codepoints(self.class.u_unpack(@wrapped_string)).pack('U*'))
+        chars(Unicode.compose_codepoints(Unicode.u_unpack(@wrapped_string)).pack('U*'))
       end
 
       # Returns the number of grapheme clusters in the string.
@@ -438,14 +406,14 @@ module ActiveSupport #:nodoc:
       #   'क्षि'.mb_chars.length #=> 4
       #   'क्षि'.mb_chars.g_length #=> 3
       def g_length
-        self.class.g_unpack(@wrapped_string).length
+        Unicode.g_unpack(@wrapped_string).length
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
       #
       # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP1252 or ISO-8859-1.
       def tidy_bytes(force = false)
-        chars(self.class.tidy_bytes(@wrapped_string, force))
+        chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
       %w(lstrip rstrip strip reverse upcase downcase tidy_bytes capitalize).each do |method|
@@ -457,266 +425,6 @@ module ActiveSupport #:nodoc:
           end
           self
         end
-      end
-
-      class << self
-
-        # Unpack the string at codepoints boundaries. Raises an EncodingError when the encoding of the string isn't
-        # valid UTF-8.
-        #
-        # Example:
-        #   Chars.u_unpack('Café') #=> [67, 97, 102, 233]
-        def u_unpack(string)
-          begin
-            string.unpack 'U*'
-          rescue ArgumentError
-            raise EncodingError, 'malformed UTF-8 character'
-          end
-        end
-
-        # Detect whether the codepoint is in a certain character class. Returns +true+ when it's in the specified
-        # character class and +false+ otherwise. Valid character classes are: <tt>:cr</tt>, <tt>:lf</tt>, <tt>:l</tt>,
-        # <tt>:v</tt>, <tt>:lv</tt>, <tt>:lvt</tt> and <tt>:t</tt>.
-        #
-        # Primarily used by the grapheme cluster support.
-        def in_char_class?(codepoint, classes)
-          classes.detect { |c| UCD.boundary[c] === codepoint } ? true : false
-        end
-
-        # Unpack the string at grapheme boundaries. Returns a list of character lists.
-        #
-        # Example:
-        #   Chars.g_unpack('क्षि') #=> [[2325, 2381], [2359], [2367]]
-        #   Chars.g_unpack('Café') #=> [[67], [97], [102], [233]]
-        def g_unpack(string)
-          codepoints = u_unpack(string)
-          unpacked = []
-          pos = 0
-          marker = 0
-          eoc = codepoints.length
-          while(pos < eoc)
-            pos += 1
-            previous = codepoints[pos-1]
-            current = codepoints[pos]
-            if (
-                # CR X LF
-                one = ( previous == UCD.boundary[:cr] and current == UCD.boundary[:lf] ) or
-                # L X (L|V|LV|LVT)
-                two = ( UCD.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
-                # (LV|V) X (V|T)
-                three = ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
-                # (LVT|T) X (T)
-                four = ( in_char_class?(previous, [:lvt,:t]) and UCD.boundary[:t] === current ) or
-                # X Extend
-                five = (UCD.boundary[:extend] === current)
-              )
-            else
-              unpacked << codepoints[marker..pos-1]
-              marker = pos
-            end
-          end
-          unpacked
-        end
-
-        # Reverse operation of g_unpack.
-        #
-        # Example:
-        #   Chars.g_pack(Chars.g_unpack('क्षि')) #=> 'क्षि'
-        def g_pack(unpacked)
-          (unpacked.flatten).pack('U*')
-        end
-
-        def padding(padsize, padstr=' ') #:nodoc:
-          if padsize != 0
-            new(padstr * ((padsize / u_unpack(padstr).size) + 1)).slice(0, padsize)
-          else
-            ''
-          end
-        end
-
-        # Re-order codepoints so the string becomes canonical.
-        def reorder_characters(codepoints)
-          length = codepoints.length- 1
-          pos = 0
-          while pos < length do
-            cp1, cp2 = UCD.codepoints[codepoints[pos]], UCD.codepoints[codepoints[pos+1]]
-            if (cp1.combining_class > cp2.combining_class) && (cp2.combining_class > 0)
-              codepoints[pos..pos+1] = cp2.code, cp1.code
-              pos += (pos > 0 ? -1 : 1)
-            else
-              pos += 1
-            end
-          end
-          codepoints
-        end
-
-        # Decompose composed characters to the decomposed form.
-        def decompose_codepoints(type, codepoints)
-          codepoints.inject([]) do |decomposed, cp|
-            # if it's a hangul syllable starter character
-            if HANGUL_SBASE <= cp and cp < HANGUL_SLAST
-              sindex = cp - HANGUL_SBASE
-              ncp = [] # new codepoints
-              ncp << HANGUL_LBASE + sindex / HANGUL_NCOUNT
-              ncp << HANGUL_VBASE + (sindex % HANGUL_NCOUNT) / HANGUL_TCOUNT
-              tindex = sindex % HANGUL_TCOUNT
-              ncp << (HANGUL_TBASE + tindex) unless tindex == 0
-              decomposed.concat ncp
-            # if the codepoint is decomposable in with the current decomposition type
-            elsif (ncp = UCD.codepoints[cp].decomp_mapping) and (!UCD.codepoints[cp].decomp_type || type == :compatability)
-              decomposed.concat decompose_codepoints(type, ncp.dup)
-            else
-              decomposed << cp
-            end
-          end
-        end
-
-        # Compose decomposed characters to the composed form.
-        def compose_codepoints(codepoints)
-          pos = 0
-          eoa = codepoints.length - 1
-          starter_pos = 0
-          starter_char = codepoints[0]
-          previous_combining_class = -1
-          while pos < eoa
-            pos += 1
-            lindex = starter_char - HANGUL_LBASE
-            # -- Hangul
-            if 0 <= lindex and lindex < HANGUL_LCOUNT
-              vindex = codepoints[starter_pos+1] - HANGUL_VBASE rescue vindex = -1
-              if 0 <= vindex and vindex < HANGUL_VCOUNT
-                tindex = codepoints[starter_pos+2] - HANGUL_TBASE rescue tindex = -1
-                if 0 <= tindex and tindex < HANGUL_TCOUNT
-                  j = starter_pos + 2
-                  eoa -= 2
-                else
-                  tindex = 0
-                  j = starter_pos + 1
-                  eoa -= 1
-                end
-                codepoints[starter_pos..j] = (lindex * HANGUL_VCOUNT + vindex) * HANGUL_TCOUNT + tindex + HANGUL_SBASE
-              end
-              starter_pos += 1
-              starter_char = codepoints[starter_pos]
-            # -- Other characters
-            else
-              current_char = codepoints[pos]
-              current = UCD.codepoints[current_char]
-              if current.combining_class > previous_combining_class
-                if ref = UCD.composition_map[starter_char]
-                  composition = ref[current_char]
-                else
-                  composition = nil
-                end
-                unless composition.nil?
-                  codepoints[starter_pos] = composition
-                  starter_char = composition
-                  codepoints.delete_at pos
-                  eoa -= 1
-                  pos -= 1
-                  previous_combining_class = -1
-                else
-                  previous_combining_class = current.combining_class
-                end
-              else
-                previous_combining_class = current.combining_class
-              end
-              if current.combining_class == 0
-                starter_pos = pos
-                starter_char = codepoints[pos]
-              end
-            end
-          end
-          codepoints
-        end
-
-        def tidy_byte(byte)
-          if byte < 160
-            [UCD.cp1252[byte] || byte].pack("U").unpack("C*")
-          elsif byte < 192
-            [194, byte]
-          else
-            [195, byte - 64]
-          end
-        end
-        private :tidy_byte
-
-        # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
-        #
-        # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP1252 or ISO-8859-1.
-        def tidy_bytes(string, force = false)
-          if force
-            return string.unpack("C*").map do |b|
-              tidy_byte(b)
-            end.flatten.compact.pack("C*").unpack("U*").pack("U*")
-          end
-
-          bytes = string.unpack("C*")
-          conts_expected = 0
-          last_lead = 0
-
-          bytes.each_index do |i|
-
-            byte          = bytes[i]
-            is_ascii      = byte < 128
-            is_cont       = byte > 127 && byte < 192
-            is_lead       = byte > 191 && byte < 245
-            is_unused     = byte > 240
-            is_restricted = byte > 244
-
-            # Impossible or highly unlikely byte? Clean it.
-            if is_unused || is_restricted
-              bytes[i] = tidy_byte(byte)
-            elsif is_cont
-              # Not expecting contination byte? Clean up. Otherwise, now expect one less.
-              conts_expected == 0 ? bytes[i] = tidy_byte(byte) : conts_expected -= 1
-            else
-              if conts_expected > 0
-                # Expected continuation, but got ASCII or leading? Clean backwards up to
-                # the leading byte.
-                (1..(i - last_lead)).each {|j| bytes[i - j] = tidy_byte(bytes[i - j])}
-                conts_expected = 0
-              end
-              if is_lead
-                # Final byte is leading? Clean it.
-                if i == bytes.length - 1
-                  bytes[i] = tidy_byte(bytes.last)
-                else
-                  # Valid leading byte? Expect continuations determined by position of
-                  # first zero bit, with max of 3.
-                  conts_expected = byte < 224 ? 1 : byte < 240 ? 2 : 3
-                  last_lead = i
-                end
-              end
-            end
-          end
-          bytes.empty? ? "" : bytes.flatten.compact.pack("C*").unpack("U*").pack("U*")
-        end
-
-        # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
-        # passing strings to databases and validations.
-        #
-        # * <tt>string</tt> - The string to perform normalization on.
-        # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
-        #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
-        #   ActiveSupport::Multibyte.default_normalization_form
-        def normalize(string, form=ActiveSupport::Multibyte.default_normalization_form)
-          # See http://www.unicode.org/reports/tr15, Table 1
-          codepoints = u_unpack(string)
-          case form
-            when :d
-              reorder_characters(decompose_codepoints(:canonical, codepoints))
-            when :c
-              compose_codepoints(reorder_characters(decompose_codepoints(:canonical, codepoints)))
-            when :kd
-              reorder_characters(decompose_codepoints(:compatability, codepoints))
-            when :kc
-              compose_codepoints(reorder_characters(decompose_codepoints(:compatability, codepoints)))
-            else
-              raise ArgumentError, "#{form} is not a valid normalization variant", caller
-          end.pack('U*')
-        end
-
       end
 
       protected
@@ -743,26 +451,23 @@ module ActiveSupport #:nodoc:
           padsize = padsize > 0 ? padsize : 0
           case way
           when :right
-            result = @wrapped_string.dup.insert(0, self.class.padding(padsize, padstr))
+            result = @wrapped_string.dup.insert(0, padding(padsize, padstr))
           when :left
-            result = @wrapped_string.dup.insert(-1, self.class.padding(padsize, padstr))
+            result = @wrapped_string.dup.insert(-1, padding(padsize, padstr))
           when :center
-            lpad = self.class.padding((padsize / 2.0).floor, padstr)
-            rpad = self.class.padding((padsize / 2.0).ceil, padstr)
+            lpad = padding((padsize / 2.0).floor, padstr)
+            rpad = padding((padsize / 2.0).ceil, padstr)
             result = @wrapped_string.dup.insert(0, lpad).insert(-1, rpad)
           end
           chars(result)
         end
 
-        def apply_mapping(mapping) #:nodoc:
-          chars(self.class.u_unpack(@wrapped_string).map do |codepoint|
-            cp = UCD.codepoints[codepoint]
-            if cp and (ncp = cp.send(mapping)) and ncp > 0
-              ncp
-            else
-              codepoint
-            end
-          end.pack('U*'))
+        def padding(padsize, padstr=' ') #:nodoc:
+          if padsize != 0
+            chars(padstr * ((padsize / Unicode.u_unpack(padstr).size) + 1)).slice(0, padsize)
+          else
+            ''
+          end
         end
 
         def chars(string) #:nodoc:
