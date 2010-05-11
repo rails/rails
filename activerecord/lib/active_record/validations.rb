@@ -40,10 +40,6 @@ module ActiveRecord
       perform_validations(options) ? super : false
     end
 
-    def save_without_validation!
-      save!(:validate => false)
-    end
-
     # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
     def save!(options={})
