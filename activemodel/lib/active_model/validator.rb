@@ -88,6 +88,9 @@ module ActiveModel #:nodoc:
   #       klass.send :attr_accessor, :custom_attribute
   #     end
   #   end
+  #
+  # This setup method is only called when used with validation macros or the
+  # class level <tt>validates_with</tt> method.
   # 
   class Validator
     attr_reader :options

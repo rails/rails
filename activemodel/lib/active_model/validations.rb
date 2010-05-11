@@ -47,7 +47,8 @@ module ActiveModel
     included do
       extend ActiveModel::Translation
 
-      extend HelperMethods; include HelperMethods
+      extend  HelperMethods
+      include HelperMethods
 
       define_callbacks :validate, :scope => :name
 

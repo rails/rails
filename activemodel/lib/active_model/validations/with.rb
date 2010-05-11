@@ -1,5 +1,13 @@
 module ActiveModel
   module Validations
+    module HelperMethods
+      private
+        def _merge_attributes(attr_names)
+          options = attr_names.extract_options!
+          options.merge(:attributes => attr_names.flatten)
+        end
+    end
+
     module ClassMethods
 
       # Passes the record off to the class or classes specified and allows them
@@ -89,18 +97,8 @@ module ActiveModel
     #     end
     #   end
     #
-    #   class MyValidator < ActiveModel::Validator
-    #     def validate(record)
-    #       if some_complex_logic
-    #         record.errors[:base] << "This record is invalid"
-    #       end
-    #     end
-    #
-    #     private
-    #       def some_complex_logic
-    #         # ...
-    #       end
-    #   end
+    # Please consult the class method documentation for more information on
+    # creating your own validator.
     #
     # You may also pass it multiple classes, like so:
     #
@@ -120,24 +118,13 @@ module ActiveModel
     # in the callback
     #
     # If you pass any additional configuration options, they will be passed
-    # to the class and available as <tt>options</tt>:
-    #
-    #   class Person
-    #     include ActiveModel::Validations
-    #     validates_with MyValidator, :my_custom_key => "my custom value"
-    #   end
-    #
-    #   class MyValidator < ActiveModel::Validator
-    #     def validate(record)
-    #       options[:my_custom_key] # => "my custom value"
-    #     end
-    #   end
+    # to the class and available as <tt>options</tt>, please refer to the
+    # class version of this method for more information
     #
     def validates_with(*args, &block)
       options = args.extract_options!
       args.each do |klass|
         validator = klass.new(options, &block)
-        validator.setup(self) if validator.respond_to?(:setup)
         validator.validate(self)
       end
     end
