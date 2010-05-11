@@ -8,7 +8,7 @@ module ActiveRecord
       include AttributeMethods::Write
 
       included do
-        if self < Timestamp
+        if self < ::ActiveRecord::Timestamp
           raise "You cannot include Dirty after Timestamp"
         end
 
