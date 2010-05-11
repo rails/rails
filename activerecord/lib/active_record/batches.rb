@@ -66,7 +66,12 @@ module ActiveRecord
           yield records
 
           break if records.size < batch_size
-          records = proxy.find(:all, :conditions => [ "#{table_name}.#{primary_key} > ?", records.last.id ])
+          
+          last_value = records.last.id
+          
+          raise "You must include the primary key if you define a select" unless last_value.present?
+          
+          records = proxy.find(:all, :conditions => [ "#{table_name}.#{primary_key} > ?", last_value ])
         end
       end
 
