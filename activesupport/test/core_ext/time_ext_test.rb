@@ -587,6 +587,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
                    DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
       assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
     end
+    silence_warnings do
+      0.upto(138) do |year|
+        [:utc, :local].each do |format|
+          assert_equal year, Time.time_with_datetime_fallback(format, year).year
+        end
+      end
+    end
   end
 
   def test_utc_time

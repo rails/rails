@@ -162,13 +162,9 @@ module ActiveRecord
       arel = arel.take(@limit_value) if @limit_value.present?
       arel = arel.skip(@offset_value) if @offset_value.present?
 
-      @group_values.uniq.each do |g|
-        arel = arel.group(g) if g.present?
-      end
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?})
 
-      @order_values.uniq.each do |o|
-        arel = arel.order(Arel::SqlLiteral.new(o.to_s)) if o.present?
-      end
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s))
 
       selects = @select_values.uniq
 

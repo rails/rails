@@ -11,9 +11,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      alias_method_chain :create, :timestamps
-      alias_method_chain :update, :timestamps
-
       class_inheritable_accessor :record_timestamps, :instance_writer => false
       self.record_timestamps = true
     end
@@ -39,35 +36,34 @@ module ActiveRecord
       save!
     end
 
+  private
+    def create #:nodoc:
+      if record_timestamps
+        current_time = current_time_from_proper_timezone
 
-    private
-      def create_with_timestamps #:nodoc:
-        if record_timestamps
-          current_time = current_time_from_proper_timezone
+        write_attribute('created_at', current_time) if respond_to?(:created_at) && created_at.nil?
+        write_attribute('created_on', current_time) if respond_to?(:created_on) && created_on.nil?
 
-          write_attribute('created_at', current_time) if respond_to?(:created_at) && created_at.nil?
-          write_attribute('created_on', current_time) if respond_to?(:created_on) && created_on.nil?
-
-          write_attribute('updated_at', current_time) if respond_to?(:updated_at) && updated_at.nil?
-          write_attribute('updated_on', current_time) if respond_to?(:updated_on) && updated_on.nil?
-        end
-
-        create_without_timestamps
+        write_attribute('updated_at', current_time) if respond_to?(:updated_at) && updated_at.nil?
+        write_attribute('updated_on', current_time) if respond_to?(:updated_on) && updated_on.nil?
       end
 
-      def update_with_timestamps(*args) #:nodoc:
-        if record_timestamps && (!partial_updates? || changed?)
-          current_time = current_time_from_proper_timezone
+      super
+    end
 
-          write_attribute('updated_at', current_time) if respond_to?(:updated_at)
-          write_attribute('updated_on', current_time) if respond_to?(:updated_on)
-        end
+    def update(*args) #:nodoc:
+      if record_timestamps && (!partial_updates? || changed?)
+        current_time = current_time_from_proper_timezone
 
-        update_without_timestamps(*args)
+        write_attribute('updated_at', current_time) if respond_to?(:updated_at)
+        write_attribute('updated_on', current_time) if respond_to?(:updated_on)
       end
-      
-      def current_time_from_proper_timezone
-        self.class.default_timezone == :utc ? Time.now.utc : Time.now
-      end
+
+      super
+    end
+    
+    def current_time_from_proper_timezone
+      self.class.default_timezone == :utc ? Time.now.utc : Time.now
+    end
   end
 end

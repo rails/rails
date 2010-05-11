@@ -840,7 +840,7 @@ class FinderTest < ActiveRecord::TestCase
     assert c.new_record?
   end
 
-  def test_find_or_create_from_one_attribute_should_set_not_attribute_even_when_protected
+  def test_find_or_create_from_one_attribute_should_not_set_attribute_even_when_protected
     c = Company.find_or_create_by_name({:name => "Fortune 1000", :rating => 1000})
     assert_equal "Fortune 1000", c.name
     assert_not_equal 1000, c.rating
@@ -858,6 +858,22 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected
     c = Company.find_or_create_by_name_and_rating("Fortune 1000", 1000)
+    assert_equal "Fortune 1000", c.name
+    assert_equal 1000, c.rating
+    assert c.valid?
+    assert !c.new_record?
+  end
+
+  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
+    c = Company.find_or_initialize_by_rating(1000, {:name => "Fortune 1000"})
+    assert_equal "Fortune 1000", c.name
+    assert_equal 1000, c.rating
+    assert c.valid?
+    assert c.new_record?
+  end
+
+  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
+    c = Company.find_or_create_by_rating(1000, {:name => "Fortune 1000"})
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?

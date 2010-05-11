@@ -1,13 +1,10 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
-require 'models/developer'
 require 'models/person'
 
 class PresenceValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestsDatabase
 
   def teardown
     Topic.reset_callbacks(:validate)
@@ -16,15 +13,14 @@ class PresenceValidationTest < ActiveModel::TestCase
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
 
-    t = Topic.create("title" => "i'm incorrect", "content" => "Validation macros rule!")
-    assert !t.valid?, "Shouldn't be valid"
-    assert !t.save, "Shouldn't save because it's invalid"
+    t = Topic.new("title" => "i'm incorrect", "content" => "Validation macros rule!")
+    assert t.invalid?, "Shouldn't be valid"
     assert_equal ["is bad data"], t.errors[:title]
     assert t.errors[:content].empty?
 
     t.title = "Validation macros rule!"
 
-    assert t.save
+    assert t.valid?
     assert t.errors[:title].empty?
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
@@ -32,43 +28,44 @@ class PresenceValidationTest < ActiveModel::TestCase
 
   def test_validate_format_with_allow_blank
     Topic.validates_format_of(:title, :with => /^Validation\smacros \w+!$/, :allow_blank=>true)
-    assert !Topic.create("title" => "Shouldn't be valid").valid?
-    assert Topic.create("title" => "").valid?
-    assert Topic.create("title" => nil).valid?
-    assert Topic.create("title" => "Validation macros rule!").valid?
+    assert Topic.new("title" => "Shouldn't be valid").invalid?
+    assert Topic.new("title" => "").valid?
+    assert Topic.new("title" => nil).valid?
+    assert Topic.new("title" => "Validation macros rule!").valid?
   end
 
   # testing ticket #3142
   def test_validate_format_numeric
     Topic.validates_format_of(:title, :content, :with => /^[1-9][0-9]*$/, :message => "is bad data")
 
-    t = Topic.create("title" => "72x", "content" => "6789")
-    assert !t.valid?, "Shouldn't be valid"
-    assert !t.save, "Shouldn't save because it's invalid"
+    t = Topic.new("title" => "72x", "content" => "6789")
+    assert t.invalid?, "Shouldn't be valid"
+
     assert_equal ["is bad data"], t.errors[:title]
     assert t.errors[:content].empty?
 
     t.title = "-11"
-    assert !t.valid?, "Shouldn't be valid"
+    assert t.invalid?, "Shouldn't be valid"
 
     t.title = "03"
-    assert !t.valid?, "Shouldn't be valid"
+    assert t.invalid?, "Shouldn't be valid"
 
     t.title = "z44"
-    assert !t.valid?, "Shouldn't be valid"
+    assert t.invalid?, "Shouldn't be valid"
 
     t.title = "5v7"
-    assert !t.valid?, "Shouldn't be valid"
+    assert t.invalid?, "Shouldn't be valid"
 
     t.title = "1"
 
-    assert t.save
+    assert t.valid?
     assert t.errors[:title].empty?
   end
 
   def test_validate_format_with_formatted_message
     Topic.validates_format_of(:title, :with => /^Valid Title$/, :message => "can't be %{value}")
-    t = Topic.create(:title => 'Invalid title')
+    t = Topic.new(:title => 'Invalid title')
+    assert t.invalid?
     assert_equal ["can't be Invalid title"], t.errors[:title]
   end
 

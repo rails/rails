@@ -1,13 +1,10 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/tests_database'
 
 require 'models/topic'
-require 'models/developer'
 require 'models/person'
 
 class InclusionValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestsDatabase
 
   def teardown
     Topic.reset_callbacks(:validate)
@@ -16,14 +13,14 @@ class InclusionValidationTest < ActiveModel::TestCase
   def test_validates_inclusion_of
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ) )
 
-    assert !Topic.create("title" => "a!", "content" => "abc").valid?
-    assert !Topic.create("title" => "a b", "content" => "abc").valid?
-    assert !Topic.create("title" => nil, "content" => "def").valid?
+    assert Topic.new("title" => "a!", "content" => "abc").invalid?
+    assert Topic.new("title" => "a b", "content" => "abc").invalid?
+    assert Topic.new("title" => nil, "content" => "def").invalid?
 
-    t = Topic.create("title" => "a", "content" => "I know you are but what am I?")
+    t = Topic.new("title" => "a", "content" => "I know you are but what am I?")
     assert t.valid?
     t.title = "uhoh"
-    assert !t.valid?
+    assert t.invalid?
     assert t.errors[:title].any?
     assert_equal ["is not included in the list"], t.errors[:title]
 
@@ -38,18 +35,18 @@ class InclusionValidationTest < ActiveModel::TestCase
   def test_validates_inclusion_of_with_allow_nil
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ), :allow_nil=>true )
 
-    assert !Topic.create("title" => "a!", "content" => "abc").valid?
-    assert !Topic.create("title" => "", "content" => "abc").valid?
-    assert Topic.create("title" => nil, "content" => "abc").valid?
+    assert Topic.new("title" => "a!", "content" => "abc").invalid?
+    assert Topic.new("title" => "",   "content" => "abc").invalid?
+    assert Topic.new("title" => nil,  "content" => "abc").valid?
   end
 
   def test_validates_inclusion_of_with_formatted_message
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ), :message => "option %{value} is not in the list" )
 
-    assert Topic.create("title" => "a", "content" => "abc").valid?
+    assert Topic.new("title" => "a", "content" => "abc").valid?
 
-    t = Topic.create("title" => "uhoh", "content" => "abc")
-    assert !t.valid?
+    t = Topic.new("title" => "uhoh", "content" => "abc")
+    assert t.invalid?
     assert t.errors[:title].any?
     assert_equal ["option uhoh is not in the list"], t.errors[:title]
   end

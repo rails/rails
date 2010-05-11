@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 require "cases/helper"
-require 'cases/tests_database'
 require 'models/person'
 
 class I18nValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestsDatabase
 
   def setup
     Person.reset_callbacks(:validate)
@@ -63,7 +61,7 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["Field Name empty"], @person.errors.full_messages
   end
 
-  # ActiveRecord::Validations
+  # ActiveModel::Validations
   # validates_confirmation_of w/ mocha
   def test_validates_confirmation_of_generates_message
     Person.validates_confirmation_of :title

@@ -1,4 +1,14 @@
-class Topic < ActiveRecord::Base
+class Topic
+  include ActiveModel::Validations
+
+  attr_accessor :title, :author_name, :content, :approved
+
+  def initialize(attributes = {})
+    attributes.each do |key, value|
+      send "#{key}=", value
+    end
+  end
+
   def condition_is_true
     true
   end

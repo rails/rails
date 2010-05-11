@@ -256,18 +256,32 @@ module ActiveRecord
       # name.
       #
       # ===== Examples
+      #
       # ====== Creating a simple index
       #  add_index(:suppliers, :name)
       # generates
       #  CREATE INDEX suppliers_name_index ON suppliers(name)
+      #
       # ====== Creating a unique index
       #  add_index(:accounts, [:branch_id, :party_id], :unique => true)
       # generates
       #  CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
+      #
       # ====== Creating a named index
       #  add_index(:accounts, [:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
       # generates
       #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
+      #
+      # ====== Creating an index with specific key length
+      #  add_index(:accounts, :name, :name => 'by_name', :length => 10)
+      # generates
+      #  CREATE INDEX by_name ON accounts(name(10))
+      #
+      #  add_index(:accounts, [:name, :surname], :name => 'by_name_surname', :length => {:name => 10, :surname => 15})
+      # generates
+      #  CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
+      #
+      # Note: SQLite doesn't support index length
       def add_index(table_name, column_name, options = {})
         column_names = Array.wrap(column_name)
         index_name   = index_name(table_name, :column => column_names)
@@ -278,7 +292,9 @@ module ActiveRecord
         else
           index_type = options
         end
-        quoted_column_names = column_names.map { |e| quote_column_name(e) }.join(", ")
+
+        quoted_column_names = quoted_columns_for_index(column_names, options).join(", ")
+
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{quoted_column_names})"
       end
 
@@ -430,6 +446,11 @@ module ActiveRecord
       end
 
       protected
+        # Overridden by the mysql adapter for supporting index lengths
+        def quoted_columns_for_index(column_names, options = {})
+          column_names.map {|name| quote_column_name(name) }
+        end
+
         def options_include_default?(options)
           options.include?(:default) && !(options[:null] == false && options[:default].nil?)
         end

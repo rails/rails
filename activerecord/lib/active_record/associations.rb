@@ -1304,14 +1304,14 @@ module ActiveRecord
 
         # Don't use a before_destroy callback since users' before_destroy
         # callbacks will be executed after the association is wiped out.
-        old_method = "destroy_without_habtm_shim_for_#{reflection.name}"
-        class_eval <<-end_eval unless method_defined?(old_method)
-          alias_method :#{old_method}, :destroy_without_callbacks  # alias_method :destroy_without_habtm_shim_for_posts, :destroy_without_callbacks
-          def destroy_without_callbacks                            # def destroy_without_callbacks
-            #{reflection.name}.clear                               #   posts.clear
-            #{old_method}                                          #   destroy_without_habtm_shim_for_posts
-          end                                                      # end
-        end_eval
+        include Module.new {
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def destroy                     # def destroy
+              super                         #   super
+              #{reflection.name}.clear      #   posts.clear
+            end                             # end
+          RUBY
+        }
 
         add_association_callbacks(reflection.name, options)
       end

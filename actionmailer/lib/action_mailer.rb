@@ -27,7 +27,7 @@ $:.unshift(actionpack_path) if File.directory?(actionpack_path) && !$:.include?(
 require 'abstract_controller'
 require 'action_view'
 
-# Common ActiveSupport usage in ActionMailer
+# Common Active Support usage in Action Mailer
 require 'active_support/core_ext/class'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/array/uniq_by'

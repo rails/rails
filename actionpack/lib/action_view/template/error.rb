@@ -84,9 +84,8 @@ module ActionView
           end
       end
 
-      def to_s
-        "\n#{self.class} (#{message}) #{source_location}:\n\n" +
-        "#{source_extract(4)}\n    #{backtrace.join("\n    ")}\n\n"
+      def annoted_source_code
+        source_extract(4)
       end
 
       private

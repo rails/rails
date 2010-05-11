@@ -1,5 +1,11 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Aliases Date#sunday to Date#end_of_week. [fxn]
+
+* Backports Date#>> from 1.9 so that calculations do the right thing around the calendar reform. [fxn]
+
+* Date#to_time handles properly years in the range 0..138. [fxn]
+
 * Deprecate {{}} as interpolation syntax for I18n in favor of %{} [José Valim]
 
 * Array#to_xml is more powerful and able to handle the same types as Hash#to_xml #4490 [Neeraj Singh]

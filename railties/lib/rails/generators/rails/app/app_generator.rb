@@ -200,6 +200,9 @@ module Rails
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
+
+        @original_wd = Dir.pwd
+
         super
 
         if !options[:skip_activerecord] && !DATABASES.include?(options[:database])
@@ -316,7 +319,7 @@ module Rails
             if URI(path).is_a?(URI::HTTP)
               contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
             else
-              contents = open(path) {|io| io.read }
+              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
             end
 
             prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)

@@ -1994,6 +1994,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal last, Developer.find(:all, :order => 'developers.name, developers.salary DESC').last
   end
 
+  def test_find_keeps_multiple_order_values
+    combined = Developer.find(:all, :order => 'developers.name, developers.salary')
+    assert_equal combined, Developer.find(:all, :order => ['developers.name', 'developers.salary'])
+  end
+
+  def test_find_keeps_multiple_group_values
+    combined = Developer.find(:all, :group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at')
+    assert_equal combined, Developer.find(:all, :group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at'])
+  end
+
   def test_find_symbol_ordered_last
     last  = Developer.find :last, :order => :salary
     assert_equal last, Developer.find(:all, :order => :salary).last

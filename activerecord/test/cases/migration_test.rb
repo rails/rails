@@ -92,6 +92,14 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => 10) }
+        assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => {:last_name => 10}) }
+        assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => 10) }
+        assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20}) }
+        assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
       end
 
       # quoting
