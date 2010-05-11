@@ -12,7 +12,7 @@ module ActiveModel
       end
     end
 
-    module ClassMethods
+    module HelperMethods
       # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
       #
       #   Model:

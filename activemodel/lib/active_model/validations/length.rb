@@ -51,7 +51,7 @@ module ActiveModel
       end
     end
 
-    module ClassMethods
+    module HelperMethods
 
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
