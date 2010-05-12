@@ -57,7 +57,7 @@ class ProductsController < ActionController
   end
 
   def create
-    expire_page :action => :list
+    expire_page :action => :index
   end
 
 end
