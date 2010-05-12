@@ -552,19 +552,20 @@ module ActiveResource
       end
 
       def element_name
-        model_name.element
+        @element_name ||= model_name.element
       end
 
-      def element_name=(value)
-        model_name.element = value
+      def element_name=(element_name)
+        @element_name = element_name
+        @collection_name ||= model_name.collection.sub(/[^\/]*$/, @element_name.pluralize)
       end
 
       def collection_name
-        model_name.collection
+        @collection_name ||= model_name.collection
       end
 
-      def collection_name=(value)
-        model_name.collection = value
+      def collection_name=(collection_name)
+        @collection_name = collection_name
       end
 
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
@@ -1304,6 +1305,14 @@ module ActiveResource
         # would return true for generated readers, even if the attribute wasn't present
         super
       end
+    end
+
+    def to_json(options={})
+      super({ :root => self.class.element_name }.merge(options))
+    end
+
+    def to_xml(options={})
+      super({ :root => self.class.element_name }.merge(options))
     end
 
     protected
