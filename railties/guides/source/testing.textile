@@ -615,7 +615,7 @@ Here's what a freshly-generated integration test looks like:
 require 'test_helper'
 
 class UserFlowsTest < ActionController::IntegrationTest
-  # fixtures :your, :models
+  fixtures :all
 
   # Replace this with your real tests.
   test "the truth" do
@@ -729,12 +729,15 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 
 |_.Tasks                         |_.Description|
 |+rake test+                     |Runs all unit, functional and integration tests. You can also simply run +rake+ as the _test_ target is the default.|
-|+rake test:units+               |Runs all the unit tests from +test/unit+|
+|+rake test:benchmark+           |Benchmark the performance tests|
 |+rake test:functionals+         |Runs all the functional tests from +test/functional+|
 |+rake test:integration+         |Runs all the integration tests from +test/integration+|
+|+rake test:plugins+             |Run all the plugin tests from +vendor/plugins/*/**/test+ (or specify with +PLUGIN=_name_+)|
+|+rake test:profile+             |Profile the performance tests|
 |+rake test:recent+              |Tests recent changes|
 |+rake test:uncommitted+         |Runs all the tests which are uncommitted. Only supports Subversion|
-|+rake test:plugins+             |Run all the plugin tests from +vendor/plugins/*/**/test+ (or specify with +PLUGIN=_name_+)|
+|+rake test:units+               |Runs all the unit tests from +test/unit+|
+
 
 h3. Brief Note About +Test::Unit+
 
@@ -780,7 +783,7 @@ class PostsControllerTest < ActionController::TestCase
 end
 </ruby>
 
-Above, the +setup+ method is called before each test and so +@post+ is available for each of the tests. Rails implements +setup+ and +teardown+ as ActiveSupport::Callbacks. Which essentially means you need not only use +setup+ and +teardown+ as methods in your tests. You could specify them by using:
+Above, the +setup+ method is called before each test and so +@post+ is available for each of the tests. Rails implements +setup+ and +teardown+ as +ActiveSupport::Callbacks+. Which essentially means you need not only use +setup+ and +teardown+ as methods in your tests. You could specify them by using:
 
 * a block
 * a method (like in the earlier example)
