@@ -3,36 +3,18 @@ require 'active_support/inflector'
 module ActiveModel
 
   class Name < String
-    attr_reader :singular, :plural, :element
+    attr_reader :singular, :plural, :element, :collection, :partial_path
+    alias_method :cache_key, :collection
 
     def initialize(klass)
       super(klass.name)
       @klass = klass
       @singular = ActiveSupport::Inflector.underscore(self).tr('/', '_').freeze
       @plural = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @collection = nil
-      self.element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
-    end
-
-    def element=(element)
-      @element = element
+      @element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
       @human = ActiveSupport::Inflector.humanize(@element).freeze
-      @default_collection = nil
-      @partial_path = nil
-    end
-
-    def collection
-      @collection || default_collection
-    end
-    alias_method :cache_key, :collection
-
-    def collection=(collection)
-      @collection = collection
-      @partial_path = nil
-    end
-
-    def partial_path
-      @partial_path ||= "#{collection}/#{@element}"
+      @collection = ActiveSupport::Inflector.tableize(self).freeze
+      @partial_path = "#{@collection}/#{@element}".freeze
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -52,12 +34,6 @@ module ActiveModel
       options.reverse_merge! :scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults
       I18n.translate(defaults.shift, options)
     end
-
-    private
-
-      def default_collection
-        @default_collection ||= ActiveSupport::Inflector.tableize(self.sub(/[^:]*$/, @element)).freeze
-      end
   end
 
   # ActiveModel::Naming is a module that creates a +model_name+ method on your
