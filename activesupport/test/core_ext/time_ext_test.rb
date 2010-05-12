@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class TimeExtCalculationsTest < Test::Unit::TestCase
+class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_seconds_since_midnight
     assert_equal 1,Time.local(2005,1,1,0,0,1).seconds_since_midnight
     assert_equal 60,Time.local(2005,1,1,0,1,0).seconds_since_midnight
@@ -166,8 +166,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     # assert_equal Time.local(2182,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(177)
   end
 
-  def test_last_year
-    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
+  def test_last_year_is_deprecated
+    assert_deprecated { Time.now.last_year }
+  end
+
+  def test_prev_year
+    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).prev_year
   end
 
   def test_next_year
@@ -615,8 +619,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 9, 30), Time.local(2005, 8, 31).next_month
   end
 
-  def test_last_month_on_31st
-    assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
+  def test_last_month_is_deprecated
+    assert_deprecated { Time.now.last_month }
+  end
+
+  def test_prev_month_on_31st
+    assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).prev_month
   end
 
   def test_xmlschema_is_available
