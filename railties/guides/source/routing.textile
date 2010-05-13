@@ -119,6 +119,12 @@ h4. Singular Resources
 Sometimes, you have a resource that clients always look up without referencing an ID. A common example, +/profile+ always shows the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
 
 <ruby>
+match "profile" => "users#show"
+</ruby>
+
+This resourceful route
+
+<ruby>
 resource :geocoder
 </ruby>
 
@@ -391,7 +397,7 @@ h4. The Query String
 The +params+ will also include any parameters from the query string. For example, with this route:
 
 <ruby>
-match ':controller/:action/:id
+match ':controller/:action/:id'
 </ruby>
 
 An incoming URL of +/photos/show/1?user_id=2+ will be dispatched to the +show+ action of the +Photos+ controller. +params+ will be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
@@ -419,7 +425,7 @@ h4. Naming Routes
 You can specify a name for any route using the +:as+ option.
 
 <ruby>
-match 'logout' => 'sessions#destroy', :as => :logout
+match 'exit' => 'sessions#destroy', :as => :logout
 </ruby>
 
 This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/logout+
@@ -636,7 +642,7 @@ end
 resources :photos
 </ruby>
 
-This will provide route helpers such as +photographer_photos_path+.
+This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
 You could specify a name prefix to use for a group of routes in the scope:
 
