@@ -551,22 +551,8 @@ module ActiveResource
         @headers ||= {}
       end
 
-      def element_name
-        @element_name ||= model_name.element
-      end
-
-      def element_name=(element_name)
-        @element_name = element_name
-        @collection_name ||= model_name.collection.sub(/[^\/]*$/, @element_name.pluralize)
-      end
-
-      def collection_name
-        @collection_name ||= model_name.collection
-      end
-
-      def collection_name=(collection_name)
-        @collection_name = collection_name
-      end
+      attr_accessor_with_default(:element_name)    { model_name.element } #:nodoc:
+      attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
 
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
 

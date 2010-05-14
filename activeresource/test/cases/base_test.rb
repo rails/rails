@@ -2,6 +2,7 @@ require 'abstract_unit'
 require "fixtures/person"
 require "fixtures/customer"
 require "fixtures/street_address"
+require "fixtures/sound"
 require "fixtures/beast"
 require "fixtures/proxy"
 require 'active_support/json'
@@ -561,6 +562,10 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1, :person_id => 1)
     assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1, 'person_id' => 1)
     assert_equal '/people/Greg/addresses/1.xml', StreetAddress.element_path(1, 'person_id' => 'Greg')
+  end
+
+  def test_module_element_path
+    assert_equal '/sounds/1.xml', Asset::Sound.element_path(1)
   end
 
   def test_custom_element_path_with_redefined_to_param
