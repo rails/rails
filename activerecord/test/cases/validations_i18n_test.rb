@@ -27,42 +27,6 @@ module ActiveRecordValidationsI18nTestHelper
   end
 end
 
-# DEPRECATIONS
-
-class ActiveRecordValidationsI18nDeprecationsTests < ActiveSupport::TestCase
-  test "default_error_messages is deprecated and can be removed in Rails 3 / ActiveModel" do
-    assert_deprecated('ActiveRecord::Errors.default_error_messages') do
-      ActiveRecord::Errors.default_error_messages
-    end
-  end
-
-  test "%s interpolation syntax in error messages still works" do
-    ActiveSupport::Deprecation.silence do
-      result = I18n.t :does_not_exist, :default => "%s interpolation syntax is deprecated", :value => 'this'
-      assert_equal result, "this interpolation syntax is deprecated"
-    end
-  end
-
-  test "%s interpolation syntax in error messages is deprecated" do
-    assert_deprecated('using %s in messages') do
-      I18n.t :does_not_exist, :default => "%s interpolation syntax is deprected", :value => 'this'
-    end
-  end
-
-  test "%d interpolation syntax in error messages still works" do
-    ActiveSupport::Deprecation.silence do
-      result = I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprecated", :count => 2
-      assert_equal result, "2 interpolation syntaxes are deprecated"
-    end
-  end
-
-  test "%d interpolation syntax in error messages is deprecated" do
-    assert_deprecated('using %d in messages') do
-      I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected", :count => 2
-    end
-  end
-end
-
 
 # ACTIVERECORD VALIDATIONS
 #
