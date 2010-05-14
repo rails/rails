@@ -494,7 +494,7 @@ module ActiveRecord
       end
 
       %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
-        class_eval <<-EOV
+        class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{column_type}(*args)                                               # def string(*args)
             options = args.extract_options!                                       #   options = args.extract_options!
             column_names = args                                                   #   column_names = args
@@ -694,7 +694,7 @@ module ActiveRecord
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
       %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
-        class_eval <<-EOV
+        class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{column_type}(*args)                                          # def string(*args)
             options = args.extract_options!                                  #   options = args.extract_options!
             column_names = args                                              #   column_names = args

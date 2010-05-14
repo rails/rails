@@ -42,7 +42,7 @@ module ActiveResource # :nodoc:
     # TODO:  We should eventually support all of these:
     # %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |attr_type|
     KNOWN_ATTRIBUTE_TYPES.each do |attr_type|
-      class_eval <<-EOV
+      class_eval <<-EOV, __FILE__, __LINE__ + 1
         def #{attr_type.to_s}(*args)
           options = args.extract_options!
           attr_names = args
