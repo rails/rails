@@ -1190,7 +1190,11 @@ module ActiveRecord #:nodoc:
         #     default_scope order('last_name, first_name')
         #   end
         def default_scope(options = {})
-          self.default_scoping << construct_finder_arel(options)
+          self.default_scoping << construct_finder_arel(options, default_scoping.pop)
+        end
+
+        def clear_default_scope
+          self.default_scoping.clear
         end
 
         def scoped_methods #:nodoc:
