@@ -33,7 +33,7 @@ module Rails
       end
 
       def middleware
-        @middleware ||= default_middleware_stack
+        @middleware ||= app_middleware.merge_into(default_middleware_stack)
       end
 
       def metal_loader

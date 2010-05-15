@@ -45,7 +45,7 @@ module Rails
   #       app.middleware.use MyEngine::Middleware
   #     end
   #   end
-  # 
+  #
   # == Paths
   #
   # Since Rails 3.0, both your Application and Engines do not have hardcoded paths.
@@ -125,7 +125,7 @@ module Rails
       end
     end
 
-    delegate :middleware, :paths, :root, :to => :config
+    delegate :paths, :root, :to => :config
 
     def load_tasks
       super
@@ -133,7 +133,7 @@ module Rails
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
-    initializer :set_load_path, :before => :bootstrap_load_path do
+    initializer :set_load_path, :before => :bootstrap_hook do
       config.load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
@@ -142,7 +142,10 @@ module Rails
 
     # Set the paths from which Rails will automatically load source files,
     # and the load_once paths.
-    initializer :set_autoload_paths, :before => :bootstrap_load_path do |app|
+    #
+    # This needs to be an initializer, since it needs to run once
+    # per engine and get the engine as a block parameter
+    initializer :set_autoload_paths, :before => :bootstrap_hook do |app|
       ActiveSupport::Dependencies.load_paths.unshift(*config.load_paths)
 
       if reloadable?(app)
@@ -200,7 +203,9 @@ module Rails
       end
     end
 
-    initializer :load_app_classes do |app|
+    # This needs to be an initializer, since it needs to run once
+    # per engine and get the engine as a block parameter
+    initializer :load_app_classes, :before => :finisher_hook do |app|
       next if $rails_rake_task
 
       if app.config.cache_classes

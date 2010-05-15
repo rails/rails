@@ -15,6 +15,12 @@ module ActiveRecord
     config.generators.orm :active_record, :migration => true,
                                           :timestamps => true
 
+    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+      "ActiveRecord::QueryCache"
+
+    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+      "ActiveRecord::ConnectionAdapters::ConnectionManagement"
+
     rake_tasks do
       load "active_record/railties/databases.rake"
     end
@@ -58,16 +64,9 @@ module ActiveRecord
       end
     end
 
-    # Setup database middleware after initializers have run
-    initializer "active_record.initialize_database_middleware", :after => "action_controller.set_configs" do |app|
-      middleware = app.config.middleware
-      middleware.insert_after "::ActionDispatch::Callbacks", ActiveRecord::QueryCache
-      middleware.insert_after "::ActionDispatch::Callbacks", ActiveRecord::ConnectionAdapters::ConnectionManagement
-    end
-
     initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
-      ActiveSupport.on_load(:active_record) do
-        unless app.config.cache_classes
+      unless app.config.cache_classes
+        ActiveSupport.on_load(:active_record) do
           ActionDispatch::Callbacks.after do
             ActiveRecord::Base.reset_subclasses
             ActiveRecord::Base.clear_reloadable_connections!

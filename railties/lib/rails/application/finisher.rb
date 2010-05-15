@@ -35,10 +35,8 @@ module Rails
         app
       end
 
-      initializer :after_initialize do
-        config.after_initialize_blocks.each do |block|
-          block.call(self)
-        end
+      initializer :finisher_hook do |app|
+        ActiveSupport.run_load_hooks(:after_initialize, app)
       end
 
       # Disable dependency loading during request cycle
