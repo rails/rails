@@ -69,6 +69,7 @@ class Post < ActiveRecord::Base
   has_many :authors, :through => :categorizations
 
   has_many :readers
+  has_many :readers_with_person, :include => :person, :class_name => "Reader"
   has_many :people, :through => :readers
   has_many :people_with_callbacks, :source=>:person, :through => :readers,
               :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },
