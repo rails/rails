@@ -297,6 +297,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="clock">Grandfather</label>', output)
   end
 
+  def test_label_tag_with_block_and_argument_and_options
+    output = label_tag("clock", :id => "label_clock") { "Grandfather" }
+    assert_dom_equal('<label for="clock" id="label_clock">Grandfather</label>', output)
+  end
+
   def test_boolean_options
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)

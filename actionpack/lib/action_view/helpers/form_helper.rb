@@ -576,12 +576,12 @@ module ActionView
       #   label(:post, :terms) do
       #     'Accept <a href="/terms">Terms</a>.'
       #   end
-      def label(object_name, method, content_or_options_with_block = nil, options = nil, &block)
+      def label(object_name, method, content_or_options = nil, options = nil, &block)
         if block_given?
-          options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
+          options = content_or_options if content_or_options.is_a?(Hash)
           text = nil
         else
-          text = content_or_options_with_block
+          text = content_or_options
         end
 
         options ||= {}
