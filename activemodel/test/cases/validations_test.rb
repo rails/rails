@@ -4,6 +4,7 @@ require 'cases/helper'
 require 'models/topic'
 require 'models/reply'
 require 'models/custom_reader'
+require 'models/automobile'
 
 class ValidationsTest < ActiveModel::TestCase
 
@@ -251,5 +252,17 @@ class ValidationsTest < ActiveModel::TestCase
   def test_accessing_instance_of_validator_on_an_attribute
     Topic.validates_length_of :title, :minimum => 10
     assert_equal 10, Topic.validators_on(:title).first.options[:minimum]
+  end
+
+  def test_validations_on_the_instance_level
+    auto = Automobile.new
+
+    assert          auto.invalid?
+    assert_equal 2, auto.errors.size
+
+    auto.make  = 'Toyota'
+    auto.model = 'Corolla'
+
+    assert auto.valid?
   end
 end

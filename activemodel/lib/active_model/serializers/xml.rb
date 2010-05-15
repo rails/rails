@@ -90,7 +90,7 @@ module ActiveModel
           @builder = options[:builder]
           @builder.instruct! unless options[:skip_instruct]
 
-          root = (options[:root] || @serializable.class.model_name.singular).to_s
+          root = (options[:root] || @serializable.class.model_name.element).to_s
           root = ActiveSupport::XmlMini.rename_key(root, options)
 
           args = [root]

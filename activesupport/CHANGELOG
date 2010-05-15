@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Defines prev_(month|year) in Date and Time, and deprecates last_(month|year). [fxn]
+
 * Aliases Date#sunday to Date#end_of_week. [fxn]
 
 * Backports Date#>> from 1.9 so that calculations do the right thing around the calendar reform. [fxn]

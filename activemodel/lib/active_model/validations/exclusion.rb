@@ -12,7 +12,7 @@ module ActiveModel
       end
     end
 
-    module ClassMethods
+    module HelperMethods
       # Validates that the value of the specified attribute is not in a particular enumerable object.
       #
       #   class Person < ActiveRecord::Base

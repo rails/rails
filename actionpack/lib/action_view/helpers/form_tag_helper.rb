@@ -142,7 +142,7 @@ module ActionView
         tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
       end
 
-      # Creates a label field
+      # Creates a label element. Accepts a block.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
@@ -156,8 +156,12 @@ module ActionView
       #
       #   label_tag 'name', nil, :class => 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
-      def label_tag(name, text = nil, options = {})
-        content_tag :label, text || name.to_s.humanize, { "for" => sanitize_to_id(name) }.update(options.stringify_keys)
+      def label_tag(name = nil, content_or_options = nil, options = nil, &block)
+        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
+        options ||= {}
+        options.stringify_keys!
+        options["for"] = sanitize_to_id(name) unless name.blank? || options.has_key?("for")
+        content_tag :label, content_or_options || name.to_s.humanize, options, &block
       end
 
       # Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or

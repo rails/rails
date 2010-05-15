@@ -45,9 +45,8 @@ module ActiveRecord
       calculate(:count, column_name, options)
     end
 
-    # Calculates the average value on a given column. The value is returned as
-    # a float, or +nil+ if there's no row. See +calculate+ for examples with
-    # options.
+    # Calculates the average value on a given column. Returns +nil+ if there's
+    # no row. See +calculate+ for examples with options.
     #
     #   Person.average('age') # => 35.8
     def average(column_name, options = {})
@@ -241,9 +240,9 @@ module ActiveRecord
     def type_cast_calculated_value(value, column, operation = nil)
       if value.is_a?(String) || value.nil?
         case operation
-          when 'count' then value.to_i
-          when 'sum'   then type_cast_using_column(value || '0', column)
-          when 'average' then value && (value.is_a?(Fixnum) ? value.to_f : value).to_d
+          when 'count'   then value.to_i
+          when 'sum'     then type_cast_using_column(value || '0', column)
+          when 'average' then value.try(:to_d)
           else type_cast_using_column(value, column)
         end
       else

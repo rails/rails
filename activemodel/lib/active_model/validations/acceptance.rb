@@ -21,7 +21,7 @@ module ActiveModel
       end
     end
 
-    module ClassMethods
+    module HelperMethods
       # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
       #
       #   class Person < ActiveRecord::Base

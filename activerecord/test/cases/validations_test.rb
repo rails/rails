@@ -152,12 +152,6 @@ class ValidationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_create_without_validation_bang
-    count = WrongReply.count
-    assert_nothing_raised { WrongReply.new.save_without_validation! }
-    assert count+1, WrongReply.count
-  end
-
   def test_validates_acceptance_of_with_non_existant_table
     Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
 

@@ -37,19 +37,13 @@ module ActiveRecord
     # The validation process on save can be skipped by passing false. The regular Base#save method is
     # replaced with this when the validations module is mixed in, which it is by default.
     def save(options={})
-      return super if perform_validations(options)
-      false
-    end
-
-    def save_without_validation!
-      save!(:validate => false)
+      perform_validations(options) ? super : false
     end
 
     # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
     def save!(options={})
-      return super if perform_validations(options)
-      raise RecordInvalid.new(self)
+      perform_validations(options) ? super : raise(RecordInvalid.new(self))
     end
 
     # Runs all the specified validations and returns true if no errors were added otherwise false.

@@ -573,8 +573,19 @@ module ActionView
       #   label(:post, :privacy, "Public Post", :value => "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
-      def label(object_name, method, text = nil, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options)
+      #   label(:post, :terms) do
+      #     'Accept <a href="/terms">Terms</a>.'
+      #   end
+      def label(object_name, method, content_or_options = nil, options = nil, &block)
+        if block_given?
+          options = content_or_options if content_or_options.is_a?(Hash)
+          text = nil
+        else
+          text = content_or_options
+        end
+
+        options ||= {}
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options, &block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -823,7 +834,7 @@ module ActionView
 
     module InstanceTagMethods #:nodoc:
       extend ActiveSupport::Concern
-      include Helpers::TagHelper, Helpers::FormTagHelper
+      include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :method_name, :object_name
 
@@ -844,7 +855,7 @@ module ActionView
         end
       end
 
-      def to_label_tag(text = nil, options = {})
+      def to_label_tag(text = nil, options = {}, &block)
         options = options.stringify_keys
         tag_value = options.delete("value")
         name_and_id = options.dup
@@ -853,19 +864,23 @@ module ActionView
         options.delete("index")
         options["for"] ||= name_and_id["id"]
 
-        content = if text.blank?
-          I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
+        if block_given?
+          label_tag(name_and_id["id"], options, &block)
         else
-          text.to_s
+          content = if text.blank?
+            I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
+          else
+            text.to_s
+          end
+
+          content ||= if object && object.class.respond_to?(:human_attribute_name)
+            object.class.human_attribute_name(method_name)
+          end
+
+          content ||= method_name.humanize
+
+          label_tag(name_and_id["id"], content, options)
         end
-
-        content ||= if object && object.class.respond_to?(:human_attribute_name)
-          object.class.human_attribute_name(method_name)
-        end
-
-        content ||= method_name.humanize
-
-        label_tag(name_and_id["id"], content, options)
       end
 
       def to_input_field_tag(field_type, options = {})
@@ -1137,8 +1152,8 @@ module ActionView
         @template.fields_for(name, *args, &block)
       end
 
-      def label(method, text = nil, options = {})
-        @template.label(@object_name, method, text, objectify_options(options))
+      def label(method, text = nil, options = {}, &block)
+        @template.label(@object_name, method, text, objectify_options(options), &block)
       end
 
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
