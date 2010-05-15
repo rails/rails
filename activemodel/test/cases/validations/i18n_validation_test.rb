@@ -22,23 +22,23 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_add_on_empty_generates_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :empty, {})
     @person.errors.add_on_empty :title
   end
 
   def test_errors_add_on_empty_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {:default => 'custom'})
-    @person.errors.add_on_empty :title, 'custom'
+    @person.errors.expects(:generate_message).with(:title, :empty, {:message => 'custom'})
+    @person.errors.add_on_empty :title, :message => 'custom'
   end
 
   def test_errors_add_on_blank_generates_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :blank, {})
     @person.errors.add_on_blank :title
   end
 
   def test_errors_add_on_blank_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
-    @person.errors.add_on_blank :title, 'custom'
+    @person.errors.expects(:generate_message).with(:title, :blank, {:message => 'custom'})
+    @person.errors.add_on_blank :title, :message => 'custom'
   end
 
   def test_full_message_encoding
@@ -66,14 +66,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_confirmation_of_generates_message
     Person.validates_confirmation_of :title
     @person.title_confirmation = 'foo'
-    @person.errors.expects(:generate_message).with(:title, :confirmation, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :confirmation, {})
     @person.valid?
   end
 
   def test_validates_confirmation_of_generates_message_with_custom_default_message
     Person.validates_confirmation_of :title, :message => 'custom'
     @person.title_confirmation = 'foo'
-    @person.errors.expects(:generate_message).with(:title, :confirmation, {:default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :confirmation, {:message => 'custom'})
     @person.valid?
   end
 
@@ -81,13 +81,13 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_validates_acceptance_of_generates_message
     Person.validates_acceptance_of :title, :allow_nil => false
-    @person.errors.expects(:generate_message).with(:title, :accepted, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :accepted, {})
     @person.valid?
   end
 
   def test_validates_acceptance_of_generates_message_with_custom_default_message
     Person.validates_acceptance_of :title, :message => 'custom', :allow_nil => false
-    @person.errors.expects(:generate_message).with(:title, :accepted, {:default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :accepted, {:message => 'custom'})
     @person.valid?
   end
 
@@ -95,13 +95,13 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_validates_presence_of_generates_message
     Person.validates_presence_of :title
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :blank, {})
     @person.valid?
   end
 
   def test_validates_presence_of_generates_message_with_custom_default_message
     Person.validates_presence_of :title, :message => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :blank, {:message => 'custom'})
     @person.valid?
   end
 
@@ -109,27 +109,27 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_validates_length_of_within_generates_message_with_title_too_short
     Person.validates_length_of :title, :within => 3..5
-    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3})
     @person.valid?
   end
 
   def test_validates_length_of_within_generates_message_with_title_too_short_and_custom_default_message
     Person.validates_length_of :title, :within => 3..5, :too_short => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :message => 'custom'})
     @person.valid?
   end
 
   def test_validates_length_of_within_generates_message_with_title_too_long
     Person.validates_length_of :title, :within => 3..5
     @person.title = 'this title is too long'
-    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5})
     @person.valid?
   end
 
   def test_validates_length_of_within_generates_message_with_title_too_long_and_custom_default_message
     Person.validates_length_of :title, :within => 3..5, :too_long => 'custom'
     @person.title = 'this title is too long'
-    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :message => 'custom'})
     @person.valid?
   end
 
@@ -137,13 +137,13 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_validates_length_of_is_generates_message
     Person.validates_length_of :title, :is => 5
-    @person.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5})
     @person.valid?
   end
 
   def test_validates_length_of_is_generates_message_with_custom_default_message
     Person.validates_length_of :title, :is => 5, :message => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :message => 'custom'})
     @person.valid?
   end
 
@@ -152,14 +152,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_format_of_generates_message
     Person.validates_format_of :title, :with => /^[1-9][0-9]*$/
     @person.title = '72x'
-    @person.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x'})
     @person.valid?
   end
 
   def test_validates_format_of_generates_message_with_custom_default_message
     Person.validates_format_of :title, :with => /^[1-9][0-9]*$/, :message => 'custom'
     @person.title = '72x'
-    @person.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :message => 'custom'})
     @person.valid?
   end
 
@@ -168,14 +168,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_inclusion_of_generates_message
     Person.validates_inclusion_of :title, :in => %w(a b c)
     @person.title = 'z'
-    @person.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z'})
     @person.valid?
   end
 
   def test_validates_inclusion_of_generates_message_with_custom_default_message
     Person.validates_inclusion_of :title, :in => %w(a b c), :message => 'custom'
     @person.title = 'z'
-    @person.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :message => 'custom'})
     @person.valid?
   end
 
@@ -184,14 +184,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_exclusion_of_generates_message
     Person.validates_exclusion_of :title, :in => %w(a b c)
     @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a'})
     @person.valid?
   end
 
   def test_validates_exclusion_of_generates_message_with_custom_default_message
     Person.validates_exclusion_of :title, :in => %w(a b c), :message => 'custom'
     @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :message => 'custom'})
     @person.valid?
   end
 
@@ -200,14 +200,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_numericality_of_generates_message
     Person.validates_numericality_of :title
     @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a'})
     @person.valid?
   end
 
   def test_validates_numericality_of_generates_message_with_custom_default_message
     Person.validates_numericality_of :title, :message => 'custom'
     @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :message => 'custom'})
     @person.valid?
   end
 
@@ -216,14 +216,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_numericality_of_only_integer_generates_message
     Person.validates_numericality_of :title, :only_integer => true
     @person.title = '0.0'
-    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0'})
     @person.valid?
   end
 
   def test_validates_numericality_of_only_integer_generates_message_with_custom_default_message
     Person.validates_numericality_of :title, :only_integer => true, :message => 'custom'
     @person.title = '0.0'
-    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :message => 'custom'})
     @person.valid?
   end
 
@@ -232,14 +232,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_numericality_of_odd_generates_message
     Person.validates_numericality_of :title, :only_integer => true, :odd => true
     @person.title = 0
-    @person.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :odd, {:value => 0})
     @person.valid?
   end
 
   def test_validates_numericality_of_odd_generates_message_with_custom_default_message
     Person.validates_numericality_of :title, :only_integer => true, :odd => true, :message => 'custom'
     @person.title = 0
-    @person.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :message => 'custom'})
     @person.valid?
   end
 
@@ -248,14 +248,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_validates_numericality_of_less_than_generates_message
     Person.validates_numericality_of :title, :only_integer => true, :less_than => 0
     @person.title = 1
-    @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => nil})
+    @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0})
     @person.valid?
   end
 
   def test_validates_numericality_of_less_than_odd_generates_message_with_custom_default_message
     Person.validates_numericality_of :title, :only_integer => true, :less_than => 0, :message => 'custom'
     @person.title = 1
-    @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => 'custom'})
+    @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :message => 'custom'})
     @person.valid?
   end
 

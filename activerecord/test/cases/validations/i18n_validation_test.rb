@@ -36,14 +36,14 @@ class I18nValidationTest < ActiveRecord::TestCase
   def test_validates_uniqueness_of_generates_message
     Topic.validates_uniqueness_of :title
     @topic.title = unique_topic.title
-    @topic.errors.expects(:generate_message).with(:title, :taken, {:default => nil, :value => 'unique!'})
+    @topic.errors.expects(:generate_message).with(:title, :taken, {:value => 'unique!'})
     @topic.valid?
   end
 
   def test_validates_uniqueness_of_generates_message_with_custom_default_message
     Topic.validates_uniqueness_of :title, :message => 'custom'
     @topic.title = unique_topic.title
-    @topic.errors.expects(:generate_message).with(:title, :taken, {:default => 'custom', :value => 'unique!'})
+    @topic.errors.expects(:generate_message).with(:title, :taken, {:message => 'custom', :value => 'unique!'})
     @topic.valid?
   end
 
@@ -51,13 +51,13 @@ class I18nValidationTest < ActiveRecord::TestCase
 
   def test_validates_associated_generates_message
     Topic.validates_associated :replies
-    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies, :default => nil})
+    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies})
     replied_topic.valid?
   end
 
   def test_validates_associated_generates_message_with_custom_default_message
     Topic.validates_associated :replies
-    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies, :default => nil})
+    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies})
     replied_topic.valid?
   end
 

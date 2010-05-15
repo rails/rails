@@ -3,9 +3,9 @@ module ActiveModel
     class FormatValidator < EachValidator
       def validate_each(record, attribute, value)
         if options[:with] && value.to_s !~ options[:with]
-          record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
+          record.errors.add(attribute, :invalid, options.merge(:value => value))
         elsif options[:without] && value.to_s =~ options[:without]
-          record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
+          record.errors.add(attribute, :invalid, options.merge(:value => value))
         end
       end
       

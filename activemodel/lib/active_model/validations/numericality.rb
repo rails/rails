@@ -26,13 +26,13 @@ module ActiveModel
         return if options[:allow_nil] && raw_value.nil?
 
         unless value = parse_raw_value_as_a_number(raw_value)
-          record.errors.add(attr_name, :not_a_number, :value => raw_value, :default => options[:message])
+          record.errors.add(attr_name, :not_a_number, options.merge(:value => raw_value))
           return
         end
 
         if options[:only_integer]
           unless value = parse_raw_value_as_an_integer(raw_value)
-            record.errors.add(attr_name, :not_an_integer, :value => raw_value, :default => options[:message])
+            record.errors.add(attr_name, :not_an_integer, options.merge(:value => raw_value))
             return
           end
         end
@@ -41,14 +41,14 @@ module ActiveModel
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
-              record.errors.add(attr_name, option, :value => value, :default => options[:message])
+              record.errors.add(attr_name, option, options.merge(:value => value))
             end
           else
             option_value = option_value.call(record) if option_value.is_a?(Proc)
             option_value = record.send(option_value) if option_value.is_a?(Symbol)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, :default => options[:message], :value => value, :count => option_value)
+              record.errors.add(attr_name, option, options.merge(:value => value, :count => option_value))
             end
           end
         end
