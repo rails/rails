@@ -62,18 +62,8 @@ h3. Mailing List
 
 "Ruby on Rails: Documentation":http://groups.google.com/group/rubyonrails-docs is the mailing list for all the guides/documentation related discussions.
 
-h3. IRC Channel
-
-==#docrails @ irc.freenode.net==
-
-h3. Twitter
-
-=="@docrails":http://twitter.com/docrails
-
 h3. Contact
 
-If you have any questions or need any clarification, feel free to contact:
-
-* IRC : lifo or fxn in #docrails
-* Twitter: "@docrails":http://twitter.com/docrails, "@lifo":http://twitter.com/lifo, "@fxn":http://twitter.com/fxn, 
+* IRC : #docrails channel in irc.freenode.net
+* Twitter: "@docrails":http://twitter.com/docrails, "@lifo":http://twitter.com/lifo, "@fxn":http://twitter.com/fxn
 * Email : pratiknaik aT gmail, fxn aT hashref dot com
