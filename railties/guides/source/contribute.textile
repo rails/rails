@@ -6,33 +6,36 @@ endprologue.
 
 h3. How to Contribute?
 
-* We have an open commit policy: anyone is welcome to contribute, but you'll need to ask for commit access.
-* PM lifo at "GitHub":http://github.com asking for "docrails":http://github.com/lifo/docrails/tree/master commit access.
-* Guides are written in Textile, and reside at railties/guides/source in the docrails project.
+* We have an open commit policy: anyone is welcome to contribute and to review contributions.
+* "docrails is hosted on GitHub":http://github.com/lifo/docrails and has public write access.
+* Guides are written in Textile, and reside at +railties/guides/source+ in the docrails project.
+* Follow the "Rails Guides Conventions":http://wiki.github.com/lifo/docrails/rails-guides-conventions.
 * Assets are stored in the +railties/guides/assets+ directory.
-* Sample format : "Active Record Associations":http://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile
-* Sample output : "Active Record Associations":association_basics.html
+* Sample format : "Active Record Associations":http://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile.
+* Sample output : "Active Record Associations":association_basics.html.
 * You can build the Guides during testing by running +rake generate_guides+ in the +railties+ directory.
+* Edge guides "can be consulted online":http://edgeguides.rubyonrails.org/. That website is generated periodically from docrails.
 
 h3. What to Contribute?
 
 * We need authors, editors, proofreaders, and translators. Adding a single paragraph of quality content to a guide is a good way to get started.
 * The easiest way to start is by improving an existing guide:
-** Improve the structure to make it more coherent
-** Add missing information
-** Correct any factual errors
-** Fix typos or improve style
-** Bring it up to date with the latest Edge Rails
-* We're also open to suggestions for entire new guides
-** Contact lifo or mikeg1a in IRC or via "email":mailto:MikeG1@larkfarm.com to get your idea approved
-** If you're the main author on a significant guide, you're eligible for the prizes
+** Improve the structure to make it more coherent.
+** Add missing information.
+** Correct any factual errors.
+** Fix typos or improve style.
+** Bring it up to date with the latest Edge Rails.
+* We're also open to suggestions for entire new guides:
+** Contact lifo or fxn to get your idea approved. See the Contact section below.
+** If you're the main author on a significant guide, you're eligible for the prizes.
 
-h3. How to Commit
+h3. How is the process?
 
-* If you have a small change or typo fix, just ask lifo for commit access and commit it to the project.
-* If your change is more significant, post a patch or a message on Lighthouse, and commit after you get a +1 from lifo or mikeg1a.
-* If the guide is already marked done, you should get a +1 before pushing your changes.
-* Put [#&lt;ticket number&gt;] in your commit message to enable GitHub/Lighthouse integration.
+* The preferred way to contribute is to commit to docrails directly.
+* A new guide is only edited by its author until finished though. In that case feedback can be given in its LH ticket.
+* If you are writing a new guide freely commit to docrails partial work and ping lifo or fxn when done with a first draft.
+* Guides reviewers will then provide feedback, some of it possibly in form of direct commits to agilize the process.
+* Eventually the guide will be approved and added to the index.
 
 h3. Prizes
 
@@ -63,9 +66,14 @@ h3. IRC Channel
 
 ==#docrails @ irc.freenode.net==
 
+h3. Twitter
+
+=="@docrails":http://twitter.com/docrails
+
 h3. Contact
 
 If you have any questions or need any clarification, feel free to contact:
 
-* IRC : lifo, mikeg1a or fxn in #docrails
-* Email : pratiknaik aT gmail
+* IRC : lifo or fxn in #docrails
+* Twitter: "@docrails":http://twitter.com/docrails, "@lifo":http://twitter.com/lifo, "@fxn":http://twitter.com/fxn, 
+* Email : pratiknaik aT gmail, fxn aT hashref dot com
