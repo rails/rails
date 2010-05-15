@@ -108,21 +108,10 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_match /^  fixjour$/, output
   end
 
-  def test_rails_generators_does_not_show_activerecord_info_if_its_the_default
-    output = capture(:stdout){ Rails::Generators.help }
-    assert_no_match /ActiveRecord:/, output
-    assert_no_match /^  active_record:model$/, output
-    assert_no_match /^  active_record:fixjour$/, output
-  end
-
-  def test_rails_generators_shows_activerecord_info_if_its_not_the_default
-    Rails::Generators.options[:rails][:orm] = :data_mapper
+  def test_rails_generators_does_not_show_activerecord_hooks
     output = capture(:stdout){ Rails::Generators.help }
     assert_match /ActiveRecord:/, output
-    assert_match /^  active_record:model$/, output
     assert_match /^  active_record:fixjour$/, output
-  ensure
-    Rails::Generators.options[:rails][:orm] = :active_record
   end
 
   def test_no_color_sets_proper_shell
