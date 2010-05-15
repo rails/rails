@@ -132,6 +132,15 @@ module Rails
       config.paths.lib.tasks.to_a.sort.each { |ext| load(ext) }
     end
 
+    def eager_load!
+      config.eager_load_paths.each do |load_path|
+        matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
+        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
+          require_dependency file.sub(matcher, '\1')
+        end
+      end
+    end
+
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
       config.load_paths.reverse_each do |path|
@@ -203,19 +212,9 @@ module Rails
       end
     end
 
-    # This needs to be an initializer, since it needs to run once
-    # per engine and get the engine as a block parameter
-    initializer :load_app_classes, :before => :finisher_hook do |app|
-      next if $rails_rake_task
-
-      if app.config.cache_classes
-        config.eager_load_paths.each do |load_path|
-          matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
-          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-            require_dependency file.sub(matcher, '\1')
-          end
-        end
-      end
+    initializer :engines_blank_point do
+      # We need this initializer so all extra initializers added in engines are
+      # consistently executed after all the initializers above across all engines.
     end
 
   protected
