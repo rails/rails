@@ -248,7 +248,7 @@ module ActionView
 
         @collection.each do |object|
           locals[counter_name] += 1
-          locals["#{as.to_s}_counter".to_sym] = locals[counter_name]
+          locals["#{as.to_s}_counter".to_sym] = locals[counter_name] if as
           locals[as] = object
 
           segments << template.render(@view, locals)
