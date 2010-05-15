@@ -451,6 +451,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal author, authors
   end
 
+  def test_find_all_using_where_twice_should_or_the_relation
+    david = authors(:david)
+    relation = Author.unscoped
+    relation = relation.where(:name => david.name)
+    relation = relation.where(:name => 'Santiago')
+    relation = relation.where(:id => david.id)
+    assert_equal [david], relation.all
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
