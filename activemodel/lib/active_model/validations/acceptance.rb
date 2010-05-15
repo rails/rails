@@ -7,7 +7,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless value == options[:accept]
-          record.errors.add(attribute, :accepted, options)
+          record.errors.add(attribute, :accepted, :default => options[:message])
         end
       end
       

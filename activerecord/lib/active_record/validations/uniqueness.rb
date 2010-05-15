@@ -32,7 +32,7 @@ module ActiveRecord
         end
 
         if relation.exists?
-          record.errors.add(attribute, :taken, options.merge(:value => value))
+          record.errors.add(attribute, :taken, :default => options[:message], :value => value)
         end
       end
 

@@ -4,7 +4,7 @@ module ActiveModel
   module Validations
     class PresenceValidator < EachValidator
       def validate(record)
-        record.errors.add_on_blank(attributes, options)
+        record.errors.add_on_blank(attributes, options[:message])
       end
     end
 
