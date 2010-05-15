@@ -1793,6 +1793,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "bar", k.table_name
   end
 
+  def test_quoted_table_name_after_set_table_name
+    klass = Class.new(ActiveRecord::Base)
+
+    klass.set_table_name "foo"
+    assert_equal "foo", klass.table_name
+    assert_equal klass.connection.quote_table_name("foo"), klass.quoted_table_name
+
+    klass.set_table_name "bar"
+    assert_equal "bar", klass.table_name
+    assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
+  end
+
   def test_set_table_name_with_block
     k = Class.new( ActiveRecord::Base )
     k.set_table_name { "ks" }

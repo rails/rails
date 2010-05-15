@@ -668,7 +668,6 @@ module ActiveRecord #:nodoc:
             name = "#{full_table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
           end
 
-        @quoted_table_name = nil
         set_table_name(name)
         name
       end
@@ -702,6 +701,7 @@ module ActiveRecord #:nodoc:
       #     set_table_name "project"
       #   end
       def set_table_name(value = nil, &block)
+        @quoted_table_name = nil
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
