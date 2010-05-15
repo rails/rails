@@ -21,7 +21,7 @@ class XmlParamsParsingTest < ActionController::IntegrationTest
       def call(env)
         bar = env['action_dispatch.request.request_parameters']['foo']
         result = "<ok>#{bar}</ok>"
-        [200, {"Content-Type" => "application/xml", "Content-Length" => result.length.to_s}, result]
+        [200, {"Content-Type" => "application/xml", "Content-Length" => result.length.to_s}, [result]]
       end
     end
     req = Rack::MockRequest.new(ActionDispatch::ParamsParser.new(Linted.new))
