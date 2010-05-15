@@ -69,7 +69,6 @@ module Rails
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
-
         ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
 

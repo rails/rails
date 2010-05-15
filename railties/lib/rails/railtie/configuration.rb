@@ -68,6 +68,18 @@ module Rails
         end
       end
 
+      def before_configuration(&block)
+        ActiveSupport.on_load(:before_configuration, :yield => true, &block)
+      end
+
+      def before_eager_load(&block)
+        ActiveSupport.on_load(:before_eager_load, :yield => true, &block)
+      end
+
+      def before_initialize(&block)
+        ActiveSupport.on_load(:before_initialize, :yield => true, &block)
+      end
+
       def after_initialize(&block)
         ActiveSupport.on_load(:after_initialize, :yield => true, &block)
       end
