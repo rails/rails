@@ -270,6 +270,15 @@ module ActionView
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
       #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
       #
+      # You can optionally provide html attributes as the last element of the array.
+      #
+      # Examples:
+      #   options_for_select([ "Denmark", ["USA", {:class=>'bold'}], "Sweden" ], ["USA", "Sweden"])
+      #     <option value="Denmark">Denmark</option>\n<option value="USA" class="bold" selected="selected">USA</option>\n<option value="Sweden" selected="selected">Sweden</option>
+      #
+      #   options_for_select([["Dollar", "$", {:class=>"bold"}], ["Kroner", "DKK", {:onclick => "alert('HI');"}]])
+      #     <option value="$" class="bold">Dollar</option>\n<option value="DKK" onclick="alert('HI');">Kroner</option>
+      #
       # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
@@ -291,10 +300,11 @@ module ActionView
         selected, disabled = extract_selected_and_disabled(selected)
 
         options_for_select = container.inject([]) do |options, element|
+          html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element)
           selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
           disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          options << %(<option value="#{html_escape(value.to_s)}"#{selected_attribute}#{disabled_attribute}>#{html_escape(text.to_s)}</option>)
+          options << %(<option value="#{html_escape(value.to_s)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{html_escape(text.to_s)}</option>)
         end
 
         options_for_select.join("\n").html_safe
@@ -486,9 +496,22 @@ module ActionView
       end
 
       private
+        def option_html_attributes(element)
+          return "" unless Array === element
+          html_attributes = []
+          element.select { |e| Hash === e }.reduce({}, :merge).each do |k, v|
+            html_attributes << " #{k}=\"#{html_escape(v.to_s)}\""
+          end
+          html_attributes.join
+        end
+
         def option_text_and_value(option)
           # Options are [text, value] pairs or strings used for both.
-          if !option.is_a?(String) and option.respond_to?(:first) and option.respond_to?(:last)
+          case
+          when Array === option
+            option = option.reject { |e| Hash === e }
+            [option.first, option.last]
+          when !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
             [option.first, option.last]
           else
             [option, option]
