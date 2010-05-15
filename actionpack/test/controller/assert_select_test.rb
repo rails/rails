@@ -80,8 +80,13 @@ class AssertSelectTest < ActionController::TestCase
   def test_assert_select
     render_html %Q{<div id="1"></div><div id="2"></div>}
     assert_select "div", 2
-    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) { assert_select "div", 3 }
     assert_failure(/Expected at least 1 element matching \"p\", found 0/) { assert_select "p" }
+  end
+
+  def test_equality_integer
+    render_html %Q{<div id="1"></div><div id="2"></div>}
+    assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) { assert_select "div", 3 }
+    assert_failure(/Expected exactly 0 elements matching \"div\", found 2/) { assert_select "div", 0 }
   end
 
   def test_equality_true_false
@@ -92,6 +97,11 @@ class AssertSelectTest < ActionController::TestCase
     assert_raise(Assertion) { assert_select "p", true }
     assert_raise(Assertion) { assert_select "div", false }
     assert_nothing_raised    { assert_select "p", false }
+  end
+
+  def test_equality_false_message
+    render_html %Q{<div id="1"></div><div id="2"></div>}
+    assert_failure(/Expected exactly 0 elements matching \"div\", found 2/) { assert_select "div", false }
   end
 
   def test_equality_string_and_regexp
@@ -128,7 +138,7 @@ class AssertSelectTest < ActionController::TestCase
   def test_counts
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised               { assert_select "div", 2 }
-    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
+    assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) do
       assert_select "div", 3
     end
     assert_nothing_raised               { assert_select "div", 1..2 }
@@ -136,7 +146,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 3..4
     end
     assert_nothing_raised               { assert_select "div", :count=>2 }
-    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
+    assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) do
       assert_select "div", :count=>3
     end
     assert_nothing_raised               { assert_select "div", :minimum=>1 }
