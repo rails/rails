@@ -139,17 +139,19 @@ end
 
 +invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations and returns true if any errors were added to the object, and false otherwise.
 
-h4. +errors.invalid?+
+h4. +errors[]+
 
-To verify whether or not a particular attribute of an object is valid, you can use the +errors.invalid?+ method. This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +ActiveRecord::Base#invalid?+ method explained above because it doesn't verify the validity of the object as a whole. It only checks to see whether there are errors found on an individual attribute of the object.
+To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+ that returns an array with all attribute errors, when there are no errors on the specified attribute, an empty array is returned.
+
+This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +ActiveRecord::Base#invalid?+ method explained above because it doesn't verify the validity of the object as a whole. It only checks to see whether there are errors found on an individual attribute of the object.
 
 <ruby>
 class Person < ActiveRecord::Base
   validates_presence_of :name
 end
 
->> Person.new.errors.invalid?(:name) # => false
->> Person.create.errors.invalid?(:name) # => true
+>> Person.new.errors[:name].any? # => false
+>> Person.create.errors[:name].any? # => true
 </ruby>
 
 We'll cover validation errors in greater depth in the "Working with Validation Errors":#working-with-validation-errors section. For now, let's turn to the built-in validation helpers that Rails provides by default.
@@ -595,21 +597,53 @@ In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provid
 
 The following is a list of the most commonly used methods. Please refer to the +ActiveRecord::Errors+ documentation for a list of all the available methods.
 
-h4. +errors.add_to_base+
+h4. +errors+
 
-The +add_to_base+ method lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. +add_to_base+ simply receives a string and uses this as the error message.
+Returns an OrderedHash with all errors. Each key is the attribute name and value is an array of strings with all errors.
 
 <ruby>
 class Person < ActiveRecord::Base
-  def a_method_used_for_validation_purposes
-    errors.add_to_base("This person is invalid because ...")
-  end
+  validates_presence_of :name
+  validates_length_of :name, :minimum => 3
 end
+
+person = Person.new
+person.valid? # => false
+person.errors
+ # => {:name => ["can't be blank", "is too short (minimum is 3 characters)"]}
+ 
+person = Person.new(:name => "John Doe")
+person.valid? # => true
+person.errors # => []
+</ruby>
+
+h4. +errors[]+
+
++errors[]+ is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute returns an empty array.
+
+<ruby>
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+  validates_length_of :name, :minimum => 3
+end
+
+person = Person.new(:name => "John Doe")
+person.valid? # => true
+person.errors[:name] # => []
+
+person = Person.new(:name => "JD")
+person.valid? # => false
+person.errors[:name] # => ["is too short (minimum is 3 characters)"]
+
+person = Person.new
+person.valid? # => false
+person.errors[:name]
+ # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
 
 h4. +errors.add+
 
-The +add+ method lets you manually add messages that are related to particular attributes. You can use the +full_messages+ method to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). +add+ receives the name of the attribute you want to add the message to, and the message itself.
+The +add+ method lets you manually add messages that are related to particular attributes. You can use the +errors.full_messages+ or +errors.to_a+ methods to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). +add+ receives the name of the attribute you want to add the message to, and the message itself.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -620,37 +654,44 @@ end
 
 person = Person.create(:name => "!@#")
 
-person.errors.on(:name)
- # => "cannot contain the characters !@#%*()_-+="
+person.errors[:name]
+ # => ["cannot contain the characters !@#%*()_-+="]
 
 person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
 </ruby>
+  
+Another way to do this is using +[]=+ setter
 
-h4. +errors.on+
+<ruby>
+  class Person < ActiveRecord::Base
+    def a_method_used_for_validation_purposes
+      errors[:name] = "cannot contain the characters !@#%*()_-+="
+    end
+  end
 
-The +on+ method is used when you want to check the error messages for a specific attribute. It returns different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute +on+ returns +nil+. If there is just one error message for this attribute +on+ returns a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ returns an array of strings, each one with one error message.
+  person = Person.create(:name => "!@#")
+
+  person.errors[:name]
+   # => ["cannot contain the characters !@#%*()_-+="]
+
+  person.errors.to_a
+   # => ["Name cannot contain the characters !@#%*()_-+="]
+</ruby>
+
+h4. +errors[:base]+
+
+You can add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to the array and uses it as the error message.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
-  validates_length_of :name, :minimum => 3
+  def a_method_used_for_validation_purposes
+    errors[:base] << "This person is invalid because ..."
+  end
 end
-
-person = Person.new(:name => "John Doe")
-person.valid? # => true
-person.errors.on(:name) # => nil
-
-person = Person.new(:name => "JD")
-person.valid? # => false
-person.errors.on(:name)
- # => "is too short (minimum is 3 characters)"
-
-person = Person.new
-person.valid? # => false
-person.errors.on(:name)
- # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
+
+
 
 h4. +errors.clear+
 
@@ -664,7 +705,7 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors.on(:name)
+person.errors[:name]
  # => ["can't be blank", "is too short (minimum is 3 characters)"]
 
 person.errors.clear
@@ -672,7 +713,7 @@ person.errors.empty? # => true
 
 p.save # => false
 
-p.errors.on(:name)
+p.errors[:name]
  # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
 
@@ -1121,6 +1162,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
 
+* May 15, 2010: Validation Errors section updated by "Emili Parreño":http://www.eparreno.com
 * March 7, 2009: Callbacks revision by Trevor Turk
 * February 10, 2009: Observers revision by Trevor Turk
 * February 5, 2009: Initial revision by Trevor Turk
