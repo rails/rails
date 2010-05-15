@@ -58,6 +58,8 @@ module ActionView
   end
 
   autoload :TestCase, 'action_view/test_case'
+
+  ENCODING_FLAG = "#.*coding[:=]\s*(\S+)[ \t]*"
 end
 
 require 'active_support/i18n'

@@ -27,6 +27,12 @@ module ActionView
     end
 
     def initialize(source, identifier, handler, details)
+      if source.encoding_aware? && source =~ %r{\A#{ENCODING_FLAG}}
+        # don't snip off the \n to preserve line numbers
+        source.sub!(/\A[^\n]*/, '')
+        source.force_encoding($1).encode
+      end
+
       @source     = source
       @identifier = identifier
       @handler    = handler
