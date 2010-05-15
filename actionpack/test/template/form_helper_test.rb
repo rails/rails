@@ -423,6 +423,90 @@ class FormHelperTest < ActionView::TestCase
                  check_box("post", "secret", :id => "i mean it")
   end
 
+  def test_nil_id
+    assert_dom_equal(
+      '<input name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title", "id" => nil)
+    )
+    assert_dom_equal(
+      '<textarea cols="40" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
+      text_area("post", "body", "id" => nil)
+    )
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
+      check_box("post", "secret", "id" => nil)
+    )
+    assert_dom_equal(
+      '<input type="radio" name="post[secret]" value="0" />',
+      radio_button("post", "secret", "0", "id" => nil)
+    )
+    assert_dom_equal(
+      '<select name="post[secret]"></select>',
+      select("post", "secret", [], {}, "id" => nil)
+    )
+    assert_dom_equal text_field("post", "title", "id" => nil),
+                 text_field("post", "title", :id => nil)
+    assert_dom_equal text_area("post", "body", "id" => nil),
+                 text_area("post", "body", :id => nil)
+    assert_dom_equal check_box("post", "secret", "id" => nil),
+                 check_box("post", "secret", :id => nil)
+    assert_dom_equal radio_button("post", "secret", "id" => nil),
+                 radio_button("post", "secret", :id => nil)
+  end
+
+  def test_index
+    assert_dom_equal(
+      '<input name="post[5][title]" size="30" id="post_5_title" type="text" value="Hello World" />',
+      text_field("post", "title", "index" => 5)
+    )
+    assert_dom_equal(
+      '<textarea cols="40" name="post[5][body]" id="post_5_body" rows="20">Back to the hill and over it again!</textarea>',
+      text_area("post", "body", "index" => 5)
+    )
+    assert_dom_equal(
+      '<input name="post[5][secret]" type="hidden" value="0" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
+      check_box("post", "secret", "index" => 5)
+    )
+    assert_dom_equal(
+      text_field("post", "title", "index" => 5),
+      text_field("post", "title", "index" => 5)
+    )
+    assert_dom_equal(
+      text_area("post", "body", "index" => 5),
+      text_area("post", "body", "index" => 5)
+    )
+    assert_dom_equal(
+      check_box("post", "secret", "index" => 5),
+      check_box("post", "secret", "index" => 5)
+    )
+  end
+
+  def test_index_with_nil_id
+    assert_dom_equal(
+      '<input name="post[5][title]" size="30" type="text" value="Hello World" />',
+      text_field("post", "title", "index" => 5, 'id' => nil)
+    )
+    assert_dom_equal(
+      '<textarea cols="40" name="post[5][body]" rows="20">Back to the hill and over it again!</textarea>',
+      text_area("post", "body", "index" => 5, 'id' => nil)
+    )
+    assert_dom_equal(
+      '<input name="post[5][secret]" type="hidden" value="0" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
+      check_box("post", "secret", "index" => 5, 'id' => nil)
+    )
+    assert_dom_equal(
+      text_field("post", "title", "index" => 5, 'id' => nil),
+      text_field("post", "title", :index => 5, :id => nil)
+    )
+    assert_dom_equal(
+      text_area("post", "body", "index" => 5, 'id' => nil),
+      text_area("post", "body", :index => 5, :id => nil)
+    )
+    assert_dom_equal(
+      check_box("post", "secret", "index" => 5, 'id' => nil),
+      check_box("post", "secret", :index => 5, :id => nil)
+    )
+  end
+
   def test_auto_index
     pid = @post.id
     assert_dom_equal(
@@ -446,6 +530,29 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal("<input id=\"post_#{pid}_title_goodbye_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Goodbye World\" />",
       radio_button("post[]", "title", "Goodbye World")
+    )
+  end
+
+  def test_auto_index_with_nil_id
+    pid = @post.id
+    assert_dom_equal(
+      "<input name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />",
+      text_field("post[]","title", :id => nil)
+    )
+    assert_dom_equal(
+      "<textarea cols=\"40\" name=\"post[#{pid}][body]\" rows=\"20\">Back to the hill and over it again!</textarea>",
+      text_area("post[]", "body", :id => nil)
+    )
+    assert_dom_equal(
+      "<input name=\"post[#{pid}][secret]\" type=\"hidden\" value=\"0\" /><input checked=\"checked\" name=\"post[#{pid}][secret]\" type=\"checkbox\" value=\"1\" />",
+      check_box("post[]", "secret", :id => nil)
+    )
+   assert_dom_equal(
+"<input checked=\"checked\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Hello World\" />",
+      radio_button("post[]", "title", "Hello World", :id => nil)
+    )
+    assert_dom_equal("<input name=\"post[#{pid}][title]\" type=\"radio\" value=\"Goodbye World\" />",
+      radio_button("post[]", "title", "Goodbye World", :id => nil)
     )
   end
 
