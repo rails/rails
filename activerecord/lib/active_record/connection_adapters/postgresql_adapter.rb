@@ -819,9 +819,12 @@ module ActiveRecord
         execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
       end
 
-      # Drops an index from a table.
-      def remove_index(table_name, options = {})
-        execute "DROP INDEX #{quote_table_name(index_name(table_name, options))}"
+      def remove_index!(table_name, index_name) #:nodoc:
+        execute "DROP INDEX #{quote_table_name(index_name)}"
+      end
+
+      def index_name_length
+        63
       end
 
       # Maps logical Rails types to PostgreSQL-specific data types.

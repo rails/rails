@@ -217,8 +217,8 @@ module ActiveRecord
         column ? column['name'] : nil
       end
 
-      def remove_index(table_name, options={}) #:nodoc:
-        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))}"
+      def remove_index!(table_name, index_name) #:nodoc:
+        execute "DROP INDEX #{quote_column_name(index_name)}"
       end
 
       def rename_table(name, new_name)
