@@ -45,6 +45,12 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("&$ - 10.00", number_to_currency(10, :locale => 'ts'))
   end
 
+  def test_number_to_currency_with_clean_i18n_settings
+    clean_i18n do
+      assert_equal("$10.00", number_to_currency(10))
+    end
+  end
+
   def test_number_with_precision
     #Delimiter was set to ""
     assert_equal("10000", number_with_precision(10000, :locale => 'ts'))
@@ -92,4 +98,15 @@ class NumberHelperTest < ActionView::TestCase
     #Significant was set to true with precision 2, with custom translated units
     assert_equal "4.3 cm", number_to_human(0.0432, :locale => 'ts', :units => :custom_units_for_number_to_human)
   end
+
+  private
+    def clean_i18n
+      load_path = I18n.load_path.dup
+      I18n.load_path.clear
+      I18n.reload!
+      yield
+    ensure
+      I18n.load_path = load_path
+      I18n.reload!
+    end
 end
