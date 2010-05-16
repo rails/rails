@@ -149,7 +149,7 @@ module Rails
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
 
-    RESERVED_NAMES = %w[generate console server dbconsole
+    RESERVED_NAMES = %w[generate g console c server s dbconsole db
                         application destroy benchmarker profiler
                         plugin runner test]
 
