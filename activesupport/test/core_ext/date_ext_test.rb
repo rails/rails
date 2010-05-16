@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class DateExtCalculationsTest < Test::Unit::TestCase
+class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     date = Date.new(2005, 2, 21)
     assert_equal "2005-02-21",          date.to_s
@@ -145,16 +145,20 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,2,28), Date.new(2004,2,29).years_since(1) # 1 year since leap day
   end
 
-  def test_last_year
-    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).last_year
+  def test_last_year_is_deprecated
+    assert_deprecated { Date.today.last_year }
   end
 
-  def test_last_year_in_leap_years
-    assert_equal Date.new(1999,2,28), Date.new(2000,2,29).last_year
+  def test_prev_year
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).prev_year
   end
 
-  def test_last_year_in_calendar_reform
-    assert_equal Date.new(1582,10,4), Date.new(1583,10,14).last_year
+  def test_prev_year_in_leap_years
+    assert_equal Date.new(1999,2,28), Date.new(2000,2,29).prev_year
+  end
+
+  def test_prev_year_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1583,10,14).prev_year
   end
 
   def test_next_year
@@ -225,8 +229,12 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005, 9, 30), Date.new(2005, 8, 31).next_month
   end
 
-  def test_last_month_on_31st
-    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
+  def test_last_month_is_deprecated
+    assert_deprecated { Date.today.last_month }
+  end
+
+  def test_prev_month_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).prev_month
   end
 
   def test_yesterday_constructor

@@ -1399,7 +1399,7 @@ module ActiveRecord
                 primary_key = reflection.source_reflection.primary_key_name
                 send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
               else
-                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
+                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map!(&:id)
               end
             end
           end

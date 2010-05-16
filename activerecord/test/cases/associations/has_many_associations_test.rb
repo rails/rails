@@ -900,6 +900,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients.loaded?
   end
 
+  def test_get_ids_ignores_include_option
+    assert_equal [readers(:michael_welcome).id], posts(:welcome).readers_with_person_ids
+  end
+
   def test_get_ids_for_unloaded_finder_sql_associations_loads_them
     company = companies(:first_firm)
     assert !company.clients_using_sql.loaded?

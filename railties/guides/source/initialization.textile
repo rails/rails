@@ -2379,7 +2379,6 @@ Now that we've referenced that class, it will be required for us. You'll notice 
 * initialize_subscriber
 * set_clear_dependencies_hook
 * initialize_dependency_mechanism
-* bootstrap_load_path
 
 These are all defined using the +initializer+ method:
 
@@ -2930,7 +2929,6 @@ With +@@autoloads+ being
 * initialize_subscriber
 * set_clear_dependencies_hook
 * initialize_dependency_mechanism
-* bootstrap_load_path
 
 h4. Active Support Initializers
 

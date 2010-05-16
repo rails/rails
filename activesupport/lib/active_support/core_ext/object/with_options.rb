@@ -1,3 +1,5 @@
+require 'active_support/option_merger'
+
 class Object
   # An elegant way to factor duplication out of options passed to a series of
   # method calls. Each method called in the block, with the block variable as

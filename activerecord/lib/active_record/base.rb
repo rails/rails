@@ -668,7 +668,6 @@ module ActiveRecord #:nodoc:
             name = "#{full_table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
           end
 
-        @quoted_table_name = nil
         set_table_name(name)
         name
       end
@@ -702,6 +701,7 @@ module ActiveRecord #:nodoc:
       #     set_table_name "project"
       #   end
       def set_table_name(value = nil, &block)
+        @quoted_table_name = nil
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
@@ -1190,7 +1190,11 @@ module ActiveRecord #:nodoc:
         #     default_scope order('last_name, first_name')
         #   end
         def default_scope(options = {})
-          self.default_scoping << construct_finder_arel(options)
+          self.default_scoping << construct_finder_arel(options, default_scoping.pop)
+        end
+
+        def clear_default_scope
+          self.default_scoping.clear
         end
 
         def scoped_methods #:nodoc:
@@ -1463,6 +1467,7 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
+        @changed_attributes = other.changed_attributes.dup
 
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create

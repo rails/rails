@@ -573,8 +573,19 @@ module ActionView
       #   label(:post, :privacy, "Public Post", :value => "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
-      def label(object_name, method, text = nil, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options)
+      #   label(:post, :terms) do
+      #     'Accept <a href="/terms">Terms</a>.'
+      #   end
+      def label(object_name, method, content_or_options = nil, options = nil, &block)
+        if block_given?
+          options = content_or_options if content_or_options.is_a?(Hash)
+          text = nil
+        else
+          text = content_or_options
+        end
+
+        options ||= {}
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options, &block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -823,7 +834,7 @@ module ActionView
 
     module InstanceTagMethods #:nodoc:
       extend ActiveSupport::Concern
-      include Helpers::TagHelper, Helpers::FormTagHelper
+      include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :method_name, :object_name
 
@@ -844,28 +855,38 @@ module ActionView
         end
       end
 
-      def to_label_tag(text = nil, options = {})
+      def to_label_tag(text = nil, options = {}, &block)
         options = options.stringify_keys
         tag_value = options.delete("value")
         name_and_id = options.dup
-        name_and_id["id"] = name_and_id["for"]
+
+        if name_and_id["for"]
+          name_and_id["id"] = name_and_id["for"]
+        else
+          name_and_id.delete("id")
+        end
+
         add_default_name_and_id_for_value(tag_value, name_and_id)
         options.delete("index")
         options["for"] ||= name_and_id["id"]
 
-        content = if text.blank?
-          I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
+        if block_given?
+          label_tag(name_and_id["id"], options, &block)
         else
-          text.to_s
+          content = if text.blank?
+            I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
+          else
+            text.to_s
+          end
+
+          content ||= if object && object.class.respond_to?(:human_attribute_name)
+            object.class.human_attribute_name(method_name)
+          end
+
+          content ||= method_name.humanize
+
+          label_tag(name_and_id["id"], content, options)
         end
-
-        content ||= if object && object.class.respond_to?(:human_attribute_name)
-          object.class.human_attribute_name(method_name)
-        end
-
-        content ||= method_name.humanize
-
-        label_tag(name_and_id["id"], content, options)
       end
 
       def to_input_field_tag(field_type, options = {})
@@ -1012,7 +1033,7 @@ module ActionView
             pretty_tag_value = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
             specified_id = options["id"]
             add_default_name_and_id(options)
-            options["id"] += "_#{pretty_tag_value}" unless specified_id
+            options["id"] += "_#{pretty_tag_value}" if specified_id.blank? && options["id"].present?
           else
             add_default_name_and_id(options)
           end
@@ -1021,14 +1042,14 @@ module ActionView
         def add_default_name_and_id(options)
           if options.has_key?("index")
             options["name"] ||= tag_name_with_index(options["index"])
-            options["id"]   ||= tag_id_with_index(options["index"])
+            options["id"] = options.fetch("id", tag_id_with_index(options["index"]))
             options.delete("index")
           elsif defined?(@auto_index)
             options["name"] ||= tag_name_with_index(@auto_index)
-            options["id"]   ||= tag_id_with_index(@auto_index)
+            options["id"] = options.fetch("id", tag_id_with_index(@auto_index))
           else
             options["name"] ||= tag_name + (options.has_key?('multiple') ? '[]' : '')
-            options["id"]   ||= tag_id
+            options["id"] = options.fetch("id", tag_id)
           end
         end
 
@@ -1137,8 +1158,8 @@ module ActionView
         @template.fields_for(name, *args, &block)
       end
 
-      def label(method, text = nil, options = {})
-        @template.label(@object_name, method, text, objectify_options(options))
+      def label(method, text = nil, options = {}, &block)
+        @template.label(@object_name, method, text, objectify_options(options), &block)
       end
 
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")

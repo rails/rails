@@ -767,6 +767,62 @@ class FormOptionsHelperTest < ActionView::TestCase
                    html
   end
 
+  def test_options_for_select_with_element_attributes
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert('Hello World');\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
+      options_for_select([ [ "<Denmark>", { :class => 'bold' } ], [ "USA", { :onclick => "alert('Hello World');" } ], [ "Sweden" ], "Germany" ])
+    )
+  end
+
+  def test_options_for_select_with_element_attributes_and_selection
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
+      options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], "USA")
+    )
+  end
+
+  def test_options_for_select_with_element_attributes_and_selection_array
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
+      options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], [ "USA", "Sweden" ])
+    )
+  end
+
+  def test_option_html_attributes_from_without_hash
+    assert_dom_equal(
+      "",
+      option_html_attributes([ 'foo', 'bar' ])
+    )
+  end
+
+  def test_option_html_attributes_with_single_element_hash
+    assert_dom_equal(
+      " class=\"fancy\"",
+      option_html_attributes([ 'foo', 'bar', { :class => 'fancy' } ])
+    )
+  end
+
+  def test_option_html_attributes_with_multiple_element_hash
+    assert_dom_equal(
+      " class=\"fancy\" onclick=\"alert('Hello World');\"",
+      option_html_attributes([ 'foo', 'bar', { :class => 'fancy', 'onclick' => "alert('Hello World');" } ])
+    )
+  end
+
+  def test_option_html_attributes_with_multiple_hashes
+    assert_dom_equal(
+      " class=\"fancy\" onclick=\"alert('Hello World');\"",
+      option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
+    )
+  end
+
+  def test_option_html_attributes_with_special_characters
+    assert_dom_equal(
+      " onclick=\"alert(&quot;&lt;code&gt;&quot;)\"",
+      option_html_attributes([ 'foo', 'bar', { :onclick => %(alert("<code>")) } ])
+    )
+  end
+
   def test_grouped_collection_select
     @continents = [
       Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),

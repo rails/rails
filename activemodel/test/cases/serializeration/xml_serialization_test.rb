@@ -37,8 +37,8 @@ class XmlSerializationTest < ActiveModel::TestCase
 
   test "should serialize namespaced root" do
     @xml = Admin::Contact.new(@contact.attributes).to_xml
-    assert_match %r{^<admin-contact>},  @xml
-    assert_match %r{</admin-contact>$}, @xml
+    assert_match %r{^<contact>},  @xml
+    assert_match %r{</contact>$}, @xml
   end
 
   test "should serialize default root with namespace" do

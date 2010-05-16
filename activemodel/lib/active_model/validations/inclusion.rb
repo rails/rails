@@ -12,7 +12,7 @@ module ActiveModel
       end
     end
 
-    module ClassMethods
+    module HelperMethods
       # Validates whether the value of the specified attribute is available in a particular enumerable object.
       #
       #   class Person < ActiveRecord::Base

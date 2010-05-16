@@ -113,12 +113,11 @@ module ActiveRecord
             lock_col = self.class.locking_column
             previous_value = send(lock_col).to_i
 
-            affected_rows = connection.delete(
-              "DELETE FROM #{self.class.quoted_table_name} " +
-              "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id} " +
-                  "AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}",
-              "#{self.class.name} Destroy"
-            )
+            table = self.class.arel_table
+            predicate = table[self.class.primary_key].eq(id)
+            predicate = predicate.and(table[self.class.locking_column].eq(previous_value))
+
+            affected_rows = self.class.unscoped.where(predicate).delete_all
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object: #{self.class.name}"

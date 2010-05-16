@@ -9,6 +9,7 @@ gem "mocha", ">= 0.9.8"
 group :mri do
   gem 'json'
   gem 'yajl-ruby'
+  gem "nokogiri", ">= 1.4.0"
 
   if RUBY_VERSION < '1.9'
     gem "system_timer"
@@ -19,7 +20,7 @@ group :mri do
 end
 
 # AR
-gem "sqlite3-ruby", ">= 1.2.5", :require => 'sqlite3'
+gem "sqlite3-ruby", "= 1.3.0.beta.2", :require => 'sqlite3'
 
 group :db do
   gem "pg", ">= 0.9.0"

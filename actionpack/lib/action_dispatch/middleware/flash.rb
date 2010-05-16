@@ -49,6 +49,16 @@ module ActionDispatch
       def [](k)
         @flash[k]
       end
+
+      # Convenience accessor for flash.now[:alert]=
+      def alert=(message)
+        self[:alert] = message
+      end
+
+      # Convenience accessor for flash.now[:notice]=
+      def notice=(message)
+        self[:notice] = message
+      end
     end
 
     class FlashHash < Hash

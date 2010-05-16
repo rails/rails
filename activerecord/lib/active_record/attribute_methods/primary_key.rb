@@ -6,7 +6,7 @@ module ActiveRecord
       # Returns this record's primary key value wrapped in an Array
       # or nil if the record is a new_record?
       def to_key
-        new_record? ? nil : [ send(self.class.primary_key) ]
+        new_record? ? nil : [ id ]
       end
 
       module ClassMethods

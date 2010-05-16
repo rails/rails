@@ -298,10 +298,14 @@ module ActionDispatch
         # found one but expecting two.
         message ||= content_mismatch if matches.empty?
         # Test minimum/maximum occurrence.
-        min, max = equals[:minimum], equals[:maximum]
-        message = message || %(Expected #{count_description(min, max)} matching "#{selector.to_s}", found #{matches.size}.)
-        assert matches.size >= min, message if min
-        assert matches.size <= max, message if max
+        min, max, count = equals[:minimum], equals[:maximum], equals[:count]
+        message = message || %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{matches.size}.)
+        if count
+          assert matches.size == count, message
+        else
+          assert matches.size >= min, message if min
+          assert matches.size <= max, message if max
+        end
 
         # If a block is given call that block. Set @selected to allow
         # nested assert_select, which can be nested several levels deep.
@@ -318,11 +322,13 @@ module ActionDispatch
         matches
       end
 
-      def count_description(min, max) #:nodoc:
+      def count_description(min, max, count) #:nodoc:
         pluralize = lambda {|word, quantity| word << (quantity == 1 ? '' : 's')}
 
         if min && max && (max != min)
           "between #{min} and #{max} elements"
+        elsif min && max && max == min && count
+          "exactly #{count} #{pluralize['element', min]}"
         elsif min && !(min == 1 && max == 1)
           "at least #{min} #{pluralize['element', min]}"
         elsif max

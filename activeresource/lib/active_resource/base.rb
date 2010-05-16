@@ -551,11 +551,9 @@ module ActiveResource
         @headers ||= {}
       end
 
-      # Do not include any modules in the default element name. This makes it easier to seclude ARes objects
-      # in a separate namespace without having to set element_name repeatedly.
-      attr_accessor_with_default(:element_name)    { ActiveSupport::Inflector.underscore(to_s.split("::").last) } #:nodoc:
-
+      attr_accessor_with_default(:element_name)    { model_name.element } #:nodoc:
       attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
+
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
 
       # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)
@@ -1293,6 +1291,14 @@ module ActiveResource
         # would return true for generated readers, even if the attribute wasn't present
         super
       end
+    end
+
+    def to_json(options={})
+      super({ :root => self.class.element_name }.merge(options))
+    end
+
+    def to_xml(options={})
+      super({ :root => self.class.element_name }.merge(options))
     end
 
     protected

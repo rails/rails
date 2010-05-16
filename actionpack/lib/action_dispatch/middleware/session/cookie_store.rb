@@ -177,7 +177,7 @@ module ActionDispatch
           if key.blank?
             raise ArgumentError, 'A key is required to write a ' +
               'cookie containing the session data. Use ' +
-              'config.action_controller.session_store :cookie_store, { :key => ' +
+              'config.session_store :cookie_store, { :key => ' +
               '"_myapp_session" } in config/application.rb'
           end
         end

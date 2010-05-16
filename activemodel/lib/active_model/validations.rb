@@ -46,6 +46,10 @@ module ActiveModel
 
     included do
       extend ActiveModel::Translation
+
+      extend  HelperMethods
+      include HelperMethods
+
       define_callbacks :validate, :scope => :name
 
       attr_accessor :validation_context
@@ -137,12 +141,6 @@ module ActiveModel
 
       def attribute_method?(attribute)
         method_defined?(attribute)
-      end
-    private
-
-      def _merge_attributes(attr_names)
-        options = attr_names.extract_options!
-        options.merge(:attributes => attr_names.flatten)
       end
     end
 

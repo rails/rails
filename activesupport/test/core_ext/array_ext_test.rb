@@ -358,15 +358,19 @@ class ArrayUniqByTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtRandomTests < Test::Unit::TestCase
+class ArrayExtRandomTests < ActiveSupport::TestCase
   def test_random_element_from_array
-    assert_nil [].rand
+    assert_nil [].random_element
 
     Kernel.expects(:rand).with(1).returns(0)
-    assert_equal 'x', ['x'].rand
+    assert_equal 'x', ['x'].random_element
 
     Kernel.expects(:rand).with(3).returns(1)
-    assert_equal 2, [1, 2, 3].rand
+    assert_equal 2, [1, 2, 3].random_element
+  end
+
+  def test_deprecated_rand_on_array
+    assert_deprecated { [].rand }
   end
 end
 

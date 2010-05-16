@@ -33,7 +33,7 @@ module Rails
       end
 
       def middleware
-        @middleware ||= default_middleware_stack
+        @middleware ||= app_middleware.merge_into(default_middleware_stack)
       end
 
       def metal_loader
@@ -150,10 +150,10 @@ module Rails
           middleware.use('::ActionDispatch::Cookies')
           middleware.use(lambda { session_store }, lambda { session_options })
           middleware.use('::ActionDispatch::Flash', :if => lambda { session_store })
-          middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
-          middleware.use('ActionDispatch::ParamsParser')
+          middleware.use('::ActionDispatch::ParamsParser')
           middleware.use('::Rack::MethodOverride')
           middleware.use('::ActionDispatch::Head')
+          middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
         end
       end
     end

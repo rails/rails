@@ -36,49 +36,40 @@ module ActiveRecord
 
     # The validation process on save can be skipped by passing false. The regular Base#save method is
     # replaced with this when the validations module is mixed in, which it is by default.
-    def save(options=nil)
-      return super if valid?(options)
-      false
-    end
-
-    def save_without_validation!
-      save!(:validate => false)
+    def save(options={})
+      perform_validations(options) ? super : false
     end
 
     # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
-    def save!(options = nil)
-      return super if valid?(options)
-      raise RecordInvalid.new(self)
+    def save!(options={})
+      perform_validations(options) ? super : raise(RecordInvalid.new(self))
     end
 
     # Runs all the specified validations and returns true if no errors were added otherwise false.
-    def valid?(options = nil)
+    def valid?(context = nil)
+      context ||= (new_record? ? :create : :update)
+      super(context)
+
+      deprecated_callback_method(:validate)
+      deprecated_callback_method(:"validate_on_#{context}")
+
+      errors.empty?
+    end
+
+  protected
+
+    def perform_validations(options={})
       perform_validation = case options
-        when NilClass
-          true
-        when Hash
-          options[:validate] != false
-        else
-          ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
-          options
+      when Hash
+        options[:validate] != false
+      else
+        ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
+        options
       end
 
       if perform_validation
-        errors.clear
-
-        self.validation_context = new_record? ? :create : :update
-        _run_validate_callbacks
-
-        deprecated_callback_method(:validate)
-
-        if new_record?
-          deprecated_callback_method(:validate_on_create)
-        else
-          deprecated_callback_method(:validate_on_update)
-        end
-
-        errors.empty?
+        valid?(options.is_a?(Hash) ? options[:context] : nil)
       else
         true
       end

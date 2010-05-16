@@ -338,6 +338,15 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
+  def test_cloned_objects_should_not_copy_dirty_flag_from_creator
+    pirate = Pirate.create!(:catchphrase => "shiver me timbers")
+    pirate_clone = pirate.clone
+    pirate_clone.reset_catchphrase!
+    pirate.catchphrase = "I love Rum"
+    assert pirate.catchphrase_changed?
+    assert !pirate_clone.catchphrase_changed?
+  end
+
   def test_reverted_changes_are_not_dirty
     phrase = "shiver me timbers"
     pirate = Pirate.create!(:catchphrase => phrase)

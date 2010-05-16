@@ -1,5 +1,15 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Add index length support for MySQL. #1852 [Emili Parreno, Pratik Naik]
+
+  Example:
+
+    add_index(:accounts, :name, :name => 'by_name', :length => 10)
+    => CREATE INDEX by_name ON accounts(name(10))
+
+    add_index(:accounts, [:name, :surname], :name => 'by_name_surname', :length => {:name => 10, :surname => 15})
+    => CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
+
 * find_or_create_by_attr(value, ...) works when attr is protected.  #4457 [Santiago Pastorino, Marc-André Lafortune]
 
 * New callbacks: after_commit and after_rollback. Do expensive operations like image thumbnailing after_commit instead of after_save.  #2991 [Brian Durand]

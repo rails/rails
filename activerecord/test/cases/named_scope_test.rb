@@ -142,6 +142,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal authors(:david).posts & Post.containing_the_letter_a, authors(:david).posts.containing_the_letter_a
   end
 
+  def test_named_scope_with_STI
+    assert_equal 3,Post.containing_the_letter_a.count
+    assert_equal 1,SpecialPost.containing_the_letter_a.count
+  end
+
   def test_has_many_through_associations_have_access_to_named_scopes
     assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
@@ -296,7 +301,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_rand_should_select_a_random_object_from_proxy
-    assert_kind_of Topic, Topic.approved.rand
+    assert_kind_of Topic, Topic.approved.random_element
   end
 
   def test_should_use_where_in_query_for_named_scope

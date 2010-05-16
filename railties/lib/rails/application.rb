@@ -12,7 +12,7 @@ module Rails
   # points to it.
   #
   # In other words, Rails::Application is Singleton and whenever you are accessing
-  # Rails::Application.config or YourApplication::Application.config, you are actually 
+  # Rails::Application.config or YourApplication::Application.config, you are actually
   # accessing YourApplication::Application.instance.config.
   #
   # == Initialization
@@ -40,7 +40,7 @@ module Rails
   #
   # The Application is also responsible for building the middleware stack and setting up
   # both application and engines metals.
-  # 
+  #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configurable,   'rails/application/configurable'
@@ -69,6 +69,7 @@ module Rails
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
+        ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
 
       def respond_to?(*args)
@@ -82,7 +83,7 @@ module Rails
       end
     end
 
-    delegate :metal_loader, :to => :config
+    delegate :middleware, :metal_loader, :to => :config
 
     def require_environment!
       environment = paths.config.environment.to_a.first
@@ -125,7 +126,7 @@ module Rails
     end
 
     def app
-      @app ||= middleware.build(routes)
+      @app ||= config.middleware.build(routes)
     end
 
     def call(env)

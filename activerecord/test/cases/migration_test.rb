@@ -92,6 +92,14 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => 10) }
+        assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => {:last_name => 10}) }
+        assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => 10) }
+        assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20}) }
+        assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
       end
 
       # quoting
@@ -850,6 +858,18 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.change_column_default "people", "first_name", "Tester"
       Person.reset_column_information
       assert_equal "Tester", Person.new.first_name
+    end
+
+    unless current_adapter?(:PostgreSQLAdapter)
+      def test_change_column_type_default_should_change
+        old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+        assert !old_columns.find { |c| c.name == 'data' }
+
+        assert_nothing_raised do
+          Person.connection.add_column "people", "data", :string, :default => ''
+          Person.connection.change_column "people", "data", :binary
+        end
+      end
     end
 
     def test_change_column_quotes_column_names

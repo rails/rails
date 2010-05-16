@@ -8,7 +8,7 @@ module ActiveModel
       end
     end
 
-    module ClassMethods
+    module HelperMethods
       # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save. Example:
       #
       #   class Person < ActiveRecord::Base

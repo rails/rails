@@ -10,7 +10,7 @@ module ActiveRecord
         attr_accessor :"#{query_method}_values"
 
         next if [:where, :having].include?(query_method)
-        class_eval <<-CEVAL, __FILE__
+        class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(*args, &block)
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?
@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       [:where, :having].each do |query_method|
-        class_eval <<-CEVAL, __FILE__
+        class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(*args, &block)
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?
@@ -36,7 +36,7 @@ module ActiveRecord
       ActiveRecord::Relation::SINGLE_VALUE_METHODS.each do |query_method|
         attr_accessor :"#{query_method}_value"
 
-        class_eval <<-CEVAL, __FILE__
+        class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(value = true, &block)
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?

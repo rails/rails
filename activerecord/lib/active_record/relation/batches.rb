@@ -71,7 +71,12 @@ module ActiveRecord
         yield records
 
         break if records.size < batch_size
-        records = relation.where(primary_key.gt(records.last.id)).all
+
+        if primary_key_offset = records.last.id
+          records = relation.where(primary_key.gt(primary_key_offset)).all
+        else
+          raise "Primary key not included in the custom select clause"
+        end
       end
     end
 

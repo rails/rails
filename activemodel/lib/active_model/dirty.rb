@@ -124,11 +124,12 @@ module ActiveModel
       @previously_changed
     end
 
+    # Map of change <tt>attr => original value</tt>.
+    def changed_attributes
+      @changed_attributes ||= {}
+    end
+
     private
-      # Map of change <tt>attr => original value</tt>.
-      def changed_attributes
-        @changed_attributes ||= {}
-      end
 
       # Handle <tt>*_changed?</tt> for +method_missing+.
       def attribute_changed?(attr)
