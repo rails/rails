@@ -192,11 +192,11 @@ module Rails
       # Asserts the given field name gets translated to an attribute type 
       # properly.
       #
-      #   assert_attribute_type 'date', :date_select
+      #   assert_field_type :date, :date_select
       #
-      def assert_attribute_type(name, attribute_type)
+      def assert_field_type(name, attribute_type)
         assert_equal(
-          Rails::Generators::GeneratedAttribute.new('test', name).field_type,
+          Rails::Generators::GeneratedAttribute.new('test', name.to_s).field_type,
           attribute_type
         )
       end
