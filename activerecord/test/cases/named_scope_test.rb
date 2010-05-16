@@ -265,7 +265,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_rand_should_select_a_random_object_from_proxy
-    assert Topic.approved.rand.is_a?(Topic)
+    assert Topic.approved.random_element.is_a?(Topic)
   end
 
   def test_should_use_where_in_query_for_named_scope

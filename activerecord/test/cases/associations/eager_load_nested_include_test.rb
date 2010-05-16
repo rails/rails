@@ -81,14 +81,14 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
       [Circle, Square, Triangle, NonPolyOne, NonPolyTwo].map(&:create!)
     end
     1.upto(NUM_SIMPLE_OBJS) do
-      PaintColor.create!(:non_poly_one_id => NonPolyOne.rand.id)
-      PaintTexture.create!(:non_poly_two_id => NonPolyTwo.rand.id)
+      PaintColor.create!(:non_poly_one_id => NonPolyOne.random_element.id)
+      PaintTexture.create!(:non_poly_two_id => NonPolyTwo.random_element.id)
     end
     1.upto(NUM_SHAPE_EXPRESSIONS) do
-      shape_type = [Circle, Square, Triangle].rand
-      paint_type = [PaintColor, PaintTexture].rand
-      ShapeExpression.create!(:shape_type => shape_type.to_s, :shape_id => shape_type.rand.id,
-                              :paint_type => paint_type.to_s, :paint_id => paint_type.rand.id)
+      shape_type = [Circle, Square, Triangle].random_element
+      paint_type = [PaintColor, PaintTexture].random_element
+      ShapeExpression.create!(:shape_type => shape_type.to_s, :shape_id => shape_type.random_element.id,
+                              :paint_type => paint_type.to_s, :paint_id => paint_type.random_element.id)
     end
   end
 
