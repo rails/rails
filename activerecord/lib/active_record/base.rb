@@ -1463,12 +1463,18 @@ module ActiveRecord #:nodoc:
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
+
         @attributes = cloned_attributes
+
+        @changed_attributes = {}
+        attributes_from_column_definition.each do |attr, orig_value|
+          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        end
+
         clear_aggregation_cache
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
-        @changed_attributes = other.changed_attributes.dup
 
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create

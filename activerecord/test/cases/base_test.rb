@@ -1456,6 +1456,56 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of Client, clone
   end
 
+  def test_clone_of_new_object_with_defaults
+    developer = Developer.new
+    assert !developer.name_changed?
+    assert !developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert !cloned_developer.name_changed?
+    assert !cloned_developer.salary_changed?
+  end
+
+  def test_clone_of_new_object_marks_attributes_as_dirty
+    developer = Developer.new :name => 'Bjorn', :salary => 100000
+    assert developer.name_changed?
+    assert developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?
+    assert cloned_developer.salary_changed?
+  end
+
+  def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
+    developer = Developer.new :name => 'Bjorn'
+    assert developer.name_changed?            # obviously
+    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?
+    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+  end
+
+  def test_clone_of_saved_object_marks_attributes_as_dirty
+    developer = Developer.create! :name => 'Bjorn', :salary => 100000
+    assert !developer.name_changed?
+    assert !developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?     # both attributes differ from defaults
+    assert cloned_developer.salary_changed?
+  end
+
+  def test_clone_of_saved_object_marks_as_dirty_only_changed_attributes
+    developer = Developer.create! :name => 'Bjorn'
+    assert !developer.name_changed?           # both attributes of saved object should be threated as not changed
+    assert !developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?     # ... but on cloned object should be
+    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be threated as not changed on cloned instance
+  end
+
   def test_bignum
     company = Company.find(1)
     company.rating = 2147483647
