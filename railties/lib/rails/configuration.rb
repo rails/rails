@@ -5,6 +5,37 @@ require 'rails/rack'
 
 module Rails
   module Configuration
+    class MiddlewareStackProxy #:nodoc:
+      def initialize
+        @operations = []
+      end
+
+      def insert_before(*args, &block)
+        @operations << [:insert_before, args, block]
+      end
+
+      alias :insert :insert_before
+
+      def insert_after(*args, &block)
+        @operations << [:insert_after, args, block]
+      end
+
+      def swap(*args, &block)
+        @operations << [:swap, args, block]
+      end
+
+      def use(*args, &block)
+        @operations << [:use, args, block]
+      end
+
+      def merge_into(other)
+        @operations.each do |operation, args, block|
+          other.send(operation, *args, &block)
+        end
+        other
+      end
+    end
+
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
 

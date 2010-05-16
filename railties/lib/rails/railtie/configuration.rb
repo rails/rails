@@ -3,37 +3,6 @@ require 'rails/configuration'
 module Rails
   class Railtie
     class Configuration
-      class MiddlewareStackProxy
-        def initialize
-          @operations = []
-        end
-
-        def insert_before(*args, &block)
-          @operations << [:insert_before, args, block]
-        end
-
-        alias insert insert_before
-
-        def insert_after(*args, &block)
-          @operations << [:insert_after, args, block]
-        end
-
-        def swap(*args, &block)
-          @operations << [:swap, args, block]
-        end
-
-        def use(*args, &block)
-          @operations << [:use, args, block]
-        end
-
-        def merge_into(other)
-          @operations.each do |operation, args, block|
-            other.send(operation, *args, &block)
-          end
-          other
-        end
-      end
-
       def initialize
         @@options ||= {}
       end
@@ -44,7 +13,7 @@ module Rails
       # application once it is defined and the default_middlewares are
       # created
       def app_middleware
-        @@app_middleware ||= MiddlewareStackProxy.new
+        @@app_middleware ||= Rails::Configuration::MiddlewareStackProxy.new
       end
 
       # Holds generators configuration:
