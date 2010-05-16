@@ -307,4 +307,16 @@ class GeneratorTestCase < Test::Unit::TestCase
   def assert_generated_table(body, name)
     assert_match /create_table :#{name.to_s} do/, body, "should have table #{name.to_s} defined"
   end
+
+  # Asserts the given field name gets translated to an attribute type
+  # properly.
+  #
+  #   assert_attribute_type 'date', :date_select
+  #
+  def assert_attribute_type(name, attribute_type)
+    assert_equal(
+      Rails::Generator::GeneratedAttribute.new('test', name).field_type,
+      attribute_type
+    )
+  end
 end
