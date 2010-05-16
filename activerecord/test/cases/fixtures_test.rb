@@ -256,6 +256,11 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   def test_fixtures_from_root_yml_without_instantiation
     assert !defined?(@unknown), "@unknown is not defined"
   end
+  
+  def test_visibility_of_accessor_method
+    assert_equal false, respond_to?(:topics, false), "should be private method"
+    assert_equal true, respond_to?(:topics, true), "confirm to respond surely"
+  end
 
   def test_accessor_methods
     assert_equal "The First Topic", topics(:first).title
