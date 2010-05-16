@@ -9,6 +9,7 @@ gem "mocha", ">= 0.9.8"
 group :mri do
   gem 'json'
   gem 'yajl-ruby'
+  gem "nokogiri", ">= 1.4.0"
 
   if RUBY_VERSION < '1.9'
     gem "system_timer"
