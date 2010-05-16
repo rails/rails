@@ -73,7 +73,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
       end
 
       @logger.flush
-      assert !@output.string.empty?, @logger.send(:buffer).size
+      assert !@output.string.empty?, @logger.send(:buffer).size.to_s
     end
 
     define_method "test_disabling_auto_flush_with_#{disable.inspect}_should_flush_at_max_buffer_size_as_failsafe" do
@@ -86,7 +86,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
       end
 
       @logger.info 'there it is.'
-      assert !@output.string.empty?, @logger.send(:buffer).size
+      assert !@output.string.empty?, @logger.send(:buffer).size.to_s
     end
   end
 

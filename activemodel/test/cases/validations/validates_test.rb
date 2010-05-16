@@ -45,7 +45,7 @@ class ValidatesTest < ActiveModel::TestCase
     Person.validates :karma, :presence => true, :email => true, :if => :condition_is_true
     person = Person.new
     person.valid?
-    assert ["can't be blank", "is not an email"], person.errors[:karma].sort
+    assert_equal ["can't be blank", "is not an email"], person.errors[:karma].sort
   end
 
   def test_validates_with_unless_shared_conditions

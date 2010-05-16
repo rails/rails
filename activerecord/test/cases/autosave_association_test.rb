@@ -765,7 +765,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @ship.destroy
     @pirate.reload.catchphrase = "Arr"
     @pirate.save
-    assert 'Arr', @pirate.reload.catchphrase
+    assert_equal 'Arr', @pirate.reload.catchphrase
   end
 
   def test_should_automatically_save_the_associated_model
@@ -885,7 +885,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.destroy
     @ship.reload.name = "The Vile Insanity"
     @ship.save
-    assert 'The Vile Insanity', @ship.reload.name
+    assert_equal 'The Vile Insanity', @ship.reload.name
   end
 
   def test_should_automatically_save_the_associated_model
