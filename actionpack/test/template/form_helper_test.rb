@@ -449,8 +449,8 @@ class FormHelperTest < ActionView::TestCase
                  text_area("post", "body", :id => nil)
     assert_dom_equal check_box("post", "secret", "id" => nil),
                  check_box("post", "secret", :id => nil)
-    assert_dom_equal radio_button("post", "secret", "id" => nil),
-                 radio_button("post", "secret", :id => nil)
+    assert_dom_equal radio_button("post", "secret", "0", "id" => nil),
+                 radio_button("post", "secret", "0", :id => nil)
   end
 
   def test_index
