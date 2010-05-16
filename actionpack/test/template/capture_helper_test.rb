@@ -74,7 +74,7 @@ class CaptureHelperTest < ActionView::TestCase
       @av.output_buffer.force_encoding(alt_encoding)
 
       @av.with_output_buffer do
-        assert alt_encoding, @av.output_buffer.encoding
+        assert_equal alt_encoding, @av.output_buffer.encoding
       end
     end
   end
