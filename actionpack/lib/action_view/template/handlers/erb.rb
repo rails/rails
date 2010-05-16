@@ -28,7 +28,7 @@ module ActionView
         src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
       end
 
-      BLOCK_EXPR = /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+      BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
       def add_expr_literal(src, code)
         if code =~ BLOCK_EXPR
