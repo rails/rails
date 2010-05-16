@@ -364,7 +364,8 @@ module ActiveRecord
     def tables_in_string(string)
       return [] if string.blank?
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten.map(&:downcase).uniq
+      # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
+      string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten.map(&:downcase).uniq - ['raw_sql_']
     end
 
   end
