@@ -180,8 +180,7 @@ module ApplicationTests
       require "#{app_path}/config/application"
 
       unless RUBY_VERSION < '1.9'
-        assert_equal Encoding::UTF_8, Encoding.default_external
-        assert_equal Encoding::UTF_8, Encoding.default_internal
+        assert_equal Encoding.find("utf-8"), Encoding.default_external
       end
     end
 

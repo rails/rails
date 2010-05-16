@@ -439,14 +439,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test 'emits normal string yaml' do
     assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
   end
-
-  test 'knows whether it is encoding aware' do
-    if RUBY_VERSION >= "1.9"
-      assert 'ruby'.encoding_aware?
-    else
-      assert !'ruby'.encoding_aware?
-    end
-  end
 end
 
 class StringExcludeTest < ActiveSupport::TestCase

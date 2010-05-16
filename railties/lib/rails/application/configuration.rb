@@ -1,5 +1,4 @@
 require 'active_support/deprecation'
-require 'active_support/core_ext/string/encoding'
 require 'rails/engine/configuration'
 
 module Rails
@@ -28,15 +27,8 @@ module Rails
 
       def encoding=(value)
         @encoding = value
-        if "ruby".encoding_aware?
+        if defined?(Encoding) && Encoding.respond_to?(:default_external=)
           Encoding.default_external = value
-          Encoding.default_internal = value
-        else
-          $KCODE = value
-          if $KCODE == "NONE"
-            raise "The value you specified for config.encoding is " \
-                  "invalid. The possible values are UTF8, SJIS, or EUC"
-          end
         end
       end
 
