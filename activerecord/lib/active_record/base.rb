@@ -1467,6 +1467,7 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
+        @changed_attributes = other.changed_attributes.dup
 
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
