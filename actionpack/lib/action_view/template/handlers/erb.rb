@@ -5,6 +5,11 @@ require 'erubis'
 
 module ActionView
   class OutputBuffer < ActiveSupport::SafeBuffer
+    def initialize(*)
+      super
+      encode!
+    end
+
     def <<(value)
       super(value.to_s)
     end
@@ -72,16 +77,50 @@ module ActionView
         cattr_accessor :erb_implementation
         self.erb_implementation = Erubis
 
-        ENCODING_TAG = Regexp.new("\A(<%#{ENCODING_FLAG}-?%>)[ \t]*")
+        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
+
+        def self.accepts_binary?
+          true
+        end
 
         def compile(template)
-          erb = template.source.gsub(ENCODING_TAG, '')
+          if template.source.encoding_aware?
+            # Even though Rails has given us a String tagged with the
+            # default_internal encoding (likely UTF-8), it is possible
+            # that the String is actually encoded using a different
+            # encoding, specified via an ERB magic comment. If the
+            # String is not actually UTF-8, the regular expression
+            # engine will (correctly) raise an exception. For now,
+            # we'll reset the String to BINARY so we can run regular
+            # expressions against it
+            template_source = template.source.dup.force_encoding("BINARY")
+
+            # Erubis does not have direct support for encodings.
+            # As a result, we will extract the ERB-style magic
+            # comment, give the String to Erubis as BINARY data,
+            # and then tag the resulting String with the extracted
+            # encoding later
+            erb = template_source.gsub(ENCODING_TAG, '')
+            encoding = $2
+
+            if !encoding && (template.source.encoding == Encoding::BINARY)
+              raise WrongEncodingError.new(template_source, Encoding.default_external)
+            end
+          end
+
           result = self.class.erb_implementation.new(
             erb,
             :trim => (self.class.erb_trim_mode == "-")
           ).src
 
-          result = "#{$2}\n#{result}" if $2
+          # If an encoding tag was found, tag the String
+          # we're returning with that encoding. Otherwise,
+          # return a BINARY String, which is what ERB
+          # returns. Note that if a magic comment was
+          # not specified, we will return the data to
+          # Rails as BINARY, which will then use its
+          # own encoding logic to create a UTF-8 String.
+          result = "\n#{result}".force_encoding(encoding).encode if encoding
           result
         end
       end

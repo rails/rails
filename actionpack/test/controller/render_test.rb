@@ -1079,7 +1079,7 @@ class RenderTest < ActionController::TestCase
 
   def test_action_talk_to_layout
     get :action_talk_to_layout
-    assert_equal "<title>Talking to the layout</title>\n\nAction was here!", @response.body
+    assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
 
   # :addressed:
@@ -1096,7 +1096,7 @@ class RenderTest < ActionController::TestCase
 
   def test_yield_content_for
     assert_not_deprecated { get :yield_content_for }
-    assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
+    assert_equal "<title>Putting stuff in the title!</title>\nGreat stuff!\n", @response.body
   end
 
   def test_overwritting_rendering_relative_file_with_extension
