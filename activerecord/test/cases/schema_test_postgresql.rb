@@ -137,11 +137,11 @@ class SchemaTest < ActiveRecord::TestCase
 
   def test_with_uppercase_index_name
     ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index :things, :name => "#{SCHEMA_NAME}.things_Index"}
+    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
 
     ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
     ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index :things, :name => "things_Index"}
+    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
     ActiveRecord::Base.connection.schema_search_path = "public"
   end
 

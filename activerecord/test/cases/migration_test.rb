@@ -119,6 +119,40 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_add_index_length_limit
+      good_index_name = 'x' * Person.connection.index_name_length
+      too_long_index_name = good_index_name + 'x'
+      assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => too_long_index_name) }
+      assert !Person.connection.index_exists?("people", too_long_index_name, false)
+      assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => good_index_name) }
+      assert Person.connection.index_exists?("people", good_index_name, false)
+    end
+
+    def test_remove_nonexistent_index
+      # we do this by name, so OpenBase is a wash as noted above
+      unless current_adapter?(:OpenBaseAdapter)
+        assert_nothing_raised { Person.connection.remove_index("people", "no_such_index") }
+      end
+    end
+
+    def test_rename_index
+      unless current_adapter?(:OpenBaseAdapter)
+        # keep the names short to make Oracle and similar behave
+        Person.connection.add_index('people', [:first_name], :name => 'old_idx')
+        assert_nothing_raised { Person.connection.rename_index('people', 'old_idx', 'new_idx') }
+        # if the adapter doesn't support the indexes call, pick defaults that let the test pass
+        assert !Person.connection.index_exists?('people', 'old_idx', false)
+        assert Person.connection.index_exists?('people', 'new_idx', true)
+      end
+    end
+
+    def test_double_add_index
+      unless current_adapter?(:OpenBaseAdapter)
+        Person.connection.add_index('people', [:first_name], :name => 'some_idx')
+        assert_nothing_raised { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
+      end
+    end
+
     def testing_table_with_only_foo_attribute
       Person.connection.create_table :testings, :id => false do |t|
         t.column :foo, :string

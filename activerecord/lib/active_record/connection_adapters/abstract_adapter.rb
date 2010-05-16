@@ -11,6 +11,7 @@ require 'active_record/connection_adapters/abstract/quoting'
 require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
+require 'active_record/connection_adapters/abstract/database_limits'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -29,6 +30,7 @@ module ActiveRecord
     # notably, the instance methods provided by SchemaStatement are very useful.
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
+      include DatabaseLimits
       include QueryCache
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
