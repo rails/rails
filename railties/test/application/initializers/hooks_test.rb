@@ -66,7 +66,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert [:to_prepare, :after_initialize], $order
+      assert_equal [:to_prepare, :after_initialize], $order
     end
 
     test "after_initialize happens after to_prepare in production" do
@@ -80,7 +80,7 @@ module ApplicationTests
       require "#{app_path}/config/application"
       Rails.env.replace "production"
       require "#{app_path}/config/environment"
-      assert [:to_prepare, :after_initialize], $order
+      assert_equal [:to_prepare, :after_initialize], $order
     end
   end
 end
