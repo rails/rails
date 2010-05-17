@@ -7,7 +7,7 @@ module ActionView
   class OutputBuffer < ActiveSupport::SafeBuffer
     def initialize(*)
       super
-      encode!
+      encode! if encoding_aware?
     end
 
     def <<(value)
@@ -106,6 +106,8 @@ module ActionView
             if !encoding && (template.source.encoding == Encoding::BINARY)
               raise WrongEncodingError.new(template_source, Encoding.default_external)
             end
+          else
+            erb = template.source.dup
           end
 
           result = self.class.erb_implementation.new(
