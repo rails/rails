@@ -10,7 +10,7 @@ module ActiveRecord
     ##
     # :singleton-method:
     # The connection handler
-    superclass_delegating_accessor :connection_handler, :instance_writer => false
+    superclass_delegating_accessor :connection_handler
     self.connection_handler = ConnectionAdapters::ConnectionHandler.new
 
     # Returns the connection currently associated with the class. This can
