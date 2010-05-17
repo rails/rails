@@ -31,8 +31,10 @@ module Rails
 
     def self.from_directory_name(directory_name, load_spec=true)
       directory_name_parts = File.basename(directory_name).split('-')
-      name    = directory_name_parts[0..-2].join('-')
-      version = directory_name_parts.last
+      
+      version = directory_name_parts.find { |s| s.match(/^\d(\.\d|\.\w+)*$/) }
+      name    = directory_name_parts[0..directory_name_parts.index(version)-1].join('-') if version
+      
       result = self.new(name, :version => version)
       spec_filename = File.join(directory_name, '.specification')
       if load_spec

@@ -101,8 +101,8 @@ module Rails
     end
 
     def version_for_dir(d)
-      matches = /-([^-]+)$/.match(d)
-      Gem::Version.new(matches[1]) if matches
+      version = d.split('-').find { |s| s.match(/^\d(\.\d|\.\w+)*$/) }
+      Gem::Version.new(version)
     end
 
     def load_specification(gem_dir)
