@@ -54,7 +54,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_rollback_block{|r| r.history << :after_rollback}
 
     @first.save!
-    assert @first.history, [:after_commit]
+    assert_equal [:after_commit], @first.history
   end
 
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record
@@ -67,7 +67,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_commit_block(:destroy){|r| r.history << :rollback_on_destroy}
 
     @first.save!
-    assert @first.history, [:commit_on_update]
+    assert_equal [:commit_on_update], @first.history
   end
 
   def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_record
@@ -80,7 +80,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_commit_block(:destroy){|r| r.history << :rollback_on_destroy}
 
     @first.destroy
-    assert @first.history, [:commit_on_destroy]
+    assert_equal [:commit_on_destroy], @first.history
   end
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record
@@ -93,7 +93,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @new_record.after_commit_block(:destroy){|r| r.history << :rollback_on_destroy}
 
     @new_record.save!
-    assert @new_record.history, [:commit_on_create]
+    assert_equal [:commit_on_create], @new_record.history
   end
 
   def test_call_after_rollback_after_transaction_rollsback
@@ -105,7 +105,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert @first.history, [:after_rollback]
+    assert_equal [:after_rollback], @first.history
   end
 
   def test_only_call_after_rollback_on_update_after_transaction_rollsback_for_existing_record
@@ -122,7 +122,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert @first.history, [:rollback_on_update]
+    assert_equal [:rollback_on_update], @first.history
   end
 
   def test_only_call_after_rollback_on_destroy_after_transaction_rollsback_for_destroyed_record
@@ -139,7 +139,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert @first.history, [:rollback_on_destroy]
+    assert_equal [:rollback_on_destroy], @first.history
   end
 
   def test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record
@@ -156,7 +156,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert @new_record.history, [:rollback_on_create]
+    assert_equal [:rollback_on_create], @new_record.history
   end
 
   def test_call_after_rollback_when_commit_fails
@@ -170,7 +170,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       @first.after_rollback_block{|r| r.history << :after_rollback}
 
       assert !@first.save rescue nil
-      assert @first.history == [:after_rollback]
+      assert_equal [:after_rollback], @first.history
     ensure
       @first.connection.class.send(:remove_method, :commit_db_transaction)
       @first.connection.class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
@@ -196,10 +196,10 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       end
     end
 
-    assert 1, @first.commits
-    assert 0, @first.rollbacks
-    assert 1, @second.commits
-    assert 1, @second.rollbacks
+    assert_equal 1, @first.commits
+    assert_equal 0, @first.rollbacks
+    assert_equal 1, @second.commits
+    assert_equal 1, @second.rollbacks
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint_when_release_savepoint_fails
@@ -221,8 +221,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       end
     end
 
-    assert 1, @first.commits
-    assert 2, @first.rollbacks
+    assert_equal 1, @first.commits
+    assert_equal 2, @first.rollbacks
   end
 
   def test_after_transaction_callbacks_should_not_raise_errors
@@ -232,13 +232,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback; raise "fail!";}
 
     @first.save!
-    assert_equal @first.last_after_transaction_error, :commit
+    assert_equal :commit, @first.last_after_transaction_error
 
     Topic.transaction do
       @first.save!
       raise ActiveRecord::Rollback
     end
 
-    assert_equal @first.last_after_transaction_error, :rollback
+    assert_equal :rollback, @first.last_after_transaction_error
   end
 end
