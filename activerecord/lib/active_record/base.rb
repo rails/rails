@@ -1193,10 +1193,6 @@ module ActiveRecord #:nodoc:
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
         end
 
-        def clear_default_scope
-          self.default_scoping.clear
-        end
-
         def scoped_methods #:nodoc:
           key = :"#{self}_scoped_methods"
           Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
