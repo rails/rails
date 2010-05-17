@@ -517,10 +517,9 @@ h4. Tutorials and Documentation
 
 h3. Commercial Products
 
-Rails has been lucky to have three startups dedicated to Rails specific performance tools:
+Rails has been lucky to have two startups dedicated to Rails specific performance tools:
 
 * "New Relic":http://www.newrelic.com
-* "Fiveruns":http://www.fiveruns.com
 * "Scout":http://scoutapp.com
 
 h3. Changelog
