@@ -34,8 +34,8 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   if RUBY_VERSION < '1.9'
     def test_pooled_connection_checkout
       checkout_connections
-      assert_equal @connections.length, 2
-      assert_equal @timed_out, 2
+      assert_equal 2, @connections.length
+      assert_equal 2, @timed_out
     end
   end
 
