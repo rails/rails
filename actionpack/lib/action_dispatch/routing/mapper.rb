@@ -693,6 +693,11 @@ module ActionDispatch
           super
         end
 
+        def root(options={})
+          options[:on] ||= :collection if @scope[:scope_level] == :resources
+          super(options)
+        end
+
         protected
           def parent_resource #:nodoc:
             @scope[:scope_level_resource]
