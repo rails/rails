@@ -113,6 +113,14 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_not_nil DUMMY_GEM_C_VERSION
     assert_equal '0.6.0', DUMMY_GEM_C_VERSION
   end
+  
+  def test_gem_load_frozen_when_platform_string_is_present    
+    dummy_gem = Rails::GemDependency.new "dummy-gem-l"
+    dummy_gem.add_load_paths
+    dummy_gem.load
+    assert_not_nil DUMMY_GEM_L_VERSION
+    assert_equal "1.0.0", DUMMY_GEM_L_VERSION
+  end
 
   def test_gem_load_missing_specification
     dummy_gem = Rails::GemDependency.new "dummy-gem-d"
