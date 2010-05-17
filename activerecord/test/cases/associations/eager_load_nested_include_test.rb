@@ -4,6 +4,7 @@ require 'models/author'
 require 'models/comment'
 require 'models/category'
 require 'models/categorization'
+require 'active_support/core_ext/array/random_access'
 
 module Remembered
   def self.included(base)
@@ -17,7 +18,7 @@ module Remembered
 
   module ClassMethods
     def remembered; @@remembered ||= []; end
-    def rand; @@remembered.rand; end
+    def random_element; @@remembered.random_element; end
   end
 end
 
