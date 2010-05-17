@@ -70,7 +70,10 @@ module ActionView
 
       Dir[query].reject { |p| File.directory?(p) }.map do |p|
         handler, format = extract_handler_and_format(p, formats)
-        Template.new(File.read(p), File.expand_path(p), handler,
+
+        contents = File.open(p, "rb") {|io| io.read }
+
+        Template.new(contents, File.expand_path(p), handler,
           :virtual_path => path, :format => format)
       end
     end
