@@ -140,7 +140,7 @@ module ActionDispatch # :nodoc:
     def to_a
       assign_default_content_type_and_charset!
       handle_conditional_get!
-      self["Set-Cookie"] = @cookie.join("\n") unless @cookie.blank?
+      self["Set-Cookie"] = self["Set-Cookie"].join("\n") if self["Set-Cookie"].respond_to?(:join)
       self["ETag"]       = @_etag if @_etag
       super
     end
@@ -170,7 +170,7 @@ module ActionDispatch # :nodoc:
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
     def cookies
       cookies = {}
-      if header = @cookie
+      if header = self["Set-Cookie"]
         header = header.split("\n") if header.respond_to?(:to_str)
         header.each do |cookie|
           if pair = cookie.split(';').first
@@ -180,37 +180,6 @@ module ActionDispatch # :nodoc:
         end
       end
       cookies
-    end
-
-    def set_cookie(key, value)
-      case value
-      when Hash
-        domain  = "; domain="  + value[:domain]    if value[:domain]
-        path    = "; path="    + value[:path]      if value[:path]
-        # According to RFC 2109, we need dashes here.
-        # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
-        secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if value[:httponly]
-        value = value[:value]
-      end
-      value = [value]  unless Array === value
-      cookie = Rack::Utils.escape(key) + "=" +
-        value.map { |v| Rack::Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
-
-      @cookie << cookie
-    end
-
-    def delete_cookie(key, value={})
-      @cookie.reject! { |cookie|
-        cookie =~ /\A#{Rack::Utils.escape(key)}=/
-      }
-
-      set_cookie(key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :expires => Time.at(0) }.merge(value))
     end
 
     private

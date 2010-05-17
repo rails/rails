@@ -113,6 +113,10 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+
+    @response.delete_cookie("login")
+    status, headers, body = @response.to_a
+    assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
   end
 
   test "read cache control" do
