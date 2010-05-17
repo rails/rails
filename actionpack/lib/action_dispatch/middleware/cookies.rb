@@ -52,6 +52,9 @@ module ActionDispatch
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   class Cookies
+    # Raised when storing more than 4K of session data.
+    class CookieOverflow < StandardError; end
+
     class CookieJar < Hash #:nodoc:
       def self.build(request)
         secret = request.env["action_dispatch.secret_token"]
@@ -166,8 +169,11 @@ module ActionDispatch
     end
 
     class SignedCookieJar < CookieJar #:nodoc:
+      MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
+      SECRET_MIN_LENGTH = 30 # Characters
+
       def initialize(parent_jar, secret)
-        raise "You must set config.secret_token in your app's config" if secret.blank?
+        ensure_secret_secure(secret)
         @parent_jar = parent_jar
         @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
@@ -176,6 +182,8 @@ module ActionDispatch
         if signed_message = @parent_jar[name]
           @verifier.verify(signed_message)
         end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil
       end
 
       def []=(key, options)
@@ -186,11 +194,33 @@ module ActionDispatch
           options = { :value => @verifier.generate(options) }
         end
 
+        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
       end
 
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
+      end
+
+    protected
+
+      # To prevent users from using something insecure like "Password" we make sure that the
+      # secret they've provided is at least 30 characters in length.
+      def ensure_secret_secure(secret)
+        if secret.blank?
+          raise ArgumentError, "A secret is required to generate an " +
+            "integrity hash for cookie session data. Use " +
+            "config.secret_token = \"some secret phrase of at " +
+            "least #{SECRET_MIN_LENGTH} characters\"" +
+            "in config/application.rb"
+        end
+
+        if secret.length < SECRET_MIN_LENGTH
+          raise ArgumentError, "Secret should be something secure, " +
+            "like \"#{ActiveSupport::SecureRandom.hex(16)}\".  The value you " +
+            "provided, \"#{secret}\", is shorter than the minimum length " +
+            "of #{SECRET_MIN_LENGTH} characters"
+        end
       end
     end
 

@@ -11,7 +11,8 @@ module Rails
                     :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger, :metals,
                     :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
-                    :secret_token, :serve_static_assets, :time_zone, :whiny_nils
+                    :secret_token, :serve_static_assets, :session_options,
+                    :time_zone, :whiny_nils
 
       def initialize(*)
         super
@@ -136,11 +137,6 @@ module Rails
           @session_store = args.shift
           @session_options = args.shift || {}
         end
-      end
-
-      def session_options
-        return @session_options unless @session_store == :cookie_store
-        @session_options.merge(:secret => @secret_token)
       end
 
     protected

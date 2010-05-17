@@ -162,6 +162,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
       middleware.use "ActionDispatch::Cookies"
       middleware.use "ActionDispatch::Flash"
       middleware.use "ActionDispatch::Head"
+      yield(middleware) if block_given?
     end
   end
 

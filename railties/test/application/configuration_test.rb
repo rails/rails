@@ -196,7 +196,7 @@ module ApplicationTests
 
     test "config.secret_token is sent in env" do
       make_basic_app do |app|
-        app.config.secret_token = 'ThisIsASECRET123'
+        app.config.secret_token = 'b3c631c314c0bbca50c1b2843150fe33'
         app.config.session_store :disabled
       end
 
@@ -208,7 +208,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert_equal 'ThisIsASECRET123', last_response.body
+      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', last_response.body
     end
 
     test "protect from forgery is the default in a new app" do
