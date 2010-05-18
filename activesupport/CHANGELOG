@@ -1,5 +1,7 @@
 *2.3.6 (pending)*
 
+* 1.9 compat: deprecated last_(month|year) in favor of prev_(month|year). [fxn]
+
 * Deprecated Array#rand in favor of Array#random_element. [Santiago Pastorino, Rizwan Reza]
 
 * Added Object#presence that returns the object if it's #present? otherwise returns nil [DHH/Colin Kelley]
