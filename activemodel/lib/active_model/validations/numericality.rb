@@ -58,7 +58,7 @@ module ActiveModel
 
       def parse_raw_value_as_a_number(raw_value)
         case raw_value
-        when /\A0x/
+        when /\A0[xX]/
           nil
         else
           begin
