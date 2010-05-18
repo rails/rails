@@ -98,12 +98,18 @@ module ActionController
         # Process legacy CGI options
         options = options.symbolize_keys
         if options.has_key?(:session_path)
+          ActiveSupport::Deprecation.warn "Giving :session_path to SessionStore is deprecated, " <<
+            "please use :path instead", caller
           options[:path] = options.delete(:session_path)
         end
         if options.has_key?(:session_key)
+          ActiveSupport::Deprecation.warn "Giving :session_key to SessionStore is deprecated, " <<
+            "please use :key instead", caller
           options[:key] = options.delete(:session_key)
         end
         if options.has_key?(:session_http_only)
+          ActiveSupport::Deprecation.warn "Giving :session_http_only to SessionStore is deprecated, " <<
+            "please use :httponly instead", caller
           options[:httponly] = options.delete(:session_http_only)
         end
 
