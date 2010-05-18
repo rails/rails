@@ -1048,7 +1048,7 @@ class BaseTest < Test::Unit::TestCase
     json = joe.to_json
     Person.format = :xml
 
-    assert encode, json
+    assert_equal encode, json
     assert_match %r{^\{"person":\{"person":\{}, json
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
