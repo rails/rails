@@ -1,6 +1,7 @@
 require "cases/helper"
 require "models/pirate"
 require "models/ship"
+require "models/ship_part"
 require "models/bird"
 require "models/parrot"
 require "models/treasure"
@@ -730,5 +731,84 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   def test_should_update_existing_records_with_non_standard_primary_key
     @owner.update_attributes(@params)
     assert_equal ['Foo', 'Bar'], @owner.pets.map(&:name)
+  end
+end
+
+class TestHasOneAutosaveAssoictaionWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @pirate = Pirate.create!(:catchphrase => "My baby takes tha mornin' train!")
+    @ship = @pirate.create_ship(:name => "The good ship Dollypop")
+    @part = @ship.parts.create!(:name => "Mast")
+    @trinket = @part.trinkets.create!(:name => "Necklace")
+  end
+  
+  test "when great-grandchild changed in memory, saving parent should save great-grandchild" do
+    @trinket.name = "changed"
+    @pirate.save
+    assert_equal "changed", @trinket.reload.name
+  end
+  
+  test "when great-grandchild changed via attributes, saving parent should save great-grandchild" do
+    @pirate.attributes = {:ship_attributes => {:id => @ship.id, :parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :name => "changed"}]}]}}
+    @pirate.save
+    assert_equal "changed", @trinket.reload.name
+  end
+  
+  test "when great-grandchild marked_for_destruction via attributes, saving parent should destroy great-grandchild" do
+    @pirate.attributes = {:ship_attributes => {:id => @ship.id, :parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :_destroy => true}]}]}}
+    assert_difference('@part.trinkets.count', -1) { @pirate.save }
+  end
+  
+  test "when great-grandchild added via attributes, saving parent should create great-grandchild" do
+    @pirate.attributes = {:ship_attributes => {:id => @ship.id, :parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:name => "created"}]}]}}
+    assert_difference('@part.trinkets.count', 1) { @pirate.save }
+  end
+  
+  test "when extra records exist for associations, validate (which calls nested_records_changed_for_autosave?) should not load them up" do
+    @trinket.name = "changed"
+    Ship.create!(:pirate => @pirate, :name => "The Black Rock")
+    ShipPart.create!(:ship => @ship, :name => "Stern")
+    assert_no_queries { @pirate.valid? }
+  end
+end
+
+class TestHasManyAutosaveAssoictaionWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @ship = Ship.create!(:name => "The good ship Dollypop")
+    @part = @ship.parts.create!(:name => "Mast")
+    @trinket = @part.trinkets.create!(:name => "Necklace")
+  end
+  
+  test "when grandchild changed in memory, saving parent should save grandchild" do
+    @trinket.name = "changed"
+    @ship.save
+    assert_equal "changed", @trinket.reload.name
+  end
+  
+  test "when grandchild changed via attributes, saving parent should save grandchild" do
+    @ship.attributes = {:parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :name => "changed"}]}]}
+    @ship.save
+    assert_equal "changed", @trinket.reload.name
+  end
+  
+  test "when grandchild marked_for_destruction via attributes, saving parent should destroy grandchild" do
+    @ship.attributes = {:parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :_destroy => true}]}]}
+    assert_difference('@part.trinkets.count', -1) { @ship.save }
+  end
+  
+  test "when grandchild added via attributes, saving parent should create grandchild" do
+    @ship.attributes = {:parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:name => "created"}]}]}
+    assert_difference('@part.trinkets.count', 1) { @ship.save }
+  end
+  
+  test "when extra records exist for associations, validate (which calls nested_records_changed_for_autosave?) should not load them up" do
+    @trinket.name = "changed"
+    Ship.create!(:name => "The Black Rock")
+    ShipPart.create!(:ship => @ship, :name => "Stern")
+    assert_no_queries { @ship.valid? }
   end
 end
