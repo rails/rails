@@ -49,13 +49,15 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_should_concatenate
-    assert_equal 'ab', 'a'.mb_chars + 'b'
-    assert_equal 'ab', 'a' + 'b'.mb_chars
-    assert_equal 'ab', 'a'.mb_chars + 'b'.mb_chars
+    mb_a = 'a'.mb_chars
+    mb_b = 'b'.mb_chars
+    assert_equal 'ab', mb_a + 'b'
+    assert_equal 'ab', 'a' + mb_b
+    assert_equal 'ab', mb_a + mb_b
 
-    assert_equal 'ab', 'a'.mb_chars << 'b'
-    assert_equal 'ab', 'a' << 'b'.mb_chars
-    assert_equal 'ab', 'a'.mb_chars << 'b'.mb_chars
+    assert_equal 'ab', mb_a << 'b'
+    assert_equal 'ab', 'a' << mb_b
+    assert_equal 'abb', mb_a << mb_b
   end
 
   def test_consumes_utf8_strings

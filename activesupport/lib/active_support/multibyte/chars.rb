@@ -105,7 +105,7 @@ module ActiveSupport #:nodoc:
         # Example:
         #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
         def +(other)
-          self << other
+          chars(@wrapped_string + other)
         end
 
         # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
