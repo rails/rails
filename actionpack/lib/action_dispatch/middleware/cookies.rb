@@ -52,12 +52,15 @@ module ActionDispatch
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   class Cookies
+    HTTP_HEADER = "Set-Cookie".freeze
+    TOKEN_KEY   = "action_dispatch.secret_token".freeze
+
     # Raised when storing more than 4K of session data.
     class CookieOverflow < StandardError; end
 
     class CookieJar < Hash #:nodoc:
       def self.build(request)
-        secret = request.env["action_dispatch.secret_token"]
+        secret = request.env[TOKEN_KEY]
         new(secret).tap do |hash|
           hash.update(request.cookies)
         end
@@ -137,9 +140,9 @@ module ActionDispatch
         @signed ||= SignedCookieJar.new(self, @secret)
       end
 
-      def write(response)
-        @set_cookies.each { |k, v| response.set_cookie(k, v) }
-        @delete_cookies.each { |k, v| response.delete_cookie(k, v) }
+      def write(headers)
+        @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) }
+        @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
       end
     end
 
@@ -232,12 +235,13 @@ module ActionDispatch
       status, headers, body = @app.call(env)
 
       if cookie_jar = env['action_dispatch.cookies']
-        response = Rack::Response.new(body, status, headers)
-        cookie_jar.write(response)
-        response.to_a
-      else
-        [status, headers, body]
+        cookie_jar.write(headers)
+        if headers[HTTP_HEADER].respond_to?(:join)
+          headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
+        end
       end
+
+      [status, headers, body]
     end
   end
 end
