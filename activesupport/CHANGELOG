@@ -2,7 +2,7 @@
 
 * Renames Array#rand -> Array#random_element. [Santiago Pastorino, Rizwan Reza]
 
-* Defines prev_(month|year) in Date and Time, and deprecates last_(month|year). [fxn]
+* 1.9 compat: Renames last_(month|year) to prev_(month|year) in Date and Time. [fxn]
 
 * Aliases Date#sunday to Date#end_of_week. [fxn]
 

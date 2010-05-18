@@ -2,7 +2,6 @@ require 'active_support/duration'
 require 'active_support/core_ext/date/acts_like'
 require 'active_support/core_ext/date/calculations'
 require 'active_support/core_ext/date_time/conversions'
-require 'active_support/deprecation'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -133,11 +132,6 @@ class Time
     advance(:years => years)
   end
 
-  def last_year # :nodoc:
-    ActiveSupport::Deprecation.warn("Time#last_year has been deprecated, please use Time#prev_year instead", caller)
-    prev_year
-  end
-
   # Short-hand for years_ago(1)
   def prev_year
     years_ago(1)
@@ -146,11 +140,6 @@ class Time
   # Short-hand for years_since(1)
   def next_year
     years_since(1)
-  end
-
-  def last_month # :nodoc:
-    ActiveSupport::Deprecation.warn("Time#last_month has been deprecated, please use Time#prev_month instead", caller)
-    prev_month
   end
 
   # Short-hand for months_ago(1)
