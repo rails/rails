@@ -22,13 +22,6 @@ module ActionDispatch
           @loaded = false
         end
 
-        def session_id
-          ActiveSupport::Deprecation.warn(
-            "ActionDispatch::Session::AbstractStore::SessionHash#session_id " +
-            "has been deprecated. Please use request.session_options[:id] instead.", caller)
-          @env[ENV_SESSION_OPTIONS_KEY][:id]
-        end
-
         def [](key)
           load! unless @loaded
           super(key.to_s)
@@ -45,35 +38,14 @@ module ActionDispatch
           h
         end
 
-        def update(hash = nil)
-          if hash.nil?
-            ActiveSupport::Deprecation.warn('use replace instead', caller)
-            replace({})
-          else
-            load! unless @loaded
-            super(hash.stringify_keys)
-          end
+        def update(hash)
+          load! unless @loaded
+          super(hash.stringify_keys)
         end
 
-        def delete(key = nil)
-          if key.nil?
-            ActiveSupport::Deprecation.warn('use clear instead', caller)
-            clear
-          else
-            load! unless @loaded
-            super(key.to_s)
-          end
-        end
-
-        def data
-         ActiveSupport::Deprecation.warn(
-           "ActionDispatch::Session::AbstractStore::SessionHash#data " +
-           "has been deprecated. Please use #to_hash instead.", caller)
-          to_hash
-        end
-
-        def close
-          ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
+        def delete(key)
+          load! unless @loaded
+          super(key.to_s)
         end
 
         def inspect

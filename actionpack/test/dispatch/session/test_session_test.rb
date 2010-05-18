@@ -2,18 +2,6 @@ require 'abstract_unit'
 require 'stringio'
 
 class ActionController::TestSessionTest < ActiveSupport::TestCase
-  def test_calling_delete_without_parameters_raises_deprecation_warning_and_calls_to_clear_test_session
-    assert_deprecated(/use clear instead/){ ActionController::TestSession.new.delete }
-  end
-
-  def test_calling_update_without_parameters_raises_deprecation_warning_and_calls_to_clear_test_session
-    assert_deprecated(/use replace instead/){ ActionController::TestSession.new.update }
-  end
-
-  def test_calling_close_raises_deprecation_warning
-    assert_deprecated(/sessions should no longer be closed/){ ActionController::TestSession.new.close }
-  end
-
   def test_ctor_allows_setting
     session = ActionController::TestSession.new({:one => 'one', :two => 'two'})
     assert_equal('one', session[:one])
