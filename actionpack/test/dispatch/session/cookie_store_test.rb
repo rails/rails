@@ -199,7 +199,7 @@ class CookieStoreTest < ActionController::IntegrationTest
           match ':action', :to => ::CookieStoreTest::TestController
         end
 
-        options = { :key => SessionKey, :secret => SessionSecret }.merge!(options)
+        options = { :key => SessionKey }.merge!(options)
 
         @app = self.class.build_app(set) do |middleware|
           middleware.use ActionDispatch::Session::CookieStore, options

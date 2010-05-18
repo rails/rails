@@ -38,9 +38,9 @@ module ActionDispatch
           options = env['rack.session.options']
           expiry  = options[:expire_after] || 0
           @pool.set(sid, session_data, expiry)
-          return true
+          sid
         rescue MemCache::MemCacheError, Errno::ECONNREFUSED
-          return false
+          false
         end
     end
   end
