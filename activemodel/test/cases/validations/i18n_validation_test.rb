@@ -22,23 +22,23 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_add_on_empty_generates_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :empty, {})
     @person.errors.add_on_empty :title
   end
 
   def test_errors_add_on_empty_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {:default => 'custom'})
-    @person.errors.add_on_empty :title, 'custom'
+    @person.errors.expects(:generate_message).with(:title, :empty, {:message => 'custom'})
+    @person.errors.add_on_empty :title, :message => 'custom'
   end
 
   def test_errors_add_on_blank_generates_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
+    @person.errors.expects(:generate_message).with(:title, :blank, {})
     @person.errors.add_on_blank :title
   end
 
   def test_errors_add_on_blank_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
-    @person.errors.add_on_blank :title, 'custom'
+    @person.errors.expects(:generate_message).with(:title, :blank, {:message => 'custom'})
+    @person.errors.add_on_blank :title, :message => 'custom'
   end
 
   def test_full_message_encoding
@@ -62,441 +62,272 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   # ActiveModel::Validations
-  # validates_confirmation_of w/ mocha
-  def test_validates_confirmation_of_generates_message
-    Person.validates_confirmation_of :title
-    @person.title_confirmation = 'foo'
-    @person.errors.expects(:generate_message).with(:title, :confirmation, {:default => nil})
-    @person.valid?
-  end
 
-  def test_validates_confirmation_of_generates_message_with_custom_default_message
-    Person.validates_confirmation_of :title, :message => 'custom'
-    @person.title_confirmation = 'foo'
-    @person.errors.expects(:generate_message).with(:title, :confirmation, {:default => 'custom'})
-    @person.valid?
+  # A set of common cases for ActiveModel::Validations message generation that
+  # are used to generate tests to keep things DRY
+  #
+  COMMON_CASES = [
+  # [ case,                                validation_options,            generate_message_options]
+    [ "given no options",                  {},                            {}],
+    [ "given custom message",              {:message => "custom"},        {:message => "custom"}],
+    [ "given if condition",                {:if     => lambda { true }},  {}],
+    [ "given unless condition",            {:unless => lambda { false }}, {}],
+    [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
+  ]
+
+  # validates_confirmation_of w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_confirmation_of on generated message #{name}" do
+      Person.validates_confirmation_of :title, validation_options
+      @person.title_confirmation = 'foo'
+      @person.errors.expects(:generate_message).with(:title, :confirmation, generate_message_options)
+      @person.valid?
+    end
   end
 
   # validates_acceptance_of w/ mocha
 
-  def test_validates_acceptance_of_generates_message
-    Person.validates_acceptance_of :title, :allow_nil => false
-    @person.errors.expects(:generate_message).with(:title, :accepted, {:default => nil})
-    @person.valid?
-  end
-
-  def test_validates_acceptance_of_generates_message_with_custom_default_message
-    Person.validates_acceptance_of :title, :message => 'custom', :allow_nil => false
-    @person.errors.expects(:generate_message).with(:title, :accepted, {:default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_acceptance_of on generated message #{name}" do
+      Person.validates_acceptance_of :title, validation_options.merge(:allow_nil => false)
+      @person.errors.expects(:generate_message).with(:title, :accepted, generate_message_options)
+      @person.valid?
+    end
   end
 
   # validates_presence_of w/ mocha
 
-  def test_validates_presence_of_generates_message
-    Person.validates_presence_of :title
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_presence_of on generated message #{name}" do
+      Person.validates_presence_of :title, validation_options
+      @person.errors.expects(:generate_message).with(:title, :blank, generate_message_options)
+      @person.valid?
+    end
   end
 
-  def test_validates_presence_of_generates_message_with_custom_default_message
-    Person.validates_presence_of :title, :message => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
-    @person.valid?
+  # validates_length_of :within too short w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_length_of for :withing on generated message when too short #{name}" do
+      Person.validates_length_of :title, validation_options.merge(:within => 3..5)
+      @person.errors.expects(:generate_message).with(:title, :too_short, generate_message_options.merge(:count => 3))
+      @person.valid?
+    end
   end
 
-  # validates_length_of :within w/ mocha
+  # validates_length_of :within too long w/ mocha
 
-  def test_validates_length_of_within_generates_message_with_title_too_short
-    Person.validates_length_of :title, :within => 3..5
-    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_short_and_custom_default_message
-    Person.validates_length_of :title, :within => 3..5, :too_short => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => 'custom'})
-    @person.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long
-    Person.validates_length_of :title, :within => 3..5
-    @person.title = 'this title is too long'
-    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long_and_custom_default_message
-    Person.validates_length_of :title, :within => 3..5, :too_long => 'custom'
-    @person.title = 'this title is too long'
-    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_length_of for :too_long generated message #{name}" do
+      Person.validates_length_of :title, validation_options.merge(:within => 3..5)
+      @person.title = 'this title is too long'
+      @person.errors.expects(:generate_message).with(:title, :too_long, generate_message_options.merge(:count => 5))
+      @person.valid?
+    end
   end
 
   # validates_length_of :is w/ mocha
 
-  def test_validates_length_of_is_generates_message
-    Person.validates_length_of :title, :is => 5
-    @person.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_length_of_is_generates_message_with_custom_default_message
-    Person.validates_length_of :title, :is => 5, :message => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_length_of for :is on generated message #{name}" do
+      Person.validates_length_of :title, validation_options.merge(:is => 5)
+      @person.errors.expects(:generate_message).with(:title, :wrong_length, generate_message_options.merge(:count => 5))
+      @person.valid?
+    end
   end
 
   # validates_format_of w/ mocha
 
-  def test_validates_format_of_generates_message
-    Person.validates_format_of :title, :with => /^[1-9][0-9]*$/
-    @person.title = '72x'
-    @person.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_format_of_generates_message_with_custom_default_message
-    Person.validates_format_of :title, :with => /^[1-9][0-9]*$/, :message => 'custom'
-    @person.title = '72x'
-    @person.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_format_of on generated message #{name}" do
+      Person.validates_format_of :title, validation_options.merge(:with => /^[1-9][0-9]*$/)
+      @person.title = '72x'
+      @person.errors.expects(:generate_message).with(:title, :invalid, generate_message_options.merge(:value => '72x'))
+      @person.valid?
+    end
   end
 
   # validates_inclusion_of w/ mocha
 
-  def test_validates_inclusion_of_generates_message
-    Person.validates_inclusion_of :title, :in => %w(a b c)
-    @person.title = 'z'
-    @person.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_inclusion_of_generates_message_with_custom_default_message
-    Person.validates_inclusion_of :title, :in => %w(a b c), :message => 'custom'
-    @person.title = 'z'
-    @person.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_inclusion_of on generated message #{name}" do
+      Person.validates_inclusion_of :title, validation_options.merge(:in => %w(a b c))
+      @person.title = 'z'
+      @person.errors.expects(:generate_message).with(:title, :inclusion, generate_message_options.merge(:value => 'z'))
+      @person.valid?
+    end
   end
 
   # validates_exclusion_of w/ mocha
 
-  def test_validates_exclusion_of_generates_message
-    Person.validates_exclusion_of :title, :in => %w(a b c)
-    @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_exclusion_of_generates_message_with_custom_default_message
-    Person.validates_exclusion_of :title, :in => %w(a b c), :message => 'custom'
-    @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_exclusion_of generated message #{name}" do
+      Person.validates_exclusion_of :title, validation_options.merge(:in => %w(a b c))
+      @person.title = 'a'
+      @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
+      @person.valid?
+    end
   end
 
   # validates_numericality_of without :only_integer w/ mocha
 
-  def test_validates_numericality_of_generates_message
-    Person.validates_numericality_of :title
-    @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_numericality_of_generates_message_with_custom_default_message
-    Person.validates_numericality_of :title, :message => 'custom'
-    @person.title = 'a'
-    @person.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_numericality_of generated message #{name}" do
+      Person.validates_numericality_of :title, validation_options
+      @person.title = 'a'
+      @person.errors.expects(:generate_message).with(:title, :not_a_number, generate_message_options.merge(:value => 'a'))
+      @person.valid?
+    end
   end
 
   # validates_numericality_of with :only_integer w/ mocha
 
-  def test_validates_numericality_of_only_integer_generates_message
-    Person.validates_numericality_of :title, :only_integer => true
-    @person.title = '0.0'
-    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_numericality_of_only_integer_generates_message_with_custom_default_message
-    Person.validates_numericality_of :title, :only_integer => true, :message => 'custom'
-    @person.title = '0.0'
-    @person.errors.expects(:generate_message).with(:title, :not_an_integer, {:value => '0.0', :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_numericality_of for :only_integer on generated message #{name}" do
+      Person.validates_numericality_of :title, validation_options.merge(:only_integer => true)
+      @person.title = '0.0'
+      @person.errors.expects(:generate_message).with(:title, :not_an_integer, generate_message_options.merge(:value => '0.0'))
+      @person.valid?
+    end
   end
 
   # validates_numericality_of :odd w/ mocha
 
-  def test_validates_numericality_of_odd_generates_message
-    Person.validates_numericality_of :title, :only_integer => true, :odd => true
-    @person.title = 0
-    @person.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_numericality_of_odd_generates_message_with_custom_default_message
-    Person.validates_numericality_of :title, :only_integer => true, :odd => true, :message => 'custom'
-    @person.title = 0
-    @person.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :default => 'custom'})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_numericality_of for :odd on generated message #{name}" do
+      Person.validates_numericality_of :title, validation_options.merge(:only_integer => true, :odd => true)
+      @person.title = 0
+      @person.errors.expects(:generate_message).with(:title, :odd, generate_message_options.merge(:value => 0))
+      @person.valid?
+    end
   end
 
   # validates_numericality_of :less_than w/ mocha
 
-  def test_validates_numericality_of_less_than_generates_message
-    Person.validates_numericality_of :title, :only_integer => true, :less_than => 0
-    @person.title = 1
-    @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => nil})
-    @person.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_numericality_of for :less_than on generated message #{name}" do
+      Person.validates_numericality_of :title, validation_options.merge(:only_integer => true, :less_than => 0)
+      @person.title = 1
+      @person.errors.expects(:generate_message).with(:title, :less_than, generate_message_options.merge(:value => 1, :count => 0))
+      @person.valid?
+    end
   end
 
-  def test_validates_numericality_of_less_than_odd_generates_message_with_custom_default_message
-    Person.validates_numericality_of :title, :only_integer => true, :less_than => 0, :message => 'custom'
-    @person.title = 1
-    @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => 'custom'})
-    @person.valid?
+
+  # To make things DRY this macro is defined to define 3 tests for every validation case.
+  def self.set_expectations_for_validation(validation, error_type, &block_that_sets_validation)
+    # test "validates_confirmation_of finds custom model key translation when blank"
+    test "#{validation} finds custom model key translation when #{error_type}" do
+      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {error_type => 'custom message'}}}}}}
+      I18n.backend.store_translations 'en', :errors => {:messages => {error_type => 'global message'}}
+
+      yield(@person, {})
+      @person.valid?
+      assert_equal ['custom message'], @person.errors[:title]
+    end
+
+    # test "validates_confirmation_of finds custom model key translation with interpolation when blank"
+    test "#{validation} finds custom model key translation with interpolation when #{error_type}" do
+      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {error_type => 'custom message with %{extra}'}}}}}}
+      I18n.backend.store_translations 'en', :errors => {:messages => {error_type => 'global message'}}
+
+      yield(@person, {:extra => "extra information"})
+      @person.valid?
+      assert_equal ['custom message with extra information'], @person.errors[:title]
+    end
+
+    # test "validates_confirmation_of finds global default key translation when blank"
+    test "#{validation} finds global default key translation when #{error_type}" do
+      I18n.backend.store_translations 'en', :errors => {:messages => {error_type => 'global message'}}
+
+      yield(@person, {})
+      @person.valid?
+      assert_equal ['global message'], @person.errors[:title]
+    end
   end
 
   # validates_confirmation_of w/o mocha
 
-  def test_validates_confirmation_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:confirmation => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:confirmation => 'global message'}}
-
-    Person.validates_confirmation_of :title
-    @person.title_confirmation = 'foo'
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_confirmation_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:confirmation => 'global message'}}
-
-    Person.validates_confirmation_of :title
-    @person.title_confirmation = 'foo'
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_confirmation_of", :confirmation do |person, options_to_merge|
+    Person.validates_confirmation_of :title, options_to_merge
+    person.title_confirmation = 'foo'
   end
 
   # validates_acceptance_of w/o mocha
 
-  def test_validates_acceptance_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:accepted => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:accepted => 'global message'}}
-
-    Person.validates_acceptance_of :title, :allow_nil => false
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_acceptance_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:accepted => 'global message'}}
-
-    Person.validates_acceptance_of :title, :allow_nil => false
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_acceptance_of", :accepted do |person, options_to_merge|
+    Person.validates_acceptance_of :title, options_to_merge.merge(:allow_nil => false)
   end
 
   # validates_presence_of w/o mocha
 
-  def test_validates_presence_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:blank => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:blank => 'global message'}}
-
-    Person.validates_presence_of :title
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_presence_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:blank => 'global message'}}
-
-    Person.validates_presence_of :title
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_presence_of", :blank do |person, options_to_merge|
+    Person.validates_presence_of :title, options_to_merge
   end
 
   # validates_length_of :within w/o mocha
 
-  def test_validates_length_of_within_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:too_short => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:too_short => 'global message'}}
-
-    Person.validates_length_of :title, :within => 3..5
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
+  set_expectations_for_validation "validates_length_of", :too_short do |person, options_to_merge|
+    Person.validates_length_of :title, options_to_merge.merge(:within => 3..5)
   end
 
-  def test_validates_length_of_within_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:too_short => 'global message'}}
-
-    Person.validates_length_of :title, :within => 3..5
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_length_of", :too_long do |person, options_to_merge|
+    Person.validates_length_of :title, options_to_merge.merge(:within => 3..5)
+    person.title = "too long"
   end
 
   # validates_length_of :is w/o mocha
 
-  def test_validates_length_of_is_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:wrong_length => 'global message'}}
-
-    Person.validates_length_of :title, :is => 5
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_length_of_is_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:wrong_length => 'global message'}}
-
-    Person.validates_length_of :title, :is => 5
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_length_of", :wrong_length do |person, options_to_merge|
+    Person.validates_length_of :title, options_to_merge.merge(:is => 5)
   end
 
   # validates_format_of w/o mocha
 
-  def test_validates_format_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:invalid => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:invalid => 'global message'}}
-
-    Person.validates_format_of :title, :with => /^[1-9][0-9]*$/
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_format_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:invalid => 'global message'}}
-
-    Person.validates_format_of :title, :with => /^[1-9][0-9]*$/
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_format_of", :invalid do |person, options_to_merge|
+    Person.validates_format_of :title, options_to_merge.merge(:with => /^[1-9][0-9]*$/)
   end
 
   # validates_inclusion_of w/o mocha
 
-  def test_validates_inclusion_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:inclusion => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:inclusion => 'global message'}}
-
-    Person.validates_inclusion_of :title, :in => %w(a b c)
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_inclusion_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:inclusion => 'global message'}}
-
-    Person.validates_inclusion_of :title, :in => %w(a b c)
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_inclusion_of", :inclusion do |person, options_to_merge|
+    Person.validates_inclusion_of :title, options_to_merge.merge(:in => %w(a b c))
   end
 
   # validates_exclusion_of w/o mocha
 
-  def test_validates_exclusion_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:exclusion => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:exclusion => 'global message'}}
-
-    Person.validates_exclusion_of :title, :in => %w(a b c)
-    @person.title = 'a'
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_exclusion_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:exclusion => 'global message'}}
-
-    Person.validates_exclusion_of :title, :in => %w(a b c)
-    @person.title = 'a'
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_exclusion_of", :exclusion do |person, options_to_merge|
+    Person.validates_exclusion_of :title, options_to_merge.merge(:in => %w(a b c))
+    person.title = 'a'
   end
 
   # validates_numericality_of without :only_integer w/o mocha
 
-  def test_validates_numericality_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:not_a_number => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:not_a_number => 'global message'}}
-
-    Person.validates_numericality_of :title
-    @person.title = 'a'
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_numericality_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:not_a_number => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true
-    @person.title = 'a'
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_numericality_of", :not_a_number do |person, options_to_merge|
+    Person.validates_numericality_of :title, options_to_merge
+    person.title = 'a'
   end
 
   # validates_numericality_of with :only_integer w/o mocha
 
-  def test_validates_numericality_of_only_integer_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:not_an_integer => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:not_an_integer => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true
-    @person.title = '1.0'
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_numericality_of_only_integer_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:not_an_integer => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true
-    @person.title = '1.0'
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_numericality_of", :not_an_integer do |person, options_to_merge|
+    Person.validates_numericality_of :title, options_to_merge.merge(:only_integer => true)
+    person.title = '1.0'
   end
 
   # validates_numericality_of :odd w/o mocha
 
-  def test_validates_numericality_of_odd_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:odd => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:odd => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true, :odd => true
-    @person.title = 0
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_numericality_of_odd_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:odd => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true, :odd => true
-    @person.title = 0
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_numericality_of", :odd do |person, options_to_merge|
+    Person.validates_numericality_of :title, options_to_merge.merge(:only_integer => true, :odd => true)
+    person.title = 0
   end
 
   # validates_numericality_of :less_than w/o mocha
 
-  def test_validates_numericality_of_less_than_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:less_than => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :errors => {:messages => {:less_than => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true, :less_than => 0
-    @person.title = 1
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_numericality_of_less_than_finds_global_default_translation
-    I18n.backend.store_translations 'en', :errors => {:messages => {:less_than => 'global message'}}
-
-    Person.validates_numericality_of :title, :only_integer => true, :less_than => 0
-    @person.title = 1
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
+  set_expectations_for_validation "validates_numericality_of", :less_than do |person, options_to_merge|
+    Person.validates_numericality_of :title, options_to_merge.merge(:only_integer => true, :less_than => 0)
+    person.title = 1
   end
 
   # test with validates_with

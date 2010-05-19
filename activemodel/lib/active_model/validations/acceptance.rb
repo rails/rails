@@ -9,10 +9,10 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless value == options[:accept]
-          record.errors.add(attribute, :accepted, :default => options[:message])
+          record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
         end
       end
-      
+
       def setup(klass)
         # Note: instance_methods.map(&:to_s) is important for 1.9 compatibility
         # as instance_methods returns symbols unlike 1.8 which returns strings.
