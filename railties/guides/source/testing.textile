@@ -369,7 +369,7 @@ NOTE: The execution of each test method stops as soon as any error or an asserti
 
 h4. What to Include in Your Unit Tests
 
-, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
+Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
 
 h4. Assertions Available
 
