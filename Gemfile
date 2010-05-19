@@ -17,15 +17,25 @@ if mri || RUBY_ENGINE == "rbx"
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.0"
 elsif RUBY_ENGINE == "jruby"
-  gem "jruby-debug"
+  gem "ruby-debug"
+  gem "jruby-openssl"
 end
 
 # AR
-gem "sqlite3-ruby", "= 1.3.0.beta.2", :require => 'sqlite3'
+if mri || RUBY_ENGINE == "rbx"
+  gem "sqlite3-ruby", "= 1.3.0.beta.2", :require => 'sqlite3'
 
-group :db do
-  gem "pg", ">= 0.9.0"
-  gem "mysql", ">= 2.8.1"
+  group :db do
+    gem "pg", ">= 0.9.0"
+    gem "mysql", ">= 2.8.1"
+  end
+elsif RUBY_ENGINE == "jruby"
+  gem "activerecord-jdbcsqlite3-adapter"
+
+  group :db do
+    gem "activerecord-jdbcmysql-adapter"
+    gem "activerecord-jdbcpostgresql-adapter"
+  end
 end
 
 # AP
