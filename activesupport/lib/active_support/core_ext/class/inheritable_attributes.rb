@@ -9,6 +9,8 @@ end
 # their parents' attributes, instead of just a pointer to the same. This means that the child can add elements
 # to, for example, an array without those additions being shared with either their parent, siblings, or
 # children, which is unlike the regular class-level attributes that are shared across the entire hierarchy.
+# Note that subclasses are give a copy of parent attributes at runtime when subclass is created. After the
+# subclass has been created any change in parent attributes will not be reflected in child. 
 class Class # :nodoc:
   def class_inheritable_reader(*syms)
     options = syms.extract_options!
