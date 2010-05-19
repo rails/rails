@@ -5,8 +5,8 @@ class DurationTest < ActiveSupport::TestCase
   def test_is_a
     d = 1.day
     assert d.is_a?(ActiveSupport::Duration)
-    assert d.is_a?(Numeric)
-    assert d.is_a?(Fixnum)
+    assert_kind_of Numeric, d
+    assert_kind_of Fixnum, d
     assert !d.is_a?(Hash)
 
     k = Class.new

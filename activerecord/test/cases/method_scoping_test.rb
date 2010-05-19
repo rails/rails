@@ -622,7 +622,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal ['salary DESC'], klass.scoped.order_values
 
     # Parent should still have the original scope
-    assert_equal nil,             DeveloperOrderedBySalary.scoped.limit_value
+    assert_nil DeveloperOrderedBySalary.scoped.limit_value
     assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values
   end
 

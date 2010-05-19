@@ -219,7 +219,7 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
     @klass.reset_inheritable_attributes
     @sub = eval("class NotInheriting < @klass; end; NotInheriting")
 
-    assert_equal nil, @klass.a
-    assert_equal nil, @sub.a
+    assert_nil @klass.a
+    assert_nil @sub.a
   end
 end

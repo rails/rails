@@ -255,7 +255,7 @@ class FinderTest < ActiveRecord::TestCase
     assert !topic.attribute_present?("title")
     #assert !topic.respond_to?("title")
     assert topic.attribute_present?("author_name")
-    assert topic.respond_to?("author_name")
+    assert_respond_to topic, "author_name"
   end
 
   def test_find_on_blank_conditions

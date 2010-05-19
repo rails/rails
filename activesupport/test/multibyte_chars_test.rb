@@ -31,12 +31,12 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_forwarded_method_calls_should_return_new_chars_instance
-    assert @chars.__method_for_multibyte_testing.kind_of?(@proxy_class)
+    assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing
     assert_not_equal @chars.object_id, @chars.__method_for_multibyte_testing.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_the_original_chars_instance
-    assert @chars.__method_for_multibyte_testing!.kind_of?(@proxy_class)
+    assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing! 
     assert_equal @chars.object_id, @chars.__method_for_multibyte_testing!.object_id
   end
 
@@ -114,7 +114,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   if RUBY_VERSION < '1.9'
     def test_split_should_return_an_array_of_chars_instances
       @chars.split(//).each do |character|
-        assert character.kind_of?(ActiveSupport::Multibyte.proxy_class)
+        assert_kind_of ActiveSupport::Multibyte.proxy_class, character
       end
     end
 

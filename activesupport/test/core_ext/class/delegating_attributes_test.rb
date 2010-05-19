@@ -32,16 +32,16 @@ class DelegatingAttributesTest < Test::Unit::TestCase
     single_class.superclass_delegating_accessor :both
     # Class should have accessor and mutator
     # the instance should have an accessor only
-    assert single_class.respond_to?(:both)
-    assert single_class.respond_to?(:both=)
+    assert_respond_to single_class, :both
+    assert_respond_to single_class, :both=
     assert single_class.public_instance_methods.map(&:to_s).include?("both")
     assert !single_class.public_instance_methods.map(&:to_s).include?("both=")
   end
 
   def test_simple_accessor_declaration_with_instance_reader_false
     single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
-    assert single_class.respond_to?(:no_instance_reader)
-    assert single_class.respond_to?(:no_instance_reader=)
+    assert_respond_to single_class, :no_instance_reader
+    assert_respond_to single_class, :no_instance_reader=
     assert !single_class.public_instance_methods.map(&:to_s).include?("no_instance_reader")
   end
 

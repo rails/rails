@@ -22,7 +22,7 @@ class TimeZoneTest < Test::Unit::TestCase
   ActiveSupport::TimeZone::MAPPING.keys.each do |name|
     define_method("test_map_#{name.downcase.gsub(/[^a-z]/, '_')}_to_tzinfo") do
       zone = ActiveSupport::TimeZone[name]
-      assert zone.tzinfo.respond_to?(:period_for_local)
+      assert_respond_to zone.tzinfo, :period_for_local
     end
   end
 

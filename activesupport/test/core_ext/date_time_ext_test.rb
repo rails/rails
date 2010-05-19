@@ -275,12 +275,12 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_current_without_time_zone
-    assert DateTime.current.is_a?(DateTime)
+    assert_kind_of DateTime, DateTime.current
   end
 
   def test_current_with_time_zone
     with_env_tz 'US/Eastern' do
-      assert DateTime.current.is_a?(DateTime)
+      assert_kind_of DateTime, DateTime.current
     end
   end
 

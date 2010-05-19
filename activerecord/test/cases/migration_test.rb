@@ -525,7 +525,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
 
-      assert_equal TrueClass, bob.male?.class
+      assert_instance_of TrueClass, bob.male?
       assert_kind_of BigDecimal, bob.wealth
     end
 
