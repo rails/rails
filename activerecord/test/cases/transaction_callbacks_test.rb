@@ -202,8 +202,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
     def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
 
-    @second.after_rollback_block{|r| r.rollbacks(1)}
-    @second.after_commit_block{|r| r.commits(1)}
+    @first.after_rollback_block{|r| r.rollbacks(1)}
+    @first.after_commit_block{|r| r.commits(1)}
 
     Topic.transaction do
       @first.save
