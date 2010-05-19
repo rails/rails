@@ -166,10 +166,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     # assert_equal Time.local(2182,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(177)
   end
 
-  def test_last_year_is_deprecated
-    assert_deprecated { Time.now.last_year }
-  end
-
   def test_prev_year
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).prev_year
   end
@@ -617,10 +613,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_next_month_on_31st
     assert_equal Time.local(2005, 9, 30), Time.local(2005, 8, 31).next_month
-  end
-
-  def test_last_month_is_deprecated
-    assert_deprecated { Time.now.last_month }
   end
 
   def test_prev_month_on_31st

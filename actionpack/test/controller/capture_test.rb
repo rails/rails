@@ -68,6 +68,6 @@ class CaptureTest < ActionController::TestCase
 
   private
     def expected_content_for_output
-      "<title>Putting stuff in the title!</title>\n\nGreat stuff!"
+      "<title>Putting stuff in the title!</title>\nGreat stuff!"
     end
 end

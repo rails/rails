@@ -212,12 +212,12 @@ class AssertSelectTest < ActionController::TestCase
       assert_nothing_raised    { assert_select "div", "bar" }
       assert_nothing_raised    { assert_select "div", /\w*/ }
       assert_nothing_raised    { assert_select "div", :text => /\w*/, :count=>2 }
-      assert_raise(Assertion) { assert_select "div", :text=>"foo", :count=>2 }
+      assert_raise(Assertion)  { assert_select "div", :text=>"foo", :count=>2 }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>/\w*/ }
       assert_nothing_raised    { assert_select "div", :html=>/\w*/, :count=>2 }
-      assert_raise(Assertion) { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
+      assert_raise(Assertion)  { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
     end
   end
 

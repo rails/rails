@@ -368,10 +368,6 @@ class ArrayExtRandomTests < ActiveSupport::TestCase
     Kernel.expects(:rand).with(3).returns(1)
     assert_equal 2, [1, 2, 3].random_element
   end
-
-  def test_deprecated_rand_on_array
-    assert_deprecated { [].rand }
-  end
 end
 
 class ArrayWrapperTests < Test::Unit::TestCase

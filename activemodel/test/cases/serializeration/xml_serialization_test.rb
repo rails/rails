@@ -17,6 +17,9 @@ module Admin
   end
 end
 
+class Customer < Struct.new(:name)
+end
+
 class XmlSerializationTest < ActiveModel::TestCase
   def setup
     @contact = Contact.new
@@ -24,7 +27,7 @@ class XmlSerializationTest < ActiveModel::TestCase
     @contact.age = 25
     @contact.created_at = Time.utc(2006, 8, 1)
     @contact.awesome = false
-    customer = OpenStruct.new
+    customer = Customer.new
     customer.name = "John"
     @contact.preferences = customer
   end
@@ -69,7 +72,7 @@ class XmlSerializationTest < ActiveModel::TestCase
 
   test "should allow skipped types" do
     @xml = @contact.to_xml :skip_types => true
-    assert %r{<age>25</age>}.match(@xml)
+    assert_match %r{<age>25</age>}, @xml
   end
 
   test "should include yielded additions" do
@@ -104,7 +107,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize yaml" do
-    assert_match %r{<preferences type=\"yaml\">--- !ruby/object:OpenStruct \ntable:\s*:name: John\n</preferences>}, @contact.to_xml
+    assert_match %r{<preferences type=\"yaml\">--- !ruby/struct:Customer \nname: John\n</preferences>}, @contact.to_xml
   end
 
   test "should call proc on object" do

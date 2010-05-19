@@ -1462,11 +1462,32 @@ Rails also comes with built-in help that you can generate using the rake command
 * Running +rake doc:guides+ will put a full copy of the Rails Guides in the +doc/guides+ folder of your application. Open +doc/guides/index.html+ in your web browser to explore the Guides.
 * Running +rake doc:rails+ will put a full copy of the API documentation for Rails in the +doc/api+ folder of your application. Open +doc/api/index.html+ in your web browser to explore the API documentation.
 
+h3. Configuration Gotchas
+
+The easiest way to work with Rails is to store all external data as UTF-8. If you don't, Ruby libraries and Rails will often be able to convert your native data into UTF-8, but this doesn't always work reliably, so you're better off ensuring that all external data is UTF-8.
+
+If you have made a mistake in this area, the most common symptom is a black diamond with a question mark inside appearing in the browser. Another common symptom is characters like "Ã¼" appearing instead of "ü". Rails takes a number of internal steps to mitigate common causes of these problems that can be automatically detected and corrected. However, if you have external data that is not stored as UTF-8, it can occasionally result in these kinds of issues that cannot be automatically detected by Rails and corrected.
+
+Two very common sources of data that are not UTF-8:
+* Your text editor: Most text editors (such as Textmate), default to saving files as
+  UTF-8. If your text editor does not, this can result in special characters that you
+  enter in your templates (such as é) to appear as a diamond with a question mark inside
+  in the browser. This also applies to your I18N translation files.
+  Most editors that do not already default to UTF-8 (such as some versions of
+  Dreamweaver) offer a way to change the default to UTF-8. Do so.
+* Your database. Rails defaults to converting data from your database into UTF-8 at
+  the boundary. However, if your database is not using UTF-8 internally, it may not
+  be able to store all characters that your users enter. For instance, if your database
+  is using Latin-1 internally, and your user enters a Russian, Hebrew, or Japanese
+  character, the data will be lost forever once it enters the database. If possible,
+  use UTF-8 as the internal storage of your database.
 
 h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
+* May 16, 2010: Added a section on configuration gotchas to address common encoding
+  problems that people might have
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
 * April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits.html#raasdnil
 * April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com

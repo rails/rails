@@ -145,7 +145,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Topic.scoped
 
     ["map", "uniq", "sort", "insert", "delete", "update"].each do |method|
-      assert relation.respond_to?(method), "Topic.scoped should respond to #{method.inspect}"
+      assert_respond_to relation, method, "Topic.scoped should respond to #{method.inspect}"
     end
   end
 
@@ -160,7 +160,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Topic.scoped
 
     ["find_by_title", "find_by_title_and_author_name", "find_or_create_by_title", "find_or_initialize_by_title_and_author_name"].each do |method|
-      assert relation.respond_to?(method), "Topic.scoped should respond to #{method.inspect}"
+      assert_respond_to relation, method, "Topic.scoped should respond to #{method.inspect}"
     end
   end
 
@@ -238,7 +238,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_default_scope_with_conditions_string
     assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.scoped.map(&:id).sort
-    assert_equal nil, DeveloperCalledDavid.create!.name
+    assert_nil DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash

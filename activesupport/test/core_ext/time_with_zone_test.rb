@@ -279,13 +279,13 @@ class TimeWithZoneTest < Test::Unit::TestCase
   def test_to_f
     result = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii'] ).to_f
     assert_equal 946684800.0, result
-    assert result.is_a?(Float)
+    assert_kind_of Float, result
   end
 
   def test_to_i
     result = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii'] ).to_i
     assert_equal 946684800, result
-    assert result.is_a?(Integer)
+    assert_kind_of Integer, result
   end
   
   def test_to_i_with_wrapped_datetime
@@ -324,9 +324,9 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_is_a
-    assert @twz.is_a?(Time)
-    assert @twz.kind_of?(Time)
-    assert @twz.is_a?(ActiveSupport::TimeWithZone)
+    assert_kind_of Time, @twz
+    assert_kind_of Time, @twz
+    assert ActiveSupport::TimeWithZone, @twz
   end
   
   def test_class_name
@@ -830,7 +830,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_raise(TZInfo::InvalidTimezoneIdentifier) { Time.zone.utc_offset }
 
     Time.zone = -15.hours
-    assert_equal nil, Time.zone
+    assert_nil Time.zone
   end
 
   def test_current_returns_time_now_when_zone_default_not_set

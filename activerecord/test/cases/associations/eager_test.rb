@@ -110,7 +110,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = assert_queries(3) { Author.find(author_id, :include => {:posts_with_comments => :comments}) } # find the author, then find the posts, then find the comments
     author.posts_with_comments.each do |post_with_comments|
       assert_equal post_with_comments.comments.length, post_with_comments.comments.count
-      assert_equal nil, post_with_comments.comments.uniq!
+      assert_nil post_with_comments.comments.uniq!
     end
   end
 

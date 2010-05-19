@@ -72,10 +72,10 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find
-    assert Company.find(1).kind_of?(Firm), "37signals should be a firm"
-    assert Firm.find(1).kind_of?(Firm), "37signals should be a firm"
-    assert Company.find(2).kind_of?(Client), "Summit should be a client"
-    assert Client.find(2).kind_of?(Client), "Summit should be a client"
+    assert_kind_of Firm, Company.find(1), "37signals should be a firm"
+    assert_kind_of Firm, Firm.find(1), "37signals should be a firm"
+    assert_kind_of Client, Company.find(2), "Summit should be a client"
+    assert_kind_of Client, Client.find(2), "Summit should be a client"
   end
 
   def test_alt_inheritance_find
@@ -86,8 +86,8 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_find_all
     companies = Company.find(:all, :order => 'id')
-    assert companies[0].kind_of?(Firm), "37signals should be a firm"
-    assert companies[1].kind_of?(Client), "Summit should be a client"
+    assert_kind_of Firm, companies[0], "37signals should be a firm"
+    assert_kind_of Client, companies[1], "Summit should be a client"
   end
 
   def test_alt_inheritance_find_all
@@ -102,7 +102,7 @@ class InheritanceTest < ActiveRecord::TestCase
     firm.save
 
     next_angle = Company.find(firm.id)
-    assert next_angle.kind_of?(Firm), "Next Angle should be a firm"
+    assert_kind_of Firm, next_angle, "Next Angle should be a firm"
   end
 
   def test_alt_inheritance_save

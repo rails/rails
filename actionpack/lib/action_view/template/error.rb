@@ -4,6 +4,24 @@ module ActionView
   class ActionViewError < StandardError #:nodoc:
   end
 
+  class EncodingError < StandardError #:nodoc:
+  end
+
+  class WrongEncodingError < EncodingError #:nodoc:
+    def initialize(string, encoding)
+      @string, @encoding = string, encoding
+    end
+
+    def message
+      "Your template was not saved as valid #{@encoding}. Please " \
+      "either specify #{@encoding} as the encoding for your template " \
+      "in your text editor, or mark the template with its " \
+      "encoding by inserting the following as the first line " \
+      "of the template:\n\n# encoding: <name of correct encoding>.\n\n" \
+      "The source of your template was:\n\n#{@string}"
+    end
+  end
+
   class MissingTemplate < ActionViewError #:nodoc:
     attr_reader :path
 

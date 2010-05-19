@@ -114,7 +114,12 @@ class MemCacheStoreTest < ActionController::IntegrationTest
         set.draw do |map|
           match ':action', :to => ::MemCacheStoreTest::TestController
         end
-        @app = ActionDispatch::Session::MemCacheStore.new(set, :key => '_session_id')
+
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id'
+          middleware.delete "ActionDispatch::ShowExceptions"
+        end
+
         yield
       end
     end

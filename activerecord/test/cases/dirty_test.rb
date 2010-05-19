@@ -103,7 +103,7 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.created_on_changed?
       # kind_of does not work because
       # ActiveSupport::TimeWithZone.name == 'Time'
-      assert_equal Time, pirate.created_on_was.class
+      assert_instance_of Time, pirate.created_on_was
       assert_equal old_created_on, pirate.created_on_was
     end
   end
@@ -132,7 +132,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert pirate.created_on_changed?
     # kind_of does not work because
     # ActiveSupport::TimeWithZone.name == 'Time'
-    assert_equal Time, pirate.created_on_was.class
+    assert_instance_of Time, pirate.created_on_was
     assert_equal old_created_on, pirate.created_on_was
   end
 

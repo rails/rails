@@ -10,11 +10,6 @@ module ActiveRecord
         {}
       end
 
-      # This is the maximum length a table alias can be
-      def table_alias_length
-        255
-      end
-
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
         table_name[0..table_alias_length-1].gsub(/\./, '_')
@@ -293,6 +288,14 @@ module ActiveRecord
           index_type = options
         end
 
+        if index_name.length > index_name_length
+          @logger.warn("Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters. Skipping.")
+          return
+        end
+        if index_exists?(table_name, index_name, false)
+          @logger.warn("Index name '#{index_name}' on table '#{table_name}' already exists. Skipping.")
+          return
+        end
         quoted_column_names = quoted_columns_for_index(column_names, options).join(", ")
 
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{quoted_column_names})"
@@ -309,7 +312,28 @@ module ActiveRecord
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))} ON #{quote_table_name(table_name)}"
+        index_name = index_name(table_name, options)
+        unless index_exists?(table_name, index_name, true)
+          @logger.warn("Index name '#{index_name}' on table '#{table_name}' does not exist. Skipping.")
+          return
+        end
+        remove_index!(table_name, index_name)
+      end
+
+      def remove_index!(table_name, index_name) #:nodoc:
+        execute "DROP INDEX #{quote_column_name(index_name)} ON #{table_name}"
+      end
+
+      # Rename an index.
+      #
+      # Rename the index_people_on_last_name index to index_users_on_last_name
+      #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
+      def rename_index(table_name, old_name, new_name)
+        # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
+        old_index_def = indexes(table_name).detect { |i| i.name == old_name }
+        return unless old_index_def
+        remove_index(table_name, :name => old_name)
+        add_index(table_name, old_index_def.columns, :name => new_name, :unique => old_index_def.unique)
       end
 
       def index_name(table_name, options) #:nodoc:
@@ -324,6 +348,15 @@ module ActiveRecord
         else
           index_name(table_name, :column => options)
         end
+      end
+
+      # Verify the existence of an index.
+      #
+      # The default argument is returned if the underlying implementation does not define the indexes method,
+      # as there's no way to determine the correct answer in that case.
+      def index_exists?(table_name, index_name, default)
+        return default unless respond_to?(:indexes)
+        indexes(table_name).detect { |i| i.name == index_name }
       end
 
       # Returns a string of <tt>CREATE TABLE</tt> SQL statement(s) for recreating the

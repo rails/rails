@@ -28,14 +28,14 @@ module ApplicationTests
 
     test "Rails.application is available after config.ru has been racked up" do
       rackup
-      assert Rails.application.is_a?(Rails::Application)
+      assert_kind_of Rails::Application, Rails.application
     end
 
     # Passenger still uses AC::Dispatcher, so we need to
     # keep it working for now
     test "deprecated ActionController::Dispatcher still works" do
       rackup
-      assert ActionController::Dispatcher.new.is_a?(Rails::Application)
+      assert_kind_of?  Rails::Application, ActionController::Dispatcher.new
     end
 
     test "the config object is available on the application object" do

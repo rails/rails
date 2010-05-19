@@ -58,36 +58,36 @@ class AggregationsTest < ActiveRecord::TestCase
   end
 
   def test_gps_equality
-    assert GpsLocation.new('39x110') == GpsLocation.new('39x110')
+    assert_equal GpsLocation.new('39x110'), GpsLocation.new('39x110')
   end
 
   def test_gps_inequality
-    assert GpsLocation.new('39x110') != GpsLocation.new('39x111')
+    assert_not_equal GpsLocation.new('39x110'), GpsLocation.new('39x111')
   end
 
   def test_allow_nil_gps_is_nil
-    assert_equal nil, customers(:zaphod).gps_location
+    assert_nil customers(:zaphod).gps_location
   end
 
   def test_allow_nil_gps_set_to_nil
     customers(:david).gps_location = nil
     customers(:david).save
     customers(:david).reload
-    assert_equal nil, customers(:david).gps_location
+    assert_nil customers(:david).gps_location
   end
 
   def test_allow_nil_set_address_attributes_to_nil
     customers(:zaphod).address = nil
-    assert_equal nil, customers(:zaphod).attributes[:address_street]
-    assert_equal nil, customers(:zaphod).attributes[:address_city]
-    assert_equal nil, customers(:zaphod).attributes[:address_country]
+    assert_nil customers(:zaphod).attributes[:address_street]
+    assert_nil customers(:zaphod).attributes[:address_city]
+    assert_nil customers(:zaphod).attributes[:address_country]
   end
 
   def test_allow_nil_address_set_to_nil
     customers(:zaphod).address = nil
     customers(:zaphod).save
     customers(:zaphod).reload
-    assert_equal nil, customers(:zaphod).address
+    assert_nil customers(:zaphod).address
   end
 
   def test_nil_raises_error_when_allow_nil_is_false
@@ -104,9 +104,9 @@ class AggregationsTest < ActiveRecord::TestCase
 
   def test_nil_assignment_results_in_nil
     customers(:david).gps_location = GpsLocation.new('39x111')
-    assert_not_equal nil, customers(:david).gps_location
+    assert_not_nil customers(:david).gps_location
     customers(:david).gps_location = nil
-    assert_equal nil, customers(:david).gps_location
+    assert_nil customers(:david).gps_location
   end
 
   def test_custom_constructor

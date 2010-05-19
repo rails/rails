@@ -111,14 +111,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_respond_to?
     topic = Topic.find(1)
-    assert topic.respond_to?("title")
-    assert topic.respond_to?("title?")
-    assert topic.respond_to?("title=")
-    assert topic.respond_to?(:title)
-    assert topic.respond_to?(:title?)
-    assert topic.respond_to?(:title=)
-    assert topic.respond_to?("author_name")
-    assert topic.respond_to?("attribute_names")
+    assert_respond_to topic, "title"
+    assert_respond_to topic, "title?"
+    assert_respond_to topic, "title="
+    assert_respond_to topic, :title
+    assert_respond_to topic, :title?
+    assert_respond_to topic, :title=
+    assert_respond_to topic, "author_name"
+    assert_respond_to topic, "attribute_names"
     assert !topic.respond_to?("nothingness")
     assert !topic.respond_to?(:nothingness)
   end
@@ -1038,9 +1038,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_mass_assignment_protection_against_class_attribute_writers
     [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names,
       :default_timezone, :schema_format, :lock_optimistically, :record_timestamps].each do |method|
-      assert  Task.respond_to?(method)
-      assert  Task.respond_to?("#{method}=")
-      assert  Task.new.respond_to?(method)
+      assert_respond_to  Task, method
+      assert_respond_to  Task, "#{method}="
+      assert_respond_to  Task.new, method
       assert !Task.new.respond_to?("#{method}=")
     end
   end
@@ -1369,37 +1369,37 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_new_record_returns_boolean
-    assert_equal Topic.new.new_record?, true
-    assert_equal Topic.find(1).new_record?, false
+    assert_equal true, Topic.new.new_record?
+    assert_equal false, Topic.find(1).new_record?
   end
 
   def test_destroyed_returns_boolean
     developer = Developer.first
-    assert_equal developer.destroyed?, false
+    assert_equal false, developer.destroyed?
     developer.destroy
-    assert_equal developer.destroyed?, true
+    assert_equal true, developer.destroyed?
 
     developer = Developer.last
-    assert_equal developer.destroyed?, false
+    assert_equal false, developer.destroyed?
     developer.delete
-    assert_equal developer.destroyed?, true
+    assert_equal true, developer.destroyed?
   end
 
   def test_persisted_returns_boolean
     developer = Developer.new(:name => "Jose")
-    assert_equal developer.persisted?, false
+    assert_equal false, developer.persisted?
     developer.save!
-    assert_equal developer.persisted?, true
+    assert_equal true, developer.persisted?
 
     developer = Developer.first
-    assert_equal developer.persisted?, true
+    assert_equal true, developer.persisted?
     developer.destroy
-    assert_equal developer.persisted?, false
+    assert_equal false, developer.persisted?
 
     developer = Developer.last
-    assert_equal developer.persisted?, true
+    assert_equal true, developer.persisted?
     developer.delete
-    assert_equal developer.persisted?, false
+    assert_equal false, developer.persisted?
   end
 
   def test_clone
@@ -1427,7 +1427,7 @@ class BasicsTest < ActiveRecord::TestCase
     # test if saved clone object differs from original
     cloned_topic.save
     assert !cloned_topic.new_record?
-    assert cloned_topic.id != topic.id
+    assert_not_equal cloned_topic.id, topic.id
   end
 
   def test_clone_with_aggregate_of_same_name_as_attribute
@@ -1447,13 +1447,63 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert clone.save
     assert !clone.new_record?
-    assert clone.id != dev.id
+    assert_not_equal clone.id, dev.id
   end
 
   def test_clone_preserves_subtype
     clone = nil
     assert_nothing_raised { clone = Company.find(3).clone }
     assert_kind_of Client, clone
+  end
+
+  def test_clone_of_new_object_with_defaults
+    developer = Developer.new
+    assert !developer.name_changed?
+    assert !developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert !cloned_developer.name_changed?
+    assert !cloned_developer.salary_changed?
+  end
+
+  def test_clone_of_new_object_marks_attributes_as_dirty
+    developer = Developer.new :name => 'Bjorn', :salary => 100000
+    assert developer.name_changed?
+    assert developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?
+    assert cloned_developer.salary_changed?
+  end
+
+  def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
+    developer = Developer.new :name => 'Bjorn'
+    assert developer.name_changed?            # obviously
+    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?
+    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+  end
+
+  def test_clone_of_saved_object_marks_attributes_as_dirty
+    developer = Developer.create! :name => 'Bjorn', :salary => 100000
+    assert !developer.name_changed?
+    assert !developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?     # both attributes differ from defaults
+    assert cloned_developer.salary_changed?
+  end
+
+  def test_clone_of_saved_object_marks_as_dirty_only_changed_attributes
+    developer = Developer.create! :name => 'Bjorn'
+    assert !developer.name_changed?           # both attributes of saved object should be threated as not changed
+    assert !developer.salary_changed?
+
+    cloned_developer = developer.clone
+    assert cloned_developer.name_changed?     # ... but on cloned object should be
+    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be threated as not changed on cloned instance
   end
 
   def test_bignum

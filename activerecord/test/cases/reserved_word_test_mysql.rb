@@ -115,7 +115,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     create_test_fixtures :select, :distinct, :group, :values, :distincts_selects
     v = nil
     assert_nothing_raised { v = Group.find(1).values }
-    assert_equal v.id, 2
+    assert_equal 2, v.id
   end
 
   # belongs_to association with reserved-word table name

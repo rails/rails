@@ -237,10 +237,19 @@ class FlashIntegrationTest < ActionController::IntegrationTest
   end
 
   private
+
+    # Overwrite get to send SessionSecret in env hash
+    def get(path, parameters = nil, env = {})
+      env["action_dispatch.secret_token"] ||= SessionSecret
+      super
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          match ':action', :to => ActionDispatch::Session::CookieStore.new(FlashIntegrationTest::TestController, :key => FlashIntegrationTest::SessionKey, :secret => FlashIntegrationTest::SessionSecret)
+          match ':action', :to => ActionDispatch::Session::CookieStore.new(
+            FlashIntegrationTest::TestController, :key => SessionKey, :secret => SessionSecret
+          )
         end
         yield
       end

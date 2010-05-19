@@ -513,7 +513,7 @@ module ActiveRecord
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         column = column_for(table_name, column_name)
 
-        if has_default?(type) && !options_include_default?(options)
+        unless options_include_default?(options)
           options[:default] = column.default
         end
 
@@ -674,10 +674,6 @@ module ActiveRecord
             raise "No such column: #{table_name}.#{column_name}"
           end
           column
-        end
-
-        def has_default?(sql_type)
-          sql_type =~ :binary || sql_type == :text #mysql forbids defaults on blob and text columns
         end
     end
   end

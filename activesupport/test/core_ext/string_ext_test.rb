@@ -117,7 +117,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
     assert_equal Time.local_time(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
-    assert_equal nil, "".to_time
+    assert_nil "".to_time
   end
 
   def test_string_to_datetime
@@ -125,12 +125,12 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
     assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
     assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"), "2039-02-27T23:50:19.275038-04:00".to_datetime
-    assert_equal nil, "".to_datetime
+    assert_nil "".to_datetime
   end
 
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
-    assert_equal nil, "".to_date
+    assert_nil "".to_date
   end
 
   def test_access
@@ -224,7 +224,7 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   BYTE_STRING = "\270\236\010\210\245"
 
   def test_core_ext_adds_mb_chars
-    assert UNICODE_STRING.respond_to?(:mb_chars)
+    assert_respond_to UNICODE_STRING, :mb_chars
   end
 
   def test_string_should_recognize_utf8_strings
@@ -236,20 +236,20 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   if RUBY_VERSION < '1.9'
     def test_mb_chars_returns_self_when_kcode_not_set
       with_kcode('none') do
-        assert UNICODE_STRING.mb_chars.kind_of?(String)
+        assert_kind_of String, UNICODE_STRING.mb_chars
       end
     end
 
     def test_mb_chars_returns_an_instance_of_the_chars_proxy_when_kcode_utf8
       with_kcode('UTF8') do
-        assert UNICODE_STRING.mb_chars.kind_of?(ActiveSupport::Multibyte.proxy_class)
+        assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
       end
     end
   end
 
   if RUBY_VERSION >= '1.9'
     def test_mb_chars_returns_string
-      assert UNICODE_STRING.mb_chars.kind_of?(String)
+      assert_kind_of String, UNICODE_STRING.mb_chars
     end
   end
 end
@@ -438,6 +438,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test 'emits normal string yaml' do
     assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
+  end
+
+  test 'knows whether it is encoding aware' do
+    if RUBY_VERSION >= "1.9"
+      assert 'ruby'.encoding_aware?
+    else
+      assert !'ruby'.encoding_aware?
+    end
   end
 end
 

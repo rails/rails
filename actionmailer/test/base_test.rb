@@ -491,8 +491,8 @@ class BaseTest < ActiveSupport::TestCase
 
   # Class level API with method missing
   test "should respond to action methods" do
-    assert BaseMailer.respond_to?(:welcome)
-    assert BaseMailer.respond_to?(:implicit_multipart)
+    assert_respond_to BaseMailer, :welcome
+    assert_respond_to BaseMailer, :implicit_multipart
     assert !BaseMailer.respond_to?(:mail)
     assert !BaseMailer.respond_to?(:headers)
   end

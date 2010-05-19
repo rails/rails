@@ -65,6 +65,6 @@ class CallbacksTest < ActiveModel::TestCase
   test "only selects which types of callbacks should be created" do
     assert !ModelCallbacks.respond_to?(:before_initialize)
     assert !ModelCallbacks.respond_to?(:around_initialize)
-    assert ModelCallbacks.respond_to?(:after_initialize)
+    assert_respond_to ModelCallbacks, :after_initialize
   end
 end

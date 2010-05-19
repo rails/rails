@@ -175,7 +175,10 @@ module ApplicationTests
 
       def remote_ip(env = {})
         remote_ip = nil
-        env = Rack::MockRequest.env_for("/").merge(env).merge('action_dispatch.show_exceptions' => false)
+        env = Rack::MockRequest.env_for("/").merge(env).merge!(
+          'action_dispatch.show_exceptions' => false,
+          'action_dispatch.secret_token' => 'b3c631c314c0bbca50c1b2843150fe33'
+        )
 
         endpoint = Proc.new do |e|
           remote_ip = ActionDispatch::Request.new(e).remote_ip

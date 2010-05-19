@@ -1,5 +1,6 @@
 require 'rack/utils'
 require 'rack/request'
+require 'action_dispatch/middleware/cookies'
 require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
@@ -11,22 +12,12 @@ module ActionDispatch
       ENV_SESSION_KEY = 'rack.session'.freeze
       ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
 
-      HTTP_COOKIE = 'HTTP_COOKIE'.freeze
-      SET_COOKIE = 'Set-Cookie'.freeze
-
       class SessionHash < Hash
         def initialize(by, env)
           super()
           @by = by
           @env = env
           @loaded = false
-        end
-
-        def session_id
-          ActiveSupport::Deprecation.warn(
-            "ActionDispatch::Session::AbstractStore::SessionHash#session_id " +
-            "has been deprecated. Please use request.session_options[:id] instead.", caller)
-          @env[ENV_SESSION_OPTIONS_KEY][:id]
         end
 
         def [](key)
@@ -45,35 +36,14 @@ module ActionDispatch
           h
         end
 
-        def update(hash = nil)
-          if hash.nil?
-            ActiveSupport::Deprecation.warn('use replace instead', caller)
-            replace({})
-          else
-            load! unless @loaded
-            super(hash.stringify_keys)
-          end
+        def update(hash)
+          load! unless @loaded
+          super(hash.stringify_keys)
         end
 
-        def delete(key = nil)
-          if key.nil?
-            ActiveSupport::Deprecation.warn('use clear instead', caller)
-            clear
-          else
-            load! unless @loaded
-            super(key.to_s)
-          end
-        end
-
-        def data
-         ActiveSupport::Deprecation.warn(
-           "ActionDispatch::Session::AbstractStore::SessionHash#data " +
-           "has been deprecated. Please use #to_hash instead.", caller)
-          to_hash
-        end
-
-        def close
-          ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
+        def delete(key)
+          load! unless @loaded
+          super(key.to_s)
         end
 
         def inspect
@@ -124,30 +94,15 @@ module ActionDispatch
       }
 
       def initialize(app, options = {})
-        # Process legacy CGI options
-        options = options.symbolize_keys
-        if options.has_key?(:session_path)
-          options[:path] = options.delete(:session_path)
-        end
-        if options.has_key?(:session_key)
-          options[:key] = options.delete(:session_key)
-        end
-        if options.has_key?(:session_http_only)
-          options[:httponly] = options.delete(:session_http_only)
-        end
-
         @app = app
         @default_options = DEFAULT_OPTIONS.merge(options)
-        @key = @default_options[:key]
-        @cookie_only = @default_options[:cookie_only]
+        @key = @default_options.delete(:key).freeze
+        @cookie_only = @default_options.delete(:cookie_only)
+        ensure_session_key!
       end
 
       def call(env)
-        session = SessionHash.new(self, env)
-
-        env[ENV_SESSION_KEY] = session
-        env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
-
+        prepare!(env)
         response = @app.call(env)
 
         session_data = env[ENV_SESSION_KEY]
@@ -157,45 +112,53 @@ module ActionDispatch
           session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
 
           sid = options[:id] || generate_sid
+          session_data = session_data.to_hash
 
-          unless set_session(env, sid, session_data.to_hash)
-            return response
+          value = set_session(env, sid, session_data)
+          return response unless value
+
+          cookie = { :value => value }
+          unless options[:expire_after].nil?
+            cookie[:expires] = Time.now + options.delete(:expire_after)
           end
 
-          cookie = Rack::Utils.escape(@key) + '=' + Rack::Utils.escape(sid)
-          cookie << "; domain=#{options[:domain]}" if options[:domain]
-          cookie << "; path=#{options[:path]}" if options[:path]
-          if options[:expire_after]
-            expiry = Time.now + options[:expire_after]
-            cookie << "; expires=#{expiry.httpdate}"
-          end
-          cookie << "; Secure" if options[:secure]
-          cookie << "; HttpOnly" if options[:httponly]
-
-          headers = response[1]
-          unless headers[SET_COOKIE].blank?
-            headers[SET_COOKIE] << "\n#{cookie}"
-          else
-            headers[SET_COOKIE] = cookie
-          end
+          request = ActionDispatch::Request.new(env)
+          set_cookie(request, cookie.merge!(options))
         end
 
         response
       end
 
       private
+
+        def prepare!(env)
+          env[ENV_SESSION_KEY] = SessionHash.new(self, env)
+          env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
+        end
+
         def generate_sid
           ActiveSupport::SecureRandom.hex(16)
         end
 
+        def set_cookie(request, options)
+          request.cookie_jar[@key] = options
+        end
+
         def load_session(env)
           request = Rack::Request.new(env)
-          sid = request.cookies[@key]
-          unless @cookie_only
-            sid ||= request.params[@key]
-          end
+          sid   = request.cookies[@key]
+          sid ||= request.params[@key] unless @cookie_only
           sid, session = get_session(env, sid)
           [sid, session]
+        end
+
+        def ensure_session_key!
+          if @key.blank?
+            raise ArgumentError, 'A key is required to write a ' +
+              'cookie containing the session data. Use ' +
+              'config.session_store SESSION_STORE, { :key => ' +
+              '"_myapp_session" } in config/application.rb'
+          end
         end
 
         def get_session(env, sid)
@@ -203,7 +166,8 @@ module ActionDispatch
         end
 
         def set_session(env, sid, session_data)
-          raise '#set_session needs to be implemented.'
+          raise '#set_session needs to be implemented and should return ' <<
+            'the value to be stored in the cookie (usually the sid)'
         end
     end
   end

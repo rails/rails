@@ -58,6 +58,17 @@ class CookieTest < ActionController::TestCase
       head :ok
     end
 
+    def raise_data_overflow
+      cookies.signed[:foo] = 'bye!' * 1024
+      head :ok
+    end
+
+    def tampered_cookies
+      cookies[:tampered] = "BAh7BjoIZm9vIghiYXI%3D--123456780"
+      cookies.signed[:tampered]
+      head :ok
+    end
+
     def set_permanent_signed_cookie
       cookies.permanent.signed[:remember_me] = 100
       head :ok
@@ -74,7 +85,7 @@ class CookieTest < ActionController::TestCase
 
   def setup
     super
-    @request.env["action_dispatch.secret_token"] = "thisISverySECRET123"
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.host = "www.nextangle.com"
   end
 
@@ -161,6 +172,48 @@ class CookieTest < ActionController::TestCase
     get :delete_and_set_cookie
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+
+  def test_raise_data_overflow
+    assert_raise(ActionDispatch::Cookies::CookieOverflow) do
+      get :raise_data_overflow
+    end
+  end
+
+  def test_tampered_cookies
+    assert_nothing_raised do
+      get :tampered_cookies
+      assert_response :success
+    end
+  end
+
+  def test_raises_argument_error_if_missing_secret
+    assert_raise(ArgumentError, nil.inspect) {
+      @request.env["action_dispatch.secret_token"] = nil
+      get :set_signed_cookie
+    }
+
+    assert_raise(ArgumentError, ''.inspect) {
+      @request.env["action_dispatch.secret_token"] = ""
+      get :set_signed_cookie
+    }
+  end
+
+  def test_raises_argument_error_if_secret_is_probably_insecure
+    assert_raise(ArgumentError, "password".inspect) {
+      @request.env["action_dispatch.secret_token"] = "password"
+      get :set_signed_cookie
+    }
+
+    assert_raise(ArgumentError, "secret".inspect) {
+      @request.env["action_dispatch.secret_token"] = "secret"
+      get :set_signed_cookie
+    }
+
+    assert_raise(ArgumentError, "12345678901234567890123456789".inspect) {
+      @request.env["action_dispatch.secret_token"] = "12345678901234567890123456789"
+      get :set_signed_cookie
+    }
   end
 
   private

@@ -149,7 +149,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     num_accounts = Account.count
 
     firm = Firm.find(1)
-    assert !firm.account.nil?
+    assert_not_nil firm.account
     account_id = firm.account.id
     assert_equal [], Account.destroyed_account_ids[firm.id]
 
@@ -162,7 +162,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     num_accounts = Account.count
 
     firm = ExclusivelyDependentFirm.find(9)
-    assert !firm.account.nil?
+    assert_not_nil firm.account
     account_id = firm.account.id
     assert_equal [], Account.destroyed_account_ids[firm.id]
 
@@ -181,7 +181,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedFirm.new(:name => 'restrict')
     firm.save!
     account = firm.create_account(:credit_limit => 10)
-    assert !firm.account.nil?
+    assert_not_nil firm.account
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
   end
 
@@ -246,7 +246,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_dependence_with_missing_association
     Account.destroy_all
     firm = Firm.find(1)
-    assert firm.account.nil?
+    assert_nil firm.account
     firm.destroy
   end
 

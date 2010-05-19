@@ -307,7 +307,7 @@ module ActiveRecord
           end
         end
 
-        return true
+        sid
       end
       
       def get_session_model(env, sid)

@@ -104,7 +104,7 @@ module ActionController
         def all_application_helpers
           helpers = []
           helpers_path.each do |path|
-            extract  = /^#{Regexp.quote(path)}\/?(.*)_helper.rb$/
+            extract  = /^#{Regexp.quote(path.to_s)}\/?(.*)_helper.rb$/
             helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
           end
           helpers.sort!

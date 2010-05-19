@@ -176,8 +176,8 @@ class IntegrationTestTest < Test::Unit::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert session1.respond_to?(:assert_template), "open_session makes assert_template available"
-    assert session2.respond_to?(:assert_template), "open_session makes assert_template available"
+    assert_respond_to session1, :assert_template, "open_session makes assert_template available"
+    assert_respond_to session2, :assert_template, "open_session makes assert_template available"
     assert !session1.equal?(session2)
   end
 

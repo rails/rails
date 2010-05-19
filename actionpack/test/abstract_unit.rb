@@ -12,6 +12,10 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
+if defined?(Encoding.default_internal)
+  Encoding.default_internal = "UTF-8"
+end
+
 require 'test/unit'
 require 'abstract_controller'
 require 'action_controller'
@@ -158,6 +162,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
       middleware.use "ActionDispatch::Cookies"
       middleware.use "ActionDispatch::Flash"
       middleware.use "ActionDispatch::Head"
+      yield(middleware) if block_given?
     end
   end
 

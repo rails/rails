@@ -1,6 +1,8 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
-* Defines prev_(month|year) in Date and Time, and deprecates last_(month|year). [fxn]
+* Renames Array#rand -> Array#random_element. [Santiago Pastorino, Rizwan Reza]
+
+* 1.9 compat: Renames last_(month|year) to prev_(month|year) in Date and Time. [fxn]
 
 * Aliases Date#sunday to Date#end_of_week. [fxn]
 

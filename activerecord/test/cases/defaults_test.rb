@@ -67,8 +67,8 @@ if current_adapter?(:MysqlAdapter)
       assert_equal '', klass.columns_hash['non_null_blob'].default
       assert_equal '', klass.columns_hash['non_null_text'].default
 
-      assert_equal nil, klass.columns_hash['null_blob'].default
-      assert_equal nil, klass.columns_hash['null_text'].default
+      assert_nil klass.columns_hash['null_blob'].default
+      assert_nil klass.columns_hash['null_text'].default
 
       assert_nothing_raised do
         instance = klass.create!

@@ -186,6 +186,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :products, :constraints => { :id => /\d{4}/ } do
+        root :to => "products#root"
+        get :favorite, :on => :collection
         resources :images
       end
 
@@ -963,7 +965,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/products/1'
       assert_equal 'pass', @response.headers['X-Cascade']
       get '/products'
-      assert_equal 'products#index', @response.body
+      assert_equal 'products#root', @response.body
+      get '/products/favorite'
+      assert_equal 'products#favorite', @response.body
       get '/products/0001'
       assert_equal 'products#show', @response.body
 
@@ -979,6 +983,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/dashboard', {}, {'REMOTE_ADDR' => '192.168.1.100'}
       assert_equal 'dashboards#show', @response.body
     end
+  end
+
+  def test_root_works_in_the_resources_scope
+    get '/products'
+    assert_equal 'products#root', @response.body
+    assert_equal '/products', products_root_path
   end
 
   def test_module_scope

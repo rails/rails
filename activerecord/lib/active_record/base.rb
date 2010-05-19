@@ -1193,10 +1193,6 @@ module ActiveRecord #:nodoc:
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
         end
 
-        def clear_default_scope
-          self.default_scoping.clear
-        end
-
         def scoped_methods #:nodoc:
           key = :"#{self}_scoped_methods"
           Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
@@ -1362,7 +1358,8 @@ module ActiveRecord #:nodoc:
         def replace_bind_variables(statement, values) #:nodoc:
           raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
-          statement.gsub('?') { quote_bound_value(bound.shift) }
+          c = connection
+          statement.gsub('?') { quote_bound_value(bound.shift, c) }
         end
 
         def replace_named_bind_variables(statement, bind_vars) #:nodoc:
@@ -1394,15 +1391,15 @@ module ActiveRecord #:nodoc:
           expanded
         end
 
-        def quote_bound_value(value) #:nodoc:
+        def quote_bound_value(value, c = connection) #:nodoc:
           if value.respond_to?(:map) && !value.acts_like?(:string)
             if value.respond_to?(:empty?) && value.empty?
-              connection.quote(nil)
+              c.quote(nil)
             else
-              value.map { |v| connection.quote(v) }.join(',')
+              value.map { |v| c.quote(v) }.join(',')
             end
           else
-            connection.quote(value)
+            c.quote(value)
           end
         end
 
@@ -1462,12 +1459,18 @@ module ActiveRecord #:nodoc:
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
+
         @attributes = cloned_attributes
+
+        @changed_attributes = {}
+        attributes_from_column_definition.each do |attr, orig_value|
+          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        end
+
         clear_aggregation_cache
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
-        @changed_attributes = other.changed_attributes.dup
 
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create

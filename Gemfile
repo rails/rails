@@ -6,17 +6,18 @@ gem "rails", :path => File.dirname(__FILE__)
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 
-group :mri do
+mri = !defined?(RUBY_ENGINE) || RUBY_ENGINE == "ruby"
+if mri && RUBY_VERSION < '1.9'
+  gem "system_timer"
+  gem "ruby-debug", ">= 0.10.3"
+end
+
+if mri || RUBY_ENGINE == "rbx"
   gem 'json'
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.0"
-
-  if RUBY_VERSION < '1.9'
-    gem "system_timer"
-    gem "ruby-debug", ">= 0.10.3"
-  elsif RUBY_VERSION < '1.9.2' && !ENV['CI']
-    gem "ruby-debug19"
-  end
+elsif RUBY_ENGINE == "jruby"
+  gem "jruby-debug"
 end
 
 # AR

@@ -18,7 +18,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_setup_creates_the_expected_mailer
-    assert @expected.is_a?(Mail::Message)
+    assert_kind_of Mail::Message, @expected
     assert_equal "1.0", @expected.mime_version
     assert_equal "text/plain", @expected.mime_type
   end
@@ -121,7 +121,7 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_setup_shouldnt_conflict_with_mailer_setup
-    assert @expected.is_a?(Mail::Message)
+    assert_kind_of Mail::Message, @expected
     assert_equal 'a value', @test_var
   end
 end

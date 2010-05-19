@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Make session stores rely on request.cookie_jar and change set_session semantics to return the cookie value instead of a boolean. [José Valim]
+
 * OAuth 2: HTTP Token Authorization support to complement Basic and Digest Authorization.  [Rick Olson]
 
 * Fixed inconsistencies in form builder and view helpers #4432 [Neeraj Singh]

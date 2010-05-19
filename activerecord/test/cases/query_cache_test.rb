@@ -58,7 +58,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.cache do
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
-        assert Task.connection.select_value("SELECT count(*) AS count_all FROM tasks").is_a?(Numeric)
+        assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       elsif current_adapter?(:SQLite3Adapter) && SQLite3::Version::VERSION > '1.2.5'
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,

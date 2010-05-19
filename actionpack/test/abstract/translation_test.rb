@@ -9,18 +9,18 @@ class TranslationControllerTest < Test::Unit::TestCase
   end
   
   def test_action_controller_base_responds_to_translate
-    assert @controller.respond_to?(:translate)
+    assert_respond_to @controller, :translate
   end
   
   def test_action_controller_base_responds_to_t
-    assert @controller.respond_to?(:t)
+    assert_respond_to @controller, :t
   end
   
   def test_action_controller_base_responds_to_localize
-    assert @controller.respond_to?(:localize)
+    assert_respond_to @controller, :localize
   end
   
   def test_action_controller_base_responds_to_l
-    assert @controller.respond_to?(:l)
+    assert_respond_to @controller, :l
   end
 end

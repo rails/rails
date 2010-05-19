@@ -55,42 +55,13 @@ class CookieStoreTest < ActionController::IntegrationTest
     }
   end
 
-  def test_raises_argument_error_if_missing_secret
-    assert_raise(ArgumentError, nil.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-       :key => SessionKey, :secret => nil)
-    }
-
-    assert_raise(ArgumentError, ''.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-       :key => SessionKey, :secret => '')
-    }
-  end
-
-  def test_raises_argument_error_if_secret_is_probably_insecure
-    assert_raise(ArgumentError, "password".inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-       :key => SessionKey, :secret => "password")
-    }
-
-    assert_raise(ArgumentError, "secret".inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-       :key => SessionKey, :secret => "secret")
-    }
-
-    assert_raise(ArgumentError, "12345678901234567890123456789".inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-       :key => SessionKey, :secret => "12345678901234567890123456789")
-    }
-  end
-
   def test_setting_session_value
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
       assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
         headers['Set-Cookie']
-   end
+    end
   end
 
   def test_getting_session_value
@@ -99,7 +70,7 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: "bar"', response.body
-   end
+    end
   end
 
   def test_getting_session_id
@@ -127,7 +98,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
   def test_close_raises_when_data_overflows
     with_test_route_set do
-      assert_raise(ActionDispatch::Session::CookieStore::CookieOverflow) {
+      assert_raise(ActionDispatch::Cookies::CookieOverflow) {
         get '/raise_data_overflow'
       }
     end
@@ -209,30 +180,33 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/no_session_access'
       assert_response :success
 
-      # Mystery bug that came up in 2.3 as well. What is this trying to test?!
-      # assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-      #   headers['Set-Cookie']
+      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+        headers['Set-Cookie']
     end
   end
 
   private
+
+    # Overwrite get to send SessionSecret in env hash
+    def get(path, parameters = nil, env = {})
+      env["action_dispatch.secret_token"] ||= SessionSecret
+      super
+    end
+
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
           match ':action', :to => ::CookieStoreTest::TestController
         end
-        options = {:key => SessionKey, :secret => SessionSecret}.merge(options)
-        @app = ActionDispatch::Session::CookieStore.new(set, options)
+
+        options = { :key => SessionKey }.merge!(options)
+
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use ActionDispatch::Session::CookieStore, options
+          middleware.delete "ActionDispatch::ShowExceptions"
+        end
+
         yield
       end
-    end
-
-    def unmarshal_session(cookie_string)
-      session = Rack::Utils.parse_query(cookie_string, ';,').inject({}) {|h,(k,v)|
-        h[k] = Array === v ? v.first : v
-        h
-      }[SessionKey]
-      verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
-      verifier.verify(session)
     end
 end
