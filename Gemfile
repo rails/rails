@@ -11,10 +11,10 @@ group :mri do
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.0"
 
-  if RUBY_VERSION < '1.9'
+  if !defined?(RUBY_ENGINE) && RUBY_VERSION < '1.9'
     gem "system_timer"
     gem "ruby-debug", ">= 0.10.3"
-  elsif RUBY_VERSION < '1.9.2' && !ENV['CI']
+  elsif defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION < '1.9.2' && !ENV['CI']
     gem "ruby-debug19"
   end
 end
