@@ -371,7 +371,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_custom_const_missing_should_work
-    Object.module_eval <<-end_eval
+    Object.module_eval <<-end_eval, __FILE__, __LINE__ + 1
       module ModuleWithCustomConstMissing
         def self.const_missing(name)
           const_set name, name.to_s.hash

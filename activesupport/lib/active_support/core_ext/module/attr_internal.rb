@@ -2,14 +2,14 @@ class Module
   # Declares an attribute reader backed by an internally-named instance variable.
   def attr_internal_reader(*attrs)
     attrs.each do |attr|
-      module_eval "def #{attr}() #{attr_internal_ivar_name(attr)} end"
+      module_eval "def #{attr}() #{attr_internal_ivar_name(attr)} end", __FILE__, __LINE__
     end
   end
 
   # Declares an attribute writer backed by an internally-named instance variable.
   def attr_internal_writer(*attrs)
     attrs.each do |attr|
-      module_eval "def #{attr}=(v) #{attr_internal_ivar_name(attr)} = v end"
+      module_eval "def #{attr}=(v) #{attr_internal_ivar_name(attr)} = v end", __FILE__, __LINE__
     end
   end
 

@@ -1425,12 +1425,11 @@ class FormHelperTest < ActionView::TestCase
 
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
-      src, line = <<-END_SRC, __LINE__ + 1
+      class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
         def #{selector}(field, *args, &proc)
           ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
         end
-      END_SRC
-      class_eval src, __FILE__, line
+      RUBY_EVAL
     end
   end
 
