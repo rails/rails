@@ -243,7 +243,7 @@ module ActiveRecord
           if [:belongs_to, :has_one].include?(reflection.macro)
             return true if association.target && association.target.changed_for_autosave?
           else
-            association.target.each {|record| return true if record.changed_for_autosave? }
+            return true if association.target.detect { |record| record.changed_for_autosave? }
           end
         end
       end
