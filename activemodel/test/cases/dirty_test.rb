@@ -22,8 +22,8 @@ class DirtyTest < ActiveModel::TestCase
   test "changes accessible through both strings and symbols" do
     model = DirtyModel.new
     model.name = "David"
-    assert !model.changes[:name].nil?
-    assert !model.changes['name'].nil?
+    assert_not_nil model.changes[:name]
+    assert_not_nil model.changes['name']
   end
 
 end

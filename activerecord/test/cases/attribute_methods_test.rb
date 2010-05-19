@@ -310,7 +310,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
     assert !@target.instance_method_already_implemented?(:title)
     topic = @target.new
-    assert_equal nil, topic.title
+    assert_nil topic.title
 
     Object.send(:undef_method, :title) # remove test method from object
   end

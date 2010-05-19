@@ -69,7 +69,7 @@ class XmlSerializationTest < ActiveModel::TestCase
 
   test "should allow skipped types" do
     @xml = @contact.to_xml :skip_types => true
-    assert %r{<age>25</age>}.match(@xml)
+    assert_match %r{<age>25</age>}, @xml
   end
 
   test "should include yielded additions" do

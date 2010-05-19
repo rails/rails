@@ -280,12 +280,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_find_conditions
     assert_equal categories(:general), authors(:david).categories.find(:first, :conditions => "categories.name = 'General'")
-    assert_equal nil, authors(:david).categories.find(:first, :conditions => "categories.name = 'Technology'")
+    assert_nil authors(:david).categories.find(:first, :conditions => "categories.name = 'Technology'")
   end
 
   def test_has_many_class_methods_called_by_method_missing
     assert_equal categories(:general), authors(:david).categories.find_all_by_name('General').first
-    assert_equal nil, authors(:david).categories.find_by_name('Technology')
+    assert_nil authors(:david).categories.find_by_name('Technology')
   end
 
   def test_has_many_array_methods_called_by_method_missing

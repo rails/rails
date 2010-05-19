@@ -1236,11 +1236,11 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   end
 
   test "should generate validation methods for has_many associations" do
-    assert @pirate.respond_to?(:validate_associated_records_for_birds)
+    assert_respond_to @pirate, :validate_associated_records_for_birds
   end
 
   test "should generate validation methods for has_one associations with :validate => true" do
-    assert @pirate.respond_to?(:validate_associated_records_for_ship)
+    assert_respond_to @pirate, :validate_associated_records_for_ship
   end
 
   test "should not generate validation methods for has_one associations without :validate => true" do
@@ -1248,7 +1248,7 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   end
 
   test "should generate validation methods for belongs_to associations with :validate => true" do
-    assert @pirate.respond_to?(:validate_associated_records_for_parrot)
+    assert_respond_to @pirate, :validate_associated_records_for_parrot
   end
 
   test "should not generate validation methods for belongs_to associations without :validate => true" do
@@ -1256,7 +1256,7 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   end
 
   test "should generate validation methods for HABTM associations with :validate => true" do
-    assert @pirate.respond_to?(:validate_associated_records_for_parrots)
+    assert_respond_to @pirate, :validate_associated_records_for_parrots
   end
 
   test "should not generate validation methods for HABTM associations without :validate => true" do
