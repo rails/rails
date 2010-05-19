@@ -12,7 +12,7 @@ endprologue.
 
 h3. Why Write Tests for your Rails Applications?
 
-* Rails makes it super easy to write your tests. It starts by producing skeleton test code in background while you are creating your models and controllers.
+* Rails makes it super easy to write your tests. It starts by producing skeleton test code in the background while you are creating your models and controllers.
 * By simply running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
 * Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
 
@@ -54,7 +54,7 @@ For good tests, you'll need to give some thought to setting up test data. In Rai
 
 h5. What are Fixtures?
 
-_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*. In this guide we will use *YAML* which is the preferred format.
+_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*. In this guide, we will use *YAML*, which is the preferred format.
 
 You'll find fixtures under your +test/fixtures+ directory. When you run +rails generate model+ to create a new model, fixture stubs will be automatically created and placed in this directory.
 
@@ -140,7 +140,7 @@ h3. Unit Testing your Models
 
 In Rails, unit tests are what you write to test your models.
 
-For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. I will be using examples from this generated code and would be supplementing it with additional examples where necessary.
+For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. I will be using examples from this generated code and will be supplementing it with additional examples where necessary.
 
 NOTE: For more information on Rails <i>scaffolding</i>, refer to "Getting Started with Rails":getting_started.html
 
@@ -174,7 +174,7 @@ A line by line examination of this file will help get you oriented to Rails test
 require 'test_helper'
 </ruby>
 
-As you know by now that +test_helper.rb+ specifies the default configuration to run our tests. This is included with all the tests, so any methods added to this file are available to all your tests.
+As you know by now, +test_helper.rb+ specifies the default configuration to run our tests. This is included with all the tests, so any methods added to this file are available to all your tests.
 
 <ruby>
 class PostTest < ActiveSupport::TestCase
@@ -204,16 +204,16 @@ assert true
 
 This line of code is called an _assertion_. An assertion is a line of code that evaluates an object (or expression) for expected results. For example, an assertion can check:
 
-* is this value = that value?
+* does this value = that value?
 * is this object nil?
 * does this line of code throw an exception?
 * is the user's password greater than 5 characters?
 
-Every test contains one or more assertions. Only when all the assertions are successful the test passes.
+Every test contains one or more assertions. Only when all the assertions are successful will the test pass.
 
 h4. Preparing your Application for Testing
 
-Before you can run your tests you need to ensure that the test database structure is current. For this you can use the following rake commands:
+Before you can run your tests, you need to ensure that the test database structure is current. For this you can use the following rake commands:
 
 <shell>
 $ rake db:migrate
@@ -221,7 +221,7 @@ $ rake db:migrate
 $ rake db:test:load
 </shell>
 
-Above +rake db:migrate+ runs any pending migrations on the _development_ environment and updates +db/schema.rb+. +rake db:test:load+ recreates the test database from the current +db/schema.rb+. On subsequent attempts it is a good to first run +db:test:prepare+ as it first checks for pending migrations and warns you appropriately.
+Above +rake db:migrate+ runs any pending migrations on the _development_ environment and updates +db/schema.rb+. +rake db:test:load+ recreates the test database from the current +db/schema.rb+. On subsequent attempts, it is a good idea to first run +db:test:prepare+, as it first checks for pending migrations and warns you appropriately.
 
 NOTE: +db:test:prepare+ will fail with an error if +db/schema.rb+ doesn't exists.
 
@@ -294,7 +294,7 @@ test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
 1 tests, 1 assertions, 1 failures, 0 errors
 </shell>
 
-In the output, +F+ denotes a failure. You can see the corresponding trace shown under +1)+ along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable every assertion provides an optional message parameter, as shown here:
+In the output, +F+ denotes a failure. You can see the corresponding trace shown under +1)+ along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
 
 <ruby>
 test "should not save post without title" do
@@ -332,7 +332,7 @@ Finished in 0.193608 seconds.
 1 tests, 1 assertions, 0 failures, 0 errors
 </shell>
 
-Now if you noticed we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
+Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
 
 TIP: Many Rails developers practice _Test-Driven Development_ (TDD). This is an excellent way to build up a test suite that exercises every part of your application. TDD is beyond the scope of this guide, but one place to start is with "15 TDD steps to create a Rails application":http://andrzejonsoftware.blogspot.com/2007/05/15-tdd-steps-to-create-rails.html.
 
@@ -369,13 +369,13 @@ NOTE: The execution of each test method stops as soon as any error or an asserti
 
 h4. What to Include in Your Unit Tests
 
-Ideally you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
+, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
 
 h4. Assertions Available
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
-There are a bunch of different types of assertions you can use. Here's the complete list of assertions that ship with +test/unit+, the testing library used by Rails. The +[msg]+ parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
+There are a bunch of different types of assertions you can use. Here's the complete list of assertions that ship with +test/unit+, the default testing library used by Rails. The +[msg]+ parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
 
 |_.Assertion                                                       |_.Purpose|
 |+assert( boolean, [msg] )+                                        |Ensures that the object/expression is true.|
@@ -910,7 +910,7 @@ However often in unit tests, mails will not actually be sent, simply constructed
 
 h4. Functional Testing
 
-Functional testing for mailers involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job You are probably more interested in is whether your own business logic is sending emails when you expect them to got out. For example, you can check that the invite friend operation is sending an email appropriately:
+Functional testing for mailers involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job. You are probably more interested in whether your own business logic is sending emails when you expect them to go out. For example, you can check that the invite friend operation is sending an email appropriately:
 
 <ruby>
 require 'test_helper'
