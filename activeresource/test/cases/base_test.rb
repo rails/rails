@@ -1017,7 +1017,7 @@ class BaseTest < Test::Unit::TestCase
     encode = matz.encode
     xml = matz.to_xml
 
-    assert encode, xml
+    assert_equal encode, xml
     assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
@@ -1030,7 +1030,7 @@ class BaseTest < Test::Unit::TestCase
     encode = matz.encode
     xml = matz.to_xml
 
-    assert encode, xml
+    assert_equal encode, xml
     assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<ruby-creator>')
     assert xml.include?('<name>Matz</name>')
@@ -1065,7 +1065,7 @@ class BaseTest < Test::Unit::TestCase
     json = joe.to_json
     Person.format = :xml
 
-    assert encode, json
+    assert_equal encode, json
     assert_match %r{^\{"ruby_creator":\{"person":\{}, json
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
