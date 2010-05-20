@@ -20,7 +20,7 @@ module AbstractController
     end
 
     module ClassMethods
-      # If :only or :accept are used, convert the options into the
+      # If :only or :except are used, convert the options into the
       # primitive form (:per_key) used by ActiveSupport::Callbacks.
       # The basic idea is that :only => :index gets converted to
       # :if => proc {|c| c.action_name == "index" }, but that the
