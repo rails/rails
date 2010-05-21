@@ -1486,8 +1486,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
-* May 16, 2010: Added a section on configuration gotchas to address common encoding
-  problems that people might have
+* May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
 * April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits.html#raasdnil
 * April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
