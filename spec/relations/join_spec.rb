@@ -29,7 +29,7 @@ describe "Arel" do
         8.times do |i|
           thing_id = owner_id * 8 + i
           age      = 2 * thing_id
-          name     = "Name#{thing_id}"
+          name     = "Name #{thing_id % 6}"
 
           @thing.insert([thing_id, owner_id, name, age])
           @expected << Arel::Row.new(@relation, [thing_id, owner_id, name, age, owner_id])

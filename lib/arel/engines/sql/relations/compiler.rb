@@ -12,9 +12,9 @@ module Arel
           "SELECT     #{select_clauses.join(', ')}",
           "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
-          ("WHERE     #{where_clauses.join(" AND ")}"    unless wheres.blank?      ),
+          ("WHERE     #{where_clauses.join(' AND ')}"    unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
-          ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?     ),
+          ("HAVING    #{having_clauses.join(' AND ')}"      unless havings.blank?     ),
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      )
           engine.add_limit_offset!(query,{ :limit => taken, :offset => skipped }) if taken || skipped
           query << " #{locked}" unless locked.blank?

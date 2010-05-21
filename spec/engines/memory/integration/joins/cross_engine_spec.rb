@@ -13,10 +13,9 @@ module Arel
       @photos.insert(@photos[:id] => 1, @photos[:user_id] => 1, @photos[:camera_id] => 6)
       @photos.insert(@photos[:id] => 2, @photos[:user_id] => 2, @photos[:camera_id] => 42)
       # Oracle adapter returns database integers as Ruby integers and not strings
-      @adapter_returns_integer = false
-      adapter_is :oracle do
-        @adapter_returns_integer = true
-      end
+      # So does the FFI sqlite library
+      db_int_return = @photos.project(@photos[:camera_id]).first.tuple.first
+      @adapter_returns_integer = db_int_return.is_a?(String) ? false : true
     end
 
     describe 'when the in memory relation is on the left' do

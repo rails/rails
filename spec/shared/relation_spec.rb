@@ -154,25 +154,56 @@ share_examples_for 'A Relation' do
   describe "#order" do
     describe "by one attribute" do
       before :all do
-        @expected.map! { |r| r[@relation[:age]] }
-        @expected.sort!
+        @expected.sort! { |a, b| a[@relation[:age]] <=> b[@relation[:age]]}.map! {|e| e[@relation[:id]]}
       end
 
       it "can be specified as ascending order" do
         actual = []
-        @relation.order(@relation[:age].asc).each { |r| actual << r[@relation[:age]] }
+        @relation.order(@relation[:age].asc).each { |r| actual << r[@relation[:id]] }
         actual.should == @expected
       end
 
       it "can be specified as descending order" do
         actual = []
-        @relation.order(@relation[:age].desc).each { |r| actual << r[@relation[:age]] }
+        @relation.order(@relation[:age].desc).each { |r| actual << r[@relation[:id]] }
         actual.should == @expected.reverse
       end
     end
 
-    describe "by two attributes" do
-      it "works"
+    describe "by two attributes in two separate calls to #order" do
+      before :all do
+        @expected = @expected.sort_by { |e| [e[@relation[:name]], e[@relation[:age]]]}.map {|e| e[@relation[:id]]}
+      end
+
+      it "can be specified as ascending order" do
+        actual = []
+        @relation.order(@relation[:age].asc).order(@relation[:name].asc).each { |r| actual << r[@relation[:id]] }
+        actual.should == @expected
+      end
+
+      it "can be specified as descending order" do
+        actual = []
+        @relation.order(@relation[:age].desc).order(@relation[:name].desc).each { |r| actual << r[@relation[:id]] }
+        actual.should == @expected.reverse
+      end
+    end
+    
+    describe "by two attributes in one call to #order" do
+      before :all do
+        @expected = @expected.sort_by { |e| [e[@relation[:name]], e[@relation[:age]]]}.map {|e| e[@relation[:id]]}
+      end
+      
+      it "can be specified as ascending order in one call to #order" do
+        actual = []
+        @relation.order(@relation[:name].asc, @relation[:age].asc).each { |r| actual << r[@relation[:id]] }
+        actual.should == @expected
+      end
+
+      it "can be specified as descending order in one call to #order" do
+        actual = []
+        @relation.order(@relation[:name].desc, @relation[:age].desc).each { |r| actual << r[@relation[:id]] }
+        actual.should == @expected.reverse
+      end
     end
   end
 

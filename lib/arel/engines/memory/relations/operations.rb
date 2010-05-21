@@ -8,7 +8,7 @@ module Arel
   class Order < Compound
     def eval
       unoperated_rows.sort do |row1, row2|
-        ordering = orderings.detect { |o| o.eval(row1, row2) != 0 } || orderings.last
+        ordering = orders.detect { |o| o.eval(row1, row2) != 0 } || orders.last
         ordering.eval(row1, row2)
       end
     end

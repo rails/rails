@@ -16,7 +16,9 @@ module Arel
     end
 
     describe "#type_cast" do
-      it "works"
+      it "works" do
+        pending
+      end
     end
   end
 end
