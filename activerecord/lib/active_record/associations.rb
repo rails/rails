@@ -1903,7 +1903,7 @@ module ActiveRecord
             end
 
             def ==(other)
-              other.is_a?(JoinBase) &&
+              other.class == self.class &&
               other.active_record == active_record &&
               other.table_joins == table_joins
             end
@@ -1974,7 +1974,7 @@ module ActiveRecord
             end
 
             def ==(other)
-              other.is_a?(JoinAssociation) &&
+              other.class == self.class &&
               other.reflection == reflection &&
               other.parent == parent
             end
