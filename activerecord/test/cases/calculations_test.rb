@@ -297,7 +297,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    assert_equal '636', Account.sum("2 * credit_limit")
+    assert_equal 636, Account.sum("2 * credit_limit").to_i
   end
 
   def test_count_with_from_option
