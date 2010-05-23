@@ -1,3 +1,8 @@
+*2.3.7 (unreleased)*
+
+* ...
+
+
 *2.3.6 (May 23, 2010)*
 
 * JSON: set Base.include_root_in_json = true to include a root value in the JSON: {"post": {"title": ...}}. Mirrors the Active Record option.  #2584 [Matthew Moore, Joe Martinez, Elad Meidar, Santiago Pastorino]
