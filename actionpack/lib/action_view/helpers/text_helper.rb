@@ -29,7 +29,7 @@ module ActionView
           ActiveSupport::Deprecation.warn("The binding argument of #concat is no longer needed.  Please remove it from your views and helpers.", caller)
         end
 
-        output_buffer.safe_concat(string)
+        output_buffer << string
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
