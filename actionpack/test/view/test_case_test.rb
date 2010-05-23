@@ -159,7 +159,7 @@ module ActionView
     class AssertionsTest < ActionView::TestCase
       def render_from_helper
         form_tag('/foo') do
-          concat render(:text => '<ul><li>foo</li></ul>')
+          concat render(:text => '<ul><li>foo</li></ul>'.html_safe)
         end
       end
       helper_method :render_from_helper
