@@ -96,6 +96,7 @@ module ActiveSupport #:nodoc:
 end
 
 class String
+  alias safe_concat concat
   alias_method :add_without_safety, :+
 
   def as_str
