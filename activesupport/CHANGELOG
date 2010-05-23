@@ -18,10 +18,6 @@
 
 * YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]
 
-* Update bundled TZInfo to v0.3.16 [Geoff Buesing]
-
-* Georgetown TimeZone is now mapped to "America/Guyana" instead of "America/Argentina/San_Juan" #1821 [Geoff Buesing, Reuben Sivan]
-
 * Add Enumerable#exclude? to bring parity to Enumerable#include? and avoid if !x.include?/else calls [DHH]
 
 
