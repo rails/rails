@@ -1,4 +1,4 @@
-*2.3.6 (pending)*
+*2.3.6 (May 23, 2010)*
 
 * 1.9 compat: deprecated last_(month|year) in favor of prev_(month|year). [fxn]
 

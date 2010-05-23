@@ -1,11 +1,14 @@
-*Edge*
+*2.3.6 (May 23, 2010)*
 
 * Added config/initializers/cookie_verification_secret.rb with an auto-generated secret for using ActionController::Base#cookies.signed [DHH]
 
 * Fixed that the debugger wouldn't go into IRB mode because of left-over ARGVs [DHH]
 
 
-* 1.9 compatibility
+*2.3.5 (November 25, 2009)*
+
+* Ruby 1.9 compatibility
+
 
 *2.3.4 (September 4, 2009)*
 
