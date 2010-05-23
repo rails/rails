@@ -1,22 +1,6 @@
 require 'erb'
 
 class ERB
-  undef :set_eoutvar
-  def set_eoutvar(compiler, eoutvar = '_erbout')
-    compiler.put_cmd = "#{eoutvar}.safe_concat"
-    compiler.insert_cmd = "#{eoutvar}.safe_concat"
-
-    cmd = []
-    cmd.push "#{eoutvar} = ActiveSupport::SafeBuffer.new"
-
-    compiler.pre_cmd = cmd
-
-    cmd = []
-    cmd.push(eoutvar)
-
-    compiler.post_cmd = cmd
-  end
-
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
