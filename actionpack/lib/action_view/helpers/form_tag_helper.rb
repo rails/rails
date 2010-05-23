@@ -435,7 +435,7 @@ module ActionView
         concat(tag(:fieldset, options, true))
         concat(content_tag(:legend, legend)) unless legend.blank?
         concat(content)
-        concat("</fieldset>")
+        concat("</fieldset>".html_safe)
       end
 
       private
@@ -469,7 +469,7 @@ module ActionView
           content = capture(&block)
           concat(form_tag_html(html_options))
           concat(content)
-          concat("</form>")
+          concat("</form>".html_safe)
         end
 
         def token_tag

@@ -280,7 +280,7 @@ module ActionView
 
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
-        concat('</form>')
+        concat('</form>'.html_safe)
       end
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
