@@ -14,13 +14,14 @@ module ActionView
         if keys.is_a?(Array)
           ActiveSupport::Deprecation.warn "Giving an array to translate is deprecated, please give a symbol or a string instead", caller
         end
-        options[:raise]  = true
-        are_keys_a_string  = keys.is_a?(String)
+
+        options[:raise] = true
+        return_first = keys.is_a?(String) || keys.is_a?(Symbol)
         keys = scope_keys_by_partial(keys)
 
         translations = I18n.translate(keys, options)
         translations = html_safe_translation_keys(keys, Array.wrap(translations))
-        are_keys_a_string ? translations.first : translations
+        return_first ? translations.first : translations
       rescue I18n::MissingTranslationData => e
         keys = I18n.send(:normalize_translation_keys, e.locale, e.key, e.options[:scope])
         content_tag('span', keys.join(', '), :class => 'translation_missing')
@@ -37,8 +38,10 @@ module ActionView
       private
         def scope_keys_by_partial(keys)
           Array.wrap(keys).map do |key|
-            if key.to_s.first == "."
-              template.path_without_format_and_extension.gsub(%r{/_?}, ".") + key.to_s
+            key = key.to_s
+
+            if key.first == "."
+              template.path_without_format_and_extension.gsub(%r{/_?}, ".") + key
             else
               key
             end

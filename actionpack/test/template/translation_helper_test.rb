@@ -9,7 +9,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_delegates_to_i18n_setting_the_raise_option
-    I18n.expects(:translate).with([:foo], :locale => 'en', :raise => true).returns([""])
+    I18n.expects(:translate).with(['foo'], :locale => 'en', :raise => true).returns([""])
     translate :foo, :locale => 'en'
   end
 
@@ -54,6 +54,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
       assert_equal "foo, bar", @view.render(:file => "test/scoped_array_translation")
     end
   end
+
+  def test_translate_works_with_symbols
+    I18n.expects(:translate).with(["hello"], :raise => true).returns(["Hello World"])
+    assert_equal "Hello World", translate(:hello)
+  end
+
 
   def test_translate_does_not_mark_plain_text_as_safe_html
     I18n.expects(:translate).with(["hello"], :raise => true).returns(["Hello World"])
