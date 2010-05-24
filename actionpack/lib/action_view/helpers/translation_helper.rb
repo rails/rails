@@ -3,17 +3,21 @@ require 'action_view/helpers/tag_helper'
 module ActionView
   module Helpers
     module TranslationHelper
-      # Delegates to I18n#translate but also performs two additional functions. First, it'll catch MissingTranslationData exceptions 
+      # Delegates to I18n#translate but also performs two additional functions. First, it'll catch MissingTranslationData exceptions
       # and turn them into inline spans that contains the missing key, such that you can see in a view what is missing where.
       #
       # Second, it'll scope the key by the current partial if the key starts with a period. So if you call translate(".foo") from the
       # people/index.html.erb template, you'll actually be calling I18n.translate("people.index.foo"). This makes it less repetitive
       # to translate many keys within the same partials and gives you a simple framework for scoping them consistently. If you don't
       # prepend the key with a period, nothing is converted.
-      def translate(key, options = {})
-        options[:raise] = true
-        translation = I18n.translate(scope_key_by_partial(key), options)
-        translation.respond_to?(:html_safe) ? translation.html_safe : translation
+      def translate(keys, options = {})
+        options[:raise]  = true
+        are_keys_a_string  = keys.is_a?(String)
+        keys = scope_keys_by_partial(keys)
+
+        translations = I18n.translate(keys, options)
+        translations = html_safe_translation_keys(keys, Array.wrap(translations))
+        are_keys_a_string ? translations.first : translations
       rescue I18n::MissingTranslationData => e
         keys = I18n.send(:normalize_translation_keys, e.locale, e.key, e.options[:scope])
         content_tag('span', keys.join(', '), :class => 'translation_missing')
@@ -28,12 +32,19 @@ module ActionView
 
 
       private
-        def scope_key_by_partial(key)
-          strkey = key.respond_to?(:join) ? key.join : key.to_s
-          if strkey.first == "."
-            template.path_without_format_and_extension.gsub(%r{/_?}, ".") + strkey
-          else
-            key
+        def scope_keys_by_partial(keys)
+          Array.wrap(keys).map do |key|
+            if key.to_s.first == "."
+              template.path_without_format_and_extension.gsub(%r{/_?}, ".") + key.to_s
+            else
+              key
+            end
+          end
+        end
+
+        def html_safe_translation_keys(keys, translations)
+          keys.zip(translations).map do |key, translation|
+            key =~ /(\b|_|\.)html$/ ? translation.html_safe : translation
           end
         end
     end
