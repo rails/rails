@@ -1,6 +1,6 @@
-*2.3.7 (unreleased)*
+*2.3.7 (May 24, 2010)*
 
-* ...
+* HTML safety: fix compatibility with the optional rails_xss plugin.  [Nathan Weizenbaum, Santiago Pastorino]
 
 
 *2.3.6 (May 23, 2010)*
