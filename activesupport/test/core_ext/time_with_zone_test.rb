@@ -326,7 +326,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
   def test_is_a
     assert_kind_of Time, @twz
     assert_kind_of Time, @twz
-    assert ActiveSupport::TimeWithZone, @twz
+    assert_kind_of ActiveSupport::TimeWithZone, @twz
   end
   
   def test_class_name
