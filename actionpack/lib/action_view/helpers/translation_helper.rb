@@ -13,7 +13,7 @@ module ActionView
       def translate(key, options = {})
         options[:raise] = true
         translation = I18n.translate(scope_key_by_partial(key), options)
-        (translation.respond_to?(:join) ? translation.join : translation).html_safe
+        translation.respond_to?(:html_safe) ? translation.html_safe : translation
       rescue I18n::MissingTranslationData => e
         keys = I18n.send(:normalize_translation_keys, e.locale, e.key, e.options[:scope])
         content_tag('span', keys.join(', '), :class => 'translation_missing')
