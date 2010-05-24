@@ -14,6 +14,7 @@ h3. How to Contribute?
 * Sample format : "Active Record Associations":http://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile.
 * Sample output : "Active Record Associations":association_basics.html.
 * You can build the Guides during testing by running +rake generate_guides+ in the +railties+ directory.
+* You're encouraged to validate XHTML for the generated guides before commiting your changes by running +rake validate_guides+ in the +railties+ directory.
 * Edge guides "can be consulted online":http://edgeguides.rubyonrails.org/. That website is generated periodically from docrails.
 
 h3. What to Contribute?
