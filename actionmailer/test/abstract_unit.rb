@@ -1,9 +1,9 @@
 require 'rubygems'
 require 'test/unit'
 
-$:.unshift "#{File.dirname(__FILE__)}/../lib"
-$:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift "#{File.dirname(__FILE__)}/../../actionpack/lib"
+$:.unshift File.expand_path('../../lib', __FILE__)
+$:.unshift File.expand_path('../../../activesupport/lib', __FILE__)
+$:.unshift File.expand_path('../../../actionpack/lib', __FILE__)
 require 'action_mailer'
 require 'action_mailer/test_case'
 

@@ -16,7 +16,7 @@ if defined?(ActiveRecord) && defined?(Fixtures)
 else
   $stderr.print 'Attempting to load Active Record... '
   begin
-    PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
+    PATH_TO_AR = File.expand_path('../../../activerecord/lib', __FILE__)
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
     require 'active_record'

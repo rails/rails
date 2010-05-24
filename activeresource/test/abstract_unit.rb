@@ -2,8 +2,8 @@ require 'rubygems'
 require 'test/unit'
 require 'active_support/test_case'
 
-$:.unshift "#{File.dirname(__FILE__)}/../lib"
-$:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift File.expand_path('../../lib', __FILE__)
+$:.unshift File.expand_path('../../../activesupport/lib', __FILE__)
 require 'active_resource'
 require 'active_resource/http_mock'
 
