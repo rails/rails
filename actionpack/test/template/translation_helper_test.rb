@@ -19,16 +19,20 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_translation_of_an_array
-    I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", "bar"])
-    assert_equal ["foo", "bar"], translate(["foo", "bar"])
+    assert_deprecated do
+      I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", "bar"])
+      assert_equal ["foo", "bar"], translate(["foo", "bar"])
+    end
   end
 
   def test_translation_of_an_array_with_html
-    translate_expected = ['<a href="#">foo</a>', '<a href="#">bar</a>', '<a href="#">baz</a>']
-    I18n.expects(:translate).with(["foo", "bar", "baz_html"], :raise => true).returns(translate_expected)
-    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
-    expected = '<a href="#">foo</a>, <a href="#">bar</a>, <a href="#">baz</a>'
-    assert_equal expected, @view.render(:file => "test/array_translation")
+    assert_deprecated do
+      translate_expected = ['<a href="#">foo</a>', '<a href="#">bar</a>', '<a href="#">baz</a>']
+      I18n.expects(:translate).with(["foo", "bar", "baz_html"], :raise => true).returns(translate_expected)
+      @view = ActionView::Base.new(ActionController::Base.view_paths, {})
+      expected = '<a href="#">foo</a>, <a href="#">bar</a>, <a href="#">baz</a>'
+      assert_equal expected, @view.render(:file => "test/array_translation")
+    end
   end
 
   def test_delegates_localize_to_i18n
@@ -44,9 +48,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_scoping_by_partial_of_an_array
-    I18n.expects(:translate).with(["test.scoped_array_translation.foo", "test.scoped_array_translation.bar"], :raise => true).returns(["foo", "bar"])
-    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
-    assert_equal "foo, bar", @view.render(:file => "test/scoped_array_translation")
+    assert_deprecated do
+      I18n.expects(:translate).with(["test.scoped_array_translation.foo", "test.scoped_array_translation.bar"], :raise => true).returns(["foo", "bar"])
+      @view = ActionView::Base.new(ActionController::Base.view_paths, {})
+      assert_equal "foo, bar", @view.render(:file => "test/scoped_array_translation")
+    end
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html

@@ -11,6 +11,9 @@ module ActionView
       # to translate many keys within the same partials and gives you a simple framework for scoping them consistently. If you don't
       # prepend the key with a period, nothing is converted.
       def translate(keys, options = {})
+        if keys.is_a?(Array)
+          ActiveSupport::Deprecation.warn "Giving an array to translate is deprecated, please give a symbol or a string instead", caller
+        end
         options[:raise]  = true
         are_keys_a_string  = keys.is_a?(String)
         keys = scope_keys_by_partial(keys)
