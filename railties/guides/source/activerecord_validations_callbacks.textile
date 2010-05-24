@@ -139,7 +139,7 @@ end
 
 +invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations and returns true if any errors were added to the object, and false otherwise.
 
-h4. +errors[]+
+h4(#validations_overview-errors). +errors[]+
 
 To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+ that returns an array with all attribute errors, when there are no errors on the specified attribute, an empty array is returned.
 
@@ -597,7 +597,7 @@ In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provid
 
 The following is a list of the most commonly used methods. Please refer to the +ActiveRecord::Errors+ documentation for a list of all the available methods.
 
-h4. +errors+
+h4(#working_with_validation_errors-errors). +errors+
 
 Returns an OrderedHash with all errors. Each key is the attribute name and value is an array of strings with all errors.
 
@@ -617,7 +617,7 @@ person.valid? # => true
 person.errors # => []
 </ruby>
 
-h4. +errors[]+
+h4(#working_with_validation_errors-errors-2). +errors[]+
 
 +errors[]+ is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute returns an empty array.
 
@@ -1162,6 +1162,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
 
+* May 24, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * May 15, 2010: Validation Errors section updated by "Emili Parreño":http://www.eparreno.com
 * March 7, 2009: Callbacks revision by Trevor Turk
 * February 10, 2009: Observers revision by Trevor Turk
