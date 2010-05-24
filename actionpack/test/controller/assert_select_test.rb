@@ -210,13 +210,13 @@ class AssertSelectTest < ActionController::TestCase
       assert_nothing_raised    { assert_select "div", "foo" }
       assert_nothing_raised    { assert_select "div", "bar" }
       assert_nothing_raised    { assert_select "div", /\w*/ }
-      assert_nothing_raised    { assert_select "div", /\w*/, :count=>2 }
-      assert_raise(Assertion) { assert_select "div", :text=>"foo", :count=>2 }
+      assert_nothing_raised    { assert_select "div", :text => /\w*/, :count=>2 }
+      assert_raise(Assertion)  { assert_select "div", :text=>"foo", :count=>2 }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>/\w*/ }
       assert_nothing_raised    { assert_select "div", :html=>/\w*/, :count=>2 }
-      assert_raise(Assertion) { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
+      assert_raise(Assertion)  { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
     end
   end
 
@@ -268,8 +268,8 @@ class AssertSelectTest < ActionController::TestCase
 
   def test_css_select
     render_html %Q{<div id="1"></div><div id="2"></div>}
-    assert 2, css_select("div").size
-    assert 0, css_select("p").size
+    assert_equal 2, css_select("div").size
+    assert_equal 0, css_select("p").size
   end
 
   def test_nested_css_select
