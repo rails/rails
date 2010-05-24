@@ -12,7 +12,7 @@ module ActionView
 
       def compile(template)
         magic = $1 if template.source =~ /\A(<%#.*coding[:=]\s*(\S+)\s*-?%>)/
-        erb = "#{magic}<% __in_erb_template=true %>#{template.source}"
+        erb = "#{magic}<% __in_erb_template=true %>#{template.source}".force_encoding(template.source.encoding)
         ::ERB.new(erb, nil, erb_trim_mode, '@output_buffer').src
       end
     end
