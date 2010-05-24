@@ -109,9 +109,4 @@ class String
   def html_safe?
     false
   end
-
-  def html_safe!
-    ActiveSupport::Deprecation.warn("Use html_safe with your strings instead of html_safe! See http://yehudakatz.com/2010/02/01/safebuffers-and-rails-3-0/ for the full story.", caller)
-    self
-  end
 end
