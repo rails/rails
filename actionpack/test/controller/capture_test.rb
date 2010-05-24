@@ -36,7 +36,7 @@ class CaptureTest < ActionController::TestCase
 
   def test_simple_capture
     get :capturing
-    assert_equal "Dreamy days", @response.body.strip
+    assert_equal "<p>Dreamy days</p>", @response.body.strip
   end
 
   def test_content_for
