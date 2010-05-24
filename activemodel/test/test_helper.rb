@@ -7,7 +7,7 @@ require 'mocha'
 require 'active_model'
 require 'active_model/state_machine'
 
-$:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
+$:.unshift File.expand_path('../../../activesupport/lib', __FILE__)
 require 'active_support'
 require 'active_support/test_case'
 
