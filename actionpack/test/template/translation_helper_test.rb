@@ -18,6 +18,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal expected, translate(:foo)
   end
 
+  def test_translation_returning_an_array
+    I18n.expects(:translate).with(:foo, :raise => true).returns(["foo", "bar"])
+    assert_equal ["foo", "bar"], translate(:foo)
+  end
+
   def test_delegates_localize_to_i18n
     @time = Time.utc(2008, 7, 8, 12, 18, 38)
     I18n.expects(:localize).with(@time)
@@ -49,5 +54,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_marks_translations_with_a_html_suffix_as_safe_html
     I18n.expects(:translate).with("hello_html", :raise => true).returns("<a>Hello World</a>")
     assert translate("hello_html").html_safe?
+  end
+
+  def test_translation_returning_an_array_ignores_html_suffix
+    I18n.expects(:translate).with(:foo_html, :raise => true).returns(["foo", "bar"])
+    assert_equal ["foo", "bar"], translate(:foo_html)
   end
 end
