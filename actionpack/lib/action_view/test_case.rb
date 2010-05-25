@@ -10,11 +10,16 @@ module ActionView
 
       attr_accessor :request, :response, :params
 
-      def self.controller_path
-        ''
+      class << self
+        attr_writer :controller_path
+      end
+
+      def controller_path=(path)
+        self.class.controller_path=(path)
       end
 
       def initialize
+        self.class.controller_path = ""
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
 

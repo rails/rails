@@ -112,7 +112,7 @@ module ActionView
             end
           end
 
-          TestController.stubs(:controller_path).returns('test')
+          @controller.controller_path = 'test'
 
           @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
           assert_match /Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper')
@@ -161,7 +161,7 @@ module ActionView
       end
 
       test "is able to render partials from templates and also use instance variables" do
-        TestController.stubs(:controller_path).returns('test')
+        @controller.controller_path = "test"
 
         @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
         assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
