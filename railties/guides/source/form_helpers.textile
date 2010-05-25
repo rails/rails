@@ -255,7 +255,7 @@ You can create a similar binding without actually creating  +&lt;form&gt;+ tags 
 <erb>
 <%= form_for :person, @person, :url => { :action => "create" } do |person_form| %>
   <%= person_form.text_field :name %>
-  <% fields_for @person.contact_detail do |contact_details_form| %>
+  <%= fields_for @person.contact_detail do |contact_details_form| %>
     <%= contact_details_form.text_field :phone_number %>
   <% end %>
 <% end %>
@@ -697,7 +697,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% for address in @person.addresses %>
-    <% person_form.fields_for address, :index => address do |address_form|%>
+    <%= person_form.fields_for address, :index => address do |address_form|%>
       <%= address_form.text_field :city %>
     <% end %>
   <% end %>
@@ -725,7 +725,7 @@ Rails knows that all these inputs should be part of the person hash because you 
 To create more intricate nestings, you can specify the first part of the input name (+person[address]+ in the previous example) explicitly, for example
 
 <erb>
-<% fields_for 'person[address][primary]', address, :index => address do |address_form| %>
+<%= fields_for 'person[address][primary]', address, :index => address do |address_form| %>
   <%= address_form.text_field :city %>
 <% end %>
 </erb>
@@ -741,7 +741,7 @@ As a general rule the final input name is the concatenation of the name given to
 As a shortcut you can append [] to the name and omit the +:index+ option. This is the same as specifying +:index => address+ so
 
 <erb>
-<% fields_for 'person[address][primary][]', address do |address_form| %>
+<%= fields_for 'person[address][primary][]', address do |address_form| %>
   <%= address_form.text_field :city %>
 <% end %>
 </erb>
