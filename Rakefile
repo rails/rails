@@ -66,6 +66,7 @@ Rake::RDocTask.new do |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
+  rdoc.options << '--main' << 'railties/README'
 
   rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : './doc/template/horo'
 
