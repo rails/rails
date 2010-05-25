@@ -62,8 +62,6 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    alias safe_concat concat
-
     def +(other)
       dup.concat(other)
     end
