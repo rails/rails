@@ -11,17 +11,22 @@ module ActionView
       # to translate many keys within the same partials and gives you a simple framework for scoping them consistently. If you don't
       # prepend the key with a period, nothing is converted.
       def translate(keys, options = {})
-        if keys.is_a?(Array)
+        if multiple_keys = keys.is_a?(Array)
           ActiveSupport::Deprecation.warn "Giving an array to translate is deprecated, please give a symbol or a string instead", caller
         end
 
         options[:raise] = true
-        return_first = keys.is_a?(String) || keys.is_a?(Symbol)
         keys = scope_keys_by_partial(keys)
 
         translations = I18n.translate(keys, options)
-        translations = html_safe_translation_keys(keys, Array.wrap(translations))
-        return_first ? translations.first : translations
+        translations = [translations] if !multiple_keys && translations.size > 1
+        translations = html_safe_translation_keys(keys, translations)
+
+        if multiple_keys || translations.size > 1
+          translations
+        else
+          translations.first
+        end
       rescue I18n::MissingTranslationData => e
         keys = I18n.send(:normalize_translation_keys, e.locale, e.key, e.options[:scope])
         content_tag('span', keys.join(', '), :class => 'translation_missing')
@@ -50,7 +55,11 @@ module ActionView
 
         def html_safe_translation_keys(keys, translations)
           keys.zip(translations).map do |key, translation|
-            key =~ /(\b|_|\.)html$/ ? translation.html_safe : translation
+            if key =~ /(\b|_|\.)html$/ && translation.respond_to?(:html_safe)
+              translation.html_safe
+            else
+              translation
+            end
           end
         end
     end

@@ -18,10 +18,22 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal expected, translate(:foo)
   end
 
+  def test_translation_returning_an_array
+    I18n.expects(:translate).with(["foo"], :raise => true).returns(["foo", "bar"])
+    assert_equal ["foo", "bar"], translate(:foo)
+  end
+
   def test_translation_of_an_array
     assert_deprecated do
       I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", "bar"])
       assert_equal ["foo", "bar"], translate(["foo", "bar"])
+    end
+  end
+
+  def test_translation_of_an_array_returning_an_array
+    assert_deprecated do
+      I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", ["bar", "baz"]])
+      assert_equal ["foo", ["bar", "baz"]], translate(["foo", "bar"])
     end
   end
 
@@ -74,5 +86,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_marks_translations_with_a_html_suffix_as_safe_html
     I18n.expects(:translate).with(["hello_html"], :raise => true).returns(["<a>Hello World</a>"])
     assert translate("hello_html").html_safe?
+  end
+
+  def test_translation_returning_an_array_ignores_html_suffix
+    I18n.expects(:translate).with(["foo_html"], :raise => true).returns(["foo", "bar"])
+    assert_equal ["foo", "bar"], translate(:foo_html)
   end
 end
