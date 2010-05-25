@@ -1044,11 +1044,6 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Allows Active Resource objects to be used as parameters in Action Pack URL generation.
-    def to_param
-      id && id.to_s
-    end
-
     # Test for equality.  Resource are equal if and only if +other+ is the same object or
     # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
@@ -1411,6 +1406,7 @@ module ActiveResource
   class Base
     extend ActiveModel::Naming
     include CustomMethods, Observing, Validations
+    include ActiveModel::Conversion
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
   end
