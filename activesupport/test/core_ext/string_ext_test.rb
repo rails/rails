@@ -287,11 +287,6 @@ end
 class OutputSafetyTest < ActiveSupport::TestCase
   def setup
     @string = "hello"
-    @object = Class.new(Object) do
-      def to_s
-        "other"
-      end
-    end.new
   end
 
   test "A string is unsafe by default" do
@@ -316,15 +311,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "An object is unsafe by default" do
-    assert !@object.html_safe?
-  end
-
-  test "Adding an object to a safe string returns a safe string" do
-    string = @string.html_safe
-    string << @object
-
-    assert_equal "helloother", string
-    assert string.html_safe?
+    assert !Object.new.html_safe?
   end
 
   test "Adding a safe string to another safe string returns a safe string" do
@@ -336,12 +323,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert @combination.html_safe?
   end
 
-  test "Adding an unsafe string to a safe string escapes it and returns a safe string" do
+  test "Adding an unsafe string to a safe string doesn't escape it without rails_xss but returns a safe string" do
     @other_string = "other".html_safe
     @combination = @other_string + "<foo>"
     @other_combination = @string + "<foo>"
 
-    assert_equal "other&lt;foo&gt;", @combination
+    assert_equal "other<foo>", @combination
     assert_equal "hello<foo>", @other_combination
 
     assert @combination.html_safe?
@@ -356,10 +343,10 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert !@other_string.html_safe?
   end
 
-  test "Concatting unsafe onto safe yields escaped safe" do
+  test "Concatting unsafe onto safe yields safe by not escaped without rails_xss" do
     @other_string = "other".html_safe
     string = @other_string.concat("<foo>")
-    assert_equal "other&lt;foo&gt;", string
+    assert_equal "other<foo>", string
     assert string.html_safe?
   end
 
@@ -379,10 +366,10 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert !@other_string.html_safe?
   end
 
-  test "Concatting unsafe onto safe with << yields escaped safe" do
+  test "Concatting unsafe onto safe with << yields safe but not escaped without rails_xss" do
     @other_string = "other".html_safe
     string = @other_string << "<foo>"
-    assert_equal "other&lt;foo&gt;", string
+    assert_equal "other<foo>", string
     assert string.html_safe?
   end
 
