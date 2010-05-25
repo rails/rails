@@ -1081,6 +1081,13 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '1', matz.to_param
   end
 
+  def test_to_key_quacks_like_active_record
+    new_person = Person.new
+    assert_nil new_person.to_key
+    matz = Person.find(1)
+    assert_equal [1], matz.to_key
+  end
+
   def test_parse_deep_nested_resources
     luis = Customer.find(1)
     assert_kind_of Customer, luis
