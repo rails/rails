@@ -122,6 +122,21 @@ module ActionView
     helper_method :from_test_case
   end
 
+  class IgnoreProtectAgainstForgeryTest < ActionView::TestCase
+    module HelperThatInvokesProtectAgainstForgery
+      def help_me
+        protect_against_forgery?
+      end
+    end
+
+    helper HelperThatInvokesProtectAgainstForgery
+
+    test "protect_from_forgery? in any helpers returns false" do
+      assert !_view.help_me
+    end
+
+  end
+
   class ATestHelperTest < ActionView::TestCase
     include SharedTests
     test_case = self
