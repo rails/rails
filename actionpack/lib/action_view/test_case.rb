@@ -89,14 +89,11 @@ module ActionView
 
         self.class.send(:include_helper_modules!)
         make_test_case_available_to_view!
+        say_no_to_protect_against_forgery!
       end
 
       def config
         @controller.config if @controller.respond_to?(:config)
-      end
-
-      def protect_against_forgery?
-        false
       end
 
       def render(options = {}, local_assigns = {}, &block)
@@ -115,6 +112,14 @@ module ActionView
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def response_from_page_or_rjs
         HTML::Document.new(@rendered.blank? ? @output_buffer : @rendered).root
+      end
+
+      def say_no_to_protect_against_forgery!
+        _helpers.module_eval do
+          def protect_against_forgery?
+            false
+          end
+        end
       end
 
       def make_test_case_available_to_view!
