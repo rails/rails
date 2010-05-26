@@ -29,7 +29,7 @@ module Arel
     def inclusion_predicate_sql
       value.inclusion_predicate_sql
     end
-    
+
     def exclusion_predicate_sql
       value.exclusion_predicate_sql
     end
@@ -37,7 +37,7 @@ module Arel
     def equality_predicate_sql
       value.equality_predicate_sql
     end
-    
+
     def inequality_predicate_sql
       value.inequality_predicate_sql
     end

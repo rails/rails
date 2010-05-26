@@ -5,19 +5,19 @@ module Arel
         operand1.eval(row).send(operator, operand2.eval(row))
       end
     end
-    
+
     class Unary < Predicate
       def eval(row)
         operand.eval(row).send(operator)
       end
     end
-    
+
     class Not < Unary
       def eval(row)
         !operand.eval(row)
       end
     end
-    
+
     class Polyadic < Predicate
       def eval(row)
         predicates.send(compounder) do |operation|
@@ -25,15 +25,15 @@ module Arel
         end
       end
     end
-    
+
     class Any < Polyadic
       def compounder; :any? end
     end
-    
+
     class All < Polyadic
       def compounder; :all? end
     end
-    
+
     class CompoundPredicate < Binary
       def eval(row)
         eval "operand1.eval(row) #{operator} operand2.eval(row)"
@@ -77,7 +77,7 @@ module Arel
     class Match < Binary
       def operator; :=~ end
     end
-    
+
     class NotMatch < Binary
       def eval(row)
         operand1.eval(row) !~ operand2.eval(row)
@@ -89,7 +89,7 @@ module Arel
         operand2.eval(row).include?(operand1.eval(row))
       end
     end
-    
+
     class NotIn < Binary
       def eval(row)
         !(operand2.eval(row).include?(operand1.eval(row)))

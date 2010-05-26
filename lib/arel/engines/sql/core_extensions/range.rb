@@ -8,7 +8,7 @@ module Arel
       def inclusion_predicate_sql
         "BETWEEN"
       end
-      
+
       def exclusion_predicate_sql
         "NOT BETWEEN"
       end

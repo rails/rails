@@ -99,7 +99,7 @@ module Arel
             end
           end
         end
-        
+
         describe 'when relating to a range with an excluded end' do
           before do
             @range = 1...3
