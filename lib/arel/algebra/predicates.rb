@@ -8,23 +8,23 @@ module Arel
       def and(other_predicate)
         And.new(self, other_predicate)
       end
-      
+
       def complement
         Not.new(self)
       end
-      
+
       def not
         self.complement
       end
     end
-    
+
     class Polyadic < Predicate
       attributes :predicates
-      
+
       def initialize(*predicates)
         @predicates = predicates
       end
-      
+
       # Build a Polyadic predicate based on:
       # * <tt>operator</tt> - The Predicate subclass that defines the type of operation
       #   (LessThan, Equality, etc)
@@ -37,19 +37,19 @@ module Arel
           end
         )
       end
-      
+
       def ==(other)
         same_elements?(@predicates, other.predicates)
       end
-      
+
       def bind(relation)
         self.class.new(
           *predicates.map {|p| p.find_correlate_in(relation)}
         )
       end
-      
+
       private
-      
+
       def same_elements?(a1, a2)
         [:select, :inject, :size].each do |m|
           return false unless [a1, a2].each {|a| a.respond_to?(m) }
@@ -58,28 +58,28 @@ module Arel
         a2.inject({}) { |h,e| h[e] = a2.select { |i| i == e }.size; h }
       end
     end
-    
+
     class Any < Polyadic
       def complement
         All.new(*predicates.map {|p| p.complement})
       end
     end
-    
+
     class All < Polyadic
       def complement
         Any.new(*predicates.map {|p| p.complement})
       end
     end
-    
+
     class Unary < Predicate
       attributes :operand
       deriving :initialize, :==
-      
+
       def bind(relation)
         self.class.new(operand.find_correlate_in(relation))
       end
     end
-    
+
     class Not < Unary
       def complement
         operand
@@ -100,7 +100,7 @@ module Arel
         self.class.new(operand1.find_correlate_in(relation), operand2.find_correlate_in(relation))
       end
     end
-    
+
     class CompoundPredicate < Binary; end
 
     class And < CompoundPredicate
@@ -108,7 +108,7 @@ module Arel
         Or.new(operand1.complement, operand2.complement)
       end
     end
-    
+
     class Or < CompoundPredicate
       def complement
         And.new(operand1.complement, operand2.complement)
@@ -121,7 +121,7 @@ module Arel
           ((operand1 == other.operand1 and operand2 == other.operand2) or
            (operand1 == other.operand2 and operand2 == other.operand1))
       end
-      
+
       def complement
         Inequality.new(operand1, operand2)
       end
@@ -133,54 +133,54 @@ module Arel
           ((operand1 == other.operand1 and operand2 == other.operand2) or
            (operand1 == other.operand2 and operand2 == other.operand1))
       end
-      
+
       def complement
         Equality.new(operand1, operand2)
       end
     end
-    
+
     class GreaterThanOrEqualTo < Binary
       def complement
         LessThan.new(operand1, operand2)
       end
     end
-    
+
     class GreaterThan < Binary
       def complement
         LessThanOrEqualTo.new(operand1, operand2)
       end
     end
-    
+
     class LessThanOrEqualTo < Binary
       def complement
         GreaterThan.new(operand1, operand2)
       end
     end
-    
+
     class LessThan < Binary
       def complement
         GreaterThanOrEqualTo.new(operand1, operand2)
       end
     end
-    
+
     class Match < Binary
       def complement
         NotMatch.new(operand1, operand2)
       end
     end
-    
+
     class NotMatch < Binary
       def complement
         Match.new(operand1, operand2)
       end
     end
-    
+
     class In < Binary
       def complement
         NotIn.new(operand1, operand2)
       end
     end
-    
+
     class NotIn < Binary
       def complement
         In.new(operand1, operand2)
