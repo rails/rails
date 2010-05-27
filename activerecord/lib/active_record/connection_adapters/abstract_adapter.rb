@@ -211,6 +211,12 @@ module ActiveRecord
             log_info(sql, name, 0)
             nil
           end
+        rescue SystemExit, SignalException, NoMemoryError => e
+          # Don't re-wrap these exceptions. They are probably not being caused by invalid
+          # sql, but rather some external stimulus beyond the responsibilty of this code.
+          # Additionaly, wrapping these exceptions with StatementInvalid would lead to
+          #  meaningful loss of data, such as losing SystemExit#status.
+          raise e
         rescue Exception => e
           # Log message and raise exception.
           # Set last_verification to 0, so that connection gets verified
