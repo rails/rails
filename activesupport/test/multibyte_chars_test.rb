@@ -36,7 +36,7 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_forwarded_bang_method_calls_should_return_the_original_chars_instance
-    assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing! 
+    assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing!
     assert_equal @chars.object_id, @chars.__method_for_multibyte_testing!.object_id
   end
 
@@ -65,33 +65,32 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_unpack_utf8_strings
-    assert_equal 4, @proxy_class.u_unpack(UNICODE_STRING).length
-    assert_equal 5, @proxy_class.u_unpack(ASCII_STRING).length
+    assert_equal 4, ActiveSupport::Multibyte::Unicode.u_unpack(UNICODE_STRING).length
+    assert_equal 5, ActiveSupport::Multibyte::Unicode.u_unpack(ASCII_STRING).length
   end
 
   def test_unpack_raises_encoding_error_on_broken_strings
     assert_raise(ActiveSupport::Multibyte::EncodingError) do
-      @proxy_class.u_unpack(BYTE_STRING)
+      ActiveSupport::Multibyte::Unicode.u_unpack(BYTE_STRING)
     end
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_concatenation_should_return_a_proxy_class_instance
-      assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars + 'b').class
-      assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars << 'b').class
-    end
-
-    def test_ascii_strings_are_treated_at_utf8_strings
-      assert_equal ActiveSupport::Multibyte.proxy_class, ASCII_STRING.mb_chars.class
-    end
-
-    def test_concatenate_should_return_proxy_instance
-      assert(('a'.mb_chars + 'b').kind_of?(@proxy_class))
-      assert(('a'.mb_chars + 'b'.mb_chars).kind_of?(@proxy_class))
-      assert(('a'.mb_chars << 'b').kind_of?(@proxy_class))
-      assert(('a'.mb_chars << 'b'.mb_chars).kind_of?(@proxy_class))
-    end
+  def test_concatenation_should_return_a_proxy_class_instance
+    assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars + 'b').class
+    assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars << 'b').class
   end
+
+  def test_ascii_strings_are_treated_at_utf8_strings
+    assert_equal ActiveSupport::Multibyte.proxy_class, ASCII_STRING.mb_chars.class
+  end
+
+  def test_concatenate_should_return_proxy_instance
+    assert(('a'.mb_chars + 'b').kind_of?(@proxy_class))
+    assert(('a'.mb_chars + 'b'.mb_chars).kind_of?(@proxy_class))
+    assert(('a'.mb_chars << 'b').kind_of?(@proxy_class))
+    assert(('a'.mb_chars << 'b'.mb_chars).kind_of?(@proxy_class))
+  end
+
 end
 
 class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
@@ -111,35 +110,33 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     @byte_order_mark = [65279].pack('U')
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_split_should_return_an_array_of_chars_instances
-      @chars.split(//).each do |character|
-        assert_kind_of ActiveSupport::Multibyte.proxy_class, character
-      end
+  def test_split_should_return_an_array_of_chars_instances
+    @chars.split(//).each do |character|
+      assert_kind_of ActiveSupport::Multibyte.proxy_class, character
     end
+  end
 
-    def test_indexed_insert_accepts_fixnums
-      @chars[2] = 32
-      assert_equal 'こに わ', @chars
-    end
+  def test_indexed_insert_accepts_fixnums
+    @chars[2] = 32
+    assert_equal 'こに わ', @chars
+  end
 
-    def test_overridden_bang_methods_return_self
-      [:rstrip!, :lstrip!, :strip!, :reverse!, :upcase!, :downcase!, :capitalize!].each do |method|
-        assert_equal @chars.object_id, @chars.send(method).object_id
-      end
+  def test_overridden_bang_methods_return_self
+    [:rstrip!, :lstrip!, :strip!, :reverse!, :upcase!, :downcase!, :capitalize!].each do |method|
+      assert_equal @chars.object_id, @chars.send(method).object_id
     end
+  end
 
-    def test_overridden_bang_methods_change_wrapped_string
-      [:rstrip!, :lstrip!, :strip!, :reverse!, :upcase!, :downcase!].each do |method|
-        original = ' Café '
-        proxy = chars(original.dup)
-        proxy.send(method)
-        assert_not_equal original, proxy.to_s
-      end
-      proxy = chars('òu')
-      proxy.capitalize!
-      assert_equal 'Òu', proxy.to_s
+  def test_overridden_bang_methods_change_wrapped_string
+    [:rstrip!, :lstrip!, :strip!, :reverse!, :upcase!, :downcase!].each do |method|
+      original = ' Café '
+      proxy = chars(original.dup)
+      proxy.send(method)
+      assert_not_equal original, proxy.to_s
     end
+    proxy = chars('òu')
+    proxy.capitalize!
+    assert_equal 'Òu', proxy.to_s
   end
 
   if RUBY_VERSION >= '1.9'
@@ -151,11 +148,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def test_identity
     assert_equal @chars, @chars
     assert @chars.eql?(@chars)
-    if RUBY_VERSION <= '1.9'
-      assert !@chars.eql?(UNICODE_STRING)
-    else
-      assert @chars.eql?(UNICODE_STRING)
-    end
+    assert !@chars.eql?(UNICODE_STRING)
   end
 
   def test_string_methods_are_chainable
@@ -207,7 +200,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 'こわにちわ', @chars.insert(1, 'わ')
     assert_equal 'こわわわにちわ', @chars.insert(2, 'わわ')
     assert_equal 'わこわわわにちわ', @chars.insert(0, 'わ')
-    assert_equal 'わこわわわにちわ', @chars.wrapped_string if RUBY_VERSION < '1.9'
+    assert_equal 'わこわわわにちわ', @chars.wrapped_string
   end
 
   def test_insert_should_be_destructive
@@ -330,7 +323,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { @chars.center }
   end
 
-  def test_center_should_count_charactes_instead_of_bytes
+  def test_center_should_count_characters_instead_of_bytes
     assert_equal UNICODE_STRING, @chars.center(-3)
     assert_equal UNICODE_STRING, @chars.center(0)
     assert_equal UNICODE_STRING, @chars.center(4)

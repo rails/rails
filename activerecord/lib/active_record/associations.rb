@@ -1461,7 +1461,7 @@ module ActiveRecord
           before_destroy(method_name)
 
           module_eval(
-            "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)"
+            "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)", __FILE__, __LINE__
           )
         end
 
@@ -2130,7 +2130,7 @@ module ActiveRecord
               end
 
               def interpolate_sql(sql)
-                instance_eval("%@#{sql.gsub('@', '\@')}@")
+                instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
               end
           end
         end

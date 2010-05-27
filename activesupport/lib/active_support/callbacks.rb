@@ -203,8 +203,8 @@ module ActiveSupport
             # end
             #
             name = "_conditional_callback_#{@kind}_#{next_id}"
-            txt, line = <<-RUBY_EVAL, __LINE__ + 1
-              def #{name}(halted)
+            @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
+               def #{name}(halted)
                 #{@compiled_options[0] || "if true"} && !halted
                   #{@filter} do
                     yield self
@@ -214,7 +214,6 @@ module ActiveSupport
                 end
               end
             RUBY_EVAL
-            @klass.class_eval(txt, __FILE__, line)
             "#{name}(halted) do"
           end
         end
@@ -312,9 +311,9 @@ module ActiveSupport
 
       def _normalize_legacy_filter(kind, filter)
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
-          filter.singleton_class.class_eval(
-            "def #{kind}(context, &block) filter(context, &block) end",
-            __FILE__, __LINE__ - 1)
+          filter.singleton_class.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{kind}(context, &block) filter(context, &block) end
+          RUBY_EVAL
         elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around
           def filter.around(context)
             should_continue = before(context)
@@ -387,31 +386,29 @@ module ActiveSupport
         send("_update_#{symbol}_superclass_callbacks")
         body = send("_#{symbol}_callbacks").compile(nil)
 
-        body, line = <<-RUBY_EVAL, __LINE__ + 1
-          def _run_#{symbol}_callbacks(key = nil, &blk)
-            if self.class.send("_update_#{symbol}_superclass_callbacks")
-              self.class.__define_runner(#{symbol.inspect})
-              return _run_#{symbol}_callbacks(key, &blk)
-            end
-
-            if key
-              name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
-
-              unless respond_to?(name)
-                self.class.__create_keyed_callback(name, :#{symbol}, self, &blk)
-              end
-
-              send(name, &blk)
-            else
-              #{body}
-            end
-          end
-          private :_run_#{symbol}_callbacks
-        RUBY_EVAL
-
         silence_warnings do
           undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
-          class_eval body, __FILE__, line
+          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def _run_#{symbol}_callbacks(key = nil, &blk)
+              if self.class.send("_update_#{symbol}_superclass_callbacks")
+                self.class.__define_runner(#{symbol.inspect})
+                return _run_#{symbol}_callbacks(key, &blk)
+              end
+
+              if key
+                name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
+
+                unless respond_to?(name)
+                  self.class.__create_keyed_callback(name, :#{symbol}, self, &blk)
+                end
+
+                send(name, &blk)
+              else
+                #{body}
+              end
+            end
+            private :_run_#{symbol}_callbacks
+          RUBY_EVAL
         end
       end
 

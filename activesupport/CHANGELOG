@@ -1,8 +1,10 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Ruby 1.9: support UTF-8 case folding.  #4595 [Norman Clarke]
+
 * Renames Array#rand -> Array#random_element. [Santiago Pastorino, Rizwan Reza]
 
-* 1.9 compat: Renames last_(month|year) to prev_(month|year) in Date and Time. [fxn]
+* Ruby 1.9: Renames last_(month|year) to prev_(month|year) in Date and Time. [fxn]
 
 * Aliases Date#sunday to Date#end_of_week. [fxn]
 

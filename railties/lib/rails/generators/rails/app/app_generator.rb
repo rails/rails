@@ -17,7 +17,7 @@ module Rails
     private
       %w(template copy_file directory empty_directory inside
          empty_directory_with_gitkeep create_file chmod shebang).each do |method|
-        class_eval <<-RUBY
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)
             @generator.send(:#{method}, *args, &block)
           end

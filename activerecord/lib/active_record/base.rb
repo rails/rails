@@ -1786,7 +1786,7 @@ module ActiveRecord #:nodoc:
       # Interpolate custom SQL string in instance context.
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
-        instance_eval("%@#{sql.gsub('@', '\@')}@")
+        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
       end
 
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done

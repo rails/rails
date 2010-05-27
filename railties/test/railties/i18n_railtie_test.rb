@@ -9,12 +9,6 @@ module RailtiesTest
       boot_rails
       FileUtils.rm_rf("#{app_path}/config/environments")
       require "rails/all"
-      @old_path = I18n.load_path
-    end
-
-    def teardown
-      I18n.load_path = @old_path || []
-      I18n.backend = nil
     end
 
     def load_app
@@ -42,7 +36,7 @@ module RailtiesTest
     end
 
     test "not using config.i18n.fallbacks does not initialize I18n.fallbacks" do
-      I18n.backend = Class.new { include I18n::Backend::Base }.new # can't uninclude modules, so use a tmp backend class
+      I18n.backend = Class.new { include I18n::Backend::Base }.new
       load_app
       assert_no_fallbacks
     end
@@ -50,6 +44,15 @@ module RailtiesTest
     test "config.i18n.fallbacks = true initializes I18n.fallbacks with default settings" do
       I18n::Railtie.config.i18n.fallbacks = true
       load_app
+      assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_fallbacks :de => [:de, :en]
+    end
+
+    test "config.i18n.fallbacks = true initializes I18n.fallbacks with default settings even when backend changes" do
+      I18n::Railtie.config.i18n.fallbacks = true
+      I18n::Railtie.config.i18n.backend = Class.new { include I18n::Backend::Base }.new
+      load_app
+      assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
       assert_fallbacks :de => [:de, :en]
     end
 

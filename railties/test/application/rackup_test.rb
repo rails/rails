@@ -35,7 +35,7 @@ module ApplicationTests
     # keep it working for now
     test "deprecated ActionController::Dispatcher still works" do
       rackup
-      assert_kind_of?  Rails::Application, ActionController::Dispatcher.new
+      assert_kind_of Rails::Application, ActionController::Dispatcher.new
     end
 
     test "the config object is available on the application object" do

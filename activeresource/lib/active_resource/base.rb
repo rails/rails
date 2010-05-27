@@ -582,12 +582,13 @@ module ActiveResource
         # Clear prefix parameters in case they have been cached
         @prefix_parameters = nil
 
-        # Redefine the new methods.
-        code, line = <<-end_code, __LINE__ + 1
-          def prefix_source() "#{value}" end
-          def prefix(options={}) "#{prefix_call}" end
-        end_code
-        silence_warnings { instance_eval code, __FILE__, line }
+        silence_warnings do
+          # Redefine the new methods.
+          instance_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def prefix_source() "#{value}" end
+            def prefix(options={}) "#{prefix_call}" end
+          RUBY_EVAL
+        end
       rescue
         logger.error "Couldn't set prefix: #{$!}\n  #{code}" if logger
         raise
@@ -1043,11 +1044,6 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Allows Active Resource objects to be used as parameters in Action Pack URL generation.
-    def to_param
-      id && id.to_s
-    end
-
     # Test for equality.  Resource are equal if and only if +other+ is the same object or
     # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
@@ -1410,6 +1406,7 @@ module ActiveResource
   class Base
     extend ActiveModel::Naming
     include CustomMethods, Observing, Validations
+    include ActiveModel::Conversion
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
   end

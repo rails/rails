@@ -48,19 +48,20 @@ module I18n
     # Set the i18n configuration from config.i18n but special-case for
     # the load_path which should be appended to what's already set instead of overwritten.
     config.after_initialize do |app|
+      fallbacks = app.config.i18n.delete(:fallbacks)
+
       app.config.i18n.each do |setting, value|
         case setting
         when :railties_load_path
           app.config.i18n.load_path.unshift(*value)
         when :load_path
           I18n.load_path += value
-        when :fallbacks
-          init_fallbacks(value) if value && validate_fallbacks(value)
         else
           I18n.send("#{setting}=", value)
         end
       end
 
+      init_fallbacks(fallbacks) if fallbacks && validate_fallbacks(fallbacks)
       I18n.reload!
     end
 

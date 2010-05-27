@@ -5,6 +5,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_is_a
     d = 1.day
     assert d.is_a?(ActiveSupport::Duration)
+    assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
     assert_kind_of Fixnum, d
     assert !d.is_a?(Hash)

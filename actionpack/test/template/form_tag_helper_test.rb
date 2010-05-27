@@ -206,6 +206,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_area_tag_unescaped_nil_content
+    actual = text_area_tag "body", nil, :escape => false
+    expected = %(<textarea id="body" name="body"></textarea>)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_field_tag
     actual = text_field_tag "title", "Hello!"
     expected = %(<input id="title" name="title" type="text" value="Hello!" />)

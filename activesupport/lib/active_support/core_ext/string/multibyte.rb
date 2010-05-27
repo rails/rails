@@ -2,7 +2,7 @@
 require 'active_support/multibyte'
 
 class String
-  unless '1.9'.respond_to?(:force_encoding)
+  if '1.9'.respond_to?(:force_encoding)
     # == Multibyte proxy
     #
     # +mb_chars+ is a multibyte safe proxy for string methods.
@@ -37,23 +37,13 @@ class String
     # For more information about the methods defined on the Chars proxy see ActiveSupport::Multibyte::Chars. For
     # information about how to change the default Multibyte behaviour see ActiveSupport::Multibyte.
     def mb_chars
-      if ActiveSupport::Multibyte.proxy_class.wants?(self)
+      if ActiveSupport::Multibyte.proxy_class.consumes?(self)
         ActiveSupport::Multibyte.proxy_class.new(self)
       else
         self
       end
     end
-    
-    # Returns true if the string has UTF-8 semantics (a String used for purely byte resources is unlikely to have
-    # them), returns false otherwise.
-    def is_utf8?
-      ActiveSupport::Multibyte::Chars.consumes?(self)
-    end
-  else
-    def mb_chars #:nodoc
-      self
-    end
-    
+
     def is_utf8? #:nodoc
       case encoding
       when Encoding::UTF_8
@@ -63,6 +53,20 @@ class String
       else
         false
       end
+    end
+  else
+    def mb_chars
+      if ActiveSupport::Multibyte.proxy_class.wants?(self)
+        ActiveSupport::Multibyte.proxy_class.new(self)
+      else
+        self
+      end
+    end
+
+    # Returns true if the string has UTF-8 semantics (a String used for purely byte resources is unlikely to have
+    # them), returns false otherwise.
+    def is_utf8?
+      ActiveSupport::Multibyte::Chars.consumes?(self)
     end
   end
 end
