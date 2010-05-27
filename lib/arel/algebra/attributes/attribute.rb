@@ -85,119 +85,119 @@ module Arel
       def eq(other)
         Predicates::Equality.new(self, other)
       end
-      
+
       def eq_any(*others)
         Predicates::Any.build(Predicates::Equality, self, *others)
       end
-      
+
       def eq_all(*others)
         Predicates::All.build(Predicates::Equality, self, *others)
       end
-      
+
       def not_eq(other)
         Predicates::Inequality.new(self, other)
       end
-      
+
       def not_eq_any(*others)
         Predicates::Any.build(Predicates::Inequality, self, *others)
       end
-      
+
       def not_eq_all(*others)
         Predicates::All.build(Predicates::Inequality, self, *others)
       end
-      
+
       def lt(other)
         Predicates::LessThan.new(self, other)
       end
-      
+
       def lt_any(*others)
         Predicates::Any.build(Predicates::LessThan, self, *others)
       end
-      
+
       def lt_all(*others)
         Predicates::All.build(Predicates::LessThan, self, *others)
       end
-      
+
       def lteq(other)
         Predicates::LessThanOrEqualTo.new(self, other)
       end
-      
+
       def lteq_any(*others)
         Predicates::Any.build(Predicates::LessThanOrEqualTo, self, *others)
       end
-      
+
       def lteq_all(*others)
         Predicates::All.build(Predicates::LessThanOrEqualTo, self, *others)
       end
-      
+
       def gt(other)
         Predicates::GreaterThan.new(self, other)
       end
-      
+
       def gt_any(*others)
         Predicates::Any.build(Predicates::GreaterThan, self, *others)
       end
-      
+
       def gt_all(*others)
         Predicates::All.build(Predicates::GreaterThan, self, *others)
       end
-      
+
       def gteq(other)
         Predicates::GreaterThanOrEqualTo.new(self, other)
       end
-      
+
       def gteq_any(*others)
         Predicates::Any.build(Predicates::GreaterThanOrEqualTo, self, *others)
       end
-      
+
       def gteq_all(*others)
         Predicates::All.build(Predicates::GreaterThanOrEqualTo, self, *others)
       end
-      
+
       def matches(other)
         Predicates::Match.new(self, other)
       end
-      
+
       def matches_any(*others)
         Predicates::Any.build(Predicates::Match, self, *others)
       end
-      
+
       def matches_all(*others)
         Predicates::All.build(Predicates::Match, self, *others)
       end
-      
+
       def not_matches(other)
         Predicates::NotMatch.new(self, other)
       end
-      
+
       def not_matches_any(*others)
         Predicates::Any.build(Predicates::NotMatch, self, *others)
       end
-      
+
       def not_matches_all(*others)
         Predicates::All.build(Predicates::NotMatch, self, *others)
       end
-      
+
       def in(other)
         Predicates::In.new(self, other)
       end
-      
+
       def in_any(*others)
         Predicates::Any.build(Predicates::In, self, *others)
       end
-      
+
       def in_all(*others)
         Predicates::All.build(Predicates::In, self, *others)
       end
-      
+
       def not_in(other)
         Predicates::NotIn.new(self, other)
       end
-      
+
       def not_in_any(*others)
         Predicates::Any.build(Predicates::NotIn, self, *others)
       end
-      
+
       def not_in_all(*others)
         Predicates::All.build(Predicates::NotIn, self, *others)
       end
