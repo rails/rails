@@ -146,12 +146,12 @@ module ActiveRecord
       #   add_autosave_association_callbacks(reflect_on_association(name))
       # end
       ASSOCIATION_TYPES.each do |type|
-        module_eval %{
+        module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{type}(name, options = {})
             super
             add_autosave_association_callbacks(reflect_on_association(name))
           end
-        }
+        CODE
       end
 
       # Adds a validate and save callback for the association as specified by
