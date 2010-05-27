@@ -39,7 +39,7 @@ module Arel
           end
         end
       end
-      
+
       describe 'when given two predicates' do
         it "manufactures sql with where clause conditions joined by AND" do
           sql = @relation.group(@relation[:department]).having("MIN(salary) > 1000", "MAX(salary) < 10000").to_sql

@@ -187,12 +187,12 @@ share_examples_for 'A Relation' do
         actual.should == @expected.reverse
       end
     end
-    
+
     describe "by two attributes in one call to #order" do
       before :all do
         @expected = @expected.sort_by { |e| [e[@relation[:name]], e[@relation[:age]]]}.map {|e| e[@relation[:id]]}
       end
-      
+
       it "can be specified as ascending order in one call to #order" do
         actual = []
         @relation.order(@relation[:name].asc, @relation[:age].asc).each { |r| actual << r[@relation[:id]] }
