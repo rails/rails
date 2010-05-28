@@ -371,6 +371,16 @@ module ActiveSupport #:nodoc:
         (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
       end
 
+      # Capitalizes the first letter of every word, when possible.
+      #
+      # Example:
+      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
+      #   "日本語".mb_chars.titleize                 # => "日本語"
+      def titleize
+        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.apply_mapping $1, :uppercase_mapping })
+      end
+      alias_method :titlecase, :titleize
+
       # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
       # passing strings to databases and validations.
       #
