@@ -1342,7 +1342,7 @@ We also add a <tt>@post.tags.build</tt> at the top of this form, this is to make
 Now create the folder <tt>app/views/tags</tt> and make a file in there called <tt>_form.html.erb</tt> which contains the form for the tag:
 
 <erb>
-<% form.fields_for :tags do |tag_form| %>
+<%= form.fields_for :tags do |tag_form| %>
   <div class="field">
     <%= tag_form.label :name, 'Tag:' %>
     <%= tag_form.text_field :name %>
