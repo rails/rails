@@ -143,7 +143,7 @@ Now add a nested form for the +address+ association:
 <%= form_for @person do |f| %>
   <%= f.text_field :name %>
   
-  <% f.fields_for :address do |af| %>
+  <%= f.fields_for :address do |af| %>
     <%= f.text_field :street %>
   <% end %>
 <% end %>
@@ -184,7 +184,7 @@ The form code for an association collection is pretty similar to that of a singl
 <%= form_for @person do |f| %>
   <%= f.text_field :name %>
   
-  <% f.fields_for :projects do |pf| %>
+  <%= f.fields_for :projects do |pf| %>
     <%= f.text_field :name %>
   <% end %>
 <% end %>
