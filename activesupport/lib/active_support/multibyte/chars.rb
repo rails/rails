@@ -318,7 +318,8 @@ module ActiveSupport #:nodoc:
           character = Unicode.u_unpack(@wrapped_string)[args[0]]
           result = character.nil? ? nil : [character].pack('U')
         else
-          result = Unicode.u_unpack(@wrapped_string).slice(*args).pack('U*')
+          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
+          result = cps.nil? ? nil : cps.pack('U*')
         end
         result.nil? ? nil : chars(result)
       end
