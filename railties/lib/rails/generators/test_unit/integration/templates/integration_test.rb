@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class <%= class_name %>Test < ActionController::IntegrationTest
+class <%= class_name %>Test < ActionDispatch::IntegrationTest
   fixtures :all
 
   # Replace this with your real tests.
