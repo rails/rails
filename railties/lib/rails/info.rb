@@ -35,20 +35,6 @@ module Rails
         end
       end
 
-      def edge_rails_revision(info = git_info)
-        info[/commit ([a-z0-9-]+)/, 1] || freeze_edge_version
-      end
-
-      def freeze_edge_version
-        if File.exist?(rails_vendor_root)
-          begin
-            Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first
-          rescue
-            Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(.+)$/).first.first rescue 'unknown'
-          end
-        end
-      end
-
       def to_s
         column_width = properties.names.map {|name| name.length}.max
         info = properties.map do |name, value|
@@ -75,20 +61,6 @@ module Rails
           table << '</table>'
         end
       end
-
-      protected
-        def rails_vendor_root
-          @rails_vendor_root ||= "#{Rails.root}/vendor/rails"
-        end
-
-        def git_info
-          env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
-          Dir.chdir(rails_vendor_root) do
-            silence_stderr { `git log -n 1` }
-          end
-        ensure
-          ENV['LC_ALL'] = env_lang
-        end
     end
 
     # The Ruby version and platform, e.g. "1.8.2 (powerpc-darwin8.2.0)".
@@ -118,11 +90,6 @@ module Rails
 
     property 'Middleware' do
       Rails.configuration.middleware.active.map(&:inspect)
-    end
-
-    # The Rails Git revision, if it's checked out into vendor/rails.
-    property 'Edge Rails revision' do
-      edge_rails_revision
     end
 
     # The application's location on the filesystem.

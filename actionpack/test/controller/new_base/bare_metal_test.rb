@@ -18,7 +18,7 @@ module BareMetalTest
         string << part
       end
 
-      assert headers.is_a?(Hash), "Headers must be a Hash"
+      assert_kind_of Hash, headers, "Headers must be a Hash"
       assert headers["Content-Type"], "Content-Type must exist"
 
       assert_equal "Hello world", string

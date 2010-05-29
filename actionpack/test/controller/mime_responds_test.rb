@@ -668,6 +668,19 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
+  def test_using_resource_for_put_with_html_rerender_on_failure_even_on_method_override
+    with_test_route_set do
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      @request.env["rack.methodoverride.original_method"] = "POST"
+      put :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "Edit world!\n", @response.body
+      assert_nil @response.location
+    end
+  end
+
   def test_using_resource_for_put_with_xml_yields_ok_on_success
     @request.accept = "application/xml"
     put :using_resource

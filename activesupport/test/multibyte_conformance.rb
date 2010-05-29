@@ -28,7 +28,7 @@ end
 class MultibyteConformanceTest < Test::Unit::TestCase
   include MultibyteTestHelpers
   
-  UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::UNICODE_VERSION}/ucd"
+  UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
   UNIDATA_FILE = '/NormalizationTest.txt'
   CACHE_DIR = File.join(Dir.tmpdir, 'cache')
   

@@ -245,7 +245,7 @@ module AbstractController
 
         case defined?(@_layout) ? @_layout : nil
         when String
-          self.class_eval %{def _layout; #{@_layout.inspect} end}
+          self.class_eval %{def _layout; #{@_layout.inspect} end}, __FILE__, __LINE__
         when Symbol
           self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def _layout
@@ -259,9 +259,9 @@ module AbstractController
           ruby_eval
         when Proc
           define_method :_layout_from_proc, &@_layout
-          self.class_eval %{def _layout; _layout_from_proc(self) end}
+          self.class_eval %{def _layout; _layout_from_proc(self) end}, __FILE__, __LINE__
         when false
-          self.class_eval %{def _layout; end}
+          self.class_eval %{def _layout; end}, __FILE__, __LINE__
         when true
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil

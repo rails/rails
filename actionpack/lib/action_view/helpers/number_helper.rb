@@ -13,6 +13,9 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
 
+      DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :unit => "$", :separator => ".", :delimiter => ",",
+                                  :precision => 2, :significant => false, :strip_insignificant_zeros => false }
+
       # Raised when argument +number+ param given to the helpers is invalid and
       # the option :raise is set to  +true+.
       class InvalidNumberError < StandardError
@@ -104,9 +107,9 @@ module ActionView
 
         defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
-        defaults  = defaults.merge(currency)
 
-        options = options.reverse_merge(defaults)
+        defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
+        options   = defaults.merge!(options)
 
         unit      = options.delete(:unit)
         format    = options.delete(:format)

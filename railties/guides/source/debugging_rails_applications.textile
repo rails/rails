@@ -680,7 +680,7 @@ h3. Plugins for Debugging
 
 There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
-* "Footnotes":http://github.com/drnic/rails-footnotes/tree/master: Every Rails page has footnotes that give request information and link back to your source via TextMate.
+* "Footnotes":http://github.com/josevalim/rails-footnotes: Every Rails page has footnotes that give request information and link back to your source via TextMate.
 * "Query Trace":http://github.com/ntalbott/query_trace/tree/master: Adds query origin tracing to your logs.
 * "Query Stats":http://github.com/dan-manges/query_stats/tree/master: A Rails plugin to track database queries.
 * "Query Reviewer":http://code.google.com/p/query-reviewer/: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.

@@ -81,6 +81,16 @@ class FlashTest < ActionController::TestCase
       redirect_to '/somewhere', :notice => "Good luck in the somewheres!"
     end
 
+    def render_with_flash_now_alert
+      flash.now.alert = "Beware the nowheres now!"
+      render :inline => "hello"
+    end
+
+    def render_with_flash_now_notice
+      flash.now.notice = "Good luck in the somewheres now!"
+      render :inline => "hello"
+    end
+
     def redirect_with_other_flashes
       redirect_to '/wonderland', :flash => { :joyride => "Horses!" }
     end
@@ -183,6 +193,16 @@ class FlashTest < ActionController::TestCase
     assert_equal "Good luck in the somewheres!", @controller.send(:flash)[:notice]
   end
 
+  def test_render_with_flash_now_alert
+    get :render_with_flash_now_alert
+    assert_equal "Beware the nowheres now!", @controller.send(:flash)[:alert]
+  end
+
+  def test_render_with_flash_now_notice
+    get :render_with_flash_now_notice
+    assert_equal "Good luck in the somewheres now!", @controller.send(:flash)[:notice]
+  end
+
   def test_redirect_to_with_other_flashes
     get :redirect_with_other_flashes
     assert_equal "Horses!", @controller.send(:flash)[:joyride]
@@ -217,10 +237,19 @@ class FlashIntegrationTest < ActionController::IntegrationTest
   end
 
   private
+
+    # Overwrite get to send SessionSecret in env hash
+    def get(path, parameters = nil, env = {})
+      env["action_dispatch.secret_token"] ||= SessionSecret
+      super
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          match ':action', :to => ActionDispatch::Session::CookieStore.new(FlashIntegrationTest::TestController, :key => FlashIntegrationTest::SessionKey, :secret => FlashIntegrationTest::SessionSecret)
+          match ':action', :to => ActionDispatch::Session::CookieStore.new(
+            FlashIntegrationTest::TestController, :key => SessionKey, :secret => SessionSecret
+          )
         end
         yield
       end

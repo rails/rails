@@ -839,10 +839,11 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt> all the associated objects are destroyed
       #   alongside this object by calling their +destroy+ method.  If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method.  If set to <tt>:nullify</tt> all associated
-      #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. *Warning:* This option is ignored when also using
-      #   the <tt>:through</tt> option.
-      #   the <tt>:through</tt> option. If set to <tt>:restrict</tt>
-      #   this object cannot be deleted if it has any associated object.
+      #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
+      #   <tt>:restrict</tt> this object cannot be deleted if it has any associated object.
+      #
+      #   *Warning:* This option is ignored when used with <tt>:through</tt> option.
+      #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
@@ -1398,7 +1399,7 @@ module ActiveRecord
                 primary_key = reflection.source_reflection.primary_key_name
                 send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
               else
-                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
+                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map!(&:id)
               end
             end
           end
@@ -1460,7 +1461,7 @@ module ActiveRecord
           before_destroy(method_name)
 
           module_eval(
-            "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)"
+            "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)", __FILE__, __LINE__
           )
         end
 
@@ -2129,7 +2130,7 @@ module ActiveRecord
               end
 
               def interpolate_sql(sql)
-                instance_eval("%@#{sql.gsub('@', '\@')}@")
+                instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
               end
           end
         end

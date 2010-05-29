@@ -11,7 +11,7 @@ Rake can be found at http://rake.rubyforge.org
 If you only want to run a single test suite, or don't want to bother with Rake,
 you can do so with something like:
 
-   ruby controller/base_tests.rb
+   ruby -Itest test/controller/base_tests.rb
 
 == Dependency on ActiveRecord and database setup
 

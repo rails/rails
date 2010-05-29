@@ -16,29 +16,34 @@ module ApplicationTests
       assert $foo
     end
 
-    test "after_initialize block works correctly" do
+    test "hooks block works correctly without cache classes (before_eager_load is not called)" do
       add_to_config <<-RUBY
+        $initialization_callbacks = []
         config.root = "#{app_path}"
-        config.after_initialize { $test_after_initialize_block1 = "success" }
-        config.after_initialize { $test_after_initialize_block2 = "congratulations" }
+        config.cache_classes = false
+        config.before_configuration { $initialization_callbacks << 1 }
+        config.before_initialize    { $initialization_callbacks << 2 }
+        config.before_eager_load    { Boom }
+        config.after_initialize     { $initialization_callbacks << 3 }
       RUBY
-      require "#{app_path}/config/environment"
 
-      assert_equal "success", $test_after_initialize_block1
-      assert_equal "congratulations", $test_after_initialize_block2
+      require "#{app_path}/config/environment"
+      assert_equal [1,2,3], $initialization_callbacks
     end
 
-    test "after_initialize block works correctly when no block is passed" do
+    test "hooks block works correctly with cache classes" do
       add_to_config <<-RUBY
+        $initialization_callbacks = []
         config.root = "#{app_path}"
-        config.after_initialize { $test_after_initialize_block1 = "success" }
-        config.after_initialize # don't pass a block, this is what we're testing!
-        config.after_initialize { $test_after_initialize_block2 = "congratulations" }
+        config.cache_classes = true
+        config.before_configuration { $initialization_callbacks << 1 }
+        config.before_initialize    { $initialization_callbacks << 2 }
+        config.before_eager_load    { $initialization_callbacks << 3 }
+        config.after_initialize     { $initialization_callbacks << 4 }
       RUBY
-      require "#{app_path}/config/environment"
 
-      assert_equal "success", $test_after_initialize_block1
-      assert_equal "congratulations", $test_after_initialize_block2
+      require "#{app_path}/config/environment"
+      assert_equal [1,2,3,4], $initialization_callbacks
     end
 
     test "after_initialize runs after frameworks have been initialized" do
@@ -61,7 +66,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert [:to_prepare, :after_initialize], $order
+      assert_equal [:to_prepare, :after_initialize], $order
     end
 
     test "after_initialize happens after to_prepare in production" do
@@ -75,7 +80,7 @@ module ApplicationTests
       require "#{app_path}/config/application"
       Rails.env.replace "production"
       require "#{app_path}/config/environment"
-      assert [:to_prepare, :after_initialize], $order
+      assert_equal [:to_prepare, :after_initialize], $order
     end
   end
 end

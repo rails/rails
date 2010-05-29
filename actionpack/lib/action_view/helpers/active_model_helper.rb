@@ -43,7 +43,7 @@ module ActionView
       end
 
       %w(tag content_tag to_date_select_tag to_datetime_select_tag to_time_select_tag).each do |meth|
-        module_eval "def #{meth}(*) error_wrapping(super) end"
+        module_eval "def #{meth}(*) error_wrapping(super) end", __FILE__, __LINE__
       end
 
       def error_wrapping(html_tag)

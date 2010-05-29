@@ -61,10 +61,7 @@ class Class
         end
       RUBY
 
-      if instance_writer
-        body = "def #{name}=(value) @#{name} = value end"
-        class_eval body, __FILE__, __LINE__ - 1
-      end
+      attr_writer name if instance_writer
     end
   end
 end

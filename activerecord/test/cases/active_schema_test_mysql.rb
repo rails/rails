@@ -16,6 +16,10 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   end
 
   def test_add_index
+    # add_index calls index_exists? which can't work since execute is stubbed
+    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:define_method, :index_exists?) do |*|
+      false
+    end
     expected = "CREATE  INDEX `index_people_on_last_name` ON `people` (`last_name`)"
     assert_equal expected, add_index(:people, :last_name, :length => nil)
 
@@ -30,6 +34,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
 
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(10))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15, :first_name => 10})
+    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:remove_method, :index_exists?)
   end
 
   def test_drop_table

@@ -104,6 +104,14 @@ class Product < ActiveRecord::Base
   set_table_name "PRODUCT"
 end
 </ruby>
+If you do so, you will have to define manually the class name that is hosting the fixtures (class_name.yml) using the +set_fixture_class+ method in your test definition:
+<ruby>
+class FunnyJoke < ActiveSupport::TestCase
+  set_fixture_class :funny_jokes => 'Joke'
+  fixtures :funny_jokes
+  ...
+end
+</ruby>
 
 It's also possible to override the column that should be used as the table's primary key. Use the +ActiveRecord::Base.set_primary_key+ method for that:
 <ruby>

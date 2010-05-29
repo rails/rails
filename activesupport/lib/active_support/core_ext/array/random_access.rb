@@ -1,6 +1,6 @@
 class Array
   # Returns a random element from the array.
-  def rand
+  def random_element
     self[Kernel.rand(length)]
   end
 end

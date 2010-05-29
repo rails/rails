@@ -63,19 +63,19 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_error_on_given_context
-    r = WrongReply.new
+    r = WrongReply.new(:title => "Valid title")
     assert !r.valid?(:special_case)
-    assert "Invalid", r.errors[:title].join
+    assert_equal "Invalid", r.errors[:author_name].join
 
-    r.title = "secret"
+    r.author_name = "secret"
     r.content = "Good"
     assert r.valid?(:special_case)
 
-    r.title = nil
+    r.author_name = nil
     assert !r.save(:context => :special_case)
-    assert "Invalid", r.errors[:title].join
+    assert_equal "Invalid", r.errors[:author_name].join
 
-    r.title = "secret"
+    r.author_name = "secret"
     assert r.save(:context => :special_case)
   end
 

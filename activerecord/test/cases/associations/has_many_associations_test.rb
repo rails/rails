@@ -175,14 +175,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     c = Client.new
     assert_nil c.firm
 
-    if c.firm
-      assert false, "belongs_to failed if check"
-    end
-
-    unless c.firm
-    else
-      assert false,  "belongs_to failed unless check"
-    end
+    flunk "belongs_to failed if check" if c.firm
   end
 
   def test_find_ids
@@ -620,7 +613,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is exclusively dependent.
-    assert Client.find_by_id(client_id).nil?
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_dependent_association_respects_optional_conditions_on_delete
@@ -669,7 +662,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     old_record = firm.clients_using_primary_key_with_delete_all.first
     firm = Firm.find(:first)
     firm.destroy
-    assert Client.find_by_id(old_record.id).nil?
+    assert_nil Client.find_by_id(old_record.id)
   end
 
   def test_creation_respects_hash_condition
@@ -898,6 +891,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients.loaded?
     assert_equal [companies(:first_client).id, companies(:second_client).id], company.client_ids
     assert !company.clients.loaded?
+  end
+
+  def test_get_ids_ignores_include_option
+    assert_equal [readers(:michael_welcome).id], posts(:welcome).readers_with_person_ids
   end
 
   def test_get_ids_for_unloaded_finder_sql_associations_loads_them

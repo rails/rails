@@ -205,7 +205,7 @@ Upon form submission the value entered by the user will be stored in +params[:pe
 
 WARNING: You must pass the name of an instance variable, i.e. +:person+ or +"person"+, not an actual instance of your model object.
 
-Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the "Active Record Validations and Callbacks":./activerecord_validations_callbacks.html#_using_the_tt_errors_tt_collection_in_your_view_templates guide.
+Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the "Active Record Validations and Callbacks":./activerecord_validations_callbacks.html#displaying-validation-errors-in-the-view guide.
 
 h4. Binding a Form to an Object
 
@@ -255,7 +255,7 @@ You can create a similar binding without actually creating  +&lt;form&gt;+ tags 
 <erb>
 <%= form_for :person, @person, :url => { :action => "create" } do |person_form| %>
   <%= person_form.text_field :name %>
-  <% fields_for @person.contact_detail do |contact_details_form| %>
+  <%= fields_for @person.contact_detail do |contact_details_form| %>
     <%= contact_details_form.text_field :phone_number %>
   <% end %>
 <% end %>
@@ -280,7 +280,7 @@ The Article model is directly available to users of the application, so -- follo
 map.resources :articles
 </ruby>
 
-TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#restful-routing-the-rails-default for more information on setting up and using resources.
+TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#resource-routing-the-rails-default for more information on setting up and using resources.
 
 When dealing with RESTful resources, calls to +form_for+ can get significantly easier if you rely on *record identification*. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
@@ -697,7 +697,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% for address in @person.addresses %>
-    <% person_form.fields_for address, :index => address do |address_form|%>
+    <%= person_form.fields_for address, :index => address do |address_form|%>
       <%= address_form.text_field :city %>
     <% end %>
   <% end %>
@@ -725,7 +725,7 @@ Rails knows that all these inputs should be part of the person hash because you 
 To create more intricate nestings, you can specify the first part of the input name (+person[address]+ in the previous example) explicitly, for example
 
 <erb>
-<% fields_for 'person[address][primary]', address, :index => address do |address_form| %>
+<%= fields_for 'person[address][primary]', address, :index => address do |address_form| %>
   <%= address_form.text_field :city %>
 <% end %>
 </erb>
@@ -741,7 +741,7 @@ As a general rule the final input name is the concatenation of the name given to
 As a shortcut you can append [] to the name and omit the +:index+ option. This is the same as specifying +:index => address+ so
 
 <erb>
-<% fields_for 'person[address][primary][]', address do |address_form| %>
+<%= fields_for 'person[address][primary][]', address do |address_form| %>
   <%= address_form.text_field :city %>
 <% end %>
 </erb>

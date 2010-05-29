@@ -255,7 +255,7 @@ class FinderTest < ActiveRecord::TestCase
     assert !topic.attribute_present?("title")
     #assert !topic.respond_to?("title")
     assert topic.attribute_present?("author_name")
-    assert topic.respond_to?("author_name")
+    assert_respond_to topic, "author_name"
   end
 
   def test_find_on_blank_conditions
@@ -722,10 +722,10 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_all_by_one_attribute_with_options
     topics = Topic.find_all_by_content("Have a nice day", :order => "id DESC")
-    assert topics(:first), topics.last
+    assert_equal topics(:first), topics.last
 
     topics = Topic.find_all_by_content("Have a nice day", :order => "id")
-    assert topics(:first), topics.first
+    assert_equal topics(:first), topics.first
   end
 
   def test_find_all_by_array_attribute

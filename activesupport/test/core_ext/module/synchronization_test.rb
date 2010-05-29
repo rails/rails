@@ -16,8 +16,8 @@ class SynchronizationTest < Test::Unit::TestCase
       attr_accessor :value
       synchronize :value, :with => :mutex
     end
-    assert @instance.respond_to?(:value_with_synchronization)
-    assert @instance.respond_to?(:value_without_synchronization)
+    assert_respond_to @instance, :value_with_synchronization
+    assert_respond_to @instance, :value_without_synchronization
   end
 
   def test_synchronize_does_not_change_behavior
@@ -81,7 +81,7 @@ class SynchronizationTest < Test::Unit::TestCase
     class << @target
       synchronize :to_s, :with => :mutex
     end
-    assert @target.respond_to?(:to_s_without_synchronization)
+    assert_respond_to @target, :to_s_without_synchronization
     assert_nothing_raised { @target.to_s; @target.to_s }
     assert_equal 2, @target.mutex.sync_count
   end

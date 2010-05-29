@@ -287,11 +287,8 @@ class CalculationsTest < ActiveRecord::TestCase
     # Oracle adapter returns floating point value 636.0 after SUM
     if current_adapter?(:OracleAdapter)
       assert_equal 636, Account.sum("2 * credit_limit")
-    elsif current_adapter?(:SQLite3Adapter)
-      # Future versions of the SQLite3 adapter will return a number
-      assert_equal 636, Account.sum("2 * credit_limit").to_i
     else
-      assert_equal '636', Account.sum("2 * credit_limit")
+      assert_equal 636, Account.sum("2 * credit_limit").to_i
     end
   end
 

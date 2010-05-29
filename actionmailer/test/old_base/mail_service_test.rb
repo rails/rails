@@ -281,7 +281,7 @@ class TestMailer < ActionMailer::Base
     from         "One: Two <test@example.com>"
     cc           "Three: Four <test@example.com>"
     bcc          "Five: Six <test@example.com>"
-    body       "testing"
+    body         "testing"
   end
 
   def custom_content_type_attributes
@@ -289,7 +289,7 @@ class TestMailer < ActionMailer::Base
     subject      "custom content types"
     from         "some.one@somewhere.test"
     content_type "text/plain; format=flowed"
-    body       "testing"
+    body         "testing"
   end
 
   def return_path
@@ -297,7 +297,7 @@ class TestMailer < ActionMailer::Base
     subject      "return path test"
     from         "some.one@somewhere.test"
     headers["return-path"] = "another@somewhere.test"
-    body       "testing"
+    body         "testing"
   end
 
   def subject_with_i18n(recipient)
@@ -417,7 +417,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_custom_template
-    expected = new_mail
+    expected         = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
     expected.body    = "Hello there, \n\nMr. #{@recipient}"
@@ -436,7 +436,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert ActionView::Template.template_handler_extensions.include?("haml"), "haml extension was not registered"
 
     # N.b., custom_templating_extension.text.plain.haml is expected to be in fixtures/test_mailer directory
-    expected = new_mail
+    expected         = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
     expected.body    = "Hello there, \n\nMr. #{@recipient}"
@@ -453,7 +453,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_cancelled_account
-    expected = new_mail
+    expected         = new_mail
     expected.to      = @recipient
     expected.subject = "[Cancelled] Goodbye #{@recipient}"
     expected.body    = "Goodbye, Mr. #{@recipient}"
@@ -477,7 +477,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_cc_bcc
-    expected = new_mail
+    expected         = new_mail
     expected.to      = @recipient
     expected.subject = "testing bcc/cc"
     expected.body    = "Nothing to see here."
@@ -602,7 +602,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_unencoded_subject
     TestMailer.delivery_method = :test
-    expected = new_mail
+    expected         = new_mail
     expected.to      = @recipient
     expected.subject = "testing unencoded subject"
     expected.body    = "Nothing to see here."
@@ -1048,8 +1048,9 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
-    assert "text/plain", mail.parts[1].mime_type
-    assert "UTF-8", mail.parts[1].charset
+    assert_equal "text/plain", mail.parts[0].mime_type
+    assert_equal "text/html", mail.parts[1].mime_type
+    assert_equal "UTF-8", mail.parts[1].charset
   end
 
   def test_custom_content_type_attributes
@@ -1150,15 +1151,15 @@ class RespondToTest < Test::Unit::TestCase
   end
 
   def test_should_respond_to_new
-    assert RespondToMailer.respond_to?(:new)
+    assert_respond_to RespondToMailer, :new
   end
 
   def test_should_respond_to_create_with_template_suffix
-    assert RespondToMailer.respond_to?(:create_any_old_template)
+    assert_respond_to RespondToMailer, :create_any_old_template
   end
 
   def test_should_respond_to_deliver_with_template_suffix
-    assert RespondToMailer.respond_to?(:deliver_any_old_template)
+    assert_respond_to RespondToMailer, :deliver_any_old_template
   end
 
   def test_should_not_respond_to_new_with_template_suffix

@@ -587,18 +587,6 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
   end
 end
 
-class ClearDefaultScopeTest < ActiveRecord::TestCase
-  fixtures :developers
-
-  def test_should_clear_default_scope
-    klass = Class.new(DeveloperCalledDavid)
-    klass.__send__ :clear_default_scope
-    expected = Developer.all.collect { |dev| dev.name }
-    actual = klass.all.collect { |dev| dev.name }
-    assert_equal expected, actual
-  end
-end
-
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
@@ -634,7 +622,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal ['salary DESC'], klass.scoped.order_values
 
     # Parent should still have the original scope
-    assert_equal nil,             DeveloperOrderedBySalary.scoped.limit_value
+    assert_nil DeveloperOrderedBySalary.scoped.limit_value
     assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values
   end
 

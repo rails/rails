@@ -189,6 +189,18 @@ module Rails
       end
       alias :assert_method :assert_instance_method
 
+      # Asserts the given field name gets translated to an attribute type 
+      # properly.
+      #
+      #   assert_field_type :date, :date_select
+      #
+      def assert_field_type(name, attribute_type)
+        assert_equal(
+          Rails::Generators::GeneratedAttribute.new('test', name.to_s).field_type,
+          attribute_type
+        )
+      end
+      
       # Runs the generator configured for this class. The first argument is an array like
       # command line arguments:
       #

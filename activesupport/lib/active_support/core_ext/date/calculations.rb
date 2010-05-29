@@ -2,7 +2,6 @@ require 'date'
 require 'active_support/duration'
 require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/object/acts_like'
-require 'active_support/deprecation'
 
 class Date
   if RUBY_VERSION < '1.9'
@@ -147,11 +146,6 @@ class Date
     advance(:years => years)
   end
 
-  def last_year # :nodoc:
-    ActiveSupport::Deprecation.warn("Date#last_year has been deprecated, please use Date#prev_year instead", caller)
-    prev_year
-  end
-
   # Shorthand for years_ago(1)
   def prev_year
     years_ago(1)
@@ -161,11 +155,6 @@ class Date
   def next_year
     years_since(1)
   end unless method_defined?(:next_year)
-
-  def last_month # :nodoc:
-    ActiveSupport::Deprecation.warn("Date#last_month has been deprecated, please use Date#prev_month instead", caller)
-    prev_month
-  end
   
   # Short-hand for months_ago(1)
   def prev_month

@@ -521,7 +521,7 @@ module CallbacksTest
     def test_save
       obj = HyphenatedCallbacks.new
       obj.save
-      assert_equal obj.stuff, "ACTION"
+      assert_equal "ACTION", obj.stuff
     end
   end
 end

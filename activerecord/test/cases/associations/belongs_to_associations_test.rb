@@ -403,7 +403,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal saved_member.id, sponsor.sponsorable_id
 
     sponsor.sponsorable = new_member
-    assert_equal nil, sponsor.sponsorable_id
+    assert_nil sponsor.sponsorable_id
   end
 
   def test_polymorphic_assignment_with_primary_key_updates_foreign_id_field_for_new_and_saved_records
@@ -415,7 +415,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal saved_writer.name, essay.writer_id
 
     essay.writer = new_writer
-    assert_equal nil, essay.writer_id
+    assert_nil essay.writer_id
   end
 
   def test_belongs_to_proxy_should_not_respond_to_private_methods

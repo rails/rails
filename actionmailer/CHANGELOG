@@ -1,6 +1,9 @@
+*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+
 * Changed encoding behaviour of mail, so updated tests in actionmailer and bumped mail version to 2.2.1 [ML]
 
 * Added ability to pass Proc objects to the defaults hash [ML]
+
 
 *Rails 3.0.0 [beta 3] (April 13th, 2010)*
 

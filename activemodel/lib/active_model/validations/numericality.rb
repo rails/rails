@@ -57,10 +57,15 @@ module ActiveModel
     protected
 
       def parse_raw_value_as_a_number(raw_value)
-        begin
-          Kernel.Float(raw_value)
-        rescue ArgumentError, TypeError
+        case raw_value
+        when /\A0[xX]/
           nil
+        else
+          begin
+            Kernel.Float(raw_value)
+          rescue ArgumentError, TypeError
+            nil
+          end
         end
       end
 

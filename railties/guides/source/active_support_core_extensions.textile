@@ -1894,10 +1894,10 @@ Similarly, +from+ returns the tail from the element at the passed index on:
 
 The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is builtin). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
 
-You can pick a random element with +rand+:
+You can pick a random element with +random_element+:
 
 <ruby>
-shape_type = [Circle, Square, Triangle].rand
+shape_type = [Circle, Square, Triangle].random_element
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/array/access.rb+.

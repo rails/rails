@@ -1,4 +1,5 @@
 require 'active_support/deprecation'
+require 'active_support/core_ext/string/encoding'
 require 'rails/engine/configuration'
 
 module Rails
@@ -10,7 +11,8 @@ module Rails
                     :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger, :metals,
                     :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
-                    :secret_token, :serve_static_assets, :time_zone, :whiny_nils
+                    :secret_token, :serve_static_assets, :session_options,
+                    :time_zone, :whiny_nils
 
       def initialize(*)
         super
@@ -27,13 +29,20 @@ module Rails
 
       def encoding=(value)
         @encoding = value
-        if defined?(Encoding) && Encoding.respond_to?(:default_external=)
+        if "ruby".encoding_aware?
           Encoding.default_external = value
+          Encoding.default_internal = value
+        else
+          $KCODE = value
+          if $KCODE == "NONE"
+            raise "The value you specified for config.encoding is " \
+                  "invalid. The possible values are UTF8, SJIS, or EUC"
+          end
         end
       end
 
       def middleware
-        @middleware ||= default_middleware_stack
+        @middleware ||= app_middleware.merge_into(default_middleware_stack)
       end
 
       def metal_loader
@@ -130,11 +139,6 @@ module Rails
         end
       end
 
-      def session_options
-        return @session_options unless @session_store == :cookie_store
-        @session_options.merge(:secret => @secret_token)
-      end
-
     protected
 
       def default_middleware_stack
@@ -150,10 +154,10 @@ module Rails
           middleware.use('::ActionDispatch::Cookies')
           middleware.use(lambda { session_store }, lambda { session_options })
           middleware.use('::ActionDispatch::Flash', :if => lambda { session_store })
-          middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
-          middleware.use('ActionDispatch::ParamsParser')
+          middleware.use('::ActionDispatch::ParamsParser')
           middleware.use('::Rack::MethodOverride')
           middleware.use('::ActionDispatch::Head')
+          middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
         end
       end
     end

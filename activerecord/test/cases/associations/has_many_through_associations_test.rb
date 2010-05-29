@@ -63,8 +63,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { posts(:thinking) }
 
     assert_queries(0) do
-      posts(:thinking).people.build(:first_name=>"Bob")
-      posts(:thinking).people.new(:first_name=>"Ted")
+      posts(:thinking).people.build(:first_name => "Bob")
+      posts(:thinking).people.new(:first_name => "Ted")
     end
 
     # Should only need to load the association once

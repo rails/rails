@@ -18,7 +18,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_to_key_with_customized_primary_key
     keyboard = Keyboard.new
-    assert keyboard.to_key.nil?
+    assert_nil keyboard.to_key
     keyboard.save
     assert_equal keyboard.to_key, [keyboard.id]
   end
@@ -37,7 +37,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
     topic = Topic.new
     topic.title = "New Topic"
-    assert_equal(nil, topic.id)
+    assert_nil topic.id
     assert_nothing_raised { topic.save! }
     id = topic.id
 

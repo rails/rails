@@ -3,7 +3,11 @@ task :routes => :environment do
   Rails::Application.reload_routes!
   all_routes = ENV['CONTROLLER'] ? Rails.application.routes.routes.select { |route| route.defaults[:controller] == ENV['CONTROLLER'] } : Rails.application.routes.routes
   routes = all_routes.collect do |route|
-    name = Rails.application.routes.named_routes.routes.index(route).to_s
+    # TODO: The :index method is deprecated in 1.9 in favor of :key
+    # but we don't have :key in 1.8.7. We can remove this check when
+    # stop supporting 1.8.x
+    key_method = Hash.method_defined?('key') ? 'key' : 'index'
+    name = Rails.application.routes.named_routes.routes.send(key_method, route).to_s
     reqs = route.requirements.empty? ? "" : route.requirements.inspect
     {:name => name, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
   end

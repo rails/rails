@@ -671,9 +671,9 @@ class BaseTest < Test::Unit::TestCase
   ########################################################################
   def test_respond_to
     matz = Person.find(1)
-    assert matz.respond_to?(:name)
-    assert matz.respond_to?(:name=)
-    assert matz.respond_to?(:name?)
+    assert_respond_to matz, :name
+    assert_respond_to matz, :name=
+    assert_respond_to matz, :name?
     assert !matz.respond_to?(:super_scalable_stuff)
   end
 
@@ -708,7 +708,7 @@ class BaseTest < Test::Unit::TestCase
   def test_id_from_response_without_location
     p = Person.new
     resp = {}
-    assert_equal nil, p.__send__(:id_from_response, resp)
+    assert_nil p.__send__(:id_from_response, resp)
   end
 
   def test_create_with_custom_prefix
@@ -775,7 +775,7 @@ class BaseTest < Test::Unit::TestCase
       mock.post   "/people.xml", {}, nil, 201
     end
     person = Person.create(:name => 'Rick')
-    assert_equal nil, person.id
+    assert_nil person.id
   end
 
   def test_clone
@@ -1017,7 +1017,7 @@ class BaseTest < Test::Unit::TestCase
     encode = matz.encode
     xml = matz.to_xml
 
-    assert encode, xml
+    assert_equal encode, xml
     assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
@@ -1030,7 +1030,7 @@ class BaseTest < Test::Unit::TestCase
     encode = matz.encode
     xml = matz.to_xml
 
-    assert encode, xml
+    assert_equal encode, xml
     assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<ruby-creator>')
     assert xml.include?('<name>Matz</name>')
@@ -1048,7 +1048,7 @@ class BaseTest < Test::Unit::TestCase
     json = joe.to_json
     Person.format = :xml
 
-    assert encode, json
+    assert_equal encode, json
     assert_match %r{^\{"person":\{"person":\{}, json
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
@@ -1065,7 +1065,7 @@ class BaseTest < Test::Unit::TestCase
     json = joe.to_json
     Person.format = :xml
 
-    assert encode, json
+    assert_equal encode, json
     assert_match %r{^\{"ruby_creator":\{"person":\{}, json
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
@@ -1079,6 +1079,13 @@ class BaseTest < Test::Unit::TestCase
     assert_nil new_person.to_param
     matz = Person.find(1)
     assert_equal '1', matz.to_param
+  end
+
+  def test_to_key_quacks_like_active_record
+    new_person = Person.new
+    assert_nil new_person.to_key
+    matz = Person.find(1)
+    assert_equal [1], matz.to_key
   end
 
   def test_parse_deep_nested_resources

@@ -41,8 +41,11 @@ module ActionView
       end
 
       # Calling content_for stores a block of markup in an identifier for later use.
-      # You can make subsequent calls to the stored content in other templates or the layout
-      # by passing the identifier as an argument to <tt>yield</tt>.
+      # You can make subsequent calls to the stored content in other templates, helper modules
+      # or the layout by passing the identifier as an argument to <tt>content_for</tt>.
+      #
+      # Note: <tt>yield</tt> can still be used to retrieve the stored content, but calling
+      # <tt>yield</tt> doesn't work in helper modules, while <tt>content_for</tt> does.
       #
       # ==== Examples
       #
@@ -50,11 +53,27 @@ module ActionView
       #     alert('You are not authorized to do that!')
       #   <% end %>
       #
-      # You can then use <tt>yield :not_authorized</tt> anywhere in your templates.
+      # You can then use <tt>content_for :not_authorized</tt> anywhere in your templates.
+      #
+      #   <%= content_for :not_authorized if current_user.nil? %>
+      #
+      # This is equivalent to:
       #
       #   <%= yield :not_authorized if current_user.nil? %>
       #
-      # You can also use this syntax alongside an existing call to <tt>yield</tt> in a layout.  For example:
+      # <tt>content_for</tt>, however, can also be used in helper modules.
+      #
+      #   module StorageHelper
+      #     def stored_content
+      #       content_for(:storage) || "Your storage is empty"
+      #     end
+      #   end
+      #
+      # This helper works just like normal helpers.
+      #
+      #   <%= stored_content %>
+      #
+      # You can use the <tt>yield</tt> syntax alongside an existing call to <tt>yield</tt> in a layout.  For example:
       #
       #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -67,7 +86,7 @@ module ActionView
       #   </body>
       #   </html>
       #
-      # And now, we'll create a view that has a content_for call that
+      # And now, we'll create a view that has a <tt>content_for</tt> call that
       # creates the <tt>script</tt> identifier.
       #
       #   <%# This is our view %>
@@ -103,7 +122,7 @@ module ActionView
       #
       # Then, in another template or layout, this code would render both links in order:
       #
-      #   <ul><%= yield :navigation %></ul>
+      #   <ul><%= content_for :navigation %></ul>
       #
       # Lastly, simple content can be passed as a parameter:
       #

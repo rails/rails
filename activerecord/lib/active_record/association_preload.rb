@@ -378,7 +378,7 @@ module ActiveRecord
 
 
       def interpolate_sql_for_preload(sql)
-        instance_eval("%@#{sql.gsub('@', '\@')}@")
+        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
       end
 
       def append_conditions(reflection, preload_options)

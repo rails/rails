@@ -61,8 +61,13 @@ class CaptureTest < ActionController::TestCase
     assert_equal expected_content_for_output, @response.body
   end
 
+  def test_proper_block_detection
+    @todo = "some todo"
+    get :proper_block_detection
+  end
+
   private
     def expected_content_for_output
-      "<title>Putting stuff in the title!</title>\n\nGreat stuff!"
+      "<title>Putting stuff in the title!</title>\nGreat stuff!"
     end
 end

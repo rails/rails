@@ -185,7 +185,7 @@ class SchemaTest < ActiveModel::TestCase
   ####
 
   test "should be able to use schema" do
-    assert Person.respond_to?(:schema), "should at least respond to the schema method"
+    assert_respond_to Person, :schema, "should at least respond to the schema method"
 
     assert_nothing_raised("Should allow the schema to take a block") do
       Person.schema { }
@@ -199,7 +199,7 @@ class SchemaTest < ActiveModel::TestCase
         s = self
         attribute :foo, :string
       end
-      assert s.respond_to?(:attrs), "should return attributes in theory"
+      assert_respond_to s, :attrs, "should return attributes in theory"
       assert_equal({'foo' => 'string' }, s.attrs, "should return attributes in practice")
     end
   end
@@ -308,8 +308,8 @@ class SchemaTest < ActiveModel::TestCase
       Person.schema { string new_attr_name_two }
     end
 
-    assert Person.new.respond_to?(new_attr_name), "should respond to the attribute in a passed-in schema, but failed on: #{new_attr_name}"
-    assert Person.new.respond_to?(new_attr_name_two), "should respond to the attribute from the schema, but failed on: #{new_attr_name_two}"
+    assert_respond_to Person.new, new_attr_name, "should respond to the attribute in a passed-in schema, but failed on: #{new_attr_name}"
+    assert_respond_to Person.new, new_attr_name_two, "should respond to the attribute from the schema, but failed on: #{new_attr_name_two}"
   end
 
   test "should not care about ordering of schema definitions" do
@@ -326,8 +326,8 @@ class SchemaTest < ActiveModel::TestCase
       Person.schema = {new_attr_name.to_s => 'string'}
     end
 
-    assert Person.new.respond_to?(new_attr_name), "should respond to the attribute in a passed-in schema, but failed on: #{new_attr_name}"
-    assert Person.new.respond_to?(new_attr_name_two), "should respond to the attribute from the schema, but failed on: #{new_attr_name_two}"
+    assert_respond_to Person.new, new_attr_name, "should respond to the attribute in a passed-in schema, but failed on: #{new_attr_name}"
+    assert_respond_to Person.new, new_attr_name_two, "should respond to the attribute from the schema, but failed on: #{new_attr_name_two}"
   end
 
   # method_missing effects

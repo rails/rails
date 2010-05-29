@@ -50,6 +50,12 @@ task :update_prototype_ujs do
   system "curl http://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/rails.js"
 end
 
+# Validate guides -------------------------------------------------------------------------
+desc 'Validate guides, use ONLY=foo to process just "foo.html"'
+task :validate_guides do
+  ruby "guides/w3c_validator.rb"
+end
+
 # Generate documentation ------------------------------------------------------------------
 
 Rake::RDocTask.new { |rdoc|

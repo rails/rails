@@ -31,7 +31,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributes.define_attribute_methods([:foo])
 
     assert ModelWithAttributes.attribute_methods_generated?
-    assert ModelWithAttributes.new.respond_to?(:foo)
+    assert_respond_to ModelWithAttributes.new, :foo
     assert_equal "value of foo", ModelWithAttributes.new.foo
   end
 

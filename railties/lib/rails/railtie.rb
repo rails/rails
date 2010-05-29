@@ -197,6 +197,9 @@ module Rails
       end
     end
 
+    def eager_load!
+    end
+
     def rake_tasks
       self.class.rake_tasks
     end

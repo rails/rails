@@ -89,22 +89,3 @@ task :lines do
 
   puts "Total: Lines #{total_lines}, LOC #{total_codelines}"
 end
-
-# Publishing ------------------------------------------------------
-
-task :update_scriptaculous do
-  for js in %w( controls dragdrop effects )
-    system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/#{js}.js #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/#{js}.js")
-  end
-end
-
-desc "Updates actionpack to the latest version of the javascript spinoffs"
-task :update_js => [ :update_scriptaculous ]
-
-# Publishing ------------------------------------------------------
-
-desc "Publish the API documentation"
-task :pdoc => [:rdoc] do
-  require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ap", "doc").upload
-end

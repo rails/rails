@@ -375,7 +375,7 @@ module LocalCacheBehavior
 
   def test_local_cache_of_write_nil
     @cache.with_local_cache do
-      assert true, @cache.write('foo', nil)
+      assert @cache.write('foo', nil)
       assert_nil @cache.read('foo')
       @peek.write('foo', 'bar')
       assert_nil @cache.read('foo')
@@ -394,7 +394,7 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       @cache.write('foo', 'bar')
       @peek.delete('foo')
-      assert true, @cache.exist?('foo')
+      assert @cache.exist?('foo')
     end
   end
 

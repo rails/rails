@@ -117,7 +117,7 @@ class RenderHelperTest < Test::Unit::TestCase
 
   def test_rxml_template
     mail = RenderMailer.rxml_template.deliver
-    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<test/>", mail.body.to_s.strip
+    assert_equal %(<?xml version="1.0" encoding="UTF-8"?>\n<test/>), mail.body.to_s.strip
   end
 
   def test_included_subtemplate

@@ -7,6 +7,15 @@ module Rails
         @@options ||= {}
       end
 
+      # This allows you to modify the application's middlewares from Engines.
+      #
+      # All operations you run on the app_middleware will be replayed on the
+      # application once it is defined and the default_middlewares are
+      # created
+      def app_middleware
+        @@app_middleware ||= Rails::Configuration::MiddlewareStackProxy.new
+      end
+
       # Holds generators configuration:
       #
       #   config.generators do |g|
@@ -28,12 +37,20 @@ module Rails
         end
       end
 
-      def after_initialize_blocks
-        @@after_initialize_blocks ||= []
+      def before_configuration(&block)
+        ActiveSupport.on_load(:before_configuration, :yield => true, &block)
       end
 
-      def after_initialize(&blk)
-        after_initialize_blocks << blk if blk
+      def before_eager_load(&block)
+        ActiveSupport.on_load(:before_eager_load, :yield => true, &block)
+      end
+
+      def before_initialize(&block)
+        ActiveSupport.on_load(:before_initialize, :yield => true, &block)
+      end
+
+      def after_initialize(&block)
+        ActiveSupport.on_load(:after_initialize, :yield => true, &block)
       end
 
       def to_prepare_blocks

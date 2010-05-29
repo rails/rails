@@ -515,7 +515,7 @@ class FilterTest < ActionController::TestCase
     assert assigns["ran_proc_filter2"]
 
     test_process(AnomolousYetValidConditionController, "show_without_filter")
-    assert_equal nil, assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
     assert !assigns["ran_class_filter"]
     assert !assigns["ran_proc_filter1"]
     assert !assigns["ran_proc_filter2"]
@@ -530,16 +530,16 @@ class FilterTest < ActionController::TestCase
     test_process(ConditionalCollectionFilterController)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(ConditionalCollectionFilterController, "show_without_filter")
-    assert_equal nil, assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
     test_process(ConditionalCollectionFilterController, "another_action")
-    assert_equal nil, assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
   end
 
   def test_running_only_condition_filters
     test_process(OnlyConditionSymController)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(OnlyConditionSymController, "show_without_filter")
-    assert_equal nil, assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
 
     test_process(OnlyConditionProcController)
     assert assigns["ran_proc_filter"]
@@ -556,7 +556,7 @@ class FilterTest < ActionController::TestCase
     test_process(ExceptConditionSymController)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(ExceptConditionSymController, "show_without_filter")
-    assert_equal nil, assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
 
     test_process(ExceptConditionProcController)
     assert assigns["ran_proc_filter"]
@@ -573,7 +573,7 @@ class FilterTest < ActionController::TestCase
     test_process(BeforeAndAfterConditionController)
     assert_equal %w( ensure_login clean_up_tmp), assigns["ran_filter"]
     test_process(BeforeAndAfterConditionController, "show_without_filter")
-    assert_equal nil, assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
   end
 
   def test_around_filter
@@ -674,7 +674,7 @@ class FilterTest < ActionController::TestCase
 
   def test_changing_the_requirements
     test_process(ChangingTheRequirementsController, "go_wild")
-    assert_equal nil, assigns['ran_filter']
+    assert_nil assigns['ran_filter']
   end
 
   def test_a_rescuing_around_filter

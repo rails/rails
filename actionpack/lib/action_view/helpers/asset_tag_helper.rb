@@ -62,9 +62,9 @@ module ActionView
     #     "http://assets#{source.hash % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="http://assets1.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets1.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
     # The example above generates "http://assets1.example.com" and
     # "http://assets2.example.com". This option is useful for example if

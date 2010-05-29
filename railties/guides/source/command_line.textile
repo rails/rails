@@ -31,7 +31,7 @@ h4. +rails+
 
 The first thing we'll want to do is create a new Rails application by running the +rails+ command after installing Rails.
 
-WARNING: You know you need the rails gem installed by typing +gem install rails+ first, if you don't have this installed, follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.textile
+WARNING: You know you need the rails gem installed by typing +gem install rails+ first, if you don't have this installed, follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.html
 
 <shell>
 $ rails commandsapp

@@ -228,7 +228,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     t = Topic.new
     assert t.invalid?
-    assert ["NO BLANKS HERE"], t.errors[:title]
+    assert_equal ["NO BLANKS HERE"], t.errors[:title]
   end
 
   def test_list_of_validators_for_model

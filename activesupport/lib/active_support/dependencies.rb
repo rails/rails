@@ -66,7 +66,7 @@ module ActiveSupport #:nodoc:
       end
 
       def self.locked(*methods)
-        methods.each { |m| class_eval "def #{m}(*) lock { super } end" }
+        methods.each { |m| class_eval "def #{m}(*) lock { super } end", __FILE__, __LINE__ }
       end
 
       def get(key)

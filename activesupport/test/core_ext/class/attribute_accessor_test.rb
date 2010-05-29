@@ -25,14 +25,14 @@ class ClassAttributeAccessorTest < Test::Unit::TestCase
   end
   
   def test_should_not_create_instance_writer
-    assert @class.respond_to?(:foo)
-    assert @class.respond_to?(:foo=)
-    assert @object.respond_to?(:bar)
+    assert_respond_to @class, :foo
+    assert_respond_to @class, :foo=
+    assert_respond_to @object, :bar
     assert !@object.respond_to?(:bar=)
   end
   
   def test_should_not_create_instance_reader
-    assert @class.respond_to?(:shaq)
+    assert_respond_to @class, :shaq
     assert !@object.respond_to?(:shaq)
   end
 end

@@ -241,15 +241,21 @@ module ActionView
       end
 
       def collection_with_template(template = @template)
-        segments, locals, as, template = [], @locals, @options[:as] || @template.variable_name, @template
+        segments, locals, template = [], @locals, @template
 
-        counter_name = template.counter_name
-        locals[counter_name] = -1
+        if @options[:as]
+          as = @options[:as]
+          counter = "#{as}_counter".to_sym
+        else
+          as = template.variable_name
+          counter = template.counter_name
+        end
+
+        locals[counter] = -1
 
         @collection.each do |object|
-          locals[counter_name] += 1
+          locals[counter] += 1
           locals[as] = object
-
           segments << template.render(@view, locals)
         end
 
@@ -257,13 +263,18 @@ module ActionView
       end
 
       def collection_without_template(collection_paths = @collection_paths)
-        segments, locals, as = [], @locals, @options[:as]
-        index, template = -1, nil
+        segments, locals = [], @locals
+        index, template  = -1, nil
+
+        if @options[:as]
+          as = @options[:as]
+          counter = "#{as}_counter"
+        end
 
         @collection.each_with_index do |object, i|
           template = find_template(collection_paths[i])
-          locals[template.counter_name] = (index += 1)
           locals[as || template.variable_name] = object
+          locals[counter || template.counter_name] = (index += 1)
 
           segments << template.render(@view, locals)
         end

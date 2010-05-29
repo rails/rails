@@ -30,6 +30,28 @@ namespace :rails do
     generator.apply template, :verbose => false
   end
 
+  namespace :templates do
+    desc "Copy all the templates from rails to the application directory for customization. Already existing local copies will be overwritten"
+    task :copy do
+      generators_lib = File.expand_path("../../generators", __FILE__)
+      project_templates = "#{Rails.root}/lib/templates"
+
+      default_templates = { "erb"   => %w{controller mailer scaffold},
+                            "rails" => %w{controller helper metal scaffold_controller stylesheets} }
+
+      default_templates.each do |type, names|
+        local_template_type_dir = File.join(project_templates, type)
+        FileUtils.mkdir_p local_template_type_dir
+
+        names.each do |name|
+          dst_name = File.join(local_template_type_dir, name)
+          src_name = File.join(generators_lib, type, name, "templates")
+          FileUtils.cp_r src_name, dst_name
+        end
+      end
+     end
+  end
+
   namespace :update do
     def invoke_from_app_generator(method)
       app_generator.invoke(method)

@@ -152,12 +152,18 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
   end
 
   private
+
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
           match ':action', :to => 'active_record_store_test/test'
         end
-        @app = ActiveRecord::SessionStore.new(set, options.reverse_merge(:key => '_session_id'))
+
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use ActiveRecord::SessionStore, options.reverse_merge(:key => '_session_id')
+          middleware.delete "ActionDispatch::ShowExceptions"
+        end
+
         yield
       end
     end

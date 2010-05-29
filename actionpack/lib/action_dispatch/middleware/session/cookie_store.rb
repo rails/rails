@@ -38,23 +38,11 @@ module ActionDispatch
     # "rake secret" and set the key in config/environment.rb.
     #
     # Note that changing digest or secret invalidates all existing sessions!
-    class CookieStore
-      # Cookies can typically store 4096 bytes.
-      MAX = 4096
-      SECRET_MIN_LENGTH = 30 # characters
-
-      DEFAULT_OPTIONS = {
-        :key          => '_session_id',
-        :domain       => nil,
-        :path         => "/",
-        :expire_after => nil,
-        :httponly     => true
-      }.freeze
-
+    class CookieStore < AbstractStore
       class OptionsHash < Hash
         def initialize(by, env, default_options)
-          @session_data = env[CookieStore::ENV_SESSION_KEY]
-          default_options.each { |key, value| self[key] = value }
+          @session_data = env[AbstractStore::ENV_SESSION_KEY]
+          merge!(default_options)
         end
 
         def [](key)
@@ -62,172 +50,38 @@ module ActionDispatch
         end
       end
 
-      ENV_SESSION_KEY = "rack.session".freeze
-      ENV_SESSION_OPTIONS_KEY = "rack.session.options".freeze
-      HTTP_SET_COOKIE = "Set-Cookie".freeze
-
-      # Raised when storing more than 4K of session data.
-      class CookieOverflow < StandardError; end
-
       def initialize(app, options = {})
-        # Process legacy CGI options
-        options = options.symbolize_keys
-        if options.has_key?(:session_path)
-          options[:path] = options.delete(:session_path)
-        end
-        if options.has_key?(:session_key)
-          options[:key] = options.delete(:session_key)
-        end
-        if options.has_key?(:session_http_only)
-          options[:httponly] = options.delete(:session_http_only)
-        end
-
-        @app = app
-
-        # The session_key option is required.
-        ensure_session_key(options[:key])
-        @key = options.delete(:key).freeze
-
-        # The secret option is required.
-        ensure_secret_secure(options[:secret])
-        @secret = options.delete(:secret).freeze
-
-        @digest = options.delete(:digest) || 'SHA1'
-        @verifier = verifier_for(@secret, @digest)
-
-        @default_options = DEFAULT_OPTIONS.merge(options).freeze
-
+        super(app, options.merge!(:cookie_only => true))
         freeze
       end
 
-      def call(env)
-        env[ENV_SESSION_KEY] = AbstractStore::SessionHash.new(self, env)
-        env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
-
-        status, headers, body = @app.call(env)
-
-        session_data = env[ENV_SESSION_KEY]
-        options = env[ENV_SESSION_OPTIONS_KEY]
-
-        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?) || options[:expire_after]
-          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
-          session_data = marshal(session_data.to_hash)
-
-          raise CookieOverflow if session_data.size > MAX
-
-          cookie = Hash.new
-          cookie[:value] = session_data
-          unless options[:expire_after].nil?
-            cookie[:expires] = Time.now + options[:expire_after]
-          end
-
-          cookie = build_cookie(@key, cookie.merge(options))
-          unless headers[HTTP_SET_COOKIE].blank?
-            headers[HTTP_SET_COOKIE] << "\n#{cookie}"
-          else
-            headers[HTTP_SET_COOKIE] = cookie
-          end
-        end
-
-        [status, headers, body]
-      end
-
       private
-        # Should be in Rack::Utils soon
-        def build_cookie(key, value)
-          case value
-          when Hash
-            domain  = "; domain="  + value[:domain] if value[:domain]
-            path    = "; path="    + value[:path]   if value[:path]
-            # According to RFC 2109, we need dashes here.
-            # N.B.: cgi.rb uses spaces...
-            expires = "; expires=" + value[:expires].clone.gmtime.
-              strftime("%a, %d-%b-%Y %H:%M:%S GMT") if value[:expires]
-            secure = "; secure" if value[:secure]
-            httponly = "; HttpOnly" if value[:httponly]
-            value = value[:value]
-          end
-          value = [value] unless Array === value
-          cookie = Rack::Utils.escape(key) + "=" +
-            value.map { |v| Rack::Utils.escape(v) }.join("&") +
-            "#{domain}#{path}#{expires}#{secure}#{httponly}"
+
+        def prepare!(env)
+          env[ENV_SESSION_KEY] = SessionHash.new(self, env)
+          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
         end
 
         def load_session(env)
-          request = Rack::Request.new(env)
-          session_data = request.cookies[@key]
-          data = unmarshal(session_data) || persistent_session_id!({})
+          request = ActionDispatch::Request.new(env)
+          data = request.cookie_jar.signed[@key]
+          data = persistent_session_id!(data)
           data.stringify_keys!
           [data["session_id"], data]
         end
 
-        # Marshal a session hash into safe cookie data. Include an integrity hash.
-        def marshal(session)
-          @verifier.generate(persistent_session_id!(session))
+        def set_cookie(request, options)
+          request.cookie_jar.signed[@key] = options
         end
 
-        # Unmarshal cookie data to a hash and verify its integrity.
-        def unmarshal(cookie)
-          persistent_session_id!(@verifier.verify(cookie)) if cookie
-        rescue ActiveSupport::MessageVerifier::InvalidSignature
-          nil
+        def set_session(env, sid, session_data)
+          persistent_session_id!(session_data, sid)
         end
 
-        def ensure_session_key(key)
-          if key.blank?
-            raise ArgumentError, 'A key is required to write a ' +
-              'cookie containing the session data. Use ' +
-              'config.session_store :cookie_store, { :key => ' +
-              '"_myapp_session" } in config/application.rb'
-          end
-        end
-
-        # To prevent users from using something insecure like "Password" we make sure that the
-        # secret they've provided is at least 30 characters in length.
-        def ensure_secret_secure(secret)
-          # There's no way we can do this check if they've provided a proc for the
-          # secret.
-          return true if secret.is_a?(Proc)
-
-          if secret.blank?
-            raise ArgumentError, "A secret is required to generate an " +
-              "integrity hash for cookie session data. Use " +
-              "config.secret_token = \"some secret phrase of at " +
-              "least #{SECRET_MIN_LENGTH} characters\"" +
-              "in config/application.rb"
-          end
-
-          if secret.length < SECRET_MIN_LENGTH
-            raise ArgumentError, "Secret should be something secure, " +
-              "like \"#{ActiveSupport::SecureRandom.hex(16)}\".  The value you " +
-              "provided, \"#{secret}\", is shorter than the minimum length " +
-              "of #{SECRET_MIN_LENGTH} characters"
-          end
-        end
-
-        def verifier_for(secret, digest)
-          key = secret.respond_to?(:call) ? secret.call : secret
-          ActiveSupport::MessageVerifier.new(key, digest)
-        end
-
-        def generate_sid
-          ActiveSupport::SecureRandom.hex(16)
-        end
-
-        def persistent_session_id!(data)
-          (data ||= {}).merge!(inject_persistent_session_id(data))
-        end
-
-        def inject_persistent_session_id(data)
-          requires_session_id?(data) ? { "session_id" => generate_sid } : {}
-        end
-
-        def requires_session_id?(data)
-          if data
-            data.respond_to?(:key?) && !data.key?("session_id")
-          else
-            true
-          end
+        def persistent_session_id!(data, sid=nil)
+          data ||= {}
+          data["session_id"] ||= sid || generate_sid
+          data
         end
     end
   end
