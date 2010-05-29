@@ -63,8 +63,6 @@ h4. Rails General Configuration
 
 * +config.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
 
-* +config.metals+ accepts an array used as the metals to load. If this is set to nil, all metals will be loaded in alphabetical order. If this is set to [], no metals will be loaded. Otherwise metals will be loaded in the order specified 
-
 * +config.plugin_loader+ overrides the class that handles loading each plugin. Defaults to +Rails::Plugin::Loader+.
 
 * +config.plugin_locators+ overrides the class that handle finding the desired plugins that you‘d like to load for your application. By default it is the +Rails::Plugin::FileSystemLocator+.

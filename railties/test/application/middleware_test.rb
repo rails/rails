@@ -82,12 +82,6 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.first
     end
 
-    test "shows cascade if any metal exists" do
-      app_file "app/metal/foo.rb", "class Foo; end"
-      boot!
-      assert middleware.include?("ActionDispatch::Cascade")
-    end
-
     # x_sendfile_header middleware
     test "config.action_dispatch.x_sendfile_header defaults to ''" do
       make_basic_app

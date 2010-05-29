@@ -27,7 +27,7 @@ module Rails
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
   # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger", "metals", "reload_engines", "reload_plugins" and so forth.
+  # "logger", "reload_engines", "reload_plugins" and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -36,17 +36,15 @@ module Rails
   # The application object is also responsible for holding the routes and reloading routes
   # whenever the files change in development.
   #
-  # == Middlewares and metals
+  # == Middlewares
   #
-  # The Application is also responsible for building the middleware stack and setting up
-  # both application and engines metals.
+  # The Application is also responsible for building the middleware stack.
   #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configurable,   'rails/application/configurable'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
-    autoload :MetalLoader,    'rails/application/metal_loader'
     autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
@@ -83,7 +81,7 @@ module Rails
       end
     end
 
-    delegate :middleware, :metal_loader, :to => :config
+    delegate :middleware, :to => :config
 
     def require_environment!
       environment = paths.config.environment.to_a.first
