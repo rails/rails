@@ -241,24 +241,6 @@ YAML
       assert_equal "1", I18n.t(:bar)
     end
 
-    def test_plugin_metals_added_to_middleware_stack
-      @plugin.write 'app/metal/foo_metal.rb', <<-RUBY
-        class FooMetal
-          def self.call(env)
-            [200, { "Content-Type" => "text/html"}, ["FooMetal"]]
-          end
-        end
-      RUBY
-
-      boot_rails
-      require 'rack/test'
-      extend Rack::Test::Methods
-
-      get "/not/slash"
-      assert_equal 200, last_response.status
-      assert_equal "FooMetal", last_response.body
-    end
-
     def test_namespaced_controllers_with_namespaced_routes
       @plugin.write "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do

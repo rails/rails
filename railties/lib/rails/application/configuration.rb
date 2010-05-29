@@ -9,7 +9,7 @@ module Rails
 
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
-                    :filter_parameters,  :log_level, :logger, :metals,
+                    :filter_parameters,  :log_level, :logger,
                     :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
@@ -43,10 +43,6 @@ module Rails
 
       def middleware
         @middleware ||= app_middleware.merge_into(default_middleware_stack)
-      end
-
-      def metal_loader
-        @metal_loader ||= Rails::Application::MetalLoader.new
       end
 
       def paths
@@ -157,7 +153,6 @@ module Rails
           middleware.use('::ActionDispatch::ParamsParser')
           middleware.use('::Rack::MethodOverride')
           middleware.use('::ActionDispatch::Head')
-          middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
         end
       end
     end

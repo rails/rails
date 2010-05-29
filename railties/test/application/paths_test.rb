@@ -38,7 +38,6 @@ module ApplicationTests
 
     test "booting up Rails yields a valid paths object" do
       assert_path @paths.app.models, "app", "models"
-      assert_path @paths.app.metals, "app", "metal"
       assert_path @paths.app.helpers, "app", "helpers"
       assert_path @paths.app.views, "app", "views"
       assert_path @paths.lib, "lib"
@@ -73,7 +72,6 @@ module ApplicationTests
       assert_in_load_path "vendor"
 
       assert_not_in_load_path "app", "views"
-      assert_not_in_load_path "app", "metal"
       assert_not_in_load_path "config"
       assert_not_in_load_path "config", "locales"
       assert_not_in_load_path "config", "environments"

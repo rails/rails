@@ -288,7 +288,7 @@ module Rails
         end
 
         # Removes the namespaces and get the generator name. For example,
-        # Rails::Generators::MetalGenerator will return "metal" as generator name.
+        # Rails::Generators::ModelGenerator will return "model" as generator name.
         #
         def self.generator_name
           @generator_name ||= begin

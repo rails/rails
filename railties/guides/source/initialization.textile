@@ -668,7 +668,6 @@ This file requires _rails/railtie.rb_ which defines +Rails::Railtie+.
 * add_routing_namespaces
 * add_locales
 * add_view_paths
-* add_metals
 * add_generator_templates
 * load_application_initializers
 * load_application_classes
@@ -726,7 +725,6 @@ This file is used to set up the +Rails::Paths+ module which is used to set up he
       paths.app.helpers         "app/helpers",         :eager_load => true
       paths.app.models          "app/models",          :eager_load => true
       paths.app.mailers         "app/mailers",         :eager_load => true
-      paths.app.metals          "app/metal",           :eager_load => true
       paths.app.views           "app/views",           :eager_load => true
       paths.lib                 "lib",                 :load_path => true
       paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
@@ -3154,7 +3152,6 @@ This method is defined like this:
       middleware.use('ActionDispatch::Cookies')
       middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
       middleware.use('ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
-      middleware.use(lambda { Rails::Rack::Metal.new(Rails.application.config.paths.app.metals.to_a, Rails.application.config.metals) })
       middleware.use('ActionDispatch::ParamsParser')
       middleware.use('::Rack::MethodOverride')
       middleware.use('::ActionDispatch::Head')
@@ -3288,7 +3285,7 @@ Finally, a +Rails::Application::Configuration+ object will be returned. On this 
 <ruby>
   attr_accessor :after_initialize_blocks, :cache_classes, :colorize_logging,
                 :consider_all_requests_local, :dependency_loading,
-                :load_once_paths, :logger, :metals, :plugins,
+                :load_once_paths, :logger, :plugins,
                 :preload_frameworks, :reload_plugins, :serve_static_assets,
                 :time_zone, :whiny_nils
 
@@ -3574,7 +3571,6 @@ The +super+ method it references comes from +Rails::Engine::Configuration+ which
       paths.app.controllers     "app/controllers",     :eager_load => true
       paths.app.helpers         "app/helpers",         :eager_load => true
       paths.app.models          "app/models",          :eager_load => true
-      paths.app.metals          "app/metal"
       paths.app.views           "app/views"
       paths.lib                 "lib",                 :load_path => true
       paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"

@@ -37,7 +37,7 @@ namespace :rails do
       project_templates = "#{Rails.root}/lib/templates"
 
       default_templates = { "erb"   => %w{controller mailer scaffold},
-                            "rails" => %w{controller helper metal scaffold_controller stylesheets} }
+                            "rails" => %w{controller helper scaffold_controller stylesheets} }
 
       default_templates.each do |type, names|
         local_template_type_dir = File.join(project_templates, type)
