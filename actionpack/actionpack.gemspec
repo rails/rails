@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency('activesupport', version)
   s.add_dependency('activemodel',   version)
   s.add_dependency('rack',          '~> 1.1.0')
-  s.add_dependency('rack-test',     '~> 0.5.0')
+  s.add_dependency('rack-test',     '~> 0.5.4')
   s.add_dependency('rack-mount',    '~> 0.6.3')
   s.add_dependency('erubis',        '~> 2.6.5')
 end
