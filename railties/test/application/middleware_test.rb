@@ -164,7 +164,7 @@ module ApplicationTests
       end
 
       def middleware
-        AppTemplate::Application.middleware.active.map(&:klass).map(&:name)
+        AppTemplate::Application.middleware.map(&:klass).map(&:name)
       end
 
       def remote_ip(env = {})

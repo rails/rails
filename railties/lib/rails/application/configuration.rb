@@ -9,7 +9,7 @@ module Rails
 
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
-                    :filter_parameters,  :log_level, :logger,
+                    :filter_parameters,  :log_level, :logger, :middleware,
                     :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
@@ -25,6 +25,7 @@ module Rails
         @session_store = :cookie_store
         @session_options = {}
         @time_zone = "UTC"
+        @middleware = app_middleware
       end
 
       def encoding=(value)
@@ -39,10 +40,6 @@ module Rails
                   "invalid. The possible values are UTF8, SJIS, or EUC"
           end
         end
-      end
-
-      def middleware
-        @middleware ||= app_middleware.merge_into(default_middleware_stack)
       end
 
       def paths
@@ -132,27 +129,6 @@ module Rails
         else
           @session_store = args.shift
           @session_options = args.shift || {}
-        end
-      end
-
-    protected
-
-      def default_middleware_stack
-        ActionDispatch::MiddlewareStack.new.tap do |middleware|
-          middleware.use('::ActionDispatch::Static', lambda { paths.public.to_a.first }, :if => lambda { serve_static_assets })
-          middleware.use('::Rack::Lock', :if => lambda { !allow_concurrency })
-          middleware.use('::Rack::Runtime')
-          middleware.use('::Rails::Rack::Logger')
-          middleware.use('::ActionDispatch::ShowExceptions', lambda { consider_all_requests_local }, :if => lambda { action_dispatch.show_exceptions })
-          middleware.use('::ActionDispatch::RemoteIp', lambda { action_dispatch.ip_spoofing_check }, lambda { action_dispatch.trusted_proxies })
-          middleware.use('::Rack::Sendfile', lambda { action_dispatch.x_sendfile_header })
-          middleware.use('::ActionDispatch::Callbacks', lambda { !cache_classes })
-          middleware.use('::ActionDispatch::Cookies')
-          middleware.use(lambda { session_store }, lambda { session_options })
-          middleware.use('::ActionDispatch::Flash', :if => lambda { session_store })
-          middleware.use('::ActionDispatch::ParamsParser')
-          middleware.use('::Rack::MethodOverride')
-          middleware.use('::ActionDispatch::Head')
         end
       end
     end

@@ -47,7 +47,7 @@ module Rails
           silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(config.cache_store) }
 
           if RAILS_CACHE.respond_to?(:middleware)
-            config.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
+            config.middleware.insert_before("Rack::Runtime", RAILS_CACHE.middleware)
           end
         end
       end
