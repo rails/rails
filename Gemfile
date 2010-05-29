@@ -39,7 +39,6 @@ elsif RUBY_ENGINE == "jruby"
 end
 
 # AP
-gem "rack-test", "0.5.3", :require => 'rack/test'
 gem "RedCloth", ">= 4.2.2"
 
 group :documentation do
