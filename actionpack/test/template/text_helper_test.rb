@@ -296,6 +296,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal %(<p>Link #{link_result_with_options}</p>), auto_link("<p>Link #{link_raw}</p>", :all, {:target => "_blank"})
     assert_equal %(Go to #{link_result}.), auto_link(%(Go to #{link_raw}.))
     assert_equal %(<p>Go to #{link_result}, then say hello to #{email_result}.</p>), auto_link(%(<p>Go to #{link_raw}, then say hello to #{email_raw}.</p>))
+    assert_equal %(#{link_result} #{link_result}), auto_link(%(#{link_result} #{link_raw}))
 
     email2_raw    = '+david@loudthinking.com'
     email2_result = %{<a href="mailto:#{email2_raw}">#{email2_raw}</a>}
@@ -368,24 +369,38 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_auto_link_other_protocols
-    silence_warnings do
-      begin
-        old_re_value = ActionView::Helpers::TextHelper::AUTO_LINK_RE
-        ActionView::Helpers::TextHelper.const_set :AUTO_LINK_RE, %r{(ftp://)[^\s<]+}
-        link_raw = 'ftp://example.com/file.txt'
-        link_result = generate_result(link_raw)
-        assert_equal %(Download #{link_result}), auto_link("Download #{link_raw}")
-      ensure
-        ActionView::Helpers::TextHelper.const_set :AUTO_LINK_RE, old_re_value
-      end
-    end
+    ftp_raw = 'ftp://example.com/file.txt'
+    assert_equal %(Download #{generate_result(ftp_raw)}), auto_link("Download #{ftp_raw}")
+    
+    file_scheme   = 'file:///home/username/RomeoAndJuliet.pdf'
+    z39_scheme    = 'z39.50r://host:696/db'
+    chrome_scheme = 'chrome://package/section/path'
+    view_source   = 'view-source:http://en.wikipedia.org/wiki/URI_scheme'
+    assert_equal generate_result(z39_scheme), auto_link(z39_scheme)
+    assert_equal generate_result(chrome_scheme), auto_link(chrome_scheme)
+    assert_equal generate_result(view_source), auto_link(view_source)
   end
 
   def test_auto_link_already_linked
     linked1 = generate_result('Ruby On Rails', 'http://www.rubyonrails.com')
-    linked2 = generate_result('www.rubyonrails.com', 'http://www.rubyonrails.com')
+    linked2 = %('<a href="http://www.example.com">www.example.com</a>')
+    linked3 = %('<a href="http://www.example.com" rel="nofollow">www.example.com</a>')
+    linked4 = %('<a href="http://www.example.com"><b>www.example.com</b></a>')
+    linked5 = %('<a href="#close">close</a> <a href="http://www.example.com"><b>www.example.com</b></a>')
     assert_equal linked1, auto_link(linked1)
     assert_equal linked2, auto_link(linked2)
+    assert_equal linked3, auto_link(linked3)
+    assert_equal linked4, auto_link(linked4)
+    assert_equal linked5, auto_link(linked5)
+    
+    linked_email = %Q(<a href="mailto:david@loudthinking.com">Mail me</a>)
+    assert_equal linked_email, auto_link(linked_email)
+  end
+
+  def test_auto_link_within_tags
+    link_raw    = 'http://www.rubyonrails.org/images/rails.png'
+    link_result = %Q(<img src="#{link_raw}" />)
+    assert_equal link_result, auto_link(link_result)
   end
 
   def test_auto_link_with_brackets
@@ -405,12 +420,6 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "{link: #{link3_result}}", auto_link("{link: #{link3_raw}}")
   end
 
-  def test_auto_link_in_tags
-    link_raw    = 'http://www.rubyonrails.org/images/rails.png'
-    link_result = %Q(<img src="#{link_raw}" />)
-    assert_equal link_result, auto_link(link_result)
-  end
-
   def test_auto_link_at_eol
     url1 = "http://api.rubyonrails.com/Foo.html"
     url2 = "http://www.ruby-doc.org/core/Bar.html"
@@ -424,11 +433,31 @@ class TextHelperTest < ActionView::TestCase
 
     assert_equal %(<p><a href="#{url}">#{url[0...7]}...</a><br /><a href="mailto:#{email}">#{email[0...7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, :length => 10) }
   end
+  
+  def test_auto_link_with_block_with_html
+    pic = "http://example.com/pic.png"
+    url = "http://example.com/album?a&b=c"
+    
+    assert_equal %(My pic: <a href="#{pic}"><img src="#{pic}" width="160px"></a> -- full album here #{generate_result(url)}), auto_link("My pic: #{pic} -- full album here #{url}") { |link|
+      if link =~ /\.(jpg|gif|png|bmp|tif)$/i
+        raw %(<img src="#{link}" width="160px">)
+      else
+        link
+      end
+    }
+  end
 
   def test_auto_link_with_options_hash
     assert_dom_equal 'Welcome to my new blog at <a href="http://www.myblog.com/" class="menu" target="_blank">http://www.myblog.com/</a>. Please e-mail me at <a href="mailto:me@email.com" class="menu" target="_blank">me@email.com</a>.',
       auto_link("Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com.",
                 :link => :all, :html => { :class => "menu", :target => "_blank" })
+  end
+  
+  def test_auto_link_with_multiple_trailing_punctuations
+    url = "http://youtube.com"
+    url_result = generate_result(url)
+    assert_equal url_result, auto_link(url)
+    assert_equal "(link: #{url_result}).", auto_link("(link: #{url}).")
   end
 
   def test_cycle_class
