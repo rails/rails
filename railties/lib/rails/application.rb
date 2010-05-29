@@ -124,7 +124,10 @@ module Rails
     end
 
     def app
-      @app ||= config.middleware.build(routes)
+      @app ||= begin
+        config.middleware = config.middleware.merge_into(default_middleware_stack)
+        config.middleware.build(routes)
+      end
     end
 
     def call(env)
@@ -147,6 +150,29 @@ module Rails
     end
 
   protected
+
+    def default_middleware_stack
+      ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        middleware.use ::ActionDispatch::Static, paths.public.to_a.first if config.serve_static_assets
+        middleware.use ::Rack::Lock if !config.allow_concurrency
+        middleware.use ::Rack::Runtime
+        middleware.use ::Rails::Rack::Logger
+        middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local if config.action_dispatch.show_exceptions
+        middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
+        middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
+        middleware.use ::ActionDispatch::Callbacks, !config.cache_classes
+        middleware.use ::ActionDispatch::Cookies
+
+        if config.session_store
+          middleware.use config.session_store, config.session_options
+          middleware.use ::ActionDispatch::Flash
+        end
+
+        middleware.use ::ActionDispatch::ParamsParser
+        middleware.use ::Rack::MethodOverride
+        middleware.use ::ActionDispatch::Head
+      end
+    end
 
     def initialize_tasks
       require "rails/tasks"
