@@ -16,11 +16,15 @@ module ActiveRecord
     def reset_counters(id, *counters)
       object = find(id)
       counters.each do |association|
-        child_class = reflect_on_association(association).klass
-        counter_name = child_class.reflect_on_association(self.name.downcase.to_sym).counter_cache_column
+        child_class = reflect_on_association(association.to_sym).klass
+        belongs_name = self.name.demodulize.underscore.to_sym
+        counter_name = child_class.reflect_on_association(belongs_name).counter_cache_column
 
-        connection.update("UPDATE #{quoted_table_name} SET #{connection.quote_column_name(counter_name)} = #{object.send(association).count} WHERE #{connection.quote_column_name(primary_key)} = #{quote_value(object.id)}", "#{name} UPDATE")
+        self.unscoped.where(arel_table[self.primary_key].eq(object.id)).arel.update({
+          arel_table[counter_name] => object.send(association).count
+        })
       end
+      return true
     end
 
     # A generic "counter updater" implementation, intended primarily to be
@@ -53,19 +57,13 @@ module ActiveRecord
     #   #    SET comment_count = comment_count + 1,
     #   #  WHERE id IN (10, 15)
     def update_counters(id, counters)
-      updates = counters.inject([]) { |list, (counter_name, increment)|
-        sign = increment < 0 ? "-" : "+"
-        list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
-      }.join(", ")
-
-      if id.is_a?(Array)
-        ids_list = id.map {|i| quote_value(i)}.join(', ')
-        condition = "IN  (#{ids_list})"
-      else
-        condition = "= #{quote_value(id)}"
+      updates = counters.map do |counter_name, value|
+        operator = value < 0 ? '-' : '+'
+        quoted_column = connection.quote_column_name(counter_name)
+        "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
       end
 
-      update_all(updates, "#{connection.quote_column_name(primary_key)} #{condition}")
+      update_all(updates.join(', '), primary_key => id )
     end
 
     # Increment a number field by one, usually representing a count.
