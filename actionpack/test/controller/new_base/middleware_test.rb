@@ -28,7 +28,6 @@ module MiddlewareTest
 
   class MyController < ActionController::Metal
     use MyMiddleware
-
     middleware.insert_before MyMiddleware, ExclaimerMiddleware
 
     def index
@@ -39,8 +38,23 @@ module MiddlewareTest
   class InheritedController < MyController
   end
 
-  module MiddlewareTests
-    extend ActiveSupport::Testing::Declarative
+  class ActionsController < ActionController::Metal
+    use MyMiddleware, :only => :show
+    middleware.insert_before MyMiddleware, ExclaimerMiddleware, :except => :index
+
+    def index
+      self.response_body = "index"
+    end
+
+    def show
+      self.response_body = "show"
+    end
+  end
+
+  class TestMiddleware < ActiveSupport::TestCase
+    def setup
+      @app = MyController.action(:index)
+    end
 
     test "middleware that is 'use'd is called as part of the Rack application" do
       result = @app.call(env_for("/"))
@@ -52,13 +66,13 @@ module MiddlewareTest
       result = @app.call(env_for("/"))
       assert_equal "First!", result[1]["Middleware-Order"]
     end
-  end
 
-  class TestMiddleware < ActiveSupport::TestCase
-    include MiddlewareTests
+    test "middleware stack accepts only and except as options" do
+      result = ActionsController.action(:show).call(env_for("/"))
+      assert_equal "First!", result[1]["Middleware-Order"]
 
-    def setup
-      @app = MyController.action(:index)
+      result = ActionsController.action(:index).call(env_for("/"))
+      assert_nil result[1]["Middleware-Order"]
     end
 
     def env_for(url)
@@ -69,9 +83,6 @@ module MiddlewareTest
   class TestInheritedMiddleware < TestMiddleware
     def setup
       @app = InheritedController.action(:index)
-    end
-
-    test "middleware inherits" do
     end
   end
 end
