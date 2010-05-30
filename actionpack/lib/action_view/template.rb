@@ -22,6 +22,10 @@ module ActionView
     # users will see diamonds with question marks in them in
     # the browser.
     #
+    # For the rest of this documentation, when we say "UTF-8",
+    # we mean "UTF-8 or whatever the default_internal encoding
+    # is set to". By default, it will be UTF-8.
+    #
     # To mitigate this problem, we use a few strategies:
     # 1. If the source is not valid UTF-8, we raise an exception
     #    when the template is compiled to alert the user
@@ -32,8 +36,7 @@ module ActionView
     #    to the resulting compiled source returned by the
     #    template handler.
     # 3. In all cases, we transcode the resulting String to
-    #    the <tt>default_internal</tt> encoding (which defaults
-    #    to UTF-8).
+    #    the UTF-8.
     #
     # This means that other parts of Rails can always assume
     # that templates are encoded in UTF-8, even if the original
@@ -60,14 +63,14 @@ module ActionView
     #
     # If you want to provide an alternate mechanism for
     # specifying encodings (like ERB does via <%# encoding: ... %>),
-    # you may indicate that you are willing to accept
-    # BINARY data by implementing <tt>self.accepts_binary?</tt>
+    # you may indicate that you will handle encodings yourself
+    # by implementing <tt>self.handles_encoding?</tt>
     # on your handler.
     #
-    # If you do, Rails will not raise an exception if
-    # the template's encoding could not be determined,
-    # assuming that you have another mechanism for
-    # making the determination.
+    # If you do, Rails will not try to encode the String
+    # into the default_internal, passing you the unaltered
+    # bytes tagged with the assumed encoding (from
+    # default_external).
     #
     # In this case, make sure you return a String from
     # your handler encoded in the default_internal. Since
@@ -171,7 +174,12 @@ module ActionView
       # before passing the source on to the template engine, leaving a
       # blank line in its stead.
       #
-      # Note that after we figure out the correct encoding, we then
+      # If the template engine handles encodings, we send the encoded
+      # String to the engine without further processing. This allows
+      # the template engine to support additional mechanisms for
+      # specifying the encoding. For instance, ERB supports <%# encoding: %>
+      #
+      # Otherwise, after we figure out the correct encoding, we then
       # encode the source into Encoding.default_internal. In general,
       # this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
@@ -182,8 +190,11 @@ module ActionView
         locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
 
         if source.encoding_aware?
+          # Look for # encoding: *. If we find one, we'll encode the
+          # String in that encoding, otherwise, we'll use the
+          # default external encoding.
           if source.sub!(/\A#{ENCODING_FLAG}/, '')
-            encoding = $1
+            encoding = magic_encoding = $1
           else
             encoding = Encoding.default_external
           end
@@ -192,34 +203,28 @@ module ActionView
           # or the encoding specified in the file
           source.force_encoding(encoding)
 
-          # If the original encoding is BINARY, the actual
-          # encoding is either stored out-of-band (such as
-          # in ERB <%# %> style magic comments) or missing.
-          # This is also true if the original encoding is
-          # something other than BINARY, but it's invalid.
-          if source.encoding != Encoding::BINARY && source.valid_encoding?
+          # If the user didn't specify an encoding, and the handler
+          # handles encodings, we simply pass the String as is to
+          # the handler (with the default_external tag)
+          if !magic_encoding && @handler.respond_to?(:handles_encoding?) && @handler.handles_encoding?
+            source
+          # Otherwise, if the String is valid in the encoding,
+          # encode immediately to default_internal. This means
+          # that if a handler doesn't handle encodings, it will
+          # always get Strings in the default_internal
+          elsif source.valid_encoding?
             source.encode!
-          # If the assumed encoding is incorrect, check to
-          # see whether the handler accepts BINARY. If it
-          # does, it has another mechanism for determining
-          # the true encoding of the String.
-          elsif @handler.respond_to?(:accepts_binary?) && @handler.accepts_binary?
-            source.force_encoding(Encoding::BINARY)
-          # If the handler does not accept BINARY, the
-          # assumed encoding (either the default_external,
-          # or the explicit encoding specified by the user)
-          # is incorrect. We raise an exception here.
+          # Otherwise, since the String is invalid in the encoding
+          # specified, raise an exception
           else
             raise WrongEncodingError.new(source, encoding)
           end
-
-          # Don't validate the encoding yet -- the handler
-          # may treat the String as raw bytes and extract
-          # the encoding some other way
         end
 
         code = @handler.call(self)
 
+        # Make sure that the resulting String to be evalled is in the
+        # encoding of the code
         source = <<-end_src
           def #{method_name}(local_assigns)
             _old_virtual_path, @_virtual_path = @_virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
@@ -229,20 +234,16 @@ module ActionView
         end_src
 
         if source.encoding_aware?
-          # Handlers should return their source Strings in either the
-          # default_internal or BINARY. If the handler returns a BINARY
-          # String, we assume its encoding is the one we determined
-          # earlier, and encode the resulting source in the default_internal.
-          if source.encoding == Encoding::BINARY
-            source.force_encoding(Encoding.default_internal)
-          end
+          # Make sure the source is in the encoding of the returned code
+          source.force_encoding(code.encoding)
 
           # In case we get back a String from a handler that is not in
           # BINARY or the default_internal, encode it to the default_internal
           source.encode!
 
           # Now, validate that the source we got back from the template
-          # handler is valid in the default_internal
+          # handler is valid in the default_internal. This is for handlers
+          # that handle encoding but screw up
           unless source.valid_encoding?
             raise WrongEncodingError.new(@source, Encoding.default_internal)
           end
