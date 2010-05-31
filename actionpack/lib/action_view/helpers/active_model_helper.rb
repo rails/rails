@@ -4,13 +4,6 @@ require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
-  ActiveSupport.on_load(:action_view) do
-    class ActionView::Base
-      @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
-      cattr_accessor :field_error_proc
-    end
-  end
-
   module Helpers
     module ActiveModelHelper
       %w(input form error_messages_for error_message_on).each do |method|
