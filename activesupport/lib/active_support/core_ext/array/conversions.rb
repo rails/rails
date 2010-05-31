@@ -9,9 +9,15 @@ class Array
   # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
   # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
   def to_sentence(options = {})
-    default_words_connector     = I18n.translate(:'support.array.words_connector',     :locale => options[:locale])
-    default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
-    default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
+    if defined?(I18n)
+      default_words_connector     = I18n.translate(:'support.array.words_connector',     :locale => options[:locale])
+      default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
+      default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
+    else
+      default_words_connector     = ", "
+      default_two_words_connector = " and "
+      default_last_word_connector = ", and "
+    end
 
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
     options.reverse_merge! :words_connector => default_words_connector, :two_words_connector => default_two_words_connector, :last_word_connector => default_last_word_connector
