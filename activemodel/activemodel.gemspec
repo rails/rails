@@ -20,4 +20,5 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
 
   s.add_dependency('activesupport', version)
+  s.add_dependency('i18n',          '~> 0.4.0')
 end
