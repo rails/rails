@@ -3,6 +3,13 @@ module ActionMailer
     # Uses Text::Format to take the text and format it, indented two spaces for
     # each line, and wrapped at 72 columns.
     def block_format(text)
+      begin
+        require 'text/format'
+      rescue LoadError => e
+        $stderr.puts "You don't have text-format installed in your application. Please add it to your Gemfile and run bundle install"
+        raise e
+      end unless defined?(Text::Format)
+
       formatted = text.split(/\n\r\n/).collect { |paragraph|
         Text::Format.new(
           :columns => 72, :first_indent => 2, :body_indent => 2, :text => paragraph
