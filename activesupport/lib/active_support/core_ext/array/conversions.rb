@@ -134,7 +134,7 @@ class Array
   #   </messages>
   #
   def to_xml(options = {})
-    require 'builder' unless defined?(Builder)
+    require 'active_support/builder' unless defined?(Builder)
 
     options = options.dup
     options[:indent]  ||= 2
