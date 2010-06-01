@@ -44,6 +44,12 @@ class CookieStoreTest < ActionController::IntegrationTest
       head :ok
     end
 
+    def set_session_value_and_cookie
+      cookies["foo"] = "bar"
+      session[:foo] = "bar"
+      render :text => Rack::Utils.escape(Verifier.generate(session.to_hash))
+    end
+
     def rescue_action(e) raise end
   end
 
@@ -96,7 +102,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
+      assert_equal ["_myapp_session=#{response.body}; path=/; HttpOnly"],
         headers['Set-Cookie']
    end
   end
@@ -164,7 +170,7 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/set_session_value'
       assert_response :success
       session_payload = response.body
-      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
+      assert_equal ["_myapp_session=#{response.body}; path=/; HttpOnly"],
         headers['Set-Cookie']
 
       get '/call_reset_session'
@@ -190,6 +196,14 @@ class CookieStoreTest < ActionController::IntegrationTest
       reset!
       get '/persistent_session_id'
       assert_not_equal session_id, response.body
+    end
+  end
+
+  def test_setting_session_value_and_cookie
+    with_test_route_set do
+      get '/set_session_value_and_cookie'
+      assert_response :success
+      assert_equal({"_myapp_session" => response.body, "foo" => "bar"}, cookies)
     end
   end
 
