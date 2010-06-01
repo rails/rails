@@ -43,25 +43,25 @@ module ActionView
       # ==== Examples
       #
       #   truncate("Once upon a time in a world far far away")
-      #   # => Once upon a time in a worl...
+      #   # => "Once upon a time in a world..."
       #
-      #   truncate("Once upon a time in a world far far away", :separator => ' ')
-      #   # => Once upon a time in a world...
+      #   truncate("Once upon a time in a world far far away", :length => 17)
+      #   # => "Once upon a ti..."
       #
-      #   truncate("Once upon a time in a world far far away", :length => 14)
-      #   # => Once upon a...
+      #   truncate("Once upon a time in a world far far away", :lenght => 17, :separator => ' ')
+      #   # => "Once upon a..."
       #
-      #   truncate("And they found that many people were sleeping better.", :omission => "... (continued)", :length => 25)
-      #   # => And they f... (continued)
+      #   truncate("And they found that many people were sleeping better.", :length => 25, :omission => '... (continued)')
+      #   # => "And they f... (continued)"
       #
       # You can still use <tt>truncate</tt> with the old API that accepts the
       # +length+ as its optional second and the +ellipsis+ as its
       # optional third parameter:
       #   truncate("Once upon a time in a world far far away", 14)
-      #   # => Once upon a...
+      #   # => "Once upon a..."
       #
       #   truncate("And they found that many people were sleeping better.", 25, "... (continued)")
-      #   # => And they f... (continued)
+      #   # => "And they f... (continued)"
       def truncate(text, *args)
         options = args.extract_options!
         unless args.empty?
