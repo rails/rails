@@ -18,8 +18,4 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
 
   s.has_rdoc = true
-
-  s.add_dependency('tzinfo',          '~> 0.3.16')
-  s.add_dependency('builder',         '~> 2.1.2')
-  s.add_dependency('memcache-client', '>= 1.7.5')
 end
