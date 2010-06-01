@@ -49,9 +49,3 @@ module ActionMailer
   autoload :TestCase
   autoload :TestHelper
 end
-
-module Text
-  extend ActiveSupport::Autoload
-
-  autoload :Format, 'text/format'
-end
