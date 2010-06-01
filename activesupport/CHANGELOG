@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Extracted String#truncate from TextHelper#truncate [DHH]
+
 * Ruby 1.9: support UTF-8 case folding.  #4595 [Norman Clarke]
 
 * Renames Array#rand -> Array#random_element. [Santiago Pastorino, Rizwan Reza]

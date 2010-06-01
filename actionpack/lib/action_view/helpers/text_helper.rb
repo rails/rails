@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/filters'
 require 'action_view/helpers/tag_helper'
 
 module ActionView
@@ -42,16 +43,13 @@ module ActionView
       # ==== Examples
       #
       #   truncate("Once upon a time in a world far far away")
-      #   # => Once upon a time in a world...
+      #   # => Once upon a time in a worl...
       #
       #   truncate("Once upon a time in a world far far away", :separator => ' ')
       #   # => Once upon a time in a world...
       #
       #   truncate("Once upon a time in a world far far away", :length => 14)
       #   # => Once upon a...
-      #
-      #   truncate("And they found that many people were sleeping better.", :length => 25, "(clipped)")
-      #   # => And they found t(clipped)
       #
       #   truncate("And they found that many people were sleeping better.", :omission => "... (continued)", :length => 25)
       #   # => And they f... (continued)
@@ -73,14 +71,10 @@ module ActionView
           options[:length] = args[0] || 30
           options[:omission] = args[1] || "..."
         end
-        options.reverse_merge!(:length => 30, :omission => "...")
 
-        if text
-          l = options[:length] - options[:omission].mb_chars.length
-          chars = text.mb_chars
-          stop = options[:separator] ? (chars.rindex(options[:separator].mb_chars, l) || l) : l
-          (chars.length > options[:length] ? chars[0...stop] + options[:omission] : text).to_s
-        end
+        options.reverse_merge!(:length => 30)
+
+        text.truncate(options.delete(:length), options) if text
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
