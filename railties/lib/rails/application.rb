@@ -67,6 +67,7 @@ module Rails
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
+        Rails.application.add_lib_to_load_paths!
         ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
 
@@ -83,9 +84,19 @@ module Rails
 
     delegate :middleware, :to => :config
 
+    def add_lib_to_load_paths!
+      path = config.root.join('lib').to_s
+      $LOAD_PATH.unshift(path) if File.exists?(path)
+    end
+
     def require_environment!
       environment = paths.config.environment.to_a.first
       require environment if environment
+    end
+
+    def eager_load!
+      railties.all(&:eager_load!)
+      super
     end
 
     def routes
