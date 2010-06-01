@@ -1254,6 +1254,39 @@ There's also the destructive version +String#squish!+.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
 
+h4. +truncate+
+
+The method +truncate+ returns a copy of its receiver truncated after a given +length+:
+
+<ruby>
+"Oh dear! Oh dear! I shall be late!".truncate(20)
+# => "Oh dear! Oh dear!..."
+</ruby>
+
+Ellipsis can be customized with the +:omission+ option:
+
+<ruby>
+"Oh dear! Oh dear! I shall be late!".truncate(20, :omission => '&hellip;')
+# => "Oh dear! Oh &hellip;"
+</ruby>
+
+Note in particular that truncation takes into account the length of the omission string.
+
+Pass a +:separator+ to truncate the string at a natural break:
+
+<ruby>
+"Oh dear! Oh dear! I shall be late!".truncate(18)
+# => "Oh dear! Oh dea..." 
+"Oh dear! Oh dear! I shall be late!".truncate(18, :separator => ' ')
+# => "Oh dear! Oh..."
+</ruby>
+
+In the above example "dear" gets cut first, but then +:separator+ prevents it.
+
+WARNING: The option +:separator+ can't be a regexp.
+
+NOTE: Defined in +active_support/core_ext/string/filters.rb+.
+
 h4. Key-based Interpolation
 
 In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
