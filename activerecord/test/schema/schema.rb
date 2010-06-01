@@ -367,6 +367,16 @@ ActiveRecord::Schema.define do
     t.column :updated_on, :datetime
   end
 
+  create_table :polymorphic_designs, :force => true do |t|
+    t.integer :designable_id
+    t.string  :designable_type
+  end
+
+  create_table :polymorphic_prices, :force => true do |t|
+    t.integer :sellable_id
+    t.string  :sellable_type
+  end
+
   create_table :posts, :force => true do |t|
     t.integer :author_id
     t.string  :title, :null => false
@@ -435,6 +445,8 @@ ActiveRecord::Schema.define do
     t.datetime :ending
   end
 
+  create_table :ties, :force => true
+
   create_table :topics, :force => true do |t|
     t.string   :title
     t.string   :author_name
@@ -461,6 +473,8 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :taggings_count, :integer, :default => 0
   end
+
+  create_table :tees, :force => true
 
   create_table :toys, :primary_key => :toy_id ,:force => true do |t|
     t.string :name

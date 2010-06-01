@@ -1,0 +1,19 @@
+awesome_tee_price:
+  id: 1
+  sellable_id: 1
+  sellable_type: Tee
+
+sucky_tee_price:
+  id: 2
+  sellable_id: 2
+  sellable_type: Tee
+
+awesome_hat_price:
+  id: 3
+  sellable_id: 1
+  sellable_type: Tie
+
+sucky_hat_price:
+  id: 4
+  sellable_id: 2
+  sellable_type: Tie

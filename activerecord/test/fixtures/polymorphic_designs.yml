@@ -1,0 +1,19 @@
+awesome_tee_design:
+  id: 1
+  designable_id: 1
+  designable_type: Tee
+
+sucky_tee_design:
+  id: 2
+  designable_id: 2
+  designable_type: Tee
+
+awesome_hat_design:
+  id: 3
+  designable_id: 1
+  designable_type: Tie
+
+sucky_hat_design:
+  id: 4
+  designable_id: 2
+  designable_type: Tie
