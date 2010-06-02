@@ -31,6 +31,7 @@ module ActionView #:nodoc:
 
     def typecast!
       each_with_index do |path, i|
+        path = path.to_s if path.is_a?(Pathname)
         next unless path.is_a?(String)
         self[i] = FileSystemResolver.new(path)
       end
