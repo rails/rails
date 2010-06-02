@@ -13,6 +13,7 @@ module ActionController
     MODULES = [
       AbstractController::Layouts,
       AbstractController::Translation,
+      AbstractController::AssetPaths,
 
       Helpers,
       HideActions,
@@ -67,7 +68,7 @@ module ActionController
     end
 
     # TODO Move this to the appropriate module
-    config_accessor :assets_dir, :asset_path, :javascripts_dir, :stylesheets_dir
+    config_accessor :asset_path
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
