@@ -115,17 +115,17 @@ end
 >> p = Person.new
 => #<Person id: nil, name: nil>
 >> p.errors
-=> #<ActiveRecord::Errors..., @errors={}>
+=> {}
   
 >> p.valid?
 => false
 >> p.errors
-=> #<ActiveRecord::Errors..., @errors={"name"=>["can't be blank"]}>
+=> {:name=>["can't be blank"]}
 
 >> p = Person.create
 => #<Person id: nil, name: nil>
 >> p.errors
-=> #<ActiveRecord::Errors..., @errors={"name"=>["can't be blank"]}>
+=> {:name=>["can't be blank"]}
   
 >> p.save
 => false
@@ -1111,6 +1111,10 @@ Observers are similar to callbacks, but with important differences. Whereas call
 h4. Creating Observers
 
 For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we could create an observer to contain this functionality.
+
+<shell>
+rails generate observer User
+</shell>
 
 <ruby>
 class UserObserver < ActiveRecord::Observer
