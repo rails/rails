@@ -367,8 +367,7 @@ tt {
 
 div.code_container {
 	background: #EEE url(../images/tab_grey.gif) no-repeat left top;
-	padding: 0.25em 1em 0.5em 48px;
-	margin: 0px 0px 1.5em;    
+	padding: 0.25em 1em 0.5em 48px;    
 }
 
 code {
