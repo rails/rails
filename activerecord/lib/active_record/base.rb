@@ -1219,7 +1219,9 @@ module ActiveRecord #:nodoc:
               begin
                 constant = candidate.constantize
                 return constant if candidate == constant.to_s
-              rescue NameError
+              rescue NameError => e
+                # We don't want to swallow NoMethodError < NameError errors
+                raise e unless e.instance_of?(NameError)
               rescue ArgumentError
               end
             end

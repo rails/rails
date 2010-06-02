@@ -2334,6 +2334,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert !Minimalistic.new.freeze.dup.frozen?
   end
 
+  def test_compute_type_success
+    assert_equal Author, ActiveRecord::Base.send(:compute_type, 'Author')
+  end
+
+  def test_compute_type_nonexistent_constant
+    assert_raises NameError do
+      ActiveRecord::Base.send :compute_type, 'NonexistentModel'
+    end
+  end
+
+  def test_compute_type_no_method_error
+    String.any_instance.stubs(:constantize).raises(NoMethodError)
+    assert_raises NoMethodError do
+      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    end
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
