@@ -67,8 +67,7 @@ module ActionController
       @subclasses ||= []
     end
 
-    # TODO Move this to the appropriate module
-    config_accessor :asset_path
+    config_accessor :asset_host, :asset_path
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
