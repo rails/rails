@@ -170,13 +170,13 @@ module ActiveModel
       end
     end
 
-    # Adds an error message (+messsage+) to the +attribute+, which will be returned on a call to <tt>on(attribute)</tt>
-    # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
-    # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
-    # If no +messsage+ is supplied, :invalid is assumed.
+    # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
+    # <tt>on(attribute)</tt> for the same attribute. More than one error can be added to the same
+    # +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
+    # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
     # 
-    # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
-    # If +message+ is a Proc, it will be called, allowing for things like Time.now to be used within an error
+    # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
+    # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
       message ||= :invalid
       message = generate_message(attribute, message, options) if message.is_a?(Symbol)

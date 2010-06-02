@@ -55,7 +55,7 @@ module ActionDispatch
 
     def insert(index, *args, &block)
       index = self.index(index) unless index.is_a?(Integer)
-      middleware = Middleware.new(*args, &block)
+      middleware = self.class::Middleware.new(*args, &block)
       super(index, middleware)
     end
 
@@ -73,7 +73,7 @@ module ActionDispatch
     end
 
     def use(*args, &block)
-      middleware = Middleware.new(*args, &block)
+      middleware = self.class::Middleware.new(*args, &block)
       push(middleware)
     end
 
@@ -82,8 +82,8 @@ module ActionDispatch
         "was removed from the middleware stack", caller
     end
 
-    def build(app = nil, &blk)
-      app ||= blk
+    def build(app = nil, &block)
+      app ||= block
       raise "MiddlewareStack#build requires an app" unless app
       reverse.inject(app) { |a, e| e.build(a) }
     end

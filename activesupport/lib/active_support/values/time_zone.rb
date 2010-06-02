@@ -1,5 +1,11 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
+begin
+  require 'tzinfo'
+rescue LoadError => e
+  $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
+  raise e
+end
 
 # The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
 #
@@ -313,7 +319,7 @@ module ActiveSupport
 
     # TODO: Preload instead of lazy load for thread safety
     def self.find_tzinfo(name)
-      require 'tzinfo' unless defined?(::TZInfo)
+      require 'active_support/tzinfo' unless defined?(::TZInfo)
       ::TZInfo::TimezoneProxy.new(MAPPING[name] || name)
     end
 
