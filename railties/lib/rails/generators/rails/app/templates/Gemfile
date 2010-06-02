@@ -23,6 +23,9 @@ gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= req
 # Deploy with Capistrano
 # gem 'capistrano'
 
+# To use debugger
+# gem 'ruby-debug'
+
 # Bundle the extra gems:
 # gem 'bj'
 # gem 'nokogiri', '1.4.1'
