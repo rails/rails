@@ -19,6 +19,23 @@ module ApplicationTests
       assert $:.include?("#{app_path}/app/models")
     end
 
+    test "initializing an application adds lib path on inheritance hook" do
+      app_file "lib/foo.rb", <<-RUBY
+        module Foo; end
+      RUBY
+
+      add_to_config <<-RUBY
+        require "foo"
+        raise "Expected Foo to be defined" unless defined?(Foo)
+      RUBY
+
+      assert_nothing_raised do
+        require "#{app_path}/config/environment"
+      end
+
+      assert $:.include?("#{app_path}/lib")
+    end
+
     test "initializing an application eager load any path under app" do
       app_file "app/anything/foo.rb", <<-RUBY
         module Foo; end

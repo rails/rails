@@ -47,6 +47,7 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     include AbstractController::Helpers
+    include AbstractController::Callbacks
 
     included do
       # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
