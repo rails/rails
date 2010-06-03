@@ -160,7 +160,7 @@ The best way to use this guide is to follow each step as it happens, no code or 
 To begin, open a terminal, navigate to a folder where you have rights to create files, and type:
 
 <shell>
-$ rails blog
+$ rails new blog
 </shell>
 
 This will create a Rails application called Blog in a directory called blog.

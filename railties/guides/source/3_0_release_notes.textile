@@ -81,7 +81,7 @@ The new installing rails sequence (for the beta) is:
 
 <shell>
 $ gem install rails --prerelease
-$ rails myapp
+$ rails new myapp
 $ cd myapp
 </shell>
 
@@ -98,13 +98,13 @@ h4. Living on the Edge
 If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
 
 <shell>
-$ rails myapp --edge
+$ rails new myapp --edge
 </shell>
 
 If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
 
 <shell>
-$ ruby /path/to/rails/bin/rails myapp --dev
+$ ruby /path/to/rails/bin/rails new myapp --dev
 </shell>
 
 h3. Rails Architectural Changes
