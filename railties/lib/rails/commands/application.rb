@@ -4,7 +4,12 @@ if %w(--version -v).include? ARGV.first
   exit(0)
 end
 
-ARGV << "--help"   if ARGV.empty?
+if ARGV.first != "new" || ARGV.empty?
+  ARGV[0] = "--help"
+else
+  ARGV.shift
+end
+
 require 'rubygems' if ARGV.include?("--dev")
 
 require 'rails/generators'
