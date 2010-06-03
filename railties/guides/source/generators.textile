@@ -20,7 +20,7 @@ h3. First contact
 When you create an application using the +rails+ command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking +rails generate+:
 
 <shell>
-$ rails myapp
+$ rails new myapp
 $ cd myapp
 $ rails generate
 </shell>
