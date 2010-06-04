@@ -34,10 +34,14 @@ link:files/vendor/rails/actionpack/README.html.
 2. Change directory to <tt>myapp</tt> and start the web server:
        <tt>cd myapp; rails server</tt> (run with --help for options)
 
-3. Go to http://localhost:3000/ and get:
+3. Go to http://localhost:3000/ and you'll see:
        "Welcome aboard: You're riding the Rails!"
 
-4. Follow the guidelines to start developing your application.
+4. Follow the guidelines to start developing your application. You can find 
+the following resources handy:
+
+* The Getting Started Guide: http://guides.rubyonrails.org/getting_started.html
+* Ruby on Rails Tutorial Book: http://www.railstutorial.org/
 
 
 == Web Servers
@@ -47,10 +51,11 @@ By default, Rails will try to use Mongrel if it's installed when started with
 ships with Ruby.
 
 Mongrel is a Ruby-based web server with a C component (which requires
-compilation) that is suitable for development and deployment of Rails
-applications. If you have Ruby Gems installed, getting up and running with
-mongrel is as easy as: <tt>sudo gem install mongrel</tt>.
-More info at: http://mongrel.rubyforge.org
+compilation) that is suitable for development. If you have Ruby Gems installed,
+getting up and running with mongrel is as easy as: 
+      <tt>sudo gem install mongrel</tt>.
+
+You can find more info at: http://mongrel.rubyforge.org
 
 You can alternatively run Rails applications with other Ruby web servers, e.g.,
 {Thin}[http://code.macournoyer.com/thin/], {Ebb}[http://ebb.rubyforge.org/], and
@@ -62,45 +67,6 @@ For production use, often a web/proxy server, e.g., {Apache}[http://apache.org],
 {Lighttpd}[http://www.lighttpd.net/], or {IIS}[http://www.iis.net/], is deployed
 as the front end server with the chosen Ruby web server running in the back end
 and receiving the proxied requests via one of several protocols (HTTP, CGI, FCGI).
-
-
-== Apache .htaccess example for FCGI/CGI
-
-General Apache options
-
-  AddHandler fastcgi-script .fcgi
-  AddHandler cgi-script .cgi
-  Options +FollowSymLinks +ExecCGI
-
-If you don't want Rails to look in certain directories, use the following
-rewrite rules so that Apache won't rewrite certain requests.
-
-  RewriteCond %{REQUEST_URI} ^/notrails.*
-  RewriteRule .* - [L]
-
-Redirect all requests not available on the filesystem to Rails. By default the
-cgi dispatcher is used which is very slow, for better performance replace the
-dispatcher with the fastcgi one.
-
-  RewriteRule ^(.*)$ dispatch.fcgi [QSA,L]
-  RewriteEngine On
-
-If your Rails application is accessed via an Alias directive, then you MUST also
-set the RewriteBase in this htaccess file.
-
-  Alias /myrailsapp /path/to/myrailsapp/public
-  RewriteBase /myrailsapp
-
-  RewriteRule ^$ index.html [QSA]
-  RewriteRule ^([^.]+)$ $1.html [QSA]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^(.*)$ dispatch.cgi [QSA,L]
-
-In case Rails experiences terminal errors, you may supply a file here to be
-rendered instead.
-
-  ErrorDocument 500 /500.html
-  ErrorDocument 500 "<h2>Application Error</h2>Rails failed to start properly."
 
 
 == Debugging Rails
@@ -130,13 +96,14 @@ The result will be a message in your log file along the lines of:
 
 More information on how to use the logger is at http://www.ruby-doc.org/core/
 
-Also, Ruby documentation can be found at http://www.ruby-lang.org/ including:
+Also, Ruby documentation can be found at http://www.ruby-lang.org/. There are 
+several books available online as well:
 
 * Programming Ruby: http://www.ruby-doc.org/docs/ProgrammingRuby/ (Pickaxe)
 * Learn to Program: http://pine.fm/LearnToProgram/ (a beginners guide)
 
-These two online (and free) books will bring you up to speed on the Ruby
-language and also on programming in general.
+These two books will bring you up to speed on the Ruby language and also on 
+programming in general.
 
 
 == Debugger
@@ -172,7 +139,7 @@ with a IRB prompt in the server window. Here you can do things like:
   >> f.
   Display all 152 possibilities? (y or n)
 
-Finally, when you're ready to resume execution, you enter "cont"
+Finally, when you're ready to resume execution, you can enter "cont".
 
 
 == Console
@@ -206,12 +173,12 @@ You can go to the command line of your database directly through <tt>rails
 dbconsole</tt>. You would be connected to the database with the credentials
 defined in database.yml. Starting the script without arguments will connect you
 to the development database. Passing an argument will connect you to a different
-database, like <tt>rails dbconsole production</tt>. Currently works for mysql,
-postgresql and sqlite.
+database, like <tt>rails dbconsole production</tt>. Currently works for MySQL,
+PostgreSQL and SQLite 3.
 
 == Description of Contents
 
-The default directory structure of a generated Ruby on Rails applicartion:
+The default directory structure of a generated Ruby on Rails application:
 
   |-- app
   |   |-- controllers
@@ -257,13 +224,13 @@ app/controllers
   ApplicationController which itself descends from ActionController::Base.
 
 app/models
-  Holds models that should be named like post.rb.
-  Most models will descend from ActiveRecord::Base.
+  Holds models that should be named like post.rb. Models descend from 
+  ActiveRecord::Base by default.
 
 app/views
   Holds the template files for the view that should be named like
   weblogs/index.html.erb for the WeblogsController#index action. All views use
-  eRuby syntax.
+  eRuby syntax by default.
 
 app/views/layouts
   Holds the template files for layouts to be used with views. This models the
@@ -274,7 +241,7 @@ app/views/layouts
 
 app/helpers
   Holds view helpers that should be named like weblogs_helper.rb. These are
-  generated for you automatically when using rails generate for controllers.
+  generated for you automatically when using generators for controllers.
   Helpers can be used to wrap functionality for your views into methods.
 
 config
