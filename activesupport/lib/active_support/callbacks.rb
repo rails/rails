@@ -390,9 +390,12 @@ module ActiveSupport
           undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def _run_#{symbol}_callbacks(key = nil, &blk)
-              if self.class.send("_update_#{symbol}_superclass_callbacks")
-                self.class.__define_runner(#{symbol.inspect})
-                return _run_#{symbol}_callbacks(key, &blk)
+              @_initialized_#{symbol}_callbacks ||= begin
+                if self.class.send("_update_#{symbol}_superclass_callbacks")
+                  self.class.__define_runner(#{symbol.inspect})
+                  return _run_#{symbol}_callbacks(key, &blk)
+                end
+                true
               end
 
               if key
