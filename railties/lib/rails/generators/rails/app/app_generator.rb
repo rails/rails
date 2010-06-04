@@ -309,7 +309,7 @@ module Rails
     protected
 
       def self.banner
-        "rails #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
       def builder
