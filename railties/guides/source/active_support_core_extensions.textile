@@ -1933,8 +1933,6 @@ h4. Random Access
 
 Active Support backports +sample+ from Ruby 1.9:
 
-You can pick a random element with +sample+:
-
 <ruby>
 shape_type = [Circle, Square, Triangle].sample
 # => Square, for example
