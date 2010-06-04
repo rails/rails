@@ -51,11 +51,11 @@ module ActionDispatch
           super
         end
 
-        private
-          def loaded?
-            @loaded
-          end
+        def loaded?
+          @loaded
+        end
 
+        private
           def load!
             stale_session_check! do
               id, session = @by.send(:load_session, @env)

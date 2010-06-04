@@ -170,13 +170,13 @@ module ActionDispatch
     end
 
     def call(env)
-      if (session = env['rack.session']) && (flash = session['flash'])
+      if (session = env['rack.session']) && session.key?('flash')
         flash.sweep
       end
 
       @app.call(env)
     ensure
-      if (session = env['rack.session']) && (flash = session['flash']) && flash.empty?
+      if (session = env['rack.session']) && session.key?('flash') && session['flash'].empty?
         session.delete('flash')
       end
     end
