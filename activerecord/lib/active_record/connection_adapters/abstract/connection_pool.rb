@@ -211,7 +211,7 @@ module ActiveRecord
       # calling +checkout+ on this pool.
       def checkin(conn)
         @connection_mutex.synchronize do
-          conn._run_checkin_callbacks do
+          conn.send(:_run_checkin_callbacks) do
             @checked_out.delete conn
             @queue.signal
           end
