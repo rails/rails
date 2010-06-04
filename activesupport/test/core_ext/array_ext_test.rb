@@ -359,14 +359,30 @@ class ArrayUniqByTests < Test::Unit::TestCase
 end
 
 class ArrayExtRandomTests < ActiveSupport::TestCase
-  def test_random_element_from_array
-    assert_nil [].random_element
+  def test_sample_from_array
+    assert_nil [].sample
+    assert_equal [], [].sample(5)
+    assert_equal 42, [42].sample
+    assert_equal [42], [42].sample(5)
 
-    Kernel.expects(:rand).with(1).returns(0)
-    assert_equal 'x', ['x'].random_element
+    a = [:foo, :bar, 42]
+    s = a.sample(2)
+    assert_equal 2, s.size
+    assert_equal 1, (a-s).size
+    assert_equal [], a-(0..20).sum{a.sample(2)}
+  
+    o = Object.new
+    def o.to_int; 1; end
+    assert_equal [0], [0].sample(o)
+  
+    o = Object.new
+    assert_raises(TypeError) { [0].sample(o) }
+    
+    o = Object.new
+    def o.to_int; ''; end
+    assert_raises(TypeError) { [0].sample(o) }
 
-    Kernel.expects(:rand).with(3).returns(1)
-    assert_equal 2, [1, 2, 3].random_element
+    assert_raises(ArgumentError) { [0].sample(-7) }
   end
 end
 

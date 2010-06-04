@@ -4,7 +4,7 @@
 
 * Ruby 1.9: support UTF-8 case folding.  #4595 [Norman Clarke]
 
-* Renames Array#rand -> Array#random_element. [Santiago Pastorino, Rizwan Reza]
+* Removes Array#rand and backports Array#sample from Ruby 1.9, thanks to Marc-Andre Lafortune. [fxn]
 
 * Ruby 1.9: Renames last_(month|year) to prev_(month|year) in Date and Time. [fxn]
 

@@ -47,7 +47,7 @@ module ApplicationTests
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nothing_raised { [1,2,3].random_element }
+      assert_nothing_raised { [1,2,3].sample }
     end
 
     test "config.active_support.bare does not require all of ActiveSupport" do
@@ -57,7 +57,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].random_element }
+        assert_raises(NoMethodError) { [1,2,3].sample }
       end
     end
 
