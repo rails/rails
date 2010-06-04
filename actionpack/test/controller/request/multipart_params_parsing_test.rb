@@ -14,6 +14,10 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     def read
       render :text => "File: #{params[:uploaded_data].read}"
     end
+
+    def read_complex
+      render :text => "File: #{params[:level0][:level1][0][:file_data].read}"
+    end
   end
 
   FIXTURE_PATH = File.dirname(__FILE__) + '/../../fixtures/multipart'
@@ -129,6 +133,17 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
   test "uploads and reads file" do
     with_test_routing do
       post '/read', :uploaded_data => fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain")
+      assert_equal "File: Hello", response.body
+    end
+  end
+
+  test "uploads and reads file in complex parameter" do
+    with_test_routing do
+      post '/read_complex',
+      :level0 => {
+        :level1 => [ { :file_data => fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain") }
+                   ]
+      }
       assert_equal "File: Hello", response.body
     end
   end

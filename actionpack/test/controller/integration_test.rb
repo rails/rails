@@ -266,6 +266,14 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       render :text => "foo(1i): #{params[:"foo(1i)"]}, foo(2i): #{params[:"foo(2i)"]}, filesize: #{params[:file].size}", :status => 200
     end
 
+    def multipart_post_with_nested_params
+      render :text => "foo: #{params[:foo][0]}, #{params[:foo][1]}; [filesize: #{params[:file_list][0][:content].size}, filesize: #{params[:file_list][1][:content].size}]", :status => 200
+    end
+
+    def multipart_post_with_multiparameter_complex_params
+      render :text => "foo(1i): #{params[:"foo(1i)"]}, foo(2i): #{params[:"foo(2i)"]}, [filesize: #{params[:file_list][0][:content].size}, filesize: #{params[:file_list][1][:content].size}]", :status => 200
+    end
+
     def post
       render :text => "Created", :status => 201
     end
@@ -402,6 +410,24 @@ class IntegrationProcessTest < ActionController::IntegrationTest
 
       assert_equal 200, status
       assert_equal "foo(1i): bar, foo(2i): baz, filesize: 159528", response.body
+    end
+  end
+
+  def test_multipart_post_with_nested_params
+    with_test_route_set do
+      post '/multipart_post_with_nested_params', :"foo" => ['a', 'b'], :file_list => [{:content => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")}, {:content => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")}]
+
+      assert_equal 200, status
+      assert_equal "foo: a, b; [filesize: 159528, filesize: 159528]", response.body
+    end
+  end
+
+  def test_multipart_post_with_multiparameter_complex_attribute_parameters
+    with_test_route_set do
+      post '/multipart_post_with_multiparameter_complex_params', :"foo(1i)" => "bar", :"foo(2i)" => "baz", :file_list => [{:content => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")}, {:content => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")}]
+
+      assert_equal 200, status
+      assert_equal "foo(1i): bar, foo(2i): baz, [filesize: 159528, filesize: 159528]", response.body
     end
   end
 

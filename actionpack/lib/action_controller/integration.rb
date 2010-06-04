@@ -414,15 +414,25 @@ module ActionController
         end
 
         def multipart_requestify(params, first=true)
-          returning Hash.new do |p|
+          returning Array.new do |p|
             params.each do |key, value|
               k = first ? key.to_s : "[#{key.to_s}]"
               if Hash === value
                 multipart_requestify(value, false).each do |subkey, subvalue|
-                  p[k + subkey] = subvalue
+                  p << [k + subkey, subvalue]
+                end
+              elsif Array === value
+                value.each do |element|
+                  if Hash === element || Array === element
+                    multipart_requestify(element, false).each do |subkey, subvalue|
+                      p << ["#{k}[]#{subkey}", subvalue]
+                    end
+                  else
+                    p << ["#{k}[]", element]
+                  end
                 end
               else
-                p[k] = value
+                p << [k, value]
               end
             end
           end
@@ -453,6 +463,7 @@ EOF
             end
           end.join("")+"--#{boundary}--\r"
         end
+
     end
 
     # A module used to extend ActionController::Base, so that integration tests
