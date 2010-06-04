@@ -155,6 +155,8 @@ module ActionController
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+      @method = @request_method = nil
+      @fullpath = @ip = @remote_ip = nil
       @env['action_dispatch.request.query_parameters'] = {}
     end
   end
@@ -167,9 +169,7 @@ module ActionController
       @block = nil
       @length = 0
       @body = []
-      @charset = nil
-      @content_type = nil
-
+      @charset = @content_type = nil
       @request = @template = nil
     end
   end
