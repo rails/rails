@@ -301,7 +301,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_rand_should_select_a_random_object_from_proxy
-    assert_kind_of Topic, Topic.approved.random_element
+    assert_kind_of Topic, Topic.approved.sample
   end
 
   def test_should_use_where_in_query_for_named_scope
@@ -426,6 +426,19 @@ class NamedScopeTest < ActiveRecord::TestCase
 
     post.comments.containing_the_letter_e.all # force load
     assert_no_queries { post.comments.containing_the_letter_e.all }
+  end
+
+  def test_named_scopes_with_arguments_are_cached_on_associations
+    post = posts(:welcome)
+
+    one = post.comments.limit_by(1).all
+    assert_equal 1, one.size
+
+    two = post.comments.limit_by(2).all
+    assert_equal 2, two.size
+
+    assert_no_queries { post.comments.limit_by(1).all }
+    assert_no_queries { post.comments.limit_by(2).all }
   end
 
   def test_named_scopes_are_reset_on_association_reload

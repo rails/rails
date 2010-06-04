@@ -20,7 +20,7 @@ h3. First contact
 When you create an application using the +rails+ command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking +rails generate+:
 
 <shell>
-$ rails myapp
+$ rails new myapp
 $ cd myapp
 $ rails generate
 </shell>
@@ -322,14 +322,10 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :shoulda, :fixture => false
   g.stylesheets     false
+
+  # Add a fallback!
+  g.fallbacks[:should] = :test_unit
 end
-</ruby>
-
-And at the end of the same file:
-
-<ruby>
-require 'rails/generators'
-Rails::Generators.fallbacks[:shoulda] = :test_unit
 </ruby>
 
 Now, if create a Comment scaffold, you will see that shoulda generators are being invoked, and at the end, they are just falling back to test unit generators:
@@ -361,7 +357,7 @@ $ rails generate scaffold Comment body:text
       create        test/unit/helpers/comments_helper_test.rb
 </shell>
 
-Such tool allows your generators to have single responsibility, increasing the code reuse and reducing the amount of code duplication.
+Such tool allows your generators to have single responsibility, increasing the code reuse and reducing the amount of duplication.
 
 h3. Changelog
 

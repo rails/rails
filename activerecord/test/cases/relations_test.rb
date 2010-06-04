@@ -112,6 +112,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 4, developers.map(&:salary).uniq.size
   end
 
+  def test_select_with_block
+    even_ids = Developer.scoped.select {|d| d.id % 2 == 0 }.map(&:id)
+    assert_equal [2, 4, 6, 8, 10], even_ids
+  end
+
   def test_finding_with_hash_conditions_on_joined_table
     firms = DependentFirm.joins(:account).where({:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}).to_a
     assert_equal 1, firms.size

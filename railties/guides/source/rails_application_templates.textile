@@ -14,13 +14,13 @@ h3. Usage
 To apply a template, you need to provide the Rails generator with the location of the template you wish to apply, using -m option :
 
 <shell>
-$ rails blog -m ~/template.rb
+$ rails new blog -m ~/template.rb
 </shell>
 
 It's also possible to apply a template using a URL :
 
 <shell>
-$ rails blog -m http://gist.github.com/31208.txt
+$ rails new blog -m http://gist.github.com/31208.txt
 </shell>
 
 Alternatively, you can use the rake task +rails:template+ to apply a template to an existing Rails application :

@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'rails/generators'
+require 'rails/generators/test_case'
 
 module Rails
   def self.root
@@ -8,8 +10,9 @@ end
 Rails.application.config.root = Rails.root
 Rails.application.config.generators.templates = [File.join(Rails.root, "lib", "templates")]
 
-require 'rails/generators'
-require 'rails/generators/test_case'
+# Call configure to load the settings from
+# Rails.application.config.generators to Rails::Generators
+Rails::Generators.configure!
 
 require 'active_record'
 require 'action_dispatch'

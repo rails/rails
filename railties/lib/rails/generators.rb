@@ -68,6 +68,7 @@ module Rails
       options.deep_merge! config.options
       fallbacks.merge! config.fallbacks
       templates_path.concat config.templates
+      templates_path.uniq!
     end
 
     def self.templates_path
@@ -328,10 +329,5 @@ module Rails
         paths.uniq!
         paths
       end
-
   end
 end
-
-# If the application was already defined, configure generators,
-# otherwise you have to configure it by hand.
-Rails::Generators.configure! if Rails.respond_to?(:application) && Rails.application

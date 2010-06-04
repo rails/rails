@@ -81,7 +81,7 @@ The new installing rails sequence (for the beta) is:
 
 <shell>
 $ gem install rails --prerelease
-$ rails myapp
+$ rails new myapp
 $ cd myapp
 </shell>
 
@@ -98,13 +98,13 @@ h4. Living on the Edge
 If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
 
 <shell>
-$ rails myapp --edge
+$ rails new myapp --edge
 </shell>
 
 If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
 
 <shell>
-$ ruby /path/to/rails/bin/rails myapp --dev
+$ ruby /path/to/rails/bin/rails new myapp --dev
 </shell>
 
 h3. Rails Architectural Changes
@@ -512,6 +512,7 @@ These are the main changes in Active Support:
 * Active Support no longer provides vendored versions of "TZInfo":http://tzinfo.rubyforge.org/, "Memcache Client":http://deveiate.org/projects/RMemCache/ and "Builder":http://builder.rubyforge.org/, these are all included as dependencies and installed via the <tt>bundle install</tt> command.
 * Safe buffers are implemented in <tt>ActiveSupport::SafeBuffer</tt>.
 * Added <tt>Array.uniq_by</tt> and <tt>Array.uniq_by!</tt>.
+* Removed <tt>Array#rand</tt> and backported <tt>Array#sample</tt> from Ruby 1.9.
 * Fixed bug on +TimeZone.seconds_to_utc_offset+ returning wrong value.
 * Added <tt>ActiveSupport::Notifications</tt> middleware.
 * <tt>ActiveSupport.use_standard_json_time_format</tt> now defaults to true.
