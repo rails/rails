@@ -1,4 +1,5 @@
 require 'rails/generators'
+Rails::Generators.configure!
 
 if [nil, "-h", "--help"].include?(ARGV.first)
   Rails::Generators.help 'generate'

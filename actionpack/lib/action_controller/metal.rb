@@ -1,6 +1,48 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/object/blank'
+require 'action_dispatch/middleware/stack'
 
 module ActionController
+  # Extend ActionDispatch middleware stack to make it aware of options
+  # allowing the following syntax in controllers:
+  #
+  #   class PostsController < ApplicationController
+  #     use AuthenticationMiddleware, :except => [:index, :show]
+  #   end
+  #
+  class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
+    class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
+      def initialize(klass, *args)
+        options = args.extract_options!
+        @only   = Array(options.delete(:only)).map(&:to_s)
+        @except = Array(options.delete(:except)).map(&:to_s)
+        args << options unless options.empty?
+        super
+      end
+
+      def valid?(action)
+        if @only.present?
+          @only.include?(action)
+        elsif @except.present?
+          !@except.include?(action)
+        else
+          true
+        end
+      end
+    end
+
+    def build(action, app=nil, &block)
+      app  ||= block
+      action = action.to_s
+      raise "MiddlewareStack#build requires an app" unless app
+
+      reverse.inject(app) do |a, middleware|
+        middleware.valid?(action) ?
+          middleware.build(a) : a
+      end
+    end
+  end
+
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
   #
   # In AbstractController, dispatching is triggered directly by calling #process on a new controller.
@@ -91,10 +133,10 @@ module ActionController
     end
 
     class_attribute :middleware_stack
-    self.middleware_stack = ActionDispatch::MiddlewareStack.new
+    self.middleware_stack = ActionController::MiddlewareStack.new
 
     def self.inherited(base)
-      self.middleware_stack = base.middleware_stack.dup
+      base.middleware_stack = self.middleware_stack.dup
       super
     end
 
@@ -120,7 +162,7 @@ module ActionController
     # ==== Returns
     # Proc:: A rack application
     def self.action(name, klass = ActionDispatch::Request)
-      middleware_stack.build do |env|
+      middleware_stack.build(name.to_s) do |env|
         new.dispatch(name, klass.new(env))
       end
     end

@@ -25,7 +25,7 @@ module Rails
   #   end
   #
   # Then ensure that this file is loaded at the top of your config/application.rb (or in
-  # your Gemfile) and it will automatically load models, controllers, helpers and metals
+  # your Gemfile) and it will automatically load models, controllers and helpers
   # inside app, load routes at "config/routes.rb", load locales at "config/locales/*",
   # load tasks at "lib/tasks/*".
   #
@@ -73,7 +73,6 @@ module Rails
   #     paths.app.controllers     = "app/controllers"
   #     paths.app.helpers         = "app/helpers"
   #     paths.app.models          = "app/models"
-  #     paths.app.metals          = "app/metal"
   #     paths.app.views           = "app/views"
   #     paths.lib                 = "lib"
   #     paths.lib.tasks           = "lib/tasks"
@@ -200,10 +199,6 @@ module Rails
       ActiveSupport.on_load(:action_mailer) do
         prepend_view_path(views)
       end
-    end
-
-    initializer :add_metals do |app|
-      app.metal_loader.paths.unshift(*paths.app.metals.to_a)
     end
 
     initializer :load_config_initializers do

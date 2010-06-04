@@ -222,57 +222,6 @@ use MyOwnStackFromStratch
 run ActionController::Dispatcher.new
 </ruby>
 
-h3. Rails Metal Applications
-
-Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails application. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.
-
-Ryan Bates' "Railscast on Rails Metal":http://railscasts.com/episodes/150-rails-metal provides a nice walkthrough generating and using Rails Metal.
-
-h4. Generating a Metal Application
-
-Rails provides a generator called +metal+ for creating a new Metal application:
-
-<shell>
-$ rails generate metal poller
-</shell>
-
-This generates +poller.rb+ in the +app/metal+ directory:
-
-<ruby>
-# Allow the metal piece to run in isolation
-require(File.dirname(__FILE__) + "/../../config/environment") unless defined?(Rails)
-
-class Poller
-  def self.call(env)
-    if env["PATH_INFO"] =~ /^\/poller/
-      [200, {"Content-Type" => "text/html"}, ["Hello, World!"]]
-    else
-      [404, {"Content-Type" => "text/html", "X-Cascade" => "pass"}, ["Not Found"]]
-    end
-  end
-end
-</ruby>
-
-Metal applications within +app/metal+ folders in plugins will also be discovered and added to the list.
-
-Metal applications are an optimization. You should make sure to "understand the related performance implications":http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal before using it.
-
-WARNING: To continue the Metal chain execution, return an +X-Cascade+ HTTP header with a value of +pass+.
-
-h4. Execution Order
-
-All Metal Applications are executed in alphabetical order of their filenames, so +aaa.rb+ will come before +bbb.rb+ in the metal chain.
-
-You can override the default ordering in your environment. Simply add a line like the following to +config/application.rb+
-
-It is, however, possible to override the default ordering in your environment. Simply add a line like the following to +config/environment.rb+
-
-<ruby>
-config.metals = ["Bbb", "Aaa"]
-</ruby>
-
-Each string in the array should be the name of your metal class. If you do this then be warned that any metal applications not listed will not be loaded.
-
 h3. Resources
 
 h4. Learning Rack

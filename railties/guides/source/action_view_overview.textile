@@ -699,7 +699,7 @@ Creates a scope around a specific model object like form_for, but doesn‘t crea
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
 
-  <% fields_for @person.permission do |permission_fields| %>
+  <%= fields_for @person.permission do |permission_fields| %>
     Admin?  : <%= permission_fields.check_box :admin %>
   <% end %>
 <% end %>

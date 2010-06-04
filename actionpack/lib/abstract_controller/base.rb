@@ -1,4 +1,5 @@
 require 'active_support/configurable'
+require 'active_support/core_ext/module/anonymous'
 
 module AbstractController
   class Error < StandardError; end

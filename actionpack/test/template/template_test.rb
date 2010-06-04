@@ -114,10 +114,12 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def test_encoding_can_be_specified_with_magic_comment_in_erb
-      @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat")
-      result = render
-      assert_equal Encoding::UTF_8, render.encoding
-      assert_equal "hello \u{fc}mlat", render
+      with_external_encoding Encoding::UTF_8 do
+        @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat")
+        result = render
+        assert_equal Encoding::UTF_8, render.encoding
+        assert_equal "hello \u{fc}mlat", render
+      end
     end
 
     def test_error_when_template_isnt_valid_utf8
@@ -125,6 +127,13 @@ class TestERBTemplate < ActiveSupport::TestCase
         @template = new_template("hello \xFCmlat")
         render
       end
+    end
+
+    def with_external_encoding(encoding)
+      old, Encoding.default_external = Encoding.default_external, encoding
+      yield
+    ensure
+      Encoding.default_external = old
     end
   end
 end

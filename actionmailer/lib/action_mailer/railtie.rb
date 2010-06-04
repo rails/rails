@@ -13,7 +13,16 @@ module ActionMailer
     end
 
     initializer "action_mailer.set_configs" do |app|
+      paths = app.config.paths
+      am = app.config.action_mailer
+
+      am.assets_dir      ||= paths.public.to_a.first
+      am.javascripts_dir ||= paths.public.javascripts.to_a.first
+      am.stylesheets_dir ||= paths.public.stylesheets.to_a.first
+
       ActiveSupport.on_load(:action_mailer) do
+        self.config.merge!(am)
+
         include app.routes.url_helpers
 
         app.config.action_mailer.each do |k,v|
