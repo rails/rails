@@ -29,13 +29,6 @@ module ActionDispatch
         def prepare_params!(params)
           merge_default_action!(params)
           split_glob_param!(params) if @glob_param
-
-          params.each do |key, value|
-            if value.is_a?(String)
-              value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
-              params[key] = URI.unescape(value)
-            end
-          end
         end
 
         def controller(params, raise_error=true)
@@ -466,6 +459,13 @@ module ActionDispatch
 
         req = Rack::Request.new(env)
         @set.recognize(req) do |route, matches, params|
+          params.each do |key, value|
+            if value.is_a?(String)
+              value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
+              params[key] = URI.unescape(value)
+            end
+          end
+
           dispatcher = route.app
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)
