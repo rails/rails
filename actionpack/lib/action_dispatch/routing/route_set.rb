@@ -12,6 +12,7 @@ module ActionDispatch
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
+          @controllers = {}
         end
 
         def call(env)
@@ -32,9 +33,15 @@ module ActionDispatch
         end
 
         def controller(params, raise_error=true)
-          if params && params.has_key?(:controller)
-            controller = "#{params[:controller].camelize}Controller"
-            ActiveSupport::Inflector.constantize(controller)
+          if params && params.key?(:controller)
+            controller_param = params[:controller]
+            unless controller = @controllers[controller_param]
+              controller_name = "#{controller_param.camelize}Controller"
+              controller = @controllers[controller_param] =
+                ActiveSupport::Dependencies.ref(controller_name)
+            end
+
+            controller.get
           end
         rescue NameError => e
           raise ActionController::RoutingError, e.message, e.backtrace if raise_error

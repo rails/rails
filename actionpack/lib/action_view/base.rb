@@ -201,6 +201,7 @@ module ActionView #:nodoc:
     end
 
     def self.process_view_paths(value)
+      return value.dup if value.is_a?(PathSet)
       ActionView::PathSet.new(Array.wrap(value))
     end
 

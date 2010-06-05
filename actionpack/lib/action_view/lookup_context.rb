@@ -13,8 +13,12 @@ module ActionView
     mattr_accessor :registered_details
     self.registered_details = []
 
+    mattr_accessor :registered_detail_setters
+    self.registered_detail_setters = []
+
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
+      self.registered_detail_setters << [name, "#{name}="]
       Accessors.send :define_method, :"_#{name}_defaults", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
@@ -60,7 +64,7 @@ module ActionView
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
       self.view_paths = view_paths
-      self.update_details(details, true)
+      self.initialize_details(details)
     end
 
     module ViewPaths
@@ -116,11 +120,11 @@ module ActionView
       end
 
       def default_handlers #:nodoc:
-        @default_handlers ||= Template::Handlers.extensions
+        @@default_handlers ||= Template::Handlers.extensions
       end
 
       def handlers_regexp #:nodoc:
-        @handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
+        @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
     end
 
@@ -141,10 +145,13 @@ module ActionView
       end
 
       # Overload formats= to reject [:"*/*"] values.
-      def formats=(value)
-        value = nil    if value == [:"*/*"]
-        value << :html if value == [:js]
-        super(value)
+      def formats=(values)
+        if values && values.size == 1
+          value = values.first
+          values = nil    if value == :"*/*"
+          values << :html if value == :js
+        end
+        super(values)
       end
 
       # Do not use the default locale on template lookup.
@@ -170,14 +177,22 @@ module ActionView
         super(@skip_default_locale ? I18n.locale : _locale_defaults)
       end
 
+      def initialize_details(details)
+        details = details.dup
+        
+        registered_detail_setters.each do |key, setter|
+          send(setter, details[key])
+        end
+      end
+
       # Update the details keys by merging the given hash into the current
       # details hash. If a block is given, the details are modified just during
       # the execution of the block and reverted to the previous value after.
-      def update_details(new_details, force=false)
+      def update_details(new_details)
         old_details = @details.dup
 
-        registered_details.each do |key|
-          send(:"#{key}=", new_details[key]) if force || new_details.key?(key)
+        registered_detail_setters.each do |key, setter|
+          send(setter, new_details[key]) if new_details.key?(key)
         end
 
         if block_given?

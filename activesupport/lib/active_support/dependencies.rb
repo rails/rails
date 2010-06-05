@@ -47,6 +47,9 @@ module ActiveSupport #:nodoc:
     mattr_accessor :autoloaded_constants
     self.autoloaded_constants = []
 
+    mattr_accessor :references
+    self.references = {}
+
     # An array of constant names that need to be unloaded on every request. Used
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants
@@ -476,7 +479,26 @@ module ActiveSupport #:nodoc:
     def remove_unloadable_constants!
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
+      references.each {|k,v| v.clear! }
       explicitly_unloadable_constants.each { |const| remove_constant const }
+    end
+
+    class Reference
+      def initialize(constant, name)
+        @constant, @name = constant, name
+      end
+
+      def get
+        @constant ||= Inflector.constantize(@name)
+      end
+
+      def clear!
+        @constant = nil
+      end
+    end
+
+    def ref(name)
+      references[name] ||= Reference.new(Inflector.constantize(name), name)
     end
 
     # Determine if the given constant has been automatically loaded.
@@ -572,6 +594,7 @@ module ActiveSupport #:nodoc:
 
       log "removing constant #{const}"
       parent.instance_eval { remove_const to_remove }
+
       return true
     end
 
