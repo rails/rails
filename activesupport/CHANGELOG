@@ -1,6 +1,7 @@
 *2.3.9 (unreleased)*
 
-* ...
+* Deprecates Array#random_element in favor of Array#sample, backported from Ruby 1.9, thanks to 
+Marc-Andre Lafortune. [fxn]
 
 
 *2.3.8 (May 24, 2010)*
