@@ -446,6 +446,12 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
+  def test_constantize_shortcut_for_cached_constant_lookups
+    with_loading 'dependencies' do
+      assert_equal ServiceOne, ActiveSupport::Dependencies.constantize("ServiceOne")
+    end
+  end
+
   def test_nested_load_error_isnt_rescued
     with_loading 'dependencies' do
       assert_raise(MissingSourceFile) do

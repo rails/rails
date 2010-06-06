@@ -484,8 +484,10 @@ module ActiveSupport #:nodoc:
     end
 
     class Reference
-      def initialize(constant, name)
-        @constant, @name = constant, name
+      attr_reader :name
+
+      def initialize(name, constant = nil)
+        @name, @constant = name, constant
       end
 
       def get
@@ -498,7 +500,11 @@ module ActiveSupport #:nodoc:
     end
 
     def ref(name)
-      references[name] ||= Reference.new(Inflector.constantize(name), name)
+      references[name] ||= Reference.new(name)
+    end
+
+    def constantize(name)
+      ref(name).get
     end
 
     # Determine if the given constant has been automatically loaded.
