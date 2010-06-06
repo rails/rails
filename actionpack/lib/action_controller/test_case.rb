@@ -139,14 +139,16 @@ module ActionController
         end
       end
 
-      params = self.request_parameters.dup
+      # Clear the combined params hash in case it was already referenced.
+      @env.delete("action_dispatch.request.parameters")
 
+      params = self.request_parameters.dup
       %w(controller action only_path).each do |k|
         params.delete(k)
         params.delete(k.to_sym)
       end
-
       data = params.to_query
+
       @env['CONTENT_LENGTH'] = data.length.to_s
       @env['rack.input'] = StringIO.new(data)
     end
