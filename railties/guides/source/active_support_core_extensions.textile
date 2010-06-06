@@ -2691,13 +2691,13 @@ h3. Extensions to +Date+
 
 h4. Calculations
 
-All the following methods are defined in +active_support/core_ext/date/calculations.rb+.
+NOTE: All the following methods are defined in +active_support/core_ext/date/calculations.rb+.
 
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, +Date.new(1582, 10, 4).tomorrow+ returns +Date.new(1582, 10, 15)+ and so on. Please check +test/core_ext/date_ext_test.rb+ in the Active Support test suite for expected behavior.
 
 h5. +Date.current+
 
-Active Support defines +Date.current+ to be today in the current time zone. That's like +Date.today+, except that it honors +Time.zone_default+. It also defines +Date.yesterday+ and +Date.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Date.current+.
+Active Support defines +Date.current+ to be today in the current time zone. That's like +Date.today+, except that it honors the user time zone, if defined. It also defines +Date.yesterday+ and +Date.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Date.current+.
 
 h5. Named dates
 
@@ -2799,6 +2799,115 @@ d.end_of_year            # => Fri, 31 Dec 2010
 </ruby>
 
 +beginning_of_year+ is aliased to +at_beginning_of_year+, and +end_of_year+ is aliased to +at_end_of_year+.
+
+h5. Other Date Computations
+
+h6. +years_ago+, +years_since+
+
+The method +years_ago+ receives a number of years and returns the same date those many years ago:
+
+<ruby>
+date = Date.new(2010, 6, 7)
+date.years_ago(10) # => Wed, 07 Jun 2000
+</ruby>
+
++years_since+ moves forward in time:
+
+<ruby>
+date = Date.new(2010, 6, 7)
+date.years_since(10) # => Sun, 07 Jun 2020
+</ruby>
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+<ruby>
+Date.new(2012, 2, 29).years_ago(3)     # => Sat, 28 Feb 2009
+Date.new(2012, 2, 29).years_since(3)   # => Sat, 28 Feb 2015
+</ruby>
+
+h6. +months_ago+, +months_since+
+
+The methods +months_ago+ and +months_since+ work analogously for months:
+
+<ruby>
+Date.new(2010, 4, 30).months_ago(2)   # => Sun, 28 Feb 2010
+Date.new(2010, 4, 30).months_since(2) # => Wed, 30 Jun 2010
+</ruby>
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+<ruby>
+Date.new(2010, 4, 30).months_ago(2)    # => Sun, 28 Feb 2010
+Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
+</ruby>
+
+h6. +advance+
+
+The most generic way to jump to other days is +advance+. This method receives a hash with keys +:years+, +:months+, +:weeks+, +:days+, and returns a date advanced as much as the present keys indicate:
+
+<ruby>
+date = Date.new(2010, 6, 6)
+date.advance(:years => 1, :weeks => 2)  # => Mon, 20 Jun 2011
+date.advance(:months => 2, :days => -2) # => Wed, 04 Aug 2010
+</ruby>
+
+Note in the previous example that increments may be negative.
+
+To perform the computation the method first increments years, then months, then weeks, and finally days. This order is important towards the end of months. Say for example we are at the end of February of 2010, and we want to move one month and one day forward.
+
+The method +advance+ advances first one month, and the one day, the result is:
+
+<ruby>
+Date.new(2010, 2, 28).advance(:months => 1, :day => 1)
+# => Sun, 28 Mar 2010
+</ruby>
+
+While if it did it the other way around the result would be different:
+
+<ruby>
+Date.new(2010, 2, 28).advance(:days => 1).advance(:months => 1)
+# => Thu, 01 Apr 2010
+</ruby>
+
+h5. Changing Date Components
+
+The method +change+ allows you to get a new date which is the same as the receiver except for the given year, month, or day:
+
+<ruby>
+Date.new(2010, 12, 23).change(:year => 2011, :month => 11)
+# => Wed, 23 Nov 2011
+</ruby>
+
+This method is not tolerant to non-existing dates, if the change is invalid +ArgumentError+ is raised:
+
+<ruby>
+Date.new(2010, 1, 31).change(:month => 2)
+# => ArgumentError: invalid date
+</ruby>
+
+h5. Named Times
+
+WARNING: The following methods do not take into account the user time zone. They return timestamps in localtime.
+
+INFO: The following methods return a +Time+ object if possible, otherwise a +DateTime+.
+
+h6. +beginning_of_day+, +end_of_day+
+
+The method +beginning_of_day+ returns a timestamp at the beginning of the day (00:00:00):
+
+<ruby>
+date = Date.new(2010, 6, 7)
+date.beginning_of_day # => Sun Jun 07 00:00:00 +0200 2010
+</ruby>
+
+The method +end_of_day+ returns a timestamp at the end of the day (23:59:59):
+
+<ruby>
+date = Date.new(2010, 6, 7)
+date.end_of_day # => Sun Jun 06 23:59:59 +0200 2010
+</ruby>
+
++beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+
 
 h4. Conversions
 
