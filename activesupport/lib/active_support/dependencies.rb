@@ -479,23 +479,26 @@ module ActiveSupport #:nodoc:
     def remove_unloadable_constants!
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
-      references.each {|k,v| v.clear! }
+      Reference.clear!
       explicitly_unloadable_constants.each { |const| remove_constant const }
     end
 
     class Reference
+      @@constants = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
+
       attr_reader :name
 
-      def initialize(name, constant = nil)
-        @name, @constant = name, constant
+      def initialize(name)
+        @name = name.to_s
+        @@constants[@name] = name if name.respond_to?(:name)
       end
 
       def get
-        @constant ||= Inflector.constantize(@name)
+        @@constants[@name]
       end
 
-      def clear!
-        @constant = nil
+      def self.clear!
+        @@constants.clear
       end
     end
 
