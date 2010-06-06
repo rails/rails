@@ -110,7 +110,7 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          "<#{name}#{tag_options}>#{ERB::Util.h(content)}</#{name}>".html_safe
+          "<#{name}#{tag_options}>#{escape ? ERB::Util.h(content) : content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
