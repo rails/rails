@@ -17,7 +17,7 @@ This guide is designed for beginners who want to get started with a Rails applic
 
 * The "Ruby":http://www.ruby-lang.org/en/downloads language version 1.8.7 or higher
 
-TIP: Note that Ruby 1.8.7 p248 and p249 has marshaling bugs that crash Rails 3.0.0. Ruby 1.9.1 outright segfaults on Rails 3.0.0, so if you want to use Rails 3 with 1.9.x, jump on 1.9.2 trunk for smooth sailing.
+TIP: Note that Ruby 1.8.7 p248 and p249 has marshaling bugs that crash Rails 3.0.0. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02 though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults on Rails 3.0.0, so if you want to use Rails 3 with 1.9.x jump on 1.9.2 for smooth sailing.
 
 * The "RubyGems":http://rubyforge.org/frs/?group_id=126 packaging system
 * A working installation of the "SQLite3 Database":http://www.sqlite.org
