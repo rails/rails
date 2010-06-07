@@ -411,7 +411,8 @@ module ActiveRecord
             end
           elsif @reflection.klass.scopes[method]
             @_named_scopes_cache ||= {}
-            @_named_scopes_cache[method] ||= with_scope(construct_scope) { @reflection.klass.send(method, *args) }
+            @_named_scopes_cache[method] ||= {}
+            @_named_scopes_cache[method][args] ||= with_scope(construct_scope) { @reflection.klass.send(method, *args) }
           else
             with_scope(construct_scope) do
               if block_given?

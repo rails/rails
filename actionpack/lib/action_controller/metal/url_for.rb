@@ -16,5 +16,13 @@ module ActionController
       raise "In order to use #url_for, you must include the helpers of a particular " \
             "router. For instance, `include Rails.application.routes.url_helpers"
     end
+
+    module ClassMethods
+      def action_methods
+        @action_methods ||= begin
+          super - _router.named_routes.helper_names
+        end
+      end
+    end
   end
 end

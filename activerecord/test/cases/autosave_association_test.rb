@@ -1149,7 +1149,7 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::T
   include AutosaveAssociationOnACollectionAssociationTests
 end
 
-class TestAutosaveAssociationValidationsOnAHasManyAssocication < ActiveRecord::TestCase
+class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
@@ -1165,7 +1165,7 @@ class TestAutosaveAssociationValidationsOnAHasManyAssocication < ActiveRecord::T
   end
 end
 
-class TestAutosaveAssociationValidationsOnAHasOneAssocication < ActiveRecord::TestCase
+class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
@@ -1186,7 +1186,7 @@ class TestAutosaveAssociationValidationsOnAHasOneAssocication < ActiveRecord::Te
   end
 end
 
-class TestAutosaveAssociationValidationsOnABelongsToAssocication < ActiveRecord::TestCase
+class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
@@ -1206,7 +1206,7 @@ class TestAutosaveAssociationValidationsOnABelongsToAssocication < ActiveRecord:
   end
 end
 
-class TestAutosaveAssociationValidationsOnAHABTMAssocication < ActiveRecord::TestCase
+class TestAutosaveAssociationValidationsOnAHABTMAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

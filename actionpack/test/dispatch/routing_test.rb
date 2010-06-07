@@ -28,6 +28,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         post :reset
 
         resource :info
+
+        member do
+          get :crush
+        end
       end
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
@@ -349,6 +353,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/session/info'
       assert_equal 'infos#show', @response.body
       assert_equal '/session/info', session_info_path
+    end
+  end
+
+  def test_member_on_resource
+    with_test_routes do
+      get '/session/crush'
+      assert_equal 'sessions#crush', @response.body
+      assert_equal '/session/crush', crush_session_path
     end
   end
 

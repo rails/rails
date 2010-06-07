@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrap'
+
 module ActiveRecord
   # AutosaveAssociation is a module that takes care of automatically saving
   # your associations when the parent is saved. In addition to saving, it
@@ -238,16 +240,10 @@ module ActiveRecord
     # go through nested autosave associations that are loaded in memory (without loading
     # any new ones), and return true if is changed for autosave
     def nested_records_changed_for_autosave?
-      self.class.reflect_on_all_autosave_associations.each do |reflection|
-        if association = association_instance_get(reflection.name)
-          if [:belongs_to, :has_one].include?(reflection.macro)
-            return true if association.target && association.target.changed_for_autosave?
-          else
-            association.target.each {|record| return true if record.changed_for_autosave? }
-          end
-        end
+      self.class.reflect_on_all_autosave_associations.any? do |reflection|
+        association = association_instance_get(reflection.name)
+        association && Array.wrap(association.target).any?(&:changed_for_autosave?)
       end
-      false
     end
     
     # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is

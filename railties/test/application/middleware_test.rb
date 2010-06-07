@@ -57,6 +57,12 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
+    test "can delete a middleware from the stack" do
+      add_to_config "config.middleware.delete ActionDispatch::Static"
+      boot!
+      assert !middleware.include?("ActionDispatch::Static")
+    end
+
     test "removes show exceptions if action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!

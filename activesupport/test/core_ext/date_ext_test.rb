@@ -198,6 +198,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(:years => 1) #leap day plus one year
   end
 
+  def test_advance_does_first_years_and_then_days
+    assert_equal Date.new(2012, 2, 29), Date.new(2011, 2, 28).advance(:years => 1, :days => 1)
+    # If day was done first we would jump to 2012-03-01 instead.
+  end
+
+  def test_advance_does_first_months_and_then_days
+    assert_equal Date.new(2010, 3, 29), Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
+    # If day was done first we would jump to 2010-04-01 instead.
+  end
+
   def test_advance_in_calendar_reform
     assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(:days => 1)
     assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(:days => -1)

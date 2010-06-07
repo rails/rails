@@ -47,4 +47,15 @@ class String
     d[5] += d.pop
     ::DateTime.civil(*d)
   end
+
+  # +constantize+ tries to find a declared constant with the name specified
+  # in the string. It raises a NameError when the name is not in CamelCase
+  # or is not initialized.
+  #
+  # Examples
+  #   "Module".constantize # => Module
+  #   "Class".constantize  # => Class
+  def constantize
+    ActiveSupport::Inflector.constantize(self)
+  end
 end

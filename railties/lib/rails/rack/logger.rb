@@ -1,4 +1,5 @@
 require 'rails/log_subscriber'
+require 'active_support/core_ext/time/conversions'
 
 module Rails
   module Rack
@@ -19,10 +20,10 @@ module Rails
 
         def before_dispatch(env)
           request = ActionDispatch::Request.new(env)
-          path = request.fullpath.inspect rescue "unknown"
+          path = request.fullpath
 
-          info "\n\nStarted #{request.method.to_s.upcase} #{path} " <<
-                      "for #{request.remote_ip} at #{Time.now.to_s(:db)}"
+          info "\n\nStarted #{env["REQUEST_METHOD"]} \"#{path}\" " \
+               "for #{request.ip} at #{Time.now.to_default_s}"
         end
 
         def after_dispatch(env)

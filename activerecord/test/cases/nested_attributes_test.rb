@@ -734,7 +734,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   end
 end
 
-class TestHasOneAutosaveAssoictaionWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
+class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
@@ -774,7 +774,7 @@ class TestHasOneAutosaveAssoictaionWhichItselfHasAutosaveAssociations < ActiveRe
   end
 end
 
-class TestHasManyAutosaveAssoictaionWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
+class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

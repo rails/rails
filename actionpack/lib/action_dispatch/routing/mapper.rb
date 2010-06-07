@@ -622,12 +622,19 @@ module ActionDispatch
         end
 
         def member
-          unless @scope[:scope_level] == :resources
-            raise ArgumentError, "can't use member outside resources scope"
+          unless [:resources, :resource].include?(@scope[:scope_level])
+            raise ArgumentError, "You can't use member action outside resources and resource scope."
           end
 
-          with_scope_level(:member) do
-            scope(':id', :name_prefix => parent_resource.member_name, :as => "") do
+          case @scope[:scope_level]
+          when :resources
+            with_scope_level(:member) do
+              scope(':id', :name_prefix => parent_resource.member_name, :as => "") do
+                yield
+              end
+            end
+          when :resource
+            with_scope_level(:member) do
               yield
             end
           end

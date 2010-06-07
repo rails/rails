@@ -2,6 +2,7 @@ require 'singleton'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/string/conversions'
 
 module ActiveModel
   module Observing
