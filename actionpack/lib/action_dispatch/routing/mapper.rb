@@ -635,9 +635,7 @@ module ActionDispatch
             end
           when :resource
             with_scope_level(:member) do
-              scope(':id', :as => "") do
-                yield
-              end
+              yield
             end
           end
         end

@@ -358,10 +358,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_member_on_resource
     with_test_routes do
-      get '/session/1/crush'
+      get '/session/crush'
       assert_equal 'sessions#crush', @response.body
-
-      assert_equal '/session/1/crush', crush_session_path(1)
+      assert_equal '/session/crush', crush_session_path
     end
   end
 
