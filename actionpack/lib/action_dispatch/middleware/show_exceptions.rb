@@ -72,7 +72,7 @@ module ActionDispatch
           rescue_action_in_public(exception)
         end
       rescue Exception => failsafe_error
-        $stderr.puts "Error during failsafe response: #{failsafe_error}"
+        $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
         FAILSAFE_RESPONSE
       end
 

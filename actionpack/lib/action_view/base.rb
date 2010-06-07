@@ -184,7 +184,7 @@ module ActionView #:nodoc:
     attr_internal :captures, :request, :controller, :template, :config
 
     delegate :find_template, :template_exists?, :formats, :formats=, :locale, :locale=,
-             :view_paths, :view_paths=, :with_fallbacks, :update_details, :to => :lookup_context
+             :view_paths, :view_paths=, :with_fallbacks, :update_details, :with_layout_format, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
              :flash, :action_name, :controller_name, :to => :controller
@@ -201,6 +201,7 @@ module ActionView #:nodoc:
     end
 
     def self.process_view_paths(value)
+      return value.dup if value.is_a?(PathSet)
       ActionView::PathSet.new(Array.wrap(value))
     end
 

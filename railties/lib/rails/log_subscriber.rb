@@ -52,6 +52,7 @@ module Rails
 
     def self.add(namespace, log_subscriber, notifier = ActiveSupport::Notifications)
       log_subscribers << log_subscriber
+      @flushable_loggers = nil
 
       log_subscriber.public_methods(false).each do |event|
         notifier.subscribe("#{event}.#{namespace}") do |*args|
@@ -70,11 +71,17 @@ module Rails
       @log_subscribers ||= []
     end
 
+    def self.flushable_loggers
+      @flushable_loggers ||= begin
+        loggers = log_subscribers.map(&:logger)
+        loggers.uniq!
+        loggers.select { |l| l.respond_to?(:flush) }
+      end
+    end
+
     # Flush all log_subscribers' logger.
     def self.flush_all!
-      loggers = log_subscribers.map(&:logger)
-      loggers.uniq!
-      loggers.each { |l| l.flush if l.respond_to?(:flush) }
+      flushable_loggers.each(&:flush)
     end
 
     # By default, we use the Rails.logger for logging.

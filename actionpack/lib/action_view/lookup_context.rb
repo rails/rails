@@ -13,8 +13,13 @@ module ActionView
     mattr_accessor :registered_details
     self.registered_details = []
 
+    mattr_accessor :registered_detail_setters
+    self.registered_detail_setters = []
+
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
+      self.registered_detail_setters << [name, "#{name}="]
+
       Accessors.send :define_method, :"_#{name}_defaults", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
@@ -23,12 +28,7 @@ module ActionView
 
         def #{name}=(value)
           value = Array.wrap(value.presence || _#{name}_defaults)
-
-          if value != @details[:#{name}]
-            @details_key = nil
-            @details = @details.dup if @details.frozen?
-            @details[:#{name}] = value.freeze
-          end
+          _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
       METHOD
     end
@@ -59,8 +59,11 @@ module ActionView
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
+
       self.view_paths = view_paths
-      self.update_details(details, true)
+      self.registered_detail_setters.each do |key, setter|
+        send(setter, details[key])
+      end
     end
 
     module ViewPaths
@@ -116,11 +119,11 @@ module ActionView
       end
 
       def default_handlers #:nodoc:
-        @default_handlers ||= Template::Handlers.extensions
+        @@default_handlers ||= Template::Handlers.extensions
       end
 
       def handlers_regexp #:nodoc:
-        @handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
+        @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
     end
 
@@ -141,10 +144,13 @@ module ActionView
       end
 
       # Overload formats= to reject [:"*/*"] values.
-      def formats=(value)
-        value = nil    if value == [:"*/*"]
-        value << :html if value == [:js]
-        super(value)
+      def formats=(values)
+        if values && values.size == 1
+          value = values.first
+          values = nil    if value == :"*/*"
+          values << :html if value == :js
+        end
+        super(values)
       end
 
       # Do not use the default locale on template lookup.
@@ -170,23 +176,47 @@ module ActionView
         super(@skip_default_locale ? I18n.locale : _locale_defaults)
       end
 
-      # Update the details keys by merging the given hash into the current
-      # details hash. If a block is given, the details are modified just during
-      # the execution of the block and reverted to the previous value after.
-      def update_details(new_details, force=false)
-        old_details = @details.dup
+      # A method which only uses the first format in the formats array for layout lookup.
+      # This method plays straight with instance variables for performance reasons.
+      def with_layout_format
+        if formats.size == 1
+          yield
+        else
+          old_formats = formats
+          _set_detail(:formats, formats[0,1])
 
-        registered_details.each do |key|
-          send(:"#{key}=", new_details[key]) if force || new_details.key?(key)
-        end
-
-        if block_given?
           begin
             yield
           ensure
-            @details = old_details
+            _set_detail(:formats, formats)
           end
         end
+      end
+
+      # Update the details keys by merging the given hash into the current
+      # details hash. If a block is given, the details are modified just during
+      # the execution of the block and reverted to the previous value after.
+      def update_details(new_details)
+        old_details = @details.dup
+
+        registered_detail_setters.each do |key, setter|
+          send(setter, new_details[key]) if new_details.key?(key)
+        end
+
+        begin
+          yield
+        ensure
+          @details_key = nil
+          @details = old_details
+        end
+      end
+
+    protected
+
+      def _set_detail(key, value)
+        @details_key = nil
+        @details = @details.dup if @details.frozen?
+        @details[key] = value.freeze
       end
     end
 

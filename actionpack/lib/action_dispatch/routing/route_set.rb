@@ -12,6 +12,7 @@ module ActionDispatch
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
+          @controllers = {}
         end
 
         def call(env)
@@ -29,19 +30,18 @@ module ActionDispatch
         def prepare_params!(params)
           merge_default_action!(params)
           split_glob_param!(params) if @glob_param
-
-          params.each do |key, value|
-            if value.is_a?(String)
-              value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
-              params[key] = URI.unescape(value)
-            end
-          end
         end
 
         def controller(params, raise_error=true)
-          if params && params.has_key?(:controller)
-            controller = "#{params[:controller].camelize}Controller"
-            ActiveSupport::Inflector.constantize(controller)
+          if params && params.key?(:controller)
+            controller_param = params[:controller]
+            unless controller = @controllers[controller_param]
+              controller_name = "#{controller_param.camelize}Controller"
+              controller = @controllers[controller_param] =
+                ActiveSupport::Dependencies.ref(controller_name)
+            end
+
+            controller.get
           end
         rescue NameError => e
           raise ActionController::RoutingError, e.message, e.backtrace if raise_error
@@ -466,6 +466,13 @@ module ActionDispatch
 
         req = Rack::Request.new(env)
         @set.recognize(req) do |route, matches, params|
+          params.each do |key, value|
+            if value.is_a?(String)
+              value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
+              params[key] = URI.unescape(value)
+            end
+          end
+
           dispatcher = route.app
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)

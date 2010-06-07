@@ -52,9 +52,11 @@ module ActionDispatch
     # the application should use), this \method returns the overridden
     # value, not the original.
     def request_method
-      method = env["REQUEST_METHOD"]
-      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-      method
+      @request_method ||= begin
+        method = env["REQUEST_METHOD"]
+        HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+        method
+      end
     end
 
     # Returns a symbol form of the #request_method
@@ -66,9 +68,11 @@ module ActionDispatch
     # even if it was overridden by middleware. See #request_method for
     # more information.
     def method
-      method = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-      method
+      @method ||= begin
+        method = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
+        HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+        method
+      end
     end
 
     # Returns a symbol form of the #method
@@ -113,6 +117,10 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
+    def fullpath
+      @fullpath ||= super
+    end
+
     def forgery_whitelisted?
       get? || xhr? || content_mime_type.nil? || !content_mime_type.verify_request?
     end
@@ -134,6 +142,10 @@ module ActionDispatch
     end
     alias :xhr? :xml_http_request?
 
+    def ip
+      @ip ||= super
+    end
+
     # Which IP addresses are "trusted proxies" that can be stripped from
     # the right-hand-side of X-Forwarded-For
     TRUSTED_PROXIES = /^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
@@ -145,7 +157,7 @@ module ActionDispatch
     # delimited list in the case of multiple chained proxies; the last
     # address which is not trusted is the originating IP.
     def remote_ip
-      (@env["action_dispatch.remote_ip"] || ip).to_s
+      @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
     end
 
     # Returns the lowercase name of the HTTP server software.

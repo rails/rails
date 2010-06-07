@@ -431,6 +431,27 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
+  def test_references_should_work
+    with_loading 'dependencies' do
+      root = ActiveSupport::Dependencies.load_paths.first
+      c = ActiveSupport::Dependencies.ref("ServiceOne")
+      service_one_first = ServiceOne
+      assert_equal service_one_first, c.get
+      ActiveSupport::Dependencies.clear
+      assert ! defined?(ServiceOne)
+
+      service_one_second = ServiceOne
+      assert_not_equal service_one_first, c.get
+      assert_equal service_one_second, c.get
+    end
+  end
+
+  def test_constantize_shortcut_for_cached_constant_lookups
+    with_loading 'dependencies' do
+      assert_equal ServiceOne, ActiveSupport::Dependencies.constantize("ServiceOne")
+    end
+  end
+
   def test_nested_load_error_isnt_rescued
     with_loading 'dependencies' do
       assert_raise(MissingSourceFile) do

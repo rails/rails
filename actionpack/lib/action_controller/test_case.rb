@@ -139,14 +139,16 @@ module ActionController
         end
       end
 
-      params = self.request_parameters.dup
+      # Clear the combined params hash in case it was already referenced.
+      @env.delete("action_dispatch.request.parameters")
 
+      params = self.request_parameters.dup
       %w(controller action only_path).each do |k|
         params.delete(k)
         params.delete(k.to_sym)
       end
-
       data = params.to_query
+
       @env['CONTENT_LENGTH'] = data.length.to_s
       @env['rack.input'] = StringIO.new(data)
     end
@@ -155,6 +157,8 @@ module ActionController
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+      @method = @request_method = nil
+      @fullpath = @ip = @remote_ip = nil
       @env['action_dispatch.request.query_parameters'] = {}
     end
   end
@@ -167,9 +171,7 @@ module ActionController
       @block = nil
       @length = 0
       @body = []
-      @charset = nil
-      @content_type = nil
-
+      @charset = @content_type = nil
       @request = @template = nil
     end
   end
