@@ -34,6 +34,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :users do
+        shallow do
+          resources :photos do
+            resources :types do
+              member do
+                post :preview
+              end
+              collection do
+                delete :erase
+              end
+            end
+          end
+        end
+      end
+      
+      shallow do
+        resources :teams do
+          resources :players
+        end
+      
+        resources :countries do
+          resources :cities do
+            resources :places
+          end
+        end
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -725,6 +752,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'people#update', @response.body
 
       assert_equal '/people/1/update', update_person_path(:id => 1)
+    end
+  end
+
+  def test_shallow_routes
+    with_test_routes do
+      assert_equal '/photos/4', photo_path(4)
+      assert_equal '/types/10/edit', edit_type_path(10) 
+      assert_equal '/types/5/preview', preview_type_path(5)
+      assert_equal '/photos/2/types', photo_types_path(2)
+      assert_equal '/cities/1/places', url_for(:controller => :places, :action => :index, :city_id => 1, :only_path => true)
+      assert_equal '/teams/new', url_for(:controller => :teams, :action => :new, :only_path => true)
+      assert_equal '/photos/11/types/erase', url_for(:controller => :types, :action => :erase, :photo_id => 11, :only_path => true)
     end
   end
 
