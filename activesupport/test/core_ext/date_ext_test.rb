@@ -204,7 +204,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_advance_does_first_months_and_then_days
-    assert_equal Date.new(2010, 3, 28), Date.new(2010, 2, 28).advance(:months => 1, :day => 1)
+    assert_equal Date.new(2010, 3, 29), Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
     # If day was done first we would jump to 2010-04-01 instead.
   end
 
