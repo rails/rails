@@ -4,6 +4,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   def setup
     ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
       alias_method :execute_without_stub, :execute
+      remove_method :execute
       def execute(sql, name = nil) return sql end
     end
   end
@@ -66,7 +67,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal "DROP TABLE `otherdb`.`people`", drop_table('otherdb.people')
   end
 
-  def test_add_timestamps 
+  def test_add_timestamps
     with_real_execute do
       begin
         ActiveRecord::Base.connection.create_table :delete_me do |t|
@@ -79,8 +80,8 @@ class ActiveSchemaTest < ActiveRecord::TestCase
       end
     end
   end
-  
-  def test_remove_timestamps 
+
+  def test_remove_timestamps
     with_real_execute do
       begin
         ActiveRecord::Base.connection.create_table :delete_me do |t|
@@ -106,6 +107,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     ensure
       #before finishing, we restore the alias to the mock-up method
       ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
+        remove_method :execute
         alias_method :execute, :execute_with_stub
       end
     end
