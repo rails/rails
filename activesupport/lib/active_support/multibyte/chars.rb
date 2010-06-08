@@ -45,13 +45,13 @@ module ActiveSupport #:nodoc:
           @wrapped_string = string
           @wrapped_string.force_encoding(Encoding::UTF_8) unless @wrapped_string.frozen?
         end
+
+        undef <=>
       else
         def initialize(string) #:nodoc:
           @wrapped_string = string
         end
       end
-
-      undef <=>
 
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
