@@ -644,21 +644,6 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal 'will not expire ;-)', @store.read('views/primalgrasp')
   end
 
-  def test_fragment_for_with_disabled_caching
-    @controller.perform_caching = false
-
-    @store.write('views/expensive', 'fragment content')
-    fragment_computed = false
-
-    view_context = @controller.view_context
-
-    buffer = 'generated till now -> '.html_safe
-    buffer << view_context.send(:fragment_for, 'expensive') { fragment_computed = true }
-
-    assert fragment_computed
-    assert_equal 'generated till now -> ', buffer
-  end
-
   def test_fragment_for
     @store.write('views/expensive', 'fragment content')
     fragment_computed = false
