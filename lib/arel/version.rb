@@ -1,3 +1,3 @@
 module Arel
-  VERSION = "0.3.3" unless defined?(Arel::VERSION)
+  VERSION = "0.4.0" unless defined?(Arel::VERSION)
 end
