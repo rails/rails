@@ -1,4 +1,4 @@
-*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+*Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Extracted String#truncate from TextHelper#truncate [DHH]
 

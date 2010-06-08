@@ -32,7 +32,7 @@ if mri || RUBY_ENGINE == "rbx"
   gem "sqlite3-ruby", "~> 1.3.0", :require => 'sqlite3'
 
   group :db do
-    gem "pg", ">= 0.9.0"
+    # gem "pg", ">= 0.9.0"
     gem "mysql", ">= 2.8.1"
   end
 elsif RUBY_ENGINE == "jruby"
