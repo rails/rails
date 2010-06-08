@@ -37,6 +37,10 @@ module ActionView
     include SharedTests
     test_case = self
 
+    test "memoizes the _view" do
+      assert_same _view, _view
+    end
+
     test "works without testing a helper module" do
       assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
     end
