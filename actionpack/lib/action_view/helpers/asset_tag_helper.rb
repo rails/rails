@@ -620,7 +620,10 @@ module ActionView
         options.symbolize_keys!
 
         src = options[:src] = path_to_image(source)
-        options[:alt] = options.fetch(:alt){ File.basename(src, '.*').capitalize }
+
+        unless src =~ /^cid:/
+          options[:alt] = options.fetch(:alt){ File.basename(src, '.*').capitalize }
+        end
 
         if size = options.delete(:size)
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
@@ -754,7 +757,7 @@ module ActionView
         end
 
         def is_uri?(path)
-          path =~ %r{^[-a-z]+://}
+          path =~ %r{^[-a-z]+://|^cid:}
         end
 
         # Pick an asset host for this source. Returns +nil+ if no host is set,

@@ -404,6 +404,15 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
   end
 
+  def test_image_tag_interpreting_email_cid_correctly
+    # An inline image has no need for an alt tag to be automatically generated from the cid:
+    assert_equal '<img src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid")
+  end
+
+  def test_image_tag_interpreting_email_adding_optional_alt_tag
+    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", :alt => "Image")
+  end
+
   def test_timebased_asset_id_with_relative_url_root
     @controller.config.relative_url_root = "/collaboration/hieraki"
     expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
