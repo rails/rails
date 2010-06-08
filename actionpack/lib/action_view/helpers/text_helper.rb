@@ -275,7 +275,7 @@ module ActionView
       #   textilize_without_paragraph("Visit the Rails website "here":http://www.rubyonrails.org/.)
       #   # => "Visit the Rails website <a href="http://www.rubyonrails.org/">here</a>."
       def textilize_without_paragraph(text, *options)
-        textiled = textilize(text, options)
+        textiled = textilize(text, *options)
         if textiled[0..2] == "<p>" then textiled = textiled[3..-1] end
         if textiled[-4..-1] == "</p>" then textiled = textiled[0..-5] end
         return textiled
