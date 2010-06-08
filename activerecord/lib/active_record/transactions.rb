@@ -8,11 +8,6 @@ module ActiveRecord
     class TransactionError < ActiveRecordError # :nodoc:
     end
 
-    included do
-      define_model_callbacks :commit, :commit_on_update, :commit_on_create, :commit_on_destroy, :only => :after
-      define_model_callbacks :rollback, :rollback_on_update, :rollback_on_create, :rollback_on_destroy
-    end
-
     # Transactions are protective blocks where SQL statements are only permanent
     # if they can all succeed as one atomic action. The classic example is a
     # transfer between two accounts where you can only have a deposit if the
@@ -163,21 +158,6 @@ module ActiveRecord
     # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
     # for more information about savepoints.
     #
-    # === Callbacks
-    #
-    # There are two types of callbacks associated with committing and rolling back transactions:
-    # +after_commit+ and +after_rollback+.
-    #
-    # +after_commit+ callbacks are called on every record saved or destroyed within a
-    # transaction immediately after the transaction is committed. +after_rollback+ callbacks
-    # are called on every record saved or destroyed within a transaction immediately after the
-    # transaction or savepoint is rolled back.
-    #
-    # These callbacks are useful for interacting with other systems since you will be guaranteed
-    # that the callback is only executed when the database is in a permanent state. For example,
-    # +after_commit+ is a good spot to put in a hook to clearing a cache since clearing it from
-    # within a transaction could trigger the cache to be regenerated before the database is updated.
-    #
     # === Caveats
     #
     # If you're on MySQL, then do not use DDL operations in nested transactions
@@ -225,50 +205,19 @@ module ActiveRecord
 
     # Reset id and @new_record if the transaction rolls back.
     def rollback_active_record_state!
-      remember_transaction_record_state
+      id_present = has_attribute?(self.class.primary_key)
+      previous_id = id
+      previous_new_record = new_record?
       yield
     rescue Exception
-      restore_transaction_record_state
+      @new_record = previous_new_record
+      if id_present
+        self.id = previous_id
+      else
+        @attributes.delete(self.class.primary_key)
+        @attributes_cache.delete(self.class.primary_key)
+      end
       raise
-    ensure
-      clear_transaction_record_state
-    end
-
-    # Call the after_commit callbacks
-    def committed! #:nodoc:
-      if transaction_record_state(:new_record)
-        _run_commit_on_create_callbacks
-      elsif transaction_record_state(:destroyed)
-        _run_commit_on_destroy_callbacks
-      else
-        _run_commit_on_update_callbacks
-      end
-      _run_commit_callbacks
-    ensure
-      clear_transaction_record_state
-    end
-
-    # Call the after rollback callbacks. The restore_state argument indicates if the record
-    # state should be rolled back to the beginning or just to the last savepoint.
-    def rolledback!(force_restore_state = false) #:nodoc:
-      if transaction_record_state(:new_record)
-        _run_rollback_on_create_callbacks
-      elsif transaction_record_state(:destroyed)
-        _run_rollback_on_destroy_callbacks
-      else
-        _run_rollback_on_update_callbacks
-      end
-      _run_rollback_callbacks
-    ensure
-      restore_transaction_record_state(force_restore_state)
-    end
-
-    # Add the record to the current transaction so that the :after_rollback and :after_commit callbacks
-    # can be called.
-    def add_to_transaction
-      if self.class.connection.add_transaction_record(self)
-        remember_transaction_record_state
-      end
     end
 
     # Executes +method+ within a transaction and captures its return value as a
@@ -280,59 +229,10 @@ module ActiveRecord
     def with_transaction_returning_status
       status = nil
       self.class.transaction do
-        add_to_transaction
         status = yield
         raise ActiveRecord::Rollback unless status
       end
       status
-    end
-
-    protected
-
-    # Save the new record state and id of a record so it can be restored later if a transaction fails.
-    def remember_transaction_record_state #:nodoc
-      @_start_transaction_state ||= {}
-      unless @_start_transaction_state.include?(:new_record)
-        @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
-        @_start_transaction_state[:new_record] = @new_record
-      end
-      unless @_start_transaction_state.include?(:destroyed)
-        @_start_transaction_state[:destroyed] = @new_record
-      end
-      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
-    end
-
-    # Clear the new record state and id of a record.
-    def clear_transaction_record_state #:nodoc
-      if defined?(@_start_transaction_state)
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        remove_instance_variable(:@_start_transaction_state) if @_start_transaction_state[:level] < 1
-      end
-    end
-
-    # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-    def restore_transaction_record_state(force = false) #:nodoc
-      if defined?(@_start_transaction_state)
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        if @_start_transaction_state[:level] < 1
-          restore_state = remove_instance_variable(:@_start_transaction_state)
-          if restore_state
-            @new_record = restore_state[:new_record]
-            @destroyed = restore_state[:destroyed]
-            if restore_state[:id]
-              self.id = restore_state[:id]
-            else
-              @attributes.delete(self.class.primary_key)
-              @attributes_cache.delete(self.class.primary_key)
-            end
-          end
-        end
-      end
-    end
-
-    # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-    def transaction_record_state(state) #:nodoc
-      @_start_transaction_state[state] if defined?(@_start_transaction_state)
     end
   end
 end

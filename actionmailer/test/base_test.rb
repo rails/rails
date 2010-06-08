@@ -33,6 +33,11 @@ class BaseTest < ActiveSupport::TestCase
       mail(hash)
     end
 
+    def inline_attachment
+      attachments.inline['logo.png'] = "\312\213\254\232"
+      mail
+    end
+
     def attachment_with_content(hash = {})
       attachments['invoice.pdf'] = 'This is test File content'
       mail(hash)
@@ -263,6 +268,18 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("I'm the eggman", email.parts[0].body.encoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
     assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+  end
+  
+  test "can embed an inline attachment" do
+    email = BaseMailer.inline_attachment
+    # Need to call #encoded to force the JIT sort on parts
+    email.encoded
+    assert_equal(2, email.parts.length)
+    assert_equal("multipart/related", email.mime_type)
+    assert_equal("multipart/alternative", email.parts[0].mime_type)
+      assert_equal("text/plain", email.parts[0].parts[0].mime_type)
+      assert_equal("text/html",  email.parts[0].parts[1].mime_type)
+    assert_equal("logo.png", email.parts[1].filename)
   end
 
   # Defaults values

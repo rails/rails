@@ -68,6 +68,10 @@ module ActionDispatch
           clear!
         end
 
+        def helper_names
+          self.module.instance_methods.map(&:to_s)
+        end
+
         def clear!
           @routes = {}
           @helpers = []
@@ -176,7 +180,6 @@ module ActionDispatch
 
                 url_for(options)
               end
-              protected :#{selector}
             END_EVAL
             helpers << selector
           end

@@ -36,6 +36,9 @@ module ActionMailer #:nodoc:
   # * <tt>attachments[]=</tt> - Allows you to add attachments to your email in an intuitive
   #   manner; <tt>attachments['filename.png'] = File.read('path/to/filename.png')</tt>
   #
+  # * <tt>attachments.inline[]=</tt> - Allows you to add an inline attachment to your email
+  #   in the same manner as <tt>attachments[]=</tt>
+  #
   # * <tt>headers[]=</tt> - Allows you to specify any header field in your email such
   #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note, while most fields (like <tt>To:</tt>
   #   <tt>From:</tt> can only appear once in an email header, other fields like <tt>X-Anything</tt>
@@ -173,7 +176,7 @@ module ActionMailer #:nodoc:
   #
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
-  #       attachments['free_book.pdf'] = { :data => File.read('path/to/file.pdf') }
+  #       attachments['free_book.pdf'] = File.read('path/to/file.pdf')
   #       mail(:to => recipient, :subject => "New account information")
   #     end
   #   end
@@ -184,6 +187,34 @@ module ActionMailer #:nodoc:
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
   #
+  # = Inline Attachments
+  # 
+  # You can also specify that a file should be displayed inline with other HTML.  For example a 
+  # corporate logo or a photo or the like.
+  # 
+  # To do this is simple, in the Mailer:
+  # 
+  #   class ApplicationMailer < ActionMailer::Base
+  #     def welcome(recipient)
+  #       attachments.inline['photo.png'] = File.read('path/to/photo.png')
+  #       mail(:to => recipient, :subject => "Here is what we look like")
+  #     end
+  #   end
+  # 
+  # And then to reference the image in the view, you create a <tt>welcome.html.erb</tt> file and
+  # make a call to +image_tag+ passing in the attachment you want to display and then call 
+  # +url+ on the attachment to get the relative content id path for the image source:
+  # 
+  #   <h1>Please Don't Cringe</h1>
+  # 
+  #   <%= image_tag attachments['photo.png'].url -%>
+  # 
+  # As we are using ActionView's +image_tag+ method, you can pass in any other options you want:
+  # 
+  #   <h1>Please Don't Cringe</h1>
+  # 
+  #   <%= image_tag attachments['photo.png'].url, :alt => 'Our Photo', :class => 'photo' -%>
+  # 
   # = Observing and Intercepting Mails
   #
   # Action Mailer provides hooks into the Mail observer and interceptor methods.  These allow you to
@@ -612,7 +643,11 @@ module ActionMailer #:nodoc:
       when user_content_type.present?
         user_content_type
       when m.has_attachments?
-        ["multipart", "mixed", params]
+        if m.attachments.detect { |a| a.inline? }
+          ["multipart", "related", params]
+        else
+          ["multipart", "mixed", params]
+        end
       when m.multipart?
         ["multipart", "alternative", params]
       else

@@ -511,7 +511,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_deleting_updates_counter_cache
-    topic = Topic.first
+    topic = Topic.first(:order => "id ASC")
     assert_equal topic.replies.to_a.size, topic.replies_count
 
     topic.replies.delete(topic.replies.first)

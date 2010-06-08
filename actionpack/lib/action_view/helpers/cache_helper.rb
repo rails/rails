@@ -32,27 +32,27 @@ module ActionView
       #      <i>Topics listed alphabetically</i>
       #    <% end %>
       def cache(name = {}, options = nil, &block)
-        safe_concat fragment_for(name, options, &block)
+        if controller.perform_caching
+          safe_concat(fragment_for(name, options, &block))
+        else
+          yield
+        end
+
         nil
       end
 
     private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        if controller.perform_caching
-          if controller.fragment_exist?(name, options)
-            controller.read_fragment(name, options)
-          else
-            # VIEW TODO: Make #capture usable outside of ERB
-            # This dance is needed because Builder can't use capture
-            pos = output_buffer.length
-            yield
-            fragment = output_buffer.slice!(pos..-1)
-            controller.write_fragment(name, fragment, options)
-          end
+        if controller.fragment_exist?(name, options)
+          controller.read_fragment(name, options)
         else
-          ret = yield
-          ActiveSupport::SafeBuffer.new(ret) if ret.is_a?(String)
+          # VIEW TODO: Make #capture usable outside of ERB
+          # This dance is needed because Builder can't use capture
+          pos = output_buffer.length
+          yield
+          fragment = output_buffer.slice!(pos..-1)
+          controller.write_fragment(name, fragment, options)
         end
       end
     end

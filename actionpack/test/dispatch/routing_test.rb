@@ -34,6 +34,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :users do
+        shallow do
+          resources :photos do
+            resources :types do
+              member do
+                post :preview
+              end
+              collection do
+                delete :erase
+              end
+            end
+          end
+        end
+      end
+      
+      shallow do
+        resources :teams do
+          resources :players
+        end
+      
+        resources :countries do
+          resources :cities do
+            resources :places
+          end
+        end
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -69,8 +96,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       scope 'pt', :name_prefix => 'pt' do
-        resources :projects, :path_names => { :edit => 'editar' }, :path => 'projetos'
-        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador'
+        resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
+          post :preview, :on => :new
+        end
+        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador' do
+          post :preview, :on => :new
+        end
+        resources :products, :path_names => { :new => 'novo' } do
+          new do
+            post :preview
+          end
+        end
       end
 
       resources :projects, :controller => :project do
@@ -119,6 +155,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :replies do
+        new do
+          post :preview
+        end
+
         member do
           put :answer, :to => :mark_as_answer
           delete :answer, :to => :unmark_as_answer
@@ -189,10 +229,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         root :to => 'projects#index'
       end
 
-      resources :products, :constraints => { :id => /\d{4}/ } do
-        root :to => "products#root"
-        get :favorite, :on => :collection
-        resources :images
+      scope :only => [:index, :show] do
+        resources :products, :constraints => { :id => /\d{4}/ } do
+          root :to => "products#root"
+          get :favorite, :on => :collection
+          resources :images
+        end
+        resource :account
       end
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
@@ -207,6 +250,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       match "whatever/:controller(/:action(/:id))"
+
+      resource :profile do
+        get :settings
+
+        new do
+          post :preview
+        end
+      end
     end
   end
 
@@ -728,6 +779,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_shallow_routes
+    with_test_routes do
+      assert_equal '/photos/4', photo_path(4)
+      assert_equal '/types/10/edit', edit_type_path(10) 
+      assert_equal '/types/5/preview', preview_type_path(5)
+      assert_equal '/photos/2/types', photo_types_path(2)
+      assert_equal '/cities/1/places', url_for(:controller => :places, :action => :index, :city_id => 1, :only_path => true)
+      assert_equal '/teams/new', url_for(:controller => :teams, :action => :new, :only_path => true)
+      assert_equal '/photos/11/types/erase', url_for(:controller => :types, :action => :erase, :photo_id => 11, :only_path => true)
+    end
+  end
+
   def test_update_project_person
     with_test_routes do
       get '/projects/1/people/2/update'
@@ -1035,6 +1098,54 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_assert_recognizes_account_overview
     with_test_routes do
       assert_recognizes({:controller => "account", :action => "overview"}, "/account/overview")
+    end
+  end
+
+  def test_resource_new_actions
+    with_test_routes do
+      assert_equal '/replies/new/preview', preview_new_reply_path
+      assert_equal '/pt/projetos/novo/preview', preview_new_pt_project_path
+      assert_equal '/pt/administrador/novo/preview', preview_new_pt_admin_path
+      assert_equal '/pt/products/novo/preview', preview_new_pt_product_path
+      assert_equal '/profile/new/preview', preview_new_profile_path
+
+      post '/replies/new/preview'
+      assert_equal 'replies#preview', @response.body
+
+      post '/pt/projetos/novo/preview'
+      assert_equal 'projects#preview', @response.body
+
+      post '/pt/administrador/novo/preview'
+      assert_equal 'admins#preview', @response.body
+
+      post '/pt/products/novo/preview'
+      assert_equal 'products#preview', @response.body
+
+      post '/profile/new/preview'
+      assert_equal 'profiles#preview', @response.body
+    end
+  end
+
+  def test_resource_merges_options_from_scope
+    with_test_routes do
+      assert_raise(NameError) { new_account_path }
+
+      get '/account/new'
+      assert_equal 404, status
+    end
+  end
+
+  def test_resources_merges_options_from_scope
+    with_test_routes do
+      assert_raise(NoMethodError) { edit_product_path('1') }
+
+      get '/products/1/edit'
+      assert_equal 404, status
+
+      assert_raise(NoMethodError) { edit_product_image_path('1', '2') }
+
+      post '/products/1/images/2/edit'
+      assert_equal 404, status
     end
   end
 

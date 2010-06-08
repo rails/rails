@@ -1,5 +1,5 @@
 require 'active_support/json'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveModel
   module Serializers
@@ -10,7 +10,8 @@ module ActiveModel
       included do
         extend ActiveModel::Naming
 
-        cattr_accessor :include_root_in_json, :instance_writer => true
+        class_attribute :include_root_in_json
+        self.include_root_in_json = true
       end
 
       # Returns a JSON string representing the model. Some configuration is
@@ -92,7 +93,9 @@ module ActiveModel
       end
 
       def from_json(json)
-        self.attributes = ActiveSupport::JSON.decode(json)
+        hash = ActiveSupport::JSON.decode(json)
+        hash = hash.values.first if include_root_in_json
+        self.attributes = hash
         self
       end
     end

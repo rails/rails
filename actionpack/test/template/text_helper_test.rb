@@ -7,6 +7,12 @@ rescue LoadError
   $stderr.puts "Skipping textilize tests. `gem install RedCloth` to enable."
 end
 
+begin
+  require 'bluecloth'
+rescue LoadError
+  $stderr.puts "Skipping markdown tests. 'gem install bluecloth' to enable."
+end
+
 class TextHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TextHelper
   include TestingSandbox
@@ -45,17 +51,40 @@ class TextHelperTest < ActionView::TestCase
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
 
-  def test_simple_format_should_escape_unsafe_input
-    assert_equal "<p>&lt;b&gt; test with unsafe string &lt;/b&gt;</p>", simple_format("<b> test with unsafe string </b>")
+  def test_simple_format_should_sanitize_unsafe_input
+    assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
-  def test_simple_format_should_not_escape_safe_input
+  def test_simple_format_should_not_sanitize_input_if_safe_option
+    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :safe => true)
+  end
+
+  def test_simple_format_should_not_sanitize_safe_input
     assert_equal "<p><b> test with safe string </b></p>", simple_format("<b> test with safe string </b>".html_safe)
   end
 
+  def test_truncate_should_be_html_safe
+    assert truncate("Hello World!", :length => 12).html_safe?
+  end
+  
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", :length => 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
+  end
+
+  def test_truncate_should_sanitize_unsafe_input
+    assert_equal "Hello World!", truncate("Hello <script>code!</script>World!", :length => 12)
+    assert_equal "Hello Wor...", truncate("Hello <script>code!</script>World!!", :length => 12)
+  end
+
+  def test_truncate_should_not_sanitize_input_if_safe_option
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!", :length => 12, :safe => true)
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12, :safe => true)
+  end
+
+  def test_truncate_should_not_sanitize_safe_input
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!".html_safe, :length => 12)
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!".html_safe, :length => 12)
   end
 
   def test_truncate_should_use_default_length_of_30
@@ -93,7 +122,11 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
-  def test_highlighter
+  def test_highlight_should_be_html_safe
+    assert highlight("This is a beautiful morning", "beautiful").html_safe?
+  end
+ 
+  def test_highlight
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning",
       highlight("This is a beautiful morning", "beautiful")
@@ -115,6 +148,27 @@ class TextHelperTest < ActionView::TestCase
     )
 
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
+  end
+
+  def test_highlight_should_sanitize_unsafe_input
+    assert_equal(
+      "This is a <strong class=\"highlight\">beautiful</strong> morning",
+      highlight("This is a beautiful morning<script>code!</script>", "beautiful")
+    )
+  end
+
+  def test_highlight_should_not_sanitize_input_if_safe_option
+    assert_equal(
+      "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
+      highlight("This is a beautiful morning<script>code!</script>", "beautiful", :safe => true)
+    )
+  end
+
+  def test_highlight_should_not_sanitize_safe_input
+    assert_equal(
+      "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
+      highlight("This is a beautiful morning<script>code!</script>".html_safe, "beautiful")
+    )
   end
 
   def test_highlight_with_regexp
@@ -163,7 +217,7 @@ class TextHelperTest < ActionView::TestCase
       highlight("<p class=\"beautiful\">This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
   end
@@ -286,7 +340,17 @@ class TextHelperTest < ActionView::TestCase
     %{<a href="#{CGI::escapeHTML href}">#{CGI::escapeHTML link_text}</a>}
   end
 
-  def test_auto_linking
+  def test_auto_link_should_be_html_safe
+    email_raw    = 'santiago@wyeworks.com'
+    link_raw     = 'http://www.rubyonrails.org'
+
+    assert auto_link(nil).html_safe?
+    assert auto_link('').html_safe?
+    assert auto_link("#{link_raw} #{link_raw} #{link_raw}").html_safe?
+    assert auto_link("hello #{email_raw}").html_safe?
+  end
+
+  def test_auto_link
     email_raw    = 'david@loudthinking.com'
     email_result = %{<a href="mailto:#{email_raw}">#{email_raw}</a>}
     link_raw     = 'http://www.rubyonrails.com'
@@ -376,6 +440,21 @@ class TextHelperTest < ActionView::TestCase
     link10_raw    = 'http://www.mail-archive.com/ruby-talk@ruby-lang.org/'
     link10_result = generate_result(link10_raw)
     assert_equal %(<p>#{link10_result} Link</p>), auto_link("<p>#{link10_raw} Link</p>")
+  end
+
+  def test_auto_link_should_sanitize_unsafe_input
+    link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&amp;num=2">http://www.rubyonrails.com?id=1&amp;num=2</a>}, auto_link(link_raw)
+  end
+
+  def test_auto_link_should_sanitize_unsafe_input
+    link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw, :safe => true)
+  end
+
+  def test_auto_link_should_not_sanitize_safe_input
+    link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw.html_safe)
   end
 
   def test_auto_link_other_protocols
@@ -587,7 +666,12 @@ class TextHelperTest < ActionView::TestCase
     assert_equal(%w{Specialized Fuji Giant}, @cycles)
   end
 
+  # TODO test textilize_without_paragraph and markdown
   if defined? RedCloth
+    def test_textilize_should_be_html_safe
+      assert textilize("*This is Textile!*  Rejoice!").html_safe?
+    end
+
     def test_textilize
       assert_equal("<p><strong>This is Textile!</strong>  Rejoice!</p>", textilize("*This is Textile!*  Rejoice!"))
     end
@@ -600,8 +684,82 @@ class TextHelperTest < ActionView::TestCase
       assert_equal("<p>This is worded &lt;strong&gt;strongly&lt;/strong&gt;</p>", textilize("This is worded <strong>strongly</strong>", :filter_html))
     end
 
+    def test_textilize_should_sanitize_unsafe_input
+      assert_equal("<p>This is worded <strong>strongly</strong></p>", textilize("This is worded <strong>strongly</strong><script>code!</script>"))
+    end
+
+    def test_textilize_should_not_sanitize_input_if_safe_option
+      assert_equal("<p>This is worded <strong>strongly</strong><script>code!</script></p>", textilize("This is worded <strong>strongly</strong><script>code!</script>", :safe))
+    end
+
+    def test_textilize_should_not_sanitize_safe_input
+      assert_equal("<p>This is worded <strong>strongly</strong><script>code!</script></p>", textilize("This is worded <strong>strongly</strong><script>code!</script>".html_safe))
+    end
+
     def test_textilize_with_hard_breaks
       assert_equal("<p>This is one scary world.<br />\n True.</p>", textilize("This is one scary world.\n True."))
+    end
+
+    def test_textilize_without_paragraph_should_be_html_safe
+      textilize_without_paragraph("*This is Textile!*  Rejoice!").html_safe?
+    end
+
+    def test_textilize_without_paragraph
+      assert_equal("<strong>This is Textile!</strong>  Rejoice!", textilize_without_paragraph("*This is Textile!*  Rejoice!"))
+    end
+
+    def test_textilize_without_paragraph_with_blank
+      assert_equal("", textilize_without_paragraph(""))
+    end
+
+    def test_textilize_without_paragraph_with_options
+      assert_equal("This is worded &lt;strong&gt;strongly&lt;/strong&gt;", textilize_without_paragraph("This is worded <strong>strongly</strong>", :filter_html))
+    end
+
+    def test_textilize_without_paragraph_should_sanitize_unsafe_input
+      assert_equal("This is worded <strong>strongly</strong>", textilize_without_paragraph("This is worded <strong>strongly</strong><script>code!</script>"))
+    end
+
+    def test_textilize_without_paragraph_should_not_sanitize_input_if_safe_option
+      assert_equal("This is worded <strong>strongly</strong><script>code!</script>", textilize_without_paragraph("This is worded <strong>strongly</strong><script>code!</script>", :safe))
+    end
+
+    def test_textilize_without_paragraph_should_not_sanitize_safe_input
+      assert_equal("This is worded <strong>strongly</strong><script>code!</script>", textilize_without_paragraph("This is worded <strong>strongly</strong><script>code!</script>".html_safe))
+    end
+
+    def test_textilize_without_paragraph_with_hard_breaks
+      assert_equal("This is one scary world.<br />\n True.", textilize_without_paragraph("This is one scary world.\n True."))
+    end
+  end
+
+  if defined? BlueCloth
+    def test_markdown_should_be_html_safe
+      assert markdown("We are using __Markdown__ now!").html_safe?
+    end
+
+    def test_markdown
+      assert_equal("<p>We are using <strong>Markdown</strong> now!</p>", markdown("We are using __Markdown__ now!"))
+    end
+
+    def test_markdown_with_blank
+      assert_equal("", markdown(""))
+    end
+
+    def test_markdown_should_sanitize_unsafe_input
+      assert_equal("<p>This is worded <strong>strongly</strong></p>", markdown("This is worded <strong>strongly</strong><script>code!</script>"))
+    end
+
+    def test_markdown_should_not_sanitize_input_if_safe_option
+      assert_equal("<p>This is worded <strong>strongly</strong><script>code!</script></p>", markdown("This is worded <strong>strongly</strong><script>code!</script>", :safe))
+    end
+
+    def test_markdown_should_not_sanitize_safe_input
+      assert_equal("<p>This is worded <strong>strongly</strong><script>code!</script></p>", markdown("This is worded <strong>strongly</strong><script>code!</script>".html_safe))
+    end
+
+    def test_markdown_with_hard_breaks
+      assert_equal("<p>This is one scary world.</p>\n\n<p>True.</p>", markdown("This is one scary world.\n\nTrue."))
     end
   end
 end

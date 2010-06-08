@@ -7,9 +7,10 @@ require 'models/categorization'
 require 'models/company'
 require 'models/topic'
 require 'models/reply'
+require 'models/person'
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
-  fixtures :authors, :mixins, :companies, :posts, :topics, :accounts, :comments, :categorizations
+  fixtures :authors, :mixins, :companies, :posts, :topics, :accounts, :comments, :categorizations, :people
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
@@ -36,6 +37,13 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     authors = Author.joins(:posts).eager_load(:comments).where(:posts => {:taggings_count => 1}).all
     assert_equal 1, assert_no_queries { authors.size }
     assert_equal 9, assert_no_queries { authors[0].comments.size }
+  end
+
+  def test_eager_association_loading_grafts_stashed_associations_to_correct_parent
+    assert_nothing_raised do
+      Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').all
+    end
+    assert_equal people(:michael), Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').first
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations

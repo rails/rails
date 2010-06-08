@@ -1756,7 +1756,8 @@ module ActiveRecord
           end
 
           def count_aliases_from_table_joins(name)
-            quoted_name = join_base.active_record.connection.quote_table_name(name.downcase)
+            # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
+            quoted_name = join_base.active_record.connection.quote_table_name(name.downcase).downcase
             join_sql = join_base.table_joins.to_s.downcase
             join_sql.blank? ? 0 :
               # Table names
@@ -1902,7 +1903,7 @@ module ActiveRecord
             end
 
             def ==(other)
-              other.is_a?(JoinBase) &&
+              other.class == self.class &&
               other.active_record == active_record &&
               other.table_joins == table_joins
             end
@@ -1973,7 +1974,7 @@ module ActiveRecord
             end
 
             def ==(other)
-              other.is_a?(JoinAssociation) &&
+              other.class == self.class &&
               other.reflection == reflection &&
               other.parent == parent
             end

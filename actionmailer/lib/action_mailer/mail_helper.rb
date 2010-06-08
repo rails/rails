@@ -32,5 +32,10 @@ module ActionMailer
     def message
       @_message
     end
+
+    # Access the message attachments list.
+    def attachments
+      @_message.attachments
+    end
   end
 end

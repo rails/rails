@@ -3,6 +3,7 @@ class LoadError
     /^no such file to load -- (.+)$/i,
     /^Missing \w+ (?:file\s*)?([^\s]+.rb)$/i,
     /^Missing API definition file in (.+)$/i,
+    /^cannot load such file -- (.+)$/i,
   ]
 
   def path

@@ -178,6 +178,7 @@ module Rails
           "#{orm}:migration",
           "#{orm}:model",
           "#{orm}:observer",
+          "#{orm}:session_migration",
           "#{test}:controller",
           "#{test}:helper",
           "#{test}:integration",
@@ -186,8 +187,11 @@ module Rails
           "#{test}:observer",
           "#{test}:scaffold",
           "#{test}:view",
+          "#{test}:performance",
+          "#{test}:plugin",
           "#{template}:controller",
-          "#{template}:scaffold"
+          "#{template}:scaffold",
+          "#{template}:mailer"
         ]
       end
     end

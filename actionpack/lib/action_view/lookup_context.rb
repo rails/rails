@@ -188,7 +188,7 @@ module ActionView
           begin
             yield
           ensure
-            _set_detail(:formats, formats)
+            _set_detail(:formats, old_formats)
           end
         end
       end

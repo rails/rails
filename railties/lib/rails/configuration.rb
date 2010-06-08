@@ -28,6 +28,10 @@ module Rails
         @operations << [:use, args, block]
       end
 
+      def delete(*args, &block)
+        @operations << [:delete, args, block]
+      end
+
       def merge_into(other)
         @operations.each do |operation, args, block|
           other.send(operation, *args, &block)

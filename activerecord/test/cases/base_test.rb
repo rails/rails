@@ -430,14 +430,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_date_objects
-    if current_adapter?(:SybaseAdapter, :OracleAdapter)
+    if current_adapter?(:SybaseAdapter)
       # Sybase ctlib does not (yet?) support the date type; use datetime instead.
-      # Oracle treats all dates/times as Time.
       assert_kind_of(
         Time, Topic.find(1).last_read,
         "The last_read attribute should be of the Time class"
       )
     else
+      # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
       assert_kind_of(
         Date, Topic.find(1).last_read,
         "The last_read attribute should be of the Date class"
@@ -2125,10 +2125,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "integer", xml.elements["//parent-id"].attributes['type']
     assert_equal "true", xml.elements["//parent-id"].attributes['nil']
 
-    if current_adapter?(:SybaseAdapter, :OracleAdapter)
+    if current_adapter?(:SybaseAdapter)
       assert_equal last_read_in_current_timezone, xml.elements["//last-read"].text
       assert_equal "datetime" , xml.elements["//last-read"].attributes['type']
     else
+      # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
       assert_equal "2004-04-15", xml.elements["//last-read"].text
       assert_equal "date" , xml.elements["//last-read"].attributes['type']
     end

@@ -74,6 +74,7 @@ module ActionView
 
         options.reverse_merge!(:length => 30)
 
+        text = sanitize(text) unless text.html_safe? || options[:safe]
         text.truncate(options.delete(:length), options) if text
       end
 
@@ -105,6 +106,7 @@ module ActionView
         end
         options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
 
+        text = sanitize(text) unless text.html_safe? || options[:safe]
         if text.blank? || phrases.blank?
           text
         else
@@ -244,13 +246,14 @@ module ActionView
       #
       def textilize(text, *options)
         options ||= [:hard_breaks]
+        text = sanitize(text) unless text.html_safe? || options.delete(:safe)
 
         if text.blank?
           ""
         else
           textilized = RedCloth.new(text, options)
           textilized.to_html
-        end
+        end.html_safe
       end
 
       # Returns the text with all the Textile codes turned into HTML tags,
@@ -271,8 +274,8 @@ module ActionView
       #
       #   textilize_without_paragraph("Visit the Rails website "here":http://www.rubyonrails.org/.)
       #   # => "Visit the Rails website <a href="http://www.rubyonrails.org/">here</a>."
-      def textilize_without_paragraph(text)
-        textiled = textilize(text)
+      def textilize_without_paragraph(text, *options)
+        textiled = textilize(text, *options)
         if textiled[0..2] == "<p>" then textiled = textiled[3..-1] end
         if textiled[-4..-1] == "</p>" then textiled = textiled[0..-5] end
         return textiled
@@ -295,8 +298,9 @@ module ActionView
       #
       #   markdown('![The ROR logo](http://rubyonrails.com/images/rails.png "Ruby on Rails")')
       #   # => '<p><img src="http://rubyonrails.com/images/rails.png" alt="The ROR logo" title="Ruby on Rails" /></p>'
-      def markdown(text)
-        text.blank? ? "" : BlueCloth.new(text).to_html
+      def markdown(text, *options)
+        text = sanitize(text) unless text.html_safe? || options.delete(:safe)
+        (text.blank? ? "" : BlueCloth.new(text).to_html).html_safe
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
@@ -320,14 +324,15 @@ module ActionView
       #
       #   simple_format("Look ma! A class!", :class => 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
-      def simple_format(text, html_options={})
+      def simple_format(text, html_options={}, options={})
+        text = '' if text.nil?
         start_tag = tag('p', html_options, true)
-        text = h(text)
+        text = sanitize(text) unless text.html_safe? || options[:safe]
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
         text.insert 0, start_tag
-        text.safe_concat("</p>")
+        text.html_safe.safe_concat("</p>")
       end
 
       # Turns all URLs and e-mail addresses into clickable links. The <tt>:link</tt> option
@@ -368,7 +373,7 @@ module ActionView
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.myblog.com</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
       def auto_link(text, *args, &block)#link = :all, html = {}, &block)
-        return '' if text.blank?
+        return ''.html_safe if text.blank?
 
         options = args.size == 2 ? {} : args.extract_options! # this is necessary because the old auto_link API has a Hash as its last parameter
         unless args.empty?
@@ -378,9 +383,9 @@ module ActionView
         options.reverse_merge!(:link => :all, :html => {})
 
         case options[:link].to_sym
-          when :all                         then auto_link_email_addresses(auto_link_urls(text, options[:html], &block), options[:html], &block)
+          when :all                         then auto_link_email_addresses(auto_link_urls(text, options[:html], options, &block), options[:html], &block)
           when :email_addresses             then auto_link_email_addresses(text, options[:html], &block)
-          when :urls                        then auto_link_urls(text, options[:html], &block)
+          when :urls                        then auto_link_urls(text, options[:html], options, &block)
         end
       end
 
@@ -544,7 +549,7 @@ module ActionView
 
         # Turns all urls into clickable links.  If a block is given, each url
         # is yielded and the result is used as the link text.
-        def auto_link_urls(text, html_options = {})
+        def auto_link_urls(text, html_options = {}, options = {})
           link_attributes = html_options.stringify_keys
           text.gsub(AUTO_LINK_RE) do
             scheme, href = $1, $&
@@ -566,21 +571,22 @@ module ActionView
               link_text = block_given?? yield(href) : href
               href = 'http://' + href unless scheme
 
-              content_tag(:a, link_text, link_attributes.merge('href' => href)) + punctuation.reverse.join('')
+              content_tag(:a, link_text, link_attributes.merge('href' => href), !(options[:safe] || text.html_safe?)) + punctuation.reverse.join('')
             end
-          end
+          end.html_safe
         end
 
         # Turns all email addresses into clickable links.  If a block is given,
         # each email is yielded and the result is used as the link text.
-        def auto_link_email_addresses(text, html_options = {})
+        def auto_link_email_addresses(text, html_options = {}, options = {})
           text.gsub(AUTO_EMAIL_RE) do
             text = $&
 
             if auto_linked?($`, $')
-              text
+              text.html_safe
             else
               display_text = (block_given?) ? yield(text) : text
+              display_text = sanitize(display_text) unless options[:safe]
               mail_to text, display_text, html_options
             end
           end
