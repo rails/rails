@@ -51,6 +51,8 @@ module ActiveSupport #:nodoc:
         end
       end
 
+      undef <=>
+
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         if method.to_s =~ /!$/
