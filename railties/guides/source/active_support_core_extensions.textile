@@ -2869,7 +2869,7 @@ Date.new(2010, 2, 28).advance(:days => 1).advance(:months => 1)
 # => Thu, 01 Apr 2010
 </ruby>
 
-h5. Changing Date Components
+h5. Changing Components
 
 The method +change+ allows you to get a new date which is the same as the receiver except for the given year, month, or day:
 
@@ -2909,11 +2909,122 @@ date.end_of_day # => Sun Jun 06 23:59:59 +0200 2010
 
 +beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+
 
-h4. Conversions
+h4(#date-conversions). Conversions
 
 h3. Extensions to +DateTime+
 
-NOTE TO SELF: Since +DateTime+ is a subclass of +Date+, you get inherited methods that return +DateTime+ objects.
+NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
+
+WARNING: +DateTime+ is not aware of DST rules and so some of these methods have edge cases when a DST change is going on. For example +seconds_since_midnight+ might not return the real amount in such a day.
+
+h4(#calculations-datetime). Calculations
+
+The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_ext/date/calculations.rb+ you inherit these methods and their aliases, except that they will always return datetimes:
+
+<ruby>
+yesterday
+tomorrow
+beginning_of_week
+end_on_week
+next_week
+months_ago
+months_since
+beginning_of_month
+end_of_month
+prev_month
+next_month
+beginning_of_quarter
+end_of_quarter
+beginning_of_year
+end_of_year
+years_ago
+years_since
+prev_year
+next_year
+</ruby>
+
+The following methods are reimplemented so you do *not* need to load +active_support/core_ext/date/calculations.rb+ for these ones:
+
+<ruby>
+beginning_of_day
+end_of_day
+ago
+since
+</ruby>
+
+On the other hand, +advance+ and +change+ are also defined and support more options, they are documented below.
+
+h5. Named Datetimes
+
+h6. +DateTime.current+
+
+Active Support defines +DateTime.current+ to be like +Time.now.to_datetime+, except that it honors the user time zone, if defined. It also defines instance predicates +past?+, and +future?+ relative to +DateTime.current+.
+
+h5. Other Extensions
+
+h6. +seconds_since_midnight+
+
+The method +seconds_since_midnight+ returns the number of seconds since midnight:
+
+<ruby>
+now = DateTime.current     # => Mon, 07 Jun 2010 20:26:36 +0000
+now.seconds_since_midnight # => 73596
+</ruby>
+
+h6(#utc-datetime). +utc+
+
+The method +utc+ gives you the same datetime in the receiver expressed in UTC.
+
+<ruby>
+now = DateTime.current # => Mon, 07 Jun 2010 19:27:52 -0400
+now.utc                # => Mon, 07 Jun 2010 23:27:52 +0000
+</ruby>
+
+This method is also aliased as +getutc+.
+
+h6. +utc?+
+
+The predicate +utc?+ says whether the receiver has UTC as its time zone:
+
+<ruby>
+now = DateTime.now # => Mon, 07 Jun 2010 19:30:47 -0400
+now.utc?           # => false
+now.utc.utc?       # => true
+</ruby>
+
+h5(#datetime-changing-components). Changing Components
+
+The method +change+ allows you to get a new datetime which is the same as the receiver except for the given options, which may include +:year+, +:month+, +:day+, +:hour+, +:min+, +:sec+, +:offset+, +:start+:
+
+<ruby>
+now = DateTime.current
+# => Tue, 08 Jun 2010 01:56:22 +0000
+now.change(:year => 2011, :offset => Rational(-6, 24))
+# => Wed, 08 Jun 2011 01:56:22 -0600
+</ruby>
+
+If hours are zeroed, then minutes and seconds are too (unless they have given values):
+
+<ruby>
+now.change(:hour => 0)
+# => Tue, 08 Jun 2010 00:00:00 +0000
+</ruby>
+
+Similarly, if minutes are zeroed, then seconds are too (unless it has given a value):
+
+<ruby>
+now.change(:min => 0)
+# => Tue, 08 Jun 2010 01:00:00 +0000
+</ruby>
+
+This method is not tolerant to non-existing dates, if the change is invalid +ArgumentError+ is raised:
+
+<ruby>
+DateTime.current.change(:month => 2, :day => 30)
+# => ArgumentError: invalid date
+</ruby>
+
+h4(#datetime-conversions). Conversions
 
 h3. Extensions to +Time+
 
