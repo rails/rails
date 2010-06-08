@@ -28,6 +28,7 @@ module ActionController
     autoload :Rendering
     autoload :RequestForgeryProtection
     autoload :Rescue
+    autoload :RescueWithHelper
     autoload :Responder
     autoload :SessionManagement
     autoload :Streaming

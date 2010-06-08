@@ -49,7 +49,9 @@ module ActionController
       AbstractController::Callbacks,
 
       # The same with rescue, append it at the end to wrap as much as possible.
-      Rescue
+      Rescue,
+
+      RescueWithHelper
     ]
 
     MODULES.each do |mod|
