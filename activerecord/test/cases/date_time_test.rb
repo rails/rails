@@ -5,7 +5,9 @@ require 'models/task'
 class DateTimeTest < ActiveRecord::TestCase
   def test_saves_both_date_and_time
     time_values = [1807, 2, 10, 15, 30, 45]
-    now = DateTime.civil(*time_values)
+    # create DateTime value with local time zone offset
+    local_offset = Rational(Time.local_time(*time_values).utc_offset, 86400)
+    now = DateTime.civil(*(time_values + [local_offset]))
 
     task = Task.new
     task.starting = now

@@ -18,7 +18,7 @@ ENV['NO_RELOAD'] = '1'
 require 'active_support'
 
 # Include shims until we get off 1.8.6
-require 'active_support/ruby/shim'
+require 'active_support/ruby/shim' if RUBY_VERSION < '1.8.7'
 
 def uses_memcached(test_name)
   require 'memcache'
