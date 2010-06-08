@@ -581,6 +581,7 @@ module ActionDispatch
 
         def resource(*resources, &block)
           options = resources.extract_options!
+          options = (@scope[:options] || {}).merge(options)
 
           if apply_common_behavior_for(:resource, resources, options, &block)
             return self
@@ -611,6 +612,7 @@ module ActionDispatch
 
         def resources(*resources, &block)
           options = resources.extract_options!
+          options = (@scope[:options] || {}).merge(options)
 
           if apply_common_behavior_for(:resources, resources, options, &block)
             return self

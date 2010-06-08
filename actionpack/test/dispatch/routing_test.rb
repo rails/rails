@@ -229,10 +229,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         root :to => 'projects#index'
       end
 
-      resources :products, :constraints => { :id => /\d{4}/ } do
-        root :to => "products#root"
-        get :favorite, :on => :collection
-        resources :images
+      scope :only => [:index, :show] do
+        resources :products, :constraints => { :id => /\d{4}/ } do
+          root :to => "products#root"
+          get :favorite, :on => :collection
+          resources :images
+        end
+        resource :account
       end
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
@@ -1120,6 +1123,29 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/profile/new/preview'
       assert_equal 'profiles#preview', @response.body
+    end
+  end
+
+  def test_resource_merges_options_from_scope
+    with_test_routes do
+      assert_raise(NameError) { new_account_path }
+
+      get '/account/new'
+      assert_equal 404, status
+    end
+  end
+
+  def test_resources_merges_options_from_scope
+    with_test_routes do
+      assert_raise(NoMethodError) { edit_product_path('1') }
+
+      get '/products/1/edit'
+      assert_equal 404, status
+
+      assert_raise(NoMethodError) { edit_product_image_path('1', '2') }
+
+      post '/products/1/images/2/edit'
+      assert_equal 404, status
     end
   end
 
