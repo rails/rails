@@ -146,7 +146,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :clients do
         namespace :google do
-          resource :account
+          resource :account do
+            namespace :secret do
+              resource :info
+            end
+          end
         end
       end
 
@@ -824,8 +828,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/clients/1/google/account'
       assert_equal '/clients/1/google/account', client_google_account_path(1)
-      
       assert_equal 'google/accounts#show', @response.body
+
+      get '/clients/1/google/account/secret/info'
+      assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
+      assert_equal 'google/secret/infos#show', @response.body
     end
   end
 

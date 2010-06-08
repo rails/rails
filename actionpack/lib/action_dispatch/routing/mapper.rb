@@ -680,7 +680,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          if @scope[:scope_level] == :resources
+          if resource_scope?
             nested { super }
           else
             super
