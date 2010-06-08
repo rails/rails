@@ -46,6 +46,7 @@ end
 
 # AP
 gem "RedCloth", ">= 4.2.2"
+gem "bluecloth", ">= 2.0.7"
 
 group :documentation do
   gem 'rdoc', '2.1'

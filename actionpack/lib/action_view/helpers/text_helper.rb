@@ -298,8 +298,8 @@ module ActionView
       #
       #   markdown('![The ROR logo](http://rubyonrails.com/images/rails.png "Ruby on Rails")')
       #   # => '<p><img src="http://rubyonrails.com/images/rails.png" alt="The ROR logo" title="Ruby on Rails" /></p>'
-      def markdown(text, options = {})
-        text = sanitize(text) unless options[:safe]
+      def markdown(text, *options)
+        text = sanitize(text) unless text.html_safe? || options.delete(:safe)
         (text.blank? ? "" : BlueCloth.new(text).to_html).html_safe
       end
 
