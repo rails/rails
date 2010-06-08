@@ -34,6 +34,10 @@ module ActiveRecord
         end
 
         def binary_to_string(value)
+          if value.respond_to?(:force_encoding) && value.encoding != Encoding::ASCII_8BIT
+            value = value.force_encoding(Encoding::ASCII_8BIT)
+          end
+
           value.gsub(/%00|%25/n) do |b|
             case b
               when "%00" then "\0"
