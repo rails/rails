@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
+* Fixed that ActiveRecord::Base.compute_type would swallow NoMethodError #4751 [Andrew Bloomgarden, Andrew White]
+
 * Add index length support for MySQL. #1852 [Emili Parreno, Pratik Naik]
 
   Example:
@@ -11,6 +13,8 @@
     => CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
 
 * find_or_create_by_attr(value, ...) works when attr is protected.  #4457 [Santiago Pastorino, Marc-André Lafortune]
+
+* New callbacks: after_commit and after_rollback. Do expensive operations like image thumbnailing after_commit instead of after_save.  #2991 [Brian Durand]
 
 * Serialized attributes are not converted to YAML if they are any of the formats that can be serialized to XML (like Hash, Array and Strings). [José Valim]
 

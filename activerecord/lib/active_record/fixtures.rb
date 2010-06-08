@@ -787,16 +787,14 @@ class Fixture #:nodoc:
   end
 
   def key_list
-    columns = @fixture.keys.collect{ |column_name| @connection.quote_column_name(column_name) }
-    columns.join(", ")
+    @fixture.keys.map { |column_name| @connection.quote_column_name(column_name) }.join(', ')
   end
 
   def value_list
-    list = @fixture.inject([]) do |fixtures, (key, value)|
-      col = model_class.columns_hash[key] if model_class.respond_to?(:ancestors) && model_class.ancestors.include?(ActiveRecord::Base)
-      fixtures << @connection.quote(value, col).gsub('[^\]\\n', "\n").gsub('[^\]\\r', "\r")
-    end
-    list * ', '
+    cols = (model_class && model_class < ActiveRecord::Base) ? model_class.columns_hash : {}
+    @fixture.map do |key, value|
+      @connection.quote(value, cols[key]).gsub('[^\]\\n', "\n").gsub('[^\]\\r', "\r")
+    end.join(', ')
   end
 
   def find

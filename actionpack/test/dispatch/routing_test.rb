@@ -34,33 +34,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      resources :users do
-        shallow do
-          resources :photos do
-            resources :types do
-              member do
-                post :preview
-              end
-              collection do
-                delete :erase
-              end
-            end
-          end
-        end
-      end
-      
-      shallow do
-        resources :teams do
-          resources :players
-        end
-      
-        resources :countries do
-          resources :cities do
-            resources :places
-          end
-        end
-      end
-
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -170,6 +143,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :sheep
+
+      resources :clients do
+        namespace :google do
+          resource :account do
+            namespace :secret do
+              resource :info
+            end
+          end
+        end
+      end
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
@@ -779,18 +762,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_shallow_routes
-    with_test_routes do
-      assert_equal '/photos/4', photo_path(4)
-      assert_equal '/types/10/edit', edit_type_path(10) 
-      assert_equal '/types/5/preview', preview_type_path(5)
-      assert_equal '/photos/2/types', photo_types_path(2)
-      assert_equal '/cities/1/places', url_for(:controller => :places, :action => :index, :city_id => 1, :only_path => true)
-      assert_equal '/teams/new', url_for(:controller => :teams, :action => :new, :only_path => true)
-      assert_equal '/photos/11/types/erase', url_for(:controller => :types, :action => :erase, :photo_id => 11, :only_path => true)
-    end
-  end
-
   def test_update_project_person
     with_test_routes do
       get '/projects/1/people/2/update'
@@ -850,6 +821,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/admin/subscription'
       assert_equal 'account/admin/subscriptions#show', @response.body
       assert_equal '/account/admin/subscription', account_admin_subscription_path
+    end
+  end
+  
+  def test_namespace_nested_in_resources
+    with_test_routes do
+      get '/clients/1/google/account'
+      assert_equal '/clients/1/google/account', client_google_account_path(1)
+      assert_equal 'google/accounts#show', @response.body
+
+      get '/clients/1/google/account/secret/info'
+      assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
+      assert_equal 'google/secret/infos#show', @response.body
     end
   end
 

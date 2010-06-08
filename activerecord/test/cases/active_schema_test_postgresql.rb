@@ -4,6 +4,7 @@ class PostgresqlActiveSchemaTest < Test::Unit::TestCase
   def setup
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       alias_method :real_execute, :execute
+      remove_method :execute
       def execute(sql, name = nil) sql end
     end
   end

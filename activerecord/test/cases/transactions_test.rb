@@ -320,6 +320,33 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_restore_active_record_state_for_all_records_in_a_transaction
+    topic_1 = Topic.new(:title => 'test_1')
+    topic_2 = Topic.new(:title => 'test_2')
+    Topic.transaction do
+      assert topic_1.save
+      assert topic_2.save
+      @first.save
+      @second.destroy
+      assert_equal false, topic_1.new_record?
+      assert_not_nil topic_1.id
+      assert_equal false, topic_2.new_record?
+      assert_not_nil topic_2.id
+      assert_equal false, @first.new_record?
+      assert_not_nil @first.id
+      assert_equal true, @second.destroyed?
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal true, topic_1.new_record?
+    assert_nil topic_1.id
+    assert_equal true, topic_2.new_record?
+    assert_nil topic_2.id
+    assert_equal false, @first.new_record?
+    assert_not_nil @first.id
+    assert_equal false, @second.destroyed?
+  end
+
   if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
     def test_outside_transaction_works
       assert Topic.connection.outside_transaction?
@@ -382,6 +409,12 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   private
+    def define_callback_method(callback_method)
+      define_method(callback_method) do
+        self.history << [callback_method, :method]
+      end
+    end
+
     def add_exception_raising_after_save_callback_to_topic
       Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
         remove_method(:after_save_for_transaction)
