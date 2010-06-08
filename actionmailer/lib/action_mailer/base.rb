@@ -612,7 +612,11 @@ module ActionMailer #:nodoc:
       when user_content_type.present?
         user_content_type
       when m.has_attachments?
-        ["multipart", "mixed", params]
+        if m.attachments.detect { |a| a.inline? }
+          ["multipart", "related", params]
+        else
+          ["multipart", "mixed", params]
+        end
       when m.multipart?
         ["multipart", "alternative", params]
       else
