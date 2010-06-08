@@ -22,35 +22,41 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should include root in json" do
+    json = @contact.to_json
+
+    assert_match %r{^\{"contact":\{}, json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"age":16}, json
+    assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_match %r{"awesome":true}, json
+    assert_match %r{"preferences":\{"shows":"anime"\}}, json
+  end
+
+  test "should not include root in json" do
     begin
-      Contact.include_root_in_json = true
+      Contact.include_root_in_json = false
       json = @contact.to_json
 
-      assert_match %r{^\{"contact":\{}, json
+      assert_no_match %r{^\{"contact":\{}, json
       assert_match %r{"name":"Konata Izumi"}, json
       assert_match %r{"age":16}, json
       assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
       assert_match %r{"awesome":true}, json
       assert_match %r{"preferences":\{"shows":"anime"\}}, json
     ensure
-      Contact.include_root_in_json = false
+      Contact.include_root_in_json = true
     end
   end
 
   test "should include custom root in json" do
-    begin
-      Contact.include_root_in_json = true
-      json = @contact.to_json(:root => 'json_contact')
+    json = @contact.to_json(:root => 'json_contact')
 
-      assert_match %r{^\{"json_contact":\{}, json
-      assert_match %r{"name":"Konata Izumi"}, json
-      assert_match %r{"age":16}, json
-      assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
-      assert_match %r{"awesome":true}, json
-      assert_match %r{"preferences":\{"shows":"anime"\}}, json
-    ensure
-      Contact.include_root_in_json = false
-    end
+    assert_match %r{^\{"json_contact":\{}, json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"age":16}, json
+    assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_match %r{"awesome":true}, json
+    assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
   test "should encode all encodable attributes" do

@@ -1,5 +1,15 @@
 *Rails 3.0.0 [beta 4/release candidate] (unreleased)*
 
+* Add shallow routes back to the new router [Diego Carrion]
+
+    resources :posts do
+      shallow do
+        resources :comments
+      end
+    end
+    
+    You can now use comment_path for /comments/1 instead of post_comment_path for /posts/1/comments/1.
+
 * Remove middleware laziness [José Valim]
 
 * Make session stores rely on request.cookie_jar and change set_session semantics to return the cookie value instead of a boolean. [José Valim]

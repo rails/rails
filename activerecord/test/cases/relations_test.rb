@@ -114,7 +114,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_select_with_block
     even_ids = Developer.scoped.select {|d| d.id % 2 == 0 }.map(&:id)
-    assert_equal [2, 4, 6, 8, 10], even_ids
+    assert_equal [2, 4, 6, 8, 10], even_ids.sort
   end
 
   def test_finding_with_hash_conditions_on_joined_table
