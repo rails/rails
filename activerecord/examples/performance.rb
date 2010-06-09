@@ -120,7 +120,7 @@ RBench.run(TIMES) do
   end
 
   report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
-    ar { Exhibit.feel Exhibit.limit(100).eager_load(:user) }
+    ar { Exhibit.feel Exhibit.limit(100).preload(:user) }
   end
 
   report 'Model.all limit(10,000)', (TIMES / 1000).ceil do
