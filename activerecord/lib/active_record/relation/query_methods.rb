@@ -181,7 +181,7 @@ module ActiveRecord
 
       arel = arel.group(*@group_values.uniq.select{|g| g.present?})
 
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s))
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?})
 
       selects = @select_values.uniq
 

@@ -611,4 +611,8 @@ class RelationTest < ActiveRecord::TestCase
     comments = Comment.includes(:post).where(Post[:id].eq(1))
     assert_equal comments, Post.find(1).comments.all
   end
+
+  def test_order_by_relation_attribute
+    assert_equal Post.order(Post[:title]).all, Post.order("title").all
+  end
 end
