@@ -1019,7 +1019,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       # This one is fun. The 'value_of_e' field is defined as 'DECIMAL' with
       # precision/scale explicitly left out.  By the SQL standard, numbers
       # assigned to this field should be truncated but that's seldom respected.
-      if current_adapter?(:PostgreSQLAdapter, :SQLite2Adapter)
+      if current_adapter?(:PostgreSQLAdapter)
         # - PostgreSQL changes the SQL spec on columns declared simply as
         # "decimal" to something more useful: instead of being given a scale
         # of 0, they take on the compile-time limit for precision and scale,
