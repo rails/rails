@@ -5,7 +5,7 @@ namespace :db do
   end
 
   namespace :create do
-    desc 'Create all the local databases defined in config/database.yml'
+    # desc 'Create all the local databases defined in config/database.yml'
     task :all => :load_config do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key, such as the first entry here:
@@ -26,7 +26,7 @@ namespace :db do
     end
   end
 
-  desc 'Create the database defined in config/database.yml for the current Rails.env - also makes test database if in development mode'
+  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
     # Make the test database at the same time as the development one, if it exists
     if Rails.env.development? && ActiveRecord::Base.configurations['test']
@@ -100,7 +100,7 @@ namespace :db do
   end
 
   namespace :drop do
-    desc 'Drops all the local databases defined in config/database.yml'
+    # desc 'Drops all the local databases defined in config/database.yml'
     task :all => :load_config do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key
@@ -115,7 +115,7 @@ namespace :db do
     end
   end
 
-  desc 'Drops the database for the current Rails.env'
+  desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => :load_config do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     begin
@@ -142,7 +142,7 @@ namespace :db do
   end
 
   namespace :migrate do
-    desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
+    # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
     task :redo => :environment do
       if ENV["VERSION"]
         Rake::Task["db:migrate:down"].invoke
@@ -153,10 +153,10 @@ namespace :db do
       end
     end
 
-    desc 'Resets your database using your migrations for the current environment'
+    # desc 'Resets your database using your migrations for the current environment'
     task :reset => ["db:drop", "db:create", "db:migrate"]
 
-    desc 'Runs the "up" for a given migration VERSION.'
+    # desc 'Runs the "up" for a given migration VERSION.'
     task :up => :environment do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
@@ -164,7 +164,7 @@ namespace :db do
       Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
-    desc 'Runs the "down" for a given migration VERSION.'
+    # desc 'Runs the "down" for a given migration VERSION.'
     task :down => :environment do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
@@ -187,7 +187,7 @@ namespace :db do
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
-  desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
+  # desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
   task :reset => [ 'db:drop', 'db:setup' ]
 
   # desc "Retrieves the charset for the current environment's database"
@@ -240,7 +240,7 @@ namespace :db do
     end
   end
 
-  desc 'Create the database, load the schema, and initialize with the seed data'
+  desc 'Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the db first)'
   task :setup => [ 'db:create', 'db:schema:load', 'db:seed' ]
 
   desc 'Load the seed data from db/seeds.rb'
@@ -263,7 +263,7 @@ namespace :db do
       end
     end
 
-    desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :identify => :environment do
       require 'active_record/fixtures'
 
@@ -347,7 +347,7 @@ namespace :db do
   end
 
   namespace :test do
-    desc "Recreate the test database from the current schema.rb"
+    # desc "Recreate the test database from the current schema.rb"
     task :load => 'db:test:purge' do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
       ActiveRecord::Schema.verbose = false
@@ -391,7 +391,7 @@ namespace :db do
       end
     end
 
-    desc "Empty the test database"
+    # desc "Empty the test database"
     task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs["test"]["adapter"]

@@ -1,5 +1,35 @@
 require 'rake/testtask'
 
+# Monkey-patch to silence the description from Rake::TestTask to cut down on rake -T noise
+class TestTaskWithoutDescription < Rake::TestTask
+  # Create the tasks defined by this task lib.
+  def define
+    lib_path = @libs.join(File::PATH_SEPARATOR)
+    task @name do
+      run_code = ''
+      RakeFileUtils.verbose(@verbose) do
+        run_code =
+          case @loader
+          when :direct
+            "-e 'ARGV.each{|f| load f}'"
+          when :testrb
+            "-S testrb #{fix}"
+          when :rake
+            rake_loader
+          end
+        @ruby_opts.unshift( "-I\"#{lib_path}\"" )
+        @ruby_opts.unshift( "-w" ) if @warning
+        ruby @ruby_opts.join(" ") +
+          " \"#{run_code}\" " +
+          file_list.collect { |fn| "\"#{fn}\"" }.join(' ') +
+          " #{option_list}"
+      end
+    end
+    self
+  end
+end
+
+
 TEST_CHANGES_SINCE = Time.now - 600
 
 # Look up tests for recently modified sources.
@@ -40,7 +70,7 @@ module Kernel
   end
 end
 
-desc 'Run all unit, functional and integration tests'
+desc 'Runs test:unit, test:functional, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
 task :test do
   errors = %w(test:units test:functionals test:integration).collect do |task|
     begin
@@ -92,38 +122,33 @@ namespace :test do
   end
   Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
 
-  Rake::TestTask.new(:units => "test:prepare") do |t|
+  TestTaskWithoutDescription.new(:units => "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/unit/**/*_test.rb'
   end
-  Rake::Task['test:units'].comment = "Run the unit tests in test/unit"
 
-  Rake::TestTask.new(:functionals => "test:prepare") do |t|
+  TestTaskWithoutDescription.new(:functionals => "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/functional/**/*_test.rb'
   end
-  Rake::Task['test:functionals'].comment = "Run the functional tests in test/functional"
 
-  Rake::TestTask.new(:integration => "test:prepare") do |t|
+  TestTaskWithoutDescription.new(:integration => "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/integration/**/*_test.rb'
   end
-  Rake::Task['test:integration'].comment = "Run the integration tests in test/integration"
 
-  Rake::TestTask.new(:benchmark => 'test:prepare') do |t|
+  TestTaskWithoutDescription.new(:benchmark => 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
     t.options = '-- --benchmark'
   end
-  Rake::Task['test:benchmark'].comment = 'Benchmark the performance tests'
 
-  Rake::TestTask.new(:profile => 'test:prepare') do |t|
+  TestTaskWithoutDescription.new(:profile => 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
   end
-  Rake::Task['test:profile'].comment = 'Profile the performance tests'
 
-  Rake::TestTask.new(:plugins => :environment) do |t|
+  TestTaskWithoutDescription.new(:plugins => :environment) do |t|
     t.libs << "test"
 
     if ENV['PLUGIN']
@@ -132,5 +157,4 @@ namespace :test do
       t.pattern = 'vendor/plugins/*/**/test/**/*_test.rb'
     end
   end
-  Rake::Task['test:plugins'].comment = "Run the plugin tests in vendor/plugins/*/**/test (or specify with PLUGIN=name)"
 end

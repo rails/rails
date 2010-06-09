@@ -7,13 +7,13 @@ task :rails_env do
   end
 end
 
-desc 'Generate a crytographically secure secret key (rhis is typically used to generate a secret for cookie sessions).'
+desc 'Generate a crytographically secure secret key (this is typically used to generate a secret for cookie sessions).'
 task :secret do
   require 'active_support/secure_random'
   puts ActiveSupport::SecureRandom.hex(64)
 end
 
-desc 'Explain the current environment'
+desc 'List versions of all Rails frameworks and the environment'
 task :about do
   puts Rails::Info
 end
