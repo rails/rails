@@ -594,15 +594,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "lifo", relation.limit(1).author
   end
 
-  def test_return_same_relation_object_if_argument_is_empty
-    post = Post.unscoped
-
-    assert_equal post.object_id, post.where.object_id
-    assert_equal post.object_id, post.where(nil).object_id
-    assert_equal post.object_id, post.order(nil).object_id
-    assert_equal post.object_id, post.select(nil).object_id
-  end
-
   def test_attributes_accessor
     assert_equal Post[:title], Post.arel_table[:title]
   end

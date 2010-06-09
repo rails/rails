@@ -12,7 +12,6 @@ module ActiveRecord
         next if [:where, :having, :select].include?(query_method)
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(*args, &block)
-            return self if (args.empty? || args.all?(&:nil?)) && !block_given?
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             value = Array.wrap(args.flatten).reject {|x| x.blank? }
@@ -24,7 +23,6 @@ module ActiveRecord
 
       class_eval <<-CEVAL, __FILE__, __LINE__ + 1
         def select(*args, &block)
-          return self if (args.empty? || args.all?(&:nil?)) && !block_given?
           if block_given?
             to_a.select(&block)
           else
@@ -39,7 +37,6 @@ module ActiveRecord
       [:where, :having].each do |query_method|
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(*args, &block)
-            return self if (args.empty? || args.all?(&:nil?)) && !block_given?
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             value = build_where(*args)
@@ -54,7 +51,6 @@ module ActiveRecord
 
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(value = true, &block)
-            return self if value.nil? && !block_given?
             new_relation = clone
             new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             new_relation.#{query_method}_value = value
