@@ -12,6 +12,8 @@ require 'rbench'
 
 __DIR__ = File.dirname(__FILE__)
 $:.unshift "#{__DIR__}/../lib"
+$:.unshift "#{__DIR__}/../../activesupport/lib"
+
 require 'active_record'
 
 conn = { :adapter => 'mysql',
