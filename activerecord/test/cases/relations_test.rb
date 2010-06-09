@@ -503,13 +503,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_many
     posts = Post.scoped
-  
+
     assert_queries(2) do
       assert posts.many? # Uses COUNT()
       assert posts.many? {|p| p.id > 0 }
       assert ! posts.many? {|p| p.id < 2 }
     end
-  
+
     assert posts.loaded?
   end
 
@@ -592,5 +592,14 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.where(:author_id => 1).order('id ASC').extending(Post::NamedExtension)
     assert_equal "lifo", relation.author
     assert_equal "lifo", relation.limit(1).author
+  end
+
+  def test_return_same_relation_object_if_argument_is_empty
+    post = Post.unscoped
+
+    assert_equal post.object_id, post.where.object_id
+    assert_equal post.object_id, post.where(nil).object_id
+    assert_equal post.object_id, post.order(nil).object_id
+    assert_equal post.object_id, post.select(nil).object_id
   end
 end
