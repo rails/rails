@@ -135,7 +135,7 @@ module ActionDispatch
         ActiveSupport::Deprecation.silence do
           message = "\n#{exception.class} (#{exception.message}):\n"
           message << exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
-          message << exception.backtrace.join("\n  ")
+          message << "  " << application_trace(exception).join("\n  ")
           logger.fatal("#{message}\n\n")
         end
       end
