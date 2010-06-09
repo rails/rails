@@ -445,6 +445,17 @@ class FilterTest < ActionController::TestCase
 
   end
 
+  class ::AppSweeper < ActionController::Caching::Sweeper; end
+  class SweeperTestController < ActionController::Base
+    cache_sweeper :app_sweeper  
+    def show
+      render :text => 'hello world'
+    end
+  end
+  def test_sweeper_should_not_block_rendering
+    response = test_process(SweeperTestController)
+    assert_equal 'hello world', response.body
+  end
 
   def test_before_method_of_sweeper_should_always_return_true
     sweeper =  ActionController::Caching::Sweeper.send(:new)
