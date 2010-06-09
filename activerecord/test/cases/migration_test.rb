@@ -739,6 +739,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.connection.drop_table(:hats)
     end
 
+    def test_remove_column_no_second_parameter_raises_exception
+      assert_raise(ArgumentError) { Person.connection.remove_column("funny") }
+    end
+
     def test_change_type_of_not_null_column
       assert_nothing_raised do
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false
