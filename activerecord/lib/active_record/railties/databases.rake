@@ -134,7 +134,7 @@ namespace :db do
   end
 
 
-  desc "Migrate the database through scripts in db/migrate and update db/schema.rb by invoking db:schema:dump. Target specific version with VERSION=x. Turn off output with VERBOSE=false."
+  desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
   task :migrate => :environment do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate("db/migrate/", ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
@@ -142,7 +142,7 @@ namespace :db do
   end
 
   namespace :migrate do
-    desc  'Rollbacks the database one migration and re migrate up. If you want to rollback more than one step, define STEP=x. Target specific version with VERSION=x.'
+    desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
     task :redo => :environment do
       if ENV["VERSION"]
         Rake::Task["db:migrate:down"].invoke
@@ -173,14 +173,14 @@ namespace :db do
     end
   end
 
-  desc 'Rolls the schema back to the previous version. Specify the number of steps with STEP=n'
+  desc 'Rolls the schema back to the previous version (specify steps w/ STEP=n).'
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback('db/migrate/', step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
-  desc 'Pushes the schema to the next version. Specify the number of steps with STEP=n'
+  # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task :forward => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.forward('db/migrate/', step)
@@ -190,7 +190,7 @@ namespace :db do
   desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
   task :reset => [ 'db:drop', 'db:setup' ]
 
-  desc "Retrieves the charset for the current environment's database"
+  # desc "Retrieves the charset for the current environment's database"
   task :charset => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     case config['adapter']
@@ -208,7 +208,7 @@ namespace :db do
     end
   end
 
-  desc "Retrieves the collation for the current environment's database"
+  # desc "Retrieves the collation for the current environment's database"
   task :collation => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     case config['adapter']
@@ -225,7 +225,7 @@ namespace :db do
     puts "Current version: #{ActiveRecord::Migrator.current_version}"
   end
 
-  desc "Raises an error if there are pending migrations"
+  # desc "Raises an error if there are pending migrations"
   task :abort_if_pending_migrations => :environment do
     if defined? ActiveRecord
       pending_migrations = ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations
@@ -354,10 +354,10 @@ namespace :db do
       Rake::Task["db:schema:load"].invoke
     end
 
-    desc "Recreate the test database from the current environment's database schema"
+    # desc "Recreate the test database from the current environment's database schema"
     task :clone => %w(db:schema:dump db:test:load)
 
-    desc "Recreate the test databases from the development structure"
+    # desc "Recreate the test databases from the development structure"
     task :clone_structure => [ "db:structure:dump", "db:test:purge" ] do
       abcs = ActiveRecord::Base.configurations
       case abcs["test"]["adapter"]
@@ -422,7 +422,7 @@ namespace :db do
       end
     end
 
-    desc 'Check for pending migrations and load the test schema'
+    # desc 'Check for pending migrations and load the test schema'
     task :prepare => 'db:abort_if_pending_migrations' do
       if defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
         Rake::Task[{ :sql  => "db:test:clone_structure", :ruby => "db:test:load" }[ActiveRecord::Base.schema_format]].invoke
@@ -431,7 +431,7 @@ namespace :db do
   end
 
   namespace :sessions do
-    desc "Creates a sessions migration for use with ActiveRecord::SessionStore"
+    # desc "Creates a sessions migration for use with ActiveRecord::SessionStore"
     task :create => :environment do
       raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
       require 'rails/generators'
@@ -440,7 +440,7 @@ namespace :db do
       Rails::Generators::SessionMigrationGenerator.start [ ENV["MIGRATION"] || "add_sessions_table" ]
     end
 
-    desc "Clear the sessions table"
+    # desc "Clear the sessions table"
     task :clear => :environment do
       ActiveRecord::Base.connection.execute "DELETE FROM #{session_table_name}"
     end
