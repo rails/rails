@@ -942,6 +942,10 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      def [](attr)
+        arel_table[attr]
+      end
+
       private
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create

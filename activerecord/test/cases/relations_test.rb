@@ -602,4 +602,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post.object_id, post.order(nil).object_id
     assert_equal post.object_id, post.select(nil).object_id
   end
+
+  def test_attributes_accessor
+    assert_equal Post[:title], Post.arel_table[:title]
+  end
+
+  def test_attributes_accessor_using_relations
+    comments = Comment.includes(:post).where(Post[:id].eq(1))
+    assert_equal comments, Post.find(1).comments.all
+  end
 end
