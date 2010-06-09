@@ -79,7 +79,7 @@ namespace :doc do
     rm_rf 'doc/plugins' rescue nil
   end
 
-  desc "Generate Rails guides"
+  desc "Generate Rails Guides"
   task :guides do
     # FIXME: Reaching outside lib directory is a bad idea
     require File.expand_path('../../../../guides/rails_guides', __FILE__)

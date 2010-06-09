@@ -1,22 +1,22 @@
 namespace :rails do
   namespace :freeze do
-    desc "The rails:freeze:gems is deprecated, please use bundle install instead"
+    # desc "The rails:freeze:gems is deprecated, please use bundle install instead"
     task :gems do
       abort "The rails:freeze:gems is deprecated, please use bundle install instead"
     end
 
-    desc 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
+    # desc 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
     task :edge do
       abort 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
     end
   end
 
-  desc 'The unfreeze command has been deprecated, please use bundler commands instead'
+  # desc 'The unfreeze command has been deprecated, please use bundler commands instead'
   task :unfreeze do
     abort 'The unfreeze command has been deprecated, please use bundler commands instead'
   end
 
-  desc "Update both configs, scripts and public/javascripts from Rails"
+  desc "Update both configs and public/javascripts from Rails (or use just update:javascripts or update:configs)"
   task :update => [ "update:configs", "update:javascripts", "update:scripts", "update:application_controller" ]
 
   desc "Applies the template supplied by LOCATION=/path/to/template"
@@ -31,7 +31,7 @@ namespace :rails do
   end
 
   namespace :templates do
-    desc "Copy all the templates from rails to the application directory for customization. Already existing local copies will be overwritten"
+    # desc "Copy all the templates from rails to the application directory for customization. Already existing local copies will be overwritten"
     task :copy do
       generators_lib = File.expand_path("../../generators", __FILE__)
       project_templates = "#{Rails.root}/lib/templates"
@@ -69,23 +69,23 @@ namespace :rails do
       end
     end
 
-    desc "Update config/boot.rb from your current rails install"
+    # desc "Update config/boot.rb from your current rails install"
     task :configs do
       invoke_from_app_generator :create_boot_file
       invoke_from_app_generator :create_config_files
     end
 
-    desc "Update Prototype javascripts from your current rails install"
+    # desc "Update Prototype javascripts from your current rails install"
     task :javascripts do
       invoke_from_app_generator :create_prototype_files
     end
 
-    desc "Adds new scripts to the application script/ directory"
+    # desc "Adds new scripts to the application script/ directory"
     task :scripts do
       invoke_from_app_generator :create_script_files
     end
 
-    desc "Rename application.rb to application_controller.rb"
+    # desc "Rename application.rb to application_controller.rb"
     task :application_controller do
       old_style = Rails.root + '/app/controllers/application.rb'
       new_style = Rails.root + '/app/controllers/application_controller.rb'
