@@ -41,9 +41,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_grafts_stashed_associations_to_correct_parent
     assert_nothing_raised do
-      Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').all
+      Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('primary_contacts_people_2.id').all
     end
-    assert_equal people(:michael), Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').first
+    assert_equal people(:michael), Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('primary_contacts_people_2.id').first
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
