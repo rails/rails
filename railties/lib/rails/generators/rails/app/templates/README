@@ -29,7 +29,7 @@ link:files/vendor/rails/actionpack/README.html.
 == Getting Started
 
 1. At the command prompt, create a new Rails application:
-       <tt>rails myapp</tt> (where <tt>myapp</tt> is the application name)
+       <tt>rails new myapp</tt> (where <tt>myapp</tt> is the application name)
 
 2. Change directory to <tt>myapp</tt> and start the web server:
        <tt>cd myapp; rails server</tt> (run with --help for options)
@@ -42,31 +42,6 @@ the following resources handy:
 
 * The Getting Started Guide: http://guides.rubyonrails.org/getting_started.html
 * Ruby on Rails Tutorial Book: http://www.railstutorial.org/
-
-
-== Web Servers
-
-By default, Rails will try to use Mongrel if it's installed when started with
-<tt>rails server</tt>, otherwise Rails will use WEBrick, the web server that
-ships with Ruby.
-
-Mongrel is a Ruby-based web server with a C component (which requires
-compilation) that is suitable for development. If you have Ruby Gems installed,
-getting up and running with mongrel is as easy as: 
-      <tt>sudo gem install mongrel</tt>.
-
-You can find more info at: http://mongrel.rubyforge.org
-
-You can alternatively run Rails applications with other Ruby web servers, e.g.,
-{Thin}[http://code.macournoyer.com/thin/], {Ebb}[http://ebb.rubyforge.org/], and
-Apache with {mod_rails}[http://www.modrails.com/]. However, <tt>rails server</tt>
-doesn't search for or start them.
-
-For production use, often a web/proxy server, e.g., {Apache}[http://apache.org],
-{Nginx}[http://nginx.net/], {LiteSpeed}[http://litespeedtech.com/],
-{Lighttpd}[http://www.lighttpd.net/], or {IIS}[http://www.iis.net/], is deployed
-as the front end server with the chosen Ruby web server running in the back end
-and receiving the proxied requests via one of several protocols (HTTP, CGI, FCGI).
 
 
 == Debugging Rails
