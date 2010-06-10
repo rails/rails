@@ -142,6 +142,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :comments, :except => :destroy
       end
 
+      shallow do
+        namespace :api do
+          resources :teams do
+            resources :players
+            resource :captain
+          end
+        end
+      end
+
+      resources :threads, :shallow => true do
+        resource :owner
+        resources :messages do
+          resources :comments do
+            member do
+              post :preview
+            end
+          end
+        end
+      end
+
       resources :sheep
 
       resources :clients do
@@ -1129,6 +1149,111 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/products/1/images/2/edit'
       assert_equal 404, status
+    end
+  end
+
+  def test_shallow_nested_resources
+    with_test_routes do
+
+      get '/api/teams'
+      assert_equal 'api/teams#index', @response.body
+      assert_equal '/api/teams', api_teams_path
+
+      get '/api/teams/new'
+      assert_equal 'api/teams#new', @response.body
+      assert_equal '/api/teams/new', new_api_team_path
+
+      get '/api/teams/1'
+      assert_equal 'api/teams#show', @response.body
+      assert_equal '/api/teams/1', api_team_path(:id => '1')
+
+      get '/api/teams/1/edit'
+      assert_equal 'api/teams#edit', @response.body
+      assert_equal '/api/teams/1/edit', edit_api_team_path(:id => '1')
+
+      get '/api/teams/1/players'
+      assert_equal 'api/players#index', @response.body
+      assert_equal '/api/teams/1/players', api_team_players_path(:team_id => '1')
+
+      get '/api/teams/1/players/new'
+      assert_equal 'api/players#new', @response.body
+      assert_equal '/api/teams/1/players/new', new_api_team_player_path(:team_id => '1')
+
+      get '/api/players/2'
+      assert_equal 'api/players#show', @response.body
+      assert_equal '/api/players/2', api_player_path(:id => '2')
+
+      get '/api/players/2/edit'
+      assert_equal 'api/players#edit', @response.body
+      assert_equal '/api/players/2/edit', edit_api_player_path(:id => '2')
+
+      get '/api/teams/1/captain'
+      assert_equal 'api/captains#show', @response.body
+      assert_equal '/api/teams/1/captain', api_team_captain_path(:team_id => '1')
+
+      get '/api/teams/1/captain/new'
+      assert_equal 'api/captains#new', @response.body
+      assert_equal '/api/teams/1/captain/new', new_api_team_captain_path(:team_id => '1')
+
+      get '/api/teams/1/captain/edit'
+      assert_equal 'api/captains#edit', @response.body
+      assert_equal '/api/teams/1/captain/edit', edit_api_team_captain_path(:team_id => '1')
+
+      get '/threads'
+      assert_equal 'threads#index', @response.body
+      assert_equal '/threads', threads_path
+
+      get '/threads/new'
+      assert_equal 'threads#new', @response.body
+      assert_equal '/threads/new', new_thread_path
+
+      get '/threads/1'
+      assert_equal 'threads#show', @response.body
+      assert_equal '/threads/1', thread_path(:id => '1')
+
+      get '/threads/1/edit'
+      assert_equal 'threads#edit', @response.body
+      assert_equal '/threads/1/edit', edit_thread_path(:id => '1')
+
+      get '/threads/1/owner'
+      assert_equal 'owners#show', @response.body
+      assert_equal '/threads/1/owner', thread_owner_path(:thread_id => '1')
+
+      get '/threads/1/messages'
+      assert_equal 'messages#index', @response.body
+      assert_equal '/threads/1/messages', thread_messages_path(:thread_id => '1')
+
+      get '/threads/1/messages/new'
+      assert_equal 'messages#new', @response.body
+      assert_equal '/threads/1/messages/new', new_thread_message_path(:thread_id => '1')
+
+      get '/messages/2'
+      assert_equal 'messages#show', @response.body
+      assert_equal '/messages/2', message_path(:id => '2')
+
+      get '/messages/2/edit'
+      assert_equal 'messages#edit', @response.body
+      assert_equal '/messages/2/edit', edit_message_path(:id => '2')
+
+      get '/messages/2/comments'
+      assert_equal 'comments#index', @response.body
+      assert_equal '/messages/2/comments', message_comments_path(:message_id => '2')
+
+      get '/messages/2/comments/new'
+      assert_equal 'comments#new', @response.body
+      assert_equal '/messages/2/comments/new', new_message_comment_path(:message_id => '2')
+
+      get '/comments/3'
+      assert_equal 'comments#show', @response.body
+      assert_equal '/comments/3', comment_path(:id => '3')
+
+      get '/comments/3/edit'
+      assert_equal 'comments#edit', @response.body
+      assert_equal '/comments/3/edit', edit_comment_path(:id => '3')
+
+      post '/comments/3/preview'
+      assert_equal 'comments#preview', @response.body
+      assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
     end
   end
 
