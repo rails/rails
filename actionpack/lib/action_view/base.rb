@@ -225,12 +225,6 @@ module ActionView #:nodoc:
       @controller_path ||= controller && controller.controller_path
     end
 
-    def punctuate_body!(part)
-      flush_output_buffer
-      response.body_parts << part
-      nil
-    end
-
     ActiveSupport.run_load_hooks(:action_view, self)
   end
 end
