@@ -34,6 +34,14 @@ module ActionDispatch
     #   integrity defaults to 'SHA1' but may be any digest provided by OpenSSL,
     #   such as 'MD5', 'RIPEMD160', 'SHA256', etc.
     #
+    # * <tt>:domain</tt>: Restrict the session cookie to certain domain level.
+    #   If you use a schema like www.example.com and wants to share session 
+    #   with user.example.com set <tt>:domain</tt> to <tt>:all</tt>
+    #     
+    #     :domain => nil  # Does not sets cookie domain. (default)
+    #     :domain => :all # Allow the cookie for the top most level
+    #                       domain and subdomains.
+    #
     # To generate a secret key for an existing application, run
     # "rake secret" and set the key in config/environment.rb.
     #
