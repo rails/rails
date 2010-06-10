@@ -54,7 +54,7 @@ module ActiveModel
 
       attr_accessor :validation_context
 
-      class_attribute :_validators
+      class_inheritable_accessor :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
     end
 
