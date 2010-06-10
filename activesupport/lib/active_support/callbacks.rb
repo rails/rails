@@ -471,7 +471,6 @@ module ActiveSupport
       # is a speed improvement for ActionPack.
       #
       def set_callback(name, *filter_list, &block)
-        class_eval "@_cached_#{name}_callbacks = false"
         __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
           filters.map! do |filter|
             removed = chain.delete_if {|c| c.matches?(type, filter) }
