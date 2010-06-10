@@ -59,7 +59,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_application_controller_and_layout_files
     run_generator
-    assert_file "app/controllers/application_controller.rb", /layout 'application'/
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag :all/
     assert_no_file "public/stylesheets/application.css"
   end
