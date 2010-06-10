@@ -5,6 +5,7 @@ module AbstractController
     included do
       class_attribute :_view_paths
       self._view_paths = ActionView::PathSet.new
+      self._view_paths.freeze
     end
 
     delegate :find_template, :template_exists?, :view_paths, :formats, :formats=,
@@ -61,7 +62,7 @@ module AbstractController
       # paths<ViewPathSet, Object>:: If a ViewPathSet is provided, use that;
       #   otherwise, process the parameter into a ViewPathSet.
       def view_paths=(paths)
-        self._view_paths = paths.is_a?(ActionView::PathSet) ? paths : ActionView::Base.process_view_paths(paths)
+        self._view_paths = ActionView::Base.process_view_paths(paths)
         self._view_paths.freeze
       end
     end
