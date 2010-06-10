@@ -1,13 +1,43 @@
 require 'rake/rdoctask'
 
+# Monkey-patch to remove redoc'ing and clobber descriptions to cut down on rake -T noise
+class RDocTaskWithoutDescriptions < Rake::RDocTask
+  def define
+    task rdoc_task_name
+    
+    task rerdoc_task_name => [clobber_task_name, rdoc_task_name]
+    
+    task clobber_task_name do
+      rm_r rdoc_dir rescue nil
+    end
+    
+    task :clobber => [clobber_task_name]
+    
+    directory @rdoc_dir
+    task rdoc_task_name => [rdoc_target]
+    file rdoc_target => @rdoc_files + [Rake.application.rakefile] do
+      rm_r @rdoc_dir rescue nil
+      @before_running_rdoc.call if @before_running_rdoc
+      args = option_list + @rdoc_files
+      if @external
+        argstring = args.join(' ')
+        sh %{ruby -Ivendor vendor/rd #{argstring}}
+      else
+        require 'rdoc/rdoc'
+        RDoc::RDoc.new.document(args)
+      end
+    end
+    self
+  end
+end
+
 namespace :doc do
   def gem_path(gem_name)
     path = $LOAD_PATH.grep(/#{gem_name}[\w.-]*\/lib$/).first
     yield File.dirname(path) if path
   end
 
-  desc "Generate documentation for the application. Set custom template with TEMPLATE=/path/to/rdoc/template.rb or title with TITLE=\"Custom Title\""
-  Rake::RDocTask.new("app") { |rdoc|
+  RDocTaskWithoutDescriptions.new("app") { |rdoc|
     rdoc.rdoc_dir = 'doc/app'
     rdoc.template = ENV['template'] if ENV['template']
     rdoc.title    = ENV['title'] || "Rails Application Documentation"
@@ -17,9 +47,10 @@ namespace :doc do
     rdoc.rdoc_files.include('app/**/*.rb')
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
+  Rake::Task['doc:app'].comment = "Generate docs for the app -- also availble doc:rails, doc:guides, doc:plugins (options: TEMPLATE=/rdoc-template.rb, TITLE=\"Custom Title\")"
 
-  desc 'Generate documentation for the Rails framework.'
-  Rake::RDocTask.new("rails") { |rdoc|
+  # desc 'Generate documentation for the Rails framework.'
+  RDocTaskWithoutDescriptions.new("rails") { |rdoc|
     rdoc.rdoc_dir = 'doc/api'
     rdoc.template = "#{ENV['template']}.rb" if ENV['template']
     rdoc.title    = "Rails Framework Documentation"
@@ -71,15 +102,15 @@ namespace :doc do
 
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }
 
-  desc "Generate documentation for all installed plugins"
+  # desc "Generate documentation for all installed plugins"
   task :plugins => plugins.collect { |plugin| "doc:plugins:#{plugin}" }
 
-  desc "Remove plugin documentation"
+  # desc "Remove plugin documentation"
   task :clobber_plugins do
     rm_rf 'doc/plugins' rescue nil
   end
 
-  desc "Generate Rails guides"
+  # desc "Generate Rails Guides"
   task :guides do
     # FIXME: Reaching outside lib directory is a bad idea
     require File.expand_path('../../../../guides/rails_guides', __FILE__)
@@ -89,7 +120,7 @@ namespace :doc do
   namespace :plugins do
     # Define doc tasks for each plugin
     plugins.each do |plugin|
-      desc "Generate documentation for the #{plugin} plugin"
+      # desc "Generate documentation for the #{plugin} plugin"
       task(plugin => :environment) do
         plugin_base   = "vendor/plugins/#{plugin}"
         options       = []

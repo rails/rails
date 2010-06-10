@@ -50,9 +50,8 @@ module ActiveModel
       extend  HelperMethods
       include HelperMethods
 
-      define_callbacks :validate, :scope => :name
-
       attr_accessor :validation_context
+      define_callbacks :validate, :scope => :name
 
       class_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
@@ -128,8 +127,7 @@ module ActiveModel
         set_callback(:validate, *args, &block)
       end
 
-      # List all validators that being used to validate the model using +validates_with+
-      # method.
+      # List all validators that being used to validate the model using +validates_with+ method.
       def validators
         _validators.values.flatten.uniq
       end
@@ -139,8 +137,16 @@ module ActiveModel
         _validators[attribute.to_sym]
       end
 
+      # Check if method is an attribute method or not.
       def attribute_method?(attribute)
         method_defined?(attribute)
+      end
+
+      # Copy validators on inheritance.
+      def inherited(base)
+        dup = _validators.dup
+        base._validators = dup.each { |k, v| dup[k] = v.dup }
+        super
       end
     end
 

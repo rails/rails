@@ -1,14 +1,8 @@
+Rails 3.0.0 [Release Candidate] (unreleased)*
+
+* Removed textilize, textilize_without_paragraph and markdown helpers. [Santiago Pastorino]
+
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
-
-* Add shallow routes back to the new router [Diego Carrion]
-
-    resources :posts do
-      shallow do
-        resources :comments
-      end
-    end
-    
-    You can now use comment_path for /comments/1 instead of post_comment_path for /posts/1/comments/1.
 
 * Remove middleware laziness [José Valim]
 

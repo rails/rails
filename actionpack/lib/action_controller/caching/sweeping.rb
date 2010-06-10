@@ -57,6 +57,7 @@ module ActionController #:nodoc:
         def before(controller)
           self.controller = controller
           callback(:before) if controller.perform_caching
+          true # before method from sweeper should always return true
         end
 
         def after(controller)

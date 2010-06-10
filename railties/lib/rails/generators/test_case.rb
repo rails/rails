@@ -189,18 +189,23 @@ module Rails
       end
       alias :assert_method :assert_instance_method
 
-      # Asserts the given field name gets translated to an attribute type 
-      # properly.
+      # Asserts the given attribute type gets translated to a field type
+      # properly:
       #
       #   assert_field_type :date, :date_select
       #
-      def assert_field_type(name, attribute_type)
-        assert_equal(
-          Rails::Generators::GeneratedAttribute.new('test', name.to_s).field_type,
-          attribute_type
-        )
+      def assert_field_type(attribute_type, field_type)
+        assert_equal(field_type, create_generated_attribute(attribute_type).field_type)
       end
-      
+
+      # Asserts the given attribute type gets a proper default value:
+      #
+      #   assert_field_type :string, "MyString"
+      #
+      def assert_field_default_value(attribute_type, value)
+        assert_equal(value, create_generated_attribute(attribute_type).default)
+      end
+
       # Runs the generator configured for this class. The first argument is an array like
       # command line arguments:
       #
@@ -224,6 +229,15 @@ module Rails
       # Instantiate the generator.
       def generator(args=self.default_arguments, options={}, config={})
         @generator ||= self.generator_class.new(args, options, config.reverse_merge(:destination_root => destination_root))
+      end
+
+      # Create a Rails::Generators::GeneratedAttribute by supplying the
+      # attribute type and, optionally, the attribute name:
+      #
+      #   create_generated_attribute(:string, 'name')
+      #
+      def create_generated_attribute(attribute_type, name = 'test')
+        Rails::Generators::GeneratedAttribute.new(name, attribute_type.to_s)
       end
 
       protected

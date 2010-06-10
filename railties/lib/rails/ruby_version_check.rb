@@ -7,4 +7,10 @@ if ruby_release < min_release
     You're running #{ruby_release}; please upgrade to continue.
 
   end_message
+elsif RUBY_VERSION == '1.9.1'
+  abort <<-EOS
+  
+    Rails 3 does not work with Ruby 1.9.1. Please upgrade to 1.9.2.
+
+  EOS
 end

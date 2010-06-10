@@ -1,4 +1,5 @@
 require 'isolation/abstract_unit'
+require 'stringio'
 
 module ApplicationTests
   class MiddlewareTest < Test::Unit::TestCase
@@ -161,6 +162,25 @@ module ApplicationTests
       end
 
       assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "4.2.42.42,1.1.1.1")
+    end
+
+    test "show exceptions middleware filter backtrace before logging" do
+      my_middleware = Struct.new(:app) do
+        def call(env)
+          raise "Failure"
+        end
+      end
+
+      make_basic_app do |app|
+        app.config.middleware.use my_middleware
+      end
+
+      stringio = StringIO.new
+      Rails.logger = Logger.new(stringio)
+
+      env = Rack::MockRequest.env_for("/")
+      Rails.application.call(env)
+      assert_no_match(/action_dispatch/, stringio.string)
     end
 
     private

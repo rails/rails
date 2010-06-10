@@ -350,10 +350,6 @@ module ActionDispatch
           scope(:constraints => constraints) { yield }
         end
 
-        def shallow
-          scope(:shallow => true) { yield }
-        end
-
         def defaults(defaults = {})
           scope(:defaults => defaults) { yield }
         end
@@ -378,21 +374,12 @@ module ActionDispatch
             @scope_options ||= private_methods.grep(/^merge_(.+)_scope$/) { $1.to_sym }
           end
 
-          def merge_shallow_scope(parent, child)
-            parent or child
-          end
-
           def merge_path_scope(parent, child)
-            parent_path = (@scope[:shallow] and child.eql?(':id')) ? parent.split('/').last : parent
-            Mapper.normalize_path "#{parent_path}/#{child}"
+            Mapper.normalize_path("#{parent}/#{child}")
           end
 
           def merge_name_prefix_scope(parent, child)
-            if @scope[:shallow]
-              child
-            else
-              parent ? "#{parent}_#{child}" : child
-            end
+            parent ? "#{parent}_#{child}" : child
           end
 
           def merge_module_scope(parent, child)
@@ -535,10 +522,6 @@ module ActionDispatch
             options["#{singular}_id".to_sym] = id_constraint if id_constraint?
             options
           end
-
-          def shallow?
-            options[:shallow]
-          end
         end
 
         class SingletonResource < Resource #:nodoc:
@@ -620,12 +603,8 @@ module ActionDispatch
 
           resource = Resource.new(resources.pop, options)
 
-          scope(:path => resource.path, :controller => resource.controller, :shallow => resource.shallow?) do
+          scope(:path => resource.path, :controller => resource.controller) do
             with_scope_level(:resources, resource) do
-              if @scope[:shallow] && @scope[:name_prefix]
-                @scope[:path] = "/#{@scope[:name_prefix].pluralize}/:#{@scope[:name_prefix]}_id/#{resource.path}"
-              end
-
               yield if block_given?
 
               with_scope_level(:collection) do
@@ -639,8 +618,6 @@ module ActionDispatch
               with_scope_level(:member) do
                 scope(':id') do
                   scope(resource.options) do
-                    @scope[:name_prefix] = nil if @scope[:shallow]
-
                     get    :show if resource.actions.include?(:show)
                     put    :update if resource.actions.include?(:update)
                     delete :destroy if resource.actions.include?(:destroy)
@@ -699,6 +676,14 @@ module ActionDispatch
             scope(parent_resource.nested_prefix, parent_resource.nested_options) do
               yield
             end
+          end
+        end
+
+        def namespace(path)
+          if resource_scope?
+            nested { super }
+          else
+            super
           end
         end
 

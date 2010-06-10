@@ -1,3 +1,5 @@
+require 'active_support/time'
+
 module Rails
   module Generators
     class GeneratedAttribute
@@ -13,7 +15,6 @@ module Rails
           when :time                      then :time_select
           when :datetime, :timestamp      then :datetime_select
           when :date                      then :date_select
-          when :string                    then :text_field
           when :text                      then :text_area
           when :boolean                   then :check_box
           else

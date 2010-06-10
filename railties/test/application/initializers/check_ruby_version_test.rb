@@ -9,8 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
-    test "rails initializes with ruby 1.8.7 or later" do
+    test "rails initializes with ruby 1.8.7 or later, except for 1.9.1" do
       if RUBY_VERSION < '1.8.7'
+        assert_rails_does_not_boot
+      elsif RUBY_VERSION == '1.9.1'
         assert_rails_does_not_boot
       else
         assert_rails_boots

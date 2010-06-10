@@ -90,6 +90,7 @@ class RecordIdentifierController < ActionController::Base
 end
 
 class ControllerClassTests < ActiveSupport::TestCase
+  
   def test_controller_path
     assert_equal 'empty', EmptyController.controller_path
     assert_equal EmptyController.controller_path, EmptyController.new.controller_path
@@ -166,7 +167,15 @@ class PerformActionTest < ActionController::TestCase
 
     rescue_action_in_public!
   end
-
+  
+  def test_process_should_be_precise
+    use_controller EmptyController
+    exception = assert_raise AbstractController::ActionNotFound do
+      get :non_existent
+    end
+    assert_equal exception.message, "The action 'non_existent' could not be found for EmptyController" 
+  end
+  
   def test_get_on_priv_should_show_selector
     use_controller MethodMissingController
     get :shouldnt_be_called

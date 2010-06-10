@@ -1,7 +1,7 @@
 class Pirate < ActiveRecord::Base
   belongs_to :parrot, :validate => true
   belongs_to :non_validated_parrot, :class_name => 'Parrot'
-  has_and_belongs_to_many :parrots, :validate => true
+  has_and_belongs_to_many :parrots, :validate => true, :order => 'parrots.id ASC'
   has_and_belongs_to_many :non_validated_parrots, :class_name => 'Parrot'
   has_and_belongs_to_many :parrots_with_method_callbacks, :class_name => "Parrot",
     :before_add    => :log_before_add,
@@ -21,7 +21,7 @@ class Pirate < ActiveRecord::Base
   has_one :ship
   has_one :update_only_ship, :class_name => 'Ship'
   has_one :non_validated_ship, :class_name => 'Ship'
-  has_many :birds
+  has_many :birds, :order => 'birds.id ASC'
   has_many :birds_with_method_callbacks, :class_name => "Bird",
     :before_add    => :log_before_add,
     :after_add     => :log_after_add,

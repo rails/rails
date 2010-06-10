@@ -158,7 +158,6 @@ module ActionView #:nodoc:
     end
 
     include Helpers, Rendering, Partials, Layouts, ::ERB::Util, Context
-    extend  ActiveSupport::Memoizable
 
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
@@ -170,9 +169,6 @@ module ActionView #:nodoc:
     @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     class_attribute :helpers
-    remove_method :helpers
-    attr_reader :helpers
-
     class_attribute :_router
 
     class << self
@@ -201,20 +197,21 @@ module ActionView #:nodoc:
     end
 
     def self.process_view_paths(value)
-      return value.dup if value.is_a?(PathSet)
-      ActionView::PathSet.new(Array.wrap(value))
+      value.is_a?(PathSet) ?
+        value.dup : ActionView::PathSet.new(Array.wrap(value))
     end
 
     def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
-      @config  = nil
-      @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
-      @helpers = self.class.helpers || Module.new
+      self.assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
+      self.helpers = self.class.helpers || Module.new
 
       if @_controller = controller
         @_request = controller.request if controller.respond_to?(:request)
       end
 
-      @_config       = ActiveSupport::InheritableOptions.new(controller.config) if controller && controller.respond_to?(:config)
+      config = controller && controller.respond_to?(:config) ? controller.config : {}
+      @_config = ActiveSupport::InheritableOptions.new(config)
+
       @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
       @output_buffer = nil
@@ -226,12 +223,6 @@ module ActionView #:nodoc:
 
     def controller_path
       @controller_path ||= controller && controller.controller_path
-    end
-
-    def punctuate_body!(part)
-      flush_output_buffer
-      response.body_parts << part
-      nil
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)
