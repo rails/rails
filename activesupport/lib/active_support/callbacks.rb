@@ -471,9 +471,10 @@ module ActiveSupport
       # is a speed improvement for ActionPack.
       #
       def set_callback(name, *filter_list, &block)
+        class_eval "@_cached_#{name}_callbacks = false"
         __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
           filters.map! do |filter|
-            removed = chain.delete_if {|c| c.matches?(type, filter) } 
+            removed = chain.delete_if {|c| c.matches?(type, filter) }
             send("_removed_#{name}_callbacks").push(*removed)
             Callback.new(chain, filter, type, options.dup, self)
           end
@@ -576,10 +577,14 @@ module ActiveSupport
             def self._update_#{callback}_superclass_callbacks
               changed, index = false, 0
 
-              callbacks  = (_#{callback}_superclass_callbacks -
+              if superclass.instance_variable_defined?(:@_cached_#{callback}_callbacks) &&
+                superclass.instance_variable_get(:@_cached_#{callback}_callbacks) != _#{callback}_callbacks
+                @_cached_#{callback}_callbacks = nil
+              end
+              @_cached_#{callback}_callbacks ||= (_#{callback}_superclass_callbacks -
                 _#{callback}_callbacks) - _removed_#{callback}_callbacks
 
-              callbacks.each do |callback|
+              @_cached_#{callback}_callbacks.each do |callback|
                 if new_index = _#{callback}_callbacks.index(callback)
                   index = new_index + 1
                 else
