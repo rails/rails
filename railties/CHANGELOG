@@ -1,5 +1,6 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Abort generation/booting on Ruby 1.9.1. [fxn]
 * Made the rails command work even when you're in a subdirectory [Chad Fowler]
 
 
