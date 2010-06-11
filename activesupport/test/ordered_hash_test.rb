@@ -142,9 +142,22 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal merged.length, @ordered_hash.length + other_hash.length
     assert_equal @keys + ['purple', 'violet'], merged.keys
 
+    another_hash = ActiveSupport::OrderedHash.new
+    another_hash['white'] = 'ff'
+    another_hash['black'] = '00'
+    merged_with_block = @ordered_hash.merge(another_hash) do |key, old_value, new_value|
+      new_value * 3
+    end
+    assert_equal 'ffffff', merged_with_block['white']
+    assert_equal '000000', merged_with_block['black']
+
     @ordered_hash.merge! other_hash
     assert_equal @ordered_hash, merged
     assert_equal @ordered_hash.keys, merged.keys
+
+    @ordered_hash.merge! another_hash
+    assert_equal 'ffffff', merged_with_block['white']
+    assert_equal '000000', merged_with_block['black']
   end
 
   def test_shift
