@@ -78,16 +78,18 @@ module ActionDispatch
 
       def self.build(request)
         secret = request.env[TOKEN_KEY]
-        @@host = request.env["HTTP_HOST"]
-        new(secret).tap do |hash|
+        host = request.env["HTTP_HOST"]
+
+        new(secret, host).tap do |hash|
           hash.update(request.cookies)
         end
       end
 
-      def initialize(secret=nil)
+      def initialize(secret = nil, host = nil)
         @secret = secret
         @set_cookies = {}
         @delete_cookies = {}
+        @host = host
 
         super()
       end
@@ -95,6 +97,15 @@ module ActionDispatch
       # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
       def [](name)
         super(name.to_s)
+      end
+
+      def handle_options(options) #:nodoc:
+        options[:path] ||= "/"
+        
+        if options[:domain] == :all
+          @host =~ DOMAIN_REGEXP
+          options[:domain] = ".#{$2}.#{$3}"
+        end
       end
 
       # Sets the cookie named +name+. The second argument may be the very cookie
@@ -110,13 +121,8 @@ module ActionDispatch
 
         value = super(key.to_s, value)
 
-        options[:path] ||= "/"
-
-        if options[:domain] == :all
-          @@host =~ DOMAIN_REGEXP
-          options[:domain] = ".#{$2}.#{$3}"
-        end
-
+        handle_options(options)
+        
         @set_cookies[key] = options
         @delete_cookies.delete(key)
         value
@@ -127,12 +133,8 @@ module ActionDispatch
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
       def delete(key, options = {})
         options.symbolize_keys!
-        options[:path] ||= "/"
 
-        if options[:domain] == :all
-          @@host =~ DOMAIN_REGEXP
-          options[:domain] = ".#{$2}.#{$3}"
-        end
+        handle_options(options)
 
         value = super(key.to_s)
         @delete_cookies[key] = options
