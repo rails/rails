@@ -1,6 +1,9 @@
-Rails 3.0.0 [Release Candidate] (unreleased)*
+*Rails 3.0.0 [Release Candidate] (unreleased)*
+
+* Add support for multi-subdomain session by setting cookie host in session cookie so you can share session between www.example.com, example.com and user.example.com. #4818 [Guillermo Álvarez]
 
 * Removed textilize, textilize_without_paragraph and markdown helpers. [Santiago Pastorino]
+
 
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
