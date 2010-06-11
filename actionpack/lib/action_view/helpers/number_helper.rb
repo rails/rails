@@ -96,7 +96,7 @@ module ActionView
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
       #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
-      #  number_to_currency(1234567890.506, :locale => :fr)   # => 1,234,567,890.506 €
+      #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,506 €
       #
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #  # => &pound;1234567890,50
@@ -134,6 +134,7 @@ module ActionView
       # format in the +options+ hash.
       #
       # ==== Options
+      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
@@ -145,6 +146,7 @@ module ActionView
       #  number_to_percentage(100, :precision => 0)                       # => 100%
       #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
+      #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
       def number_to_percentage(number, options = {})
         return nil if number.nil?
 
@@ -171,6 +173,7 @@ module ActionView
       # customize the format in the +options+ hash.
       #
       # ==== Options
+      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
       #
@@ -179,6 +182,7 @@ module ActionView
       #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
       #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
       #  number_with_delimiter(12345678, :separator => ",")     # => 12,345,678
+      #  number_with_delimiter(12345678.05, :locale => :fr)     # => 12 345 678,05
       #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
       #  # => 98 765 432,98
       #
@@ -223,6 +227,7 @@ module ActionView
       # You can customize the format in the +options+ hash.
       #
       # ==== Options
+      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
@@ -237,6 +242,7 @@ module ActionView
       #  number_with_precision(111.2345, :significant => true)                      # => 111
       #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
       #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
+      #  number_with_precision(111.234, :locale => :fr)                             # => 111,234
       #  number_with_precision(13, :precision => 5, :significant => true, strip_insignificant_zeros => true)
       #  # => 13
       #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
@@ -309,6 +315,7 @@ module ActionView
       # See <tt>number_to_human</tt> if you want to pretty-print a generic number.
       #
       # ==== Options
+      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +true+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
@@ -395,6 +402,7 @@ module ActionView
       # a wide range of unit quantifiers, even fractional ones (centi, deci, mili, etc).
       #
       # ==== Options
+      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +true+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
