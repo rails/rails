@@ -2885,11 +2885,9 @@ Date.new(2010, 1, 31).change(:month => 2)
 # => ArgumentError: invalid date
 </ruby>
 
-h5. Named Times
+h5. Timestamps
 
-WARNING: The following methods do not take into account the user time zone. They return timestamps in localtime.
-
-INFO: The following methods return a +Time+ object if possible, otherwise a +DateTime+.
+INFO: The following methods return a +Time+ object if possible, otherwise a +DateTime+. If set, they honor the user time zone.
 
 h6. +beginning_of_day+, +end_of_day+
 
@@ -2907,7 +2905,25 @@ date = Date.new(2010, 6, 7)
 date.end_of_day # => Sun Jun 06 23:59:59 +0200 2010
 </ruby>
 
-+beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+
++beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+.
+
+h6. +ago+, +since+
+
+The method +ago+ receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
+
+<ruby>
+date = Date.current # => Fri, 11 Jun 2010 
+date.ago(1)         # => Thu, 10 Jun 2010 23:59:59 EDT -04:00
+</ruby>
+
+Similarly, +since+ moves forward:
+
+<ruby>
+date = Date.current # => Fri, 11 Jun 2010 
+date.since(1)       # => Fri, 11 Jun 2010 00:00:01 EDT -04:00
+</ruby>
+
+h5. Other Time Computations
 
 h4(#date-conversions). Conversions
 
