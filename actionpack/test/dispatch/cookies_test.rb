@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class CookieTest < ActionController::TestCase
+class CookiesTest < ActionController::TestCase
   class TestController < ActionController::Base
     def authenticate
       cookies["user_name"] = "david"
