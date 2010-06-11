@@ -11,8 +11,8 @@ module ActionView
       # to translate many keys within the same partials and gives you a simple framework for scoping them consistently. If you don't
       # prepend the key with a period, nothing is converted.
       #
-      # Third, it’ll mark the translation as safe HTML if the key has the suffix "_html" or the last element of the key is the word
-      # "html". For example, calling translate("footer_html") or translate("footer.html") will return a safe HTML string that won’t
+      # Third, it'll mark the translation as safe HTML if the key has the suffix "_html" or the last element of the key is the word
+      # "html". For example, calling translate("footer_html") or translate("footer.html") will return a safe HTML string that won't
       # be escaped by other HTML helper methods. This naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
 

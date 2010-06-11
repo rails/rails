@@ -55,7 +55,7 @@ module ActionController #:nodoc:
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
-      # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
+      # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
       config_accessor :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 

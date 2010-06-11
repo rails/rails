@@ -278,7 +278,7 @@ module ActiveRecord
     # Assigns the given attributes to the association.
     #
     # If update_only is false and the given attributes include an <tt>:id</tt>
-    # that matches the existing record’s id, then the existing record will be
+    # that matches the existing record's id, then the existing record will be
     # modified. If update_only is true, a new record is only created when no
     # object exists. Otherwise a new record will be built.
     #

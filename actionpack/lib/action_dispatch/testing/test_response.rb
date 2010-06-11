@@ -53,7 +53,7 @@ module ActionDispatch
       # Returns the template of the file which was used to
       # render this response (or nil)
       def rendered
-        ActiveSupport::Deprecation.warn("response.rendered has been deprecated. Use tempate.rendered instead", caller)
+        ActiveSupport::Deprecation.warn("response.rendered has been deprecated. Use template.rendered instead", caller)
         @template.instance_variable_get(:@_rendered)
       end
 
@@ -89,7 +89,7 @@ module ActionDispatch
 
       # A shortcut to the template.assigns
       def template_objects
-        ActiveSupport::Deprecation.warn("response.template_objects has been deprecated. Use tempate.assigns instead", caller)
+        ActiveSupport::Deprecation.warn("response.template_objects has been deprecated. Use template.assigns instead", caller)
         @template.assigns || {}
       end
 

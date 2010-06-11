@@ -92,7 +92,7 @@ module ActionView
     #     # error handling
     #   end
     #
-    # That's how you tipically work with resources.
+    # That's how you typically work with resources.
     module FormHelper
       extend ActiveSupport::Concern
 
@@ -269,7 +269,7 @@ module ActionView
       # <tt>labelling_form</tt>.
       #
       # The custom FormBuilder class is automatically merged with the options
-      # of a nested fields_for call, unless it's explicitely set.
+      # of a nested fields_for call, unless it's explicitly set.
       #
       # In many cases you will want to wrap the above in another helper, so you
       # could do something like the following:
@@ -717,7 +717,7 @@ module ActionView
       #
       # To prevent this the helper generates an auxiliary hidden field before
       # the very check box. The hidden field has the same name and its
-      # attributes mimick an unchecked check box.
+      # attributes mimic an unchecked check box.
       #
       # This way, the client either sends only the hidden field (representing
       # the check box is unchecked), or both fields. Since the HTML specification

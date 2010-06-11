@@ -60,21 +60,21 @@ module ActionMailer #:nodoc:
   #
   # If you want to explicitly render only certain templates, pass a block:
   #
-  #   mail(:to => user.emai) do |format|
+  #   mail(:to => user.email) do |format|
   #     format.text
   #     format.html
   #   end
   #
   # The block syntax is useful if also need to specify information specific to a part:
   #
-  #   mail(:to => user.emai) do |format|
+  #   mail(:to => user.email) do |format|
   #     format.text(:content_transfer_encoding => "base64")
   #     format.html
   #   end
   #
   # Or even to render a special view:
   #
-  #   mail(:to => user.emai) do |format|
+  #   mail(:to => user.email) do |format|
   #     format.text
   #     format.html { render "some_other_template" }
   #   end
@@ -182,7 +182,7 @@ module ActionMailer #:nodoc:
   #   end
   #
   # Which will (if it had both a <tt>welcome.text.plain.erb</tt> and <tt>welcome.text.html.erb</tt>
-  # tempalte in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
+  # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.

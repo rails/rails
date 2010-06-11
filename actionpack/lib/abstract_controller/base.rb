@@ -26,7 +26,7 @@ module AbstractController
         super
       end
 
-      # A list of all descendents of AbstractController::Base. This is
+      # A list of all descendants of AbstractController::Base. This is
       # useful for initializers which need to add behavior to all controllers.
       def descendants
         @descendants ||= []

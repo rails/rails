@@ -20,7 +20,7 @@ module ActiveModel
       #   validates :username, :presence => true
       #   validates :username, :uniqueness => true
       # 
-      # The power of the +validates+ method comes when using cusom validators
+      # The power of the +validates+ method comes when using custom validators
       # and default validators in one call for a given attribute e.g.
       #
       #   class EmailValidator < ActiveModel::EachValidator

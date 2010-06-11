@@ -55,7 +55,7 @@ module ActionView
     end
 
     # This is the method which actually finds the layout using details in the lookup
-    # context object. If no layout is found, it checkes if at least a layout with
+    # context object. If no layout is found, it checks if at least a layout with
     # the given name exists across all details before raising the error.
     def find_layout(layout)
       begin

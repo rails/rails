@@ -60,7 +60,7 @@ module Mime
       def initialize(order, name, q=nil)
         @order = order
         @name = name.strip
-        q ||= 0.0 if @name == Mime::ALL # default wilcard match to end of list
+        q ||= 0.0 if @name == Mime::ALL # default wildcard match to end of list
         @q = ((q || 1.0).to_f * 100).to_i
       end
 

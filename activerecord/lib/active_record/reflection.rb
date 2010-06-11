@@ -165,14 +165,14 @@ module ActiveRecord
         klass.new(*options)
       end
 
-      # Creates a new instance of the associated class, and immediates saves it
+      # Creates a new instance of the associated class, and immediately saves it
       # with ActiveRecord::Base#save. +options+ will be passed to the class's
       # creation method. Returns the newly created object.
       def create_association(*options)
         klass.create(*options)
       end
 
-      # Creates a new instance of the associated class, and immediates saves it
+      # Creates a new instance of the associated class, and immediately saves it
       # with ActiveRecord::Base#save!. +options+ will be passed to the class's
       # creation method. If the created record doesn't pass validations, then an
       # exception will be raised.
@@ -267,10 +267,10 @@ module ActiveRecord
       # Returns whether or not the association should be validated as part of
       # the parent's validation.
       #
-      # Unless you explicitely disable validation with
+      # Unless you explicitly disable validation with
       # <tt>:validate => false</tt>, it will take place when:
       #
-      # * you explicitely enable validation; <tt>:validate => true</tt>
+      # * you explicitly enable validation; <tt>:validate => true</tt>
       # * you use autosave; <tt>:autosave => true</tt>
       # * the association is a +has_many+ association
       def validate?

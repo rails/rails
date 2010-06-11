@@ -89,7 +89,7 @@ module ActiveModel
       end
 
       # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldly and
+      # overriding the +validate+ instance method becomes too unwieldy and
       # you're looking for more descriptive declaration of your validations.
       #
       # This can be done with a symbol pointing to a method:
@@ -172,7 +172,7 @@ module ActiveModel
       !valid?(context)
     end
 
-    # Hook method defining how an attribute value should be retieved. By default this is assumed
+    # Hook method defining how an attribute value should be retrieved. By default this is assumed
     # to be an instance named after the attribute. Override this method in subclasses should you
     # need to retrieve the value for a given attribute differently e.g.
     #   class MyClass

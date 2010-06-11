@@ -45,7 +45,7 @@ module ActiveModel
   #     end
   #   end
   #
-  # Please notice that whenever you include ActiveModel::AtributeMethods in your class,
+  # Please notice that whenever you include ActiveModel::AttributeMethods in your class,
   # it requires you to implement a <tt>attributes</tt> methods which returns a hash with
   # each attribute name in your model as hash key and the attribute value as hash value.
   # Hash keys must be a string.

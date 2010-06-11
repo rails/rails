@@ -535,7 +535,7 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           case method = html_options.delete("method").to_s
-            when /^get$/i # must be case-insentive, but can't use downcase as might be nil
+            when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
               html_options["method"] = "get"
               ''
             when /^post$/i, "", nil

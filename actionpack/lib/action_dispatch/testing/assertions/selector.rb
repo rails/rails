@@ -359,7 +359,7 @@ module ActionDispatch
       # position. Possible values are <tt>:top</tt>, <tt>:bottom</tt>, <tt>:before</tt>
       # and <tt>:after</tt>.
       #
-      # Use the argument <tt>:redirect</tt> follwed by a path to check that an statement
+      # Use the argument <tt>:redirect</tt> followed by a path to check that an statement
       # which redirects to the specified path is generated.
       #
       # Using the <tt>:remove</tt> statement, you will be able to pass a block, but it will
