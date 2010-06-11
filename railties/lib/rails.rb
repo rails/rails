@@ -1,3 +1,5 @@
+require 'rails/ruby_version_check'
+
 require 'pathname'
 
 require 'active_support'
@@ -8,7 +10,6 @@ require 'rails/application'
 require 'rails/version'
 require 'rails/deprecation'
 require 'rails/log_subscriber'
-require 'rails/ruby_version_check'
 
 require 'active_support/railtie'
 require 'action_dispatch/railtie'
