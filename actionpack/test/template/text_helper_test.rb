@@ -41,7 +41,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_should_sanitize_unsafe_input
-    assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
+    assert_equal "<p>&lt;b&gt; test with unsafe string &lt;/b&gt;&lt;script&gt;code!&lt;/script&gt;</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
   def test_simple_format_should_not_sanitize_input_if_safe_option
@@ -62,8 +62,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_should_sanitize_unsafe_input
-    assert_equal "Hello World!", truncate("Hello <script>code!</script>World!", :length => 12)
-    assert_equal "Hello Wor...", truncate("Hello <script>code!</script>World!!", :length => 12)
+    assert_equal "Hello &lt...", truncate("Hello <script>code!</script>World!!", :length => 12)
   end
 
   def test_truncate_should_not_sanitize_input_if_safe_option
@@ -141,7 +140,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_should_sanitize_unsafe_input
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning",
+      "This is a <strong class=\"highlight\">beautiful</strong> morning&lt;script&gt;code!&lt;/script&gt;",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end
@@ -190,23 +189,23 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_with_html
     assert_equal(
-      "<p>This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "&lt;p&gt;This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
       highlight("<p>This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <em><strong class=\"highlight\">beautiful</strong></em> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "&lt;p&gt;This is a &lt;em&gt;<strong class=\"highlight\">beautiful</strong>&lt;/em&gt; morning, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
       highlight("<p>This is a <em>beautiful</em> morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <em class=\"error\"><strong class=\"highlight\">beautiful</strong></em> morning, but also a <strong class=\"highlight\">beautiful</strong> <span class=\"last\">day</span></p>",
+      "&lt;p&gt;This is a &lt;em class=&quot;error&quot;&gt;<strong class=\"highlight\">beautiful</strong>&lt;/em&gt; morning, but also a <strong class=\"highlight\">beautiful</strong> &lt;span class=&quot;last&quot;&gt;day&lt;/span&gt;&lt;/p&gt;",
       highlight("<p>This is a <em class=\"error\">beautiful</em> morning, but also a beautiful <span class=\"last\">day</span></p>", "beautiful")
     )
     assert_equal(
-      "<p class=\"beautiful\">This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "&lt;p class=&quot;<strong class=\"highlight\">beautiful</strong>&quot;&gt;This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
       highlight("<p class=\"beautiful\">This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "&lt;p&gt;This is a <strong class=\"highlight\">beautiful</strong> &lt;a href=&quot;http://example.com/<strong class=\"highlight\">beautiful</strong>#top?what=<strong class=\"highlight\">beautiful</strong>%20morning&amp;when=now+then&quot;&gt;morning&lt;/a&gt;, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
   end

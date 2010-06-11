@@ -74,7 +74,7 @@ module ActionView
 
         options.reverse_merge!(:length => 30)
 
-        text = sanitize(text) unless text.html_safe? || options[:safe]
+        text = h(text) unless text.html_safe? || options[:safe]
         text.truncate(options.delete(:length), options) if text
       end
 
@@ -106,7 +106,7 @@ module ActionView
         end
         options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
 
-        text = sanitize(text) unless text.html_safe? || options[:safe]
+        text = h(text) unless text.html_safe? || options[:safe]
         if text.blank? || phrases.blank?
           text
         else
@@ -244,7 +244,7 @@ module ActionView
       def simple_format(text, html_options={}, options={})
         text = '' if text.nil?
         start_tag = tag('p', html_options, true)
-        text = sanitize(text) unless text.html_safe? || options[:safe]
+        text = h(text) unless text.html_safe? || options[:safe]
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
@@ -503,7 +503,7 @@ module ActionView
               text.html_safe
             else
               display_text = (block_given?) ? yield(text) : text
-              display_text = sanitize(display_text) unless options[:safe]
+              display_text = h(display_text) unless options[:safe]
               mail_to text, display_text, html_options
             end
           end
