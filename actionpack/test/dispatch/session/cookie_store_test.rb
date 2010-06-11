@@ -39,7 +39,7 @@ class CookieStoreTest < ActionController::IntegrationTest
       session[:foo] = 'bye!' * 1024
       head :ok
     end
-
+    
     def rescue_action(e) raise end
   end
 
@@ -192,28 +192,28 @@ class CookieStoreTest < ActionController::IntegrationTest
       headers['Set-Cookie']
     end
   end
-  
+
   def test_session_store_without_domain 
     with_test_route_set do
       get '/set_session_value'
       assert_no_match /domain\=/, headers['Set-Cookie']
     end
   end
-  
+
   def test_session_store_with_nil_domain
     with_test_route_set(:domain => nil) do
       get '/set_session_value'
       assert_no_match /domain\=/, headers['Set-Cookie']
     end
   end
-  
+
   def test_session_store_with_all_domains
     with_test_route_set(:domain => :all) do
       get '/set_session_value'
       assert_match /domain=\.example\.com/, headers['Set-Cookie']
     end
   end
-  
+
   private
 
     # Overwrite get to send SessionSecret in env hash

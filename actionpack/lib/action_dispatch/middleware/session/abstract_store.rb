@@ -121,12 +121,12 @@ module ActionDispatch
           unless options[:expire_after].nil?
             cookie[:expires] = Time.now + options.delete(:expire_after)
           end
-          
+
           if options[:domain] == :all
-            top_level_domain = env["HTTP_HOST"].split('.')[-2..-1].join('.')
-            options[:domain] = ".#{top_level_domain}"
+            env["HTTP_HOST"] =~ /^(.*\.)*(.*)\.(...|...\...|....|..\...)$/
+            options[:domain] = ".#{$2}.#{$3}"
           end
-          
+
           request = ActionDispatch::Request.new(env)
           set_cookie(request, cookie.merge!(options))
         end
