@@ -9,6 +9,7 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/controllers
   app/helpers
+  app/mailers
   app/models
   app/views/layouts
   config/environments
