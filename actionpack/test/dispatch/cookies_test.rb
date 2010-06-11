@@ -79,6 +79,16 @@ class CookiesTest < ActionController::TestCase
       cookies[:user_name] = { :value => "david", :expires => Time.utc(2005, 10, 10,5) }
       head :ok
     end
+
+    def set_cookie_with_domain
+      cookies[:user_name] = {:value => "rizwanreza", :domain => :all}
+      head :ok
+    end
+
+    def delete_cookie_with_domain
+      cookies.delete(:user_name, :domain => :all)
+      head :ok
+    end
   end
 
   tests TestController
@@ -214,6 +224,18 @@ class CookiesTest < ActionController::TestCase
       @request.env["action_dispatch.secret_token"] = "12345678901234567890123456789"
       get :set_signed_cookie
     }
+  end
+
+  def test_cookie_with_all_domain_option
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/"
+  end
+
+  def test_deleting_cookie_with_all_domain_option
+    get :delete_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
   private
