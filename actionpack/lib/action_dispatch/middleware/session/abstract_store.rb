@@ -93,13 +93,6 @@ module ActionDispatch
         :cookie_only =>   true
       }
 
-      # This regular expression is used to split the levels of a domain:
-      # So www.example.co.uk gives:
-      # $1 => www.
-      # $2 => example
-      # $3 => co.uk
-      DOMAIN_REGEXP = /^(.*\.)*(.*)\.(...|...\...|....|..\...|..)$/
-
       def initialize(app, options = {})
         @app = app
         @default_options = DEFAULT_OPTIONS.merge(options)
@@ -127,11 +120,6 @@ module ActionDispatch
           cookie = { :value => value }
           unless options[:expire_after].nil?
             cookie[:expires] = Time.now + options.delete(:expire_after)
-          end
-
-          if options[:domain] == :all
-            env["HTTP_HOST"] =~ DOMAIN_REGEXP
-            options[:domain] = ".#{$2}.#{$3}"
           end
 
           request = ActionDispatch::Request.new(env)

@@ -45,7 +45,15 @@ module ActionDispatch
   # * <tt>:value</tt> - The cookie's value or list of values (as an array).
   # * <tt>:path</tt> - The path for which this cookie applies.  Defaults to the root
   #   of the application.
-  # * <tt>:domain</tt> - The domain for which this cookie applies.
+  # * <tt>:domain</tt> - The domain for which this cookie applies so you can 
+  #   restrict to the domain level. If you use a schema like www.example.com 
+  #   and want to share session with user.example.com set <tt>:domain</tt>
+  #   to <tt>:all</tt>
+  #
+  #     :domain => nil  # Does not sets cookie domain. (default)
+  #     :domain => :all # Allow the cookie for the top most level
+  #                       domain and subdomains.
+  #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a Time object.
   # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
   #   Default is +false+.
@@ -54,13 +62,22 @@ module ActionDispatch
   class Cookies
     HTTP_HEADER = "Set-Cookie".freeze
     TOKEN_KEY   = "action_dispatch.secret_token".freeze
-
+    
     # Raised when storing more than 4K of session data.
     class CookieOverflow < StandardError; end
 
     class CookieJar < Hash #:nodoc:
+
+      # This regular expression is used to split the levels of a domain
+      # So www.example.co.uk gives:
+      # $1 => www.
+      # $2 => example
+      # $3 => co.uk
+      DOMAIN_REGEXP = /^(.*\.)*(.*)\.(...|...\...|....|..\...|..)$/
+
       def self.build(request)
         secret = request.env[TOKEN_KEY]
+        @@host = request.env["HTTP_HOST"]
         new(secret).tap do |hash|
           hash.update(request.cookies)
         end
@@ -70,6 +87,7 @@ module ActionDispatch
         @secret = secret
         @set_cookies = {}
         @delete_cookies = {}
+
         super()
       end
 
@@ -92,6 +110,12 @@ module ActionDispatch
         value = super(key.to_s, value)
 
         options[:path] ||= "/"
+
+        if options[:domain] == :all
+          @@host =~ DOMAIN_REGEXP
+          options[:domain] = ".#{$2}.#{$3}"
+        end
+
         @set_cookies[key] = options
         @delete_cookies.delete(key)
         value
@@ -103,6 +127,12 @@ module ActionDispatch
       def delete(key, options = {})
         options.symbolize_keys!
         options[:path] ||= "/"
+
+        if options[:domain] == :all
+          @@host =~ DOMAIN_REGEXP
+          options[:domain] = ".#{$2}.#{$3}"
+        end
+
         value = super(key.to_s)
         @delete_cookies[key] = options
         value
