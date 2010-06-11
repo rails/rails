@@ -597,7 +597,7 @@ resources :photos, :as => "images"
 will recognize incoming URLs beginning with +/photos+ and route the requests to +PhotosController+:
 
 |_.HTTP verb|_.URL           |_.action |_.named helper   |
-|GET        |/photos         |index    | images_path_    |
+|GET        |/photos         |index    | images_path     |
 |GET        |/photos/new     |new      | new_image_path  |
 |POST       |/photos         |create   | images_path     |
 |GET        |/photos/1       |show     | image_path      |
