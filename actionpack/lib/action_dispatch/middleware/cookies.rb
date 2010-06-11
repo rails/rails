@@ -48,7 +48,8 @@ module ActionDispatch
   # * <tt>:domain</tt> - The domain for which this cookie applies so you can 
   #   restrict to the domain level. If you use a schema like www.example.com 
   #   and want to share session with user.example.com set <tt>:domain</tt>
-  #   to <tt>:all</tt>
+  #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with 
+  #   <tt>:all</tt> again when deleting keys.
   #
   #     :domain => nil  # Does not sets cookie domain. (default)
   #     :domain => :all # Allow the cookie for the top most level
