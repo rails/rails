@@ -388,7 +388,7 @@ module ActiveRecord
             begin
               if !loaded?
                 if @target.is_a?(Array) && @target.any?
-                  @target = find_target.map { |f| i = @target.index(f); i ? @target.delete_at(i) : f } + @target
+                  @target = find_target + @target.find_all {|t| t.new_record? }
                 else
                   @target = find_target
                 end
