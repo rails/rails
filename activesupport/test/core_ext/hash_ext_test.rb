@@ -940,13 +940,14 @@ class HashToXmlTest < Test::Unit::TestCase
   end
 
   def test_expansion_count_is_limited
-    expected = {
-      'ActiveSupport::XmlMini_REXML'       => 'RuntimeError',
-      'ActiveSupport::XmlMini_Nokogiri'    => 'Nokogiri::XML::SyntaxError',
-      'ActiveSupport::XmlMini_NokogiriSAX' => 'RuntimeError',
-      'ActiveSupport::XmlMini_LibXML'      => 'LibXML::XML::Error',
-      'ActiveSupport::XmlMini_LibXMLSAX'   => 'LibXML::XML::Error',
-    }[ActiveSupport::XmlMini.backend.name].constantize
+    expected =
+      case ActiveSupport::XmlMini.backend.name
+      when 'ActiveSupport::XmlMini_REXML';        RuntimeError
+      when 'ActiveSupport::XmlMini_Nokogiri';     Nokogiri::XML::SyntaxError
+      when 'ActiveSupport::XmlMini_NokogiriSAX';  RuntimeError
+      when 'ActiveSupport::XmlMini_LibXML';       LibXML::XML::Error
+      when 'ActiveSupport::XmlMini_LibXMLSAX';    LibXML::XML::Error
+      end
 
     assert_raise expected do
       attack_xml = <<-EOT
