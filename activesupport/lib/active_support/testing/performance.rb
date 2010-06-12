@@ -331,8 +331,8 @@ begin
           class Memory < Base
             Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
-            # Ruby 1.9 + GC profiler patch
-            if defined?(GC::Profiler)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
               def measure
                 GC.enable
                 GC.start
@@ -380,8 +380,8 @@ begin
           class Objects < Base
             Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
-            # Ruby 1.9 + GC profiler patch
-            if defined?(GC::Profiler)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
               def measure
                 GC.enable
                 GC.start
