@@ -60,21 +60,21 @@ module ActionMailer #:nodoc:
   #
   # If you want to explicitly render only certain templates, pass a block:
   #
-  #   mail(:to => user.emai) do |format|
+  #   mail(:to => user.email) do |format|
   #     format.text
   #     format.html
   #   end
   #
   # The block syntax is useful if also need to specify information specific to a part:
   #
-  #   mail(:to => user.emai) do |format|
+  #   mail(:to => user.email) do |format|
   #     format.text(:content_transfer_encoding => "base64")
   #     format.html
   #   end
   #
   # Or even to render a special view:
   #
-  #   mail(:to => user.emai) do |format|
+  #   mail(:to => user.email) do |format|
   #     format.text
   #     format.html { render "some_other_template" }
   #   end
