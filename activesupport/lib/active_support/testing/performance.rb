@@ -378,14 +378,6 @@ begin
               def measure
                 RubyProf.measure_gc_runs
               end
-            elsif GC.respond_to?(:collections)
-              def measure
-                GC.collections
-              end
-            elsif GC.respond_to?(:heap_info)
-              def measure
-                GC.heap_info['num_gc_passes']
-              end
             end
 
             def format(measurement)
