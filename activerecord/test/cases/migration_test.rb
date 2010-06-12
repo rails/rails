@@ -1621,6 +1621,22 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 
+  class ReservedWordsMigrationTest < ActiveRecord::TestCase
+    def test_drop_index_from_table_named_values
+      connection = Person.connection
+      connection.create_table :values, :force => true do |t|
+        t.integer :value
+      end
+      connection.add_index :values, :value
+
+      # Just remove the index, it should not raise an exception
+      connection.remove_index :values, :column => :value
+
+      connection.drop_table :values rescue nil
+    end
+  end
+
+
   class ChangeTableMigrationsTest < ActiveRecord::TestCase
     def setup
       @connection = Person.connection
