@@ -657,7 +657,7 @@ module ActionMailer #:nodoc:
 
     def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
-      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
+      I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
