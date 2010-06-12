@@ -260,6 +260,7 @@ begin
             end
 
             protected
+              # Ruby 1.9 + extented GC profiler patch
               if defined?(GC::Profiler)
                 def with_gc_stats
                   GC.start
@@ -270,6 +271,8 @@ begin
                   GC::Profiler.disable
                   GC.enable
                 end
+
+              # Ruby 1.8 + ruby-prof wrapper
               else
                 def with_gc_stats
                   yield
@@ -324,7 +327,7 @@ begin
           class Memory < Base
             Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
-            # Ruby 1.9 + extented GC profiler patch
+            # Ruby 1.9 + extended GC profiler patch
             if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
               def measure
                 GC.enable
@@ -334,7 +337,7 @@ begin
                 kb
               end
 
-            # ruby-prof wrapper
+            # Ruby 1.8 + ruby-prof wrapper
             elsif RubyProf.respond_to?(:measure_memory)
               def measure
                 RubyProf.measure_memory / 1024.0
@@ -359,6 +362,7 @@ begin
                 count
               end
 
+            # Ruby 1.8 + ruby-prof wrapper
             elsif RubyProf.respond_to?(:measure_allocations)
               def measure
                 RubyProf.measure_allocations
