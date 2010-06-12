@@ -260,14 +260,7 @@ begin
             end
 
             protected
-              if GC.respond_to?(:enable_stats)
-                def with_gc_stats
-                  GC.enable_stats
-                  yield
-                ensure
-                  GC.disable_stats
-                end
-              elsif defined?(GC::Profiler)
+              if defined?(GC::Profiler)
                 def with_gc_stats
                   GC.start
                   GC.disable
@@ -276,6 +269,13 @@ begin
                 ensure
                   GC::Profiler.disable
                   GC.enable
+                end
+              elsif GC.respond_to?(:enable_stats)
+                def with_gc_stats
+                  GC.enable_stats
+                  yield
+                ensure
+                  GC.disable_stats
                 end
               else
                 def with_gc_stats
@@ -331,8 +331,18 @@ begin
           class Memory < Base
             Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
+            # Ruby 1.9 + GC profiler patch
+            if defined?(GC::Profiler)
+              def measure
+                GC.enable
+                GC.start
+                kb = GC::Profiler.data.last[:HEAP_USE_SIZE] / 1024.0
+                GC.disable
+                kb
+              end
+
             # ruby-prof wrapper
-            if RubyProf.respond_to?(:measure_memory)
+            elsif RubyProf.respond_to?(:measure_memory)
               def measure
                 RubyProf.measure_memory / 1024.0
               end
@@ -360,16 +370,6 @@ begin
               def measure
                 GC.malloc_allocated_size / 1024.0
               end
-
-            # Ruby 1.9 + GC profiler patch
-            elsif defined?(GC::Profiler)
-              def measure
-                GC.enable
-                GC.start
-                kb = GC::Profiler.data.last[:HEAP_USE_SIZE] / 1024.0
-                GC.disable
-                kb
-              end
             end
 
             def format(measurement)
@@ -380,7 +380,18 @@ begin
           class Objects < Base
             Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
-            if RubyProf.respond_to?(:measure_allocations)
+            # Ruby 1.9 + GC profiler patch
+            if defined?(GC::Profiler)
+              def measure
+                GC.enable
+                GC.start
+                last = GC::Profiler.data.last
+                count = last[:HEAP_LIVE_OBJECTS] + last[:HEAP_FREE_OBJECTS]
+                GC.disable
+                count
+              end
+
+            elsif RubyProf.respond_to?(:measure_allocations)
               def measure
                 RubyProf.measure_allocations
               end
@@ -389,17 +400,6 @@ begin
             elsif ObjectSpace.respond_to?(:allocated_objects)
               def measure
                 ObjectSpace.allocated_objects
-              end
-
-            # Ruby 1.9 + GC profiler patch
-            elsif defined?(GC::Profiler)
-              def measure
-                GC.enable
-                GC.start
-                last = GC::Profiler.data.last
-                count = last[:HEAP_LIVE_OBJECTS] + last[:HEAP_FREE_OBJECTS]
-                GC.disable
-                count
               end
             end
 
