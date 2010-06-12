@@ -270,13 +270,6 @@ begin
                   GC::Profiler.disable
                   GC.enable
                 end
-              elsif GC.respond_to?(:enable_stats)
-                def with_gc_stats
-                  GC.enable_stats
-                  yield
-                ensure
-                  GC.disable_stats
-                end
               else
                 def with_gc_stats
                   yield
@@ -347,18 +340,6 @@ begin
                 RubyProf.measure_memory / 1024.0
               end
 
-            # Ruby 1.8 + railsbench patch
-            elsif GC.respond_to?(:allocated_size)
-              def measure
-                GC.allocated_size / 1024.0
-              end
-
-            # Ruby 1.8 + lloyd patch
-            elsif GC.respond_to?(:heap_info)
-              def measure
-                GC.heap_info['heap_current_memory'] / 1024.0
-              end
-
             # Ruby 1.9 with total_malloc_allocated_size patch
             elsif GC.respond_to?(:malloc_total_allocated_size)
               def measure
@@ -394,12 +375,6 @@ begin
             elsif RubyProf.respond_to?(:measure_allocations)
               def measure
                 RubyProf.measure_allocations
-              end
-
-            # Ruby 1.8 + railsbench patch
-            elsif ObjectSpace.respond_to?(:allocated_objects)
-              def measure
-                ObjectSpace.allocated_objects
               end
             end
 
