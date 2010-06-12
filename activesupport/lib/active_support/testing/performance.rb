@@ -354,8 +354,7 @@ begin
               def measure
                 GC.enable
                 GC.start
-                last = GC::Profiler.data.last
-                count = last[:HEAP_LIVE_OBJECTS] + last[:HEAP_FREE_OBJECTS]
+                count = GC::Profiler.data.last[:HEAP_TOTAL_OBJECTS]
                 GC.disable
                 count
               end
