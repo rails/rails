@@ -399,7 +399,18 @@ begin
           class GcTime < Base
             Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
-            if RubyProf.respond_to?(:measure_gc_time)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+              def measure
+                GC.enable
+                GC.start
+                sec = GC::Profiler.data.inject(0) { |total, run| total += run[:GC_TIME] }
+                GC.disable
+                sec
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_gc_time)
               def measure
                 RubyProf.measure_gc_time
               end
