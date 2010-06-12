@@ -403,10 +403,6 @@ begin
               def measure
                 RubyProf.measure_gc_time
               end
-            elsif GC.respond_to?(:time)
-              def measure
-                GC.time
-              end
             end
 
             def format(measurement)
