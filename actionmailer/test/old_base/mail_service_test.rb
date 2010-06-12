@@ -1113,6 +1113,8 @@ class InheritableTemplateRootTest < ActiveSupport::TestCase
 end
 
 class MethodNamingTest < ActiveSupport::TestCase
+  include ActionMailer::TestHelper
+
   class TestMailer < ActionMailer::Base
     def send
       body       'foo'
