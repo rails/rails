@@ -339,18 +339,6 @@ begin
               def measure
                 RubyProf.measure_memory / 1024.0
               end
-
-            # Ruby 1.9 with total_malloc_allocated_size patch
-            elsif GC.respond_to?(:malloc_total_allocated_size)
-              def measure
-                GC.total_malloc_allocated_size / 1024.0
-              end
-
-            # Ruby 1.9 unpatched
-            elsif GC.respond_to?(:malloc_allocated_size)
-              def measure
-                GC.malloc_allocated_size / 1024.0
-              end
             end
 
             def format(measurement)
