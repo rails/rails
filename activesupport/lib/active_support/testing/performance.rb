@@ -261,7 +261,7 @@ begin
 
             protected
               # Ruby 1.9 + extented GC profiler patch
-              if defined?(GC::Profiler)
+              if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
                 def with_gc_stats
                   GC.start
                   GC.disable
