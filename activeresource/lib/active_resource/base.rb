@@ -212,7 +212,7 @@ module ActiveResource
   #   # is requested with invalid values, the response is:
   #   #
   #   # Response (422):
-  #   # <errors type="array"><error>First cannot be empty</error></errors>
+  #   # <errors><error>First cannot be empty</error></errors>
   #   # or
   #   # {"errors":["First cannot be empty"]}
   #   #
