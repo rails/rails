@@ -374,7 +374,18 @@ begin
           class GcRuns < Base
             Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
 
-            if RubyProf.respond_to?(:measure_gc_runs)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+              def measure
+                GC.enable
+                GC.start
+                count = GC::Profiler.data.last[:GC_RUNS]
+                GC.disable
+                count
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_gc_runs)
               def measure
                 RubyProf.measure_gc_runs
               end
