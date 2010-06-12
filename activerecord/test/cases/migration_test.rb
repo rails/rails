@@ -1629,8 +1629,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       connection.add_index :values, :value
 
-      # Just remove the index, it should not raise an exception
-      connection.remove_index :values, :column => :value
+      assert_nothing_raised do
+        connection.remove_index :values, :column => :value
+      end
 
       connection.drop_table :values rescue nil
     end
