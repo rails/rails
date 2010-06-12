@@ -319,7 +319,7 @@ begin
 
             def initialize(*args)
               # FIXME: yeah my CPU is 2.33 GHz
-              RubyProf.cpu_frequency = 2.33e9
+              RubyProf.cpu_frequency = 2.33e9 unless RubyProf.cpu_frequency > 0
               super
             end
 
