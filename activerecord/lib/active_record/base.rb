@@ -1068,19 +1068,6 @@ module ActiveRecord #:nodoc:
           attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
         end
 
-        def attribute_condition(quoted_column_name, argument)
-          case argument
-            when nil   then "#{quoted_column_name} IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "#{quoted_column_name} IN (?)"
-            when Range then if argument.exclude_end?
-                              "#{quoted_column_name} >= ? AND #{quoted_column_name} < ?"
-                            else
-                              "#{quoted_column_name} BETWEEN ? AND ?"
-                            end
-            else            "#{quoted_column_name} = ?"
-          end
-        end
-
       protected
         # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
         # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameter is <tt>Relation</tt> while
