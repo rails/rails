@@ -1,6 +1,6 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
-* Ruby 1.9 compatibility: ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 [Paul Mucur]
+* ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 [Paul Mucur, fxn]
 
 * Date#since, #ago, #beginning_of_day, #end_of_day, and #xmlschema honor now the user time zone if set. [Geoff Buesing]
 

@@ -130,10 +130,12 @@ module ActiveSupport
       end
 
       def merge!(other_hash)
-        if block_given?
-          other_hash.each {|k,v| self[k] = yield(k, self[k], v) }
-        else
-          other_hash.each {|k,v| self[k] = v }
+        other_hash.each do |k, v|
+          if block_given? && key?(k)
+            self[k] = yield k, self[k], v
+          else
+            self[k] = v
+          end
         end
         self
       end
