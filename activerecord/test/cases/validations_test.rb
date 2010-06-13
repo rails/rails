@@ -9,6 +9,8 @@ require 'models/guid'
 require 'models/owner'
 require 'models/pet'
 require 'models/event'
+require 'models/parrot'
+require 'models/company'
 
 class ProtectedPerson < ActiveRecord::Base
   set_table_name 'people'
@@ -189,4 +191,12 @@ class ValidationsTest < ActiveRecord::TestCase
     end
     assert_equal ["always invalid", "invalid on update"], p.errors[:name]
   end
+
+  def test_validators
+    assert_equal 1, Parrot.validators.size
+    assert_equal 1, Company.validators.size
+    assert_equal 1, Parrot.validators_on(:name).size
+    assert_equal 1, Company.validators_on(:name).size
+  end
+
 end
