@@ -869,7 +869,7 @@ SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
 You can also use the +includes+ or +joins+ methods for this to do something a little more complex:
 
 <ruby>
-Client.count.where("clients.first_name = 'Ryan' AND orders.status = 'received'").includes("orders")
+Client.where("clients.first_name = 'Ryan' AND orders.status = 'received'").includes("orders").count
 </ruby>
 
 Which will execute:
