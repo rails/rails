@@ -65,8 +65,8 @@ module ActionController #:nodoc:
       def read_fragment(key, options = nil)
         return unless cache_configured?
 
+        key = fragment_cache_key(key)
         self.class.benchmark "Cached fragment hit: #{key}" do
-          key = fragment_cache_key(key)
           result = cache_store.read(key, options)
           result.respond_to?(:html_safe) ? result.html_safe : result
         end
