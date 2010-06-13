@@ -144,27 +144,28 @@ class OrderedHashTest < Test::Unit::TestCase
   end
 
   def test_merge_with_block
-    hash = ActiveSupport::OrderedHash.new
-    hash[:a] = 0
-    hash[:b] = 0
-    merged = hash.merge(:b => 1, :c => 2) do |key, old_value, new_value|
-      new_value + 1
+    other_hash = ActiveSupport::OrderedHash.new
+    other_hash['white'] = 'ff'
+    other_hash['black'] = '00'
+    merged = @ordered_hash.merge(other_hash) do |key, old_value, new_value|
+      new_value * 3
     end
-    assert_equal 0, merged[:a]
-    assert_equal 2, merged[:b]
-    assert !merged.key?(:c)
+    assert_equal 'ffffff', merged['white']
+    assert_equal '000000', merged['black']
+
+    assert_nil @ordered_hash['white']
+    assert_nil @ordered_hash['black']
   end
 
   def test_merge_bang_with_block
-    hash = ActiveSupport::OrderedHash.new
-    hash[:a] = 0
-    hash[:b] = 0
-    hash.merge!(:a => 1, :c => 2) do |key, old_value, new_value|
-      new_value + 3
+    other_hash = ActiveSupport::OrderedHash.new
+    other_hash['white'] = 'ff'
+    other_hash['black'] = '00'
+    @ordered_hash.merge!(other_hash) do |key, old_value, new_value|
+      new_value * 3
     end
-    assert_equal 4, hash[:a]
-    assert_equal 0, hash[:b]
-    assert !hash.key?(:c)
+    assert_equal 'ffffff', @ordered_hash['white']
+    assert_equal '000000', @ordered_hash['black']
   end
 
   def test_shift
