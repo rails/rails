@@ -39,6 +39,7 @@ module ActionView
       # for a total length not exceeding <tt>:length</tt>.
       #
       # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
+      # Pass a <tt>:safe</tt> (which defaults to false) to escape or not the input. If :safe => true the input is not escaped.
       #
       # ==== Examples
       #
@@ -53,6 +54,15 @@ module ActionView
       #
       #   truncate("And they found that many people were sleeping better.", :length => 25, :omission => '... (continued)')
       #   # => "And they f... (continued)"
+      #
+      #   truncate("<p>Once upon a time in a world far far away</p>")
+      #   # => "&lt;p&gt;Once upon a time i..."
+      #
+      #   truncate("<p>Once upon a time in a world far far away</p>", :safe => true)
+      #   # => "<p>Once upon a time in a wo..."
+      #
+      #   truncate("<p>Once upon a time in a world far far away</p>".html_safe)
+      #   # => "<p>Once upon a time in a wo..."
       #
       # You can still use <tt>truncate</tt> with the old API that accepts the
       # +length+ as its optional second and the +ellipsis+ as its
