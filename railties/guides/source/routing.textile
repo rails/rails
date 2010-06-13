@@ -204,7 +204,7 @@ In each of these cases, the named routes remain the same as if you did not use +
 |GET     |photos/new    |new      | photos_path         |
 |POST    |photos        |create   | photos_path         |
 |GET     |photos/1      |show     | photo_path(id)      |
-|GET     |photos/1/edit |edit     | dmin_photo_path(id) |
+|GET     |photos/1/edit |edit     | edit_photo_path(id) |
 |PUT     |photos/1      |update   | photo_path(id)      |
 |DELETE  |photos/1      |destroy  | photo_path(id)      |
 
