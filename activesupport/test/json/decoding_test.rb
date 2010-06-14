@@ -47,7 +47,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
       [{'d' => Date.new(1970, 1, 1), 's' => ' escape'},{'d' => Date.new(1970, 1, 1), 's' => ' escape'}],
     %q([{"d":"1970-01-01","s":"http:\/\/example.com"},{"d":"1970-01-01","s":"http:\/\/example.com"}]) =>
       [{'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'},
-       {'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'}]
+       {'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'}],
+    # tests escaping of "\n" char with Yaml backend
+    %q("\n")  => "\n",
+    %q("\u000a") => "\n",
+    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
   }
 
   # load the default JSON backend
