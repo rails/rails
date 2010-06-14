@@ -30,13 +30,14 @@ if ActiveRecord::Base.connection.supports_migrations?
       conn = ActiveRecord::Base.connection
 
       conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
-      ActiveRecord::Base.table_name_prefix = 'foo_'
-      ActiveRecord::Base.table_name_suffix = '_bar'
+      # Use shorter prefix and suffix as in Oracle database identifier cannot be larger than 30 characters
+      ActiveRecord::Base.table_name_prefix = 'p_'
+      ActiveRecord::Base.table_name_suffix = '_s'
       conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
 
       conn.initialize_schema_migrations_table
 
-      assert_equal "foo_unique_schema_migrations_bar", conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name)[0][:name]
+      assert_equal "p_unique_schema_migrations_s", conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name)[0][:name]
     ensure
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
@@ -83,13 +84,17 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Orcl nds shrt indx nms.  Sybs 2.
       # OpenBase does not have named indexes.  You must specify a single column name
-      unless current_adapter?(:OracleAdapter, :SybaseAdapter, :OpenBaseAdapter)
+      unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
+        # Oracle adapter cannot have specified index name larger than 30 characters
+        # Oracle adapter is shortening index name when just column list is given
+        unless current_adapter?(:OracleAdapter)
+          assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+          assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
+          assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+          assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
+        end
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => 10) }
@@ -736,13 +741,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         table.column :hat_size, :integer
         table.column :hat_style, :string, :limit => 100
       end
-      # Oracle index names should be 30 or less characters
-      if current_adapter?(:OracleAdapter)
-        ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true,
-          :name => 'index_hats_on_hat_style_size'
-      else
-        ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true
-      end
+      ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true
 
       assert_nothing_raised { Person.connection.remove_column("hats", "hat_size") }
     ensure
@@ -1020,7 +1019,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       # This one is fun. The 'value_of_e' field is defined as 'DECIMAL' with
       # precision/scale explicitly left out.  By the SQL standard, numbers
       # assigned to this field should be truncated but that's seldom respected.
-      if current_adapter?(:PostgreSQLAdapter, :SQLite2Adapter)
+      if current_adapter?(:PostgreSQLAdapter)
         # - PostgreSQL changes the SQL spec on columns declared simply as
         # "decimal" to something more useful: instead of being given a scale
         # of 0, they take on the compile-time limit for precision and scale,
@@ -1375,8 +1374,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       return unless current_adapter? :OracleAdapter
 
       # table name is 29 chars, the standard sequence name will
-      # be 33 chars and fail
-      assert_raise(ActiveRecord::StatementInvalid) do
+      # be 33 chars and should be shortened
+      assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok do |t|
             t.column :foo, :string, :null => false

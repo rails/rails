@@ -8,7 +8,7 @@ require 'models/comment'
 
 class JsonSerializationTest < ActiveRecord::TestCase
   class NamespacedContact < Contact
-    column :name,        :string
+    column :name, :string
   end
 
   def setup
@@ -23,16 +23,12 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_demodulize_root_in_json
-    NamespacedContact.include_root_in_json = true
     @contact = NamespacedContact.new :name => 'whatever'
     json = @contact.to_json
     assert_match %r{^\{"namespaced_contact":\{}, json
-  ensure
-    NamespacedContact.include_root_in_json = false
   end
 
   def test_should_include_root_in_json
-    Contact.include_root_in_json = true
     json = @contact.to_json
 
     assert_match %r{^\{"contact":\{}, json
@@ -41,8 +37,6 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
     assert_match %r{"awesome":true}, json
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
-  ensure
-    Contact.include_root_in_json = false
   end
 
   def test_should_encode_all_encodable_attributes
@@ -170,15 +164,19 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   end
 
   def test_should_allow_only_option_for_list_of_authors
+    ActiveRecord::Base.include_root_in_json = false
     authors = [@david, @mary]
-
     assert_equal %([{"name":"David"},{"name":"Mary"}]), ActiveSupport::JSON.encode(authors, :only => :name)
+  ensure
+    ActiveRecord::Base.include_root_in_json = true
   end
 
   def test_should_allow_except_option_for_list_of_authors
+    ActiveRecord::Base.include_root_in_json = false
     authors = [@david, @mary]
-
     assert_equal %([{"id":1},{"id":2}]), ActiveSupport::JSON.encode(authors, :except => [:name, :author_address_id, :author_address_extra_id])
+  ensure
+    ActiveRecord::Base.include_root_in_json = true
   end
 
   def test_should_allow_includes_for_list_of_authors
@@ -201,7 +199,6 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
       1 => @david,
       2 => @mary
     }
-
-    assert_equal %({"1":{"name":"David"}}), ActiveSupport::JSON.encode(authors_hash, :only => [1, :name])
+    assert_equal %({"1":{"author":{"name":"David"}}}), ActiveSupport::JSON.encode(authors_hash, :only => [1, :name])
   end
 end

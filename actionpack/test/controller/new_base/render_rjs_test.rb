@@ -2,7 +2,10 @@ require 'abstract_unit'
 
 module RenderRjs
   class BasicController < ActionController::Base
+    layout "application", :only => :index_respond_to
+
     self.view_paths = [ActionView::FixtureResolver.new(
+      "layouts/application.html.erb"           => "",
       "render_rjs/basic/index.js.rjs"          => "page[:customer].replace_html render(:partial => 'customer')",
       "render_rjs/basic/index_html.js.rjs"     => "page[:customer].replace_html :partial => 'customer'",
       "render_rjs/basic/index_no_js.js.erb"    => "<%= render(:partial => 'developer') %>",

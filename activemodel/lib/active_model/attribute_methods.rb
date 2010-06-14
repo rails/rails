@@ -4,12 +4,13 @@ require 'active_support/core_ext/class/inheritable_attributes'
 module ActiveModel
   class MissingAttributeError < NoMethodError
   end
-
+  # == Active Model Attribute Methods
+  #
   # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and suffixes
   # to your methods as well as handling the creation of Active Record like class methods
   # such as +table_name+.
   # 
-  # The requirements to implement ActiveModel::AttributeMethods are:
+  # The requirements to implement ActiveModel::AttributeMethods are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your object
   # * Call each Attribute Method module method you want to add, such as 
@@ -45,24 +46,26 @@ module ActiveModel
   #     end
   #   end
   #
-  # Please notice that whenever you include ActiveModel::AtributeMethods in your class,
-  # it requires you to implement a <tt>attributes</tt> methods which returns a hash with
-  # each attribute name in your model as hash key and the attribute value as hash value.
-  # Hash keys must be a string.
+  # Notice that whenever you include ActiveModel::AtributeMethods in your class,
+  # it requires you to implement a <tt>attributes</tt> methods which returns a hash 
+  # with each attribute name in your model as hash key and the attribute value as 
+  # hash value.
+  #
+  # Hash keys must be strings.
   #
   module AttributeMethods
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Defines an "attribute" method (like +inheritance_column+ or
-      # +table_name+). A new (class) method will be created with the
-      # given name. If a value is specified, the new method will
-      # return that value (as a string). Otherwise, the given block
-      # will be used to compute the value of the method.
+      # Defines an "attribute" method (like +inheritance_column+ or +table_name+). 
+      # A new (class) method will be created with the given name. If a value is 
+      # specified, the new method will return that value (as a string). 
+      # Otherwise, the given block will be used to compute the value of the 
+      # method.
       #
-      # The original method will be aliased, with the new name being
-      # prefixed with "original_". This allows the new method to
-      # access the original value.
+      # The original method will be aliased, with the new name being prefixed
+      # with "original_". This allows the new method to access the original 
+      # value.
       #
       # Example:
       #
@@ -115,8 +118,8 @@ module ActiveModel
       #
       #   #{prefix}attribute(#{attr}, *args, &block)
       #
-      # An <tt>#{prefix}attribute</tt> instance method must exist and accept at least
-      # the +attr+ argument.
+      # An instance method <tt>#{prefix}attribute</tt> must exist and accept 
+      # at least the +attr+ argument.
       #
       # For example:
       #
@@ -341,14 +344,17 @@ module ActiveModel
         end
     end
 
-    # Allows access to the object attributes, which are held in the <tt>@attributes</tt> hash, as though they
-    # were first-class methods. So a Person class with a name attribute can use Person#name and
-    # Person#name= and never directly use the attributes hash -- except for multiple assigns with
-    # ActiveRecord#attributes=. A Milestone class can also ask Milestone#completed? to test that
-    # the completed attribute is not +nil+ or 0.
+    # Allows access to the object attributes, which are held in the 
+    # <tt>@attributes</tt> hash, as though they were first-class methods. So a 
+    # Person class with a name attribute can use Person#name and Person#name= 
+    # and never directly use the attributes hash -- except for multiple assigns
+    # with ActiveRecord#attributes=. A Milestone class can also ask 
+    # Milestone#completed? to test that the completed attribute is not +nil+ 
+    # or 0.
     #
-    # It's also possible to instantiate related objects, so a Client class belonging to the clients
-    # table with a +master_id+ foreign key can instantiate master through Client#master.
+    # It's also possible to instantiate related objects, so a Client class 
+    # belonging to the clients table with a +master_id+ foreign key can 
+    # instantiate master through Client#master.
     def method_missing(method_id, *args, &block)
       method_name = method_id.to_s
       if match = match_attribute_method?(method_name)
@@ -367,7 +373,7 @@ module ActiveModel
         return true
       elsif !include_private_methods && super(method, true)
         # If we're here then we haven't found among non-private methods
-        # but found among all methods. Which means that given method is private.
+        # but found among all methods. Which means that the given method is private.
         return false
       elsif match_attribute_method?(method.to_s)
         return true

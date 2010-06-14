@@ -178,6 +178,7 @@ module Rails
           "#{orm}:migration",
           "#{orm}:model",
           "#{orm}:observer",
+          "#{orm}:session_migration",
           "#{test}:controller",
           "#{test}:helper",
           "#{test}:integration",
@@ -186,8 +187,11 @@ module Rails
           "#{test}:observer",
           "#{test}:scaffold",
           "#{test}:view",
+          "#{test}:performance",
+          "#{test}:plugin",
           "#{template}:controller",
-          "#{template}:scaffold"
+          "#{template}:scaffold",
+          "#{template}:mailer"
         ]
       end
     end
@@ -323,7 +327,7 @@ module Rails
         paths = []
         namespaces.each do |namespace|
           pieces = namespace.split(":")
-          paths << pieces.dup.push(pieces.last).join("/") unless pieces.uniq.size == 1
+          paths << pieces.dup.push(pieces.last).join("/")
           paths << pieces.join("/")
         end
         paths.uniq!

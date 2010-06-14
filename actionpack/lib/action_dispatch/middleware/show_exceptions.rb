@@ -6,7 +6,7 @@ module ActionDispatch
   # This middleware rescues any exception returned by the application and renders
   # nice exception pages if it's being rescued locally.
   class ShowExceptions
-    LOCALHOST = ['127.0.0.1', '::1'].freeze
+    LOCALHOST = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
 
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
@@ -72,7 +72,7 @@ module ActionDispatch
           rescue_action_in_public(exception)
         end
       rescue Exception => failsafe_error
-        $stderr.puts "Error during failsafe response: #{failsafe_error}"
+        $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
         FAILSAFE_RESPONSE
       end
 
@@ -114,7 +114,7 @@ module ActionDispatch
 
       # True if the request came from localhost, 127.0.0.1.
       def local_request?(request)
-        LOCALHOST.any?{ |local_ip| request.remote_addr == local_ip && request.remote_ip == local_ip }
+        LOCALHOST.any? { |local_ip| local_ip === request.remote_addr && local_ip === request.remote_ip }
       end
 
       def status_code(exception)
@@ -135,7 +135,7 @@ module ActionDispatch
         ActiveSupport::Deprecation.silence do
           message = "\n#{exception.class} (#{exception.message}):\n"
           message << exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
-          message << exception.backtrace.join("\n  ")
+          message << "  " << application_trace(exception).join("\n  ")
           logger.fatal("#{message}\n\n")
         end
       end

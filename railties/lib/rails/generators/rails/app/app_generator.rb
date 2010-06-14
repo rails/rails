@@ -149,8 +149,7 @@ module Rails
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
 
-    RESERVED_NAMES = %w[generate g console c server s dbconsole db
-                        application destroy benchmarker profiler
+    RESERVED_NAMES = %w[application destroy benchmarker profiler
                         plugin runner test]
 
     class AppGenerator < Base
@@ -310,7 +309,7 @@ module Rails
     protected
 
       def self.banner
-        "rails #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
       def builder

@@ -64,6 +64,7 @@ module ApplicationTests
       # Initialize the application
       require "#{app_path}/config/environment"
       require "rails/generators"
+      Rails::Generators.configure!
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]

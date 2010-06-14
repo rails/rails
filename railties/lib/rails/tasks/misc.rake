@@ -7,30 +7,30 @@ task :rails_env do
   end
 end
 
-desc 'Generate a crytographically secure secret key. This is typically used to generate a secret for cookie sessions.'
+desc 'Generate a crytographically secure secret key (this is typically used to generate a secret for cookie sessions).'
 task :secret do
   require 'active_support/secure_random'
   puts ActiveSupport::SecureRandom.hex(64)
 end
 
-desc 'Explain the current environment'
+desc 'List versions of all Rails frameworks and the environment'
 task :about do
   puts Rails::Info
 end
 
 namespace :time do
   namespace :zones do
-    desc 'Displays names of all time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
+    desc 'Displays all time zones, also available: time:zones:us, time:zones:local -- filter with OFFSET parameter, e.g., OFFSET=-6'
     task :all do
       build_time_zone_list(:all)
     end
 
-    desc 'Displays names of US time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
+    # desc 'Displays names of US time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
     task :us do
       build_time_zone_list(:us_zones)
     end
 
-    desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
+    # desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
     task :local do
       require 'active_support'
       require 'active_support/time'

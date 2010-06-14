@@ -8,7 +8,7 @@ module ActionController
 
     included do
       class_attribute :hidden_actions
-      self.hidden_actions = Set.new
+      self.hidden_actions = Set.new.freeze
     end
 
   private
@@ -25,7 +25,7 @@ module ActionController
       # ==== Parameters
       # *args<#to_s>:: A list of actions
       def hide_action(*args)
-        self.hidden_actions = hidden_actions.dup.merge(args.map(&:to_s))
+        self.hidden_actions = hidden_actions.dup.merge(args.map(&:to_s)).freeze
       end
 
       def inherited(klass)
@@ -41,7 +41,7 @@ module ActionController
       # Overrides AbstractController::Base#action_methods to remove any methods
       # that are listed as hidden methods.
       def action_methods
-        @action_methods ||= Set.new(super.reject {|name| hidden_actions.include?(name)})
+        @action_methods ||= Set.new(super.reject { |name| hidden_actions.include?(name) })
       end
     end
   end

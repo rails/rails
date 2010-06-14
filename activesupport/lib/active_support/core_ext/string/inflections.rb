@@ -146,15 +146,4 @@ class String
   def foreign_key(separate_class_name_and_id_with_underscore = true)
     ActiveSupport::Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
   end
-
-  # +constantize+ tries to find a declared constant with the name specified
-  # in the string. It raises a NameError when the name is not in CamelCase
-  # or is not initialized.
-  #
-  # Examples
-  #   "Module".constantize # => Module
-  #   "Class".constantize  # => Class
-  def constantize
-    ActiveSupport::Inflector.constantize(self)
-  end
 end

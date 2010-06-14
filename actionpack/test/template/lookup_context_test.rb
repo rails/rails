@@ -26,18 +26,6 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal :en, @lookup_context.locale
   end
 
-  test "allows me to update details" do
-    @lookup_context.update_details(:formats => [:html], :locale => :pt)
-    assert_equal [:html], @lookup_context.formats
-    assert_equal :pt, @lookup_context.locale
-  end
-
-  test "allows me to update an specific detail" do
-    @lookup_context.update_details(:locale => :pt)
-    assert_equal :pt, I18n.locale
-    assert_equal :pt, @lookup_context.locale
-  end
-
   test "allows me to freeze and retrieve frozen formats" do
     @lookup_context.formats.freeze
     assert @lookup_context.formats.frozen?
@@ -54,7 +42,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "provides getters and setters for formats" do
-    @lookup_context.formats = :html
+    @lookup_context.formats = [:html]
     assert_equal [:html], @lookup_context.formats
   end
 
@@ -138,7 +126,7 @@ class LookupContextTest < ActiveSupport::TestCase
     keys << @lookup_context.details_key
     assert_equal 2, keys.uniq.size
 
-    @lookup_context.formats = :html
+    @lookup_context.formats = [:html]
     keys << @lookup_context.details_key
     assert_equal 3, keys.uniq.size
 

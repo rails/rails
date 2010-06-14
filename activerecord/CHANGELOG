@@ -1,4 +1,6 @@
-*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+*Rails 3.0.0 [beta 4] (June 8th, 2010)*
+
+* Fixed that ActiveRecord::Base.compute_type would swallow NoMethodError #4751 [Andrew Bloomgarden, Andrew White]
 
 * Add index length support for MySQL. #1852 [Emili Parreno, Pratik Naik]
 

@@ -1,7 +1,8 @@
 require 'active_support/json'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveModel
+  # == Active Model JSON Serializer
   module Serializers
     module JSON
       extend ActiveSupport::Concern
@@ -10,11 +11,12 @@ module ActiveModel
       included do
         extend ActiveModel::Naming
 
-        cattr_accessor :include_root_in_json, :instance_writer => true
+        class_attribute :include_root_in_json
+        self.include_root_in_json = true
       end
 
-      # Returns a JSON string representing the model. Some configuration is
-      # available through +options+.
+      # Returns a JSON string representing the model. Some configuration can be
+      # passed through +options+.
       #
       # The option <tt>ActiveModel::Base.include_root_in_json</tt> controls the
       # top-level behavior of to_json. It is true by default. When it is <tt>true</tt>,
@@ -92,7 +94,9 @@ module ActiveModel
       end
 
       def from_json(json)
-        self.attributes = ActiveSupport::JSON.decode(json)
+        hash = ActiveSupport::JSON.decode(json)
+        hash = hash.values.first if include_root_in_json
+        self.attributes = hash
         self
       end
     end

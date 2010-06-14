@@ -88,7 +88,7 @@ module ActiveRecord
   #
   class Observer < ActiveModel::Observer
     class_attribute :observed_methods
-    self.observed_methods = []
+    self.observed_methods = [].freeze
 
     def initialize
       super
@@ -97,7 +97,11 @@ module ActiveRecord
 
     def self.method_added(method)
       method = method.to_sym
-      observed_methods << method if ActiveRecord::Callbacks::CALLBACKS.include?(method)
+
+      if ActiveRecord::Callbacks::CALLBACKS.include?(method)
+        self.observed_methods += [method]
+        self.observed_methods.freeze
+      end
     end
 
     protected

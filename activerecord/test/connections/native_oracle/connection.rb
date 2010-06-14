@@ -53,7 +53,7 @@ Course.establish_connection 'arunit2'
 
 # for assert_queries test helper
 ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SELECT_SQL = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^\s*select .* from all_tab_columns/im]
+  IGNORED_SELECT_SQL = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from ((all|user)_tab_columns|(all|user)_triggers|(all|user)_constraints)/im]
 
   def select_with_query_record(sql, name = nil, return_column_names = false)
     $queries_executed ||= []

@@ -232,7 +232,7 @@ Module.new do
     require_environment = "-r #{environment}"
   end
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/bin/rails #{tmp_path('app_template')}`
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/bin/rails new #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
     if require_environment
       f.puts "Dir.chdir('#{File.dirname(environment)}') do"

@@ -248,7 +248,7 @@ class FlashIntegrationTest < ActionController::IntegrationTest
       with_routing do |set|
         set.draw do |map|
           match ':action', :to => ActionDispatch::Session::CookieStore.new(
-            FlashIntegrationTest::TestController, :key => SessionKey, :secret => SessionSecret
+            FlashIntegrationTest::TestController, :key => FlashIntegrationTest::SessionKey, :secret => FlashIntegrationTest::SessionSecret
           )
         end
         yield

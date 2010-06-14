@@ -34,7 +34,6 @@ module ActiveSupport #:nodoc:
     #
     #   ActiveSupport::Multibyte.proxy_class = CharsForUTF32
     class Chars
-
       attr_reader :wrapped_string
       alias to_s wrapped_string
       alias to_str wrapped_string
@@ -49,6 +48,10 @@ module ActiveSupport #:nodoc:
         def initialize(string) #:nodoc:
           @wrapped_string = string
         end
+      end
+
+      def <=>(other)
+        @wrapped_string <=> other
       end
 
       # Forward all undefined methods to the wrapped string.

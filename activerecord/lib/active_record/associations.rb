@@ -2,6 +2,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/conversions'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -710,7 +711,7 @@ module ActiveRecord
     #
     # The +traps+ association on +Dungeon+ and the the +dungeon+ association on +Trap+ are the inverse of each other and the
     # inverse of the +dungeon+ association on +EvilWizard+ is the +evil_wizard+ association on +Dungeon+ (and vice-versa).  By default,
-    # +ActiveRecord+ doesn't do know anything about these inverse relationships and so no object loading optimisation is possible.  For example:
+    # Active Record doesn't know anything about these inverse relationships and so no object loading optimisation is possible.  For example:
     #
     #    d = Dungeon.first
     #    t = d.traps.first
@@ -720,7 +721,7 @@ module ActiveRecord
     #
     # The +Dungeon+ instances +d+ and <tt>t.dungeon</tt> in the above example refer to the same object data from the database, but are
     # actually different in-memory copies of that data.  Specifying the <tt>:inverse_of</tt> option on associations lets you tell
-    # +ActiveRecord+ about inverse relationships and it will optimise object loading.  For example, if we changed our model definitions to:
+    # Active Record about inverse relationships and it will optimise object loading.  For example, if we changed our model definitions to:
     #
     #    class Dungeon < ActiveRecord::Base
     #      has_many :traps, :inverse_of => :dungeon
@@ -1755,7 +1756,8 @@ module ActiveRecord
           end
 
           def count_aliases_from_table_joins(name)
-            quoted_name = join_base.active_record.connection.quote_table_name(name.downcase)
+            # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
+            quoted_name = join_base.active_record.connection.quote_table_name(name.downcase).downcase
             join_sql = join_base.table_joins.to_s.downcase
             join_sql.blank? ? 0 :
               # Table names
@@ -1901,7 +1903,7 @@ module ActiveRecord
             end
 
             def ==(other)
-              other.is_a?(JoinBase) &&
+              other.class == self.class &&
               other.active_record == active_record &&
               other.table_joins == table_joins
             end
@@ -1972,7 +1974,7 @@ module ActiveRecord
             end
 
             def ==(other)
-              other.is_a?(JoinAssociation) &&
+              other.class == self.class &&
               other.reflection == reflection &&
               other.parent == parent
             end

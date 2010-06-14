@@ -14,6 +14,7 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
 require 'arel'
@@ -647,29 +648,14 @@ module ActiveRecord #:nodoc:
         reset_table_name
       end
 
+      # Returns a quoted version of the table name, used to construct SQL statements.
       def quoted_table_name
         @quoted_table_name ||= connection.quote_table_name(table_name)
       end
 
+      # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        base = base_class
-
-        name =
-          # STI subclasses always use their superclass' table.
-          unless self == base
-            base.table_name
-          else
-            # Nested classes are prefixed with singular parent table name.
-            if parent < ActiveRecord::Base && !parent.abstract_class?
-              contained = parent.table_name
-              contained = contained.singularize if parent.pluralize_table_names
-              contained << '_'
-            end
-            name = "#{full_table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
-          end
-
-        set_table_name(name)
-        name
+        self.table_name = compute_table_name
       end
 
       def full_table_name_prefix #:nodoc:
@@ -1001,6 +987,23 @@ module ActiveRecord #:nodoc:
           table_name
         end
 
+        # Computes and returns a table name according to default conventions.
+        def compute_table_name
+          base = base_class
+          if self == base
+            # Nested classes are prefixed with singular parent table name.
+            if parent < ActiveRecord::Base && !parent.abstract_class?
+              contained = parent.table_name
+              contained = contained.singularize if parent.pluralize_table_names
+              contained << '_'
+            end
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{table_name_suffix}"
+          else
+            # STI subclasses always use their superclass' table.
+            base.table_name
+          end
+        end
+
         # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
         # that are turned into <tt>where(:user_name => user_name).first</tt> and <tt>where(:user_name => user_name, :password => :password).first</tt>
         # respectively. Also works for <tt>all</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>where(:amount => 50).all</tt>.
@@ -1066,19 +1069,6 @@ module ActiveRecord #:nodoc:
         def all_attributes_exists?(attribute_names)
           attribute_names = expand_attribute_names_for_aggregates(attribute_names)
           attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
-        end
-
-        def attribute_condition(quoted_column_name, argument)
-          case argument
-            when nil   then "#{quoted_column_name} IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "#{quoted_column_name} IN (?)"
-            when Range then if argument.exclude_end?
-                              "#{quoted_column_name} >= ? AND #{quoted_column_name} < ?"
-                            else
-                              "#{quoted_column_name} BETWEEN ? AND ?"
-                            end
-            else            "#{quoted_column_name} = ?"
-          end
         end
 
       protected
@@ -1219,7 +1209,9 @@ module ActiveRecord #:nodoc:
               begin
                 constant = candidate.constantize
                 return constant if candidate == constant.to_s
-              rescue NameError
+              rescue NameError => e
+                # We don't want to swallow NoMethodError < NameError errors
+                raise e unless e.instance_of?(NameError)
               rescue ArgumentError
               end
             end

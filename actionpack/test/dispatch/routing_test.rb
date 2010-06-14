@@ -28,6 +28,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         post :reset
 
         resource :info
+
+        member do
+          get :crush
+        end
       end
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
@@ -65,8 +69,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       scope 'pt', :name_prefix => 'pt' do
-        resources :projects, :path_names => { :edit => 'editar' }, :path => 'projetos'
-        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador'
+        resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
+          post :preview, :on => :new
+        end
+        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador' do
+          post :preview, :on => :new
+        end
+        resources :products, :path_names => { :new => 'novo' } do
+          new do
+            post :preview
+          end
+        end
       end
 
       resources :projects, :controller => :project do
@@ -115,6 +128,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :replies do
+        new do
+          post :preview
+        end
+
         member do
           put :answer, :to => :mark_as_answer
           delete :answer, :to => :unmark_as_answer
@@ -126,6 +143,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :sheep
+
+      resources :clients do
+        namespace :google do
+          resource :account do
+            namespace :secret do
+              resource :info
+            end
+          end
+        end
+      end
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
@@ -185,10 +212,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         root :to => 'projects#index'
       end
 
-      resources :products, :constraints => { :id => /\d{4}/ } do
-        root :to => "products#root"
-        get :favorite, :on => :collection
-        resources :images
+      scope :only => [:index, :show] do
+        resources :products, :constraints => { :id => /\d{4}/ } do
+          root :to => "products#root"
+          get :favorite, :on => :collection
+          resources :images
+        end
+        resource :account
       end
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
@@ -203,6 +233,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       match "whatever/:controller(/:action(/:id))"
+
+      resource :profile do
+        get :settings
+
+        new do
+          post :preview
+        end
+      end
     end
   end
 
@@ -349,6 +387,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/session/info'
       assert_equal 'infos#show', @response.body
       assert_equal '/session/info', session_info_path
+    end
+  end
+
+  def test_member_on_resource
+    with_test_routes do
+      get '/session/crush'
+      assert_equal 'sessions#crush', @response.body
+      assert_equal '/session/crush', crush_session_path
     end
   end
 
@@ -777,6 +823,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/admin/subscription', account_admin_subscription_path
     end
   end
+  
+  def test_namespace_nested_in_resources
+    with_test_routes do
+      get '/clients/1/google/account'
+      assert_equal '/clients/1/google/account', client_google_account_path(1)
+      assert_equal 'google/accounts#show', @response.body
+
+      get '/clients/1/google/account/secret/info'
+      assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
+      assert_equal 'google/secret/infos#show', @response.body
+    end
+  end
 
   def test_articles_with_id
     with_test_routes do
@@ -1023,6 +1081,54 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_assert_recognizes_account_overview
     with_test_routes do
       assert_recognizes({:controller => "account", :action => "overview"}, "/account/overview")
+    end
+  end
+
+  def test_resource_new_actions
+    with_test_routes do
+      assert_equal '/replies/new/preview', preview_new_reply_path
+      assert_equal '/pt/projetos/novo/preview', preview_new_pt_project_path
+      assert_equal '/pt/administrador/novo/preview', preview_new_pt_admin_path
+      assert_equal '/pt/products/novo/preview', preview_new_pt_product_path
+      assert_equal '/profile/new/preview', preview_new_profile_path
+
+      post '/replies/new/preview'
+      assert_equal 'replies#preview', @response.body
+
+      post '/pt/projetos/novo/preview'
+      assert_equal 'projects#preview', @response.body
+
+      post '/pt/administrador/novo/preview'
+      assert_equal 'admins#preview', @response.body
+
+      post '/pt/products/novo/preview'
+      assert_equal 'products#preview', @response.body
+
+      post '/profile/new/preview'
+      assert_equal 'profiles#preview', @response.body
+    end
+  end
+
+  def test_resource_merges_options_from_scope
+    with_test_routes do
+      assert_raise(NameError) { new_account_path }
+
+      get '/account/new'
+      assert_equal 404, status
+    end
+  end
+
+  def test_resources_merges_options_from_scope
+    with_test_routes do
+      assert_raise(NoMethodError) { edit_product_path('1') }
+
+      get '/products/1/edit'
+      assert_equal 404, status
+
+      assert_raise(NoMethodError) { edit_product_image_path('1', '2') }
+
+      post '/products/1/images/2/edit'
+      assert_equal 404, status
     end
   end
 

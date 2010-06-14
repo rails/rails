@@ -3,48 +3,6 @@ require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 require 'set'
 
-module MysqlCompat #:nodoc:
-  # add all_hashes method to standard mysql-c bindings or pure ruby version
-  def self.define_all_hashes_method!
-    raise 'Mysql not loaded' unless defined?(::Mysql)
-
-    target = defined?(Mysql::Result) ? Mysql::Result : MysqlRes
-    return if target.instance_methods.include?('all_hashes') ||
-              target.instance_methods.include?(:all_hashes)
-
-    # Ruby driver has a version string and returns null values in each_hash
-    # C driver >= 2.7 returns null values in each_hash
-    if Mysql.const_defined?(:VERSION) && (Mysql::VERSION.is_a?(String) || Mysql::VERSION >= 20700)
-      target.class_eval <<-'end_eval', __FILE__, __LINE__ + 1
-        def all_hashes                     # def all_hashes
-          rows = []                        #   rows = []
-          each_hash { |row| rows << row }  #   each_hash { |row| rows << row }
-          rows                             #   rows
-        end                                # end
-      end_eval
-
-    # adapters before 2.7 don't have a version constant
-    # and don't return null values in each_hash
-    else
-      target.class_eval <<-'end_eval', __FILE__, __LINE__ + 1
-        def all_hashes                                            # def all_hashes
-          rows = []                                               #   rows = []
-          all_fields = fetch_fields.inject({}) { |fields, f|      #   all_fields = fetch_fields.inject({}) { |fields, f|
-            fields[f.name] = nil; fields                          #     fields[f.name] = nil; fields
-          }                                                       #   }
-          each_hash { |row| rows << all_fields.dup.update(row) }  #   each_hash { |row| rows << all_fields.dup.update(row) }
-          rows                                                    #   rows
-        end                                                       # end
-      end_eval
-    end
-
-    unless target.instance_methods.include?('all_hashes') ||
-           target.instance_methods.include?(:all_hashes)
-      raise "Failed to defined #{target.name}#all_hashes method. Mysql::VERSION = #{Mysql::VERSION.inspect}"
-    end
-  end
-end
-
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -57,17 +15,17 @@ module ActiveRecord
       password = config[:password].to_s
       database = config[:database]
 
-      # Require the MySQL driver and define Mysql::Result.all_hashes
       unless defined? Mysql
         begin
-          require_library_or_gem('mysql')
+          require 'mysql'
         rescue LoadError
-          $stderr.puts '!!! Please install the mysql gem and try again: gem install mysql.'
-          raise
+          raise "!!! Missing the mysql gem. Add it to your Gemfile: gem 'mysql', '2.8.1'"
+        end
+
+        unless defined?(Mysql::Result) && Mysql::Result.method_defined?(:each_hash)
+          raise "!!! Outdated mysql gem. Upgrade to 2.8.1 or later. In your Gemfile: gem 'mysql', '2.8.1'"
         end
       end
-
-      MysqlCompat.define_all_hashes_method!
 
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslca] || config[:sslkey]
@@ -656,7 +614,8 @@ module ActiveRecord
         def select(sql, name = nil)
           @connection.query_with_result = true
           result = execute(sql, name)
-          rows = result.all_hashes
+          rows = []
+          result.each_hash { |row| rows << row }
           result.free
           rows
         end

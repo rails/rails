@@ -17,8 +17,8 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   def test_mailer_with_i18n_helper
     run_generator
     assert_file "app/mailers/notifier.rb" do |mailer|
-      assert_match /en\.actionmailer\.notifier\.foo\.subject/, mailer
-      assert_match /en\.actionmailer\.notifier\.bar\.subject/, mailer
+      assert_match /en\.notifier\.foo\.subject/, mailer
+      assert_match /en\.notifier\.bar\.subject/, mailer
     end
   end
 

@@ -4,7 +4,7 @@ en:
     #created_at: "Created at"
     #updated_at: "Updated at"
 
-  # ActiveRecord models configuration
+  # Active Record models configuration
   activerecord:
     errors:
       messages:

@@ -1,9 +1,11 @@
 require 'active_support/core_ext/hash/reverse_merge'
 
 module ActiveModel
-  
-  # ActiveModel::Translation provides integration between your object and
-  # the Rails internationalization (i18n) framework.
+
+  # == Active Model Translation
+  #   
+  # Provides integration between your object and the Rails internationalization
+  # (i18n) framework.
   # 
   # A minimal implementation could be:
   # 
@@ -26,14 +28,16 @@ module ActiveModel
       :activemodel
     end
 
-    # When localizing a string, goes through the lookup returned by this method.
-    # Used in ActiveModel::Name#human, ActiveModel::Errors#full_messages and
+    # When localizing a string, it goes through the lookup returned by this 
+    # method, which is used in ActiveModel::Name#human,
+    # ActiveModel::Errors#full_messages and 
     # ActiveModel::Translation#human_attribute_name.
     def lookup_ancestors
       self.ancestors.select { |x| x.respond_to?(:model_name) }
     end
 
-    # Transforms attributes names into a more human format, such as "First name" instead of "first_name".
+    # Transforms attribute names into a more human format, such as "First name"
+    # instead of "first_name".
     #
     #   Person.human_attribute_name("first_name") # => "First name"
     #

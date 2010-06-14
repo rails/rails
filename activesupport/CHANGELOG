@@ -1,10 +1,17 @@
-*Rails 3.0.0 [beta 4/release candidate] (unreleased)*
+*Rails 3.0.0 [Release Candidate] (unreleased)*
+
+* ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 [Paul Mucur, fxn]
+
+* Date#since, #ago, #beginning_of_day, #end_of_day, and #xmlschema honor now the user time zone if set. [Geoff Buesing]
+
+
+*Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Extracted String#truncate from TextHelper#truncate [DHH]
 
 * Ruby 1.9: support UTF-8 case folding.  #4595 [Norman Clarke]
 
-* Renames Array#rand -> Array#random_element. [Santiago Pastorino, Rizwan Reza]
+* Removes Array#rand and backports Array#sample from Ruby 1.9, thanks to Marc-Andre Lafortune. [fxn]
 
 * Ruby 1.9: Renames last_(month|year) to prev_(month|year) in Date and Time. [fxn]
 

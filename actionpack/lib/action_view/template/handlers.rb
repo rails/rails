@@ -19,7 +19,7 @@ module ActionView #:nodoc:
       @@default_template_handlers = nil
     
       def self.extensions
-        @@template_handlers.keys
+        @@template_extensions ||= @@template_handlers.keys
       end
 
       # Register a class that knows how to handle template files with the given

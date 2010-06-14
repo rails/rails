@@ -102,7 +102,7 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
 <ruby>
   source 'http://rubygems.org'
 
-  gem 'rails', '3.0.0.beta1'
+  gem 'rails', '3.0.0.beta4'
 
   # Bundle edge Rails instead:
   # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -132,33 +132,33 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
 Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This is until you run +bundle pack+. This command freezes all the gems required by your application into _vendor/cache_. The gems installed by default are:
 
 * abstract-1.0.0.gem
-* actionmailer-3.0.0.beta1.gem
-* actionpack-3.0.0.beta1.gem
-* activemodel-3.0.0.beta1.gem
-* activerecord-3.0.0.beta1.gem
-* activeresource-3.0.0.beta1.gem
-* activesupport-3.0.0.beta1.gem
-* arel-0.3.3.gem
+* actionmailer-3.0.0.beta4.gem
+* actionpack-3.0.0.beta4.gem
+* activemodel-3.0.0.beta4.gem
+* activerecord-3.0.0.beta4.gem
+* activeresource-3.0.0.beta4.gem
+* activesupport-3.0.0.beta4.gem
+* arel-0.4.0.gem
 * builder-2.1.2.gem
-* bundler-0.9.14.gem
+* bundler-0.9.26.gem
 * erubis-2.6.5.gem
-* i18n-0.3.6.gem
-* mail-2.1.5.3.gem
-* memcache-client-1.8.1.gem
+* i18n-0.4.1.gem
+* mail-2.2.4.gem
+* memcache-client-1.8.3.gem
 * mime-types-1.16.gem
 * polyglot-0.3.1.gem
 * rack-1.1.0.gem
-* rack-mount-0.6.3.gem
-* rack-test-0.5.3.gem
-* rails-3.0.0.beta1.gem
-* railties-3.0.0.beta1.gem
+* rack-mount-0.6.4.gem
+* rack-test-0.5.4.gem
+* rails-3.0.0.beta4.gem
+* railties-3.0.0.beta4.gem
 * rake-0.8.7.gem
-* sqlite3-ruby-1.2.5.gem
+* sqlite3-ruby-1.3.0.gem
 * text-format-1.0.0.gem
 * text-hyphen-1.0.0.gem
-* thor-0.13.4.gem
-* treetop-1.4.5.gem
-* tzinfo-0.3.18.gem
+* thor-0.13.6.gem
+* treetop-1.4.8.gem
+* tzinfo-0.3.22.gem
 
 TODO: Prettify when it becomes more stable.
 

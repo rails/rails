@@ -2,12 +2,15 @@ require 'singleton'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/string/conversions'
 
 module ActiveModel
   module Observing
     extend ActiveSupport::Concern
 
     module ClassMethods
+      # == Active Model Observers Activation
+      # 
       # Activates the observers assigned. Examples:
       #
       #   # Calls PersonObserver.instance
@@ -88,6 +91,8 @@ module ActiveModel
       end
   end
 
+  # == Active Model Observers
+  #
   # Observer classes respond to lifecycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with

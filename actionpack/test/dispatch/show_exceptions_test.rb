@@ -53,7 +53,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
   test "rescue locally from a local request" do
     @app = ProductionApp
-    ['127.0.0.1', '::1'].each do |ip_address|
+    ['127.0.0.1', '127.0.0.127', '::1', '0:0:0:0:0:0:0:1', '0:0:0:0:0:0:0:1%0'].each do |ip_address|
       self.remote_addr = ip_address
 
       get "/", {}, {'action_dispatch.show_exceptions' => true}

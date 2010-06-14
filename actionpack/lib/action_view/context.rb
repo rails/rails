@@ -3,8 +3,8 @@ module ActionView
     # holds compiled template code
   end
 
-  # ActionView contexts are supplied to ActionController
-  # to render template. The default ActionView context
+  # Action View contexts are supplied to Action Controller
+  # to render template. The default Action View context
   # is ActionView::Base.
   #
   # In order to work with ActionController, a Context
@@ -21,7 +21,7 @@ module ActionView
   #   options<Hash>:: See _render_template_with_layout in ActionView::Base
   #   partial<Boolean>:: Whether or not the template to render is a partial
   #
-  # An ActionView context can also mix in ActionView's
+  # An Action View context can also mix in Action View's
   # helpers. In order to mix in helpers, a context must
   # implement:
   #

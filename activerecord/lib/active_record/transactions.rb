@@ -9,8 +9,7 @@ module ActiveRecord
     end
 
     included do
-      define_model_callbacks :commit, :commit_on_update, :commit_on_create, :commit_on_destroy, :only => :after
-      define_model_callbacks :rollback, :rollback_on_update, :rollback_on_create, :rollback_on_destroy
+      define_callbacks :commit, :rollback, :terminator => "result == false", :scope => [:kind, :name]
     end
 
     # Transactions are protective blocks where SQL statements are only permanent
@@ -77,7 +76,7 @@ module ActiveRecord
     #
     # Both +save+ and +destroy+ come wrapped in a transaction that ensures
     # that whatever you do in validations or callbacks will happen under its
-    # protected cover. So you can use validations to check for values that 
+    # protected cover. So you can use validations to check for values that
     # the transaction depends on or you can raise exceptions in the callbacks
     # to rollback, including <tt>after_*</tt> callbacks.
     #
@@ -202,6 +201,24 @@ module ActiveRecord
         # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
         connection.transaction(options, &block)
       end
+
+      def after_commit(*args, &block)
+        options = args.last
+        if options.is_a?(Hash) && options[:on]
+          options[:if] = Array.wrap(options[:if])
+          options[:if] << "transaction_include_action?(:#{options[:on]})"
+        end
+        set_callback(:commit, :after, *args, &block)
+      end
+
+      def after_rollback(*args, &block)
+        options = args.last
+        if options.is_a?(Hash) && options[:on]
+          options[:if] = Array.wrap(options[:if])
+          options[:if] << "transaction_include_action?(:#{options[:on]})"
+        end
+        set_callback(:rollback, :after, *args, &block)
+      end
     end
 
     # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
@@ -236,13 +253,6 @@ module ActiveRecord
 
     # Call the after_commit callbacks
     def committed! #:nodoc:
-      if transaction_record_state(:new_record)
-        _run_commit_on_create_callbacks
-      elsif transaction_record_state(:destroyed)
-        _run_commit_on_destroy_callbacks
-      else
-        _run_commit_on_update_callbacks
-      end
       _run_commit_callbacks
     ensure
       clear_transaction_record_state
@@ -251,13 +261,6 @@ module ActiveRecord
     # Call the after rollback callbacks. The restore_state argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state = false) #:nodoc:
-      if transaction_record_state(:new_record)
-        _run_rollback_on_create_callbacks
-      elsif transaction_record_state(:destroyed)
-        _run_rollback_on_destroy_callbacks
-      else
-        _run_rollback_on_update_callbacks
-      end
       _run_rollback_callbacks
     ensure
       restore_transaction_record_state(force_restore_state)
@@ -297,7 +300,7 @@ module ActiveRecord
         @_start_transaction_state[:new_record] = @new_record
       end
       unless @_start_transaction_state.include?(:destroyed)
-        @_start_transaction_state[:destroyed] = @new_record
+        @_start_transaction_state[:destroyed] = @destroyed
       end
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
     end
@@ -333,6 +336,18 @@ module ActiveRecord
     # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
     def transaction_record_state(state) #:nodoc
       @_start_transaction_state[state] if defined?(@_start_transaction_state)
+    end
+
+    # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
+    def transaction_include_action?(action) #:nodoc
+      case action
+      when :create
+        transaction_record_state(:new_record)
+      when :destroy
+        destroyed?
+      when :update
+        !(transaction_record_state(:new_record) || destroyed?)
+      end
     end
   end
 end

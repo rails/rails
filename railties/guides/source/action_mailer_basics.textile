@@ -211,6 +211,37 @@ attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
 
 NOTE: If you specify an encoding, Mail will assume that your content is already encoded and not try to Base64 encode it.
 
+h5. Making Inline Attachments
+
+Inline attachments are now possible in ActionMailer.  While previously in the pre 3.0 version of Rails, you could do inline attachments, it involved a lot of hacking and determination to pull it off.
+
+ActionMailer now makes inline attachments as trivial as they should be.
+
+* Firstly, to tell Mail to turn an attachment into an inline attachment, you just call <tt>#inline</tt> on the attachments method within your Mailer:
+
+<ruby>
+def welcome
+  attachments.inline['image.jpg'] = File.read('/path/to/image.jpg')
+end
+</ruby>
+
+* Then in your view, you can just reference <tt>attachments[]</tt> as a hash and specify which attachment you want to show, calling +url+ on it and then passing the result into the <tt>image_tag</tt> method:
+
+<erb>
+<p>Hello there, this is our image</p>
+
+<%= image_tag attachments['image.jpg'].url %>
+</erb>
+
+* As this is a standard call to +image_tag+ you can pass in an options hash after the attachment url as you could for any other image:
+
+<erb>
+<p>Hello there, this is our image</p>
+
+<%= image_tag attachments['image.jpg'].url, :alt => 'My Photo',
+                                            :class => 'photos' %>
+</erb>
+
 h4. Mailer Views
 
 Mailer views are located in the +app/views/name_of_mailer_class+ directory. The specific mailer view is known to the class because it's name is the same as the mailer method. So for example, in our example from above, our mailer view for the +welcome_email+ method will be in +app/views/user_mailer/welcome_email.html.erb+ for the HTML version and +welcome_email.text.erb+ for the plain text version.

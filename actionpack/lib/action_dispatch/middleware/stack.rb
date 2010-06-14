@@ -5,13 +5,13 @@ module ActionDispatch
     class Middleware
       attr_reader :args, :block
 
-      def initialize(klass, *args, &block)
-        @klass, @args, @block = klass, args, block
+      def initialize(klass_or_name, *args, &block)
+        @ref = ActiveSupport::Dependencies::Reference.new(klass_or_name)
+        @args, @block = args, block
       end
 
       def klass
-        return @klass if @klass.respond_to?(:new)
-        @klass = ActiveSupport::Inflector.constantize(@klass.to_s)
+        @ref.get
       end
 
       def ==(middleware)
@@ -21,11 +21,7 @@ module ActionDispatch
         when Class
           klass == middleware
         else
-          if lazy_compare?(@klass) && lazy_compare?(middleware)
-            normalize(@klass) == normalize(middleware)
-          else
-            klass.name == normalize(middleware.to_s)
-          end
+          normalize(@ref.name) == normalize(middleware)
         end
       end
 
@@ -38,10 +34,6 @@ module ActionDispatch
       end
 
     private
-
-      def lazy_compare?(object)
-        object.is_a?(String) || object.is_a?(Symbol)
-      end
 
       def normalize(object)
         object.to_s.strip.sub(/^::/, '')

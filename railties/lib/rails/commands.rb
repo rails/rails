@@ -38,6 +38,10 @@ when 'dbconsole'
 when 'application', 'runner'
   require "rails/commands/#{command}"
 
+when 'new'
+  puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
+  puts "Type 'rails' for help."
+
 when '--version', '-v'
   ARGV.unshift '--version'
   require 'rails/commands/application'
@@ -53,6 +57,8 @@ The most common rails commands are:
  server      Start the Rails server (short-cut alias: "s")
  dbconsole   Start a console for the database specified in config/database.yml
              (short-cut alias: "db")
+ new         Create a new Rails application. "rails new my_app" creates a
+             new application called MyApp in "./my_app"
 
 In addition to those, there are:
  application  Generate the Rails application code

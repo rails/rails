@@ -57,19 +57,19 @@ class Date
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
   # and then subtracts the specified number of seconds
   def ago(seconds)
-    to_time.since(-seconds)
+    to_time_in_current_zone.since(-seconds)
   end
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
   # and then adds the specified number of seconds
   def since(seconds)
-    to_time.since(seconds)
+    to_time_in_current_zone.since(seconds)
   end
   alias :in :since
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
   def beginning_of_day
-    to_time
+    to_time_in_current_zone
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
@@ -77,7 +77,7 @@ class Date
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the end of the day (23:59:59)
   def end_of_day
-    to_time.end_of_day
+    to_time_in_current_zone.end_of_day
   end
 
   def plus_with_duration(other) #:nodoc:

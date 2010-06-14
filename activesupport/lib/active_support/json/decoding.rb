@@ -22,7 +22,7 @@ module ActiveSupport
         if name.is_a?(Module)
           @backend = name
         else
-          require "active_support/json/backends/#{name.to_s.downcase}.rb"
+          require "active_support/json/backends/#{name.to_s.downcase}"
           @backend = ActiveSupport::JSON::Backends::const_get(name)
         end
         @parse_error = @backend::ParseError
