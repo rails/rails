@@ -67,7 +67,7 @@ end
 require 'action_view'
 require 'action_controller/vendor/html-scanner'
 
-# Common ActiveSupport usage in ActionController
+# Common Active Support usage in Action Controller
 require 'active_support/concern'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/load_error'

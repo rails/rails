@@ -4,7 +4,7 @@ require 'action_view/helpers/tag_helper'
 module ActionView
   module Helpers #:nodoc:
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
-    # These helper methods extend ActionView making them callable within your template files.
+    # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       # This +sanitize+ helper will html encode all tags and strip all attributes that aren't specifically allowed.
       # It also strips href/src tags with invalid protocols, like javascript: especially.  It does its best to counter any

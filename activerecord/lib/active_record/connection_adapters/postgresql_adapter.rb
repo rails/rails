@@ -224,7 +224,7 @@ module ActiveRecord
         if @connection.respond_to?(:status)
           @connection.status == PGconn::CONNECTION_OK
         else
-          # We're asking the driver, not ActiveRecord, so use @connection.query instead of #query
+          # We're asking the driver, not Active Record, so use @connection.query instead of #query
           @connection.query 'SELECT 1'
           true
         end
@@ -258,7 +258,7 @@ module ActiveRecord
         true
       end
 
-      # Does PostgreSQL support finding primary key on non-ActiveRecord tables?
+      # Does PostgreSQL support finding primary key on non-Active Record tables?
       def supports_primary_key? #:nodoc:
         true
       end
@@ -925,7 +925,7 @@ module ActiveRecord
           # Use standard-conforming strings if available so we don't have to do the E'...' dance.
           set_standard_conforming_strings
 
-          # If using ActiveRecord's time zone support configure the connection to return
+          # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           execute("SET time zone 'UTC'") if ActiveRecord::Base.default_timezone == :utc
         end

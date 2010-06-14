@@ -6,7 +6,7 @@ module Rails
   # on initialization with solely purpose of logging. The log subscriber dispatches
   # notifications to a regirested object based on its given namespace.
   #
-  # An example would be ActiveRecord log subscriber responsible for logging queries:
+  # An example would be Active Record log subscriber responsible for logging queries:
   #
   #   module ActiveRecord
   #     class Railtie

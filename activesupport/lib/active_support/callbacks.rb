@@ -445,7 +445,7 @@ module ActiveSupport
       # Use skip_callback to skip any defined one.
       #
       # When creating or skipping callbacks, you can specify conditions that
-      # are always the same for a given key. For instance, in ActionPack,
+      # are always the same for a given key. For instance, in Action Pack,
       # we convert :only and :except conditions into per-key conditions.
       #
       #   before_filter :authenticate, :except => "index"

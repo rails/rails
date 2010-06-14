@@ -3,7 +3,7 @@ require 'rails/log_subscriber'
 module Rails
   class LogSubscriber
     # Provides some helpers to deal with testing log subscribers by setting up
-    # notifications. Take for instance ActiveRecord subscriber tests:
+    # notifications. Take for instance Active Record subscriber tests:
     #
     #   class SyncLogSubscriberTest < ActiveSupport::TestCase
     #     include Rails::LogSubscriber::TestHelper

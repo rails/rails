@@ -6,7 +6,7 @@ module ActiveRecord
   module AssociationPreload #:nodoc:
     extend ActiveSupport::Concern
 
-    # Implements the details of eager loading of ActiveRecord associations.
+    # Implements the details of eager loading of Active Record associations.
     # Application developers should not use this module directly.
     #
     # ActiveRecord::Base is extended with this module. The source code in
@@ -18,7 +18,7 @@ module ActiveRecord
     # The first one is by using table joins. This was only strategy available
     # prior to Rails 2.1. Suppose that you have an Author model with columns
     # 'name' and 'age', and a Book model with columns 'name' and 'sales'. Using
-    # this strategy, ActiveRecord would try to retrieve all data for an author
+    # this strategy, Active Record would try to retrieve all data for an author
     # and all of its books via a single query:
     #
     #   SELECT * FROM authors
@@ -31,7 +31,7 @@ module ActiveRecord
     # 'books' table is useful; the joined 'authors' data is just redundant, and
     # processing this redundant data takes memory and CPU time. The problem
     # quickly becomes worse and worse as the level of eager loading increases
-    # (i.e. if ActiveRecord is to eager load the associations' associations as
+    # (i.e. if Active Record is to eager load the associations' associations as
     # well).
     #
     # The second strategy is to use multiple database queries, one for each
@@ -45,7 +45,7 @@ module ActiveRecord
     module ClassMethods
       protected
 
-      # Eager loads the named associations for the given ActiveRecord record(s).
+      # Eager loads the named associations for the given Active Record record(s).
       #
       # In this description, 'association name' shall refer to the name passed
       # to an association creation method. For example, a model that specifies
@@ -80,7 +80,7 @@ module ActiveRecord
       #   { :author => :avatar }
       #   [ :books, { :author => :avatar } ]
       #
-      # +preload_options+ contains options that will be passed to ActiveRecord#find
+      # +preload_options+ contains options that will be passed to ActiveRecord::Base#find
       # (which is called under the hood for preloading records). But it is passed
       # only one level deep in the +associations+ argument, i.e. it's not passed
       # to the child associations when +associations+ is a Hash.
@@ -166,7 +166,7 @@ module ActiveRecord
         end
       end
 
-      # Given a collection of ActiveRecord objects, constructs a Hash which maps
+      # Given a collection of Active Record objects, constructs a Hash which maps
       # the objects' IDs to the relevant objects. Returns a 2-tuple
       # <tt>(id_to_record_map, ids)</tt> where +id_to_record_map+ is the Hash,
       # and +ids+ is an Array of record IDs.

@@ -122,7 +122,7 @@ class HelperTest < ActiveSupport::TestCase
   def test_helper_proxy
     methods = AllHelpersController.helpers.methods.map(&:to_s)
 
-    # ActionView
+    # Action View
     assert methods.include?('pluralize')
 
     # abc_helper.rb

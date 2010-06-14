@@ -6,8 +6,8 @@
 # EMAIL NOTIFICATION
 # ------------------
 
-# CruiseControl.rb can notify you about build status via email. It uses ActionMailer component of Ruby on Rails 
-# framework. Obviously, ActionMailer needs to know how to send out email messages. 
+# CruiseControl.rb can notify you about build status via email. It uses the Action Mailer component of Ruby on Rails 
+# framework. Obviously, Action Mailer needs to know how to send out email messages. 
 # If you have an SMTP server on your network, and it needs no authentication, write this in your site_config.rb:
 # 
 ActionMailer::Base.smtp_settings = {

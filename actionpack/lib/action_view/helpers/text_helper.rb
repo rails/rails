@@ -6,7 +6,7 @@ module ActionView
   module Helpers #:nodoc:
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
-    # your views. These helper methods extend ActionView making them callable
+    # your views. These helper methods extend Action View making them callable
     # within your template files.
     module TextHelper
       # The preferred method of outputting text in your views is to use the

@@ -43,7 +43,7 @@ if current_adapter?(:MysqlAdapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional fixtures mode, this will
-    # cause ActiveRecord to create a new savepoint. However, since MySQL doesn't
+    # cause Active Record to create a new savepoint. However, since MySQL doesn't
     # support DDL transactions, creating a table will result in any created
     # savepoints to be automatically released. This in turn causes the savepoint
     # release code in AbstractAdapter#transaction to fail.
