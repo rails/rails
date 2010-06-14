@@ -3,6 +3,9 @@ require "active_support/core_ext/module/anonymous"
 require 'active_support/core_ext/object/blank'
 
 module ActiveModel #:nodoc:
+
+  # == Active Model Validator
+  # 
   # A simple base class that can be used along with 
   # +ActiveModel::Validations::ClassMethods.validates_with+
   #

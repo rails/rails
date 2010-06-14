@@ -5,7 +5,9 @@ require 'active_support/core_ext/hash/keys'
 require 'active_model/errors'
 
 module ActiveModel
-  
+
+  # == Active Model Validations
+  #   
   # Provides a full validation framework to your objects.
   # 
   # A minimal implementation could be:
@@ -38,7 +40,7 @@ module ActiveModel
   # 
   # Note that ActiveModel::Validations automatically adds an +errors+ method
   # to your instances initialized with a new ActiveModel::Errors object, so
-  # there is no need for you to add this manually.
+  # there is no need for you to do this manually.
   # 
   module Validations
     extend ActiveSupport::Concern
@@ -71,14 +73,14 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>,
-      #   other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:on</tt> - Specifies when this validation is active (default is 
+      #   <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or
-      #   <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
-      #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
+      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
@@ -104,7 +106,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # Or with a block which is passed the current record to be validated:
+      # Or with a block which is passed with the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
@@ -127,7 +129,8 @@ module ActiveModel
         set_callback(:validate, *args, &block)
       end
 
-      # List all validators that being used to validate the model using +validates_with+ method.
+      # List all validators that are being used to validate the model using 
+      # +validates_with+ method.
       def validators
         _validators.values.flatten.uniq
       end
@@ -155,9 +158,9 @@ module ActiveModel
       @errors ||= Errors.new(self)
     end
 
-    # Runs all the specified validations and returns true if no errors were added otherwise false.
-    # Context can optionally be supplied to define which callbacks to test against (the context is
-    # defined on the validations using :on).
+    # Runs all the specified validations and returns true if no errors were added
+    # otherwise false. Context can optionally be supplied to define which callbacks
+    # to test against (the context is defined on the validations using :on).
     def valid?(context = nil)
       current_context, self.validation_context = validation_context, context
       errors.clear
@@ -167,14 +170,17 @@ module ActiveModel
       self.validation_context = current_context
     end
 
-    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, false otherwise.
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, 
+    # false otherwise.
     def invalid?(context = nil)
       !valid?(context)
     end
 
-    # Hook method defining how an attribute value should be retieved. By default this is assumed
-    # to be an instance named after the attribute. Override this method in subclasses should you
-    # need to retrieve the value for a given attribute differently e.g.
+    # Hook method defining how an attribute value should be retieved. By default 
+    # this is assumed to be an instance named after the attribute. Override this 
+    # method in subclasses should you need to retrieve the value for a given
+    # attribute differently:
+    #
     #   class MyClass
     #     include ActiveModel::Validations
     #
