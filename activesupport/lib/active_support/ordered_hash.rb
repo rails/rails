@@ -23,6 +23,17 @@ module ActiveSupport
 
     # Hash is ordered in Ruby 1.9!
     if RUBY_VERSION < '1.9'
+
+      # In MRI the Hash class is core and written in C. In particular, methods are
+      # programmed with explicit C function calls and polymorphism is not honored.
+      #
+      # For example, []= is crucial in this implementation to maintain the @keys
+      # array but hash.c invokes rb_hash_aset() originally. This prevents method
+      # reuse through inheritance and forces us to reimplement stuff.
+      #
+      # For instance, we cannot use the inherited #merge! because albeit the algorithm
+      # itself would work, our []= is not being called at all by the C code.
+
       def initialize(*args, &block)
         super
         @keys = []
@@ -130,12 +141,16 @@ module ActiveSupport
       end
 
       def merge!(other_hash)
-        other_hash.each {|k,v| self[k] = v }
+        if block_given?
+          other_hash.each { |k, v| self[k] = key?(k) ? yield(k, self[k], v) : v }
+        else
+          other_hash.each { |k, v| self[k] = v }
+        end
         self
       end
 
-      def merge(other_hash)
-        dup.merge!(other_hash)
+      def merge(other_hash, &block)
+        dup.merge!(other_hash, &block)
       end
 
       # When replacing with another hash, the initial order of our keys must come from the other hash -ordered or not.

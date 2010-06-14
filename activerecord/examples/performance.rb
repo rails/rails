@@ -1,18 +1,18 @@
 #!/usr/bin/env ruby -KU
 
 TIMES = (ENV['N'] || 10000).to_i
-
 require 'rubygems'
+
 gem 'addressable',  '~>2.0'
 gem 'faker',        '~>0.3.1'
 gem 'rbench',       '~>0.2.3'
+
 require 'addressable/uri'
 require 'faker'
 require 'rbench'
 
-__DIR__ = File.dirname(__FILE__)
-$:.unshift "#{__DIR__}/../lib"
-require 'active_record'
+require File.expand_path("../../../load_paths", __FILE__)
+require "active_record"
 
 conn = { :adapter => 'mysql',
   :database => 'activerecord_unittest',
@@ -55,7 +55,7 @@ class Exhibit < ActiveRecord::Base
   def self.feel(exhibits) exhibits.each { |e| e.feel } end
 end
 
-sqlfile = "#{__DIR__}/performance.sql"
+sqlfile = File.expand_path("../performance.sql", __FILE__)
 
 if File.exists?(sqlfile)
   mysql_bin = %w[mysql mysql5].select { |bin| `which #{bin}`.length > 0 }

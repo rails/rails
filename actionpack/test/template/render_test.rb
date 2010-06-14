@@ -229,6 +229,12 @@ module RenderTestCases
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
   end
 
+  def test_render_with_layout_which_has_render_inline
+    assert_equal %(welcome\nHello world!\n),
+      @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield_with_render_inline_inside")
+  end
+
+
   # TODO: Move to deprecated_tests.rb
   def test_render_with_nested_layout_deprecated
     assert_deprecated do

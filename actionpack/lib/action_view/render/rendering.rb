@@ -56,7 +56,7 @@ module ActionView
         :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
 
         content = template.render(self, locals) { |*name| _layout_for(*name) }
-        @_content_for[:layout] = content
+        @_content_for[:layout] = content if layout
 
         content = _render_layout(layout, locals) if layout
         content

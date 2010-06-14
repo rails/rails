@@ -1,4 +1,5 @@
 require 'active_support/core_ext/file/atomic'
+require 'active_support/core_ext/string/conversions'
 
 module ActiveSupport
   module Cache

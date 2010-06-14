@@ -40,15 +40,15 @@ class TextHelperTest < ActionView::TestCase
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
 
-  def test_simple_format_should_sanitize_unsafe_input
+  def test_simple_format_should_escape_unsafe_input
     assert_equal "<p>&lt;b&gt; test with unsafe string &lt;/b&gt;&lt;script&gt;code!&lt;/script&gt;</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
-  def test_simple_format_should_not_sanitize_input_if_safe_option
+  def test_simple_format_should_not_escape_input_if_safe_option
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :safe => true)
   end
 
-  def test_simple_format_should_not_sanitize_safe_input
+  def test_simple_format_should_not_escape_safe_input
     assert_equal "<p><b> test with safe string </b></p>", simple_format("<b> test with safe string </b>".html_safe)
   end
 
@@ -61,16 +61,16 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
   end
 
-  def test_truncate_should_sanitize_unsafe_input
+  def test_truncate_should_escape_unsafe_input
     assert_equal "Hello &lt...", truncate("Hello <script>code!</script>World!!", :length => 12)
   end
 
-  def test_truncate_should_not_sanitize_input_if_safe_option
+  def test_truncate_should_not_escape_input_if_safe_option
     assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!", :length => 12, :safe => true)
     assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12, :safe => true)
   end
 
-  def test_truncate_should_not_sanitize_safe_input
+  def test_truncate_should_not_escape_safe_input
     assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!".html_safe, :length => 12)
     assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!".html_safe, :length => 12)
   end
@@ -138,21 +138,21 @@ class TextHelperTest < ActionView::TestCase
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
   end
 
-  def test_highlight_should_sanitize_unsafe_input
+  def test_highlight_should_escape_unsafe_input
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning&lt;script&gt;code!&lt;/script&gt;",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end
 
-  def test_highlight_should_not_sanitize_input_if_safe_option
+  def test_highlight_should_not_escape_input_if_safe_option
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful", :safe => true)
     )
   end
 
-  def test_highlight_should_not_sanitize_safe_input
+  def test_highlight_should_not_escape_safe_input
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
       highlight("This is a beautiful morning<script>code!</script>".html_safe, "beautiful")

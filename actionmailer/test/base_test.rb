@@ -325,7 +325,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.welcome(:subject => nil)
     assert_equal "Welcome", email.subject
 
-    I18n.backend.store_translations('en', :actionmailer => {:base_mailer => {:welcome => {:subject => "New Subject!"}}})
+    I18n.backend.store_translations('en', :base_mailer => {:welcome => {:subject => "New Subject!"}})
     email = BaseMailer.welcome(:subject => nil)
     assert_equal "New Subject!", email.subject
   end

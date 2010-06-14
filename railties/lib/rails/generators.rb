@@ -327,7 +327,7 @@ module Rails
         paths = []
         namespaces.each do |namespace|
           pieces = namespace.split(":")
-          paths << pieces.dup.push(pieces.last).join("/") unless pieces.uniq.size == 1
+          paths << pieces.dup.push(pieces.last).join("/")
           paths << pieces.join("/")
         end
         paths.uniq!

@@ -17,7 +17,6 @@ class Hash
 
   # Replaces the hash without the given keys.
   def except!(*keys)
-    keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
     keys.each { |key| delete(key) }
     self
   end

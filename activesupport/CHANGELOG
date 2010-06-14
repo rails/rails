@@ -1,3 +1,10 @@
+*Rails 3.0.0 [Release Candidate] (unreleased)*
+
+* ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 [Paul Mucur, fxn]
+
+* Date#since, #ago, #beginning_of_day, #end_of_day, and #xmlschema honor now the user time zone if set. [Geoff Buesing]
+
+
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Extracted String#truncate from TextHelper#truncate [DHH]

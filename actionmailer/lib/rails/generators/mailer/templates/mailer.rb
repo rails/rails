@@ -5,7 +5,7 @@ class <%= class_name %> < ActionMailer::Base
   # Subject can be set in your I18n file at config/locales/en.yml
   # with the following lookup:
   #
-  #   en.actionmailer.<%= file_name %>.<%= action %>.subject
+  #   en.<%= file_name %>.<%= action %>.subject
   #
   def <%= action %>
     @greeting = "Hi"
