@@ -116,6 +116,70 @@ module ActiveRecord
     def build_arel
       arel = table
 
+      arel = build_joins(arel, @joins_values) if @joins_values.present?
+
+      @where_values.uniq.each do |where|
+        next if where.blank?
+
+        case where
+        when Arel::SqlLiteral
+          arel = arel.where(where)
+        else
+          sql = where.is_a?(String) ? where : where.to_sql
+          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
+        end
+      end
+
+      arel = arel.having(*@having_values.uniq.select{|h| h.present?})
+
+      arel = arel.take(@limit_value) if @limit_value.present?
+      arel = arel.skip(@offset_value) if @offset_value.present?
+
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?})
+
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s))
+
+      selects = @select_values.uniq
+
+      if selects.present?
+        selects.each do |s|
+          @implicit_readonly = false
+          arel = arel.project(s) if s.present?
+        end
+      else
+        arel = arel.project(@klass.quoted_table_name + '.*')
+      end
+
+      arel = @from_value.present? ? arel.from(@from_value) : arel.from(@klass.quoted_table_name)
+
+      case @lock_value
+      when TrueClass
+        arel = arel.lock
+      when String
+        arel = arel.lock(@lock_value)
+      end if @lock_value.present?
+
+      arel
+    end
+
+    def build_where(*args)
+      return if args.blank?
+
+      opts = args.first
+      case opts
+      when String, Array
+        @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
+      when Hash
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
+        PredicateBuilder.new(table.engine).build_from_hash(attributes, table)
+      else
+        opts
+      end
+    end
+
+    private
+
+    def build_joins(relation, joins)
       joined_associations = []
       association_joins = []
 
@@ -150,76 +214,12 @@ module ActiveRecord
       to_join.each do |tj|
         unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] && ja[2] == tj[2] }
           joined_associations << tj
-          arel = arel.join(tj[0], tj[1]).on(*tj[2])
+          relation = relation.join(tj[0], tj[1]).on(*tj[2])
         end
       end
 
-      arel = arel.join(custom_joins)
-
-      @where_values.uniq.each do |where|
-        next if where.blank?
-
-        case where
-        when Arel::SqlLiteral
-          arel = arel.where(where)
-        else
-          sql = where.is_a?(String) ? where : where.to_sql
-          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
-        end
-      end
-
-      @having_values.uniq.each do |h|
-        arel = h.is_a?(String) ? arel.having(h) : arel.having(*h)
-      end
-
-      arel = arel.take(@limit_value) if @limit_value.present?
-      arel = arel.skip(@offset_value) if @offset_value.present?
-
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?})
-
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s))
-
-      selects = @select_values.uniq
-
-      quoted_table_name = @klass.quoted_table_name
-
-      if selects.present?
-        selects.each do |s|
-          @implicit_readonly = false
-          arel = arel.project(s) if s.present?
-        end
-      else
-        arel = arel.project(quoted_table_name + '.*')
-      end
-
-      arel = @from_value.present? ? arel.from(@from_value) : arel.from(quoted_table_name)
-
-      case @lock_value
-      when TrueClass
-        arel = arel.lock
-      when String
-        arel = arel.lock(@lock_value)
-      end if @lock_value.present?
-
-      arel
+      relation.join(custom_joins)
     end
-
-    def build_where(*args)
-      return if args.blank?
-
-      opts = args.first
-      case opts
-      when String, Array
-        @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
-      when Hash
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-        PredicateBuilder.new(table.engine).build_from_hash(attributes, table)
-      else
-        opts
-      end
-    end
-
-    private
 
     def apply_modules(modules)
       values = Array.wrap(modules)
