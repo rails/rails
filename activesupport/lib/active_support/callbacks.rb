@@ -565,6 +565,11 @@ module ActiveSupport
       #  passed. In the above case method "before_save" is constructed by calling "#{kind}_#{name}" 
       #  in the given class. In this case "kind" is "before" and "name" is "save".
       #
+      #  Although ":kind" is the default scope that is passed, it is possible to not to make use of ":kind".
+      #  define_callbacks :save, :scope => [:name] . A declaration like this would call "save" method of
+      #  Audit class since ":kind" is skipped.
+      #
+      #
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|
