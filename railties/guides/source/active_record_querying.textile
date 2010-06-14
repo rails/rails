@@ -86,7 +86,7 @@ Using <tt>Model.find(primary_key)</tt>, you can retrieve the object correspondin
 <ruby>
 # Find the client with primary key (id) 10.
 client = Client.find(10)
-=> #<Client id: 10, name: => "Ryan">
+=> #<Client id: 10, first_name: => "Ryan">
 </ruby>
 
 SQL equivalent of the above is:
