@@ -32,7 +32,7 @@ the request is dispatched to the +patients+ controller's +show+ action with <tt>
 
 h4. Generating URLs from Code
 
-You can also generate routes. If your application contains this code:
+You can also generate URLs. If your application contains this code:
 
 <ruby>
 @patient = Patient.find(17)
@@ -308,7 +308,7 @@ You are not limited to the seven routes that RESTful routing creates by default.
 
 h5. Adding Member Routes
 
-To add a member route, just add +member+ block into resource block:
+To add a member route, just add a +member+ block into the resource block:
 
 <ruby>
 resources :photos do
@@ -318,9 +318,9 @@ resources :photos do
 end
 </ruby>
 
-This will recognize +/photos/1/preview+ with GET, and route to the +preview+ action of  +PhotosController+. It will also create the +preview_photo_url+ and +preview_photo_path+  helpers.
+This will recognize +/photos/1/preview+ with GET, and route to the +preview+ action of  +PhotosController+. It will also create the +preview_photo_url+ and +preview_photo_path+ helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +put+, +post+, or +delete+ here. If you don't have multiple +member+ routes, you can also passing +:on+ to a route.
+Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +put+, +post+, or +delete+ here. If you don't have multiple +member+ routes, you can also pass +:on+ to a route, eliminating the block:
 
 <ruby>
 resources :photos do
@@ -340,9 +340,9 @@ resources :photos do
 end
 </ruby>
 
-This will enable Rails to recognize URLs such as +/photos/search+ with GET, and route  to the +search+ action of +PhotosController+. It will also create the +search_photos_url+ and +search_photos_path+ route helpers.
+This will enable Rails to recognize URLs such as +/photos/search+ with GET, and route to the +search+ action of +PhotosController+. It will also create the +search_photos_url+ and +search_photos_path+ route helpers.
 
-Just as with member routes, you can pass +:on+ to a route.
+Just as with member routes, you can pass +:on+ to a route:
 
 <ruby>
 resources :photos do
@@ -384,7 +384,7 @@ An incoming URL of +/photos/show/1/2+ will be dispatched to the +show+ action of
 
 h4. Static Segments
 
-You can specify static segments when creating a route.
+You can specify static segments when creating a route:
 
 <ruby>
 match ':controller/:action/:id/with_user/:user_id'
@@ -575,7 +575,7 @@ resources :photos, :constraints => {:id => /[A-Z][A-Z][0-9]+/}
 
 This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
 
-You can specify a single constraint to a apply to a number of routes by using the block form:
+You can specify a single constraint to apply to a number of routes by using the block form:
 
 <ruby>
 constraints(:id => /[A-Z][A-Z][0-9]+/) do
