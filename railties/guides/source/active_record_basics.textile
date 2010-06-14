@@ -60,8 +60,10 @@ Active Record uses naming conventions for the columns in database tables, depend
 
 There are also some optional column names that will create additional features to Active Record instances:
 
-* *created_at / created_on* - ActiveRecord will store the current date and time to this field when creating the record.
-* *updated_at / updated_on* - ActiveRecord will store the current date and times to this field when updating the record.
+* *created_at* - Automatically gets set to the current date and time when the record is first created.
+* *created_on* - Automatically gets set to the current date when the record is first created.
+* *updated_at* - Automatically gets set to the current date and time whenever the record is updated.
+* *updated_on* - Automatically gets set to the current date whenever the record is updated.
 * *lock_version* - Adds "optimistic locking":http://api.rubyonrails.com/classes/ActiveRecord/Locking.html to a model.
 * *type* - Specifies that the model uses "Single Table Inheritance":http://api.rubyonrails.com/classes/ActiveRecord/Base.html
 * *(table_name)_count* - Used to cache the number of belonging objects on associations. For example, a +comments_count+ column in a +Post+ class that has many instances of +Comment+ will cache the number of existent comments for each post.
