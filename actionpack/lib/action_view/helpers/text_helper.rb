@@ -39,7 +39,7 @@ module ActionView
       # for a total length not exceeding <tt>:length</tt>.
       #
       # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
-      # Pass a <tt>:safe</tt> (which defaults to false) to escape or not the input. If :safe => true the input is not escaped.
+      # Pass a <tt>:safe</tt> value as "true" to not to escape the content. 
       #
       # ==== Examples
       #
