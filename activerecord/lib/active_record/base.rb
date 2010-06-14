@@ -14,6 +14,7 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
 require 'arel'
@@ -647,29 +648,14 @@ module ActiveRecord #:nodoc:
         reset_table_name
       end
 
+      # Returns a quoted version of the table name, used to construct SQL statements.
       def quoted_table_name
         @quoted_table_name ||= connection.quote_table_name(table_name)
       end
 
+      # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        base = base_class
-
-        name =
-          # STI subclasses always use their superclass' table.
-          unless self == base
-            base.table_name
-          else
-            # Nested classes are prefixed with singular parent table name.
-            if parent < ActiveRecord::Base && !parent.abstract_class?
-              contained = parent.table_name
-              contained = contained.singularize if parent.pluralize_table_names
-              contained << '_'
-            end
-            name = "#{full_table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
-          end
-
-        set_table_name(name)
-        name
+        self.table_name = compute_table_name
       end
 
       def full_table_name_prefix #:nodoc:
@@ -999,6 +985,23 @@ module ActiveRecord #:nodoc:
           table_name = class_name.to_s.demodulize.underscore
           table_name = table_name.pluralize if pluralize_table_names
           table_name
+        end
+
+        # Computes and returns a table name according to default conventions.
+        def compute_table_name
+          base = base_class
+          if self == base
+            # Nested classes are prefixed with singular parent table name.
+            if parent < ActiveRecord::Base && !parent.abstract_class?
+              contained = parent.table_name
+              contained = contained.singularize if parent.pluralize_table_names
+              contained << '_'
+            end
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{table_name_suffix}"
+          else
+            # STI subclasses always use their superclass' table.
+            base.table_name
+          end
         end
 
         # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
