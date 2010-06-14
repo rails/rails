@@ -530,28 +530,40 @@ module ActiveSupport
       # the given block or an before_filter raises an error. Supply :rescuable => true
       # to change this behavior.
       #
-      # * <tt>:scope</tt> - Show which methods should be executed when a class
+      # * <tt>:scope</tt> - Indicates which methods should be executed when a class
       # is given as callback:
       #
-      #   define_callbacks :filters, :scope => [ :kind ]
+      #  class Audit
+      #    def before(caller)
+      #      puts 'Audit: before is called'
+      #    end
+      #    def before_save(caller)
+      #      puts 'Audit: before_save is called'
+      #    end
+      #  end
       #
-      # When a class is given:
+      #  class Account
+      #    include ActiveSupport::Callbacks
+      #    define_callbacks :save
+      #    set_callback :save, :before, Audit.new
+      #    def save
+      #      run_callbacks :save do
+      #        puts 'save in main'
+      #      end
+      #    end
+      #  end
       #
-      #   before_filter MyFilter
+      #  In the above case if you execute Account.new.save then method "before" of Audit class
+      #  will be called. Now change the class "Account" and pass "scope" to method "define_callbacks".
       #
-      # It will call the type of the filter in the given class, which in this
-      # case, is "before".
+      #  define_callbacks :save, :scope => [:kind, :name]
       #
-      # If, for instance, you supply the given scope:
+      #  Now if you invoke Account.new.save then method "before_save" of Audit will be called 
+      #  instead of method "before".
       #
-      #   define_callbacks :validate, :scope => [ :kind, :name ]
-      #
-      # It will call "#{kind}_#{name}" in the given class. So "before_validate"
-      # will be called in the class below:
-      #
-      #   before_validate MyValidation
-      #
-      # Defaults to :kind.
+      #  When you do not pass any scope then the default value of scope ":kind" is implicitly being
+      #  passed. In the above case method "before_save" is constructed by calling "#{kind}_#{name}" 
+      #  in the given class. In this case "kind" is "before" and "name" is "save".
       #
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
