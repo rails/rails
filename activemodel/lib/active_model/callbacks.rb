@@ -2,7 +2,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/callbacks'
 
 module ActiveModel
-  # == Active Model Callbacks
+  # == Active Model Call Backs
   # 
   # Provides an interface for any class to have Active Record like callbacks.
   # 

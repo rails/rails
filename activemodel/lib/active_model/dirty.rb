@@ -4,16 +4,21 @@ require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
 
 module ActiveModel
-  # <tt>ActiveModel::Dirty</tt> provides a way to track changes in your
-  # object in the same way as ActiveRecord does.
+  # == Active Model Call Backs
+  #
+  # Provides a way to track changes in your object in the same way as 
+  # Active Record does.
   # 
-  # The requirements to implement ActiveModel::Dirty are:
+  # The requirements to implement ActiveModel::Dirty are to:
   #
   # * <tt>include ActiveModel::Dirty</tt> in your object
-  # * Call <tt>define_attribute_methods</tt> passing each method you want to track
-  # * Call <tt>attr_name_will_change!</tt> before each change to the tracked attribute
+  # * Call <tt>define_attribute_methods</tt> passing each method you want to 
+  #   track
+  # * Call <tt>attr_name_will_change!</tt> before each change to the tracked 
+  #   attribute
   # 
-  # If you wish to also track previous changes on save or update, you need to add
+  # If you wish to also track previous changes on save or update, you need to 
+  # add
   # 
   #   @previously_changed = changes
   # 
