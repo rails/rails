@@ -1,5 +1,7 @@
+# == Active Model Lint Methods
+#
 # You can test whether an object is compliant with the ActiveModel API by
-# including ActiveModel::Lint::Tests in your TestCase. It will included
+# including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will include
 # tests that tell you whether your object is fully compliant, or if not,
 # which aspects of the API are not implemented.
 #
