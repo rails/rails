@@ -54,7 +54,9 @@ module ActiveSupport
               json.gsub(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                 ustr = $1
                 if ustr.start_with?('u')
-                  [ustr[1..-1].to_i(16)].pack("U")
+                  char = [ustr[1..-1].to_i(16)].pack("U")
+                  # "\n" needs extra escaping due to yaml formatting
+                  char == "\n" ? "\\n" : char
                 elsif ustr == '\\'
                   '\\\\'
                 else
@@ -75,7 +77,9 @@ module ActiveSupport
                 chunk.gsub!(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                   ustr = $1
                   if ustr.start_with?('u')
-                    [ustr[1..-1].to_i(16)].pack("U")
+                    char = [ustr[1..-1].to_i(16)].pack("U")
+                    # "\n" needs extra escaping due to yaml formatting
+                    char == "\n" ? "\\n" : char
                   elsif ustr == '\\'
                     '\\\\'
                   else
