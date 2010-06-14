@@ -34,7 +34,7 @@ module ActiveModel
       I18n.translate(defaults.shift, options)
     end
   end
-  
+
   # == Active Model Naming
   #
   # Creates a +model_name+ method on your object.
