@@ -6,6 +6,8 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/ordered_hash'
 
 module ActiveModel
+  # == Active Model Errors
+  #
   # Provides a modified +OrderedHash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
   # 
@@ -74,7 +76,8 @@ module ActiveModel
     alias_method :get, :[]
     alias_method :set, :[]=
 
-    # When passed a symbol or a name of a method, returns an array of errors for the method.
+    # When passed a symbol or a name of a method, returns an array of errors 
+    # for the method.
     # 
     #   p.errors[:name]   #=> ["can not be nil"]
     #   p.errors['name']  #=> ["can not be nil"]
@@ -234,15 +237,20 @@ module ActiveModel
       full_messages
     end
 
-    # Translates an error message in its default scope (<tt>activemodel.errors.messages</tt>).
-    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there,
-    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the
-    # default message (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name,
+    # Translates an error message in its default scope 
+    # (<tt>activemodel.errors.messages</tt>).
+    #
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, 
+    # if it's not there, it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not 
+    # there also, it returns the translation of the default message 
+    # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name,
     # translated attribute name and the value are available for interpolation.
     #
-    # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
-    # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
-    # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
+    # When using inheritence in your models, it will check all the inherited 
+    # models too, but only if the model itself hasn't been found. Say you have
+    # <tt>class Admin < User; end</tt> and you wanted the translation for 
+    # the <tt>:blank</tt> error +message+ for the <tt>title</tt> +attribute+, 
+    # it looks for these translations:
     #
     # <ol>
     # <li><tt>activemodel.errors.models.admin.attributes.title.blank</tt></li>
