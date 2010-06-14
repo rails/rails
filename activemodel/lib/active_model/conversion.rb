@@ -1,5 +1,7 @@
 module ActiveModel
-  # Handle default conversions: to_model, to_key and to_param.
+  # == Active Model Conversions
+  #
+  # Handles default conversions: to_model, to_key and to_param.
   #
   # == Example
   #
@@ -20,17 +22,19 @@ module ActiveModel
   #   cm.to_param         #=> nil
   #
   module Conversion
-    # If your object is already designed to implement all of the Active Model you can use
-    # the default to_model implementation, which simply returns self.
+    # If your object is already designed to implement all of the Active Model 
+    # you can use the default to_model implementation, which simply returns 
+    # self.
     # 
-    # If your model does not act like an Active Model object, then you should define
-    # <tt>:to_model</tt> yourself returning a proxy object that wraps your object
-    # with Active Model compliant methods.
+    # If your model does not act like an Active Model object, then you should 
+    # define <tt>:to_model</tt> yourself returning a proxy object that wraps 
+    # your object with Active Model compliant methods.
     def to_model
       self
     end
 
-    # Returns an Enumerable of all (primary) key attributes or nil if persisted? is false
+    # Returns an Enumerable of all (primary) key attributes or nil if 
+    # persisted? is false
     def to_key
       persisted? ? [id] : nil
     end

@@ -41,7 +41,7 @@ module ActiveModel
   #     # Your code here
   #   end
   # 
-  # You can choose not to have all three callbacks by passing an hash to the 
+  # You can choose not to have all three callbacks by passing a hash to the 
   # define_model_callbacks method.
   # 
   #   define_model_callbacks :create, :only => :after, :before
@@ -55,13 +55,13 @@ module ActiveModel
       end
     end
 
-    # define_model_callbacks accepts all options define_callbacks does, in case you
-    # want to overwrite a default. Besides that, it also accepts an :only option, 
+    # define_model_callbacks accepts the same options define_callbacks does, in case
+    # you want to overwrite a default. Besides that, it also accepts an :only option, 
     # where you can choose if you want all types (before, around or after) or just some.
     #
     #   define_model_callbacks :initializer, :only => :after
     # 
-    # Note, the <tt>:only => <type></tt> hash will apply to all callbacks defined on
+    # Note, the <tt>:only => <type></tt> hash will apply to all call backs defined on
     # that method call.  To get around this you can call the define_model_callbacks
     # method as many times as you need.
     # 
@@ -73,7 +73,7 @@ module ActiveModel
     # 
     # You can pass in a class to before_<type>, after_<type> and around_<type>, in which
     # case the call back will call that class's <action>_<type> method passing the object
-    # that the callback is being called on.
+    # that the call back is being called on.
     # 
     #   class MyModel
     #     extend ActiveModel::Callbacks
@@ -84,7 +84,7 @@ module ActiveModel
     # 
     #   class AnotherClass
     #     def self.before_create( obj )
-    #       # obj is the MyModel instance that the callback is being called on
+    #       # obj is the MyModel instance that the call back is being called on
     #     end
     #   end
     #     
