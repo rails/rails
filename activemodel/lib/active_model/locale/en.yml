@@ -1,6 +1,6 @@
 en:
   errors:
-    # The default format use in full error messages.
+    # The default format to use in full error messages.
     format: "%{attribute} %{message}"
 
     # The values :model, :attribute and :value are always available for interpolation

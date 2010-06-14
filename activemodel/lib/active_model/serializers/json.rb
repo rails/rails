@@ -2,6 +2,7 @@ require 'active_support/json'
 require 'active_support/core_ext/class/attribute'
 
 module ActiveModel
+  # == Active Model JSON Serializer
   module Serializers
     module JSON
       extend ActiveSupport::Concern
@@ -14,8 +15,8 @@ module ActiveModel
         self.include_root_in_json = true
       end
 
-      # Returns a JSON string representing the model. Some configuration is
-      # available through +options+.
+      # Returns a JSON string representing the model. Some configuration can be
+      # passed through +options+.
       #
       # The option <tt>ActiveModel::Base.include_root_in_json</tt> controls the
       # top-level behavior of to_json. It is true by default. When it is <tt>true</tt>,

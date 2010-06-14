@@ -5,6 +5,7 @@ require 'active_support/core_ext/hash/conversions'
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
+  # == Active Model XML Serializer
   module Serializers
     module Xml
       extend ActiveSupport::Concern
@@ -131,6 +132,8 @@ module ActiveModel
         end
       end
 
+      # Returns XML representing the model. Configuration can be
+      # passed through +options+.
       def to_xml(options = {}, &block)
         Serializer.new(self, options).serialize(&block)
       end
