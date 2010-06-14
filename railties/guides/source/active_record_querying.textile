@@ -103,7 +103,7 @@ h5. +first+
 
 <ruby>
 client = Client.first
-=> #<Client id: 1, name: => "Lifo">
+=> #<Client id: 1, first_name: => "Lifo">
 </ruby>
 
 SQL equivalent of the above is:
@@ -120,7 +120,7 @@ h5. +last+
 
 <ruby>
 client = Client.last
-=> #<Client id: 221, name: => "Russel">
+=> #<Client id: 221, first_name: => "Russel">
 </ruby>
 
 SQL equivalent of the above is:
@@ -140,7 +140,7 @@ h5. Using Multiple Primary Keys
 <ruby>
 # Find the clients with primary keys 1 and 10.
 client = Client.find(1, 10) # Or even Client.find([1, 10])
-=> [#<Client id: 1, name: => "Lifo">, #<Client id: 10, name: => "Ryan">]
+=> [#<Client id: 1, first_name: => "Lifo">, #<Client id: 10, first_name: => "Ryan">]
 </ruby>
 
 SQL equivalent of the above is:
@@ -227,7 +227,7 @@ h4. Pure String Conditions
 
 If you'd like to add conditions to your find, you could just specify them in there, just like +Client.where("orders_count = '2'")+. This will find all clients where the +orders_count+ field's value is 2.
 
-WARNING: Building your own conditions as pure strings can leave you vulnerable to SQL injection exploits. For example, +Client.where("name LIKE '%#{params[:name]}%'")+ is not safe. See the next section for the preferred way to handle conditions using an array.
+WARNING: Building your own conditions as pure strings can leave you vulnerable to SQL injection exploits. For example, +Client.where("first_name LIKE '%#{params[:first_name]}%'")+ is not safe. See the next section for the preferred way to handle conditions using an array.
 
 h4. Array Conditions
 
@@ -544,7 +544,7 @@ In order to use optimistic locking, the table needs to have a column called +loc
 c1 = Client.find(1)
 c2 = Client.find(1)
 
-c1.name = "Michael"
+c1.first_name = "Michael"
 c1.save
 
 c2.name = "should fail"
@@ -773,21 +773,21 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 
 h3. Dynamic Finders
 
-For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your +Client+ model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+.
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have also have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+.
 
 You can do +find_last_by_*+ methods too which will find the last record matching your argument.
 
 You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
-If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked("Ryan", true)+.
+If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_first_name_and_locked("Ryan", true)+.
 
 
-There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_name(params[:name])+. Using this will firstly perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_name("Ryan")+:
+There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will firstly perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:
 
 <sql>
-SELECT * FROM clients WHERE (clients.name = 'Ryan') LIMIT 1
+SELECT * FROM clients WHERE (clients.first_name = 'Ryan') LIMIT 1
 BEGIN
-INSERT INTO clients (name, updated_at, created_at, orders_count, locked)
+INSERT INTO clients (first_name, updated_at, created_at, orders_count, locked)
   VALUES('Ryan', '2008-09-28 15:39:12', '2008-09-28 15:39:12', 0, '0')
 COMMIT
 </sql>
@@ -795,10 +795,10 @@ COMMIT
 +find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similar to calling +new+ with the arguments you passed in. For example:
 
 <ruby>
-client = Client.find_or_initialize_by_name('Ryan')
+client = Client.find_or_initialize_by_first_name('Ryan')
 </ruby>
 
-will either assign an existing client object with the name "Ryan" to the client local variable, or initialize a new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
+will either assign an existing client object with the name "Ryan" to the client local variable, or initialize a new object similar to calling +Client.new(:first_name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
 
 h3. Finding by SQL
 
