@@ -15,7 +15,7 @@ require 'active_record/connection_adapters/abstract/database_limits'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # ActiveRecord supports multiple database systems. AbstractAdapter and
+    # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
     # abstract interface for database-specific functionality such as establishing
@@ -59,7 +59,7 @@ module ActiveRecord
       end
 
       # Can this adapter determine the primary key for tables not attached
-      # to an ActiveRecord class, such as join tables?  Backend specific, as
+      # to an Active Record class, such as join tables?  Backend specific, as
       # the abstract adapter always returns +false+.
       def supports_primary_key?
         false

@@ -58,7 +58,7 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
 end
 
 
-# Recreated here from ActiveSupport because :uncommitted needs it before Rails is available
+# Recreated here from Active Support because :uncommitted needs it before Rails is available
 module Kernel
   def silence_stderr
     old_stderr = STDERR.dup

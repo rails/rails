@@ -11,7 +11,7 @@ module ActiveSupport
     # Parse an XML Document string or IO into a simple hash
     #
     # Same as XmlSimple::xml_in but doesn't shoot itself in the foot,
-    # and uses the defaults from ActiveSupport
+    # and uses the defaults from Active Support.
     #
     # data::
     #   XML Document string or IO to parse

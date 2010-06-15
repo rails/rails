@@ -37,7 +37,7 @@ module ApplicationTests
 
       ActiveRecord::Base.logger = logger = MockLogger.new
 
-      # Mimic ActiveRecord notifications
+      # Mimic Active Record notifications
       instrument "sql.active_record", :name => "SQL", :sql => "SHOW tables"
       wait
 

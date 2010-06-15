@@ -130,7 +130,7 @@ module ActiveModel #:nodoc:
   # in the options hash invoking the validate_each method passing in the
   # record, attribute and value.
   #
-  # All ActiveModel validations are built on top of this Validator.
+  # All Active Model validations are built on top of this Validator.
   class EachValidator < Validator
     attr_reader :attributes
     

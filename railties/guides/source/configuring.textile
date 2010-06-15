@@ -135,7 +135,7 @@ h4. Configuring Action Controller
 
 * +config.action_controller.allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Instead, you should simply call +config.threadsafe!+ inside your +production.rb+ file, which makes all the necessary adjustments.
 
-WARNING: Threadsafe operation in incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
+WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
 * +config.action_controller.param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
 
@@ -167,9 +167,9 @@ The caching code adds two additional settings:
 
 The Active Record session store can also be configured:
 
-* +ActiveRecord::SessionStore::Session.table_name+ sets the name of the table uses to store sessions. Defaults to +sessions+.
+* +ActiveRecord::SessionStore::Session.table_name+ sets the name of the table used to store sessions. Defaults to +sessions+.
 
-* +ActiveRecord::SessionStore::Session.primary_key+ sets the name of the ID column uses in the sessions table. Defaults to +session_id+.
+* +ActiveRecord::SessionStore::Session.primary_key+ sets the name of the ID column used in the sessions table. Defaults to +session_id+.
 
 * +ActiveRecord::SessionStore::Session.data_column_name+ sets the name of the column which stores marshaled session data. Defaults to +data+.
 
@@ -235,9 +235,9 @@ h4. Configuring Active Support
 
 There are a few configuration options available in Active Support:
 
-* +config.active_support.escape_html_entities_in_json+ enables or disables the escaping of HTML entities in JSON serialization. Defaults to _true_.
+* +config.active_support.escape_html_entities_in_json+ enables or disables the escaping of HTML entities in JSON serialization. Defaults to +true+.
 
-* +config.active_support.use_standard_json_time_format+ enables or disables serializing dates to ISO 8601 format. Defaults to _false_.
+* +config.active_support.use_standard_json_time_format+ enables or disables serializing dates to ISO 8601 format. Defaults to +false+.
 
 * +ActiveSupport::BufferedLogger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
 
@@ -247,7 +247,7 @@ There are a few configuration options available in Active Support:
 
 h3. Using Initializers
 
-After it loads the framework plus any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of ruby code stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+After loading the framework and any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of Ruby code stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the +initializers+ folder on down.
 

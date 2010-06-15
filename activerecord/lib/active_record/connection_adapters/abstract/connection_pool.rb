@@ -9,7 +9,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    # Connection pool base class for managing ActiveRecord database
+    # Connection pool base class for managing Active Record database
     # connections.
     #
     # == Introduction
@@ -30,12 +30,12 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use ActiveRecord::Base.connection as with ActiveRecord 2.1 and
+    # 1. Simply use ActiveRecord::Base.connection as with Active Record 2.1 and
     #    earlier (pre-connection-pooling). Eventually, when you're done with
     #    the connection(s) and wish it to be returned to the pool, you call
     #    ActiveRecord::Base.clear_active_connections!. This will be the
-    #    default behavior for ActiveRecord when used in conjunction with
-    #    ActionPack's request handling cycle.
+    #    default behavior for Active Record when used in conjunction with
+    #    Action Pack's request handling cycle.
     # 2. Manually check out a connection from the pool with
     #    ActiveRecord::Base.connection_pool.checkout. You are responsible for
     #    returning this connection to the pool when finished by calling
@@ -265,7 +265,7 @@ module ActiveRecord
     end
 
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
-    # for keeping separate connection pools for ActiveRecord models that connect
+    # for keeping separate connection pools for Active Record models that connect
     # to different databases.
     #
     # For example, suppose that you have 5 models, with the following hierarchy:
@@ -285,7 +285,7 @@ module ActiveRecord
     # is not the same as the one used by Book/ScaryBook/GoodBook.
     #
     # Normally there is only a single ConnectionHandler instance, accessible via
-    # ActiveRecord::Base.connection_handler. ActiveRecord models use this to
+    # ActiveRecord::Base.connection_handler. Active Record models use this to
     # determine that connection pool that they should use.
     class ConnectionHandler
       def initialize(pools = {})

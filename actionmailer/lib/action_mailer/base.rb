@@ -209,7 +209,7 @@ module ActionMailer #:nodoc:
   # 
   #   <%= image_tag attachments['photo.png'].url -%>
   # 
-  # As we are using ActionView's +image_tag+ method, you can pass in any other options you want:
+  # As we are using Action View's +image_tag+ method, you can pass in any other options you want:
   # 
   #   <h1>Please Don't Cringe</h1>
   # 
@@ -739,7 +739,7 @@ module ActionMailer #:nodoc:
     end
 
     # This module will complain if the user tries to set default_url_options
-    # directly instead of through the config object. In ActionMailer's Railtie,
+    # directly instead of through the config object. In Action Mailer's Railtie,
     # we include the url_helpers of the router, which will override this module
     extend DeprecatedUrlOptions
 

@@ -275,7 +275,7 @@ class TestController < ActionController::Base
     render :action => "hello", :layout => "layouts/builder"
   end
 
-  # :move: test this in ActionView
+  # :move: test this in Action View
   def builder_partial_test
     render :action => "hello_world_container"
   end
