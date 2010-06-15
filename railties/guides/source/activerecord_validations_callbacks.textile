@@ -16,7 +16,7 @@ endprologue.
 
 h3. The Object Lifecycle
 
-During the normal operation of a Rails application objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object lifecycle</em> so that you can control your application and its data. 
+During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object lifecycle</em> so that you can control your application and its data. 
 
 Validations allow you to ensure that only valid data is stored in your database. Callbacks and observers allow you to trigger logic before or after an alteration of an object's state.
 
@@ -71,7 +71,7 @@ The following methods trigger validations, and will save the object to the datab
 * +update_attributes+
 * +update_attributes!+
 
-The bang versions (e.g. +save!+) raise an exception if the record is invalid. The non-bang versions don't: +save+ and +update_attributes+ return +false+, +create+ and +update+ just return the object/s.
+The bang versions (e.g. +save!+) raise an exception if the record is invalid. The non-bang versions don't: +save+ and +update_attributes+ return +false+, +create+ and +update+ just return the objects.
 
 h4. Skipping Validations
 
@@ -240,9 +240,9 @@ class Account < ActiveRecord::Base
 end
 </ruby>
 
-The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+  that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
+The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
 
-The default error message for +validates_exclusion_of+  is "_is reserved_".
+The default error message for +validates_exclusion_of+ is "_is reserved_".
 
 h4. +validates_format_of+
 
@@ -270,7 +270,7 @@ end
 
 The +validates_inclusion_of+ helper has an option +:in+ that receives the set of values that will be accepted. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. The previous example uses the +:message+ option to show how you can include the attribute's value.
 
-The default error message for +validates_inclusion_of+  is "_is not included in the list_".
+The default error message for +validates_inclusion_of+ is "_is not included in the list_".
 
 h4. +validates_length_of+
 
@@ -343,7 +343,7 @@ Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the
 * +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to %{count}_".
 * +:equal_to+ - Specifies the value must be equal to the supplied value. The default error message for this option is "_must be equal to %{count}_".
 * +:less_than+ - Specifies the value must be less than the supplied value. The default error message for this option is "_must be less than %{count}_".
-* +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less or equal to %{count}_".
+* +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less than or equal to %{count}_".
 * +:odd+ - Specifies the value must be an odd number if set to true. The default error message for this option is "_must be odd_".
 * +:even+ - Specifies the value must be an even number if set to true. The default error message for this option is "_must be even_".
 
@@ -374,7 +374,7 @@ The default error message for +validates_presence_of+ is "_can't be empty_".
 
 h4. +validates_uniqueness_of+
 
-This helper validates that the attribute's value is unique right before the object gets saved. It does not create a uniqueness constraint in the database, so it may happen that two different database connections create two records with the same value for a column that you intend to be unique. To avoid that, you must create an unique index in your database.
+This helper validates that the attribute's value is unique right before the object gets saved. It does not create a uniqueness constraint in the database, so it may happen that two different database connections create two records with the same value for a column that you intend to be unique. To avoid that, you must create a unique index in your database.
 
 <ruby>
 class Account < ActiveRecord::Base
@@ -423,14 +423,14 @@ class GoodnessValidator < ActiveRecord::Validator
 end
 </ruby>
 
-The +validates_with+ helper takes a class, or a list of classes to use for validation.  There is no default error message for +validates_with+.  You must manually add errors to the record's errors collection in the validator class.
+The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
 The validator class has two attributes by default:
 
 * +record+ - the record to be validated
 * +options+ - the extra options that were passed to +validates_with+
 
-Like all other validations, +validates_with+ takes the +:if+, +:unless+ and +:on+ options.  If you pass any other options, it will send those options to the validator class as +options+:
+Like all other validations, +validates_with+ takes the +:if+, +:unless+ and +:on+ options. If you pass any other options, it will send those options to the validator class as +options+:
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -494,7 +494,7 @@ As you've already seen, the +:message+ option lets you specify the message that 
 
 h4. +:on+
 
-The +:on+ option lets you specify when the validation should happen. The default behavior for all the built-in validation helpers is to be ran on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use +:on => :create+ to run the validation only when a new record is created or +:on => :update+ to run the validation only when a record is updated.
+The +:on+ option lets you specify when the validation should happen. The default behavior for all the built-in validation helpers is to be run on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use +:on => :create+ to run the validation only when a new record is created or +:on => :update+ to run the validation only when a record is updated.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -573,7 +573,7 @@ class Invoice < ActiveRecord::Base
 end
 </ruby>
 
-You can even create your own validation helpers and reuse them in several different models. For example, an application that manages surveys may find useful to express that a certain field corresponds to a set of choices:
+You can even create your own validation helpers and reuse them in several different models. For example, an application that manages surveys may find it useful to express that a certain field corresponds to a set of choices:
 
 <ruby>
 ActiveRecord::Base.class_eval do
@@ -599,7 +599,7 @@ The following is a list of the most commonly used methods. Please refer to the +
 
 h4(#working_with_validation_errors-errors). +errors+
 
-Returns an OrderedHash with all errors. Each key is the attribute name and value is an array of strings with all errors.
+Returns an OrderedHash with all errors. Each key is the attribute name and the value is an array of strings with all errors.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -619,7 +619,7 @@ person.errors # => []
 
 h4(#working_with_validation_errors-errors-2). +errors[]+
 
-+errors[]+ is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute returns an empty array.
++errors[]+ is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute, it returns an empty array.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -681,7 +681,7 @@ Another way to do this is using +[]=+ setter
 
 h4. +errors[:base]+
 
-You can add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to the array and uses it as the error message.
+You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to the array and uses it as the error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -789,7 +789,7 @@ Both the +form.error_messages+ and the +error_messages_for+ helpers accept optio
   :header_tag => :h3 %>
 </erb>
 
-Which results in the following content
+Which results in the following content:
 
 !images/customized_error_messages.png(Customized error messages)!
 
