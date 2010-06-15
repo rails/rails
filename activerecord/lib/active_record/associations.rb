@@ -88,7 +88,7 @@ module ActiveRecord
     end
   end
 
-  # This error is raised when trying to destroy a parent instance in a N:1, 1:1 associations
+  # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
   # (has_many, has_one) when there is at least 1 child associated instance.
   # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
   class DeleteRestrictionError < ActiveRecordError #:nodoc:
