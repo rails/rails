@@ -10,7 +10,7 @@ module ActiveSupport
     # appropriate cache for you.
     #
     # This cache has a bounded size specified by the :size options to the
-    # initializer (default is 32Mb). When the cache exceeds the alotted size,
+    # initializer (default is 32Mb). When the cache exceeds the allotted size,
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
     #

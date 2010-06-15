@@ -173,15 +173,15 @@ HEADER
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            statment_parts = [ ('add_index ' + index.table.inspect) ]
-            statment_parts << index.columns.inspect
-            statment_parts << (':name => ' + index.name.inspect)
-            statment_parts << ':unique => true' if index.unique
+            statement_parts = [ ('add_index ' + index.table.inspect) ]
+            statement_parts << index.columns.inspect
+            statement_parts << (':name => ' + index.name.inspect)
+            statement_parts << ':unique => true' if index.unique
 
             index_lengths = index.lengths.compact if index.lengths.is_a?(Array)
-            statment_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index_lengths.present?
+            statement_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index_lengths.present?
 
-            '  ' + statment_parts.join(', ')
+            '  ' + statement_parts.join(', ')
           end
 
           stream.puts add_index_statements.sort.join("\n")

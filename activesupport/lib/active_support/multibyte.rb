@@ -17,7 +17,7 @@ module ActiveSupport #:nodoc:
       @proxy_class = klass
     end
 
-    # Returns the currect proxy class
+    # Returns the current proxy class
     def self.proxy_class
       @proxy_class ||= ActiveSupport::Multibyte::Chars
     end

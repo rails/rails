@@ -22,7 +22,7 @@ module ActiveSupport
     EMPTY_OPTIONS = {}.freeze
 
     # These options mean something to all cache implementations. Individual cache
-    # implementations may support additional optons.
+    # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
 
     module Strategy

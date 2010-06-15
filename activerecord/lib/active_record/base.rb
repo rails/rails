@@ -1446,7 +1446,7 @@ module ActiveRecord #:nodoc:
         # For example in the test suite the topic model's after_initialize method sets the author_email_address to
         # test@test.com. I would have thought this would mean that all cloned models would have an author email address
         # of test@test.com. However the test_clone test method seems to test that this is not the case. As a result the
-        # after_initialize callback has to be run *before* the copying of the atrributes rather than afterwards in order
+        # after_initialize callback has to be run *before* the copying of the attributes rather than afterwards in order
         # for all tests to pass. This makes no sense to me.
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)

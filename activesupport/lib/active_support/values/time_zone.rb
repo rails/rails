@@ -224,7 +224,7 @@ module ActiveSupport
       utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end
 
-    # Compare this time zone to the parameter. The two are comapred first on
+    # Compare this time zone to the parameter. The two are compared first on
     # their offsets, and then by name.
     def <=>(zone)
       result = (utc_offset <=> zone.utc_offset)

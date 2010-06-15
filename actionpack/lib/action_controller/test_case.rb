@@ -188,7 +188,7 @@ module ActionController
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method. This should not be confused with
   # integration tests (see ActionController::IntegrationTest), which are more like
-  # "stories" that can involve multiple controllers and mutliple actions (i.e. multiple
+  # "stories" that can involve multiple controllers and multiple actions (i.e. multiple
   # different HTTP requests).
   #
   # == Basic example
@@ -442,7 +442,7 @@ module ActionController
     end
 
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
-    # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
+    # (skipping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
     # rescue_action process takes place. This means you can test your rescue_action code by setting remote_addr to something else
     # than 0.0.0.0.
     #

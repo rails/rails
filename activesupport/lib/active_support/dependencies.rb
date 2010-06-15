@@ -340,7 +340,7 @@ module ActiveSupport #:nodoc:
 
     if Module.method(:const_defined?).arity == 1
       # Does this module define this constant?
-      # Wrapper to accomodate changing Module#const_defined? in Ruby 1.9
+      # Wrapper to accommodate changing Module#const_defined? in Ruby 1.9
       def local_const_defined?(mod, const)
         mod.const_defined?(const)
       end

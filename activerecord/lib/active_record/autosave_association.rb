@@ -375,7 +375,7 @@ module ActiveRecord
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
             self[reflection.primary_key_name] = association_id
-            # TODO: Removing this code doesn't seem to matter…
+            # TODO: Removing this code doesn't seem to matter...
             if reflection.options[:polymorphic]
               self[reflection.options[:foreign_type]] = association.class.base_class.name.to_s
             end

@@ -31,8 +31,8 @@ module ActionDispatch
     end
 
     module Upload
-      # Convert nested Hashs to HashWithIndifferentAccess and replace
-      # file upload hashs with UploadedFile objects
+      # Convert nested Hash to HashWithIndifferentAccess and replace
+      # file upload hash with UploadedFile objects
       def normalize_parameters(value)
         if Hash === value && value.has_key?(:tempfile)
           upload = value[:tempfile]
