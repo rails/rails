@@ -1,4 +1,6 @@
 module ActiveModel
+
+  # == Active Model Inclusion Validator
   module Validations
     class InclusionValidator < EachValidator
       def check_validity!

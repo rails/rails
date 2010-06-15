@@ -1,4 +1,6 @@
 module ActiveModel
+
+  # == Active Model Exclusion Validator
   module Validations
     class ExclusionValidator < EachValidator
       def check_validity!

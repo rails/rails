@@ -1,4 +1,6 @@
 module ActiveModel
+
+  # == Active Model Numericality Validator
   module Validations
     class NumericalityValidator < EachValidator
       CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,

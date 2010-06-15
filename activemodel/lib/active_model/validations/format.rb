@@ -1,4 +1,6 @@
 module ActiveModel
+
+  # == Active Model Format Validator
   module Validations
     class FormatValidator < EachValidator
       def validate_each(record, attribute, value)
