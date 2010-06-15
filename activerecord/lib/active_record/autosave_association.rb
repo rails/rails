@@ -1,6 +1,8 @@
 require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
+  # = Active Record Autosave Association
+  # 
   # AutosaveAssociation is a module that takes care of automatically saving
   # your associations when the parent is saved. In addition to saving, it
   # also destroys any associations that were marked for destruction.

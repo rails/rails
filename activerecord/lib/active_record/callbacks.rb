@@ -1,6 +1,8 @@
 require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
+  # = Active Record Callbacks
+  # 
   # Callbacks are hooks into the lifecycle of an Active Record object that allow you to trigger logic
   # before or after an alteration of the object state. This can be used to make sure that associated and
   # dependent objects are deleted when +destroy+ is called (by overwriting +before_destroy+) or to massage attributes

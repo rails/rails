@@ -21,6 +21,8 @@ require 'arel'
 require 'active_record/errors'
 
 module ActiveRecord #:nodoc:
+  # = Active Record 
+  #
   # Active Record objects don't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
   # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain

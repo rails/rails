@@ -1,4 +1,5 @@
 module ActiveRecord
+  # = Active Record Aggregations
   module Aggregations # :nodoc:
     extend ActiveSupport::Concern
 
