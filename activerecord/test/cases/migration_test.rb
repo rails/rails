@@ -1627,9 +1627,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       connection.create_table :values, :force => true do |t|
         t.integer :value
       end
-      connection.add_index :values, :value
 
       assert_nothing_raised do
+        connection.add_index :values, :value
         connection.remove_index :values, :column => :value
       end
 
