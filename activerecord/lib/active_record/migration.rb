@@ -29,11 +29,15 @@ module ActiveRecord
     end
   end
 
-  # Migrations can manage the evolution of a schema used by several physical databases. It's a solution
-  # to the common problem of adding a field to make a new feature work in your local database, but being unsure of how to
-  # push that change to other developers and to the production server. With migrations, you can describe the transformations
-  # in self-contained classes that can be checked into version control systems and executed against another database that
-  # might be one, two, or five versions behind.
+  # Active Record Migrations
+  # 
+  # Migrations can manage the evolution of a schema used by several physical 
+  # databases. It's a solution to the common problem of adding a field to make
+  # a new feature work in your local database, but being unsure of how to
+  # push that change to other developers and to the production server. With 
+  # migrations, you can describe the transformations in self-contained classes
+  # that can be checked into version control systems and executed against 
+  # another database that might be one, two, or five versions behind.
   #
   # Example of a simple migration:
   #
@@ -47,10 +51,13 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This migration will add a boolean flag to the accounts table and remove it if you're backing out of the migration.
-  # It shows how all migrations have two class methods +up+ and +down+ that describes the transformations required to implement
-  # or remove the migration. These methods can consist of both the migration specific methods like add_column and remove_column,
-  # but may also contain regular Ruby code for generating data needed for the transformations.
+  # This migration will add a boolean flag to the accounts table and remove it 
+  # if you're backing out of the migration. It shows how all migrations have 
+  # two class methods +up+ and +down+ that describes the transformations 
+  # required to implement or remove the migration. These methods can consist
+  # of both the migration specific methods like add_column and remove_column,
+  # but may also contain regular Ruby code for generating data needed for the 
+  # transformations.
   #
   # Example of a more complex migration that also needs to initialize data:
   #
@@ -64,7 +71,9 @@ module ActiveRecord
   #         t.integer  :position
   #       end
   #
-  #       SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
+  #       SystemSetting.create  :name => "notice", 
+  #                             :label => "Use notice?", 
+  #                             :value => 1
   #     end
   #
   #     def self.down
@@ -72,35 +81,49 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This migration first adds the system_settings table, then creates the very first row in it using the Active Record model
-  # that relies on the table. It also uses the more advanced create_table syntax where you can specify a complete table schema
-  # in one block call.
+  # This migration first adds the system_settings table, then creates the very 
+  # first row in it using the Active Record model that relies on the table. It
+  # also uses the more advanced create_table syntax where you can specify a 
+  # complete table schema in one block call.
   #
   # == Available transformations
   #
-  # * <tt>create_table(name, options)</tt> Creates a table called +name+ and makes the table object available to a block
-  #   that can then add columns to it, following the same format as add_column. See example above. The options hash is for
-  #   fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create table definition.
+  # * <tt>create_table(name, options)</tt> Creates a table called +name+ and 
+  #   makes the table object available to a block that can then add columns to it,
+  #   following the same format as add_column. See example above. The options hash 
+  #   is for fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create 
+  #   table definition.
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
-  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+ to +new_name+.
-  # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column to the table called +table_name+
+  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+ 
+  #   to +new_name+.
+  # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column 
+  #   to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
-  #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
-  #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be specified by passing an
-  #   +options+ hash like <tt>{ :default => 11 }</tt>. Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g. <tt>{ :limit => 50, :null => false }</tt>)
-  #   -- see ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
-  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames a column but keeps the type and content.
-  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes the column to a different type using the same
-  #   parameters as add_column.
-  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named +column_name+ from the table called +table_name+.
-  # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index with the name of the column. Other options include
-  #   <tt>:name</tt> and <tt>:unique</tt> (e.g. <tt>{ :name => "users_name_index", :unique => true }</tt>).
-  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified by +index_name+.
+  #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>, 
+  #   <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
+  #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be
+  #   specified by passing an +options+ hash like <tt>{ :default => 11 }</tt>. 
+  #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g. 
+  #   <tt>{ :limit => 50, :null => false }</tt>) -- see 
+  #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
+  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
+  #   a column but keeps the type and content.
+  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes 
+  #   the column to a different type using the same parameters as add_column.
+  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named 
+  #   +column_name+ from the table called +table_name+.
+  # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index 
+  #   with the name of the column. Other options include
+  #   <tt>:name</tt> and <tt>:unique</tt> (e.g. 
+  #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
+  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified 
+  #   by +index_name+.
   #
   # == Irreversible transformations
   #
-  # Some transformations are destructive in a manner that cannot be reversed. Migrations of that kind should raise
-  # an <tt>ActiveRecord::IrreversibleMigration</tt> exception in their +down+ method.
+  # Some transformations are destructive in a manner that cannot be reversed. 
+  # Migrations of that kind should raise an <tt>ActiveRecord::IrreversibleMigration</tt> 
+  # exception in their +down+ method.
   #
   # == Running migrations from within Rails
   #
@@ -110,13 +133,15 @@ module ActiveRecord
   #   rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
-  # create an empty migration file <tt>timestamp_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
-  # directory where <tt>timestamp</tt> is the UTC formatted date and time that the migration was generated.
+  # create an empty migration file <tt>timestamp_my_new_migration.rb</tt> 
+  # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the 
+  # UTC formatted date and time that the migration was generated.
   #
   # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
   # MyNewMigration.
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
+  #
   #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
@@ -191,9 +216,10 @@ module ActiveRecord
   #
   # == Using a model after changing its table
   #
-  # Sometimes you'll want to add a column in a migration and populate it immediately after. In that case, you'll need
-  # to make a call to Base#reset_column_information in order to ensure that the model has the latest column data from
-  # after the new column was added. Example:
+  # Sometimes you'll want to add a column in a migration and populate it 
+  # immediately after. In that case, you'll need to make a call to 
+  # <tt>Base#reset_column_information</tt> in order to ensure that the model has the 
+  # latest column data from after the new column was added. Example:
   #
   #   class AddPeopleSalary < ActiveRecord::Migration
   #     def self.up

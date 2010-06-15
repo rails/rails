@@ -1,6 +1,8 @@
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
+
+  # == Active Model validates method
   module Validations
     module ClassMethods
       # This method is a shortcut to all default validators and any custom

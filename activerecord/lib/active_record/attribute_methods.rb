@@ -1,6 +1,7 @@
 require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
+  # = Active Record Attribute Methods
   module AttributeMethods #:nodoc:
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods

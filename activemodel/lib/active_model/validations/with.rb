@@ -1,4 +1,6 @@
 module ActiveModel
+
+  # == Active Model validates_with method
   module Validations
     module HelperMethods
       private
