@@ -41,7 +41,7 @@ module ActiveRecord
     # though the object behind <tt>blog.posts</tt> is not an Array, but an
     # ActiveRecord::Associations::HasManyAssociation.
     #
-    # The <tt>@target</tt> object is not loaded until needed. For example,
+    # The <tt>@target</tt> object is not \loaded until needed. For example,
     #
     #   blog.posts.count
     #
