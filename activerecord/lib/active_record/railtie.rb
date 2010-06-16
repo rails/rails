@@ -9,6 +9,7 @@ require "active_model/railtie"
 require "action_controller/railtie"
 
 module ActiveRecord
+  # = Active Record Railtie
   class Railtie < Rails::Railtie
     config.active_record = ActiveSupport::OrderedOptions.new
 

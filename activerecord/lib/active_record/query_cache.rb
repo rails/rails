@@ -1,6 +1,7 @@
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
+  # = Active Record Query Cache
   class QueryCache
     module ClassMethods
       # Enable the query cache within the block if Active Record is configured.

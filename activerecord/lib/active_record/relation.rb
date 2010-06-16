@@ -1,6 +1,7 @@
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
+  # = Active Record Relation
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
@@ -75,10 +76,12 @@ module ActiveRecord
       @records
     end
 
+    # Returns size of the records.
     def size
       loaded? ? @records.length : count
     end
 
+    # Returns true if there are no records.
     def empty?
       loaded? ? @records.empty? : count.zero?
     end
@@ -240,8 +243,9 @@ module ActiveRecord
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
-    # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
+    # Both calls delete the affected posts all at once with a single DELETE statement. 
+    # If you need to destroy dependent associations or call your <tt>before_*</tt> or 
+    # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
       conditions ? where(conditions).delete_all : arel.delete.tap { reset }
     end
