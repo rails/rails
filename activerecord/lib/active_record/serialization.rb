@@ -1,4 +1,5 @@
 module ActiveRecord #:nodoc:
+  # = Active Record Serialization
   module Serialization
     extend ActiveSupport::Concern
     include ActiveModel::Serializers::JSON
@@ -22,6 +23,7 @@ module ActiveRecord #:nodoc:
 
     private
       # Add associations specified via the <tt>:includes</tt> option.
+      # 
       # Expects a block that takes as arguments:
       #   +association+ - name of the association
       #   +records+     - the association record(s) to be serialized

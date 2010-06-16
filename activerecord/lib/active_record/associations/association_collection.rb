@@ -3,6 +3,8 @@ require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
   module Associations
+    # = Active Record Association Collection
+    #
     # AssociationCollection is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
     # collections. See the class hierarchy in AssociationProxy.

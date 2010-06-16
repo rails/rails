@@ -1,6 +1,7 @@
 require "active_record/associations/through_association_scope"
 
 module ActiveRecord
+  # = Active Record Has One Through Association
   module Associations
     class HasOneThroughAssociation < HasOneAssociation
       include ThroughAssociationScope

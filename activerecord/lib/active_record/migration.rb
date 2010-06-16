@@ -29,7 +29,7 @@ module ActiveRecord
     end
   end
 
-  # Active Record Migrations
+  # = Active Record Migrations
   # 
   # Migrations can manage the evolution of a schema used by several physical 
   # databases. It's a solution to the common problem of adding a field to make
