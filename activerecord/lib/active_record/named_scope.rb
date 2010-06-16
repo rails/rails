@@ -19,7 +19,7 @@ module ActiveRecord
       #   fruits = fruits.where(:colour => 'red') if options[:red_only]
       #   fruits = fruits.limit(10) if limited?
       #
-      # Anonymous scopes tend to be useful when procedurally generating complex
+      # Anonymous \scopes tend to be useful when procedurally generating complex
       # queries, where passing intermediate values (scopes) around as first-class 
       # objects is convenient.
       #
