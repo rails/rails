@@ -54,5 +54,5 @@ end
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do
   require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/am", "doc").upload
+  Rake::SshDirPublisher.new("rails@api.rubyonrails.org", "public_html/am", "doc").upload
 end
