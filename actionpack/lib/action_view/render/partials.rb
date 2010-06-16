@@ -1,6 +1,8 @@
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Partials
+  #
   # There's also a convenience method for rendering sub templates within the current controller that depends on a
   # single object (we call this kind of sub templates for partials). It relies on the fact that partials should
   # follow the naming convention of being prefixed with an underscore -- as to separate them from regular

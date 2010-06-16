@@ -3,6 +3,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActionView
+  # = Action View Template
   class Template
     extend ActiveSupport::Autoload
 
