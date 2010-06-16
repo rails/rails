@@ -3,6 +3,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_model/errors'
+require 'active_model/validations/callbacks'
 
 module ActiveModel
 
@@ -45,6 +46,7 @@ module ActiveModel
   module Validations
     extend ActiveSupport::Concern
     include ActiveSupport::Callbacks
+    include ActiveModel::Validations::Callbacks
 
     included do
       extend ActiveModel::Translation
@@ -156,18 +158,6 @@ module ActiveModel
     # Returns the Errors object that holds all information about attribute error messages.
     def errors
       @errors ||= Errors.new(self)
-    end
-
-    # Runs all the specified validations and returns true if no errors were added
-    # otherwise false. Context can optionally be supplied to define which callbacks
-    # to test against (the context is defined on the validations using :on).
-    def valid?(context = nil)
-      current_context, self.validation_context = validation_context, context
-      errors.clear
-      _run_validate_callbacks
-      errors.empty?
-    ensure
-      self.validation_context = current_context
     end
 
     # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, 

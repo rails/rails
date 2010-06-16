@@ -1874,6 +1874,7 @@ module ActiveRecord #:nodoc:
     extend ActiveSupport::DescendantsTracker
 
     include ActiveModel::Conversion
+    include ActiveModel::Validations::Callbacks
     include Validations
     extend CounterCache
     include Locking::Optimistic, Locking::Pessimistic
