@@ -45,7 +45,7 @@ elsif RUBY_ENGINE == "jruby"
 end
 
 group :documentation do
-  gem 'rdoc', '2.1'
+  gem 'rdoc', '2.2'
 end
 
 if ENV['CI']

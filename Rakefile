@@ -1,3 +1,6 @@
+gem 'rdoc', '= 2.2'
+require 'rdoc'
+
 require 'rake'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
@@ -68,7 +71,15 @@ Rake::RDocTask.new do |rdoc|
   rdoc.options << '--charset' << 'utf-8'
   rdoc.options << '--main' << 'railties/README'
 
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : './doc/template/horo'
+  # Workaround: RDoc assumes that rdoc.template can be required, and that
+  # rdoc.template.upcase is a constant living in RDoc::Generator::HTML
+  # which holds the actual template class.
+  # 
+  # We put 'doc/template' in the load path to be able to set the template
+  # to the string 'horo' and thus meet those RDoc's assumptions.
+  $:.unshift('doc/template')
+
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : 'horo'
 
   rdoc.rdoc_files.include('railties/CHANGELOG')
   rdoc.rdoc_files.include('railties/MIT-LICENSE')
