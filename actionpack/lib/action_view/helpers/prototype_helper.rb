@@ -4,6 +4,7 @@ require 'active_support/core_ext/object/returning'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Prototype Helpers
   module Helpers
     # Prototype[http://www.prototypejs.org/] is a JavaScript library that provides
     # DOM[http://en.wikipedia.org/wiki/Document_Object_Model] manipulation,

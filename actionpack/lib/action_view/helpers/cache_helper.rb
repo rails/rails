@@ -1,8 +1,10 @@
 module ActionView
+  # = Action View Cache Helper
   module Helpers
-    # This helper to exposes a method for caching of view fragments.
-    # See ActionController::Caching::Fragments for usage instructions.
     module CacheHelper
+      # This helper to exposes a method for caching of view fragments.
+      # See ActionController::Caching::Fragments for usage instructions.
+      #
       # A method for caching fragments of a view rather than an entire
       # action or page.  This technique is useful caching pieces like
       # menus, lists of news topics, static HTML fragments, and so on.

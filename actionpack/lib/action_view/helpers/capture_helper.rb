@@ -1,9 +1,11 @@
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Capture Helper
   module Helpers
     # CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
+    #
     # It provides a method to capture blocks into variables through capture and
     # a way to capture a block of markup for use in a layout through content_for.
     module CaptureHelper

@@ -4,6 +4,7 @@ require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Form Option Helpers
   module Helpers
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     # == Options
