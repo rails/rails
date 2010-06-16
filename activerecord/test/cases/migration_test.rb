@@ -1032,7 +1032,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       elsif current_adapter?(:SQLiteAdapter)
         # - SQLite3 stores a float, in violation of SQL
         assert_kind_of BigDecimal, b.value_of_e
-        assert_equal BigDecimal("2.71828182845905"), b.value_of_e
+        assert_in_delta BigDecimal("2.71828182845905"), b.value_of_e, 0.00000000000001
       else
         # - SQL standard is an integer
         assert_kind_of Fixnum, b.value_of_e
