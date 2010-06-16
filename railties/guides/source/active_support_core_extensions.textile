@@ -773,7 +773,7 @@ In fact, you can delegate to any expression passed as a string. It will be evalu
 delegate :alert, :notice, :to => "request.flash"
 </ruby>
 
-If the target is +nil+ calling any delegated method will raise an exception even if +nil+ responds to such method. You can override this behaviour setting the option +:allow_nil+ to true, in which case the forwarded call will simply return +nil+.
+If the target is +nil+ calling any delegated method will raise an exception even if +nil+ responds to such method. You can override this behavior setting the option +:allow_nil+ to true, in which case the forwarded call will simply return +nil+.
 
 If the target is a method, the name of delegated methods can also be prefixed. If the +:prefix+ option is set to (exactly) the +true+ object, the value of the +:to+ option is prefixed:
 
@@ -2120,7 +2120,7 @@ NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
 h4. Wrapping
 
-The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behaviour for enumerables:
+The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behavior for enumerables:
 
 <ruby>
 Array.wrap(:foo => :bar) # => [{:foo => :bar}]
@@ -2693,7 +2693,7 @@ h4. Calculations
 
 NOTE: All the following methods are defined in +active_support/core_ext/date/calculations.rb+.
 
-INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behaviour around those days for brevity, but it is enough to say that they do what you would expect. That is, +Date.new(1582, 10, 4).tomorrow+ returns +Date.new(1582, 10, 15)+ and so on. Please check +test/core_ext/date_ext_test.rb+ in the Active Support test suite for expected behaviour.
+INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, +Date.new(1582, 10, 4).tomorrow+ returns +Date.new(1582, 10, 15)+ and so on. Please check +test/core_ext/date_ext_test.rb+ in the Active Support test suite for expected behavior.
 
 h5. +Date.current+
 
@@ -3080,7 +3080,7 @@ Active Support adds +missing_name?+ to +NameError+, which tests whether the exce
 
 The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully-qualified constant name.
 
-TIP: A symbol can represent a fully-qualified constant name as in +:"ActiveRecord::Base"+, so the behaviour for symbols is defined for convenience, not because it has to be that way technically.
+TIP: A symbol can represent a fully-qualified constant name as in +:"ActiveRecord::Base"+, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
 For example, when an action of +PostsController+ is called Rails tries optimistically to use +PostsHelper+. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that +posts_helper.rb+ raises a +NameError+ due to an actual unknown constant. That should be reraised. The method +missing_name?+ provides a way to distinguish both cases:
 
