@@ -1,6 +1,8 @@
 module ActiveRecord
+  # = Active Record Persistence
   module Persistence
-    # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
+    # Returns true if this object hasn't been saved yet -- that is, a record 
+    # for the object doesn't exist in the data store yet; otherwise, returns false.
     def new_record?
       @new_record
     end
@@ -10,7 +12,8 @@ module ActiveRecord
       @destroyed
     end
 
-    # Returns if the record is persisted, i.e. it's not a new record and it was not destroyed.
+    # Returns if the record is persisted, i.e. it's not a new record and it was
+    # not destroyed.
     def persisted?
       !(new_record? || destroyed?)
     end
@@ -69,8 +72,8 @@ module ActiveRecord
       freeze
     end
 
-    # Deletes the record in the database and freezes this instance to reflect that no changes should
-    # be made (since they can't be persisted).
+    # Deletes the record in the database and freezes this instance to reflect 
+    # that no changes should be made (since they can't be persisted).
     def destroy
       if persisted?
         self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
@@ -80,10 +83,13 @@ module ActiveRecord
       freeze
     end
 
-    # Returns an instance of the specified +klass+ with the attributes of the current record. This is mostly useful in relation to
-    # single-table inheritance structures where you want a subclass to appear as the superclass. This can be used along with record
-    # identification in Action Pack to allow, say, <tt>Client < Company</tt> to do something like render <tt>:partial => @client.becomes(Company)</tt>
-    # to render that instance using the companies/company partial instead of clients/client.
+    # Returns an instance of the specified +klass+ with the attributes of the 
+    # current record. This is mostly useful in relation to single-table 
+    # inheritance structures where you want a subclass to appear as the 
+    # superclass. This can be used along with record identification in 
+    # Action Pack to allow, say, <tt>Client < Company</tt> to do something 
+    # like render <tt>:partial => @client.becomes(Company)</tt> to render that
+    # instance using the companies/company partial instead of clients/client.
     #
     # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
     # instance will affect the other.
@@ -104,14 +110,15 @@ module ActiveRecord
       save(:validate => false)
     end
 
-    # Updates all the attributes from the passed-in Hash and saves the record. If the object is invalid, the saving will
-    # fail and false will be returned.
+    # Updates all the attributes from the passed-in Hash and saves the record. 
+    # If the object is invalid, the saving will fail and false will be returned.
     def update_attributes(attributes)
       self.attributes = attributes
       save
     end
 
-    # Updates an object just like Base.update_attributes but calls save! instead of save so an exception is raised if the record is invalid.
+    # Updates an object just like Base.update_attributes but calls save! instead
+    # of save so an exception is raised if the record is invalid.
     def update_attributes!(attributes)
       self.attributes = attributes
       save!

@@ -1,6 +1,8 @@
 require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
+  # = Active Record Observer
+  #
   # Observer classes respond to lifecycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
