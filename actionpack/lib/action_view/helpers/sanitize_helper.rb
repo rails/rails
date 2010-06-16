@@ -2,19 +2,25 @@ require 'action_controller/vendor/html-scanner'
 require 'action_view/helpers/tag_helper'
 
 module ActionView
+  # = Action View Sanitize Helpers
   module Helpers #:nodoc:
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
-      # This +sanitize+ helper will html encode all tags and strip all attributes that aren't specifically allowed.
-      # It also strips href/src tags with invalid protocols, like javascript: especially.  It does its best to counter any
-      # tricks that hackers may use, like throwing in unicode/ascii/hex values to get past the javascript: filters.  Check out
+      # This +sanitize+ helper will html encode all tags and strip all attributes that 
+      # aren't specifically allowed.
+      #
+      # It also strips href/src tags with invalid protocols, like javascript: especially.
+      # It does its best to counter any  tricks that hackers may use, like throwing in
+      # unicode/ascii/hex values to get past the javascript: filters.  Check out
       # the extensive test suite.
       #
       #   <%= sanitize @article.body %>
       #
-      # You can add or remove tags/attributes if you want to customize it a bit.  See ActionView::Base for full docs on the
-      # available options.  You can add tags/attributes for single uses of +sanitize+ by passing either the <tt>:attributes</tt> or <tt>:tags</tt> options:
+      # You can add or remove tags/attributes if you want to customize it a bit.
+      # See ActionView::Base for full docs on the available options.  You can add
+      # tags/attributes for single uses of +sanitize+ by passing either the 
+      # <tt>:attributes</tt> or <tt>:tags</tt> options:
       #
       # Normal Use
       #

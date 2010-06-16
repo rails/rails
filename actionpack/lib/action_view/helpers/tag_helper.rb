@@ -2,6 +2,7 @@ require 'active_support/core_ext/object/blank'
 require 'set'
 
 module ActionView
+  # = Action View Tag Helpers
   module Helpers #:nodoc:
     # Provides methods to generate HTML tags programmatically when you can't use
     # a Builder. By default, they output XHTML compliant tags.
