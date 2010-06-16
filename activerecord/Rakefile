@@ -1,4 +1,5 @@
-require 'rubygems'
+gem 'rdoc', '= 2.2'
+require 'rdoc'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
