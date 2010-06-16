@@ -1,11 +1,16 @@
 module ActiveRecord
-  # Active Record automatically timestamps create and update operations if the table has fields
-  # named created_at/created_on or updated_at/updated_on.
+  # = Active Record Timestamp
+  # 
+  # Active Record automatically timestamps create and update operations if the
+  # table has fields named <tt>created_at/created_on</tt> or 
+  # <tt>updated_at/updated_on</tt>.
   #
-  # Timestamping can be turned off by setting
+  # Timestamping can be turned off by setting:
+  #
   #   <tt>ActiveRecord::Base.record_timestamps = false</tt>
   #
-  # Timestamps are in the local timezone by default but you can use UTC by setting
+  # Timestamps are in the local timezone by default but you can use UTC by setting:
+  #
   #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
     extend ActiveSupport::Concern
@@ -16,8 +21,9 @@ module ActiveRecord
     end
     
     # Saves the record with the updated_at/on attributes set to the current time.
-    # If the save fails because of validation errors, an ActiveRecord::RecordInvalid exception is raised.
-    # If an attribute name is passed, that attribute is used for the touch instead of the updated_at/on attributes.
+    # If the save fails because of validation errors, an 
+    # ActiveRecord::RecordInvalid exception is raised. If an attribute name is passed,
+    # that attribute is used for the touch instead of the updated_at/on attributes.
     #
     # Examples:
     #

@@ -1,6 +1,9 @@
 module ActiveRecord
+  # = Active Record Validations
+  #
   # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
+  #
   #   begin
   #     complex_operation_that_calls_save!_internally
   #   rescue ActiveRecord::RecordInvalid => invalid

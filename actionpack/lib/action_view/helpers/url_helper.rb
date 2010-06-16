@@ -4,6 +4,7 @@ require 'active_support/core_ext/hash/keys'
 require 'action_dispatch'
 
 module ActionView
+  # = Action View URL Helpers
   module Helpers #:nodoc:
     # Provides a set of methods for making links and getting URLs that
     # depend on the routing subsystem (see ActionDispatch::Routing).

@@ -1,4 +1,5 @@
 module ActionView
+  # = Action View Layouts
   module Layouts
     # Returns the contents that are yielded to a layout, given a name or a block.
     #

@@ -3,6 +3,7 @@ require 'active_support/core_ext/string/filters'
 require 'action_view/helpers/tag_helper'
 
 module ActionView
+  # = Action View Text Helpers
   module Helpers #:nodoc:
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in

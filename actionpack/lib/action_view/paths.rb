@@ -1,4 +1,5 @@
 module ActionView #:nodoc:
+  # = Action View PathSet
   class PathSet < Array #:nodoc:
     %w(initialize << concat insert push unshift).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1

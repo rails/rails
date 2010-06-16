@@ -4,6 +4,8 @@ require 'active_support/core_ext/hash/slice'
 
 module ActionView
   module Helpers
+    # = Action View Date Helpers
+    #
     # The Date Helper primarily creates select/option tags for different kinds of dates and date elements. All of the
     # select-type methods share a number of common options that are as follows:
     #

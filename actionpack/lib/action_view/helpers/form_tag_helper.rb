@@ -4,6 +4,7 @@ require 'active_support/core_ext/object/returning'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Form Tag Helpers
   module Helpers
     # Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.

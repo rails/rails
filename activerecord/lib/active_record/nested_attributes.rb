@@ -15,7 +15,7 @@ module ActiveRecord
       self.nested_attributes_options = {}
     end
 
-    # == Nested Attributes
+    # = Active Record Nested Attributes
     #
     # Nested attributes allow you to save attributes on associated records
     # through the parent. By default nested attribute updating is turned off,
@@ -25,6 +25,7 @@ module ActiveRecord
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
+    # 
     # <tt>author_attributes=(attributes)</tt> and
     # <tt>pages_attributes=(attributes)</tt>.
     #

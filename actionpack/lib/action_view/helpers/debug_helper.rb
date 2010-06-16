@@ -1,6 +1,8 @@
 module ActionView
+  # = Action View Debug Helper
+  # 
+  # Provides a set of methods for making it easier to debug Rails objects.
   module Helpers
-    # Provides a set of methods for making it easier to debug Rails objects.
     module DebugHelper
       # Returns a YAML representation of +object+ wrapped with <pre> and </pre>.
       # If the object cannot be converted to YAML using +to_yaml+, +inspect+ will be called instead.

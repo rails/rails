@@ -7,6 +7,7 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Form Helpers
   module Helpers
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.

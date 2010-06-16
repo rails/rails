@@ -4,11 +4,12 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
+  # = Active Record Named Scopes
   module NamedScope
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Returns an anonymous scope.
+      # Returns an anonymous \scope.
       #
       #   posts = Post.scoped
       #   posts.size # Fires "select count(*) from  posts" and returns the count
@@ -18,10 +19,12 @@ module ActiveRecord
       #   fruits = fruits.where(:colour => 'red') if options[:red_only]
       #   fruits = fruits.limit(10) if limited?
       #
-      # Anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
-      # intermediate values (scopes) around as first-class objects is convenient.
+      # Anonymous \scopes tend to be useful when procedurally generating complex
+      # queries, where passing intermediate values (scopes) around as first-class 
+      # objects is convenient.
       #
-      # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
+      # You can define a scope that applies to all finders using 
+      # ActiveRecord::Base.default_scope.
       def scoped(options = {}, &block)
         if options.present?
           relation = scoped.apply_finder_options(options)

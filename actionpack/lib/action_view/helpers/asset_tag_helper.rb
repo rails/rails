@@ -6,6 +6,7 @@ require 'active_support/core_ext/file'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Asset Tag Helpers
   module Helpers #:nodoc:
     # This module provides methods for generating HTML that links views to assets such
     # as images, javascripts, stylesheets, and feeds. These methods do not verify

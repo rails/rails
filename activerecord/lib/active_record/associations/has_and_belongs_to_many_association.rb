@@ -1,4 +1,5 @@
 module ActiveRecord
+  # = Active Record Has And Belongs To Many Association
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
       def create(attributes = {})
