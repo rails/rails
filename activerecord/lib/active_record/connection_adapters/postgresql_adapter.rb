@@ -927,7 +927,12 @@ module ActiveRecord
 
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
-          execute("SET time zone 'UTC'") if ActiveRecord::Base.default_timezone == :utc
+          if ActiveRecord::Base.default_timezone == :utc
+            execute("SET time zone 'UTC'")
+          else
+            offset = Time.local(2000).utc_offset / 3600
+            execute("SET time zone '#{offset}'")
+          end
         end
 
         # Returns the current ID of a table's sequence.
