@@ -1401,6 +1401,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal clone.id, dev.id
   end
 
+  def test_clone_does_not_clone_associations
+    author = authors(:david)
+    assert_not_equal [], author.posts
+
+    author_clone = author.clone
+    assert_equal [], author_clone.posts
+  end
+
   def test_clone_preserves_subtype
     clone = nil
     assert_nothing_raised { clone = Company.find(3).clone }

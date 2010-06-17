@@ -1433,6 +1433,7 @@ module ActiveRecord #:nodoc:
         end
 
         clear_aggregation_cache
+        clear_association_cache
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
