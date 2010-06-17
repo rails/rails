@@ -207,6 +207,10 @@ class TextHelperTest < ActionView::TestCase
     assert_nil excerpt("This is a beautiful morning", "day")
   end
 
+  def test_excerpt_should_not_be_html_safe
+    assert !excerpt('This is a beautiful! morning', 'beautiful', 5).html_safe?
+  end
+
   def test_excerpt_in_borderline_cases
     assert_equal("", excerpt("", "", 0))
     assert_equal("a", excerpt("a", "a", 0))
