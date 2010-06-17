@@ -133,7 +133,7 @@ module ActiveRecord
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
     #
-    #  Alternatively, :reject_if also accepts a symbol for using methods:
+    # Alternatively, :reject_if also accepts a symbol for using methods:
     #
     #    class Member < ActiveRecord::Base
     #      has_many :posts
@@ -145,7 +145,7 @@ module ActiveRecord
     #      accepts_nested_attributes_for :posts, :reject_if => :reject_posts
     #
     #      def reject_posts(attributed)
-    #        attributed['title].blank?
+    #        attributed['title'].blank?
     #      end
     #    end
     #
