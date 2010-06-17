@@ -52,8 +52,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with safe string </b></p>", simple_format("<b> test with safe string </b>".html_safe)
   end
 
-  def test_truncate_should_be_html_safe
-    assert truncate("Hello World!", :length => 12).html_safe?
+  def test_truncate_should_not_be_html_safe
+    assert !truncate("Hello World!", :length => 12).html_safe?
   end
   
   def test_truncate
@@ -61,18 +61,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
   end
 
-  def test_truncate_should_escape_unsafe_input
-    assert_equal "Hello &lt...", truncate("Hello <script>code!</script>World!!", :length => 12)
-  end
-
-  def test_truncate_should_not_escape_input_if_safe_option
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!", :length => 12, :safe => true)
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12, :safe => true)
-  end
-
-  def test_truncate_should_not_escape_safe_input
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!".html_safe, :length => 12)
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!".html_safe, :length => 12)
+  def test_truncate_should_not_escape_input
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
   end
 
   def test_truncate_should_use_default_length_of_30

@@ -39,7 +39,10 @@ module ActionView
       # for a total length not exceeding <tt>:length</tt>.
       #
       # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
-      # Pass a <tt>:safe</tt> value as "true" to not to escape the content. 
+      #
+      # The result is not marked as HTML-safe, so will be subject to the default escaping when
+      # used in views, unless wrapped by <tt>raw()</tt>. Care should be taken if +text+ contains HTML tags
+      # or entities, because truncation may produce invalid HTML (such as unbalanced or incomplete tags).
       #
       # ==== Examples
       #
@@ -56,12 +59,6 @@ module ActionView
       #   # => "And they f... (continued)"
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
-      #   # => "&lt;p&gt;Once upon a time i..."
-      #
-      #   truncate("<p>Once upon a time in a world far far away</p>", :safe => true)
-      #   # => "<p>Once upon a time in a wo..."
-      #
-      #   truncate("<p>Once upon a time in a world far far away</p>".html_safe)
       #   # => "<p>Once upon a time in a wo..."
       #
       # You can still use <tt>truncate</tt> with the old API that accepts the
@@ -84,7 +81,6 @@ module ActionView
 
         options.reverse_merge!(:length => 30)
 
-        text = h(text) unless text.html_safe? || options[:safe]
         text.truncate(options.delete(:length), options) if text
       end
 
