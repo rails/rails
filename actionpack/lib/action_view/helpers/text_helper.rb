@@ -112,13 +112,13 @@ module ActionView
         end
         options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
 
-        text = h(text) unless text.html_safe? || options[:safe]
+        text = sanitize(text) unless options[:sanitize] == false
         if text.blank? || phrases.blank?
           text
         else
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
           text.gsub(/(#{match})(?!(?:[^<]*?)(?:["'])[^<>]*>)/i, options[:highlighter])
-        end
+        end.html_safe
       end
 
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
@@ -248,9 +248,9 @@ module ActionView
       #   simple_format("Look ma! A class!", :class => 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       def simple_format(text, html_options={}, options={})
-        text = '' if text.nil?
+        text = ''.html_safe if text.nil?
         start_tag = tag('p', html_options, true)
-        text = h(text) unless text.html_safe? || options[:safe]
+        text = sanitize(text) unless options[:sanitize] == false
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
@@ -494,7 +494,11 @@ module ActionView
               link_text = block_given?? yield(href) : href
               href = 'http://' + href unless scheme
 
-              content_tag(:a, link_text, link_attributes.merge('href' => href), !(options[:safe] || text.html_safe?)) + punctuation.reverse.join('')
+              unless options[:sanitize] == false
+                link_text = sanitize(link_text)
+                href      = sanitize(href)
+              end
+              content_tag(:a, link_text, link_attributes.merge('href' => href), !!options[:sanitize]) + punctuation.reverse.join('')
             end
           end.html_safe
         end
@@ -509,7 +513,11 @@ module ActionView
               text.html_safe
             else
               display_text = (block_given?) ? yield(text) : text
-              display_text = h(display_text) unless options[:safe]
+
+              unless options[:sanitize] == false
+                text         = sanitize(text)
+                display_text = sanitize(display_text) unless text == display_text
+              end
               mail_to text, display_text, html_options
             end
           end
