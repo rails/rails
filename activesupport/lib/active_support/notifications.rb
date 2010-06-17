@@ -24,7 +24,6 @@ module ActiveSupport
   #   event = @events.first
   #   event.name      #=> :render
   #   event.duration  #=> 10 (in milliseconds)
-  #   event.result    #=> "Foo"
   #   event.payload   #=> { :extra => :information }
   #
   # When subscribing to Notifications, you can pass a pattern, to only consume
