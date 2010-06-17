@@ -435,6 +435,7 @@ class TextHelperTest < ActionView::TestCase
     z39_scheme    = 'z39.50r://host:696/db'
     chrome_scheme = 'chrome://package/section/path'
     view_source   = 'view-source:http://en.wikipedia.org/wiki/URI_scheme'
+    assert_equal generate_result(file_scheme), auto_link(file_scheme)
     assert_equal generate_result(z39_scheme), auto_link(z39_scheme)
     assert_equal generate_result(chrome_scheme), auto_link(chrome_scheme)
     assert_equal generate_result(view_source), auto_link(view_source)
