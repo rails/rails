@@ -35,18 +35,21 @@ module RailsGuides
     
     def validate
       validator = MarkupValidator.new
+      STDOUT.sync = true
+      errors_on_guides = {}
 
       guides_to_validate.each do |f|  
-        puts "Validating #{f}"
         results = validator.validate_file(f)
 
-        if !results.validity
-          puts "#{f} FAILED W3C validation with #{results.errors.size} error(s):"
-          results.errors.each do |error|
-            puts error.to_s
-          end
+        if results.validity
+          print "."
+        else
+          print "E"
+          errors_on_guides[f] = results.errors
         end
       end
+      
+      show_results(errors_on_guides)
     end
     
     private
@@ -61,6 +64,26 @@ module RailsGuides
         prefixes.any? {|p| guide.start_with?("./guides/output/#{p}")}
       end
     end
+    
+    def show_results(error_list)
+      if error_list.size == 0
+        puts "\n\nAll checked guides validate OK!"
+      else
+        error_summary = error_detail = ""
+        
+        error_list.each_pair do |name, errors|
+          error_summary += "\n  #{name}"
+          error_detail += "\n\n  #{name} has #{errors.size} validation error(s):\n"
+          errors.each do |error|
+            error_detail += "\n    "+error.to_s.gsub("\n", "")
+          end
+        end
+        
+        puts "\n\nThere are #{error_list.size} guides with validation errors:\n" + error_summary
+        puts "\nHere are the detailed errors for each guide:" + error_detail
+      end
+    end
+    
   end
 end
 
