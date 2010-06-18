@@ -119,6 +119,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_index_symbol_names
+      assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, :name => :symbol_index_name }
+      assert Person.connection.index_exists?(:people, :symbol_index_name, true)
+      assert_nothing_raised { Person.connection.remove_index :people, :name => :symbol_index_name }
+      assert_equal true, !Person.connection.index_exists?(:people, :symbol_index_name, false)
+    end
+
     def test_add_index_length_limit
       good_index_name = 'x' * Person.connection.index_name_length
       too_long_index_name = good_index_name + 'x'
