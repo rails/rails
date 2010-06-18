@@ -536,6 +536,7 @@ module ActionDispatch
           def member_name
             name
           end
+          alias_method :collection_name, :member_name
 
           def nested_path
             path
@@ -874,9 +875,9 @@ module ActionDispatch
             shallow_prefix = @scope[:module].blank? ? "" : "#{@scope[:module].tr('/', '_')}_"
 
             case action
-            when :index
+            when :index, :create
               "#{name_prefix}#{parent_resource.collection_name}"
-            when :show
+            when :show, :update, :destroy
               if parent_resource.shallow?
                 "#{shallow_prefix}#{parent_resource.member_name}"
               else
@@ -890,8 +891,6 @@ module ActionDispatch
               end
             when :new
               "new_#{name_prefix}#{parent_resource.member_name}"
-            when :update, :create, :destroy
-              nil
             else
               case @scope[:scope_level]
               when :collection

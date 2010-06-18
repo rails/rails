@@ -142,6 +142,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :comments, :except => :destroy
       end
 
+      resource  :past, :only => :destroy
+      resource  :present, :only => :update
+      resource  :future, :only => :create
+      resources :relationships, :only => [:create, :destroy]
+      resources :friendships,   :only => [:update]
+
       shallow do
         namespace :api do
           resources :teams do
@@ -729,6 +735,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resource_routes_only_create_update_destroy
+    with_test_routes do
+      delete '/past'
+      assert_equal 'pasts#destroy', @response.body
+      assert_equal '/past', past_path
+
+      put '/present'
+      assert_equal 'presents#update', @response.body
+      assert_equal '/present', present_path
+
+      post '/future'
+      assert_equal 'futures#create', @response.body
+      assert_equal '/future', future_path
+    end
+  end
+
+  def test_resources_routes_only_create_update_destroy
+    with_test_routes do
+      post '/relationships'
+      assert_equal 'relationships#create', @response.body
+      assert_equal '/relationships', relationships_path
+
+      delete '/relationships/1'
+      assert_equal 'relationships#destroy', @response.body
+      assert_equal '/relationships/1', relationship_path(1)
+
+      put '/friendships/1'
+      assert_equal 'friendships#update', @response.body
+      assert_equal '/friendships/1', friendship_path(1)
+    end
+  end
+
   def test_resource_with_slugs_in_ids
     with_test_routes do
       get '/posts/rails-rocks'
@@ -843,7 +881,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/admin/subscription', account_admin_subscription_path
     end
   end
-  
+
   def test_namespace_nested_in_resources
     with_test_routes do
       get '/clients/1/google/account'
