@@ -272,7 +272,15 @@ begin
                   GC.enable
                 end
 
-              # Ruby 1.8 + ruby-prof wrapper
+              # Ruby 1.8 + ruby-prof wrapper (enable/disable stats for Benchmarker)
+              elsif GC.respond_to?(:enable_stats)
+                def with_gc_stats
+                  GC.enable_stats
+                  yield
+                ensure
+                  GC.disable_stats
+                end
+
               else
                 def with_gc_stats
                   yield
