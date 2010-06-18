@@ -260,16 +260,14 @@ begin
             end
 
             protected
-              # Ruby 1.9 + extented GC profiler patch
-              if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+              # Ruby 1.9 with GC::Profiler
+              if defined?(GC::Profiler)
                 def with_gc_stats
-                  GC.start
-                  GC.disable
                   GC::Profiler.enable
+                  GC.start
                   yield
                 ensure
                   GC::Profiler.disable
-                  GC.enable
                 end
 
               # Ruby 1.8 + ruby-prof wrapper (enable/disable stats for Benchmarker)
@@ -294,7 +292,7 @@ begin
             end
 
             def format(measurement)
-              if measurement < 2
+              if measurement < 1
                 '%d ms' % (measurement * 1000)
               else
                 '%.2f sec' % measurement
@@ -335,14 +333,10 @@ begin
           class Memory < Base
             Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
-            # Ruby 1.9 + extended GC profiler patch
-            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+            # Ruby 1.9 + GCdata patch
+            if GC.respond_to?(:malloc_allocated_size)
               def measure
-                GC.enable
-                GC.start
-                kb = GC::Profiler.data.last[:HEAP_USE_SIZE] / 1024.0
-                GC.disable
-                kb
+                GC.malloc_allocated_size / 1024.0
               end
 
             # Ruby 1.8 + ruby-prof wrapper
@@ -360,14 +354,10 @@ begin
           class Objects < Base
             Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
-            # Ruby 1.9 + extented GC profiler patch
-            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+            # Ruby 1.9 + GCdata patch
+            if GC.respond_to?(:malloc_allocations)
               def measure
-                GC.enable
-                GC.start
-                count = GC::Profiler.data.last[:HEAP_TOTAL_OBJECTS]
-                GC.disable
-                count
+                GC.malloc_allocations
               end
 
             # Ruby 1.8 + ruby-prof wrapper
@@ -385,14 +375,10 @@ begin
           class GcRuns < Base
             Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
 
-            # Ruby 1.9 + extented GC profiler patch
-            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+            # Ruby 1.9
+            if GC.respond_to?(:count)
               def measure
-                GC.enable
-                GC.start
-                count = GC::Profiler.data.last[:GC_RUNS]
-                GC.disable
-                count
+                GC.count
               end
 
             # Ruby 1.8 + ruby-prof wrapper
@@ -410,25 +396,21 @@ begin
           class GcTime < Base
             Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
-            # Ruby 1.9 + extented GC profiler patch
-            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+            # Ruby 1.9 with GC::Profiler
+            if GC.respond_to?(:total_time)
               def measure
-                GC.enable
-                GC.start
-                sec = GC::Profiler.data.inject(0) { |total, run| total += run[:GC_TIME] }
-                GC.disable
-                sec
+                GC::Profiler.total_time
               end
 
             # Ruby 1.8 + ruby-prof wrapper
             elsif RubyProf.respond_to?(:measure_gc_time)
               def measure
-                RubyProf.measure_gc_time
+                RubyProf.measure_gc_time / 1000
               end
             end
 
             def format(measurement)
-              '%d ms' % (measurement / 1000)
+              '%.2f ms' % measurement
             end
           end
         end
