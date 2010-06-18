@@ -304,7 +304,7 @@ module ActiveRecord
               begin
                 record.rolledback!(rollback)
               rescue Exception => e
-                record.logger.error(e) if record.respond_to?(:logger)
+                record.logger.error(e) if record.respond_to?(:logger) && record.logger
               end
             end
           end
@@ -319,7 +319,7 @@ module ActiveRecord
               begin
                 record.committed!
               rescue Exception => e
-                record.logger.error(e) if record.respond_to?(:logger)
+                record.logger.error(e) if record.respond_to?(:logger) && record.logger
               end
             end
           end

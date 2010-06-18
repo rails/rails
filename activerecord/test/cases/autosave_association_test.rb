@@ -712,7 +712,6 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
 
       assert_raise(RuntimeError) { assert !@pirate.save }
-      assert before.first.frozen? # the first child was indeed destroyed
       assert_equal before, @pirate.reload.send(association_name)
     end
 
