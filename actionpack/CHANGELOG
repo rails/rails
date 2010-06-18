@@ -1,6 +1,6 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
-* Add shallow routes back to the new router [Diego Carrion]
+* Add shallow routes back to the new router [Diego Carrion, Andrew White]
 
     resources :posts do
       shallow do
