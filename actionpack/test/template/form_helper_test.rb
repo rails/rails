@@ -644,6 +644,26 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_remote_without_html
+    assert_deprecated do
+      form_for(:post, @post, :remote => true) do |f|
+        concat f.text_field(:title)
+        concat f.text_area(:body)
+        concat f.check_box(:secret)
+      end
+    end
+
+    expected =
+      "<form action='http://www.example.com' method='post' data-remote='true'>" +
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
+      "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_without_object
     form_for(:post, :html => { :id => 'create-post' }) do |f|
       concat f.text_field(:title)
