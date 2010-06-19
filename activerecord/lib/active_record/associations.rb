@@ -2066,7 +2066,7 @@ module ActiveRecord
               unless klass.descends_from_active_record?
                 sti_column = aliased_table[klass.inheritance_column]
                 sti_condition = sti_column.eq(klass.sti_name)
-                klass.send(:subclasses).each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
+                klass.descendants.each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
 
                 @join << sti_condition
               end
