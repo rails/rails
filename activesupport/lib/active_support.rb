@@ -51,6 +51,7 @@ module ActiveSupport
     autoload :Concern
     autoload :Configurable
     autoload :Deprecation
+    autoload :DescendantsTracker
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
