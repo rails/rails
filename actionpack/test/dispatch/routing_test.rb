@@ -68,6 +68,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin/accounts' => "queenbee#accounts"
       end
 
+      get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
+
       scope 'pt', :name_prefix => 'pt' do
         resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
           post :preview, :on => :new
@@ -500,6 +502,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'queenbee#accounts', @response.body
 
       get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'}
+      assert_equal 'pass', @response.headers['X-Cascade']
+
+      get '/admin/passwords', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#passwords', @response.body
+
+      get '/admin/passwords', {}, {'REMOTE_ADDR' => '10.0.0.100'}
       assert_equal 'pass', @response.headers['X-Cascade']
     end
   end
