@@ -93,6 +93,16 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "application", :application_name
   end
 
+  def test_index_helper
+    g = generator ['Post']
+    assert_name g, 'posts', :index_helper
+  end
+
+  def test_index_helper_with_uncountable
+    g = generator ['Sheep']
+    assert_name g, 'sheep_index', :index_helper
+  end
+
   protected
 
     def assert_name(generator, value, method)

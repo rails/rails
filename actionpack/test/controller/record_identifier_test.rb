@@ -13,6 +13,19 @@ class Comment
   end
 end
 
+class Sheep
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+
+  attr_reader :id
+  def to_key; id ? [id] : nil end
+  def save; @id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    @id.nil? ? 'new sheep' : "sheep ##{@id}"
+  end
+end
+
 class Comment::Nested < Comment; end
 
 class Test::Unit::TestCase
@@ -20,7 +33,7 @@ class Test::Unit::TestCase
     def comments_url
       'http://www.example.com/comments'
     end
-    
+
     def comment_url(comment)
       "http://www.example.com/comments/#{comment.id}"
     end
@@ -35,6 +48,7 @@ class RecordIdentifierTest < Test::Unit::TestCase
     @record = @klass.new
     @singular = 'comment'
     @plural = 'comments'
+    @uncountable = Sheep
   end
 
   def test_dom_id_with_new_record
@@ -58,7 +72,7 @@ class RecordIdentifierTest < Test::Unit::TestCase
   def test_dom_class
     assert_equal @singular, dom_class(@record)
   end
-  
+
   def test_dom_class_with_prefix
     assert_equal "custom_prefix_#{@singular}", dom_class(@record, :custom_prefix)
   end
@@ -77,6 +91,11 @@ class RecordIdentifierTest < Test::Unit::TestCase
 
   def test_plural_class_name_for_class
     assert_equal @plural, plural_class_name(@klass)
+  end
+
+  def test_uncountable
+    assert_equal true, uncountable?(@uncountable)
+    assert_equal false, uncountable?(@klass)
   end
 
   private

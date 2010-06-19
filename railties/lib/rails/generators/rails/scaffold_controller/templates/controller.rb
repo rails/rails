@@ -78,7 +78,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= orm_instance.destroy %>
 
     respond_to do |format|
-      format.html { redirect_to(<%= table_name %>_url) }
+      format.html { redirect_to(<%= index_helper %>_url) }
       format.xml  { head :ok }
     end
   end

@@ -46,6 +46,6 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
       delete :destroy, :id => @<%= file_name %>.to_param
     end
 
-    assert_redirected_to <%= table_name %>_path
+    assert_redirected_to <%= index_helper %>_path
   end
 end

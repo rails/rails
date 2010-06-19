@@ -381,6 +381,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @series.save
       assert_equal "http://example.com/series/#{@series.id}", polymorphic_url(@series)
+      assert_equal "http://example.com/series", polymorphic_url(Series.new)
     end
   end
 
