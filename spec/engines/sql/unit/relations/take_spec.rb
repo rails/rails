@@ -34,6 +34,14 @@ module Arel
             ORDER BY "USERS"."ID" ASC)
             where rownum <= 4
           })
+
+          sql_with_distinct = Take.new(@relation.project('DISTINCT "USERS"."ID"'), @taken).to_sql
+          sql_with_distinct.should be_like(%Q{
+            select * from
+            (SELECT DISTINCT "USERS"."ID"
+            FROM "USERS")
+            where rownum <= 4
+          })
         end
 
         adapter_is_not :mysql, :oracle do

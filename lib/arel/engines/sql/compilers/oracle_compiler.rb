@@ -5,9 +5,9 @@ module Arel
       def select_sql
         where_clauses_array = where_clauses
         if limit_or_offset = !taken.blank? || !skipped.blank?
-          # if need to select first records without ORDER BY and GROUP BY
+          # if need to select first records without ORDER BY and GROUP BY and without DISTINCT
           # then can use simple ROWNUM in WHERE clause
-          if skipped.blank? && groupings.blank? && orders.blank?
+          if skipped.blank? && groupings.blank? && orders.blank? && select_clauses[0] !~ /^DISTINCT /
             where_clauses_array << "ROWNUM <= #{taken}" if !taken.blank? && skipped.blank? && groupings.blank? && orders.blank?
             limit_or_offset = false
           end
