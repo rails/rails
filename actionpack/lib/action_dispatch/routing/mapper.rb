@@ -33,7 +33,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow]
+        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
 
         def initialize(set, scope, args)
           @set, @scope    = set, scope
@@ -343,7 +343,7 @@ module ActionDispatch
 
         def namespace(path)
           path = path.to_s
-          scope(:path => path, :name_prefix => path, :module => path) { yield }
+          scope(:path => path, :name_prefix => path, :module => path, :shallow_path => path, :shallow_prefix => path) { yield }
         end
 
         def constraints(constraints = {})
@@ -378,7 +378,15 @@ module ActionDispatch
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
+          def merge_shallow_path_scope(parent, child)
+            Mapper.normalize_path("#{parent}/#{child}")
+          end
+
           def merge_name_prefix_scope(parent, child)
+            parent ? "#{parent}_#{child}" : child
+          end
+
+          def merge_shallow_prefix_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
@@ -662,10 +670,10 @@ module ActionDispatch
           with_scope_level(:nested) do
             if parent_resource.shallow?
               with_exclusive_scope do
-                if @scope[:module].blank?
+                if @scope[:shallow_path].blank?
                   scope(*parent_resource.nested_scope) { yield }
                 else
-                  scope(@scope[:module], :name_prefix => @scope[:module].tr('/', '_')) do
+                  scope(@scope[:shallow_path], :name_prefix => @scope[:shallow_prefix]) do
                     scope(*parent_resource.nested_scope) { yield }
                   end
                 end
@@ -848,7 +856,7 @@ module ActionDispatch
               "#{@scope[:path]}(.:format)"
             when :show, :update, :destroy
               if parent_resource.shallow?
-                "#{@scope[:module]}/#{parent_resource.path}/:id(.:format)"
+                "#{@scope[:shallow_path]}/#{parent_resource.path}/:id(.:format)"
               else
                 "#{@scope[:path]}(.:format)"
               end
@@ -856,7 +864,7 @@ module ActionDispatch
               "#{@scope[:path]}/#{action_path(:new)}(.:format)"
             when :edit
               if parent_resource.shallow?
-                "#{@scope[:module]}/#{parent_resource.path}/:id/#{action_path(:edit)}(.:format)"
+                "#{@scope[:shallow_path]}/#{parent_resource.path}/:id/#{action_path(:edit)}(.:format)"
               else
                 "#{@scope[:path]}/#{action_path(:edit)}(.:format)"
               end
@@ -866,7 +874,7 @@ module ActionDispatch
                 "#{@scope[:path]}/#{action_path(action)}(.:format)"
               else
                 if parent_resource.shallow?
-                  "#{@scope[:module]}/#{parent_resource.path}/:id/#{action_path(action)}(.:format)"
+                  "#{@scope[:shallow_path]}/#{parent_resource.path}/:id/#{action_path(action)}(.:format)"
                 else
                   "#{@scope[:path]}/#{action_path(action)}(.:format)"
                 end
@@ -880,7 +888,7 @@ module ActionDispatch
               @scope[:path]
             else
               if parent_resource.shallow?
-                "#{@scope[:module]}/#{parent_resource.path}/:id"
+                "#{@scope[:shallow_path]}/#{parent_resource.path}/:id"
               else
                 @scope[:path]
               end
@@ -901,7 +909,7 @@ module ActionDispatch
 
           def name_for_action(action)
             name_prefix = @scope[:name_prefix].blank? ? "" : "#{@scope[:name_prefix]}_"
-            shallow_prefix = @scope[:module].blank? ? "" : "#{@scope[:module].tr('/', '_')}_"
+            shallow_prefix = @scope[:shallow_prefix].blank? ? "" : "#{@scope[:shallow_prefix]}_"
 
             case action
             when :index, :create

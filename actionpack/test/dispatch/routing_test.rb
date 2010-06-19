@@ -278,8 +278,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
 
-      scope :module => 'api' do
+      scope :module => :api do
         resource :token
+        resources :errors, :shallow => true do
+          resources :notices
+        end
       end
 
       scope :path => 'api' do
@@ -1347,6 +1350,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/customers/1/invoices/overdue'
       assert_equal 'invoices#overdue', @response.body
+    end
+  end
+
+  def test_shallow_nested_routes_ignore_module
+    with_test_routes do
+      get '/errors/1/notices'
+      assert_equal 'api/notices#index', @response.body
+      assert_equal '/errors/1/notices', error_notices_path(:error_id => '1')
+
+      get '/notices/1'
+      assert_equal 'api/notices#show', @response.body
+      assert_equal '/notices/1', notice_path(:id => '1')
     end
   end
 
