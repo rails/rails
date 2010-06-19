@@ -46,19 +46,12 @@ module ActiveModel
         end
       end
 
-      # Runs all the specified validations and returns true if no errors were added
-      # otherwise false. Context can optionally be supplied to define which callbacks
-      # to test against (the context is defined on the validations using :on).
-      def valid?(context = nil)
-        current_context, self.validation_context = validation_context, context
-        errors.clear
-        @validate_callback_result = nil
-        validation_callback_result = _run_validation_callbacks { @validate_callback_result = _run_validate_callbacks }
-        (validation_callback_result && @validate_callback_result) ? errors.empty? : false
-      ensure
-        self.validation_context = current_context
-      end
+    protected
 
+      # Overwrite run validations to include callbacks.
+      def run_validations!
+        _run_validation_callbacks { super }
+      end
     end
   end
 end

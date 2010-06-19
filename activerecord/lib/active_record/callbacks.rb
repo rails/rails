@@ -234,8 +234,7 @@ module ActiveRecord
 
     included do
       extend ActiveModel::Callbacks
-
-      attr_accessor :validation_context
+      include ActiveModel::Validations::Callbacks
 
       define_model_callbacks :initialize, :find, :only => :after
       define_model_callbacks :save, :create, :update, :destroy
@@ -249,12 +248,6 @@ module ActiveRecord
           send(meth.to_sym, meth.to_sym)
         end
       end
-
-    end
-
-    def valid?(*) #:nodoc:
-      self.validation_context = new_record? ? :create : :update
-      super 
     end
 
     def destroy #:nodoc:
@@ -269,6 +262,7 @@ module ActiveRecord
     end
 
   private
+
     def create_or_update #:nodoc:
       _run_save_callbacks { super }
     end
