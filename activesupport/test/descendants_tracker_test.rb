@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'test/unit'
 require 'active_support'
+require 'active_support/core_ext/hash/slice'
 
 class DescendantsTrackerTest < Test::Unit::TestCase
   class Parent
@@ -19,6 +20,8 @@ class DescendantsTrackerTest < Test::Unit::TestCase
   class Grandchild2 < Child1
   end
 
+  ALL = [Parent, Child1, Child2, Grandchild1, Grandchild2]
+
   def test_descendants
     assert_equal [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
     assert_equal [Grandchild1, Grandchild2], Child1.descendants
@@ -32,9 +35,9 @@ class DescendantsTrackerTest < Test::Unit::TestCase
   end
 
   def test_clear_with_autoloaded_parent_children_and_granchildren
-    mark_as_autoloaded Parent, Child1, Child2, Grandchild1, Grandchild2 do
+    mark_as_autoloaded *ALL do
       ActiveSupport::DescendantsTracker.clear
-      assert_equal Hash.new, ActiveSupport::DescendantsTracker.descendants
+      assert ActiveSupport::DescendantsTracker.descendants.slice(*ALL).empty?
     end
   end
 
