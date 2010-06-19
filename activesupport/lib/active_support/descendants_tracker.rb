@@ -4,8 +4,11 @@ module ActiveSupport
   # This module provides an internal implementation to track descendants
   # which is faster than iterating through ObjectSpace.
   module DescendantsTracker
-    mattr_accessor :descendants
     @@descendants = Hash.new { |h, k| h[k] = [] }
+
+    def self.descendants
+      @@descendants
+    end
 
     def self.clear
       @@descendants.each do |klass, descendants|

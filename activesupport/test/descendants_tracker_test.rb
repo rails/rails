@@ -70,6 +70,6 @@ class DescendantsTrackerTest < Test::Unit::TestCase
     yield
   ensure
     ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded
-    ActiveSupport::DescendantsTracker.descendants = old_descendants
+    ActiveSupport::DescendantsTracker.descendants.replace(old_descendants)
   end
 end
