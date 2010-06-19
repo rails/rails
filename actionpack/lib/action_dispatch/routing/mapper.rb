@@ -647,7 +647,9 @@ module ActionDispatch
 
           with_scope_level(:new) do
             scope(*parent_resource.new_scope) do
-              yield
+              scope(action_path(:new)) do
+                yield
+              end
             end
           end
         end
@@ -723,7 +725,17 @@ module ActionDispatch
             options = options_for_action(args.first, options)
 
             with_exclusive_scope do
-              return match(path, options)
+              return super(path, options)
+            end
+          elsif resource_method_scope?
+            path = path_for_custom_action
+            options[:as] = name_for_action(options[:as]) if options[:as]
+            args.push(options)
+
+            with_exclusive_scope do
+              scope(path) do
+                return super
+              end
             end
           end
 
@@ -737,7 +749,7 @@ module ActionDispatch
 
         def root(options={})
           if @scope[:scope_level] == :resources
-            with_scope_level(:collection) do
+            with_scope_level(:nested) do
               scope(parent_resource.path, :name_prefix => parent_resource.collection_name) do
                 super(options)
               end
@@ -780,12 +792,18 @@ module ActionDispatch
             [:resource, :resources].include?(@scope[:scope_level])
           end
 
+          def resource_method_scope?
+            [:collection, :member, :new].include?(@scope[:scope_level])
+          end
+
           def with_exclusive_scope
             begin
               old_name_prefix, old_path = @scope[:name_prefix], @scope[:path]
               @scope[:name_prefix], @scope[:path] = nil, nil
 
-              yield
+              with_scope_level(:exclusive) do
+                yield
+              end
             ensure
               @scope[:name_prefix], @scope[:path] = old_name_prefix, old_path
             end
@@ -844,16 +862,27 @@ module ActionDispatch
               end
             else
               case @scope[:scope_level]
-              when :collection
+              when :collection, :new
                 "#{@scope[:path]}/#{action_path(action)}(.:format)"
-              when :new
-                "#{@scope[:path]}/#{action_path(:new)}/#{action_path(action)}(.:format)"
               else
                 if parent_resource.shallow?
                   "#{@scope[:module]}/#{parent_resource.path}/:id/#{action_path(action)}(.:format)"
                 else
                   "#{@scope[:path]}/#{action_path(action)}(.:format)"
                 end
+              end
+            end
+          end
+
+          def path_for_custom_action
+            case @scope[:scope_level]
+            when :collection, :new
+              @scope[:path]
+            else
+              if parent_resource.shallow?
+                "#{@scope[:module]}/#{parent_resource.path}/:id"
+              else
+                @scope[:path]
               end
             end
           end
