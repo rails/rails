@@ -33,9 +33,9 @@ module Arel
           "SELECT     #{select_attributes_string}",
           "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
-          ("WHERE     #{where_clauses_array.join(" AND ")}"    unless where_clauses_array.blank?      ),
+          ("WHERE     #{where_clauses_array.join(' AND ')}"    unless where_clauses_array.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
-          ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?     ),
+          ("HAVING    #{having_clauses.join(' AND ')}"   unless havings.blank?     ),
           ("ORDER BY  #{order_clauses_array.join(', ')}" unless order_clauses_array.blank? )
 
         # Use existing method from oracle_enhanced adapter to implement limit and offset using subqueries
