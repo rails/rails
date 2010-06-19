@@ -180,6 +180,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :customers do
+        get "recent" => "customers#recent", :as => :recent, :on => :collection
+        get "profile" => "customers#profile", :as => :profile, :on => :member
+        post "preview" => "customers#preview", :as => :preview, :on => :new
+        resource :avatar do
+          get "thumbnail(.:format)" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+        end
+        resources :invoices do
+          get "outstanding" => "invoices#outstanding", :as => :outstanding, :on => :collection
+          get "overdue", :to => :overdue, :on => :collection
+          get "print" => "invoices#print", :as => :print, :on => :member
+          post "preview" => "invoices#preview", :as => :preview, :on => :new
+        end
+        resources :notes, :shallow => true do
+          get "preview" => "notes#preview", :as => :preview, :on => :new
+          get "print" => "notes#print", :as => :print, :on => :member
+        end
+      end
+
+      namespace :api do
+        resources :customers do
+          get "recent" => "customers#recent", :as => :recent, :on => :collection
+          get "profile" => "customers#profile", :as => :profile, :on => :member
+          post "preview" => "customers#preview", :as => :preview, :on => :new
+        end
+      end
+
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
@@ -1292,6 +1319,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/comments/3/preview'
       assert_equal 'comments#preview', @response.body
       assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
+    end
+  end
+
+  def test_custom_resource_routes_are_scoped
+    with_test_routes do
+      assert_equal '/customers/recent', recent_customers_path
+      assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
+      assert_equal '/customers/new/preview', preview_new_customer_path
+      assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
+      assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
+      assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(:customer_id => '1', :id => '2')
+      assert_equal '/customers/1/invoices/new/preview', preview_new_customer_invoice_path(:customer_id => '1')
+      assert_equal '/customers/1/notes/new/preview', preview_new_customer_note_path(:customer_id => '1')
+      assert_equal '/notes/1/print', print_note_path(:id => '1')
+      assert_equal '/api/customers/recent', recent_api_customers_path
+      assert_equal '/api/customers/1/profile', profile_api_customer_path(:id => '1')
+      assert_equal '/api/customers/new/preview', preview_new_api_customer_path
+
+      get '/customers/1/invoices/overdue'
+      assert_equal 'invoices#overdue', @response.body
     end
   end
 
