@@ -4,6 +4,7 @@ require 'action_controller/test_case'
 require 'action_view'
 
 module ActionView
+  # = Action View Test Case
   class TestCase < ActiveSupport::TestCase
     class TestController < ActionController::Base
       include ActionDispatch::TestProcess

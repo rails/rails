@@ -1,4 +1,7 @@
 module ActionView
+  # = Action View Log Subscriber
+  #
+  # Provides functionality so that Rails can output logs from Action View.
   module Railties
     class LogSubscriber < Rails::LogSubscriber
       def render_template(event)

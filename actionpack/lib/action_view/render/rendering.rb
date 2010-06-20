@@ -1,7 +1,7 @@
 require 'active_support/core_ext/object/try'
 
 module ActionView
-  # Action View Rendering
+  # = Action View Rendering
   module Rendering
     # Returns the result of a render that's dictated by the options hash. The primary options are:
     #
