@@ -130,14 +130,14 @@ module ActiveRecord
         end
       end
 
-      arel = arel.having(*@having_values.uniq.select{|h| h.present?})
+      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) if @having_values.present?
 
       arel = arel.take(@limit_value) if @limit_value.present?
       arel = arel.skip(@offset_value) if @offset_value.present?
 
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?})
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
 
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s))
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s)) if @order_values.present?
 
       selects = @select_values.uniq
 
@@ -150,7 +150,7 @@ module ActiveRecord
         arel = arel.project(@klass.quoted_table_name + '.*')
       end
 
-      arel = @from_value.present? ? arel.from(@from_value) : arel.from(@klass.quoted_table_name)
+      arel = arel.from(@from_value) if @from_value.present?
 
       case @lock_value
       when TrueClass
