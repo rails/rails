@@ -35,7 +35,7 @@ class DescendantsTrackerTest < Test::Unit::TestCase
   end
 
   def test_clear_with_autoloaded_parent_children_and_granchildren
-    mark_as_autoloaded *ALL do
+    mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear
       assert ActiveSupport::DescendantsTracker.descendants.slice(*ALL).empty?
     end
