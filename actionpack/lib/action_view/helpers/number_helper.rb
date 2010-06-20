@@ -3,6 +3,7 @@ require 'active_support/core_ext/float/rounding'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Number Helpers
   module Helpers #:nodoc:
 
     # Provides methods for converting numbers into formatted strings.
