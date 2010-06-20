@@ -32,7 +32,7 @@ module Rails
       end
 
       initializer :build_middleware_stack do
-        app
+        build_middleware_stack
       end
 
       initializer :eager_load! do

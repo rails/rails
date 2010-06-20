@@ -160,6 +160,7 @@ module Rails
         config.middleware.build(routes)
       end
     end
+    alias :build_middleware_stack :app
 
     def call(env)
       app.call(env.reverse_merge!(env_defaults))
