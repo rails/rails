@@ -1,3 +1,8 @@
+*Rails 3.0.0 [RC1] (unreleased)*
+
+* PostgreSQL: ensure the database time zone matches Ruby's time zone.  #4895 [Aaron Patterson]
+
+
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Fixed that ActiveRecord::Base.compute_type would swallow NoMethodError #4751 [Andrew Bloomgarden, Andrew White]

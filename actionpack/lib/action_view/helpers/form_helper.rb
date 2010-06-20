@@ -303,7 +303,7 @@ module ActionView
           args.unshift object
         end
 
-        options[:html][:remote] = true if options.delete(:remote)
+        (options[:html] ||= {})[:remote] = true if options.delete(:remote)
 
         output = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
         output << fields_for(object_name, *(args << options), &proc)

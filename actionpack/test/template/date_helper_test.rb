@@ -882,6 +882,33 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :start_year => 2003, :end_year => 2005, :prefix => "date[first]"})
   end
 
+  def test_select_date_with_separator_and_discard_day
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << " / "
+
+    expected << %(<select id="date_first_month" name="date[first][month]">\n)
+    expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="1" />\n)
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :discard_day => true, :start_year => 2003, :end_year => 2005, :prefix => "date[first]"})
+  end
+  
+  def test_select_date_with_separator_discard_month_and_day
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<input type="hidden" id="date_first_month" name="date[first][month]" value="8" />\n)
+    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="16" />\n)
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :discard_month => true, :discard_day => true, :start_year => 2003, :end_year => 2005, :prefix => "date[first]"})
+  end
+
   def test_select_datetime
     expected =  %(<select id="date_first_year" name="date[first][year]">\n)
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)

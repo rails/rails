@@ -46,6 +46,14 @@ module Rails
           end
         end
 
+        def uncountable?
+          singular_name == plural_name
+        end
+
+        def index_helper
+          uncountable? ? "#{plural_name}_index" : plural_name
+        end
+
         # Tries to retrieve the application name or simple return application.
         def application_name
           if defined?(Rails) && Rails.application

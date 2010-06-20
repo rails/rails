@@ -36,4 +36,4 @@ production:
   adapter: oracle
   database: <%= app_name %>_production
   username: <%= app_name %>
-  password: 
+  password:

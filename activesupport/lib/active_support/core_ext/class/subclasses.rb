@@ -11,9 +11,9 @@ class Class #:nodoc:
 
   # Rubinius
   if defined?(Class.__subclasses__)
-    def descendents
+    def descendants
       subclasses = []
-      __subclasses__.each {|k| subclasses << k; subclasses.concat k.descendents }
+      __subclasses__.each {|k| subclasses << k; subclasses.concat k.descendants }
       subclasses
     end
   else
@@ -21,7 +21,7 @@ class Class #:nodoc:
     begin
       ObjectSpace.each_object(Class.new) {}
 
-      def descendents
+      def descendants
         subclasses = []
         ObjectSpace.each_object(class << self; self; end) do |k|
           subclasses << k unless k == self
@@ -30,7 +30,7 @@ class Class #:nodoc:
       end
     # JRuby
     rescue StandardError
-      def descendents
+      def descendants
         subclasses = []
         ObjectSpace.each_object(Class) do |k|
           subclasses << k if k < self
@@ -48,7 +48,7 @@ class Class #:nodoc:
   def self.subclasses_of(*superclasses) #:nodoc:
     subclasses = []
     superclasses.each do |klass|
-      subclasses.concat klass.descendents.select {|k| k.anonymous? || k.reachable?}
+      subclasses.concat klass.descendants.select {|k| k.anonymous? || k.reachable?}
     end
     subclasses
   end

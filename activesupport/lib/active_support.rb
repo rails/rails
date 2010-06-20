@@ -39,6 +39,9 @@ require "active_support/dependencies/autoload"
 module ActiveSupport
   extend ActiveSupport::Autoload
 
+  autoload :DescendantsTracker
+  autoload :FileUpdateChecker
+
   # TODO: Narrow this list down
   eager_autoload do
     autoload :BacktraceCleaner

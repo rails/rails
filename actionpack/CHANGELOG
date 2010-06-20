@@ -1,5 +1,15 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Add shallow routes back to the new router [Diego Carrion, Andrew White]
+
+    resources :posts do
+      shallow do
+        resources :comments
+      end
+    end
+    
+    You can now use comment_path for /comments/1 instead of post_comment_path for /posts/1/comments/1.
+
 * Add support for multi-subdomain session by setting cookie host in session cookie so you can share session between www.example.com, example.com and user.example.com. #4818 [Guillermo Álvarez]
 
 * Removed textilize, textilize_without_paragraph and markdown helpers. [Santiago Pastorino]

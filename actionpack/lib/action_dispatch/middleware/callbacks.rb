@@ -8,7 +8,7 @@ module ActionDispatch
   class Callbacks
     include ActiveSupport::Callbacks
 
-    define_callbacks :call, :terminator => "result == false", :rescuable => true
+    define_callbacks :call, :rescuable => true
     define_callbacks :prepare, :scope => :name
 
     # Add a preparation callback. Preparation callbacks are run before every
@@ -37,12 +37,12 @@ module ActionDispatch
 
     def initialize(app, prepare_each_request = false)
       @app, @prepare_each_request = app, prepare_each_request
-      run_callbacks(:prepare)
+      _run_prepare_callbacks
     end
 
     def call(env)
-      run_callbacks(:call) do
-        run_callbacks(:prepare) if @prepare_each_request
+      _run_call_callbacks do
+        _run_prepare_callbacks if @prepare_each_request
         @app.call(env)
       end
     end

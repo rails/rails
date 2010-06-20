@@ -1,4 +1,5 @@
 require 'active_support/configurable'
+require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
 
 module AbstractController
@@ -10,6 +11,7 @@ module AbstractController
     attr_internal :action_name
 
     include ActiveSupport::Configurable
+    extend ActiveSupport::DescendantsTracker
 
     class << self
       attr_reader :abstract
@@ -19,17 +21,6 @@ module AbstractController
       # details.
       def abstract!
         @abstract = true
-      end
-
-      def inherited(klass)
-        ::AbstractController::Base.descendants << klass.to_s
-        super
-      end
-
-      # A list of all descendants of AbstractController::Base. This is
-      # useful for initializers which need to add behavior to all controllers.
-      def descendants
-        @descendants ||= []
       end
 
       # A list of all internal methods for a controller. This finds the first

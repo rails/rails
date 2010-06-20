@@ -399,7 +399,7 @@ module ActionView
           options_for_select += "<optgroup label=\"#{html_escape(group_label_string)}\">"
           options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
           options_for_select += '</optgroup>'
-        end
+        end.html_safe
       end
 
       # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but

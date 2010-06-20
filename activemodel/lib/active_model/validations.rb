@@ -3,6 +3,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_model/errors'
+require 'active_model/validations/callbacks'
 
 module ActiveModel
 
@@ -164,8 +165,7 @@ module ActiveModel
     def valid?(context = nil)
       current_context, self.validation_context = validation_context, context
       errors.clear
-      _run_validate_callbacks
-      errors.empty?
+      run_validations!
     ensure
       self.validation_context = current_context
     end
@@ -194,6 +194,13 @@ module ActiveModel
     #   end
     #
     alias :read_attribute_for_validation :send
+
+  protected
+  
+    def run_validations!
+      _run_validate_callbacks
+      errors.empty?
+    end
   end
 end
 

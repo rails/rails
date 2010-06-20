@@ -52,12 +52,12 @@ module ActiveRecord
     # Runs all the specified validations and returns true if no errors were added otherwise false.
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
-      super(context)
+      output = super(context)
 
       deprecated_callback_method(:validate)
       deprecated_callback_method(:"validate_on_#{context}")
 
-      errors.empty?
+      errors.empty? && output
     end
 
   protected

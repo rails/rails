@@ -32,5 +32,7 @@ being initialized - you can initialize the schema with:
 
   rake test_mysql TEST=test/cases/aaa_create_tables_test.rb
 
+The incantation for running a particular test looks like this
 
+  ruby -w -I"lib:test:test/connections/native_postgresql" test/cases/datatype_test_postgresql.rb -n test_timestamp_with_zone_values_without_rails_time_zone_support
 

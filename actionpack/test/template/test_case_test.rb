@@ -218,4 +218,12 @@ module ActionView
       end
     end
   end
+
+  class RenderTemplateTest < ActionView::TestCase
+    test "render template" do
+      controller.controller_path = "test"
+      render(:template => "test/calling_partial_with_layout")
+      assert_template "partial_for_use_in_layout"
+    end
+  end
 end

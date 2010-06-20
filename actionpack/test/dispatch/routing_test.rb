@@ -68,6 +68,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin/accounts' => "queenbee#accounts"
       end
 
+      get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
+
       scope 'pt', :name_prefix => 'pt' do
         resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
           post :preview, :on => :new
@@ -142,6 +144,32 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :comments, :except => :destroy
       end
 
+      resource  :past, :only => :destroy
+      resource  :present, :only => :update
+      resource  :future, :only => :create
+      resources :relationships, :only => [:create, :destroy]
+      resources :friendships,   :only => [:update]
+
+      shallow do
+        namespace :api do
+          resources :teams do
+            resources :players
+            resource :captain
+          end
+        end
+      end
+
+      resources :threads, :shallow => true do
+        resource :owner
+        resources :messages do
+          resources :comments do
+            member do
+              post :preview
+            end
+          end
+        end
+      end
+
       resources :sheep
 
       resources :clients do
@@ -151,6 +179,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
               resource :info
             end
           end
+        end
+      end
+
+      resources :customers do
+        get "recent" => "customers#recent", :as => :recent, :on => :collection
+        get "profile" => "customers#profile", :as => :profile, :on => :member
+        post "preview" => "customers#preview", :as => :preview, :on => :new
+        resource :avatar do
+          get "thumbnail(.:format)" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+        end
+        resources :invoices do
+          get "outstanding" => "invoices#outstanding", :as => :outstanding, :on => :collection
+          get "overdue", :to => :overdue, :on => :collection
+          get "print" => "invoices#print", :as => :print, :on => :member
+          post "preview" => "invoices#preview", :as => :preview, :on => :new
+        end
+        resources :notes, :shallow => true do
+          get "preview" => "notes#preview", :as => :preview, :on => :new
+          get "print" => "notes#print", :as => :print, :on => :member
+        end
+      end
+
+      namespace :api do
+        resources :customers do
+          get "recent" => "customers#recent", :as => :recent, :on => :collection
+          get "profile" => "customers#profile", :as => :profile, :on => :member
+          post "preview" => "customers#preview", :as => :preview, :on => :new
         end
       end
 
@@ -223,8 +278,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
 
-      scope :module => 'api' do
+      scope :module => :api do
         resource :token
+        resources :errors, :shallow => true do
+          resources :notices
+        end
       end
 
       scope :path => 'api' do
@@ -447,6 +505,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'queenbee#accounts', @response.body
 
       get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'}
+      assert_equal 'pass', @response.headers['X-Cascade']
+
+      get '/admin/passwords', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#passwords', @response.body
+
+      get '/admin/passwords', {}, {'REMOTE_ADDR' => '10.0.0.100'}
       assert_equal 'pass', @response.headers['X-Cascade']
     end
   end
@@ -709,6 +773,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resource_routes_only_create_update_destroy
+    with_test_routes do
+      delete '/past'
+      assert_equal 'pasts#destroy', @response.body
+      assert_equal '/past', past_path
+
+      put '/present'
+      assert_equal 'presents#update', @response.body
+      assert_equal '/present', present_path
+
+      post '/future'
+      assert_equal 'futures#create', @response.body
+      assert_equal '/future', future_path
+    end
+  end
+
+  def test_resources_routes_only_create_update_destroy
+    with_test_routes do
+      post '/relationships'
+      assert_equal 'relationships#create', @response.body
+      assert_equal '/relationships', relationships_path
+
+      delete '/relationships/1'
+      assert_equal 'relationships#destroy', @response.body
+      assert_equal '/relationships/1', relationship_path(1)
+
+      put '/friendships/1'
+      assert_equal 'friendships#update', @response.body
+      assert_equal '/friendships/1', friendship_path(1)
+    end
+  end
+
   def test_resource_with_slugs_in_ids
     with_test_routes do
       get '/posts/rails-rocks'
@@ -823,7 +919,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/admin/subscription', account_admin_subscription_path
     end
   end
-  
+
   def test_namespace_nested_in_resources
     with_test_routes do
       get '/clients/1/google/account'
@@ -1129,6 +1225,143 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/products/1/images/2/edit'
       assert_equal 404, status
+    end
+  end
+
+  def test_shallow_nested_resources
+    with_test_routes do
+
+      get '/api/teams'
+      assert_equal 'api/teams#index', @response.body
+      assert_equal '/api/teams', api_teams_path
+
+      get '/api/teams/new'
+      assert_equal 'api/teams#new', @response.body
+      assert_equal '/api/teams/new', new_api_team_path
+
+      get '/api/teams/1'
+      assert_equal 'api/teams#show', @response.body
+      assert_equal '/api/teams/1', api_team_path(:id => '1')
+
+      get '/api/teams/1/edit'
+      assert_equal 'api/teams#edit', @response.body
+      assert_equal '/api/teams/1/edit', edit_api_team_path(:id => '1')
+
+      get '/api/teams/1/players'
+      assert_equal 'api/players#index', @response.body
+      assert_equal '/api/teams/1/players', api_team_players_path(:team_id => '1')
+
+      get '/api/teams/1/players/new'
+      assert_equal 'api/players#new', @response.body
+      assert_equal '/api/teams/1/players/new', new_api_team_player_path(:team_id => '1')
+
+      get '/api/players/2'
+      assert_equal 'api/players#show', @response.body
+      assert_equal '/api/players/2', api_player_path(:id => '2')
+
+      get '/api/players/2/edit'
+      assert_equal 'api/players#edit', @response.body
+      assert_equal '/api/players/2/edit', edit_api_player_path(:id => '2')
+
+      get '/api/teams/1/captain'
+      assert_equal 'api/captains#show', @response.body
+      assert_equal '/api/teams/1/captain', api_team_captain_path(:team_id => '1')
+
+      get '/api/teams/1/captain/new'
+      assert_equal 'api/captains#new', @response.body
+      assert_equal '/api/teams/1/captain/new', new_api_team_captain_path(:team_id => '1')
+
+      get '/api/teams/1/captain/edit'
+      assert_equal 'api/captains#edit', @response.body
+      assert_equal '/api/teams/1/captain/edit', edit_api_team_captain_path(:team_id => '1')
+
+      get '/threads'
+      assert_equal 'threads#index', @response.body
+      assert_equal '/threads', threads_path
+
+      get '/threads/new'
+      assert_equal 'threads#new', @response.body
+      assert_equal '/threads/new', new_thread_path
+
+      get '/threads/1'
+      assert_equal 'threads#show', @response.body
+      assert_equal '/threads/1', thread_path(:id => '1')
+
+      get '/threads/1/edit'
+      assert_equal 'threads#edit', @response.body
+      assert_equal '/threads/1/edit', edit_thread_path(:id => '1')
+
+      get '/threads/1/owner'
+      assert_equal 'owners#show', @response.body
+      assert_equal '/threads/1/owner', thread_owner_path(:thread_id => '1')
+
+      get '/threads/1/messages'
+      assert_equal 'messages#index', @response.body
+      assert_equal '/threads/1/messages', thread_messages_path(:thread_id => '1')
+
+      get '/threads/1/messages/new'
+      assert_equal 'messages#new', @response.body
+      assert_equal '/threads/1/messages/new', new_thread_message_path(:thread_id => '1')
+
+      get '/messages/2'
+      assert_equal 'messages#show', @response.body
+      assert_equal '/messages/2', message_path(:id => '2')
+
+      get '/messages/2/edit'
+      assert_equal 'messages#edit', @response.body
+      assert_equal '/messages/2/edit', edit_message_path(:id => '2')
+
+      get '/messages/2/comments'
+      assert_equal 'comments#index', @response.body
+      assert_equal '/messages/2/comments', message_comments_path(:message_id => '2')
+
+      get '/messages/2/comments/new'
+      assert_equal 'comments#new', @response.body
+      assert_equal '/messages/2/comments/new', new_message_comment_path(:message_id => '2')
+
+      get '/comments/3'
+      assert_equal 'comments#show', @response.body
+      assert_equal '/comments/3', comment_path(:id => '3')
+
+      get '/comments/3/edit'
+      assert_equal 'comments#edit', @response.body
+      assert_equal '/comments/3/edit', edit_comment_path(:id => '3')
+
+      post '/comments/3/preview'
+      assert_equal 'comments#preview', @response.body
+      assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
+    end
+  end
+
+  def test_custom_resource_routes_are_scoped
+    with_test_routes do
+      assert_equal '/customers/recent', recent_customers_path
+      assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
+      assert_equal '/customers/new/preview', preview_new_customer_path
+      assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
+      assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
+      assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(:customer_id => '1', :id => '2')
+      assert_equal '/customers/1/invoices/new/preview', preview_new_customer_invoice_path(:customer_id => '1')
+      assert_equal '/customers/1/notes/new/preview', preview_new_customer_note_path(:customer_id => '1')
+      assert_equal '/notes/1/print', print_note_path(:id => '1')
+      assert_equal '/api/customers/recent', recent_api_customers_path
+      assert_equal '/api/customers/1/profile', profile_api_customer_path(:id => '1')
+      assert_equal '/api/customers/new/preview', preview_new_api_customer_path
+
+      get '/customers/1/invoices/overdue'
+      assert_equal 'invoices#overdue', @response.body
+    end
+  end
+
+  def test_shallow_nested_routes_ignore_module
+    with_test_routes do
+      get '/errors/1/notices'
+      assert_equal 'api/notices#index', @response.body
+      assert_equal '/errors/1/notices', error_notices_path(:error_id => '1')
+
+      get '/notices/1'
+      assert_equal 'api/notices#show', @response.body
+      assert_equal '/notices/1', notice_path(:id => '1')
     end
   end
 

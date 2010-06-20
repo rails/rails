@@ -1,5 +1,9 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Added ActiveSupport::FileUpdateChecker to execute a block only if a set of files changed, used by Router and I18n locale files. [José Valim]
+
+* Added ActiveSupport::DescendantsTracker to track descendants with support to constants reloading. [José Valim]
+
 * ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 [Paul Mucur, fxn]
 
 * Date#since, #ago, #beginning_of_day, #end_of_day, and #xmlschema honor now the user time zone if set. [Geoff Buesing]

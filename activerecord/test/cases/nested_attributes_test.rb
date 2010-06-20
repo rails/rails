@@ -466,6 +466,27 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal 'Grace OMalley', @child_1.reload.name
   end
 
+  def test_should_not_overwrite_unsaved_updates_when_loading_association
+    @pirate.reload
+    @pirate.send(association_setter, [{ :id => @child_1.id, :name => 'Grace OMalley' }])
+    assert_equal 'Grace OMalley', @pirate.send(@association_name).send(:load_target).find { |r| r.id == @child_1.id }.name
+  end
+
+  def test_should_preserve_order_when_not_overwriting_unsaved_updates
+    @pirate.reload
+    @pirate.send(association_setter, [{ :id => @child_1.id, :name => 'Grace OMalley' }])
+    assert_equal @child_1.id, @pirate.send(@association_name).send(:load_target).first.id
+  end
+
+  def test_should_refresh_saved_records_when_not_overwriting_unsaved_updates
+    @pirate.reload
+    record = @pirate.class.reflect_on_association(@association_name).klass.new(:name => 'Grace OMalley')
+    @pirate.send(@association_name) << record
+    record.save!
+    @pirate.send(@association_name).last.update_attributes!(:name => 'Polly')
+    assert_equal 'Polly', @pirate.send(@association_name).send(:load_target).last.name
+  end
+
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
     @child_1.stubs(:id).returns('ABC1X')
     @child_2.stubs(:id).returns('ABC2X')

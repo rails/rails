@@ -85,6 +85,7 @@ module ActionView
 
       def setup_with_controller
         @controller = ActionView::TestCase::TestController.new
+        @request = @controller.request
         @output_buffer = ActiveSupport::SafeBuffer.new
         @rendered = ''
 

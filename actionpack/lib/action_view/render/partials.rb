@@ -318,7 +318,7 @@ module ActionView
 
           object.class.model_name.partial_path.dup.tap do |partial|
             path = @view.controller_path
-            partial.insert(0, "#{File.dirname(path)}/") if path.include?(?/)
+            partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
           end
         end
       end

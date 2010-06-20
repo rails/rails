@@ -1,6 +1,6 @@
+require 'active_support/descendants_tracker'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/inheritable_attributes'
-require 'active_support/core_ext/class/subclasses'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 
@@ -84,6 +84,10 @@ module ActiveSupport
   #
   module Callbacks
     extend Concern
+
+    included do
+      extend ActiveSupport::DescendantsTracker
+    end
 
     def run_callbacks(kind, *args, &block)
       send("_run_#{kind}_callbacks", *args, &block)
@@ -428,7 +432,7 @@ module ActiveSupport
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 
-        ([self] + self.descendents).each do |target|
+        ([self] + self.descendants).each do |target|
           chain = target.send("_#{name}_callbacks")
           yield chain, type, filters, options
           target.__define_runner(name)
@@ -502,7 +506,7 @@ module ActiveSupport
       def reset_callbacks(symbol)
         callbacks = send("_#{symbol}_callbacks")
 
-        self.descendents.each do |target|
+        self.descendants.each do |target|
           chain = target.send("_#{symbol}_callbacks")
           callbacks.each { |c| chain.delete(c) }
           target.__define_runner(symbol)

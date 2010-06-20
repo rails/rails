@@ -1,4 +1,4 @@
-require 'yajl-ruby' unless defined?(Yajl)
+require 'yajl' unless defined?(Yajl)
 
 module ActiveSupport
   module JSON

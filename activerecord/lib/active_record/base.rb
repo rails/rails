@@ -2,6 +2,7 @@ require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'
 require 'active_support/dependencies'
+require 'active_support/descendants_tracker'
 require 'active_support/time'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
@@ -275,28 +276,6 @@ module ActiveRecord #:nodoc:
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
-
-    def self.inherited(child) #:nodoc:
-      @@subclasses[self] ||= []
-      @@subclasses[self] << child
-      super
-    end
-
-    def self.reset_subclasses #:nodoc:
-      nonreloadables = []
-      subclasses.each do |klass|
-        unless ActiveSupport::Dependencies.autoloaded? klass
-          nonreloadables << klass
-          next
-        end
-        klass.instance_variables.each { |var| klass.send(:remove_instance_variable, var) }
-        klass.instance_methods(false).each { |m| klass.send :undef_method, m }
-      end
-      @@subclasses = {}
-      nonreloadables.each { |klass| (@@subclasses[klass.superclass] ||= []) << klass }
-    end
-
-    @@subclasses = {}
 
     ##
     # :singleton-method:
@@ -812,7 +791,7 @@ module ActiveRecord #:nodoc:
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
-        subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
+        descendants.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
       def attribute_method?(attribute)
@@ -977,7 +956,7 @@ module ActiveRecord #:nodoc:
         def type_condition
           sti_column = arel_table[inheritance_column]
           condition = sti_column.eq(sti_name)
-          subclasses.each{|subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
+          descendants.each { |subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
 
           condition
         end
@@ -1166,14 +1145,6 @@ module ActiveRecord #:nodoc:
         def with_exclusive_scope(method_scoping = {}, &block)
           with_scope(method_scoping, :overwrite, &block)
         end
-
-        # Returns a list of all subclasses of this class, meaning all descendants.
-        def subclasses
-          @@subclasses[self] ||= []
-          @@subclasses[self] + @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
-        end
-
-        public :subclasses
 
         # Sets the default options for the model. The format of the
         # <tt>options</tt> argument is the same as in find.
@@ -1902,6 +1873,7 @@ module ActiveRecord #:nodoc:
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
     extend ActiveSupport::Benchmarkable
+    extend ActiveSupport::DescendantsTracker
 
     include ActiveModel::Conversion
     include Validations

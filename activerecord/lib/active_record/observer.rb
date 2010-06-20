@@ -107,8 +107,9 @@ module ActiveRecord
     end
 
     protected
+
       def observed_subclasses
-        observed_classes.sum([]) { |klass| klass.send(:subclasses) }
+        observed_classes.sum([]) { |klass| klass.send(:descendants) }
       end
 
       def observe_callbacks?

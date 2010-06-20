@@ -11,7 +11,7 @@ module ActionController
   #   polymorphic_url([:admin, @article, @comment])
   #
   # results in:
-  #   
+  #
   #   admin_article_comment_url(@article, @comment)
   #
   # == Usage within the framework
@@ -166,6 +166,7 @@ module ActionController
           route << RecordIdentifier.__send__("plural_class_name", record)
           route = route.singularize if inflection == :singular
           route << "_"
+          route << "index_" if RecordIdentifier.uncountable?(record) && inflection == :plural
         end
 
         action_prefix(options) + route + routing_type(options).to_s

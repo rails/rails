@@ -896,8 +896,10 @@ module ActionView
         # Returns the separator for a given datetime component
         def separator(type)
           case type
-            when :month, :day
-              @options[:date_separator]
+            when :month
+              @options[:discard_month] ? "" : @options[:date_separator]
+            when :day
+              @options[:discard_day] ? "" : @options[:date_separator]
             when :hour
               (@options[:discard_year] && @options[:discard_day]) ? "" : @options[:datetime_separator]
             when :minute

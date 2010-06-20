@@ -322,6 +322,7 @@ module ActiveRecord
         if @_start_transaction_state[:level] < 1
           restore_state = remove_instance_variable(:@_start_transaction_state)
           if restore_state
+            @attributes = @attributes.dup if @attributes.frozen?
             @new_record = restore_state[:new_record]
             @destroyed = restore_state[:destroyed]
             if restore_state[:id]

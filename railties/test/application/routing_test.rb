@@ -69,6 +69,20 @@ module ApplicationTests
       assert_equal 'bar', last_response.body
     end
 
+    test "mount rack app" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, :at => "/blog"
+          # The line below is required because mount sometimes
+          # fails when a resource route is added.
+          resource :user
+        end
+      RUBY
+
+      get '/blog/archives'
+      assert_equal '/archives', last_response.body
+    end
+
     test "multiple controllers" do
       controller :foo, <<-RUBY
         class FooController < ApplicationController

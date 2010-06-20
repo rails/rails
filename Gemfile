@@ -5,6 +5,7 @@ gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
+gem "rdoc",  "2.2"
 
 mri = !defined?(RUBY_ENGINE) || RUBY_ENGINE == "ruby"
 if mri && RUBY_VERSION < '1.9'
@@ -42,10 +43,6 @@ elsif RUBY_ENGINE == "jruby"
     gem "activerecord-jdbcmysql-adapter"
     gem "activerecord-jdbcpostgresql-adapter"
   end
-end
-
-group :documentation do
-  gem 'rdoc', '2.1'
 end
 
 if ENV['CI']

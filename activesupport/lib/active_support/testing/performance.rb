@@ -260,14 +260,8 @@ begin
             end
 
             protected
-              if GC.respond_to?(:enable_stats)
-                def with_gc_stats
-                  GC.enable_stats
-                  yield
-                ensure
-                  GC.disable_stats
-                end
-              elsif defined?(GC::Profiler)
+              # Ruby 1.9 + extented GC profiler patch
+              if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
                 def with_gc_stats
                   GC.start
                   GC.disable
@@ -277,6 +271,16 @@ begin
                   GC::Profiler.disable
                   GC.enable
                 end
+
+              # Ruby 1.8 + ruby-prof wrapper (enable/disable stats for Benchmarker)
+              elsif GC.respond_to?(:enable_stats)
+                def with_gc_stats
+                  GC.enable_stats
+                  yield
+                ensure
+                  GC.disable_stats
+                end
+
               else
                 def with_gc_stats
                   yield
@@ -319,7 +323,7 @@ begin
 
             def initialize(*args)
               # FIXME: yeah my CPU is 2.33 GHz
-              RubyProf.cpu_frequency = 2.33e9
+              RubyProf.cpu_frequency = 2.33e9 unless RubyProf.cpu_frequency > 0
               super
             end
 
@@ -331,44 +335,20 @@ begin
           class Memory < Base
             Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
-            # ruby-prof wrapper
-            if RubyProf.respond_to?(:measure_memory)
-              def measure
-                RubyProf.measure_memory / 1024.0
-              end
-
-            # Ruby 1.8 + railsbench patch
-            elsif GC.respond_to?(:allocated_size)
-              def measure
-                GC.allocated_size / 1024.0
-              end
-
-            # Ruby 1.8 + lloyd patch
-            elsif GC.respond_to?(:heap_info)
-              def measure
-                GC.heap_info['heap_current_memory'] / 1024.0
-              end
-
-            # Ruby 1.9 with total_malloc_allocated_size patch
-            elsif GC.respond_to?(:malloc_total_allocated_size)
-              def measure
-                GC.total_malloc_allocated_size / 1024.0
-              end
-
-            # Ruby 1.9 unpatched
-            elsif GC.respond_to?(:malloc_allocated_size)
-              def measure
-                GC.malloc_allocated_size / 1024.0
-              end
-
-            # Ruby 1.9 + GC profiler patch
-            elsif defined?(GC::Profiler)
+            # Ruby 1.9 + extended GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
               def measure
                 GC.enable
                 GC.start
                 kb = GC::Profiler.data.last[:HEAP_USE_SIZE] / 1024.0
                 GC.disable
                 kb
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_memory)
+              def measure
+                RubyProf.measure_memory / 1024.0
               end
             end
 
@@ -380,26 +360,20 @@ begin
           class Objects < Base
             Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
-            if RubyProf.respond_to?(:measure_allocations)
-              def measure
-                RubyProf.measure_allocations
-              end
-
-            # Ruby 1.8 + railsbench patch
-            elsif ObjectSpace.respond_to?(:allocated_objects)
-              def measure
-                ObjectSpace.allocated_objects
-              end
-
-            # Ruby 1.9 + GC profiler patch
-            elsif defined?(GC::Profiler)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
               def measure
                 GC.enable
                 GC.start
-                last = GC::Profiler.data.last
-                count = last[:HEAP_LIVE_OBJECTS] + last[:HEAP_FREE_OBJECTS]
+                count = GC::Profiler.data.last[:HEAP_TOTAL_OBJECTS]
                 GC.disable
                 count
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_allocations)
+              def measure
+                RubyProf.measure_allocations
               end
             end
 
@@ -411,17 +385,20 @@ begin
           class GcRuns < Base
             Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
 
-            if RubyProf.respond_to?(:measure_gc_runs)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+              def measure
+                GC.enable
+                GC.start
+                count = GC::Profiler.data.last[:GC_RUNS]
+                GC.disable
+                count
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_gc_runs)
               def measure
                 RubyProf.measure_gc_runs
-              end
-            elsif GC.respond_to?(:collections)
-              def measure
-                GC.collections
-              end
-            elsif GC.respond_to?(:heap_info)
-              def measure
-                GC.heap_info['num_gc_passes']
               end
             end
 
@@ -433,13 +410,20 @@ begin
           class GcTime < Base
             Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
-            if RubyProf.respond_to?(:measure_gc_time)
+            # Ruby 1.9 + extented GC profiler patch
+            if defined?(GC::Profiler) and GC::Profiler.respond_to?(:data)
+              def measure
+                GC.enable
+                GC.start
+                sec = GC::Profiler.data.inject(0) { |total, run| total += run[:GC_TIME] }
+                GC.disable
+                sec
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_gc_time)
               def measure
                 RubyProf.measure_gc_time
-              end
-            elsif GC.respond_to?(:time)
-              def measure
-                GC.time
               end
             end
 

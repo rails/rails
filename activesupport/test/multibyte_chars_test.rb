@@ -443,6 +443,11 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 'Abc', 'abc'.mb_chars.capitalize
   end
 
+  def test_titleize_should_work_on_ascii_characters
+    assert_equal '', ''.mb_chars.titleize
+    assert_equal 'Abc Abc', 'abc abc'.mb_chars.titleize
+  end
+
   def test_respond_to_knows_which_methods_the_proxy_responds_to
     assert ''.mb_chars.respond_to?(:slice) # Defined on Chars
     assert ''.mb_chars.respond_to?(:capitalize!) # Defined on Chars
@@ -478,6 +483,15 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
       '' => '' }.each do |f,t|
         assert_equal t, chars(f).capitalize
     end
+  end
+
+  def test_titleize_should_be_unicode_aware
+    assert_equal "Él Que Se Enteró", chars("ÉL QUE SE ENTERÓ").titleize
+    assert_equal "Абвг Абвг", chars("аБвг аБвг").titleize
+  end
+
+  def test_titleize_should_not_affect_characters_that_do_not_case_fold
+    assert_equal "日本語", chars("日本語").titleize
   end
 
   def test_limit_should_not_break_on_blank_strings

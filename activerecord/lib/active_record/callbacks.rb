@@ -236,8 +236,7 @@ module ActiveRecord
 
     included do
       extend ActiveModel::Callbacks
-
-      define_callbacks :validation, :terminator => "result == false", :scope => [:kind, :name]
+      include ActiveModel::Validations::Callbacks
 
       define_model_callbacks :initialize, :find, :only => :after
       define_model_callbacks :save, :create, :update, :destroy
@@ -251,29 +250,6 @@ module ActiveRecord
           send(meth.to_sym, meth.to_sym)
         end
       end
-
-      def before_validation(*args, &block)
-        options = args.last
-        if options.is_a?(Hash) && options[:on]
-          options[:if] = Array.wrap(options[:if])
-          options[:if] << "@_on_validate == :#{options[:on]}"
-        end
-        set_callback(:validation, :before, *args, &block)
-      end
-
-      def after_validation(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        options[:if] = Array.wrap(options[:if])
-        options[:if] << "!halted && value != false"
-        options[:if] << "@_on_validate == :#{options[:on]}" if options[:on]
-        set_callback(:validation, :after, *(args << options), &block)
-      end
-    end
-
-    def valid?(*) #:nodoc:
-      @_on_validate = new_record? ? :create : :update
-      _run_validation_callbacks { super }
     end
 
     def destroy #:nodoc:
@@ -288,6 +264,7 @@ module ActiveRecord
     end
 
   private
+
     def create_or_update #:nodoc:
       _run_save_callbacks { super }
     end

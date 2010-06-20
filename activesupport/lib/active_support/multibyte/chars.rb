@@ -50,10 +50,6 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      def <=>(other)
-        @wrapped_string <=> other
-      end
-
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         if method.to_s =~ /!$/
@@ -87,21 +83,21 @@ module ActiveSupport #:nodoc:
 
       include Comparable
 
+      # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
+      # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
+      # See <tt>String#<=></tt> for more details.
+      #
+      # Example:
+      #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
+      def <=>(other)
+        @wrapped_string <=> other.to_s
+      end
+
       if RUBY_VERSION < "1.9"
         # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
         # +false+ otherwise.
         def self.wants?(string)
           $KCODE == 'UTF8' && consumes?(string)
-        end
-
-        # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
-        # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
-        # See <tt>String#<=></tt> for more details.
-        #
-        # Example:
-        #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
-        def <=>(other)
-          @wrapped_string <=> other.to_s
         end
 
         # Returns a new Chars object containing the _other_ object concatenated to the string.
@@ -374,6 +370,16 @@ module ActiveSupport #:nodoc:
       def capitalize
         (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
       end
+
+      # Capitalizes the first letter of every word, when possible.
+      #
+      # Example:
+      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
+      #   "日本語".mb_chars.titleize                 # => "日本語"
+      def titleize
+        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.apply_mapping $1, :uppercase_mapping })
+      end
+      alias_method :titlecase, :titleize
 
       # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
       # passing strings to databases and validations.
