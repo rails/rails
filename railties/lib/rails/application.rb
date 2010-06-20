@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/file_update_checker'
 require 'fileutils'
 require 'rails/plugin'
 require 'rails/engine'
@@ -46,7 +47,6 @@ module Rails
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
-    autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
       private :new
@@ -121,11 +121,18 @@ module Rails
     end
 
     def routes_reloader
-      @routes_reloader ||= RoutesReloader.new
+      @routes_reloader ||= ActiveSupport::FileUpdateChecker.new([]){ reload_routes! }
     end
 
     def reload_routes!
-      routes_reloader.reload!
+      routes = Rails::Application.routes
+      routes.disable_clear_and_finalize = true
+
+      routes.clear!
+      routes_reloader.paths.each { |path| load(path) }
+      ActiveSupport.on_load(:action_controller) { routes.finalize! }
+    ensure
+      routes.disable_clear_and_finalize = false
     end
 
     def initialize!
