@@ -53,7 +53,6 @@ module ActionDispatch
         extras.each_key { |key| expected_options.delete key } unless extras.nil?
 
         expected_options.stringify_keys!
-        routing_diff = expected_options.diff(request.path_parameters)
         msg = build_message(message, "The recognized options <?> did not match <?>, difference: <?>",
             request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
         assert_block(msg) { request.path_parameters == expected_options }
