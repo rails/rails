@@ -84,17 +84,30 @@ module Rails
 
     delegate :middleware, :to => :config
 
-    def add_lib_to_load_paths!
+    # This method is called just after an application inherits from Rails::Application,
+    # allowing the developer to load classes in lib and use them during application
+    # configuration.
+    #
+    #   class MyApplication < Rails::Application
+    #     require "my_backend" # in lib/my_backend
+    #     config.i18n.backend = MyBackend
+    #   end
+    #
+    # Notice this method takes into consideration the default root path. So if you
+    # are changing config.root inside your application definition or having a custom
+    # Rails application, you will need to add lib to $LOAD_PATH on your own in case
+    # you need to load files in lib/ during the application configuration as well.
+    def add_lib_to_load_paths! #:nodoc:
       path = config.root.join('lib').to_s
       $LOAD_PATH.unshift(path) if File.exists?(path)
     end
 
-    def require_environment!
+    def require_environment! #:nodoc:
       environment = paths.config.environment.to_a.first
       require environment if environment
     end
 
-    def eager_load!
+    def eager_load! #:nodoc:
       railties.all(&:eager_load!)
       super
     end
