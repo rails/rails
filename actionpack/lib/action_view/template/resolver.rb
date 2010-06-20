@@ -3,6 +3,7 @@ require "active_support/core_ext/class"
 require "action_view/template"
 
 module ActionView
+  # = Action View Resolver
   class Resolver
     def initialize
       @cached = Hash.new { |h1,k1| h1[k1] =

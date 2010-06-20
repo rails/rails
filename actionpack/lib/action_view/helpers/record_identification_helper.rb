@@ -1,4 +1,7 @@
 module ActionView
+  # = Action View Record Identification Helpers
+  #
+  # See ActionController::RecordIdentifier for documentation on these methods.
   module Helpers
     module RecordIdentificationHelper
       # See ActionController::RecordIdentifier.partial_path -- this is just a delegate to that for convenient access in the view.

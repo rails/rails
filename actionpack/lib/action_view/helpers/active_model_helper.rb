@@ -4,6 +4,7 @@ require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Active Model Helpers
   module Helpers
     module ActiveModelHelper
       %w(input form error_messages_for error_message_on).each do |method|
