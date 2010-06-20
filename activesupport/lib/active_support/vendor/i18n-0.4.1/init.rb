@@ -1,0 +1,1 @@
+require 'i18n'

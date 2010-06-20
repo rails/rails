@@ -1,0 +1,135 @@
+h1. Changelog
+
+h2. master
+
+h2. 0.4.0 (2010-05-27)
+
+* "The localization proc also receives the object as option":http://github.com/svenfuchs/i18n/commit/4a8cd9fa660daaa3078e24c5851353ca377d9213
+
+h2. 0.4.0.beta1 (2010-05-03)
+
+* "Renamed Fast backend to Memoize backend":http://github.com/svenfuchs/i18n/commit/f7f7dc12c00a19d3876223771e14f8671ff313cd
+
+* "Deprecate {{}} as interpolation syntax":http://github.com/svenfuchs/i18n/commit/8894ee521ef5788c415b625a6daf522af4c416e0
+
+* "Allow nil translation to be stored again":http://github.com/svenfuchs/i18n/commit/f2074f1e82d10c2e9a801c8cc2f2a0c7c30703ba
+
+h2. 0.4.0.beta (2010-04-30)
+
+* "Added a KeyValue backend":http://github.com/svenfuchs/i18n/commit/28ca5f53ade7f545f8c0804e93564d4686b416a4
+
+* "Added transliteration support":http://github.com/svenfuchs/i18n/commit/928fdb4794959e779e90f360eb01ba043672d8d5
+
+* "Create Flatten backend module to aid handling flatten translations":http://github.com/svenfuchs/i18n/commit/2ec9d6998aa8facd7b15a3ef47a96cf2471cd8a1
+
+* "Decouple the external separator (used when storing translations) from the internal separator in Fast and ActiveRecord backends":http://github.com/svenfuchs/i18n/commit/274cb4daa0ca5e3b2bd23b45eb7f9fc58f75a79d
+
+h2. 0.3.7 (2010-04-17)
+
+* "Speed up I18n.normalize_keys by caching reused normalizations and producing less garbage":http://github.com/svenfuchs/i18n/commit/819dac0fea9c29e6545801aa107e63e355728cd4
+
+h2. 0.3.6 (2010-03-23)
+
+* "Move gettext po parser to lib":http://github.com/svenfuchs/i18n/commit/b2f038663b55727ac2327e6f07a46ba5d69d600c
+
+* "Move I18n configuration to I18n.config":http://github.com/svenfuchs/i18n/commit/4a7baea86663ead8c681008c3e80a622f0546b07
+
+h2. 0.3.5 (2010-02-26)
+
+* "Delegate I18n.normalize_translation_keys to I18n.normalize_keys and deprecate 
+the former":http://github.com/svenfuchs/i18n/commit/7284b04d5f5dd9679cb68875515cdd0cdfc96fef
+
+h2. 0.3.4 (2010-02-25)
+
+* "Rename I18n.normalize_translation_keys to I18n.normalize_keys and finally make it public":http://github.com/svenfuchs/i18n/commit/20b05fe5802df6c90fb70a4e3760b2b851b791b3
+
+* "Added CLDR supoprt":http://github.com/svenfuchs/i18n/commit/860eadf671a231e7f5dffb1bb27fa318ff7a8786
+
+h2. 0.3.3 (2009-12-29)
+
+* "Use lib/i18n/version":http://github.com/svenfuchs/i18n/commit/ff426c8e7a2438b814cb303adadec292dacb752e
+
+* "Added a benchmark suite":http://github.com/svenfuchs/i18n/commit/f9b5b9b113097724638bdab96862ffa404e67e70
+
+* "Ensure links can be handled recursively":http://github.com/svenfuchs/i18n/commit/2c50bd209f3fc24fe9dfa694c81be64340f09b7d
+
+* "Make sure we can lookup false values as translation data":http://github.com/svenfuchs/i18n/commit/561c82ba4b8921d03bfdf56cb2d0c2f287629001
+
+* "Added Fast backend module":http://github.com/svenfuchs/i18n/commit/bd2f09f0a251ca793b0e8ecc7e32177a2f091c23
+
+* "Added InterpolationCompiler backend module":http://github.com/svenfuchs/i18n/commit/91810887d1abfb28996a9183bc9004678290d28b
+
+h2. 0.3.2 (2009-12-12)
+
+* "Added Cascade backend":http://github.com/svenfuchs/i18n/commit/8009aef293e9ef8564c9005090d8380feabcaf6f
+
+h2. 0.3.1 (2009-12-11)
+
+* "Add PoParser to gemspec":http://github.com/svenfuchs/i18n/commit/d6b2763f39c932f66adb039b96882a472f883c51
+* "Enable custom separators for ActiveRecord backend":http://github.com/svenfuchs/i18n/commit/9341d3fcfc951cc31807ba672d2b5d90909ef3e5
+* "Pass interpolation values to interpolation procs":http://github.com/svenfuchs/i18n/commit/39c2ed8fbad645671cd5520ce7ad0aeefe2b0cca
+* "Fix that ngettext supports keys with dots":http://github.com/svenfuchs/i18n/commit/7362a43c34364d500de8899cfcca6bf1a5e6d1c8
+
+h2. 0.3.0 (2009-11-30)
+
+* "Gettext backend and helpers":http://github.com/svenfuchs/i18n/commit/35a1740d2f10b808548af352006950da4017e374
+* "Metadata module":http://github.com/svenfuchs/i18n/commit/2677208555179b36fcbe958c0e8bc642cf5bc020
+* "Basic ActiveRecord backend":http://github.com/svenfuchs/i18n/commit/786632d0b42de423ecf0969622efc87f1691e2a2
+* "Set encoding to UTF8 for all files":http://github.com/svenfuchs/i18n/commit/9be3d4a311b5bf583eec5d39986176cc40c112f2
+* "Chain backend":http://github.com/svenfuchs/i18n/commit/08259ffb88b3005403648d77bc1cbca0b92f3cf5
+* "Backend/cache implementation":http://github.com/svenfuchs/i18n/commit/e7bf15351cd2e27f5972eb40e65a5dd6f4a0feed
+* "Pluralization module":http://github.com/svenfuchs/i18n/commit/9ca4c9ed52d4706566a6abeb2d78722dcc5d4764
+* "add and adapt Globalize2 fallback implementation":http://github.com/svenfuchs/i18n/commit/1b37a303b27d6222b17162804b06323e5628768f
+* "move Simple backend implementation to a Base backend class and extend Simple from Base.":http://github.com/svenfuchs/i18n/commit/32ddc80a04e6aa247f6d6613bde7f78c73396cb4
+
+h2. 0.2.0 (2009-07-12)
+
+* "Allow using Ruby 1.9 syntax for string interpolation (API addition)":http://github.com/svenfuchs/i18n/commit/c6e0b06d512f2af57199a843a1d8a40241b32861
+* "Allow configuring the default scope separator, allow to pass a custom scope separator(API addition)":http://github.com/svenfuchs/i18n/commit/5b75bfbc348061adc11e3790187a187275bfd471 (e.g. I18n.t(:'foo|bar', :separator => '|') 
+* "Pass :format option to #translate for #localize more useful lambda support":http://github.com/svenfuchs/i18n/commit/e277711b3c844fe7589b8d3f9af0f7d1b969a273
+* "Refactor Simple backend #resolve to #default and #resolve for more consistency. Now allows to pass lambdas as defaults and re-resolve Symbols":http://github.com/svenfuchs/i18n/commit/8c4ce3d923ce5fa73e973fe28217e18165549aba
+* "Add lambda support to #translate (API addition)":http://github.com/svenfuchs/i18n/commit/c90e62d8f7d3d5b78f34cfe328d871b58884f115
+* "Add lambda support to #localize (API addition)":http://github.com/svenfuchs/i18n/commit/9d390afcf33f3f469bb95e6888147152f6cc7442
+
+h2. 0.1.3 (2009-02-27)
+
+* "Remove unnecessary string encoding handling in the i18n simple backend which made the backend break on Ruby 1.9":http://github.com/svenfuchs/i18n/commit/4c3a970783861a94f2e89f46714fb3434e4f4f8d
+
+h2. 0.1.2 (2009-01-09)
+
+* "added #available_locales (returns an array of locales for which translations are available)":http://github.com/svenfuchs/i18n/commit/411f8fe7c8f3f89e9b6b921fa62ed66cb92f3af4
+* "flatten load_path before using it so that a nested array of paths won't throw up":http://github.com/svenfuchs/i18n/commit/d473a068a2b90aba98135deb225d6eb6d8104d70
+
+h2. 0.1.1 (2008-11-20)
+
+* "Use :'en' as a default locale (in favor of :'en-US')":http://github.com/svenfuchs/i18n/commit/c4b10b246aecf7da78cb2568dd0d2ab7e6b8a230
+* "Add #reload! to Simple backend":http://github.com/svenfuchs/i18n/commit/36dd2bd9973b9e1559728749a9daafa44693e964
+
+h2. 0.1.0 (2008-10-25)
+
+* "Fix Simple backend to distinguish false from nil values":http://github.com/svenfuchs/i18n/commit/39d9a47da14b5f3ba126af48923af8c30e135166
+* "Add #load_path to public api, add initialize to simple backend and remove #load_translations from public api":http://github.com/svenfuchs/i18n/commit/c4c5649e6bc8f020f1aaf5a5470bde048e22c82d
+* "Speed up Backend::Simple#interpolate":http://github.com/svenfuchs/i18n/commit/9e1ac6bf8833304e036323ec9932b9f33c468a35
+* "Remove #populate and #store_translations from public API":http://github.com/svenfuchs/i18n/commit/f4e514a80be7feb509f66824ee311905e2940900
+* "Use :other instead of :many as a plural key":http://github.com/svenfuchs/i18n/commit/0f8f20a2552bf6a2aa758d8fdd62a7154e4a1bf6
+* "Use a class instead of a module for Simple backend":http://github.com/svenfuchs/i18n/commit/08f051aa61320c17debde24a83268bc74e33b995
+* "Make Simple backend #interpolate deal with non-ASCII string encodings":http://github.com/svenfuchs/i18n/commit/d84a3f3f55543c084d5dc5d1fed613b8df148789
+* "Fix default arrays of non-existant keys returning the default array":http://github.com/svenfuchs/i18n/commit/6c04ca86c87f97dc78f07c2a4023644e5ba8b839
+
+h2. Initial implementation (June/July 2008)
+
+Initial implementation by "Sven Fuchs":http://www.workingwithrails.com/person/9963-sven-fuchs based on previous discussion/consensus of the rails-i18n team (alphabetical order) and many others:
+
+* "Matt Aimonetti":http://railsontherun.com
+* "Sven Fuchs":http://www.workingwithrails.com/person/9963-sven-fuchs
+* "Joshua Harvey":http://www.workingwithrails.com/person/759-joshua-harvey
+* "Saimon Moore":http://saimonmoore.net
+* "Stephan Soller":http://www.arkanis-development.de
+
+h2. More information
+
+* "Homepage":http://rails-i18n.org
+* "Wiki":http://rails-i18n.org/wiki
+* "Mailinglist":http://groups.google.com/group/rails-i18n
+* "About the project/history":http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized
+* "Initial API Intro":http://www.artweb-design.de/2008/7/18/the-ruby-on-rails-i18n-core-api
