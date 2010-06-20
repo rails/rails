@@ -4,7 +4,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
-  # = Active Record Named Scopes
+  # = Active Record Named \Scopes
   module NamedScope
     extend ActiveSupport::Concern
 
@@ -20,10 +20,10 @@ module ActiveRecord
       #   fruits = fruits.limit(10) if limited?
       #
       # Anonymous \scopes tend to be useful when procedurally generating complex
-      # queries, where passing intermediate values (scopes) around as first-class 
+      # queries, where passing intermediate values (\scopes) around as first-class 
       # objects is convenient.
       #
-      # You can define a scope that applies to all finders using 
+      # You can define a \scope that applies to all finders using 
       # ActiveRecord::Base.default_scope.
       def scoped(options = {}, &block)
         if options.present?
@@ -38,7 +38,7 @@ module ActiveRecord
         read_inheritable_attribute(:scopes) || write_inheritable_attribute(:scopes, {})
       end
 
-      # Adds a class method for retrieving and querying objects. A scope represents a narrowing of a database query,
+      # Adds a class method for retrieving and querying objects. A \scope represents a narrowing of a database query,
       # such as <tt>where(:color => :red).select('shirts.*').includes(:washing_instructions)</tt>.
       #
       #   class Shirt < ActiveRecord::Base
