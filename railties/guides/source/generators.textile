@@ -1,4 +1,4 @@
-h2. Creating and customizing Rails Generators
+h2. Creating and Customizing Rails Generators
 
 Rails generators are an essential tool if you plan to improve your workflow and in this guide you will learn how to create and customize already existing generators.
 
@@ -15,7 +15,7 @@ endprologue.
 
 NOTE: This guide is about Rails generators for versions >= 3.0. Rails generators from previous versions are not supported.
 
-h3. First contact
+h3. First Contact
 
 When you create an application using the +rails+ command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking +rails generate+:
 
@@ -31,7 +31,7 @@ You will get a list of all generators that comes with Rails. If you need a detai
 $ rails generate helper --help
 </shell>
 
-h3. Creating your first generator
+h3. Creating Your First Generator
 
 Since Rails 3.0, generators are built on top of "Thor":http://github.com/wycats/thor. Thor has a powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
 
@@ -72,7 +72,7 @@ end
 
 Now we can see the new description by invoking +--help+ in the new generator. The second way to add a description is by creating a file named +USAGE+ in the same directory as our generator. We are going to do that in the next step.
 
-h3. Creating generators with generators
+h3. Creating Generators with Generators
 
 A faster way to create a generator is using the generator's generator:
 
@@ -129,7 +129,7 @@ $ rails generate initializer foo
 
 We can see that now a initializer named foo was created at +config/initializers/foo.rb+ with the contents of our template. That means that copy_file copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
 
-h3. Generators lookup
+h3. Generators Lookup
 
 With our first generator created, we must discuss briefly generators lookup. The way Rails finds generators is exactly the same way Ruby find files, i.e. using +$LOAD_PATHS+.
 
@@ -144,7 +144,7 @@ generators/initializer_generator.rb
 
 If none of them is found, it raises an error message.
 
-h3. Customizing your workflow
+h3. Customizing Your Workflow
 
 Rails generators are flexible enough to let you customize your scaffold the way you want. In your +config/application.rb+ there is a section just for generators:
 
@@ -285,7 +285,7 @@ Now, when the helper generator is invoked and let's say test unit is configured 
 
 And now you can re-run scaffold for another resource and see it generating tests as well!
 
-h3. Customizing your workflow by changing generators templates
+h3. Customizing Your Workflow by Changing Generators Templates
 
 In the step above, we simply wanted to add a line to the generated helper, without adding any extra functionality. There is a simpler way to do that, and it's by replacing the templates of already existing generators.
 
@@ -310,7 +310,7 @@ end
 
 If you generate another resource, you can see that we got exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating +edit.html.erb+, +index.html.erb+ and so on inside +RAILS_APP/lib/templates/erb/scaffold+.
 
-h3. Adding generators fallbacks
+h3. Adding Generators Fallbacks
 
 One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit test framework, like "shoulda":http://github.com/thoughtbot/shoulda does. Since TestUnit already implements all generators required by Rails and shoulda just want to overwrite part of it, there is no need for shoulda to reimplement some generators again, they can simply tell Rails to use a +TestUnit+ generator if none was found under +Shoulda+ namespace.
 
