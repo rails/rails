@@ -19,7 +19,7 @@ module ApplicationTests
       assert $:.include?("#{app_path}/app/models")
     end
 
-    test "initializing an application allows to load code on lib path inside application class definition" do
+    test "initializing an application allows to load code on lib path inside application class definitation" do
       app_file "lib/foo.rb", <<-RUBY
         module Foo; end
       RUBY
@@ -60,8 +60,6 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.cache_classes = true
-        config.load_paths << "#{app_path}/lib"
         config.eager_load_paths << "#{app_path}/lib"
       RUBY
 
