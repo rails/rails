@@ -276,7 +276,7 @@ end
 end
 </ruby>
 
-Now, when the helper generator is invoked and TestUnit is configured as the test framekwork, it will try to invoke both +MyHelper::Generators::TestUnitGenerator+ and +TestUnit::Generators::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails generator. To do that, we just need to add:
+Now, when the helper generator is invoked and TestUnit is configured as the test framework, it will try to invoke both +MyHelper::Generators::TestUnitGenerator+ and +TestUnit::Generators::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails generator. To do that, we just need to add:
 
 <ruby>
   # Search for :helper instead of :my_helper
