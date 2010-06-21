@@ -95,14 +95,12 @@ module ActionView
     # See JavaScriptGenerator for information on updating multiple elements
     # on the page in an Ajax response.
     module PrototypeHelper
-      unless const_defined? :CALLBACKS
-        CALLBACKS    = Set.new([ :create, :uninitialized, :loading, :loaded,
-                         :interactive, :complete, :failure, :success ] +
-                         (100..599).to_a)
-        AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,
-                         :asynchronous, :method, :insertion, :position,
-                         :form, :with, :update, :script, :type ]).merge(CALLBACKS)
-      end
+      CALLBACKS    = Set.new([ :create, :uninitialized, :loading, :loaded,
+                       :interactive, :complete, :failure, :success ] +
+                       (100..599).to_a)
+      AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,
+                       :asynchronous, :method, :insertion, :position,
+                       :form, :with, :update, :script, :type ]).merge(CALLBACKS)
 
       # Returns the JavaScript needed for a remote function.
       # Takes the same arguments as link_to_remote.

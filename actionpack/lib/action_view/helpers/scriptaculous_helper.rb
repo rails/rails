@@ -4,7 +4,7 @@ require 'active_support/json'
 module ActionView
   # = Action View Scriptaculous Helpers
   module Helpers
-    # Provides a set of helpers for calling Scriptaculous[http://script.aculo.us/] 
+    # Provides a set of helpers for calling Scriptaculous[http://script.aculo.us/]
     # JavaScript functions, including those which create Ajax controls and visual
     # effects.
     #
@@ -18,9 +18,7 @@ module ActionView
     # See the documentation at http://script.aculo.us for more information on
     # using these helpers in your application.
     module ScriptaculousHelper
-      unless const_defined? :TOGGLE_EFFECTS
-        TOGGLE_EFFECTS = [:toggle_appear, :toggle_slide, :toggle_blind]
-      end
+      TOGGLE_EFFECTS = [:toggle_appear, :toggle_slide, :toggle_blind]
 
       # Returns a JavaScript snippet to be used on the Ajax callbacks for
       # starting visual effects.

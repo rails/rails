@@ -582,10 +582,10 @@ module ActionView
       extend ActiveSupport::Memoizable
       include ActionView::Helpers::TagHelper
 
-      DEFAULT_PREFIX = 'date'.freeze unless const_defined?('DEFAULT_PREFIX')
+      DEFAULT_PREFIX = 'date'.freeze
       POSITION = {
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
-      }.freeze unless const_defined?('POSITION')
+      }.freeze
 
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
