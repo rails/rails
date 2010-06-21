@@ -24,7 +24,7 @@ h5. Cherry-picking a Definition
 
 The most lightweight way to get +blank?+ is to cherry-pick the file that defines it.
 
-For every single method defined as a core extension this guide has a note that says where is such a method defined. In the case of +blank?+ the note reads:
+For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of +blank?+ the note reads:
 
 NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
@@ -124,7 +124,7 @@ NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
 h4. +duplicable?+
 
-A few fundamental objects in Ruby are singletons. For example, in the whole live of a program the integer 1 refers always to the same instance:
+A few fundamental objects in Ruby are singletons. For example, in the whole life of a program the integer 1 refers always to the same instance:
 
 <ruby>
 1.object_id                 # => 3
