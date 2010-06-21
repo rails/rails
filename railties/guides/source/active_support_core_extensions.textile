@@ -255,7 +255,7 @@ NOTE: Defined in +active_support/core_ext/object/acts_like.rb+.
 
 h4. +to_param+
 
-All objects in Rails respond to the method +to_param+, which is meant to return something that represents them as values in a query string, or as a URL fragments.
+All objects in Rails respond to the method +to_param+, which is meant to return something that represents them as values in a query string, or as URL fragments.
 
 By default +to_param+ just calls +to_s+:
 
