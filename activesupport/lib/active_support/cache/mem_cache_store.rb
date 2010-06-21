@@ -35,7 +35,7 @@ module ActiveSupport
       def self.build_mem_cache(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost"] if addresses.empty?
+        addresses = ["localhost:11211"] if addresses.empty?
         MemCache.new(addresses, options)
       end
 

@@ -25,7 +25,7 @@ require 'active_support/ruby/shim' if RUBY_VERSION < '1.8.7'
 def uses_memcached(test_name)
   require 'memcache'
   begin
-    MemCache.new('localhost').stats
+    MemCache.new('localhost:11211').stats
     yield
   rescue MemCache::MemCacheError
     $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
