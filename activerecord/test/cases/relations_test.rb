@@ -16,6 +16,13 @@ class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :taggings
 
+  def test_apply_relation_as_where_id
+    posts = Post.arel_table
+    post_authors = posts.where(posts[:author_id].eq(1)).project(posts[:id])
+    assert_equal 5, post_authors.to_a.size
+    assert_equal 5, Post.where(:id => post_authors).size
+  end
+
   def test_scoped
     topics = Topic.scoped
     assert_kind_of ActiveRecord::Relation, topics
