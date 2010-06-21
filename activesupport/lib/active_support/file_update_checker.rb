@@ -19,7 +19,7 @@ module ActiveSupport
     def initialize(paths, calculate=false, &block)
       @paths = paths
       @block = block
-      @last_update_at = updated_at if calculate
+      @last_update_at = calculate ? updated_at : nil
     end
 
     def updated_at
