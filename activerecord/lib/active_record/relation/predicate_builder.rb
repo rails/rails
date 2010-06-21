@@ -28,7 +28,7 @@ module ActiveRecord
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
             values = value.to_a
             attribute.in(values)
-          when Range
+          when Range, Arel::Relation
             attribute.in(value)
           else
             attribute.eq(value)
