@@ -33,7 +33,7 @@ $ rails generate helper --help
 
 h3. Creating Your First Generator
 
-Since Rails 3.0, generators are built on top of "Thor":http://github.com/wycats/thor. Thor provides power options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
+Since Rails 3.0, generators are built on top of "Thor":http://github.com/wycats/thor. Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
 
 The first step is to create a file at +RAILS_APP/lib/generators/initializer_generator.rb+ with the following content:
 
