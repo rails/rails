@@ -7,6 +7,8 @@ module ActiveModel
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
                  :odd => :odd?, :even => :even? }.freeze
 
+      RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
+
       def initialize(options)
         super(options.reverse_merge(:only_integer => false, :allow_nil => false))
       end
@@ -76,10 +78,8 @@ module ActiveModel
       end
 
       def filtered_options(value)
-        reserved_options = [:allow_nil, :odd, :even, :not_an_integer, :only_integer, :allow_nil, :less_than]
-        options.except(*reserved_options).merge(:value => value)
+        options.except(*RESERVED_OPTIONS).merge!(:value => value)
       end
-
     end
 
     module HelperMethods

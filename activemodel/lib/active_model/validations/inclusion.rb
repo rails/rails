@@ -10,7 +10,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless options[:in].include?(value)
-          record.errors.add(attribute, :inclusion, options.except(:in).merge(:value => value))
+          record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
         end
       end
     end

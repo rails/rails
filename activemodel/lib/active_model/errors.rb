@@ -61,6 +61,8 @@ module ActiveModel
   class Errors < ActiveSupport::OrderedHash
     include DeprecatedErrorMethods
 
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank]
+
     # Pass in the instance of the object that is using the errors object.
     # 
     #   class Person
@@ -183,11 +185,12 @@ module ActiveModel
     def add(attribute, message = nil, options = {})
       message ||= :invalid
 
-      validation_conditionals = [:if, :unless, :on]
+      if message.is_a?(Symbol)
+        message = generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+      elsif message.is_a?(Proc)
+        message = message.call
+      end
 
-      message = generate_message(attribute, message, options.except(*validation_conditionals)) if message.is_a?(Symbol)
-
-      message = message.call if message.is_a?(Proc)
       self[attribute] << message
     end
 

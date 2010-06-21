@@ -7,6 +7,7 @@ module ActiveModel
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
       DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
+      RESERVED_OPTIONS  = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
@@ -50,9 +51,8 @@ module ActiveModel
 
           next if valid_value
 
-          reserved_options = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
           record.errors.add(attribute, MESSAGES[key],
-                            options.except(*reserved_options).merge(:count => check_value))
+                            options.except(*RESERVED_OPTIONS).merge!(:count => check_value))
         end
       end
     end
