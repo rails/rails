@@ -418,7 +418,9 @@ module ActionDispatch
           end
 
           def merge_blocks_scope(parent, child)
-            (parent || []) + [child]
+            merged = parent ? parent.dup : []
+            merged << child if child
+            merged
           end
 
           def merge_options_scope(parent, child)
