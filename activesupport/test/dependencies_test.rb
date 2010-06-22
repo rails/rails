@@ -25,11 +25,11 @@ class DependenciesTest < Test::Unit::TestCase
     this_dir = File.dirname(__FILE__)
     parent_dir = File.dirname(this_dir)
     $LOAD_PATH.unshift(parent_dir) unless $LOAD_PATH.include?(parent_dir)
-    prior_load_paths = ActiveSupport::Dependencies.load_paths
-    ActiveSupport::Dependencies.load_paths = from.collect { |f| "#{this_dir}/#{f}" }
+    prior_autoload_paths = ActiveSupport::Dependencies.autoload_paths
+    ActiveSupport::Dependencies.autoload_paths = from.collect { |f| "#{this_dir}/#{f}" }
     yield
   ensure
-    ActiveSupport::Dependencies.load_paths = prior_load_paths
+    ActiveSupport::Dependencies.autoload_paths = prior_autoload_paths
     ActiveSupport::Dependencies.mechanism = old_mechanism
     ActiveSupport::Dependencies.explicitly_unloadable_constants = []
   end
@@ -264,7 +264,7 @@ class DependenciesTest < Test::Unit::TestCase
   def test_loadable_constants_for_path_should_provide_all_results
     fake_root = '/usr/apps/backpack'
     with_loading fake_root, fake_root + '/lib' do
-      root = ActiveSupport::Dependencies.load_paths.first
+      root = ActiveSupport::Dependencies.autoload_paths.first
       assert_equal ["Lib::A::B", "A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(root + '/lib/a/b')
     end
   end
@@ -272,7 +272,7 @@ class DependenciesTest < Test::Unit::TestCase
   def test_loadable_constants_for_path_should_uniq_results
     fake_root = '/usr/apps/backpack/lib'
     with_loading fake_root, fake_root + '/' do
-      root = ActiveSupport::Dependencies.load_paths.first
+      root = ActiveSupport::Dependencies.autoload_paths.first
       assert_equal ["A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(root + '/a/b')
     end
   end
@@ -344,7 +344,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_file_search
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.load_paths.first
+      root = ActiveSupport::Dependencies.autoload_paths.first
       assert_equal nil, ActiveSupport::Dependencies.search_for_file('service_three')
       assert_equal nil, ActiveSupport::Dependencies.search_for_file('service_three.rb')
       assert_equal root + '/service_one.rb', ActiveSupport::Dependencies.search_for_file('service_one')
@@ -354,14 +354,14 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_file_search_uses_first_in_load_path
     with_loading 'dependencies', 'autoloading_fixtures' do
-      deps, autoload = ActiveSupport::Dependencies.load_paths
+      deps, autoload = ActiveSupport::Dependencies.autoload_paths
       assert_match %r/dependencies/, deps
       assert_match %r/autoloading_fixtures/, autoload
 
       assert_equal deps + '/conflict.rb', ActiveSupport::Dependencies.search_for_file('conflict')
     end
     with_loading 'autoloading_fixtures', 'dependencies' do
-      autoload, deps = ActiveSupport::Dependencies.load_paths
+      autoload, deps = ActiveSupport::Dependencies.autoload_paths
       assert_match %r/dependencies/, deps
       assert_match %r/autoloading_fixtures/, autoload
 
@@ -418,7 +418,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_removal_from_tree_should_be_detected
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.load_paths.first
+      root = ActiveSupport::Dependencies.autoload_paths.first
       c = ServiceOne
       ActiveSupport::Dependencies.clear
       assert ! defined?(ServiceOne)
@@ -433,7 +433,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_references_should_work
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.load_paths.first
+      root = ActiveSupport::Dependencies.autoload_paths.first
       c = ActiveSupport::Dependencies.ref("ServiceOne")
       service_one_first = ServiceOne
       assert_equal service_one_first, c.get
@@ -460,9 +460,9 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
-  def test_load_once_paths_do_not_add_to_autoloaded_constants
+  def test_autoload_once_paths_do_not_add_to_autoloaded_constants
     with_autoloading_fixtures do
-      ActiveSupport::Dependencies.load_once_paths = ActiveSupport::Dependencies.load_paths.dup
+      ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths.dup
 
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
@@ -473,7 +473,7 @@ class DependenciesTest < Test::Unit::TestCase
     end
   ensure
     Object.class_eval { remove_const :ModuleFolder }
-    ActiveSupport::Dependencies.load_once_paths = []
+    ActiveSupport::Dependencies.autoload_once_paths = []
   end
 
   def test_application_should_special_case_application_controller
@@ -760,20 +760,20 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_load_once_constants_should_not_be_unloaded
     with_autoloading_fixtures do
-      ActiveSupport::Dependencies.load_once_paths = ActiveSupport::Dependencies.load_paths
+      ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths
       ::A.to_s
       assert defined?(A)
       ActiveSupport::Dependencies.clear
       assert defined?(A)
     end
   ensure
-    ActiveSupport::Dependencies.load_once_paths = []
+    ActiveSupport::Dependencies.autoload_once_paths = []
     Object.class_eval { remove_const :A if const_defined?(:A) }
   end
 
-  def test_load_once_paths_should_behave_when_recursively_loading
+  def test_autoload_once_paths_should_behave_when_recursively_loading
     with_loading 'dependencies', 'autoloading_fixtures' do
-      ActiveSupport::Dependencies.load_once_paths = [ActiveSupport::Dependencies.load_paths.last]
+      ActiveSupport::Dependencies.autoload_once_paths = [ActiveSupport::Dependencies.autoload_paths.last]
       assert !defined?(CrossSiteDependency)
       assert_nothing_raised { CrossSiteDepender.nil? }
       assert defined?(CrossSiteDependency)
@@ -784,7 +784,7 @@ class DependenciesTest < Test::Unit::TestCase
         "CrossSiteDependency shouldn't have been unloaded!"
     end
   ensure
-    ActiveSupport::Dependencies.load_once_paths = []
+    ActiveSupport::Dependencies.autoload_once_paths = []
   end
 
   def test_hook_called_multiple_times

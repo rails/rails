@@ -1,6 +1,9 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* config.load_(once_)paths in config/application.rb got renamed to config.autoload_(once_)paths. [fxn]
+
 * Abort generation/booting on Ruby 1.9.1. [fxn]
+
 * Made the rails command work even when you're in a subdirectory [Chad Fowler]
 
 

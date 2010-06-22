@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Renamed ActiveSupport::Dependecies.load_(once_)paths to autoload_(once_)paths. [fxn]
+
 * Added ActiveSupport::FileUpdateChecker to execute a block only if a set of files changed, used by Router and I18n locale files. [José Valim]
 
 * Added ActiveSupport::DescendantsTracker to track descendants with support to constants reloading. [José Valim]
