@@ -44,6 +44,7 @@ begin
     $stderr.puts "Run '#{$0} -h' for help."
     exit 1
   elsif File.exist?(code_or_file)
+    $0 = code_or_file
     eval(File.read(code_or_file), nil, code_or_file)
   else
     eval(code_or_file)
