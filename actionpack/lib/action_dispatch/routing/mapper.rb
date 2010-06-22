@@ -577,6 +577,10 @@ module ActionDispatch
           @scope[:path_names] = @set.resources_path_names
         end
 
+        def resources_path_names(options)
+          @scope[:path_names].merge!(options)
+        end
+
         def resource(*resources, &block)
           options = resources.extract_options!
           options = (@scope[:options] || {}).merge(options)

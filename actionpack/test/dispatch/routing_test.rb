@@ -16,6 +16,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes = routes
     Routes.draw do
       default_url_options :host => "rubyonrails.org"
+      resources_path_names :correlation_indexes => "info_about_correlation_indexes"
 
       controller :sessions do
         get  'login' => :new
@@ -86,6 +87,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :projects, :controller => :project do
         resources :involvements, :attachments
+        get :correlation_indexes, :on => :collection
 
         resources :participants do
           put :update_all, :on => :collection
@@ -112,6 +114,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
 
           member do
+            get  :some_path_with_name
             put  :accessible_projects
             post :resend, :generate_new_password
           end
@@ -707,6 +710,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/projects/1/people/1/generate_new_password'
       assert_equal 'people#generate_new_password', @response.body
       assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(:project_id => '1', :id => '1')
+    end
+  end
+
+  def test_projects_with_resources_path_names
+    with_test_routes do
+      get '/projects/info_about_correlation_indexes'
+      assert_equal 'project#correlation_indexes', @response.body
+      assert_equal '/projects/info_about_correlation_indexes', correlation_indexes_projects_path
     end
   end
 
