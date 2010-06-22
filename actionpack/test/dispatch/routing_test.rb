@@ -242,6 +242,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :users, :path => 'usuarios' do
+        root :to => 'home#index'
+      end
+
       controller :articles do
         scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
@@ -929,6 +933,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/clients/1/google/account/secret/info'
       assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
       assert_equal 'google/secret/infos#show', @response.body
+    end
+  end
+
+  def test_namespace_with_options
+    with_test_routes do
+      get '/usuarios'
+      assert_equal '/usuarios', users_root_path
+      assert_equal 'users/home#index', @response.body
     end
   end
 

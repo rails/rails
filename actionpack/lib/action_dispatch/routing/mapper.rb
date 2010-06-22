@@ -346,9 +346,11 @@ module ActionDispatch
           scope(controller.to_sym) { yield }
         end
 
-        def namespace(path)
+        def namespace(path, options = {})
           path = path.to_s
-          scope(:path => path, :as => path, :module => path, :shallow_path => path, :shallow_prefix => path) { yield }
+          options = { :path => path, :as => path, :module => path,
+                      :shallow_path => path, :shallow_prefix => path }.merge!(options)
+          scope(options) { yield }
         end
 
         def constraints(constraints = {})
@@ -686,7 +688,7 @@ module ActionDispatch
           end
         end
 
-        def namespace(path)
+        def namespace(path, options = {})
           if resource_scope?
             nested { super }
           else
