@@ -10,7 +10,10 @@ class PostgresqlActiveSchemaTest < Test::Unit::TestCase
   end
 
   def teardown
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:alias_method, :execute, :real_execute)
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
+      remove_method :execute
+      alias_method :execute, :real_execute
+    end
   end
 
   def test_create_database_with_encoding
