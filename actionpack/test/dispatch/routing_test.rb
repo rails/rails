@@ -70,7 +70,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
 
-      scope 'pt', :name_prefix => 'pt' do
+      scope 'pt', :as => 'pt' do
         resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
           post :preview, :on => :new
         end
@@ -243,9 +243,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       controller :articles do
-        scope '/articles', :name_prefix => 'article' do
+        scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            match '/:id', :to => :with_id
+            match '/:id', :to => :with_id, :as => ""
           end
         end
       end

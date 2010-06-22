@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Deprecate :name_prefix in the new router DSL [José Valim]
+
 * Add shallow routes back to the new router [Diego Carrion, Andrew White]
 
     resources :posts do

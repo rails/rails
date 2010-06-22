@@ -299,6 +299,11 @@ module ActionDispatch
           options = args.extract_options!
           options = options.dup
 
+          if name_prefix = options.delete(:name_prefix)
+            options[:as] ||= name_prefix
+            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
+          end
+
           case args.first
           when String
             options[:path] = args.first
@@ -343,7 +348,7 @@ module ActionDispatch
 
         def namespace(path)
           path = path.to_s
-          scope(:path => path, :name_prefix => path, :module => path, :shallow_path => path, :shallow_prefix => path) { yield }
+          scope(:path => path, :as => path, :module => path, :shallow_path => path, :shallow_prefix => path) { yield }
         end
 
         def constraints(constraints = {})
@@ -359,10 +364,10 @@ module ActionDispatch
 
           options = (@scope[:options] || {}).merge(options)
 
-          if @scope[:name_prefix] && !options[:as].blank?
-            options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
-          elsif @scope[:name_prefix] && options[:as] == ""
-            options[:as] = @scope[:name_prefix].to_s
+          if @scope[:as] && !options[:as].blank?
+            options[:as] = "#{@scope[:as]}_#{options[:as]}"
+          elsif @scope[:as] && options[:as] == ""
+            options[:as] = @scope[:as].to_s
           end
 
           args.push(options)
@@ -382,7 +387,7 @@ module ActionDispatch
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_name_prefix_scope(parent, child)
+          def merge_as_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
@@ -435,6 +440,7 @@ module ActionDispatch
             @name       = entities.to_s
             @path       = options.delete(:path) || @name
             @controller = options.delete(:controller) || @name.to_s.pluralize
+            @as         = options.delete(:as)
             @options    = options
           end
 
@@ -453,7 +459,7 @@ module ActionDispatch
           end
 
           def name
-            options[:as] || @name
+            @as || @name
           end
 
           def plural
@@ -505,7 +511,7 @@ module ActionDispatch
 
           def nested_options
             {}.tap do |opts|
-              opts[:name_prefix] = member_name
+              opts[:as] = member_name
               opts["#{singular}_id".to_sym] = id_constraint if id_constraint?
               opts[:options] = { :shallow => shallow? } unless options[:shallow].nil?
             end
@@ -537,14 +543,10 @@ module ActionDispatch
             [:show, :create, :update, :destroy, :new, :edit]
           end
 
-          def initialize(entity, options = {})
-            super
-          end
-
           def member_name
             name
           end
-          alias_method :collection_name, :member_name
+          alias :collection_name :member_name
 
           def nested_path
             path
@@ -552,7 +554,7 @@ module ActionDispatch
 
           def nested_options
             {}.tap do |opts|
-              opts[:name_prefix] = member_name
+              opts[:as] = member_name
               opts[:options] = { :shallow => shallow? } unless @options[:shallow].nil?
             end
           end
@@ -673,7 +675,7 @@ module ActionDispatch
                 if @scope[:shallow_path].blank?
                   scope(*parent_resource.nested_scope) { yield }
                 else
-                  scope(@scope[:shallow_path], :name_prefix => @scope[:shallow_prefix]) do
+                  scope(@scope[:shallow_path], :as => @scope[:shallow_prefix]) do
                     scope(*parent_resource.nested_scope) { yield }
                   end
                 end
@@ -758,7 +760,7 @@ module ActionDispatch
         def root(options={})
           if @scope[:scope_level] == :resources
             with_scope_level(:nested) do
-              scope(parent_resource.path, :name_prefix => parent_resource.collection_name) do
+              scope(parent_resource.path, :as => parent_resource.collection_name) do
                 super(options)
               end
             end
@@ -806,14 +808,14 @@ module ActionDispatch
 
           def with_exclusive_scope
             begin
-              old_name_prefix, old_path = @scope[:name_prefix], @scope[:path]
-              @scope[:name_prefix], @scope[:path] = nil, nil
+              old_name_prefix, old_path = @scope[:as], @scope[:path]
+              @scope[:as], @scope[:path] = nil, nil
 
               with_scope_level(:exclusive) do
                 yield
               end
             ensure
-              @scope[:name_prefix], @scope[:path] = old_name_prefix, old_path
+              @scope[:as], @scope[:path] = old_name_prefix, old_path
             end
           end
 
@@ -908,7 +910,7 @@ module ActionDispatch
           end
 
           def name_for_action(action)
-            name_prefix = @scope[:name_prefix].blank? ? "" : "#{@scope[:name_prefix]}_"
+            name_prefix = @scope[:as].blank? ? "" : "#{@scope[:as]}_"
             shallow_prefix = @scope[:shallow_prefix].blank? ? "" : "#{@scope[:shallow_prefix]}_"
 
             case action
