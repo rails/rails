@@ -159,24 +159,25 @@ module ActionView
       end
 
       EXCLUDE_IVARS = %w{
+        @_assertion_wrapped
         @_result
-        @output_buffer
-        @rendered
-        @templates
-        @view_context_class
-        @layouts
-        @partials
+        @_view
         @controller
-
+        @layouts
+        @locals
         @method_name
-        @fixture_cache
-        @loaded_fixtures
+        @output_buffer
+        @partials
+        @rendered
+        @request
+        @routes
+        @templates
         @test_passed
+        @view_context_class
       }
 
       def _instance_variables
         instance_variables - EXCLUDE_IVARS
-        instance_variables
       end
 
       def _assigns
