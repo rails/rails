@@ -9,7 +9,7 @@ module Rails
 
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
-                    :filter_parameters,  :log_level, :logger, :middleware,
+                    :filter_parameters,  :log_level, :logger,
                     :plugins, :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils

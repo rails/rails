@@ -50,5 +50,40 @@ module RailtiesTest
 
       assert index < initializers.index { |i| i.name == :build_middleware_stack }
     end
+
+    class Upcaser
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        response = @app.call(env)
+        response[2].upcase!
+        response
+      end
+    end
+
+    test "engine is a rack app and can have his own middleware stack" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'Hello World'] }
+
+            config.middleware.use ::RailtiesTest::EngineTest::Upcaser
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      Rails::Application.routes.draw do |map|
+        mount(Bukkits::Engine => "/bukkits")
+      end
+
+      env = Rack::MockRequest.env_for("/bukkits")
+      response = Rails::Application.call(env)
+
+      assert_equal "HELLO WORLD", response[2]
+    end
   end
 end

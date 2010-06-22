@@ -140,6 +140,19 @@ module Rails
       end
     end
 
+    def app
+      raise "You can't use Engine as rack application without providing valid rack endpoint" unless endpoint
+      @app ||= config.middleware.build(endpoint)
+    end
+
+    def endpoint
+      self.class.endpoint
+    end
+
+    def call(env)
+      app.call(env)
+    end
+
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
       _all_load_paths.reverse_each do |path|

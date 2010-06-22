@@ -17,7 +17,7 @@ module Rails
       end
 
       def engines
-        @engines ||= ::Rails::Engine.subclasses.map(&:new)
+        @engines ||= ::Rails::Engine.subclasses.map(&:instance)
       end
 
       def plugins
