@@ -194,7 +194,6 @@ module ActionView
     #   RewriteEngine On
     #   RewriteRule ^/release-\d+/(images|javascripts|stylesheets)/(.*)$ /$1/$2 [L]
     module AssetTagHelper
-      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls', 'rails'].freeze
 
       # Returns a link tag that browsers and news readers can use to auto-detect
       # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
@@ -351,7 +350,7 @@ module ActionView
         end
       end
 
-      @@javascript_expansions = { :defaults => JAVASCRIPT_DEFAULT_SOURCES.dup }
+      @@javascript_expansions = { }
 
       # Register one or more javascript files to be included when <tt>symbol</tt>
       # is passed to <tt>javascript_include_tag</tt>. This method is typically intended
@@ -366,6 +365,10 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/tail.js"></script>
       def self.register_javascript_expansion(expansions)
         @@javascript_expansions.merge!(expansions)
+      end
+
+      def self.reset_javascript_expansions #:nodoc:
+        @@javascript_expansions = {}
       end
 
       @@stylesheet_expansions = {}
@@ -383,18 +386,6 @@ module ActionView
       #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
       def self.register_stylesheet_expansion(expansions)
         @@stylesheet_expansions.merge!(expansions)
-      end
-
-      # Register one or more additional JavaScript files to be included when
-      # <tt>javascript_include_tag :defaults</tt> is called. This method is
-      # typically intended to be called from plugin initialization to register additional
-      # .js files that the plugin installed in <tt>public/javascripts</tt>.
-      def self.register_javascript_include_default(*sources)
-        @@javascript_expansions[:defaults].concat(sources)
-      end
-
-      def self.reset_javascript_include_default #:nodoc:
-        @@javascript_expansions[:defaults] = JAVASCRIPT_DEFAULT_SOURCES.dup
       end
 
       # Computes the path to a stylesheet asset in the public stylesheets directory.
