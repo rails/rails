@@ -736,10 +736,10 @@ module ActionDispatch
             return member { match(*args) }
           end
 
-          path_names = options.delete(:path_names)
+          path = options.delete(:path)
 
           if args.first.is_a?(Symbol)
-            path = path_for_action(args.first, path_names)
+            path = path_for_action(args.first, path)
             options = options_for_action(args.first, options)
 
             with_exclusive_scope do
@@ -860,7 +860,7 @@ module ActionDispatch
             end
           end
 
-          def path_for_action(action, path_names)
+          def path_for_action(action, path)
             case action
             when :index, :create
               "#{@scope[:path]}(.:format)"
@@ -881,12 +881,12 @@ module ActionDispatch
             else
               case @scope[:scope_level]
               when :collection, :new
-                "#{@scope[:path]}/#{action_path(action)}(.:format)"
+                "#{@scope[:path]}/#{action_path(action, path)}(.:format)"
               else
                 if parent_resource.shallow?
-                  "#{@scope[:shallow_path]}/#{parent_resource.path}/:id/#{action_path(action)}(.:format)"
+                  "#{@scope[:shallow_path]}/#{parent_resource.path}/:id/#{action_path(action, path)}(.:format)"
                 else
-                  "#{@scope[:path]}/#{action_path(action)}(.:format)"
+                  "#{@scope[:path]}/#{action_path(action, path)}(.:format)"
                 end
               end
             end
@@ -905,9 +905,8 @@ module ActionDispatch
             end
           end
 
-          def action_path(name, path_names = nil)
-            path_names ||= @scope[:path_names]
-            path_names[name.to_sym] || name.to_s
+          def action_path(name, path = nil)
+            path || @scope[:path_names][name.to_sym] || name.to_s
           end
 
           def options_for_action(action, options)

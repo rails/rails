@@ -74,9 +74,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope 'pt', :as => 'pt' do
         resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
           post :preview, :on => :new
+          put :close, :on => :member, :path => 'fechar'
+          get :open, :on => :new, :path => 'abrir'
         end
-        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador' do
+        resource  :admin, :path_names => { :new => 'novo', :activate => 'ativar' }, :path => 'administrador' do
           post :preview, :on => :new
+          put :activate, :on => :member
         end
         resources :products, :path_names => { :new => 'novo' } do
           new do
@@ -854,6 +857,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/pt/administrador/novo'
       assert_equal 'admins#new', @response.body
       assert_equal '/pt/administrador/novo', new_pt_admin_path
+
+      put '/pt/administrador/ativar'
+      assert_equal 'admins#activate', @response.body
+      assert_equal '/pt/administrador/ativar', activate_pt_admin_path
+    end
+  end
+
+  def test_path_option_override
+    with_test_routes do
+      get '/pt/projetos/novo/abrir'
+      assert_equal 'projects#open', @response.body
+      assert_equal '/pt/projetos/novo/abrir', open_new_pt_project_path
+
+      put '/pt/projetos/1/fechar'
+      assert_equal 'projects#close', @response.body
+      assert_equal '/pt/projetos/1/fechar', close_pt_project_path(1)
     end
   end
 
