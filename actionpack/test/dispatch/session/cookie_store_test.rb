@@ -83,7 +83,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
       get '/get_session_id'
       assert_response :success
-      assert_equal "id: #{session_id}", response.body
+      assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
     end
   end
 
@@ -138,6 +138,15 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_getting_from_nonexistent_session
+    with_test_route_set do
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body
+      assert_nil headers['Set-Cookie'], "should only create session on write, not read"
     end
   end
 

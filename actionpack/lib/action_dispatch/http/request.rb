@@ -195,7 +195,7 @@ module ActionDispatch
     end
 
     def reset_session
-      self.session_options.delete(:id)
+      session.destroy if session
       self.session = {}
     end
 

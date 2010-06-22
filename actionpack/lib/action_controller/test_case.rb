@@ -193,6 +193,8 @@ module ActionController
       replace(session.stringify_keys)
       @loaded = true
     end
+
+    def exists?; true; end
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to
