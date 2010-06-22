@@ -61,7 +61,7 @@ module ActionController
     # ==== Returns
     # String
     def self.controller_name
-      @controller_name ||= controller_path.split("/").last
+      @controller_name ||= self.name.demodulize.sub(/Controller$/, '').underscore
     end
 
     # Delegates to the class' #controller_name
