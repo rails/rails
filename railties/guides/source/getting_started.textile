@@ -227,7 +227,7 @@ development:
   timeout: 5000
 </yaml>
 
-NOTE: In this guide we are using an SQLite3 database for data storage, this is because it is a zero configuration database that just works.  Rails also supports MySQL and PostgreSQL "out of the box", and has plugins for many database systems, if you are using a database in a production environment, Rails most likely has an adapter for it.
+NOTE: In this guide we are using an SQLite3 database for data storage, because it is a zero configuration database that just works. Rails also supports MySQL and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
 
 h5. Configuring a MySQL Database
 
