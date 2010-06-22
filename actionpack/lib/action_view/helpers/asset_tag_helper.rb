@@ -194,6 +194,19 @@ module ActionView
     #   RewriteEngine On
     #   RewriteRule ^/release-\d+/(images|javascripts|stylesheets)/(.*)$ /$1/$2 [L]
     module AssetTagHelper
+      mattr_reader :javascript_expansions
+      @@javascript_expansions = { }
+
+      mattr_reader :stylesheet_expansions
+      @@stylesheet_expansions = {}
+
+      # You can enable or disable the asset tag timestamps cache.
+      # With the cache enabled, the asset tag helper methods will make fewer
+      # expensive file system calls. However this prevents you from modifying
+      # any asset files while the server is running.
+      #
+      #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
+      mattr_accessor :cache_asset_timestamps
 
       # Returns a link tag that browsers and news readers can use to auto-detect
       # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
@@ -350,8 +363,6 @@ module ActionView
         end
       end
 
-      @@javascript_expansions = { }
-
       # Register one or more javascript files to be included when <tt>symbol</tt>
       # is passed to <tt>javascript_include_tag</tt>. This method is typically intended
       # to be called from plugin initialization to register javascript files
@@ -366,12 +377,6 @@ module ActionView
       def self.register_javascript_expansion(expansions)
         @@javascript_expansions.merge!(expansions)
       end
-
-      def self.reset_javascript_expansions #:nodoc:
-        @@javascript_expansions = {}
-      end
-
-      @@stylesheet_expansions = {}
 
       # Register one or more stylesheet files to be included when <tt>symbol</tt>
       # is passed to <tt>stylesheet_link_tag</tt>. This method is typically intended
@@ -698,23 +703,8 @@ module ActionView
         tag("audio", options)
       end
 
-      def self.cache_asset_timestamps
-        @@cache_asset_timestamps
-      end
-
-      # You can enable or disable the asset tag timestamps cache.
-      # With the cache enabled, the asset tag helper methods will make fewer
-      # expensive file system calls. However this prevents you from modifying
-      # any asset files while the server is running.
-      #
-      #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
-      def self.cache_asset_timestamps=(value)
-        @@cache_asset_timestamps = value
-      end
-
-      @@cache_asset_timestamps = true
-
       private
+
         def rewrite_extension?(source, dir, ext)
           source_ext = File.extname(source)[1..-1]
           ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
