@@ -300,6 +300,11 @@ class FormHelperTest < ActionView::TestCase
    )
   end
 
+  def test_radio_button_with_negative_integer_value
+    assert_dom_equal('<input id="post_secret_-1" name="post[secret]" type="radio" value="-1" />',
+      radio_button("post", "secret", "-1"))
+  end
+
   def test_radio_button_respects_passed_in_id
      assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
        radio_button("post", "secret", "1", :id=>"foo")
