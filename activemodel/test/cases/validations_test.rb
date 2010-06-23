@@ -83,15 +83,30 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.content = "Mismatch"
     r.valid?
-    r.errors[:base] << "Reply is not dignifying"
+    r.errors.add(:base, "Reply is not dignifying")
 
-    errors = []
-    r.errors.to_a.each { |error| errors << error }
+    errors = r.errors.to_a.inject([]) { |result, error| result + [error] }
 
     assert_equal ["Reply is not dignifying"], r.errors[:base]
 
     assert errors.include?("Title is Empty")
     assert errors.include?("Reply is not dignifying")
+    assert_equal 2, r.errors.count
+  end
+
+  def test_errors_on_base_with_symbol_message
+    r = Reply.new
+    r.content = "Mismatch"
+    r.valid?
+    r.errors.add(:base, :invalid)
+
+    errors = r.errors.to_a.inject([]) { |result, error| result + [error] }
+
+    assert_equal ["is invalid"], r.errors[:base]
+
+    assert errors.include?("Title is Empty")
+    assert errors.include?("is invalid")
+
     assert_equal 2, r.errors.count
   end
 
