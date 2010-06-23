@@ -89,7 +89,11 @@ module ActiveRecord
             when Hash
               options
             when Proc
-              options.call(*args)
+              if self.model_name != parent_scope.model_name
+                parent_scope.instance_exec(*args, &options)
+              else
+                options.call(*args)
+              end
           end, &block)
         end
         (class << self; self end).instance_eval do
