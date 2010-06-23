@@ -99,8 +99,8 @@ module ActionView
       end
 
       def render(options = {}, local_assigns = {}, &block)
-        _view.assign(_assigns)
-        @rendered << output = _view.render(options, local_assigns, &block)
+        view.assign(_assigns)
+        @rendered << output = view.render(options, local_assigns, &block)
         output
       end
 
@@ -146,8 +146,9 @@ module ActionView
         end
       end
 
-      def _view
-        @_view ||= begin
+      # The instance of ActionView::Base that is used by +render+.
+      def view
+        @view ||= begin
                      view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
                      view.singleton_class.send :include, _helpers
                      view.singleton_class.send :include, @controller._router.url_helpers
@@ -159,10 +160,11 @@ module ActionView
                    end
       end
 
+      alias_method :_view, :view
+
       EXCLUDE_IVARS = %w{
         @_assertion_wrapped
         @_result
-        @_view
         @controller
         @layouts
         @locals
@@ -174,6 +176,7 @@ module ActionView
         @routes
         @templates
         @test_passed
+        @view
         @view_context_class
       }
 
