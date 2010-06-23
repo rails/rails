@@ -29,6 +29,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 4, topics.size
   end
 
+  def test_to_json
+    assert_nothing_raised  { Bird.scoped.to_json }
+    assert_nothing_raised  { Bird.scoped.all.to_json }
+  end
+
+  def test_to_yaml
+    assert_nothing_raised  { Bird.scoped.to_yaml }
+    assert_nothing_raised  { Bird.scoped.all.to_yaml }
+  end
+
   def test_scoped_all
     topics = Topic.scoped.all
     assert_kind_of Array, topics
