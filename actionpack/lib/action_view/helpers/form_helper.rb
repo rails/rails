@@ -787,8 +787,8 @@ module ActionView
         if field_type == "hidden"
           options.delete("size")
         end
-        options["type"]  ||= field_type
-        options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
+        options["type"] = field_type
+        options["value"] ||= value_before_type_cast(object) unless field_type == "file"
         options["value"] &&= html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
@@ -920,14 +920,14 @@ module ActionView
         def add_default_name_and_id(options)
           if options.has_key?("index")
             options["name"] ||= tag_name_with_index(options["index"])
-            options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
+            options["id"]   ||= tag_id_with_index(options["index"])
             options.delete("index")
           elsif defined?(@auto_index)
             options["name"] ||= tag_name_with_index(@auto_index)
-            options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
+            options["id"]   ||= tag_id_with_index(@auto_index)
           else
             options["name"] ||= tag_name + (options.has_key?('multiple') ? '[]' : '')
-            options["id"] = options.fetch("id"){ tag_id }
+            options["id"]   ||= tag_id
           end
         end
 
