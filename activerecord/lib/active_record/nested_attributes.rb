@@ -359,7 +359,7 @@ module ActiveRecord
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
 
-        elsif existing_records.count == 0 #Existing record but not yet associated
+        elsif existing_records.size == 0 # Existing record but not yet associated
           existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
           association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
