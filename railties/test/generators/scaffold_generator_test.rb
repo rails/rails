@@ -110,4 +110,110 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     # Stylesheets (should not be removed)
     assert_file "public/stylesheets/scaffold.css"
   end
+
+  def test_scaffold_with_namespace_on_invoke
+    run_generator [ "admin/role", "name:string", "description:string" ]
+
+    # Model
+    assert_file "app/models/admin.rb", /module Admin/
+    assert_file "app/models/admin/role.rb", /class Admin::Role < ActiveRecord::Base/
+    assert_file "test/unit/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/fixtures/admin/roles.yml"
+    assert_migration "db/migrate/create_admin_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_match /namespace :admin do resources :roles end$/, route
+    end
+
+    # Controller
+    assert_file "app/controllers/admin/roles_controller.rb" do |content|
+      assert_match /class Admin::RolesController < ApplicationController/, content
+
+      assert_instance_method :index, content do |m|
+        assert_match /@admin_roles = Admin::Role\.all/, m
+      end
+
+      assert_instance_method :show, content do |m|
+        assert_match /@admin_role = Admin::Role\.find\(params\[:id\]\)/, m
+      end
+
+      assert_instance_method :new, content do |m|
+        assert_match /@admin_role = Admin::Role\.new/, m
+      end
+
+      assert_instance_method :edit, content do |m|
+        assert_match /@admin_role = Admin::Role\.find\(params\[:id\]\)/, m
+      end
+
+      assert_instance_method :create, content do |m|
+        assert_match /@admin_role = Admin::Role\.new\(params\[:admin_role\]\)/, m
+        assert_match /@admin_role\.save/, m
+        assert_match /@admin_role\.errors/, m
+      end
+
+      assert_instance_method :update, content do |m|
+        assert_match /@admin_role = Admin::Role\.find\(params\[:id\]\)/, m
+        assert_match /@admin_role\.update_attributes\(params\[:admin_role\]\)/, m
+        assert_match /@admin_role\.errors/, m
+      end
+
+      assert_instance_method :destroy, content do |m|
+        assert_match /@admin_role = Admin::Role\.find\(params\[:id\]\)/, m
+        assert_match /@admin_role\.destroy/, m
+      end
+    end
+
+    assert_file "test/functional/admin/roles_controller_test.rb",
+                /class Admin::RolesControllerTest < ActionController::TestCase/
+
+    # Views
+    %w(
+      index
+      edit
+      new
+      show
+      _form
+    ).each { |view| assert_file "app/views/admin/roles/#{view}.html.erb" }
+    assert_no_file "app/views/layouts/admin/roles.html.erb"
+
+    # Helpers
+    assert_file "app/helpers/admin/roles_helper.rb"
+    assert_file "test/unit/helpers/admin/roles_helper_test.rb"
+
+    # Stylesheets
+    assert_file "public/stylesheets/scaffold.css"
+  end
+
+  def test_scaffold_with_namespace_on_revoke
+    run_generator [ "admin/role", "name:string", "description:string" ]
+    run_generator [ "admin/role" ], :behavior => :revoke
+
+    # Model
+    assert_file "app/models/admin.rb"	# ( should not be remove )
+    assert_no_file "app/models/admin/role.rb"
+    assert_no_file "test/unit/admin/role_test.rb"
+    assert_no_file "test/fixtures/admin/roles.yml"
+    assert_no_migration "db/migrate/create_admin_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_no_match /namespace :admin do resources :roles end$/, route
+    end
+
+    # Controller
+    assert_no_file "app/controllers/admin/roles_controller.rb"
+    assert_no_file "test/functional/admin/roles_controller_test.rb"
+
+    # Views
+    assert_no_file "app/views/admin/roles"
+    assert_no_file "app/views/layouts/admin/roles.html.erb"
+
+    # Helpers
+    assert_no_file "app/helpers/admin/roles_helper.rb"
+    assert_no_file "test/unit/helpers/admin/roles_helper_test.rb"
+
+    # Stylesheets (should not be removed)
+    assert_file "public/stylesheets/scaffold.css"
+  end
 end

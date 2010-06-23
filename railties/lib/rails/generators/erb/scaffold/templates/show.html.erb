@@ -3,10 +3,10 @@
 <% for attribute in attributes -%>
 <p>
   <b><%= attribute.human_name %>:</b>
-  <%%= @<%= singular_name %>.<%= attribute.name %> %>
+  <%%= @<%= singular_table_name %>.<%= attribute.name %> %>
 </p>
 
 <% end -%>
 
-<%%= link_to 'Edit', edit_<%= singular_name %>_path(@<%= singular_name %>) %> |
+<%%= link_to 'Edit', edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
 <%%= link_to 'Back', <%= index_helper %>_path %>

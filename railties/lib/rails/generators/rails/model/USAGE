@@ -40,6 +40,6 @@ Examples:
             Module:     app/models/admin.rb
             Model:      app/models/admin/account.rb
             Test:       test/unit/admin/account_test.rb
-            Fixtures:   test/fixtures/admin_accounts.yml
+            Fixtures:   test/fixtures/admin/accounts.yml
             Migration:  db/migrate/XXX_add_admin_accounts.rb
 

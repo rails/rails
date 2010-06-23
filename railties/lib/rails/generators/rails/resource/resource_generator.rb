@@ -18,7 +18,10 @@ module Rails
 
       def add_resource_route
         return if options[:actions].present?
-        route "resource#{:s unless options[:singleton]} :#{pluralize?(file_name)}"
+        route_config =  class_path.collect{|namespace| "namespace :#{namespace} do " }.join(" ") 
+        route_config << "resource#{:s unless options[:singleton]} :#{pluralize?(file_name)}"
+        route_config << " end" * class_path.size 
+        route route_config
       end
 
       protected

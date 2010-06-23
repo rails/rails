@@ -16,7 +16,7 @@ module TestUnit
 
       def create_fixture_file
         if options[:fixture] && options[:fixture_replacement].nil?
-          template 'fixtures.yml', File.join('test/fixtures', "#{table_name}.yml")
+          template 'fixtures.yml', File.join('test/fixtures', class_path, "#{plural_file_name}.yml")
         end
       end
     end
