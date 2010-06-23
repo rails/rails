@@ -674,7 +674,7 @@ The body
 EOF
     mail = Mail.new(msg)
     assert_equal "testing testing \326\244", mail.subject
-    assert_equal "Subject: testing testing =?UTF-8?Q?_=D6=A4=?=\r\n", mail[:subject].encoded
+    assert_equal "Subject: =?UTF-8?Q?testing_testing_=D6=A4?=\r\n", mail[:subject].encoded
   end
 
   def test_unquote_7bit_subject
@@ -863,7 +863,7 @@ EOF
 
   def test_multipart_with_utf8_subject
     mail = TestMailer.multipart_with_utf8_subject(@recipient)
-    regex = Regexp.escape('Subject: Foo =?UTF-8?Q?=C3=A1=C3=AB=C3=B4=?= =?UTF-8?Q?_=C3=AE=C3=BC=?=')
+    regex = Regexp.escape('Subject: =?UTF-8?Q?Foo_=C3=A1=C3=AB=C3=B4_=C3=AE=C3=BC?=')
     assert_match(/#{regex}/, mail.encoded)
     string = "Foo áëô îü"
     assert_match(string, mail.subject)
@@ -871,7 +871,7 @@ EOF
 
   def test_implicitly_multipart_with_utf8
     mail = TestMailer.implicitly_multipart_with_utf8
-    regex = Regexp.escape('Subject: Foo =?UTF-8?Q?=C3=A1=C3=AB=C3=B4=?= =?UTF-8?Q?_=C3=AE=C3=BC=?=')
+    regex = Regexp.escape('Subject: =?UTF-8?Q?Foo_=C3=A1=C3=AB=C3=B4_=C3=AE=C3=BC?=')
     assert_match(/#{regex}/, mail.encoded)
     string = "Foo áëô îü"
     assert_match(string, mail.subject)
