@@ -158,6 +158,13 @@ module Rails
       app.call(env)
     end
 
+    def initializers
+      initializers = []
+      railties.all { |r| initializers += r.initializers }
+      initializers += super
+      initializers
+    end
+
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
       _all_load_paths.reverse_each do |path|

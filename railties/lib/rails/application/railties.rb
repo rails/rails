@@ -16,16 +16,6 @@ module Rails
       def engines
         @engines ||= ::Rails::Engine.subclasses.map(&:instance)
       end
-
-      def plugins
-        @plugins ||= super + plugins_for_engines
-      end
-
-      def plugins_for_engines
-        engines.map { |e|
-          e.railties.plugins
-        }.flatten
-      end
     end
   end
 end
