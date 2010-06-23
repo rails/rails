@@ -52,6 +52,24 @@ module Arel
           })
         end
       end
+
+      it "manufactures count sql with limit" do
+        sql = Take.new(@relation.project(@relation[:id].count), @taken).to_sql
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{
+            SELECT COUNT(`users`.`id`) AS count_id
+            FROM (SELECT 1 FROM `users` LIMIT 4)
+          })
+        end
+
+        adapter_is_not :mysql, :oracle do
+          sql.should be_like(%Q{
+            SELECT COUNT("users"."id") AS count_id
+            FROM (SELECT 1 FROM "users" LIMIT 4)
+          })
+        end
+      end
     end
   end
 end

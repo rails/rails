@@ -8,17 +8,28 @@ module Arel
       end
 
       def select_sql
-        query = build_query \
-          "SELECT     #{select_clauses.join(', ')}",
-          "FROM       #{from_clauses}",
+        if relation.projections.first.is_a?(Count) && relation.projections.size == 1 && (taken.present? || wheres.present?)
+          subquery = build_query("SELECT 1 FROM #{from_clauses}", build_clauses)
+          query = "SELECT #{select_clauses.join(', ')} FROM (#{subquery})"
+        else
+          query = build_query \
+            "SELECT     #{select_clauses.join(', ')}",
+            "FROM       #{from_clauses}",
+            build_clauses
+        end
+        query
+      end
+
+      def build_clauses
+        clauses = build_query "",
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join(' AND ')}"    unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
           ("HAVING    #{having_clauses.join(' AND ')}"      unless havings.blank?     ),
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      )
-          engine.add_limit_offset!(query,{ :limit => taken, :offset => skipped }) if taken || skipped
-          query << " #{locked}" unless locked.blank?
-          query
+        clauses << " #{locked}" unless locked.blank?
+        engine.add_limit_offset!(clauses,{ :limit => taken, :offset => skipped }) if taken || skipped
+        clauses unless clauses.blank?
       end
 
       def delete_sql
