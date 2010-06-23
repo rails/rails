@@ -204,8 +204,12 @@ module ActionView #:nodoc:
         value.dup : ActionView::PathSet.new(Array.wrap(value))
     end
 
+    def assign(new_assigns) # :nodoc:
+      self.assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+    end
+
     def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
-      self.assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
+      assign(assigns_for_first_render)
       self.helpers = self.class.helpers || Module.new
 
       if @_controller = controller

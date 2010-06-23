@@ -200,6 +200,15 @@ module ActionView
       assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
     end
 
+    test "is able to render partials from templates and also use instance variables after _view has been referenced" do
+      @controller.controller_path = "test"
+
+      _view
+
+      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
+    end
+
   end
 
   class AssertionsTest < ActionView::TestCase
