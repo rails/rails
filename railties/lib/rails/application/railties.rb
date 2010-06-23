@@ -1,13 +1,10 @@
-module Rails
-  class Application
-    class Railties
-      # TODO Write tests for this behavior extracted from Application
-      def initialize(config)
-        @config = config
-      end
+require 'rails/engine/railties'
 
+module Rails
+  class Application < Engine
+    class Railties < Rails::Engine::Railties
       def all(&block)
-        @all ||= railties + engines + plugins
+        @all ||= railties + engines + super
         @all.each(&block) if block
         @all
       end
@@ -21,10 +18,13 @@ module Rails
       end
 
       def plugins
-        @plugins ||= begin
-          plugin_names = (@config.plugins || [:all]).map { |p| p.to_sym }
-          Plugin.all(plugin_names, @config.paths.vendor.plugins)
-        end
+        @plugins ||= super + plugins_for_engines
+      end
+
+      def plugins_for_engines
+        engines.map { |e|
+          e.railties.plugins
+        }.flatten
       end
     end
   end

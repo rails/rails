@@ -10,7 +10,7 @@ module Rails
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger,
-                    :plugins, :preload_frameworks, :reload_plugins,
+                    :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
 
@@ -53,8 +53,6 @@ module Rails
           paths.log                 "log/#{Rails.env}.log"
           paths.tmp                 "tmp"
           paths.tmp.cache           "tmp/cache"
-          paths.vendor              "vendor", :load_path => true
-          paths.vendor.plugins      "vendor/plugins"
 
           if File.exists?("#{root}/test/mocks/#{Rails.env}")
             ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<

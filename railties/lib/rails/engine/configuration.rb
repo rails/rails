@@ -5,7 +5,7 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :middleware
+      attr_accessor :middleware, :plugins
 
       def initialize(root=nil)
         super()
@@ -31,6 +31,8 @@ module Rails
           paths.public              "public"
           paths.public.javascripts  "public/javascripts"
           paths.public.stylesheets  "public/stylesheets"
+          paths.vendor              "vendor", :load_path => true
+          paths.vendor.plugins      "vendor/plugins"
           paths
         end
       end

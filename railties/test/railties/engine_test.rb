@@ -85,5 +85,23 @@ module RailtiesTest
 
       assert_equal "HELLO WORLD", response[2]
     end
+
+    test "engine can load its own plugins" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            config.paths.vendor.plugins = "#{File.join(@plugin.path, "lib/bukkits/plugins")}"
+          end
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits/plugins/yaffle/init.rb", <<-RUBY
+        Bukkits::Engine.config.yaffle_loaded = true
+      RUBY
+
+      boot_rails
+
+      assert Bukkits::Engine.config.yaffle_loaded
+    end
   end
 end

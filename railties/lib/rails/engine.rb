@@ -2,6 +2,7 @@ require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
 require 'rbconfig'
+require 'rails/engine/railties'
 
 module Rails
   # Rails::Engine allows you to wrap a specific Rails application and share it accross
@@ -138,6 +139,10 @@ module Rails
           require_dependency file.sub(matcher, '\1')
         end
       end
+    end
+
+    def railties
+      @railties ||= Railties.new(config)
     end
 
     def app
