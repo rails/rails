@@ -20,14 +20,38 @@ module ActiveSupport #:nodoc:
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
-    # unless the directory also appears in load_once_paths.
-    mattr_accessor :load_paths
-    self.load_paths = []
+    # unless the directory also appears in autoload_once_paths.
+    mattr_accessor :autoload_paths
+    self.autoload_paths = []
+    
+    # Deprecated, use autoload_paths.
+    def self.load_paths
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths is deprecated and removed in Rails 3, please use autoload_paths instead", caller)
+      autoload_paths
+    end
+
+    # Deprecated, use autoload_paths=.
+    def self.load_paths=(paths)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths= is deprecated and removed in Rails 3, please use autoload_paths= instead", caller)
+      self.autoload_paths = paths
+    end
 
     # The set of directories from which automatically loaded constants are loaded
-    # only once. All directories in this set must also be present in +load_paths+.
-    mattr_accessor :load_once_paths
-    self.load_once_paths = []
+    # only once. All directories in this set must also be present in +autoload_paths+.
+    mattr_accessor :autoload_once_paths
+    self.autoload_once_paths = []
+
+    # Deprecated, use autoload_once_paths.
+    def self.load_once_paths
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_once_paths is deprecated and removed in Rails 3, please use autoload_once_paths instead", caller)
+      autoload_once_paths
+    end
+
+    # Deprecated, use autoload_once_paths=.
+    def self.load_once_paths=(paths)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_once_paths= is deprecated and removed in Rails 3, please use autoload_once_paths= instead", caller)
+      self.autoload_once_paths = paths
+    end
 
     # An array of qualified constant names that have been loaded. Adding a name to
     # this array will cause it to be unloaded the next time Dependencies are cleared.
@@ -305,7 +329,7 @@ module ActiveSupport #:nodoc:
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant
     # paths which would cause Dependencies to attempt to load this file.
-    def loadable_constants_for_path(path, bases = load_paths)
+    def loadable_constants_for_path(path, bases = autoload_paths)
       path = $1 if path =~ /\A(.*)\.rb\Z/
       expanded_path = File.expand_path(path)
 
@@ -326,10 +350,10 @@ module ActiveSupport #:nodoc:
       end.flatten.compact.uniq
     end
 
-    # Search for a file in load_paths matching the provided suffix.
+    # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
       path_suffix = path_suffix + '.rb' unless path_suffix.ends_with? '.rb'
-      load_paths.each do |root|
+      autoload_paths.each do |root|
         path = File.join(root, path_suffix)
         return path if File.file? path
       end
@@ -339,14 +363,14 @@ module ActiveSupport #:nodoc:
     # Does the provided path_suffix correspond to an autoloadable module?
     # Instead of returning a boolean, the autoload base for this module is returned.
     def autoloadable_module?(path_suffix)
-      load_paths.each do |load_path|
+      autoload_paths.each do |load_path|
         return load_path if File.directory? File.join(load_path, path_suffix)
       end
       nil
     end
 
     def load_once_path?(path)
-      load_once_paths.any? { |base| path.starts_with? base }
+      autoload_once_paths.any? { |base| path.starts_with? base }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
@@ -358,7 +382,7 @@ module ActiveSupport #:nodoc:
       return nil unless base_path = autoloadable_module?(path_suffix)
       mod = Module.new
       into.const_set const_name, mod
-      autoloaded_constants << qualified_name unless load_once_paths.include?(base_path)
+      autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
       return mod
     end
 

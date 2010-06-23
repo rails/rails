@@ -99,9 +99,9 @@ class RailsTemplateRunnerTest < GeneratorTestCase
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
-    load_paths = 'config.load_paths += %w["#{RAILS_ROOT}/app/extras"]'
-    run_template_method(:environment, load_paths)
-    assert_rails_initializer_includes(load_paths)
+    autoload_paths = 'config.autoload_paths += %w["#{RAILS_ROOT}/app/extras"]'
+    run_template_method(:environment, autoload_paths)
+    assert_rails_initializer_includes(autoload_paths)
   end
 
   def test_environment_with_block_should_include_block_contents_in_environment_initializer_block

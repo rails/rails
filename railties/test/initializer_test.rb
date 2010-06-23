@@ -4,6 +4,7 @@ require 'initializer'
 require 'action_view'
 require 'action_mailer'
 require 'active_record'
+require 'stringio'
 
 # Mocks out the configuration
 module Rails
@@ -36,7 +37,7 @@ class Initializer_eager_loading_Test < Test::Unit::TestCase
   def setup
     @config = ConfigurationMock.new("")
     @config.cache_classes = true
-    @config.load_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
+    @config.autoload_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
     @config.eager_load_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
     @initializer = Rails::Initializer.new(@config)
     @initializer.set_load_path
@@ -47,6 +48,27 @@ class Initializer_eager_loading_Test < Test::Unit::TestCase
     assert_nothing_raised do
       @initializer.load_application_classes
     end
+  end
+end
+
+class DeprecatedPathsInConfiguration < ActiveSupport::TestCase
+  def test_paths_deprecations
+    config = Rails::Configuration.new
+    match_in_stderr(/use autoload_paths(?!=)/) { config.load_paths }
+    match_in_stderr(/use autoload_paths=/) { config.load_paths = [] }
+    match_in_stderr(/use autoload_once_paths(?!=)/) { config.load_once_paths }
+    match_in_stderr(/use autoload_once_paths=/) { config.load_once_paths = [] }
+  end
+
+  # The initializer prints to $stderr because neither AS nor logger are available
+  # at that point.
+  def match_in_stderr(regexp)
+    $stderr = StringIO.new
+    yield
+    $stderr.rewind
+    assert_match regexp, $stderr.read
+  ensure
+    $stderr = STDERR
   end
 end
 

@@ -111,8 +111,8 @@ class TestPluginLoader < Test::Unit::TestCase
 
     @loader.add_plugin_load_paths
 
-    assert ActiveSupport::Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
-    assert ActiveSupport::Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
+    assert ActiveSupport::Dependencies.autoload_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
+    assert ActiveSupport::Dependencies.autoload_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
   end
 
   def test_should_add_engine_load_paths_to_Dependencies_load_paths
@@ -121,7 +121,7 @@ class TestPluginLoader < Test::Unit::TestCase
     @loader.add_plugin_load_paths
 
     %w( models controllers metal helpers ).each do |app_part|
-      assert ActiveSupport::Dependencies.load_paths.include?(
+      assert ActiveSupport::Dependencies.autoload_paths.include?(
         File.join(plugin_fixture_path('engines/engine'), 'app', app_part)
       ), "Couldn't find #{app_part} in load path"
     end
@@ -136,13 +136,13 @@ class TestPluginLoader < Test::Unit::TestCase
     assert_equal [ File.join(plugin_fixture_path('engines/engine'), 'app', 'views') ], ActionMailer::Base.view_paths
   end
   
-  def test_should_add_plugin_load_paths_to_Dependencies_load_once_paths
+  def test_should_add_plugin_load_paths_to_Dependencies_autoload_once_paths
     only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
 
     @loader.add_plugin_load_paths
 
-    assert ActiveSupport::Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
-    assert ActiveSupport::Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
+    assert ActiveSupport::Dependencies.autoload_once_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
+    assert ActiveSupport::Dependencies.autoload_once_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
   end
 
   def test_should_add_all_load_paths_from_a_plugin_to_LOAD_PATH_array

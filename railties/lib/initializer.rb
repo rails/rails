@@ -236,9 +236,9 @@ module Rails
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of
-    # Configuration#load_paths. Duplicates are removed.
+    # Configuration#autoload_paths. Duplicates are removed.
     def set_load_path
-      load_paths = configuration.load_paths + configuration.framework_paths
+      load_paths = configuration.autoload_paths + configuration.framework_paths
       load_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
       $LOAD_PATH.uniq!
     end
@@ -246,19 +246,19 @@ module Rails
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
     def set_autoload_paths
-      ActiveSupport::Dependencies.load_paths = configuration.load_paths.uniq
-      ActiveSupport::Dependencies.load_once_paths = configuration.load_once_paths.uniq
+      ActiveSupport::Dependencies.autoload_paths = configuration.autoload_paths.uniq
+      ActiveSupport::Dependencies.autoload_once_paths = configuration.autoload_once_paths.uniq
 
-      extra = ActiveSupport::Dependencies.load_once_paths - ActiveSupport::Dependencies.load_paths
+      extra = ActiveSupport::Dependencies.autoload_once_paths - ActiveSupport::Dependencies.autoload_paths
       unless extra.empty?
         abort <<-end_error
-          load_once_paths must be a subset of the load_paths.
-          Extra items in load_once_paths: #{extra * ','}
+          autoload_once_paths must be a subset of the autoload_paths.
+          Extra items in autoload_once_paths: #{extra * ','}
         end_error
       end
 
       # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
-      configuration.load_once_paths.freeze
+      configuration.autoload_once_paths.freeze
     end
 
     # Requires all frameworks specified by the Configuration#frameworks
@@ -696,15 +696,39 @@ Run `rake gems:install` to install the missing gems.
 
     # An array of additional paths to prepend to the load path. By default,
     # all +app+, +lib+, +vendor+ and mock paths are included in this list.
-    attr_accessor :load_paths
+    attr_accessor :autoload_paths
+
+    # Deprecated, use autoload_paths.
+    def load_paths
+      $stderr.puts("config.load_paths is deprecated and removed in Rails 3, please use autoload_paths instead")
+      autoload_paths
+    end
+
+    # Deprecated, use autoload_paths=.
+    def load_paths=(paths)
+      $stderr.puts("config.load_paths= is deprecated and removed in Rails 3, please use autoload_paths= instead")
+      self.autoload_paths = paths
+    end
 
     # An array of paths from which Rails will automatically load from only once.
-    # All elements of this array must also be in +load_paths+.
-    attr_accessor :load_once_paths
+    # All elements of this array must also be in +autoload_paths+.
+    attr_accessor :autoload_once_paths
+
+    # Deprecated, use autoload_once_paths.
+    def load_once_paths
+      $stderr.puts("config.load_once_paths is deprecated and removed in Rails 3, please use autoload_once_paths instead")
+      autoload_once_paths
+    end
+
+    # Deprecated, use autoload_once_paths=.
+    def load_once_paths=(paths)
+      $stderr.puts("config.load_once_paths= is deprecated and removed in Rails 3, please use autoload_once_paths= instead")
+      self.autoload_once_paths = paths
+    end
 
     # An array of paths from which Rails will eager load on boot if cache
     # classes is enabled. All elements of this array must also be in
-    # +load_paths+.
+    # +autoload_paths+.
     attr_accessor :eager_load_paths
 
     # The log level to use for the default Rails logger. In production mode,
@@ -764,12 +788,12 @@ Run `rake gems:install` to install the missing gems.
     # If <tt>reload_plugins?</tt> is false, add this to your plugin's <tt>init.rb</tt>
     # to make it reloadable:
     #
-    #   ActiveSupport::Dependencies.load_once_paths.delete lib_path
+    #   ActiveSupport::Dependencies.autoload_once_paths.delete lib_path
     #
     # If <tt>reload_plugins?</tt> is true, add this to your plugin's <tt>init.rb</tt>
     # to only load it once:
     #
-    #   ActiveSupport::Dependencies.load_once_paths << lib_path
+    #   ActiveSupport::Dependencies.autoload_once_paths << lib_path
     #
     attr_accessor :reload_plugins
 
@@ -836,8 +860,8 @@ Run `rake gems:install` to install the missing gems.
       set_root_path!
 
       self.frameworks                   = default_frameworks
-      self.load_paths                   = default_load_paths
-      self.load_once_paths              = default_load_once_paths
+      self.autoload_paths               = default_autoload_paths
+      self.autoload_once_paths          = default_autoload_once_paths
       self.eager_load_paths             = default_eager_load_paths
       self.log_path                     = default_log_path
       self.log_level                    = default_log_level
@@ -967,7 +991,7 @@ Run `rake gems:install` to install the missing gems.
         [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
       end
 
-      def default_load_paths
+      def default_autoload_paths
         paths = []
 
         # Add the old mock paths only if the directories exists
@@ -991,8 +1015,8 @@ Run `rake gems:install` to install the missing gems.
         paths.concat builtin_directories
       end
 
-      # Doesn't matter since plugins aren't in load_paths yet.
-      def default_load_once_paths
+      # Doesn't matter since plugins aren't in autoload_paths yet.
+      def default_autoload_once_paths
         []
       end
 
