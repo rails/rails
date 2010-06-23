@@ -272,7 +272,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_column_and_options_parameter
-    assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50")
+    assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50 AND firm_id IS NOT NULL")
   end
 
   def test_count_with_no_parameters_isnt_deprecated

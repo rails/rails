@@ -483,7 +483,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.scoped
 
     assert_equal [0], posts.select('comments_count').where('id is not null').group('id').order('id').count.values.uniq
-    assert_equal 0, posts.where('id is not null').select('comments_count').count
+    assert_equal 7, posts.where('id is not null').select('comments_count').count
 
     assert_equal 7, posts.select('comments_count').count('id')
     assert_equal 0, posts.select('comments_count').count
@@ -618,5 +618,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_order_by_relation_attribute
     assert_equal Post.order(Post.arel_table[:title]).all, Post.order("title").all
+  end
+
+  def test_relations_limit_with_conditions_or_limit
+    assert_equal Post.limit(2).size, Post.limit(2).all.size
   end
 end
