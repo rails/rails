@@ -434,6 +434,18 @@ class ValidationsTest < ActiveRecord::TestCase
     end
   end
 
+   def test_validate_uniqueness_with_reserved_word_as_scope
+    repair_validations(Reply) do
+      Topic.validates_uniqueness_of(:content, :scope => "group")
+
+      t1 = Topic.create "title" => "t1", "content" => "hello world2"
+      assert t1.valid?
+
+      t2 = Topic.create "title" => "t2", "content" => "hello world2"
+      assert !t2.valid?
+    end
+  end
+
   def test_validate_uniqueness_scoped_to_defining_class
     t = Topic.create("title" => "What, me worry?")
 
