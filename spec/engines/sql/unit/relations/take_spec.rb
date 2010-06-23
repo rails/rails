@@ -58,15 +58,15 @@ module Arel
 
         adapter_is :mysql do
           sql.should be_like(%Q{
-            SELECT COUNT(`users`.`id`) AS count_id
-            FROM (SELECT 1 FROM `users` LIMIT 4)
+            SELECT COUNT(*) AS count_id
+            FROM (SELECT 1 FROM `users` LIMIT 4) AS subquery
           })
         end
 
         adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{
-            SELECT COUNT("users"."id") AS count_id
-            FROM (SELECT 1 FROM "users" LIMIT 4)
+            SELECT COUNT(*) AS count_id
+            FROM (SELECT 1 FROM "users" LIMIT 4) AS subquery
           })
         end
       end

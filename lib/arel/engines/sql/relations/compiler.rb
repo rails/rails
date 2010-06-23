@@ -8,9 +8,10 @@ module Arel
       end
 
       def select_sql
-        if relation.projections.first.is_a?(Count) && relation.projections.size == 1 && (taken.present? || wheres.present?)
+        if relation.projections.first.is_a?(Count) && relation.projections.size == 1 &&
+          (taken.present? || wheres.present?) && joins(self).blank?
           subquery = build_query("SELECT 1 FROM #{from_clauses}", build_clauses)
-          query = "SELECT #{select_clauses.join(', ')} FROM (#{subquery})"
+          query = "SELECT COUNT(*) AS count_id FROM (#{subquery}) AS subquery"
         else
           query = build_query \
             "SELECT     #{select_clauses.join(', ')}",
@@ -27,8 +28,8 @@ module Arel
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
           ("HAVING    #{having_clauses.join(' AND ')}"      unless havings.blank?     ),
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      )
-        clauses << " #{locked}" unless locked.blank?
         engine.add_limit_offset!(clauses,{ :limit => taken, :offset => skipped }) if taken || skipped
+        clauses << " #{locked}" unless locked.blank?
         clauses unless clauses.blank?
       end
 
