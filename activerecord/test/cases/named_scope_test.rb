@@ -9,6 +9,11 @@ require 'models/developer'
 class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
+  def test_named_scope_with_STI
+    assert_equal 5,Post.with_type_self.count
+    assert_equal 1,SpecialPost.with_type_self.count
+  end
+
   def test_implements_enumerable
     assert !Topic.find(:all).empty?
 

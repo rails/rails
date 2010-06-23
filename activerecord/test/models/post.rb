@@ -1,4 +1,5 @@
 class Post < ActiveRecord::Base
+  named_scope :with_type_self, lambda{{:conditions => ["type=?", self.name]}}
   named_scope :containing_the_letter_a, :conditions => "body LIKE '%a%'"
   named_scope :ranked_by_comments, :order => "comments_count DESC"
   named_scope :limit, lambda {|limit| {:limit => limit} }
