@@ -51,11 +51,11 @@ h4. gem(name, options = {})
 
 Adds a +config.gem+ entry for the supplied gem to the generated application’s +config/environment.rb+.
 
-For example, if your application depends on the gems +bj+ and +hpricot+ :
+For example, if your application depends on the gems +bj+ and +nokogiri+ :
 
 <ruby>
 gem "bj"
-gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
+gem "nokogiri"
 </ruby>
 
 Please note that this will NOT install the gems for you. So you may want to run the +rake gems:install+ task too :
