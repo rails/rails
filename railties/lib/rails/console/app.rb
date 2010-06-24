@@ -30,5 +30,3 @@ def reload!(print=true)
   ActionDispatch::Callbacks.new(Proc.new {}, false).call({})
   true
 end
-
-reload!(false)
