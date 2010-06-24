@@ -190,7 +190,7 @@ module ActiveRecord
       #               :constructor => Proc.new { |ip| IPAddr.new(ip, Socket::AF_INET) },
       #               :converter => Proc.new { |ip| ip.is_a?(Integer) ? IPAddr.new(ip, Socket::AF_INET) : IPAddr.new(ip.to_s) }
       #
-      def composed_of(part_id, options = {}, &block)
+      def composed_of(part_id, options = {})
         options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)
 
         name        = part_id.id2name
@@ -199,9 +199,7 @@ module ActiveRecord
         mapping     = [ mapping ] unless mapping.first.is_a?(Array)
         allow_nil   = options[:allow_nil]   || false
         constructor = options[:constructor] || :new
-        converter   = options[:converter]   || block
-
-        ActiveSupport::Deprecation.warn('The conversion block has been deprecated, use the :converter option instead.', caller) if block_given?
+        converter   = options[:converter]
 
         reader_method(name, class_name, mapping, allow_nil, constructor)
         writer_method(name, class_name, mapping, allow_nil, converter)
