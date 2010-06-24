@@ -9,8 +9,8 @@ module Arel
       end
     end
 
-    def each(&block)
-      to_ary.each(&block)
+    def each
+      to_ary.each { |e| yield e }
       self
     end
 
