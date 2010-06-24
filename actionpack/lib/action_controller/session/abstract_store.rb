@@ -139,21 +139,23 @@ module ActionController
             return response
           end
 
-          cookie = Rack::Utils.escape(@key) + '=' + Rack::Utils.escape(sid)
-          cookie << "; domain=#{options[:domain]}" if options[:domain]
-          cookie << "; path=#{options[:path]}" if options[:path]
-          if options[:expire_after]
-            expiry = Time.now + options[:expire_after]
-            cookie << "; expires=#{expiry.httpdate}"
-          end
-          cookie << "; Secure" if options[:secure]
-          cookie << "; HttpOnly" if options[:httponly]
+          if (env["rack.request.cookie_hash"] && env["rack.request.cookie_hash"][@key] != sid) || options[:expire_after]
+            cookie = Rack::Utils.escape(@key) + '=' + Rack::Utils.escape(sid)
+            cookie << "; domain=#{options[:domain]}" if options[:domain]
+            cookie << "; path=#{options[:path]}" if options[:path]
+            if options[:expire_after]
+              expiry = Time.now + options[:expire_after]
+              cookie << "; expires=#{expiry.httpdate}"
+            end
+            cookie << "; Secure" if options[:secure]
+            cookie << "; HttpOnly" if options[:httponly]
 
-          headers = response[1]
-          unless headers[SET_COOKIE].blank?
-            headers[SET_COOKIE] << "\n#{cookie}"
-          else
-            headers[SET_COOKIE] = cookie
+            headers = response[1]
+            unless headers[SET_COOKIE].blank?
+              headers[SET_COOKIE] << "\n#{cookie}"
+            else
+              headers[SET_COOKIE] = cookie
+            end
           end
         end
 
