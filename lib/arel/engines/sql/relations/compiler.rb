@@ -83,8 +83,12 @@ module Arel
       end
 
     protected
-      def method_missing(method, *args, &block)
-        relation.send(method, *args, &block)
+      def method_missing(method, *args)
+        if block_given?
+          relation.send(method, *args)  { |*block_args| yield(*block_args) }
+        else
+          relation.send(method, *args)
+        end
       end
 
       def build_query(*parts)
