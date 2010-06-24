@@ -39,11 +39,6 @@ module Rails
         select { |i| i.before == initializer.name || i.name == initializer.after }.each(&block)
       end
 
-      def initialize(initializers = [])
-        super(initializers)
-        replace(tsort)
-      end
-
       def +(other)
         Collection.new(to_a + other.to_a)
       end
@@ -51,7 +46,7 @@ module Rails
 
     def run_initializers(*args)
       return if instance_variable_defined?(:@ran)
-      initializers.each do |initializer|
+      initializers.tsort.each do |initializer|
         initializer.run(*args)
       end
       @ran = true
