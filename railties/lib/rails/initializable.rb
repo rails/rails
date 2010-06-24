@@ -79,14 +79,6 @@ module Rails
         opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
         initializers << Initializer.new(name, nil, opts, &blk)
       end
-
-      def run_initializers(*args)
-        return if @ran
-        initializers_chain.tsort.each do |initializer|
-          instance_exec(*args, &initializer.block)
-        end
-        @ran = true
-      end
     end
   end
 end
