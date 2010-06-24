@@ -63,7 +63,9 @@ after = GC.allocated_size
 usage = (after - before) / 1024.0
 
 if mode
-  if RubyProf.const_defined?(:CallStackPrinter)
+  if printer = ARGV.shift
+    RubyProf.const_get("#{printer.to_s.classify}Printer").new(results).print($stdout)
+  elsif RubyProf.const_defined?(:CallStackPrinter)
     File.open("#{File.basename(path, '.rb')}.#{mode}.html", 'w') do |out|
       RubyProf::CallStackPrinter.new(results).print(out)
     end
