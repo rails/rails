@@ -20,8 +20,12 @@ module Arel
         end
       end
 
-      def method_missing(method, *args, &block)
-        @ar.connection.send(method, *args, &block)
+      def method_missing(method, *args)
+        if block_given?
+          @ar.connection.send(method, *args)  { |*block_args| yield(*block_args) }
+        else
+          @ar.connection.send(method, *args)
+        end
       end
 
       module CRUD
