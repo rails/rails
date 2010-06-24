@@ -71,11 +71,6 @@ module Rails
         super || instance.respond_to?(*args)
       end
 
-    protected
-
-      def method_missing(*args, &block)
-        instance.send(*args, &block)
-      end
     end
 
     delegate :middleware, :to => :config

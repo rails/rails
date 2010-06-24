@@ -123,6 +123,12 @@ module Rails
         RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ?
           Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
+
+    protected
+
+      def method_missing(*args, &block)
+        instance.send(*args, &block)
+      end
     end
 
     delegate :paths, :root, :to => :config
