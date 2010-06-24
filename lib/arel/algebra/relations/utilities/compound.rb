@@ -47,7 +47,7 @@ module Arel
 
   private
 
-    def arguments_from_block(relation, &block)
+    def arguments_from_block(relation)
       block_given?? [yield(relation)] : []
     end
   end

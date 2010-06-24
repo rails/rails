@@ -17,8 +17,8 @@ module Arel
     module Enumerable
       include ::Enumerable
 
-      def each(&block)
-        session.read(self).each(&block)
+      def each
+        session.read(self).each { |e| yield e }
       end
 
       def first

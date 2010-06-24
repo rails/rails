@@ -3,7 +3,7 @@ module Arel
     attributes :relation, :locked
     deriving :initialize, :==
 
-    def initialize(relation, locked, &block)
+    def initialize(relation, locked)
       @relation = relation
       @locked   = locked.blank? ? " FOR UPDATE" : locked
     end
