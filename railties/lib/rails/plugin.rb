@@ -78,6 +78,8 @@ module Rails
           ActiveSupport::Deprecation.warn "Use toplevel init.rb; rails/init.rb is deprecated: #{initrb}"
         end
         config = app.config
+        # TODO: think about evaling initrb in context of Engine (currently it's
+        # always evaled in context of Rails::Application)
         eval(File.read(initrb), binding, initrb)
       end
     end
