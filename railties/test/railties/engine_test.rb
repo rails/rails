@@ -86,11 +86,35 @@ module RailtiesTest
       assert_equal "HELLO WORLD", response[2]
     end
 
+    test "it provides routes as default endpoint" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      Bukkits::Engine.routes.draw do |map|
+        match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, 'foo'] }
+      end
+
+      Rails::Application.routes.draw do |map|
+        mount(Bukkits::Engine => "/bukkits")
+      end
+
+      env = Rack::MockRequest.env_for("/bukkits/foo")
+      response = Rails::Application.call(env)
+
+      assert_equal "foo", response[2]
+    end
+
     test "engine can load its own plugins" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
-            config.paths.vendor.plugins = "#{File.join(@plugin.path, "lib/bukkits/plugins")}"
+            paths.vendor.plugins = "#{File.join(@plugin.path, "lib/bukkits/plugins")}"
           end
         end
       RUBY

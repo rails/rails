@@ -152,16 +152,19 @@ module Rails
     end
 
     def app
-      raise "You can't use Engine as rack application without providing valid rack endpoint" unless endpoint
       @app ||= config.middleware.build(endpoint)
     end
 
     def endpoint
-      self.class.endpoint
+      self.class.endpoint || routes
     end
 
     def call(env)
       app.call(env)
+    end
+
+    def routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
     end
 
     def initializers
