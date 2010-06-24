@@ -5,13 +5,11 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
     @<%= singular_table_name %> = <%= table_name %>(:one)
   end
 
-<% unless options[:singleton] -%>
   test "should get index" do
     get :index
     assert_response :success
     assert_not_nil assigns(:<%= table_name %>)
   end
-<% end -%>
 
   test "should get new" do
     get :new
