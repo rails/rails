@@ -372,7 +372,7 @@ module ActiveRecord
         return false
       end
 
-      def disable_referential_integrity(&block) #:nodoc:
+      def disable_referential_integrity #:nodoc:
         if supports_disable_referential_integrity?() then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
         end
