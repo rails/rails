@@ -196,7 +196,9 @@ module ActionDispatch
         end
 
         def set_cookie(request, options)
-          request.cookie_jar[@key] = options
+          if request.cookie_jar[@key] != options[:value] || !options[:expires].nil?
+            request.cookie_jar[@key] = options
+          end
         end
 
         def load_session(env)
