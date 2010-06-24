@@ -58,7 +58,7 @@ module Rails
 
     module ClassMethods
       def initializers
-        @initializers ||= []
+        @initializers ||= Collection.new
       end
 
       def initializers_chain

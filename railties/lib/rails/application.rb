@@ -178,7 +178,7 @@ module Rails
       railties.all { |r| initializers += r.initializers }
       initializers += super
       initializers += Finisher.initializers_for(self)
-      Collection.new(initializers)
+      initializers
     end
 
   protected
