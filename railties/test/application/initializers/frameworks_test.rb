@@ -28,8 +28,10 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      ActionController::Base.view_paths.include?(File.expand_path("app/views", app_path))
-      ActionMailer::Base.view_paths.include?(File.expand_path("app/views", app_path))
+
+      expanded_path = File.expand_path("app/views", app_path)
+      assert_equal ActionController::Base.view_paths[0].to_s, expanded_path
+      assert_equal ActionMailer::Base.view_paths[0].to_s, expanded_path
     end
 
     test "allows me to configure default url options for ActionMailer" do
