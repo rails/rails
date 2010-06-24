@@ -20,10 +20,16 @@ module Arel
       if @engine.connection
         begin
           require "arel/engines/sql/compilers/#{@engine.adapter_name.downcase}_compiler"
-          @@tables ||= engine.tables
         rescue LoadError
-          raise "#{@engine.adapter_name} is not supported by Arel."
+          begin
+            # try to load an externally defined compiler, in case this adapter has defined the compiler on its own.
+            require "#{@engine.adapter_name.downcase}/arel_compiler"
+          rescue LoadError
+            raise "#{@engine.adapter_name} is not supported by Arel."
+          end
         end
+
+        @@tables ||= engine.tables
       end
     end
 
