@@ -300,6 +300,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match '/' => 'mes#index'
       end
 
+      namespace :private do
+        root :to => redirect('/private/index')
+        match "index", :to => 'private#index'
+      end
+
       match "whatever/:controller(/:action(/:id))"
 
       resource :profile do
@@ -417,6 +422,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/logout'
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/logout', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_namespace_redirect
+    with_test_routes do
+      get '/private'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/private/index', @response.headers['Location']
       assert_equal 'Moved Permanently', @response.body
     end
   end

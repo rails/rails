@@ -55,7 +55,7 @@ module ActionDispatch
               path = args.first
             end
 
-            if @scope[:module] && options[:to]
+            if @scope[:module] && options[:to] && !options[:to].is_a?(Proc)
               if options[:to].to_s.include?("#")
                 options[:to] = "#{@scope[:module]}/#{options[:to]}"
               elsif @scope[:controller].nil?
