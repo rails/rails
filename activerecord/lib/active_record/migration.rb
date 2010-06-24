@@ -101,7 +101,7 @@ module ActiveRecord
   #   named +column_name+ specified to be one of the following types:
   #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>, 
   #   <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
-  #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt> and <tt>:references</tt>. A default value can be
+  #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be
   #   specified by passing an +options+ hash like <tt>{ :default => 11 }</tt>. 
   #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g. 
   #   <tt>{ :limit => 50, :null => false }</tt>) -- see 
