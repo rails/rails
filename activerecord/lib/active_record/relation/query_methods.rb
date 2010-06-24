@@ -22,9 +22,9 @@ module ActiveRecord
       end
 
       class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-        def select(*args, &block)
+        def select(*args)
           if block_given?
-            to_a.select(&block)
+            to_a.select { |*block_args| yield(*block_args) }
           else
             new_relation = clone
             value = Array.wrap(args.flatten).reject {|x| x.blank? }
