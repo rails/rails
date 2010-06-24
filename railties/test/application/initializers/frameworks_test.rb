@@ -57,7 +57,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].sample }
+        assert_raises(NoMethodError) { [1,2,3].forty_two }
       end
     end
 
