@@ -114,36 +114,6 @@ module Rails
   #     end
   #   end
   #
-  # == Adding your subscriber
-  #
-  # Since version 3.0, Rails ships with a notification system which is used for several
-  # purposes, including logging. If you are sending notifications in your Railtie, you may
-  # want to add a subscriber to consume such notifications for logging purposes.
-  #
-  # The subscriber is added under the railtie_name namespace and only consumes notifications
-  # under the given namespace. For example, let's suppose your railtie is publishing the
-  # following "something_expensive" instrumentation:
-  #
-  #   ActiveSupport::Notifications.instrument "my_railtie.something_expensive" do
-  #     # something expensive
-  #   end
-  #
-  # You can log this instrumentation with your own Rails::Subscriber:
-  #
-  #   class MyRailtie::Subscriber < Rails::Subscriber
-  #     def something_expensive(event)
-  #       info("Something expensive took %.1fms" % event.duration)
-  #     end
-  #   end
-  #
-  # By registering it:
-  #
-  #   class MyRailtie < Railtie
-  #     subscriber :my_gem, MyRailtie::Subscriber.new
-  #   end
-  #
-  # Take a look in Rails::Subscriber docs for more information.
-  #
   # == Application, Plugin and Engine
   #
   # A Rails::Engine is nothing more than a Railtie with some initializers already set.
@@ -176,8 +146,8 @@ module Rails
         ActiveSupport::Deprecation.warn "railtie_name is deprecated and has no effect", caller
       end
 
-      def log_subscriber(name, log_subscriber)
-        Rails::LogSubscriber.add(name, log_subscriber)
+      def log_subscriber(*)
+        ActiveSupport::Deprecation.warn "log_subscriber is deprecated and has no effect", caller
       end
 
       def rake_tasks(&blk)

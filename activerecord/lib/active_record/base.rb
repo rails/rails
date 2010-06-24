@@ -20,6 +20,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
+require 'active_record/log_subscriber'
 
 module ActiveRecord #:nodoc:
   # = Active Record 

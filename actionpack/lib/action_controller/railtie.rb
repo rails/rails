@@ -6,7 +6,6 @@ require "active_support/core_ext/class/subclasses"
 require "active_support/deprecation/proxy_wrappers"
 require "active_support/deprecation"
 
-require "action_controller/railties/log_subscriber"
 require "action_controller/railties/url_helpers"
 
 module ActionController
@@ -34,8 +33,6 @@ module ActionController
           "Please use config.session_store(name, options) instead.", caller
       end
     end
-
-    log_subscriber :action_controller, ActionController::Railties::LogSubscriber.new
 
     initializer "action_controller.set_configs" do |app|
       paths = app.config.paths
