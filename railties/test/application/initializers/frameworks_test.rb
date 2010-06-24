@@ -40,7 +40,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert "test.rails", ActionMailer::Base.default_url_options[:host]
+      assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
     # AS
