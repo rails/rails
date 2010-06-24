@@ -83,6 +83,17 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.second
     end
 
+    test "RAILS_CACHE does not respond to middleware" do
+      add_to_config "config.cache_store = :memory_store"
+      boot!
+      assert_equal "Rack::Runtime", middleware.third
+    end
+
+    test "RAILS_CACHE does respond to middleware" do
+      boot!
+      assert_equal "Rack::Runtime", middleware.fourth
+    end
+
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
