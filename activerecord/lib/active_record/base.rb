@@ -917,8 +917,8 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.instance_variable_set(:'@attributes', record)
-          object.instance_variable_set(:'@attributes_cache', {})
+          object.instance_variable_set(:@attributes, record)
+          object.instance_variable_set(:@attributes_cache, {})
           object.instance_variable_set(:@new_record, false)
           object.instance_variable_set(:@readonly, false)
           object.instance_variable_set(:@destroyed, false)
