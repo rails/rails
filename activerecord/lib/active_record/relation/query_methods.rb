@@ -137,16 +137,7 @@ module ActiveRecord
 
       arel = arel.order(*@order_values.uniq.select{|o| o.present?}) if @order_values.present?
 
-      selects = @select_values.uniq
-
-      if selects.present?
-        selects.each do |s|
-          @implicit_readonly = false
-          arel = arel.project(s) if s.present?
-        end
-      else
-        arel = arel.project(@klass.quoted_table_name + '.*')
-      end
+      arel = build_select(arel, @select_values.uniq)
 
       arel = arel.from(@from_value) if @from_value.present?
 
@@ -217,6 +208,18 @@ module ActiveRecord
       end
 
       relation.join(custom_joins)
+    end
+
+    def build_select(arel, selects)
+      if selects.present?
+        @implicit_readonly = false
+        selects.each do |s|
+          arel = arel.project(s) if s.present?
+        end
+      else
+        arel = arel.project(@klass.quoted_table_name + '.*')
+      end
+      arel
     end
 
     def apply_modules(modules)
