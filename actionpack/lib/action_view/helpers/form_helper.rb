@@ -124,7 +124,6 @@ module ActionView
       # model:
       #
       #   <%= form_for :person do |f| %>
-      #     <%= f.error_messages %>
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
       #     Biography : <%= f.text_area :biography %><br />
