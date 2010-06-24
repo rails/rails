@@ -216,7 +216,10 @@ module ActiveRecord
         super(connection, logger)
         @connection_parameters, @config = connection_parameters, config
 
+        # @local_tz is initialized as nil to avoid warnings when connect tries to use it
+        @local_tz = nil
         connect
+        @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
       end
 
       # Is this connection alive and ready for queries?
@@ -929,9 +932,8 @@ module ActiveRecord
           # TIMESTAMP WITH ZONE types in UTC.
           if ActiveRecord::Base.default_timezone == :utc
             execute("SET time zone 'UTC'")
-          else
-            offset = Time.local(2000).utc_offset / 3600
-            execute("SET time zone '#{offset}'")
+          elsif @local_tz
+            execute("SET time zone '#{@local_tz}'")
           end
         end
 
