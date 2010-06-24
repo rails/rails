@@ -82,7 +82,7 @@ module Rails
 
       def run_initializers(*args)
         return if @ran
-        initializers_chain.each do |initializer|
+        initializers_chain.tsort.each do |initializer|
           instance_exec(*args, &initializer.block)
         end
         @ran = true
