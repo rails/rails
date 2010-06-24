@@ -18,29 +18,28 @@ module ActionDispatch
         def initialize(by, env, default_options)
           @by = by
           @env = env
-          merge!(default_options)
           @session_id_loaded = false
+          merge!(default_options)
         end
-
-        alias_method :get_without_session_load, :[]
 
         def [](key)
           if key == :id
-            load_session_id! unless has_session_id?
+            load_session_id! unless key?(:id) || has_session_id?
           end
           super(key)
         end
 
-        private
+      private
 
-          def has_session_id?
-            get_without_session_load(:id).present? || @session_id_loaded
-          end
+        def has_session_id?
+          @session_id_loaded
+        end
 
-          def load_session_id!
-            self[:id] = @by.send(:extract_session_id, @env)
-            @session_id_loaded = true
-          end
+        def load_session_id!
+          self[:id] = @by.send(:extract_session_id, @env)
+        ensure
+          @session_id_loaded = true
+        end
       end
 
       class SessionHash < Hash
@@ -99,7 +98,7 @@ module ActionDispatch
         def destroy
           clear
           @by.send(:destroy, @env) if @by
-          @env[ENV_SESSION_OPTIONS_KEY].delete(:id) if @env && @env[ENV_SESSION_OPTIONS_KEY]
+          @env[ENV_SESSION_OPTIONS_KEY][:id] = nil if @env && @env[ENV_SESSION_OPTIONS_KEY]
           @loaded = false
         end
 
@@ -164,8 +163,8 @@ module ActionDispatch
         session_data = env[ENV_SESSION_KEY]
         options = env[ENV_SESSION_OPTIONS_KEY]
 
-        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?) || options[:expire_after]
-          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
+        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.loaded? || options[:expire_after]
+          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.loaded?
 
           sid = options[:id] || generate_sid
           session_data = session_data.to_hash
@@ -189,7 +188,7 @@ module ActionDispatch
 
         def prepare!(env)
           env[ENV_SESSION_KEY] = SessionHash.new(self, env)
-          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options.dup)
+          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
         end
 
         def generate_sid
@@ -207,7 +206,7 @@ module ActionDispatch
         end
 
         def extract_session_id(env)
-          request = Rack::Request.new(env)
+          request = ActionDispatch::Request.new(env)
           sid = request.cookies[@key]
           sid ||= request.params[@key] unless @cookie_only
           sid
