@@ -48,15 +48,6 @@ module RailtiesTest
       assert_equal "hello", AppTemplate::Application.config.foo.greetings
     end
 
-    test "railtie can add log subscribers" do
-      begin
-        class Foo < Rails::Railtie ; log_subscriber(:foo, Rails::LogSubscriber.new) ; end
-        assert_kind_of Rails::LogSubscriber, Rails::LogSubscriber.log_subscribers[0]
-      ensure
-        Rails::LogSubscriber.log_subscribers.clear
-      end
-    end
-
     test "railtie can add to_prepare callbacks" do
       $to_prepare = false
       class Foo < Rails::Railtie ; config.to_prepare { $to_prepare = true } ; end
