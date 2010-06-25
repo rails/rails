@@ -213,6 +213,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           get "profile" => "customers#profile", :as => :profile, :on => :member
           post "preview" => "customers#preview", :as => :preview, :on => :new
         end
+        scope(':version', :version => /.+/) do
+          resources :users, :id => /.+?/, :format => /json|xml/
+        end
       end
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
@@ -1418,6 +1421,30 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/notices/1'
       assert_equal 'api/notices#show', @response.body
       assert_equal '/notices/1', notice_path(:id => '1')
+    end
+  end
+
+  def test_non_greedy_regexp
+    with_test_routes do
+      get '/api/1.0/users'
+      assert_equal 'api/users#index', @response.body
+      assert_equal '/api/1.0/users', api_users_path(:version => '1.0')
+
+      get '/api/1.0/users.json'
+      assert_equal 'api/users#index', @response.body
+      assert_equal true, @request.format.json?
+      assert_equal '/api/1.0/users.json', api_users_path(:version => '1.0', :format => :json)
+
+      get '/api/1.0/users/first.last'
+      assert_equal 'api/users#show', @response.body
+      assert_equal 'first.last', @request.params[:id]
+      assert_equal '/api/1.0/users/first.last', api_user_path(:version => '1.0', :id => 'first.last')
+
+      get '/api/1.0/users/first.last.xml'
+      assert_equal 'api/users#show', @response.body
+      assert_equal 'first.last', @request.params[:id]
+      assert_equal true, @request.format.xml?
+      assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
     end
   end
 
