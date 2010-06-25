@@ -444,6 +444,12 @@ This route would match URLs such as +/photo/A12345+. You can more succinctly exp
 match 'photo/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 </ruby>
 
++:constraints+ takes regular expression. However note that regexp anchors can't be used within constraints. For example following route will not work:
+
+<ruby>
+match '/:id' => 'videos#show', :constraints => {:id => /^\d/}
+</ruby>
+
 h4. Request-Based Constraints
 
 You can also constrain a route based on any method on the <a href="action_controller_overview.html#the-request-object">Request</a> object that returns a +String+.
