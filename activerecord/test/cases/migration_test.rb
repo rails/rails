@@ -128,9 +128,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       good_index_name = 'x' * Person.connection.index_name_length
       too_long_index_name = good_index_name + 'x'
       assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => too_long_index_name) }
-      assert !Person.connection.index_exists?("people", too_long_index_name, false)
+      assert !Person.connection.index_name_exists?("people", too_long_index_name, false)
       assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => good_index_name) }
-      assert Person.connection.index_exists?("people", good_index_name, false)
+      assert Person.connection.index_name_exists?("people", good_index_name, false)
     end
 
     def test_remove_nonexistent_index
@@ -146,8 +146,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.add_index('people', [:first_name], :name => 'old_idx')
         assert_nothing_raised { Person.connection.rename_index('people', 'old_idx', 'new_idx') }
         # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-        assert !Person.connection.index_exists?('people', 'old_idx', false)
-        assert Person.connection.index_exists?('people', 'new_idx', true)
+        assert !Person.connection.index_name_exists?('people', 'old_idx', false)
+        assert Person.connection.index_name_exists?('people', 'new_idx', true)
       end
     end
 
@@ -156,6 +156,53 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.add_index('people', [:first_name], :name => 'some_idx')
         assert_nothing_raised { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
       end
+    end
+
+    def test_index_exists
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :limit => 100
+        t.column :bar, :string, :limit => 100
+      end
+      Person.connection.add_index :testings, :foo
+
+      assert Person.connection.index_exists?(:testings, :foo)
+      assert !Person.connection.index_exists?(:testings, :bar)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_index_exists_on_multiple_columns
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :limit => 100
+        t.column :bar, :string, :limit => 100
+      end
+      Person.connection.add_index :testings, [:foo, :bar]
+
+      assert Person.connection.index_exists?(:testings, [:foo, :bar])
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_unique_index_exists
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :limit => 100
+      end
+      Person.connection.add_index :testings, :foo, :unique => true
+
+      assert Person.connection.index_exists?(:testings, :foo, :unique => true)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_named_index_exists
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :limit => 100
+      end
+      Person.connection.add_index :testings, :foo, :name => "custom_index_name"
+
+      assert Person.connection.index_exists?(:testings, :foo, :name => "custom_index_name")
+    ensure
+      Person.connection.drop_table :testings rescue nil
     end
 
     def testing_table_with_only_foo_attribute
@@ -974,6 +1021,45 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nil Person.new.first_name
     end
 
+    def test_column_exists
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string
+      end
+
+      assert Person.connection.column_exists?(:testings, :foo)
+      assert !Person.connection.column_exists?(:testings, :bar)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_column_exists_with_type
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string
+        t.column :bar, :decimal, :precision => 8, :scale => 2
+      end
+
+      assert Person.connection.column_exists?(:testings, :foo, :string)
+      assert !Person.connection.column_exists?(:testings, :foo, :integer)
+      assert Person.connection.column_exists?(:testings, :bar, :decimal)
+      assert !Person.connection.column_exists?(:testings, :bar, :integer)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_column_exists_with_definition
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :limit => 100
+        t.column :bar, :decimal, :precision => 8, :scale => 2
+      end
+
+      assert Person.connection.column_exists?(:testings, :foo, :string, :limit => 100)
+      assert !Person.connection.column_exists?(:testings, :foo, :string, :limit => 50)
+      assert Person.connection.column_exists?(:testings, :bar, :decimal, :precision => 8, :scale => 2)
+      assert !Person.connection.column_exists?(:testings, :bar, :decimal, :precision => 10, :scale => 2)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
     def test_add_table
       assert !Reminder.table_exists?
 
@@ -1681,6 +1767,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       with_change_table do |t|
         @connection.expects(:add_index).with(:delete_me, :bar, {:unique => true})
         t.index :bar, :unique => true
+      end
+    end
+
+    def test_index_exists
+      with_change_table do |t|
+        @connection.expects(:index_exists?).with(:delete_me, :bar, {})
+        t.index_exists?(:bar)
+      end
+    end
+
+    def test_index_exists_with_options
+      with_change_table do |t|
+        @connection.expects(:index_exists?).with(:delete_me, :bar, {:unique => true})
+        t.index_exists?(:bar, :unique => true)
       end
     end
 
