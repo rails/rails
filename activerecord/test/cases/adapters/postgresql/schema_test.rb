@@ -9,9 +9,11 @@ class SchemaTest < ActiveRecord::TestCase
   CAPITALIZED_TABLE_NAME = 'Things'
   INDEX_A_NAME = 'a_index_things_on_name'
   INDEX_B_NAME = 'b_index_things_on_different_columns_in_each_schema'
+  INDEX_C_NAME = 'c_index_full_text_search'
   INDEX_A_COLUMN = 'name'
   INDEX_B_COLUMN_S1 = 'email'
   INDEX_B_COLUMN_S2 = 'moment'
+  INDEX_C_COLUMN = %q{(to_tsvector('english', coalesce(things.name, '')))}
   COLUMNS = [
     'id integer',
     'name character varying(50)',
@@ -45,6 +47,8 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S1});"
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
+    @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
   end
 
   def teardown

@@ -609,9 +609,7 @@ module ActiveRecord
         SQL
 
 
-        indexes = []
-
-        indexes = result.map do |row|
+        result.map do |row|
           index_name = row[0]
           unique = row[1] == 't'
           indkey = row[2].split(" ")
@@ -625,11 +623,8 @@ module ActiveRecord
           SQL
 
           column_names = indkey.map {|attnum| columns[attnum] }
-          IndexDefinition.new(table_name, index_name, unique, column_names)
-
-        end
-
-        indexes
+          column_names.compact.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names)
+        end.compact
       end
 
       # Returns the list of all column definitions for a table.
