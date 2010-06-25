@@ -24,7 +24,7 @@ module ActionDispatch
 
         def [](key)
           if key == :id
-            load_session_id! unless key?(:id) || has_session_id?
+            load_session_id! unless super(:id) || has_session_id?
           end
           super(key)
         end
@@ -37,7 +37,6 @@ module ActionDispatch
 
         def load_session_id!
           self[:id] = @by.send(:extract_session_id, @env)
-        ensure
           @session_id_loaded = true
         end
       end
