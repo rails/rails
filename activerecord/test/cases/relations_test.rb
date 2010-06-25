@@ -491,6 +491,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 0, posts.count('comments_count')
   end
 
+  def test_multiple_selects
+    post = Post.scoped.select('comments_count').select('title').order("id ASC").first
+    assert_equal "Welcome to the weblog", post.title
+    assert_equal 2, post.comments_count
+  end
+
   def test_size
     posts = Post.scoped
 

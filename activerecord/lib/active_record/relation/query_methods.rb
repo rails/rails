@@ -213,13 +213,16 @@ module ActiveRecord
     def build_select(arel, selects)
       if selects.present?
         @implicit_readonly = false
-        selects.each do |s|
-          arel = arel.project(s) if s.present?
+        # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
+        # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
+        if selects.all? { |s| s.is_a?(String) || !s.is_a?(Arel::Expression) } && !(selects.last =~ /^COUNT\(/)
+          arel.project(*selects)
+        else
+          arel.project(selects.last)
         end
       else
-        arel = arel.project(@klass.quoted_table_name + '.*')
+        arel.project(@klass.quoted_table_name + '.*')
       end
-      arel
     end
 
     def apply_modules(modules)
