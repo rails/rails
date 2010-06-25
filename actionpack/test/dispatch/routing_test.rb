@@ -317,6 +317,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           post :preview
         end
       end
+
+      match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
 
@@ -1445,6 +1447,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'first.last', @request.params[:id]
       assert_equal true, @request.format.xml?
       assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
+    end
+  end
+
+  def test_glob_parameter_accepts_regexp
+    with_test_routes do
+      get '/en/path/to/existing/file.html'
+      assert_equal 200, @response.status
     end
   end
 
