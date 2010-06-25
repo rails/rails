@@ -11,9 +11,8 @@ module ActiveRecord
 
         next if [:where, :having, :select].include?(query_method)
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-          def #{query_method}(*args, &block)
+          def #{query_method}(*args)
             new_relation = clone
-            new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             value = Array.wrap(args.flatten).reject {|x| x.blank? }
             new_relation.#{query_method}_values += value if value.present?
             new_relation
@@ -21,9 +20,8 @@ module ActiveRecord
         CEVAL
       end
 
-      def reorder(*args, &block)
+      def reorder(*args)
         new_relation = clone
-        new_relation.send(:apply_modules, Module.new(&block)) if block_given?
         value = Array.wrap(args.flatten).reject {|x| x.blank? }
         new_relation.order_values = value if value.present?
         new_relation
@@ -42,9 +40,8 @@ module ActiveRecord
 
       [:where, :having].each do |query_method|
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-          def #{query_method}(*args, &block)
+          def #{query_method}(*args)
             new_relation = clone
-            new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             value = build_where(*args)
             new_relation.#{query_method}_values += Array.wrap(value) if value.present?
             new_relation
@@ -56,9 +53,8 @@ module ActiveRecord
         attr_accessor :"#{query_method}_value"
 
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-          def #{query_method}(value = true, &block)
+          def #{query_method}(value = true)
             new_relation = clone
-            new_relation.send(:apply_modules, Module.new(&block)) if block_given?
             new_relation.#{query_method}_value = value
             new_relation
           end

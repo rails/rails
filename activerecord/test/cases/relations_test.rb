@@ -618,7 +618,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_anonymous_extension
-    relation = Post.where(:author_id => 1).order('id ASC') do
+    relation = Post.where(:author_id => 1).order('id ASC').extend do
       def author
         'lifo'
       end

@@ -328,6 +328,15 @@ module ActiveRecord
       to_a.inspect
     end
 
+    def extend(*args, &block)
+      if block_given?
+        apply_modules Module.new(&block)
+        self
+      else
+        super
+      end
+    end
+
     protected
 
     def method_missing(method, *args, &block)
