@@ -447,7 +447,16 @@ match 'photo/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 +:constraints+ takes regular expression. However note that regexp anchors can't be used within constraints. For example following route will not work:
 
 <ruby>
-match '/:id' => 'videos#show', :constraints => {:id => /^\d/}
+match '/:id' => 'posts#show', :constraints => {:id => /^\d/}
+</ruby>
+
+However, note that you don't need to use anchors because all routes are anchored at the start.
+
+For example, the following routes would allow for +posts+ with +to_param+ values like +1-hello-world+ that always begin with a number and +users+ with +to_param+ values like +david+ that never begin with a number to share the root namespace:
+
+<ruby>
+match '/:id' => 'posts#show', :constraints => { :id => /\d.+/ }
+match '/:username' => 'users#show'
 </ruby>
 
 h4. Request-Based Constraints
