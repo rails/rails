@@ -62,11 +62,12 @@ module ActionDispatch
         end
 
         def unpacked_cookie_data(env)
-          request = ActionDispatch::Request.new(env)
-          if data = request.cookie_jar.signed[@key]
-            data.stringify_keys!
-          else
-            {}
+          env["action_dispatch.request.unsigned_session_cookie"] ||= begin
+            request = ActionDispatch::Request.new(env)
+            if data = request.cookie_jar.signed[@key]
+              data.stringify_keys!
+            end
+            data || {}
           end
         end
 
@@ -76,10 +77,6 @@ module ActionDispatch
 
         def set_session(env, sid, session_data)
           persistent_session_id!(session_data, sid)
-        end
-
-        def exists?(env)
-          ActionDispatch::Request.new(env).cookie_jar.key?(@key)
         end
 
         def destroy(env)

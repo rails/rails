@@ -88,7 +88,10 @@ module ActionDispatch
         end
 
         def exists?
-          @by.send(:exists?, @env)
+          return @exists if instance_variable_defined?(:@exists)
+          stale_session_check! do
+            @exists = @by.send(:exists?, @env)
+          end
         end
 
         def loaded?
