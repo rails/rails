@@ -66,7 +66,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
       end
     end
   end
-  
+
   def test_tables_in_current_schemas
     assert !@connection.tables.include?(TABLE_NAME)
     USERS.each do |u|

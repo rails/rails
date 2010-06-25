@@ -49,7 +49,10 @@ end
     connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
     t.libs << "test" << connection_path
-    t.test_files=Dir.glob( "test/cases/**/*_test{,_#{adapter_short}}.rb" ).sort
+    t.test_files = (Dir.glob( "test/cases/**/*_test.rb" ).reject {
+      |x| x =~ /\/adapters\//
+    } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
+
     t.verbose = true
     t.warning = true
   }

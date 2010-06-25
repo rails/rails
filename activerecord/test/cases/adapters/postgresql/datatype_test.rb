@@ -53,7 +53,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
     @connection.execute("INSERT INTO postgresql_oids (obj_id) VALUES (1234)")
     @first_oid = PostgresqlOid.find(1)
-    
+
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (time) VALUES ('2010-01-01 10:00:00-1')")
   end
 
