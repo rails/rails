@@ -21,6 +21,14 @@ module ActiveRecord
         CEVAL
       end
 
+      def reorder(*args, &block)
+        new_relation = clone
+        new_relation.send(:apply_modules, Module.new(&block)) if block_given?
+        value = Array.wrap(args.flatten).reject {|x| x.blank? }
+        new_relation.order_values = value if value.present?
+        new_relation
+      end
+
       def select(*args)
         if block_given?
           to_a.select { |*block_args| yield(*block_args) }
