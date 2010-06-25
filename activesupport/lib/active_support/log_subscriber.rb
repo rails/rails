@@ -36,6 +36,10 @@ module ActiveSupport
 
     class_attribute :logger
 
+    class << self
+      remove_method :logger
+    end
+
     def self.logger
       @logger ||= Rails.logger if defined?(Rails)
     end
