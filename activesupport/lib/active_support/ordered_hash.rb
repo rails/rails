@@ -134,6 +134,8 @@ module ActiveSupport
         self
       end
 
+      alias_method :update, :merge!
+
       def merge(other_hash)
         dup.merge!(other_hash)
       end

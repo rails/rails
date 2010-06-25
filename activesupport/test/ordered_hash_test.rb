@@ -222,4 +222,10 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @ordered_hash.keys,   @deserialized_ordered_hash.keys
     assert_equal @ordered_hash.values, @deserialized_ordered_hash.values
   end
+
+  def test_update_sets_keys
+    @updated_ordered_hash = ActiveSupport::OrderedHash.new
+    @updated_ordered_hash.update(:name => "Bob")
+    assert_equal [:name],  @updated_ordered_hash.keys
+  end
 end
