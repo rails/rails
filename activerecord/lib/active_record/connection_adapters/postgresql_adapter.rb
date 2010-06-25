@@ -615,15 +615,15 @@ module ActiveRecord
           indkey = row[2].split(" ")
           oid = row[3]
 
-          columns = query(<<-SQL, "Columns for index #{row[0]} on #{table_name}").inject({}) {|attlist, r| attlist[r[1]] = r[0]; attlist}
-          SELECT a.attname, a.attnum
+          columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
+          SELECT a.attnum, a.attname
           FROM pg_attribute a
           WHERE a.attrelid = #{oid}
           AND a.attnum IN (#{indkey.join(",")})
           SQL
 
-          column_names = indkey.map {|attnum| columns[attnum] }
-          column_names.compact.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names)
+          column_names = columns.values_at(*indkey).compact
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names)
         end.compact
       end
 
