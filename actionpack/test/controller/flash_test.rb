@@ -236,6 +236,15 @@ class FlashIntegrationTest < ActionController::IntegrationTest
     end
   end
 
+  def test_just_using_flash_does_not_stream_a_cookie_back
+    with_test_route_set do
+      get '/use_flash'
+      assert_response :success
+      assert_nil @response.headers["Set-Cookie"]
+      assert_equal "flash: ", @response.body
+    end
+  end
+
   private
 
     # Overwrite get to send SessionSecret in env hash
@@ -247,10 +256,15 @@ class FlashIntegrationTest < ActionController::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          match ':action', :to => ActionDispatch::Session::CookieStore.new(
-            FlashIntegrationTest::TestController, :key => FlashIntegrationTest::SessionKey, :secret => FlashIntegrationTest::SessionSecret
-          )
+          match ':action', :to => FlashIntegrationTest::TestController
         end
+
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use ActionDispatch::Session::CookieStore, :key => SessionKey
+          middleware.use ActionDispatch::Flash
+          middleware.delete "ActionDispatch::ShowExceptions"
+        end
+
         yield
       end
     end
