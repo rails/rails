@@ -447,7 +447,7 @@ module ActionDispatch
 
         # ROUTES TODO: This can be called directly, so script_name should probably be set in the router
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-        rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
+        rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
 
         rewritten_url
       end
