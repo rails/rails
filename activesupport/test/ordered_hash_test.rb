@@ -259,8 +259,7 @@ class OrderedHashTest < Test::Unit::TestCase
   end
 
   def test_invert
-    @ordered_hash = ActiveSupport::OrderedHash[[["foo", "FOO"], ["bar", "BAR"]]]
-    @inverted_ordered_hash = @ordered_hash.invert
-    assert_equal [["FOO", "foo"], ["BAR", "bar"]], @inverted_ordered_hash.to_a
+    assert_kind_of ActiveSupport::OrderedHash, @ordered_hash.invert
+    assert_equal @values.zip(@keys), @ordered_hash.invert.to_a
   end
 end
