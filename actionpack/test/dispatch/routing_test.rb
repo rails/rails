@@ -308,6 +308,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match "index", :to => 'private#index'
       end
 
+      get "(/:username)/followers" => "followers#index"
+      get "/groups(/user/:username)" => "groups#index"
+      get "(/user/:username)/photos" => "photos#index"
+
       match "whatever/:controller(/:action(/:id))"
 
       resource :profile do
@@ -1463,6 +1467,48 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/content'
       assert_equal 'content#index', @response.body
+    end
+  end
+
+  def test_url_generator_for_optional_prefix_dynamic_segment
+    with_test_routes do
+      get '/bob/followers'
+      assert_equal 'followers#index', @response.body
+      assert_equal 'http://www.example.com/bob/followers',
+        url_for(:controller => "followers", :action => "index", :username => "bob")
+
+      get '/followers'
+      assert_equal 'followers#index', @response.body
+      assert_equal 'http://www.example.com/followers',
+        url_for(:controller => "followers", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_generator_for_optional_suffix_static_and_dynamic_segment
+    with_test_routes do
+      get '/groups/user/bob'
+      assert_equal 'groups#index', @response.body
+      assert_equal 'http://www.example.com/groups/user/bob',
+        url_for(:controller => "groups", :action => "index", :username => "bob")
+
+      get '/groups'
+      assert_equal 'groups#index', @response.body
+      assert_equal 'http://www.example.com/groups',
+        url_for(:controller => "groups", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_generator_for_optional_prefix_static_and_dynamic_segment
+    with_test_routes do
+      get 'user/bob/photos'
+      assert_equal 'photos#index', @response.body
+      assert_equal 'http://www.example.com/user/bob/photos',
+        url_for(:controller => "photos", :action => "index", :username => "bob")
+
+      get 'photos'
+      assert_equal 'photos#index', @response.body
+      assert_equal 'http://www.example.com/photos',
+        url_for(:controller => "photos", :action => "index", :username => nil)
     end
   end
 

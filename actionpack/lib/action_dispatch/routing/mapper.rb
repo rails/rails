@@ -194,7 +194,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Rack::Mount::Utils.normalize_path(path)
-        path.sub!(%r{/(\(+)/?:}, '\1/:') unless path =~ %r{^/\(+:.*\)$}
+        path.sub!(%r{/(\(+)/?([^:]*):}, '\1/\2:') unless path =~ %r{^/\(+:.*\)$}
         path
       end
 
