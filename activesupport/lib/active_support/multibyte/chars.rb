@@ -195,6 +195,45 @@ module ActiveSupport #:nodoc:
           Unicode.u_unpack(@wrapped_string)[0]
         end
 
+        # Works just like <tt>String#rjust</tt>, only integer specifies characters instead of bytes.
+        #
+        # Example:
+        #
+        #   "¾ cup".mb_chars.rjust(8).to_s
+        #   #=> "   ¾ cup"
+        #
+        #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
+        #   #=> "   ¾ cup"
+        def rjust(integer, padstr=' ')
+          justify(integer, :right, padstr)
+        end
+
+        # Works just like <tt>String#ljust</tt>, only integer specifies characters instead of bytes.
+        #
+        # Example:
+        #
+        #   "¾ cup".mb_chars.rjust(8).to_s
+        #   #=> "¾ cup   "
+        #
+        #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
+        #   #=> "¾ cup   "
+        def ljust(integer, padstr=' ')
+          justify(integer, :left, padstr)
+        end
+
+        # Works just like <tt>String#center</tt>, only integer specifies characters instead of bytes.
+        #
+        # Example:
+        #
+        #   "¾ cup".mb_chars.center(8).to_s
+        #   #=> " ¾ cup  "
+        #
+        #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
+        #   #=> " ¾ cup  "
+        def center(integer, padstr=' ')
+          justify(integer, :center, padstr)
+        end
+
       else
         def =~(other)
           @wrapped_string =~ other
@@ -249,46 +288,6 @@ module ActiveSupport #:nodoc:
           @wrapped_string.replace(result.pack('U*'))
         end
       end
-
-      # Works just like <tt>String#rjust</tt>, only integer specifies characters instead of bytes.
-      #
-      # Example:
-      #
-      #   "¾ cup".mb_chars.rjust(8).to_s
-      #   #=> "   ¾ cup"
-      #
-      #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-      #   #=> "   ¾ cup"
-      def rjust(integer, padstr=' ')
-        justify(integer, :right, padstr)
-      end
-
-      # Works just like <tt>String#ljust</tt>, only integer specifies characters instead of bytes.
-      #
-      # Example:
-      #
-      #   "¾ cup".mb_chars.rjust(8).to_s
-      #   #=> "¾ cup   "
-      #
-      #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-      #   #=> "¾ cup   "
-      def ljust(integer, padstr=' ')
-        justify(integer, :left, padstr)
-      end
-
-      # Works just like <tt>String#center</tt>, only integer specifies characters instead of bytes.
-      #
-      # Example:
-      #
-      #   "¾ cup".mb_chars.center(8).to_s
-      #   #=> " ¾ cup  "
-      #
-      #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
-      #   #=> " ¾ cup  "
-      def center(integer, padstr=' ')
-        justify(integer, :center, padstr)
-      end
-
 
       # Reverses all characters in the string.
       #
