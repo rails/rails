@@ -248,7 +248,7 @@ module ActionView
     test "supports specifying locals (failing)" do
       controller.controller_path = "test"
       render(:template => "test/calling_partial_with_layout")
-      assert_raise Test::Unit::AssertionFailedError, /Somebody else.*David/m do
+      assert_raise ActiveSupport::TestCase::Assertion, /Somebody else.*David/m do
         assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
       end
     end
