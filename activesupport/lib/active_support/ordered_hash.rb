@@ -147,6 +147,10 @@ module ActiveSupport
         self
       end
 
+      def invert
+        OrderedHash[self.to_a.map!{|key_value_pair| key_value_pair.reverse}]
+      end
+
       def inspect
         "#<OrderedHash #{super}>"
       end
