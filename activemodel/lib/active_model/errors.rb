@@ -3,6 +3,7 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/ordered_hash'
 
 module ActiveModel
@@ -164,15 +165,12 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      require 'builder' unless defined? ::Builder
-      options[:root]    ||= "errors"
-      options[:indent]  ||= 2
-      options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
+      to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
+    end
 
-      options[:builder].instruct! unless options.delete(:skip_instruct)
-      options[:builder].errors do |e|
-        to_a.each { |error| e.error(error) }
-      end
+    # Returns an array as JSON representation for this object.
+    def as_json(options=nil)
+      to_a
     end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
@@ -283,7 +281,6 @@ module ActiveModel
     # <li><tt>errors.attributes.title.blank</tt></li>
     # <li><tt>errors.messages.blank</tt></li>
     # </ol>
-
     def generate_message(attribute, type = :invalid, options = {})
       type = options.delete(:message) if options[:message].is_a?(Symbol)
 

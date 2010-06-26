@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/json'
 
 class OrderedHashTest < Test::Unit::TestCase
   def setup
@@ -183,6 +184,12 @@ class OrderedHashTest < Test::Unit::TestCase
 
   def test_inspect
     assert @ordered_hash.inspect.include?(@hash.inspect)
+  end
+
+  def test_json
+    ordered_hash = ActiveSupport::OrderedHash[:foo, :bar]
+    hash = Hash[:foo, :bar]
+    assert_equal ordered_hash.to_json, hash.to_json
   end
 
   def test_alternate_initialization_with_splat

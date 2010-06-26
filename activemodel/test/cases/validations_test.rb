@@ -6,6 +6,9 @@ require 'models/reply'
 require 'models/custom_reader'
 require 'models/automobile'
 
+require 'active_support/json'
+require 'active_support/xml_mini'
+
 class ValidationsTest < ActiveModel::TestCase
 
   def setup
@@ -158,12 +161,18 @@ class ValidationsTest < ActiveModel::TestCase
     end
   end
 
-  def test_errors_to_xml
-    r = Reply.new :title => "Wrong Create"
-    assert r.invalid?
-    xml = r.errors.to_xml(:skip_instruct => true)
-    assert_equal "<errors>", xml.first(8)
-    assert xml.include?("<error>Content is Empty</error>")
+  def test_errors_conversions
+    Topic.validates_presence_of %w(title content)
+    t = Topic.new
+    assert t.invalid?
+
+    xml = t.errors.to_xml
+    assert_match %r{<errors>}, xml
+    assert_match %r{<error>Title can't be blank</error>}, xml
+    assert_match %r{<error>Content can't be blank</error>}, xml
+
+    json = t.errors.to_json
+    assert_equal t.errors.to_a.to_json, json
   end
 
   def test_validation_order
