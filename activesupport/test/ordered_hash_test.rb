@@ -259,7 +259,8 @@ class OrderedHashTest < Test::Unit::TestCase
   end
 
   def test_invert
-    assert_kind_of ActiveSupport::OrderedHash, @ordered_hash.invert
+    expected = ActiveSupport::OrderedHash[@values.zip(@keys)]
+    assert_equal expected, @ordered_hash.invert
     assert_equal @values.zip(@keys), @ordered_hash.invert.to_a
   end
 end
