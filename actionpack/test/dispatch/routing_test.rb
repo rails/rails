@@ -318,6 +318,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :content
+
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
@@ -1454,6 +1456,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/en/path/to/existing/file.html'
       assert_equal 200, @response.status
+    end
+  end
+
+  def test_resources_controller_name_is_not_pluralized
+    with_test_routes do
+      get '/content'
+      assert_equal 'content#index', @response.body
     end
   end
 

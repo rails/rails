@@ -443,7 +443,7 @@ module ActionDispatch
           def initialize(entities, options = {})
             @name       = entities.to_s
             @path       = options.delete(:path) || @name
-            @controller = options.delete(:controller) || @name.to_s.pluralize
+            @controller = (options.delete(:controller) || @name).to_s
             @as         = options.delete(:as)
             @options    = options
           end
@@ -545,6 +545,14 @@ module ActionDispatch
         class SingletonResource < Resource #:nodoc:
           def self.default_actions
             [:show, :create, :update, :destroy, :new, :edit]
+          end
+
+          def initialize(entities, options)
+            @name       = entities.to_s
+            @path       = options.delete(:path) || @name
+            @controller = (options.delete(:controller) || @name.to_s.pluralize).to_s
+            @as         = options.delete(:as)
+            @options    = options
           end
 
           def member_name
