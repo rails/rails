@@ -312,6 +312,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "/groups(/user/:username)" => "groups#index"
       get "(/user/:username)/photos" => "photos#index"
 
+      scope '(groups)' do
+        scope '(discussions)' do
+          resources :messages
+        end
+      end
+
       match "whatever/:controller(/:action(/:id))"
 
       resource :profile do
@@ -1509,6 +1515,34 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'photos#index', @response.body
       assert_equal 'http://www.example.com/photos',
         url_for(:controller => "photos", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_recognition_for_optional_static_segments
+    with_test_routes do
+      get '/groups/discussions/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/groups/discussions/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/groups/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/groups/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/discussions/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/discussions/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/messages/1'
+      assert_equal 'messages#show', @response.body
     end
   end
 
