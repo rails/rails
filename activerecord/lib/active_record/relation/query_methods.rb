@@ -9,10 +9,9 @@ module ActiveRecord
       (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).each do |query_method|
         attr_accessor :"#{query_method}_values"
 
-        next if [:where, :having, :select].include?(query_method)
+        next if [:where, :having, :select, :joins].include?(query_method)
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(*args)
-            args.flatten!
             args.reject! { |a| a.blank? }
             new_relation = clone
             new_relation.#{query_method}_values += args if args.present?
@@ -22,7 +21,6 @@ module ActiveRecord
       end
 
       def reorder(*args)
-        args.flatten!
         args.reject! { |a| a.blank? }
         new_relation = clone
         new_relation.order_values = args if args.present?
@@ -33,12 +31,19 @@ module ActiveRecord
         if block_given?
           to_a.select { |*block_args| yield(*block_args) }
         else
-          args.flatten!
           args.reject! { |a| a.blank? }
           new_relation = clone
           new_relation.select_values += args if args.present?
           new_relation
         end
+      end
+
+      def joins(*args)
+        args.flatten!
+        args.reject! { |a| a.blank? }
+        new_relation = clone
+        new_relation.joins_values += args if args.present?
+        new_relation
       end
 
       [:where, :having].each do |query_method|
