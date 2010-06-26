@@ -12,18 +12,20 @@ module ActiveRecord
         next if [:where, :having, :select].include?(query_method)
         class_eval <<-CEVAL, __FILE__, __LINE__ + 1
           def #{query_method}(*args)
+            args.flatten!
+            args.reject! { |a| a.blank? }
             new_relation = clone
-            value = Array.wrap(args.flatten).reject {|x| x.blank? }
-            new_relation.#{query_method}_values += value if value.present?
+            new_relation.#{query_method}_values += args if args.present?
             new_relation
           end
         CEVAL
       end
 
       def reorder(*args)
+        args.flatten!
+        args.reject! { |a| a.blank? }
         new_relation = clone
-        value = Array.wrap(args.flatten).reject {|x| x.blank? }
-        new_relation.order_values = value if value.present?
+        new_relation.order_values = args if args.present?
         new_relation
       end
 
@@ -31,9 +33,10 @@ module ActiveRecord
         if block_given?
           to_a.select { |*block_args| yield(*block_args) }
         else
+          args.flatten!
+          args.reject! { |a| a.blank? }
           new_relation = clone
-          value = Array.wrap(args.flatten).reject {|x| x.blank? }
-          new_relation.select_values += value if value.present?
+          new_relation.select_values += args if args.present?
           new_relation
         end
       end
