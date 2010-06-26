@@ -63,18 +63,12 @@ module ActiveRecord
       #
       #  # Check a column exists with a specific definition
       #  column_exists?(:suppliers, :name, :string, :limit => 100)
-      def column_exists?(table_name, column_name, type = nil, options = nil)
-        column_name = column_name.to_s
-        if type
-          if options
-            sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale])
-            columns(table_name).any?{ |c| c.name == column_name && c.sql_type == sql_type }
-          else
-            columns(table_name).any?{ |c| c.name == column_name && c.type == type }
-          end
-        else
-          columns(table_name).any?{ |c| c.name == column_name }
-        end
+      def column_exists?(table_name, column_name, type = nil, options = {})
+        columns(table_name).any?{ |c| c.name == column_name.to_s &&
+                                      (!type                 || c.type == type) &&
+                                      (!options[:limit]      || c.limit == options[:limit]) &&
+                                      (!options[:precision]  || c.precision == options[:precision]) &&
+                                      (!options[:scale]      || c.scale == options[:scale]) }
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
