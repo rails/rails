@@ -4,6 +4,8 @@ require 'cases/helper'
 require 'models/topic'
 require 'models/person'
 
+require 'bigdecimal'
+
 class NumericalityValidationTest < ActiveModel::TestCase
 
   def teardown
