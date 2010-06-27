@@ -41,7 +41,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   alias url_hash hash_for
 
   def test_url_for_escapes_urls
-    assert_equal "/?a=b&c=d", url_for(abcd)
+    assert_equal "/?a=b&amp;c=d", url_for(abcd)
     assert_equal "/?a=b&amp;c=d", url_for(abcd(:escape => true))
     assert_equal "/?a=b&c=d", url_for(abcd(:escape => false))
   end
@@ -53,6 +53,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_escapes_url_once
     assert_equal "/?a=b&amp;c=d", url_for("/?a=b&amp;c=d")
+    assert_equal "/?a=b&amp;c=d", url_for(abcd)
   end
 
   def test_url_for_with_back
@@ -65,11 +66,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_url_for_with_back_and_no_referer
     @controller = Struct.new(:request).new(Struct.new(:env).new({}))
     assert_equal 'javascript:history.back()', url_for(:back)
-  end
-
-  def test_url_for_from_hash_doesnt_escape_ampersand
-    path = url_for(hash_for(:foo => :bar, :baz => :quux))
-    assert_equal '/?baz=quux&foo=bar', sort_query_string_params(path)
   end
 
   # todo: missing test cases
@@ -345,7 +341,7 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to_unless_current("Showing", "http://www.example.com/?order=asc")
 
     @request = request_for_url("/?order=desc")
-    assert_equal %{<a href="/?order=desc&page=2\">Showing</a>},
+    assert_equal %{<a href="/?order=desc&amp;page=2\">Showing</a>},
       link_to_unless_current("Showing", hash_for(:order => "desc", :page => 2))
     assert_equal %{<a href="http://www.example.com/?order=desc&amp;page=2">Showing</a>},
       link_to_unless_current("Showing", "http://www.example.com/?order=desc&page=2")
@@ -415,7 +411,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   private
     def sort_query_string_params(uri)
       path, qs = uri.split('?')
-      qs = qs.split('&').sort.join('&') if qs
+      qs = qs.split('&amp;').sort.join('&amp;') if qs
       qs ? "#{path}?#{qs}" : path
     end
 end

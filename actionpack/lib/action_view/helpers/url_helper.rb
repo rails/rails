@@ -104,7 +104,7 @@ module ActionView
           options
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
-          escape  = options.key?(:escape) ? options.delete(:escape) : false
+          escape  = options.key?(:escape) ? options.delete(:escape) : true
           super
         when :back
           escape = false
