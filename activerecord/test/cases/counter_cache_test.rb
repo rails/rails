@@ -1,17 +1,20 @@
 require 'cases/helper'
 require 'models/topic'
+require 'models/car'
+require 'models/wheel'
+require 'models/engine'
 require 'models/reply'
 require 'models/category'
 require 'models/categorization'
 
 class CounterCacheTest < ActiveRecord::TestCase
-  fixtures :topics, :categories, :categorizations
+  fixtures :topics, :categories, :categorizations, :cars
 
-  class SpecialTopic < ::Topic
+  class ::SpecialTopic < ::Topic
     has_many :special_replies, :foreign_key => 'parent_id'
   end
 
-  class SpecialReply < ::Reply
+  class ::SpecialReply < ::Reply
     belongs_to :special_topic, :foreign_key => 'parent_id', :counter_cache => 'replies_count'
   end
 
@@ -55,6 +58,16 @@ class CounterCacheTest < ActiveRecord::TestCase
 
     assert_difference 'special.reload.replies_count', -1 do
       SpecialTopic.reset_counters(special.id, :special_replies)
+    end
+  end
+
+  test "reset counter should with belongs_to which has class_name" do
+    car = cars(:honda)
+    assert_nothing_raised do
+      Car.reset_counters(car.id, :engines)
+    end
+    assert_nothing_raised do
+      Car.reset_counters(car.id, :wheels)
     end
   end
 
