@@ -30,7 +30,7 @@ class String
 
   def getbyte(index)
     self[index]
-  end if RUBY_VERSION < '1.9'
+  end unless method_defined?(:getbyte)
 
   # Form can be either :utc (default) or :local.
   def to_time(form = :utc)
