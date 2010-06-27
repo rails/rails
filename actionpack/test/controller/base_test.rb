@@ -2,9 +2,6 @@ require 'abstract_unit'
 require 'logger'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
-module Rails
-end
-
 # Provide some controller to run the tests on.
 module Submodule
   class ContainedEmptyController < ActionController::Base

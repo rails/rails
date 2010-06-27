@@ -38,6 +38,9 @@ end
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
+module Rails
+end
+
 ActiveSupport::Dependencies.hook!
 
 # Show backtraces for deprecated behavior for quicker cleanup.
