@@ -1765,7 +1765,7 @@ The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wr
 "2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000 
 </ruby>
 
-+to_time+ receivers an optional argument +:utc+ or +:local+, to indicate which time zone you want the time in:
++to_time+ receives an optional argument +:utc+ or +:local+, to indicate which time zone you want the time in:
 
 <ruby>
 "2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
