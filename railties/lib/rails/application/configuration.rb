@@ -10,7 +10,7 @@ module Rails
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger, :middleware,
-                    :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
+                    :plugins, :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
 
@@ -59,7 +59,7 @@ module Rails
           if File.exists?("#{root}/test/mocks/#{Rails.env}")
             ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<
               "automatically to load paths anymore in future releases"
-            paths.mocks_path  "test/mocks", :load_path => true, :glob => Rails.env
+            paths.mocks_path  "test/mocks", :autoload => true, :glob => Rails.env
           end
 
           paths

@@ -142,7 +142,7 @@ module Rails
 
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
-      config.autoload_paths.reverse_each do |path|
+      _all_load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
       $LOAD_PATH.uniq!
@@ -154,16 +154,12 @@ module Rails
     # This needs to be an initializer, since it needs to run once
     # per engine and get the engine as a block parameter
     initializer :set_autoload_paths, :before => :bootstrap_hook do |app|
-      ActiveSupport::Dependencies.autoload_paths.unshift(*config.autoload_paths)
-
-      if reloadable?(app)
-        ActiveSupport::Dependencies.autoload_once_paths.unshift(*config.autoload_once_paths)
-      else
-        ActiveSupport::Dependencies.autoload_once_paths.unshift(*config.autoload_paths)
-      end
+      ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
+      ActiveSupport::Dependencies.autoload_once_paths.unshift(*config.autoload_once_paths)
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
       config.autoload_paths.freeze
+      config.eager_load_paths.freeze
       config.autoload_once_paths.freeze
     end
 
@@ -195,7 +191,6 @@ module Rails
       ActiveSupport.on_load(:action_controller) do
         prepend_view_path(views)
       end
-
       ActiveSupport.on_load(:action_mailer) do
         prepend_view_path(views)
       end
@@ -214,8 +209,12 @@ module Rails
 
   protected
 
-    def reloadable?(app)
-      app.config.reload_engines
+    def _all_autoload_paths
+      @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+    end
+
+    def _all_load_paths
+      @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
     end
   end
 end

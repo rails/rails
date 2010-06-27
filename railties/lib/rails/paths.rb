@@ -25,9 +25,7 @@ module Rails
 
       def initialize(path)
         raise if path.is_a?(Array)
-
         @children = {}
-
         @path = path
         @root = self
         @all_paths = []
@@ -38,12 +36,16 @@ module Rails
         @all_paths
       end
 
-      def load_once
-        filter_by(:load_once?)
+      def autoload_once
+        filter_by(:autoload_once?)
       end
 
       def eager_load
         filter_by(:eager_load?)
+      end
+
+      def autoload_paths
+        filter_by(:autoload?)
       end
 
       def load_paths
@@ -61,15 +63,17 @@ module Rails
     protected
 
       def filter_by(constraint)
-        all_paths.map do |path|
+        all = []
+        all_paths.each do |path|
           if path.send(constraint)
             paths  = path.paths
             paths -= path.children.values.map { |p| p.send(constraint) ? [] : p.paths }.flatten
-            paths
-          else
-            []
+            all.concat(paths)
           end
-        end.flatten.uniq.select { |p| File.exists?(p) }
+        end
+        all.uniq!
+        all.reject! { |p| !File.exists?(p) }
+        all
       end
     end
 
@@ -80,15 +84,16 @@ module Rails
       attr_accessor :glob
 
       def initialize(root, *paths)
-        @options  = paths.last.is_a?(::Hash) ? paths.pop : {}
+        options   = paths.last.is_a?(::Hash) ? paths.pop : {}
         @children = {}
         @root     = root
         @paths    = paths.flatten
-        @glob     = @options.delete(:glob)
+        @glob     = options[:glob]
 
-        @load_once  = @options[:load_once]
-        @eager_load = @options[:eager_load]
-        @load_path  = @options[:load_path] || @eager_load || @load_once
+        autoload_once! if options[:autoload_once]
+        eager_load!    if options[:eager_load]
+        autoload!      if options[:autoload]
+        load_path!     if options[:load_path]
 
         @root.all_paths << self
       end
@@ -111,22 +116,28 @@ module Rails
         @paths.concat paths
       end
 
-      def load_once!
-        @load_once = true
-        @load_path = true
+      def autoload_once!
+        @autoload_once = true
       end
 
-      def load_once?
-        @load_once
+      def autoload_once?
+        @autoload_once
       end
 
       def eager_load!
         @eager_load = true
-        @load_path  = true
       end
 
       def eager_load?
         @eager_load
+      end
+
+      def autoload!
+        @autoload = true
+      end
+
+      def autoload?
+        @autoload
       end
 
       def load_path!

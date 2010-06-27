@@ -28,7 +28,7 @@ module Rails
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
   # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger", "reload_engines", "reload_plugins" and so forth.
+  # "logger", "reload_plugins" and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -216,11 +216,6 @@ module Rails
 
     def initialize_generators
       require "rails/generators"
-    end
-
-    # Application is always reloadable when config.cache_classes is false.
-    def reloadable?(app)
-      true
     end
   end
 end
