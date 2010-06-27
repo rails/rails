@@ -1,13 +1,16 @@
-require 'rails/log_subscriber'
+require 'active_support/log_subscriber'
 
-module Rails
+module ActiveSupport
   class LogSubscriber
     # Provides some helpers to deal with testing log subscribers by setting up
     # notifications. Take for instance Active Record subscriber tests:
     #
     #   class SyncLogSubscriberTest < ActiveSupport::TestCase
-    #     include Rails::LogSubscriber::TestHelper
-    #     Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
+    #     include ActiveSupport::LogSubscriber::TestHelper
+    #
+    #     def setup
+    #       ActiveRecord::LogSubscriber.attach_to(:active_record)
+    #     end
     # 
     #     def test_basic_query_logging
     #       Developer.all
@@ -15,16 +18,6 @@ module Rails
     #       assert_equal 1, @logger.logged(:debug).size
     #       assert_match /Developer Load/, @logger.logged(:debug).last
     #       assert_match /SELECT \* FROM "developers"/, @logger.logged(:debug).last
-    #     end
-    # 
-    #     class SyncLogSubscriberTest < ActiveSupport::TestCase
-    #       include Rails::LogSubscriber::SyncTestHelper
-    #       include LogSubscriberTest
-    #     end
-    # 
-    #     class AsyncLogSubscriberTest < ActiveSupport::TestCase
-    #       include Rails::LogSubscriber::AsyncTestHelper
-    #       include LogSubscriberTest
     #     end
     #   end
     #
@@ -42,7 +35,7 @@ module Rails
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Notifier.new(queue)
 
-        Rails::LogSubscriber.colorize_logging = false
+        ActiveSupport::LogSubscriber.colorize_logging = false
 
         set_logger(@logger)
         ActiveSupport::Notifications.notifier = @notifier
@@ -86,7 +79,7 @@ module Rails
       #   end
       #
       def set_logger(logger)
-        Rails.logger = logger
+        ActiveSupport::LogSubscriber.logger = logger
       end
 
       def queue

@@ -116,15 +116,15 @@ RBench.run(TIMES) do
   end
 
   report 'Model.all limit(100)', (TIMES / 10).ceil do
-    ar { Exhibit.look Exhibit.all(:limit => 100) }
+    ar { Exhibit.look Exhibit.limit(100) }
   end
 
   report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
-    ar { Exhibit.feel Exhibit.all(:limit => 100, :include => :user) }
+    ar { Exhibit.feel Exhibit.limit(100).includes(:user) }
   end
 
   report 'Model.all limit(10,000)', (TIMES / 1000).ceil do
-    ar { Exhibit.look Exhibit.all(:limit => 10000) }
+    ar { Exhibit.look Exhibit.limit(10000) }
   end
 
   exhibit = {

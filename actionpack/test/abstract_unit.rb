@@ -202,6 +202,21 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
     self.class.app = old_app
     silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
+
+  def with_autoload_path(path)
+    path = File.join(File.dirname(__FILE__), "fixtures", path)  
+    if ActiveSupport::Dependencies.autoload_paths.include?(path)
+      yield
+    else
+      begin
+        ActiveSupport::Dependencies.autoload_paths << path
+        yield
+      ensure
+        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+        ActiveSupport::Dependencies.clear
+      end
+    end
+  end
 end
 
 # Temporary base class

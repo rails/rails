@@ -77,11 +77,13 @@ class MethodScopingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_options_select_replaces_scope_select
-    Developer.send(:with_scope, :find => { :select => "id, name" }) do
+  def test_scope_select_concatenates
+    Developer.send(:with_scope, :find => { :select => "name" }) do
       developer = Developer.find(:first, :select => 'id, salary', :conditions => "name = 'David'")
       assert_equal 80000, developer.salary
-      assert !developer.has_attribute?(:name)
+      assert developer.has_attribute?(:id)
+      assert developer.has_attribute?(:name)
+      assert developer.has_attribute?(:salary)
     end
   end
 

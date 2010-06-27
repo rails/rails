@@ -1,8 +1,8 @@
 require 'active_record_unit'
 require 'active_record/railties/controller_runtime'
 require 'fixtures/project'
-require 'rails/log_subscriber/test_helper'
-require 'action_controller/railties/log_subscriber'
+require 'active_support/log_subscriber/test_helper'
+require 'action_controller/log_subscriber'
 
 ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
 
@@ -13,18 +13,18 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     end
   end
 
-  include Rails::LogSubscriber::TestHelper
+  include ActiveSupport::LogSubscriber::TestHelper
   tests LogSubscriberController
 
   def setup
     super
     @old_logger = ActionController::Base.logger
-    Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
+    ActionController::LogSubscriber.attach_to :action_controller
   end
 
   def teardown
     super
-    Rails::LogSubscriber.log_subscribers.clear
+    ActiveSupport::LogSubscriber.log_subscribers.clear
     ActionController::Base.logger = @old_logger
   end
 

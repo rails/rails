@@ -7,6 +7,8 @@ module ActiveModel
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
                  :odd => :odd?, :even => :even? }.freeze
 
+      RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
+
       def initialize(options)
         super(options.reverse_merge(:only_integer => false, :allow_nil => false))
       end
@@ -28,13 +30,13 @@ module ActiveModel
         return if options[:allow_nil] && raw_value.nil?
 
         unless value = parse_raw_value_as_a_number(raw_value)
-          record.errors.add(attr_name, :not_a_number, :value => raw_value, :default => options[:message])
+          record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
           return
         end
 
         if options[:only_integer]
           unless value = parse_raw_value_as_an_integer(raw_value)
-            record.errors.add(attr_name, :not_an_integer, :value => raw_value, :default => options[:message])
+            record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
             return
           end
         end
@@ -43,14 +45,14 @@ module ActiveModel
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
-              record.errors.add(attr_name, option, :value => value, :default => options[:message])
+              record.errors.add(attr_name, option, filtered_options(value))
             end
           else
             option_value = option_value.call(record) if option_value.is_a?(Proc)
             option_value = record.send(option_value) if option_value.is_a?(Symbol)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, :default => options[:message], :value => value, :count => option_value)
+              record.errors.add(attr_name, option, filtered_options(value).merge(:count => option_value))
             end
           end
         end
@@ -75,6 +77,9 @@ module ActiveModel
         raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\Z/
       end
 
+      def filtered_options(value)
+        options.except(*RESERVED_OPTIONS).merge!(:value => value)
+      end
     end
 
     module HelperMethods

@@ -6,11 +6,11 @@ module ActiveModel
       def validate_each(record, attribute, value)
         confirmed = record.send(:"#{attribute}_confirmation")
         return if confirmed.nil? || value == confirmed
-        record.errors.add(attribute, :confirmation, :default => options[:message])
+        record.errors.add(attribute, :confirmation, options)
       end
-      
+
       def setup(klass)
-        klass.send(:attr_accessor, *attributes.map { |attribute| :"#{attribute}_confirmation" })        
+        klass.send(:attr_accessor, *attributes.map { |attribute| :"#{attribute}_confirmation" })
       end
     end
 

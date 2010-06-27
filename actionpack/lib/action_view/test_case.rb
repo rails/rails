@@ -99,8 +99,13 @@ module ActionView
       end
 
       def render(options = {}, local_assigns = {}, &block)
-        @rendered << output = _view.render(options, local_assigns, &block)
+        view.assign(_assigns)
+        @rendered << output = view.render(options, local_assigns, &block)
         output
+      end
+
+      def locals
+        @locals ||= {}
       end
 
       included do
@@ -132,36 +137,51 @@ module ActionView
         end
       end
 
-      def _view
-        @_view ||= begin
-                     view = ActionView::Base.new(ActionController::Base.view_paths, _assigns, @controller)
+      module Locals
+        attr_accessor :locals
+
+        def _render_partial(options)
+          locals[options[:partial]] = options[:locals]
+          super(options)
+        end
+      end
+
+      # The instance of ActionView::Base that is used by +render+.
+      def view
+        @view ||= begin
+                     view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
                      view.singleton_class.send :include, _helpers
                      view.singleton_class.send :include, @controller._router.url_helpers
                      view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
+                     view.extend(Locals)
+                     view.locals = self.locals
                      view.output_buffer = self.output_buffer
                      view
                    end
       end
 
-      EXCLUDE_IVARS = %w{
-        @_result
-        @output_buffer
-        @rendered
-        @templates
-        @view_context_class
-        @layouts
-        @partials
-        @controller
+      alias_method :_view, :view
 
+      EXCLUDE_IVARS = %w{
+        @_assertion_wrapped
+        @_result
+        @controller
+        @layouts
+        @locals
         @method_name
-        @fixture_cache
-        @loaded_fixtures
+        @output_buffer
+        @partials
+        @rendered
+        @request
+        @routes
+        @templates
         @test_passed
+        @view
+        @view_context_class
       }
 
       def _instance_variables
         instance_variables - EXCLUDE_IVARS
-        instance_variables
       end
 
       def _assigns

@@ -3,6 +3,7 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/ordered_hash'
 
 module ActiveModel
@@ -60,6 +61,8 @@ module ActiveModel
   #   # etc..
   class Errors < ActiveSupport::OrderedHash
     include DeprecatedErrorMethods
+
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank]
 
     # Pass in the instance of the object that is using the errors object.
     # 
@@ -162,15 +165,12 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      require 'builder' unless defined? ::Builder
-      options[:root]    ||= "errors"
-      options[:indent]  ||= 2
-      options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
+      to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
+    end
 
-      options[:builder].instruct! unless options.delete(:skip_instruct)
-      options[:builder].errors do |e|
-        to_a.each { |error| e.error(error) }
-      end
+    # Returns an array as JSON representation for this object.
+    def as_json(options=nil)
+      to_a
     end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
@@ -182,25 +182,44 @@ module ActiveModel
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
       message ||= :invalid
-      message = generate_message(attribute, message, options) if message.is_a?(Symbol)
-      message = message.call if message.is_a?(Proc)
+
+      if message.is_a?(Symbol)
+        message = generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+      elsif message.is_a?(Proc)
+        message = message.call
+      end
+
       self[attribute] << message
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is empty.
-    def add_on_empty(attributes, custom_message = nil)
+    def add_on_empty(attributes, options = {})
+      if options && !options.is_a?(Hash)
+        options = { :message => options }
+        ActiveSupport::Deprecation.warn \
+          "ActiveModel::Errors#add_on_empty(attributes, custom_message) has been deprecated.\n" +
+          "Instead of passing a custom_message pass an options Hash { :message => custom_message }."
+      end
+
       [attributes].flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
-        add(attribute, :empty, :default => custom_message) unless !value.nil? && !is_empty
+        add(attribute, :empty, options) if value.nil? || is_empty
       end
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
-    def add_on_blank(attributes, custom_message = nil)
+    def add_on_blank(attributes, options = {})
+      if options && !options.is_a?(Hash)
+        options = { :message => options }
+        ActiveSupport::Deprecation.warn \
+          "ActiveModel::Errors#add_on_blank(attributes, custom_message) has been deprecated.\n" +
+          "Instead of passing a custom_message pass an options Hash { :message => custom_message }."
+      end
+
       [attributes].flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
-        add(attribute, :blank, :default => custom_message) if value.blank?
+        add(attribute, :blank, options) if value.blank?
       end
     end
 
@@ -262,24 +281,31 @@ module ActiveModel
     # <li><tt>errors.attributes.title.blank</tt></li>
     # <li><tt>errors.messages.blank</tt></li>
     # </ol>
-    def generate_message(attribute, message = :invalid, options = {})
-      message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
+    def generate_message(attribute, type = :invalid, options = {})
+      type = options.delete(:message) if options[:message].is_a?(Symbol)
 
-      defaults = @base.class.lookup_ancestors.map do |klass|
-        [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.underscore}.attributes.#{attribute}.#{message}",
-          :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.underscore}.#{message}" ]
+      if options[:default]
+        ActiveSupport::Deprecation.warn \
+          "ActiveModel::Errors#generate_message(attributes, custom_message) has been deprecated.\n" +
+          "Use ActiveModel::Errors#generate_message(attributes, :message => 'your message') instead."
+        options[:message] = options.delete(:default)
       end
 
-      defaults << options.delete(:default)
-      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{message}"
-      defaults << :"errors.attributes.#{attribute}.#{message}"
-      defaults << :"errors.messages.#{message}"
+      defaults = @base.class.lookup_ancestors.map do |klass|
+        [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.underscore}.attributes.#{attribute}.#{type}",
+          :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.underscore}.#{type}" ]
+      end
+
+      defaults << options.delete(:message)
+      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}"
+      defaults << :"errors.attributes.#{attribute}.#{type}"
+      defaults << :"errors.messages.#{type}"
 
       defaults.compact!
       defaults.flatten!
 
       key = defaults.shift
-      value = @base.send(:read_attribute_for_validation, attribute)
+      value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {
         :default => defaults,

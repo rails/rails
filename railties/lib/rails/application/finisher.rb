@@ -7,14 +7,14 @@ module Rails
         config.generators.templates.unshift(*paths.lib.templates.to_a)
       end
 
-      initializer :ensure_load_once_paths_as_subset do
-        extra = ActiveSupport::Dependencies.load_once_paths -
-                ActiveSupport::Dependencies.load_paths
+      initializer :ensure_autoload_once_paths_as_subset do
+        extra = ActiveSupport::Dependencies.autoload_once_paths -
+                ActiveSupport::Dependencies.autoload_paths
 
         unless extra.empty?
           abort <<-end_error
-            load_once_paths must be a subset of the load_paths.
-            Extra items in load_once_paths: #{extra * ','}
+            autoload_once_paths must be a subset of the autoload_paths.
+            Extra items in autoload_once_paths: #{extra * ','}
           end_error
         end
       end
@@ -32,7 +32,7 @@ module Rails
       end
 
       initializer :build_middleware_stack do
-        app
+        build_middleware_stack
       end
 
       initializer :eager_load! do

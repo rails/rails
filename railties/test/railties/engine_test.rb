@@ -41,7 +41,7 @@ module RailtiesTest
 
       boot_rails
 
-      initializers = Rails.application.initializers
+      initializers = Rails.application.initializers.tsort
       index        = initializers.index { |i| i.name == "dummy_initializer" }
       selection    = initializers[(index-3)..(index)].map(&:name).map(&:to_s)
 

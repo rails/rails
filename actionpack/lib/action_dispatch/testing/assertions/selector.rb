@@ -7,9 +7,7 @@ require 'action_controller/vendor/html-scanner'
 
 module ActionDispatch
   module Assertions
-    unless const_defined?(:NO_STRIP)
-      NO_STRIP = %w{pre script style textarea}
-    end
+    NO_STRIP = %w{pre script style textarea}
 
     # Adds the +assert_select+ method for use in Rails functional
     # test cases, which can be used to make assertions on the response HTML of a controller
@@ -581,27 +579,25 @@ module ActionDispatch
       end
 
       protected
-        unless const_defined?(:RJS_STATEMENTS)
-          RJS_PATTERN_HTML  = "\"((\\\\\"|[^\"])*)\""
-          RJS_ANY_ID        = "\"([^\"])*\""
-          RJS_STATEMENTS    = {
-            :chained_replace      => "\\$\\(#{RJS_ANY_ID}\\)\\.replace\\(#{RJS_PATTERN_HTML}\\)",
-            :chained_replace_html => "\\$\\(#{RJS_ANY_ID}\\)\\.update\\(#{RJS_PATTERN_HTML}\\)",
-            :replace_html         => "Element\\.update\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
-            :replace              => "Element\\.replace\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
-            :redirect             => "window.location.href = #{RJS_ANY_ID}"
-          }
-          [:remove, :show, :hide, :toggle].each do |action|
-            RJS_STATEMENTS[action] = "Element\\.#{action}\\(#{RJS_ANY_ID}\\)"
-          end
-          RJS_INSERTIONS = ["top", "bottom", "before", "after"]
-          RJS_INSERTIONS.each do |insertion|
-            RJS_STATEMENTS["insert_#{insertion}".to_sym] = "Element.insert\\(#{RJS_ANY_ID}, \\{ #{insertion}: #{RJS_PATTERN_HTML} \\}\\)"
-          end
-          RJS_STATEMENTS[:insert_html] = "Element.insert\\(#{RJS_ANY_ID}, \\{ (#{RJS_INSERTIONS.join('|')}): #{RJS_PATTERN_HTML} \\}\\)"
-          RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
-          RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
+        RJS_PATTERN_HTML  = "\"((\\\\\"|[^\"])*)\""
+        RJS_ANY_ID        = "\"([^\"])*\""
+        RJS_STATEMENTS    = {
+          :chained_replace      => "\\$\\(#{RJS_ANY_ID}\\)\\.replace\\(#{RJS_PATTERN_HTML}\\)",
+          :chained_replace_html => "\\$\\(#{RJS_ANY_ID}\\)\\.update\\(#{RJS_PATTERN_HTML}\\)",
+          :replace_html         => "Element\\.update\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
+          :replace              => "Element\\.replace\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
+          :redirect             => "window.location.href = #{RJS_ANY_ID}"
+        }
+        [:remove, :show, :hide, :toggle].each do |action|
+          RJS_STATEMENTS[action] = "Element\\.#{action}\\(#{RJS_ANY_ID}\\)"
         end
+        RJS_INSERTIONS = ["top", "bottom", "before", "after"]
+        RJS_INSERTIONS.each do |insertion|
+          RJS_STATEMENTS["insert_#{insertion}".to_sym] = "Element.insert\\(#{RJS_ANY_ID}, \\{ #{insertion}: #{RJS_PATTERN_HTML} \\}\\)"
+        end
+        RJS_STATEMENTS[:insert_html] = "Element.insert\\(#{RJS_ANY_ID}, \\{ (#{RJS_INSERTIONS.join('|')}): #{RJS_PATTERN_HTML} \\}\\)"
+        RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
+        RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
 
         # +assert_select+ and +css_select+ call this to obtain the content in the HTML
         # page, or from all the RJS statements, depending on the type of response.

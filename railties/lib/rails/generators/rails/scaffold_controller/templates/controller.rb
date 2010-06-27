@@ -1,53 +1,51 @@
 class <%= controller_class_name %>Controller < ApplicationController
-<% unless options[:singleton] -%>
-  # GET /<%= table_name %>
-  # GET /<%= table_name %>.xml
+  # GET <%= route_url %>
+  # GET <%= route_url %>.xml
   def index
-    @<%= table_name %> = <%= orm_class.all(class_name) %>
+    @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
 
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @<%= table_name %> }
+      format.xml  { render :xml => @<%= plural_table_name %> }
     end
   end
-<% end -%>
 
-  # GET /<%= table_name %>/1
-  # GET /<%= table_name %>/1.xml
+  # GET <%= route_url %>/1
+  # GET <%= route_url %>/1.xml
   def show
-    @<%= file_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
 
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @<%= file_name %> }
+      format.xml  { render :xml => @<%= singular_table_name %> }
     end
   end
 
-  # GET /<%= table_name %>/new
-  # GET /<%= table_name %>/new.xml
+  # GET <%= route_url %>/new
+  # GET <%= route_url %>/new.xml
   def new
-    @<%= file_name %> = <%= orm_class.build(class_name) %>
+    @<%= singular_table_name %> = <%= orm_class.build(class_name) %>
 
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @<%= file_name %> }
+      format.xml  { render :xml => @<%= singular_table_name %> }
     end
   end
 
-  # GET /<%= table_name %>/1/edit
+  # GET <%= route_url %>/1/edit
   def edit
-    @<%= file_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
   end
 
-  # POST /<%= table_name %>
-  # POST /<%= table_name %>.xml
+  # POST <%= route_url %>
+  # POST <%= route_url %>.xml
   def create
-    @<%= file_name %> = <%= orm_class.build(class_name, "params[:#{file_name}]") %>
+    @<%= singular_table_name %> = <%= orm_class.build(class_name, "params[:#{singular_table_name}]") %>
 
     respond_to do |format|
       if @<%= orm_instance.save %>
-        format.html { redirect_to(@<%= file_name %>, :notice => '<%= human_name %> was successfully created.') }
-        format.xml  { render :xml => @<%= file_name %>, :status => :created, :location => @<%= file_name %> }
+        format.html { redirect_to(@<%= singular_table_name %>, :notice => '<%= human_name %> was successfully created.') }
+        format.xml  { render :xml => @<%= singular_table_name %>, :status => :created, :location => @<%= singular_table_name %> }
       else
         format.html { render :action => "new" }
         format.xml  { render :xml => @<%= orm_instance.errors %>, :status => :unprocessable_entity }
@@ -55,14 +53,14 @@ class <%= controller_class_name %>Controller < ApplicationController
     end
   end
 
-  # PUT /<%= table_name %>/1
-  # PUT /<%= table_name %>/1.xml
+  # PUT <%= route_url %>/1
+  # PUT <%= route_url %>/1.xml
   def update
-    @<%= file_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
 
     respond_to do |format|
-      if @<%= orm_instance.update_attributes("params[:#{file_name}]") %>
-        format.html { redirect_to(@<%= file_name %>, :notice => '<%= human_name %> was successfully updated.') }
+      if @<%= orm_instance.update_attributes("params[:#{singular_table_name}]") %>
+        format.html { redirect_to(@<%= singular_table_name %>, :notice => '<%= human_name %> was successfully updated.') }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -71,10 +69,10 @@ class <%= controller_class_name %>Controller < ApplicationController
     end
   end
 
-  # DELETE /<%= table_name %>/1
-  # DELETE /<%= table_name %>/1.xml
+  # DELETE <%= route_url %>/1
+  # DELETE <%= route_url %>/1.xml
   def destroy
-    @<%= file_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
     @<%= orm_instance.destroy %>
 
     respond_to do |format|

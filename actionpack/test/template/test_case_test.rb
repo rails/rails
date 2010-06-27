@@ -37,8 +37,12 @@ module ActionView
     include SharedTests
     test_case = self
 
-    test "memoizes the _view" do
-      assert_same _view, _view
+    test "memoizes the view" do
+      assert_same view, view
+    end
+
+    test "exposes view as _view for backwards compatibility" do
+      assert_same _view, view
     end
 
     test "works without testing a helper module" do
@@ -61,13 +65,13 @@ module ActionView
     end
 
     test "delegates notice to request.flash" do
-      _view.request.flash.expects(:notice).with("this message")
-      _view.notice("this message")
+      view.request.flash.expects(:notice).with("this message")
+      view.notice("this message")
     end
 
     test "delegates alert to request.flash" do
-      _view.request.flash.expects(:alert).with("this message")
-      _view.alert("this message")
+      view.request.flash.expects(:alert).with("this message")
+      view.alert("this message")
     end
   end
 
@@ -136,7 +140,7 @@ module ActionView
     helper HelperThatInvokesProtectAgainstForgery
 
     test "protect_from_forgery? in any helpers returns false" do
-      assert !_view.help_me
+      assert !view.help_me
     end
 
   end
@@ -200,6 +204,15 @@ module ActionView
       assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
     end
 
+    test "is able to render partials from templates and also use instance variables after view has been referenced" do
+      @controller.controller_path = "test"
+
+      view
+
+      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
+    end
+
   end
 
   class AssertionsTest < ActionView::TestCase
@@ -220,10 +233,24 @@ module ActionView
   end
 
   class RenderTemplateTest < ActionView::TestCase
-    test "render template" do
+    test "supports specifying partials" do
       controller.controller_path = "test"
       render(:template => "test/calling_partial_with_layout")
-      assert_template "partial_for_use_in_layout"
+      assert_template :partial => "_partial_for_use_in_layout"
+    end
+
+    test "supports specifying locals (passing)" do
+      controller.controller_path = "test"
+      render(:template => "test/calling_partial_with_layout")
+      assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "David" }
+    end
+
+    test "supports specifying locals (failing)" do
+      controller.controller_path = "test"
+      render(:template => "test/calling_partial_with_layout")
+      assert_raise ActiveSupport::TestCase::Assertion, /Somebody else.*David/m do
+        assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
+      end
     end
   end
 end

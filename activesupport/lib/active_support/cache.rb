@@ -267,27 +267,39 @@ module ActiveSupport
       #     :bar
       #   end
       #   cache.fetch("foo")  # => "bar"
-      def fetch(name, options = nil, &block)
-        options = merged_options(options)
-        key = namespaced_key(name, options)
-        entry = instrument(:read, name, options) { read_entry(key, options) } unless options[:force]
-        if entry && entry.expired?
-          race_ttl = options[:race_condition_ttl].to_f
-          if race_ttl and Time.now.to_f - entry.expires_at <= race_ttl
-            entry.expires_at = Time.now + race_ttl
-            write_entry(key, entry, :expires_in => race_ttl * 2)
-          else
-            delete_entry(key, options)
+      def fetch(name, options = nil)
+        if block_given?
+          options = merged_options(options)
+          key = namespaced_key(name, options)
+          unless options[:force]
+            entry = instrument(:read, name, options) do |payload|
+              payload[:super_operation] = :fetch if payload
+              read_entry(key, options)
+            end
           end
-          entry = nil
-        end
+          if entry && entry.expired?
+            race_ttl = options[:race_condition_ttl].to_f
+            if race_ttl and Time.now.to_f - entry.expires_at <= race_ttl
+              entry.expires_at = Time.now + race_ttl
+              write_entry(key, entry, :expires_in => race_ttl * 2)
+            else
+              delete_entry(key, options)
+            end
+            entry = nil
+          end
 
-        if entry
-          entry.value
-        elsif block_given?
-          result = instrument(:generate, name, options, &block)
-          write(name, result, options)
-          result
+          if entry
+            instrument(:fetch_hit, name, options) { |payload| }
+            entry.value
+          else
+            result = instrument(:generate, name, options) do |payload|
+              yield
+            end
+            write(name, result, options)
+            result
+          end
+        else
+          read(name, options)
         end
       end
 
@@ -299,16 +311,19 @@ module ActiveSupport
       def read(name, options = nil)
         options = merged_options(options)
         key = namespaced_key(name, options)
-        instrument(:read, name, options) do
+        instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
           if entry
             if entry.expired?
               delete_entry(key, options)
+              payload[:hit] = false if payload
               nil
             else
+              payload[:hit] = true if payload
               entry.value
             end
           else
+            payload[:hit] = false if payload
             nil
           end
         end
@@ -345,7 +360,7 @@ module ActiveSupport
       # +options+.
       def write(name, value, options = nil)
         options = merged_options(options)
-        instrument(:write, name, options) do
+        instrument(:write, name, options) do |payload|
           entry = Entry.new(value, options)
           write_entry(namespaced_key(name, options), entry, options)
         end
@@ -356,7 +371,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
-        instrument(:delete, name) do
+        instrument(:delete, name) do |payload|
           delete_entry(namespaced_key(name, options), options)
         end
       end
@@ -366,7 +381,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
-        instrument(:exist?, name) do
+        instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
           if entry && !entry.expired?
             true
@@ -502,9 +517,9 @@ module ActiveSupport
           if self.class.instrument
             payload = { :key => key }
             payload.merge!(options) if options.is_a?(Hash)
-            ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield }
+            ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
           else
-            yield
+            yield(nil)
           end
         end
 

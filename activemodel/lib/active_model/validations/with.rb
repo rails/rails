@@ -1,6 +1,4 @@
 module ActiveModel
-
-  # == Active Model validates_with method
   module Validations
     module HelperMethods
       private
@@ -11,7 +9,6 @@ module ActiveModel
     end
 
     module ClassMethods
-
       # Passes the record off to the class or classes specified and allows them
       # to add errors based on more complex conditions.
       #

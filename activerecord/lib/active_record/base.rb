@@ -20,6 +20,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
+require 'active_record/log_subscriber'
 
 module ActiveRecord #:nodoc:
   # = Active Record 
@@ -916,8 +917,8 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.instance_variable_set(:'@attributes', record)
-          object.instance_variable_set(:'@attributes_cache', {})
+          object.instance_variable_set(:@attributes, record)
+          object.instance_variable_set(:@attributes_cache, {})
           object.instance_variable_set(:@new_record, false)
           object.instance_variable_set(:@readonly, false)
           object.instance_variable_set(:@destroyed, false)
@@ -1413,14 +1414,6 @@ module ActiveRecord #:nodoc:
       # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
       # application specific and is therefore left to the application to implement according to its need.
       def initialize_copy(other)
-        # Think the assertion which fails if the after_initialize callback goes at the end of the method is wrong. The
-        # deleted clone method called new which therefore called the after_initialize callback. It then went on to copy
-        # over the attributes. But if it's copying the attributes afterwards then it hasn't finished initializing right?
-        # For example in the test suite the topic model's after_initialize method sets the author_email_address to
-        # test@test.com. I would have thought this would mean that all cloned models would have an author email address
-        # of test@test.com. However the test_clone test method seems to test that this is not the case. As a result the
-        # after_initialize callback has to be run *before* the copying of the attributes rather than afterwards in order
-        # for all tests to pass. This makes no sense to me.
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
@@ -1433,6 +1426,7 @@ module ActiveRecord #:nodoc:
         end
 
         clear_aggregation_cache
+        clear_association_cache
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type

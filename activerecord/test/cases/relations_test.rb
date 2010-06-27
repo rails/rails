@@ -16,10 +16,32 @@ class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :taggings
 
+  def test_apply_relation_as_where_id
+    posts = Post.arel_table
+    post_authors = posts.where(posts[:author_id].eq(1)).project(posts[:id])
+    assert_equal 5, post_authors.to_a.size
+    assert_equal 5, Post.where(:id => post_authors).size
+  end
+
   def test_scoped
     topics = Topic.scoped
     assert_kind_of ActiveRecord::Relation, topics
     assert_equal 4, topics.size
+  end
+
+  def test_to_json
+    assert_nothing_raised  { Bird.scoped.to_json }
+    assert_nothing_raised  { Bird.scoped.all.to_json }
+  end
+
+  def test_to_yaml
+    assert_nothing_raised  { Bird.scoped.to_yaml }
+    assert_nothing_raised  { Bird.scoped.all.to_yaml }
+  end
+
+  def test_to_xml
+    assert_nothing_raised  { Bird.scoped.to_xml }
+    assert_nothing_raised  { Bird.scoped.all.to_xml }
   end
 
   def test_scoped_all
@@ -84,6 +106,18 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_order
     topics = Topic.order('id')
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:first).title, topics.first.title
+  end
+
+  def test_finding_with_order_concatenated
+    topics = Topic.order('author_name').order('title')
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+  end
+
+  def test_finding_with_reorder
+    topics = Topic.order('author_name').order('title').reorder('id')
     assert_equal 4, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
   end
@@ -461,12 +495,18 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.scoped
 
     assert_equal [0], posts.select('comments_count').where('id is not null').group('id').order('id').count.values.uniq
-    assert_equal 0, posts.where('id is not null').select('comments_count').count
+    assert_equal 7, posts.where('id is not null').select('comments_count').count
 
     assert_equal 7, posts.select('comments_count').count('id')
     assert_equal 0, posts.select('comments_count').count
     assert_equal 0, posts.count(:comments_count)
     assert_equal 0, posts.count('comments_count')
+  end
+
+  def test_multiple_selects
+    post = Post.scoped.select('comments_count').select('title').order("id ASC").first
+    assert_equal "Welcome to the weblog", post.title
+    assert_equal 2, post.comments_count
   end
 
   def test_size
@@ -503,13 +543,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_many
     posts = Post.scoped
-  
+
     assert_queries(2) do
       assert posts.many? # Uses COUNT()
       assert posts.many? {|p| p.id > 0 }
       assert ! posts.many? {|p| p.id < 2 }
     end
-  
+
     assert posts.loaded?
   end
 
@@ -578,7 +618,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_anonymous_extension
-    relation = Post.where(:author_id => 1).order('id ASC') do
+    relation = Post.where(:author_id => 1).order('id ASC').extend do
       def author
         'lifo'
       end
@@ -592,5 +632,13 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.where(:author_id => 1).order('id ASC').extending(Post::NamedExtension)
     assert_equal "lifo", relation.author
     assert_equal "lifo", relation.limit(1).author
+  end
+
+  def test_order_by_relation_attribute
+    assert_equal Post.order(Post.arel_table[:title]).all, Post.order("title").all
+  end
+
+  def test_relations_limit_with_conditions_or_limit
+    assert_equal Post.limit(2).size, Post.limit(2).all.size
   end
 end

@@ -107,7 +107,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       # Override to turn off referential integrity while executing <tt>&block</tt>.
-      def disable_referential_integrity(&block)
+      def disable_referential_integrity
         yield
       end
 
@@ -142,9 +142,10 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
-      # Returns true if its safe to reload the connection between requests for development mode.
+      # Returns true if its required to reload the connection between requests for development mode.
+      # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
-        true
+        false
       end
 
       # Checks whether the connection to the database is still active (i.e. not stale).

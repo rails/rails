@@ -78,20 +78,6 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generates_singleton_controller
-    run_generator ["User", "name:string", "age:integer", "--singleton"]
-
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_no_match /def index/, content
-    end
-
-    assert_file "test/functional/users_controller_test.rb" do |content|
-      assert_no_match /test "should get index"/, content
-    end
-
-    assert_no_file "app/views/users/index.html.erb"
-  end
-
   def test_skip_helper_if_required
     run_generator ["User", "name:string", "age:integer", "--no-helper"]
     assert_no_file "app/helpers/users_helper.rb"

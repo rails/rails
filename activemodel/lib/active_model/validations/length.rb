@@ -7,6 +7,7 @@ module ActiveModel
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
       DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
+      RESERVED_OPTIONS  = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
@@ -39,7 +40,8 @@ module ActiveModel
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
-          custom_message = options[:message] || options[MESSAGES[key]]
+          default_message = options[MESSAGES[key]]
+          options[:message] ||= default_message if default_message
 
           valid_value = if key == :maximum
             value.nil? || value.size.send(validity_check, check_value)
@@ -48,7 +50,9 @@ module ActiveModel
           end
 
           next if valid_value
-          record.errors.add(attribute, MESSAGES[key], :default => custom_message, :count => check_value)
+
+          record.errors.add(attribute, MESSAGES[key],
+                            options.except(*RESERVED_OPTIONS).merge!(:count => check_value))
         end
       end
     end

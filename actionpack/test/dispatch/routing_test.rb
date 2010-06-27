@@ -16,6 +16,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes = routes
     Routes.draw do
       default_url_options :host => "rubyonrails.org"
+      resources_path_names :correlation_indexes => "info_about_correlation_indexes"
 
       controller :sessions do
         get  'login' => :new
@@ -70,12 +71,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
 
-      scope 'pt', :name_prefix => 'pt' do
+      scope 'pt', :as => 'pt' do
         resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
           post :preview, :on => :new
+          put :close, :on => :member, :path => 'fechar'
+          get :open, :on => :new, :path => 'abrir'
         end
-        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador' do
+        resource  :admin, :path_names => { :new => 'novo', :activate => 'ativar' }, :path => 'administrador' do
           post :preview, :on => :new
+          put :activate, :on => :member
         end
         resources :products, :path_names => { :new => 'novo' } do
           new do
@@ -86,6 +90,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :projects, :controller => :project do
         resources :involvements, :attachments
+        get :correlation_indexes, :on => :collection
 
         resources :participants do
           put :update_all, :on => :collection
@@ -112,6 +117,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
 
           member do
+            get  :some_path_with_name
             put  :accessible_projects
             post :resend, :generate_new_password
           end
@@ -207,6 +213,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           get "profile" => "customers#profile", :as => :profile, :on => :member
           post "preview" => "customers#preview", :as => :preview, :on => :new
         end
+        scope(':version', :version => /.+/) do
+          resources :users, :id => /.+?/, :format => /json|xml/
+        end
       end
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
@@ -242,10 +251,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :users, :path => 'usuarios' do
+        root :to => 'home#index'
+      end
+
       controller :articles do
-        scope '/articles', :name_prefix => 'article' do
+        scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            match '/:id', :to => :with_id
+            match '/:id', :to => :with_id, :as => ""
           end
         end
       end
@@ -290,6 +303,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match '/' => 'mes#index'
       end
 
+      namespace :private do
+        root :to => redirect('/private/index')
+        match "index", :to => 'private#index'
+      end
+
+      get "(/:username)/followers" => "followers#index"
+      get "/groups(/user/:username)" => "groups#index"
+      get "(/user/:username)/photos" => "photos#index"
+
+      scope '(groups)' do
+        scope '(discussions)' do
+          resources :messages
+        end
+      end
+
       match "whatever/:controller(/:action(/:id))"
 
       resource :profile do
@@ -299,6 +327,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           post :preview
         end
       end
+
+      resources :content
+
+      match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
 
@@ -407,6 +439,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/logout'
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/logout', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_namespace_redirect
+    with_test_routes do
+      get '/private'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/private/index', @response.headers['Location']
       assert_equal 'Moved Permanently', @response.body
     end
   end
@@ -706,6 +747,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_projects_with_resources_path_names
+    with_test_routes do
+      get '/projects/info_about_correlation_indexes'
+      assert_equal 'project#correlation_indexes', @response.body
+      assert_equal '/projects/info_about_correlation_indexes', correlation_indexes_projects_path
+    end
+  end
+
   def test_projects_posts
     with_test_routes do
       get '/projects/1/posts'
@@ -839,6 +888,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/pt/administrador/novo'
       assert_equal 'admins#new', @response.body
       assert_equal '/pt/administrador/novo', new_pt_admin_path
+
+      put '/pt/administrador/ativar'
+      assert_equal 'admins#activate', @response.body
+      assert_equal '/pt/administrador/ativar', activate_pt_admin_path
+    end
+  end
+
+  def test_path_option_override
+    with_test_routes do
+      get '/pt/projetos/novo/abrir'
+      assert_equal 'projects#open', @response.body
+      assert_equal '/pt/projetos/novo/abrir', open_new_pt_project_path
+
+      put '/pt/projetos/1/fechar'
+      assert_equal 'projects#close', @response.body
+      assert_equal '/pt/projetos/1/fechar', close_pt_project_path(1)
     end
   end
 
@@ -929,6 +994,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/clients/1/google/account/secret/info'
       assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
       assert_equal 'google/secret/infos#show', @response.body
+    end
+  end
+
+  def test_namespace_with_options
+    with_test_routes do
+      get '/usuarios'
+      assert_equal '/usuarios', users_root_path
+      assert_equal 'users/home#index', @response.body
     end
   end
 
@@ -1362,6 +1435,114 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/notices/1'
       assert_equal 'api/notices#show', @response.body
       assert_equal '/notices/1', notice_path(:id => '1')
+    end
+  end
+
+  def test_non_greedy_regexp
+    with_test_routes do
+      get '/api/1.0/users'
+      assert_equal 'api/users#index', @response.body
+      assert_equal '/api/1.0/users', api_users_path(:version => '1.0')
+
+      get '/api/1.0/users.json'
+      assert_equal 'api/users#index', @response.body
+      assert_equal true, @request.format.json?
+      assert_equal '/api/1.0/users.json', api_users_path(:version => '1.0', :format => :json)
+
+      get '/api/1.0/users/first.last'
+      assert_equal 'api/users#show', @response.body
+      assert_equal 'first.last', @request.params[:id]
+      assert_equal '/api/1.0/users/first.last', api_user_path(:version => '1.0', :id => 'first.last')
+
+      get '/api/1.0/users/first.last.xml'
+      assert_equal 'api/users#show', @response.body
+      assert_equal 'first.last', @request.params[:id]
+      assert_equal true, @request.format.xml?
+      assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
+    end
+  end
+
+  def test_glob_parameter_accepts_regexp
+    with_test_routes do
+      get '/en/path/to/existing/file.html'
+      assert_equal 200, @response.status
+    end
+  end
+
+  def test_resources_controller_name_is_not_pluralized
+    with_test_routes do
+      get '/content'
+      assert_equal 'content#index', @response.body
+    end
+  end
+
+  def test_url_generator_for_optional_prefix_dynamic_segment
+    with_test_routes do
+      get '/bob/followers'
+      assert_equal 'followers#index', @response.body
+      assert_equal 'http://www.example.com/bob/followers',
+        url_for(:controller => "followers", :action => "index", :username => "bob")
+
+      get '/followers'
+      assert_equal 'followers#index', @response.body
+      assert_equal 'http://www.example.com/followers',
+        url_for(:controller => "followers", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_generator_for_optional_suffix_static_and_dynamic_segment
+    with_test_routes do
+      get '/groups/user/bob'
+      assert_equal 'groups#index', @response.body
+      assert_equal 'http://www.example.com/groups/user/bob',
+        url_for(:controller => "groups", :action => "index", :username => "bob")
+
+      get '/groups'
+      assert_equal 'groups#index', @response.body
+      assert_equal 'http://www.example.com/groups',
+        url_for(:controller => "groups", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_generator_for_optional_prefix_static_and_dynamic_segment
+    with_test_routes do
+      get 'user/bob/photos'
+      assert_equal 'photos#index', @response.body
+      assert_equal 'http://www.example.com/user/bob/photos',
+        url_for(:controller => "photos", :action => "index", :username => "bob")
+
+      get 'photos'
+      assert_equal 'photos#index', @response.body
+      assert_equal 'http://www.example.com/photos',
+        url_for(:controller => "photos", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_recognition_for_optional_static_segments
+    with_test_routes do
+      get '/groups/discussions/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/groups/discussions/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/groups/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/groups/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/discussions/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/discussions/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/messages/1'
+      assert_equal 'messages#show', @response.body
     end
   end
 

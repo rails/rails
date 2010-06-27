@@ -216,7 +216,10 @@ module ActiveRecord
         super(connection, logger)
         @connection_parameters, @config = connection_parameters, config
 
+        # @local_tz is initialized as nil to avoid warnings when connect tries to use it
+        @local_tz = nil
         connect
+        @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
       end
 
       # Is this connection alive and ready for queries?
@@ -372,7 +375,7 @@ module ActiveRecord
         return false
       end
 
-      def disable_referential_integrity(&block) #:nodoc:
+      def disable_referential_integrity #:nodoc:
         if supports_disable_referential_integrity?() then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
         end
@@ -606,27 +609,22 @@ module ActiveRecord
         SQL
 
 
-        indexes = []
-
-        indexes = result.map do |row|
+        result.map do |row|
           index_name = row[0]
           unique = row[1] == 't'
           indkey = row[2].split(" ")
           oid = row[3]
 
-          columns = query(<<-SQL, "Columns for index #{row[0]} on #{table_name}").inject({}) {|attlist, r| attlist[r[1]] = r[0]; attlist}
-          SELECT a.attname, a.attnum
+          columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
+          SELECT a.attnum, a.attname
           FROM pg_attribute a
           WHERE a.attrelid = #{oid}
           AND a.attnum IN (#{indkey.join(",")})
           SQL
 
-          column_names = indkey.map {|attnum| columns[attnum] }
-          IndexDefinition.new(table_name, index_name, unique, column_names)
-
-        end
-
-        indexes
+          column_names = columns.values_at(*indkey).compact
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names)
+        end.compact
       end
 
       # Returns the list of all column definitions for a table.
@@ -929,9 +927,8 @@ module ActiveRecord
           # TIMESTAMP WITH ZONE types in UTC.
           if ActiveRecord::Base.default_timezone == :utc
             execute("SET time zone 'UTC'")
-          else
-            offset = Time.local(2000).utc_offset / 3600
-            execute("SET time zone '#{offset}'")
+          elsif @local_tz
+            execute("SET time zone '#{@local_tz}'")
           end
         end
 

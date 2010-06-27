@@ -67,7 +67,7 @@ module Rails
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
-        Rails.application.add_lib_to_load_paths!
+        Rails.application.add_lib_to_load_path!
         ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
 
@@ -97,7 +97,7 @@ module Rails
     # are changing config.root inside your application definition or having a custom
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
-    def add_lib_to_load_paths! #:nodoc:
+    def add_lib_to_load_path! #:nodoc:
       path = config.root.join('lib').to_s
       $LOAD_PATH.unshift(path) if File.exists?(path)
     end
@@ -160,6 +160,7 @@ module Rails
         config.middleware.build(routes)
       end
     end
+    alias :build_middleware_stack :app
 
     def call(env)
       app.call(env.reverse_merge!(env_defaults))

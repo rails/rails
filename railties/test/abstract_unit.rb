@@ -1,5 +1,3 @@
-ORIG_ARGV = ARGV.dup
-
 require File.expand_path("../../../load_paths", __FILE__)
 
 require 'stringio'

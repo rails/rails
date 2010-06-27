@@ -5,77 +5,96 @@ module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
 
-    included do
-      (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).each do |query_method|
-        attr_accessor :"#{query_method}_values"
+    attr_accessor :includes_values, :eager_load_values, :preload_values,
+                  :select_values, :group_values, :order_values, :joins_values, :where_values, :having_values,
+                  :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value, :from_value
 
-        next if [:where, :having, :select].include?(query_method)
-        class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-          def #{query_method}(*args, &block)
-            new_relation = clone
-            new_relation.send(:apply_modules, Module.new(&block)) if block_given?
-            value = Array.wrap(args.flatten).reject {|x| x.blank? }
-            new_relation.#{query_method}_values += value if value.present?
-            new_relation
-          end
-        CEVAL
+    def includes(*args)
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.includes_values += args if args.present? }
+    end
+
+    def eager_load(*args)
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.eager_load_values += args if args.present? }
+    end
+
+    def preload(*args)
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.preload_values += args if args.present? }
+    end
+
+    def select(*args)
+      if block_given?
+        to_a.select { |*block_args| yield(*block_args) }
+      else
+        args.reject! { |a| a.blank? }
+        clone.tap { |r| r.select_values += args if args.present? }
       end
+    end
 
-      class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-        def select(*args, &block)
-          if block_given?
-            to_a.select(&block)
-          else
-            new_relation = clone
-            value = Array.wrap(args.flatten).reject {|x| x.blank? }
-            new_relation.select_values += value if value.present?
-            new_relation
-          end
-        end
-      CEVAL
+    def group(*args)
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.group_values += args if args.present? }
+    end
 
-      [:where, :having].each do |query_method|
-        class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-          def #{query_method}(*args, &block)
-            new_relation = clone
-            new_relation.send(:apply_modules, Module.new(&block)) if block_given?
-            value = build_where(*args)
-            new_relation.#{query_method}_values += Array.wrap(value) if value.present?
-            new_relation
-          end
-        CEVAL
+    def order(*args)
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.order_values += args if args.present? }
+    end
+
+    def reorder(*args)
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.order_values = args if args.present? }
+    end
+
+    def joins(*args)
+      args.flatten!
+      args.reject! { |a| a.blank? }
+      clone.tap { |r| r.joins_values += args if args.present? }
+    end
+
+    def where(*args)
+      value = build_where(*args)
+      clone.tap { |r| r.where_values += Array.wrap(value) if value.present? }
+    end
+
+    def having(*args)
+      value = build_where(*args)
+      clone.tap { |r| r.having_values += Array.wrap(value) if value.present? }
+    end
+
+    def limit(value = true)
+      clone.tap { |r| r.limit_value = value }
+    end
+
+    def offset(value = true)
+      clone.tap { |r| r.offset_value = value }
+    end
+
+    def lock(locks = true)
+      case locks
+      when String, TrueClass, NilClass
+        clone.tap { |r| r.lock_value = locks || true }
+      else
+        clone.tap { |r| r.lock_value = false }
       end
+    end
 
-      ActiveRecord::Relation::SINGLE_VALUE_METHODS.each do |query_method|
-        attr_accessor :"#{query_method}_value"
+    def readonly(value = true)
+      clone.tap { |r| r.readonly_value = value }
+    end
 
-        class_eval <<-CEVAL, __FILE__, __LINE__ + 1
-          def #{query_method}(value = true, &block)
-            new_relation = clone
-            new_relation.send(:apply_modules, Module.new(&block)) if block_given?
-            new_relation.#{query_method}_value = value
-            new_relation
-          end
-        CEVAL
-      end
+    def create_with(value = true)
+      clone.tap { |r| r.create_with_value = value }
+    end
+
+    def from(value = true)
+      clone.tap { |r| r.from_value = value }
     end
 
     def extending(*modules)
-      new_relation = clone
-      new_relation.send :apply_modules, *modules
-      new_relation
-    end
-
-    def lock(locks = true, &block)
-      relation = clone
-      relation.send(:apply_modules, Module.new(&block)) if block_given?
-
-      case locks
-      when String, TrueClass, NilClass
-        clone.tap {|new_relation| new_relation.lock_value = locks || true }
-      else
-        clone.tap {|new_relation| new_relation.lock_value = false }
-      end
+      clone.tap { |r| r.send :apply_modules, *modules }
     end
 
     def reverse_order
@@ -130,27 +149,18 @@ module ActiveRecord
         end
       end
 
-      arel = arel.having(*@having_values.uniq.select{|h| h.present?})
+      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) if @having_values.present?
 
       arel = arel.take(@limit_value) if @limit_value.present?
       arel = arel.skip(@offset_value) if @offset_value.present?
 
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?})
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
 
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}.map(&:to_s))
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?}) if @order_values.present?
 
-      selects = @select_values.uniq
+      arel = build_select(arel, @select_values.uniq)
 
-      if selects.present?
-        selects.each do |s|
-          @implicit_readonly = false
-          arel = arel.project(s) if s.present?
-        end
-      else
-        arel = arel.project(@klass.quoted_table_name + '.*')
-      end
-
-      arel = @from_value.present? ? arel.from(@from_value) : arel.from(@klass.quoted_table_name)
+      arel = arel.from(@from_value) if @from_value.present?
 
       case @lock_value
       when TrueClass
@@ -219,6 +229,21 @@ module ActiveRecord
       end
 
       relation.join(custom_joins)
+    end
+
+    def build_select(arel, selects)
+      if selects.present?
+        @implicit_readonly = false
+        # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
+        # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
+        if selects.all? { |s| s.is_a?(String) || !s.is_a?(Arel::Expression) } && !(selects.last =~ /^COUNT\(/)
+          arel.project(*selects)
+        else
+          arel.project(selects.last)
+        end
+      else
+        arel.project(@klass.quoted_table_name + '.*')
+      end
     end
 
     def apply_modules(modules)

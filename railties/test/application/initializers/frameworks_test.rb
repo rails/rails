@@ -28,8 +28,10 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      ActionController::Base.view_paths.include?(File.expand_path("app/views", app_path))
-      ActionMailer::Base.view_paths.include?(File.expand_path("app/views", app_path))
+
+      expanded_path = File.expand_path("app/views", app_path)
+      assert_equal ActionController::Base.view_paths[0].to_s, expanded_path
+      assert_equal ActionMailer::Base.view_paths[0].to_s, expanded_path
     end
 
     test "allows me to configure default url options for ActionMailer" do
@@ -40,7 +42,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert "test.rails", ActionMailer::Base.default_url_options[:host]
+      assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
     # AS
@@ -57,7 +59,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].sample }
+        assert_raises(NoMethodError) { [1,2,3].forty_two }
       end
     end
 

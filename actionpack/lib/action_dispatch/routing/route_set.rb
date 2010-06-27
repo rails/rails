@@ -185,7 +185,7 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes
+      attr_accessor :set, :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class
 
@@ -296,6 +296,7 @@ module ActionDispatch
           @extras      = extras
 
           normalize_options!
+          normalize_recall!
           normalize_controller_action_id!
           use_relative_controller!
           controller.sub!(%r{^/}, '') if controller
@@ -336,6 +337,15 @@ module ActionDispatch
           end
         end
 
+        def normalize_recall!
+          # If the target route is not a standard route then remove controller and action
+          # from the options otherwise they will appear in the url parameters
+          if block_or_proc_route_target?
+            recall.delete(:controller) unless segment_keys.include?(:controller)
+            recall.delete(:action) unless segment_keys.include?(:action)
+          end
+        end
+
         # This pulls :controller, :action, and :id out of the recall.
         # The recall key is only used if there is no key in the options
         # or if the key in the options is identical. If any of
@@ -371,7 +381,7 @@ module ActionDispatch
 
         def generate
           error = ActionController::RoutingError.new("No route matches #{options.inspect}")
-          path, params = @set.generate(:path_info, named_route, options, recall, opts)
+          path, params = @set.set.generate(:path_info, named_route, options, recall, opts)
 
           raise error unless path
 
@@ -402,6 +412,19 @@ module ActionDispatch
           return false unless current_controller
           controller.to_param != current_controller.to_param
         end
+
+        private
+          def named_route_exists?
+            named_route && set.named_routes[named_route]
+          end
+
+          def block_or_proc_route_target?
+            named_route_exists? && !set.named_routes[named_route].app.is_a?(Dispatcher)
+          end
+
+          def segment_keys
+            named_route_exists? ? set.named_routes[named_route].segment_keys : []
+          end
       end
 
       # Generate the path indicated by the arguments, and return an array of
@@ -415,7 +438,7 @@ module ActionDispatch
       end
 
       def generate(options, recall = {}, extras = false)
-        Generator.new(options, recall, @set, extras).generate
+        Generator.new(options, recall, self, extras).generate
       end
 
       RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
@@ -447,7 +470,7 @@ module ActionDispatch
 
         # ROUTES TODO: This can be called directly, so script_name should probably be set in the router
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-        rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
+        rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
 
         rewritten_url
       end

@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'rails/log_subscriber/test_helper'
+require 'active_support/log_subscriber/test_helper'
 
-class MyLogSubscriber < Rails::LogSubscriber
+class MyLogSubscriber < ActiveSupport::LogSubscriber
   attr_reader :event
 
   def some_event(event)
@@ -25,7 +25,7 @@ class MyLogSubscriber < Rails::LogSubscriber
 end
 
 class SyncLogSubscriberTest < ActiveSupport::TestCase
-  include Rails::LogSubscriber::TestHelper
+  include ActiveSupport::LogSubscriber::TestHelper
 
   def setup
     super
@@ -34,7 +34,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def teardown
     super
-    Rails::LogSubscriber.log_subscribers.clear
+    ActiveSupport::LogSubscriber.log_subscribers.clear
   end
 
   def instrument(*args, &block)
@@ -49,7 +49,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_set_color_for_messages
-    Rails::LogSubscriber.colorize_logging = true
+    ActiveSupport::LogSubscriber.colorize_logging = true
     @log_subscriber.bar(nil)
     assert_equal "\e[31mcool\e[0m, \e[1m\e[34misn't it?\e[0m", @logger.logged(:info).last
   end
@@ -60,56 +60,56 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_event_is_sent_to_the_registered_class
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "some_event.my_log_subscriber"
     wait
     assert_equal %w(some_event.my_log_subscriber), @logger.logged(:info)
   end
 
   def test_event_is_an_active_support_notifications_event
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "some_event.my_log_subscriber"
     wait
     assert_kind_of ActiveSupport::Notifications::Event, @log_subscriber.event
   end
 
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "unknown_event.my_log_subscriber"
     wait
     # If we get here, it means that NoMethodError was not raised.
   end
 
   def test_does_not_send_the_event_if_logger_is_nil
-    Rails.logger = nil
+    ActiveSupport::LogSubscriber.logger = nil
     @log_subscriber.expects(:some_event).never
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "some_event.my_log_subscriber"
     wait
   end
 
   def test_does_not_fail_with_non_namespaced_events
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "whatever"
     wait
   end
 
   def test_flushes_loggers
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    Rails::LogSubscriber.flush_all!
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.flush_all!
     assert_equal 1, @logger.flush_count
   end
 
   def test_flushes_the_same_logger_just_once
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
-    Rails::LogSubscriber.add :another, @log_subscriber
-    Rails::LogSubscriber.flush_all!
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :another, @log_subscriber
+    ActiveSupport::LogSubscriber.flush_all!
     wait
     assert_equal 1, @logger.flush_count
   end
 
   def test_logging_does_not_die_on_failures
-    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "puke.my_log_subscriber"
     instrument "some_event.my_log_subscriber"
     wait

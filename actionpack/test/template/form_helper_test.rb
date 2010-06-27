@@ -188,6 +188,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field("post", "title", :maxlength => 35, :size => nil)
   end
 
+  def test_text_field_with_nil_value
+    expected = '<input id="post_title" name="post[title]" size="30" type="text" />'
+    assert_dom_equal expected, text_field("post", "title", :value => nil)
+  end
+
   def test_text_field_doesnt_change_param_values
     object_name = 'post[]'
     expected = '<input id="post_123_title" name="post[123][title]" size="30" type="text" value="Hello World" />'
@@ -206,6 +211,11 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "<b>Hello World</b>"
     assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;" />',
       hidden_field("post", "title")
+  end
+
+  def test_hidden_field_with_nil_value
+    expected = '<input id="post_title" name="post[title]" type="hidden" />'
+    assert_dom_equal expected, hidden_field("post", "title", :value => nil)
   end
 
   def test_text_field_with_options
@@ -298,6 +308,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<input checked="checked" id="post_secret_1" name="post[secret]" type="radio" value="1" />',
       radio_button("post", "secret", "1")
    )
+  end
+
+  def test_radio_button_with_negative_integer_value
+    assert_dom_equal('<input id="post_secret_-1" name="post[secret]" type="radio" value="-1" />',
+      radio_button("post", "secret", "-1"))
   end
 
   def test_radio_button_respects_passed_in_id

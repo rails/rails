@@ -10,8 +10,6 @@ module Rails
       class_option :orm, :banner => "NAME", :type => :string, :required => true,
                          :desc => "ORM to generate the controller for"
 
-      class_option :singleton, :type => :boolean, :desc => "Supply to create a singleton controller"
-
       def create_controller_files
         template 'controller.rb', File.join('app/controllers', class_path, "#{controller_file_name}_controller.rb")
       end

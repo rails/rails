@@ -31,34 +31,40 @@ class I18nValidationTest < ActiveRecord::TestCase
     end
   end
 
+  # A set of common cases for ActiveModel::Validations message generation that
+  # are used to generate tests to keep things DRY
+  #
+  COMMON_CASES = [
+  # [ case,                                validation_options,            generate_message_options]
+    [ "given no options",                  {},                            {}],
+    [ "given custom message",              {:message => "custom"},        {:message => "custom"}],
+    [ "given if condition",                {:if     => lambda { true }},  {}],
+    [ "given unless condition",            {:unless => lambda { false }}, {}],
+    [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
+    # TODO Add :on case, but below doesn't work, because then the validation isn't run for some reason
+    #      even when using .save instead .valid?
+    # [ "given on condition",     {:on => :save},                {}]
+  ]
+
   # validates_uniqueness_of w/ mocha
 
-  def test_validates_uniqueness_of_generates_message
-    Topic.validates_uniqueness_of :title
-    @topic.title = unique_topic.title
-    @topic.errors.expects(:generate_message).with(:title, :taken, {:default => nil, :value => 'unique!'})
-    @topic.valid?
-  end
-
-  def test_validates_uniqueness_of_generates_message_with_custom_default_message
-    Topic.validates_uniqueness_of :title, :message => 'custom'
-    @topic.title = unique_topic.title
-    @topic.errors.expects(:generate_message).with(:title, :taken, {:default => 'custom', :value => 'unique!'})
-    @topic.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_uniqueness_of on generated message #{name}" do
+      Topic.validates_uniqueness_of :title, validation_options
+      @topic.title = unique_topic.title
+      @topic.errors.expects(:generate_message).with(:title, :taken, generate_message_options.merge(:value => 'unique!'))
+      @topic.valid?
+    end
   end
 
   # validates_associated w/ mocha
 
-  def test_validates_associated_generates_message
-    Topic.validates_associated :replies
-    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies, :default => nil})
-    replied_topic.valid?
-  end
-
-  def test_validates_associated_generates_message_with_custom_default_message
-    Topic.validates_associated :replies
-    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies, :default => nil})
-    replied_topic.valid?
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_associated on generated message #{name}" do
+      Topic.validates_associated :replies, validation_options
+      replied_topic.errors.expects(:generate_message).with(:replies, :invalid, generate_message_options.merge(:value => replied_topic.replies))
+      replied_topic.save
+    end
   end
 
   # validates_associated w/o mocha

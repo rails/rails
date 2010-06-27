@@ -17,6 +17,7 @@ require 'active_resource/exceptions'
 require 'active_resource/connection'
 require 'active_resource/formats'
 require 'active_resource/schema'
+require 'active_resource/log_subscriber'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.

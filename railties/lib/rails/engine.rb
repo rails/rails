@@ -32,14 +32,14 @@ module Rails
   # == Configuration
   #
   # Besides the Railtie configuration which is shared across the application, in a
-  # Rails::Engine you can access load_paths, eager_load_paths and load_once_paths,
+  # Rails::Engine you can access autoload_paths, eager_load_paths and autoload_once_paths,
   # which differently from a Railtie, are scoped to the current Engine.
   #
   # Example:
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
-  #     config.load_paths << File.expand_path("../lib/some/path", __FILE__)
+  #     config.autoload_paths << File.expand_path("../lib/some/path", __FILE__)
   #
   #     initializer "my_engine.add_middleware" do |app|
   #       app.middleware.use MyEngine::Middleware
@@ -142,7 +142,7 @@ module Rails
 
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
-      config.load_paths.reverse_each do |path|
+      config.autoload_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
       $LOAD_PATH.uniq!
@@ -154,17 +154,17 @@ module Rails
     # This needs to be an initializer, since it needs to run once
     # per engine and get the engine as a block parameter
     initializer :set_autoload_paths, :before => :bootstrap_hook do |app|
-      ActiveSupport::Dependencies.load_paths.unshift(*config.load_paths)
+      ActiveSupport::Dependencies.autoload_paths.unshift(*config.autoload_paths)
 
       if reloadable?(app)
-        ActiveSupport::Dependencies.load_once_paths.unshift(*config.load_once_paths)
+        ActiveSupport::Dependencies.autoload_once_paths.unshift(*config.autoload_once_paths)
       else
-        ActiveSupport::Dependencies.load_once_paths.unshift(*config.load_paths)
+        ActiveSupport::Dependencies.autoload_once_paths.unshift(*config.autoload_paths)
       end
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
-      config.load_paths.freeze
-      config.load_once_paths.freeze
+      config.autoload_paths.freeze
+      config.autoload_once_paths.freeze
     end
 
     initializer :add_routing_paths do |app|

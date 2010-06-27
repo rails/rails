@@ -26,9 +26,6 @@ module ActiveRecord
       load "active_record/railties/databases.rake"
     end
 
-    require "active_record/railties/log_subscriber"
-    log_subscriber :active_record, ActiveRecord::Railties::LogSubscriber.new
-
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true

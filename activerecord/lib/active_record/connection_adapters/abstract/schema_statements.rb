@@ -24,9 +24,52 @@ module ActiveRecord
       # Returns an array of indexes for the given table.
       # def indexes(table_name, name = nil) end
 
+      # Checks to see if an index exists on a table for a given index definition
+      #
+      # === Examples
+      #  # Check an index exists
+      #  index_exists?(:suppliers, :company_id)
+      #
+      #  # Check an index on multiple columns exists
+      #  index_exists?(:suppliers, [:company_id, :company_type])
+      #
+      #  # Check a unique index exists
+      #  index_exists?(:suppliers, :company_id, :unique => true)
+      #
+      #  # Check an index with a custom name exists
+      #  index_exists?(:suppliers, :company_id, :name => "idx_company_id"
+      def index_exists?(table_name, column_name, options = {})
+        column_names = Array.wrap(column_name)
+        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, :column => column_names)
+        if options[:unique]
+          indexes(table_name).any?{ |i| i.unique && i.name == index_name }
+        else
+          indexes(table_name).any?{ |i| i.name == index_name }
+        end
+      end
+
       # Returns an array of Column objects for the table specified by +table_name+.
       # See the concrete implementation for details on the expected parameter values.
       def columns(table_name, name = nil) end
+
+      # Checks to see if a column exists in a given table.
+      #
+      # === Examples
+      #  # Check a column exists
+      #  column_exists?(:suppliers, :name)
+      #
+      #  # Check a column exists of a particular type
+      #  column_exists?(:suppliers, :name, :string)
+      #
+      #  # Check a column exists with a specific definition
+      #  column_exists?(:suppliers, :name, :string, :limit => 100)
+      def column_exists?(table_name, column_name, type = nil, options = {})
+        columns(table_name).any?{ |c| c.name == column_name.to_s &&
+                                      (!type                 || c.type == type) &&
+                                      (!options[:limit]      || c.limit == options[:limit]) &&
+                                      (!options[:precision]  || c.precision == options[:precision]) &&
+                                      (!options[:scale]      || c.scale == options[:scale]) }
+      end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
       # be a String or a Symbol.
@@ -205,6 +248,7 @@ module ActiveRecord
       #  remove_column(:suppliers, :qualification)
       #  remove_columns(:suppliers, :qualification, :experience)
       def remove_column(table_name, *column_names)
+        raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
         column_names.flatten.each do |column_name|
           execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
         end
@@ -292,7 +336,7 @@ module ActiveRecord
           @logger.warn("Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters. Skipping.")
           return
         end
-        if index_exists?(table_name, index_name, false)
+        if index_name_exists?(table_name, index_name, false)
           @logger.warn("Index name '#{index_name}' on table '#{table_name}' already exists. Skipping.")
           return
         end
@@ -313,7 +357,7 @@ module ActiveRecord
       #   remove_index :accounts, :name => :by_branch_party
       def remove_index(table_name, options = {})
         index_name = index_name(table_name, options)
-        unless index_exists?(table_name, index_name, true)
+        unless index_name_exists?(table_name, index_name, true)
           @logger.warn("Index name '#{index_name}' on table '#{table_name}' does not exist. Skipping.")
           return
         end
@@ -350,11 +394,11 @@ module ActiveRecord
         end
       end
 
-      # Verify the existence of an index.
+      # Verify the existence of an index with a given name.
       #
       # The default argument is returned if the underlying implementation does not define the indexes method,
       # as there's no way to determine the correct answer in that case.
-      def index_exists?(table_name, index_name, default)
+      def index_name_exists?(table_name, index_name, default)
         return default unless respond_to?(:indexes)
         indexes(table_name).detect { |i| i.name == index_name }
       end

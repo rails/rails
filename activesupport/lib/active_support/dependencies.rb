@@ -33,14 +33,14 @@ module ActiveSupport #:nodoc:
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
-    # unless the directory also appears in load_once_paths.
-    mattr_accessor :load_paths
-    self.load_paths = []
+    # unless the directory also appears in autoload_once_paths.
+    mattr_accessor :autoload_paths
+    self.autoload_paths = []
 
     # The set of directories from which automatically loaded constants are loaded
-    # only once. All directories in this set must also be present in +load_paths+.
-    mattr_accessor :load_once_paths
-    self.load_once_paths = []
+    # only once. All directories in this set must also be present in +autoload_paths+.
+    mattr_accessor :autoload_once_paths
+    self.autoload_once_paths = []
 
     # An array of qualified constant names that have been loaded. Adding a name to
     # this array will cause it to be unloaded the next time Dependencies are cleared.
@@ -352,22 +352,31 @@ module ActiveSupport #:nodoc:
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant
     # paths which would cause Dependencies to attempt to load this file.
-    def loadable_constants_for_path(path, bases = load_paths)
-      expanded_path = Pathname.new(path[/\A(.*?)(\.rb)?\Z/, 1]).expand_path
+    def loadable_constants_for_path(path, bases = autoload_paths)
+      path = $1 if path =~ /\A(.*)\.rb\Z/
+      expanded_path = File.expand_path(path)
+      paths = []
 
-      bases.inject([]) do |paths, root|
-        expanded_root = Pathname.new(root).expand_path
-        nesting = expanded_path.relative_path_from(expanded_root).to_s
-        next paths if nesting =~ /\.\./
+      bases.each do |root|
+        expanded_root = File.expand_path(root)
+        next unless %r{\A#{Regexp.escape(expanded_root)}(/|\\)} =~ expanded_path
+
+        nesting = expanded_path[(expanded_root.size)..-1]
+        nesting = nesting[1..-1] if nesting && nesting[0] == ?/
+        next if nesting.blank?
+
         paths << nesting.camelize
-      end.uniq
+      end
+
+      paths.uniq!
+      paths
     end
 
-    # Search for a file in load_paths matching the provided suffix.
+    # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
       path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb")
 
-      load_paths.each do |root|
+      autoload_paths.each do |root|
         path = File.join(root, path_suffix)
         return path if File.file? path
       end
@@ -377,14 +386,14 @@ module ActiveSupport #:nodoc:
     # Does the provided path_suffix correspond to an autoloadable module?
     # Instead of returning a boolean, the autoload base for this module is returned.
     def autoloadable_module?(path_suffix)
-      load_paths.each do |load_path|
+      autoload_paths.each do |load_path|
         return load_path if File.directory? File.join(load_path, path_suffix)
       end
       nil
     end
 
     def load_once_path?(path)
-      load_once_paths.any? { |base| path.starts_with? base }
+      autoload_once_paths.any? { |base| path.starts_with? base }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
@@ -396,7 +405,7 @@ module ActiveSupport #:nodoc:
       return nil unless base_path = autoloadable_module?(path_suffix)
       mod = Module.new
       into.const_set const_name, mod
-      autoloaded_constants << qualified_name unless load_once_paths.include?(base_path)
+      autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
       return mod
     end
 

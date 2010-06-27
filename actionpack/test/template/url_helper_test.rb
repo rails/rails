@@ -429,6 +429,10 @@ class UrlHelperControllerTest < ActionController::TestCase
 
       map.connect ":controller/:action/:id"
       # match "/:controller(/:action(/:id))"
+
+      match 'url_helper_controller_test/url_helper/normalize_recall_params',
+        :to => UrlHelperController.action(:normalize_recall),
+        :as => :normalize_recall_params
     end
 
     def show_url_for
@@ -445,6 +449,14 @@ class UrlHelperControllerTest < ActionController::TestCase
 
     def nil_url_for
       render :inline => '<%= url_for(nil) %>'
+    end
+
+    def normalize_recall_params
+      render :inline => '<%= normalize_recall_params_path %>'
+    end
+
+    def recall_params_not_changed
+      render :inline => '<%= url_for(:action => :show_url_for) %>'
     end
 
     def rescue_action(e) raise e end
@@ -487,6 +499,16 @@ class UrlHelperControllerTest < ActionController::TestCase
 
     get :show_named_route, :kind => 'url'
     assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
+  end
+
+  def test_recall_params_should_be_normalized_when_using_block_route
+    get :normalize_recall_params
+    assert_equal '/url_helper_controller_test/url_helper/normalize_recall_params', @response.body
+  end
+
+  def test_recall_params_should_not_be_changed_when_using_normal_route
+    get :recall_params_not_changed
+    assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 end
 

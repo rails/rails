@@ -582,6 +582,11 @@ module ActiveRecord
         @base.add_column(@table_name, column_name, type, options)
       end
 
+      # Checks to see if a column exists. See SchemaStatements#column_exists?
+      def column_exists?(column_name, type = nil, options = nil)
+        @base.column_exists?(@table_name, column_name, type, options)
+      end
+
       # Adds a new index to the table. +column_name+ can be a single Symbol, or
       # an Array of Symbols. See SchemaStatements#add_index
       #
@@ -594,6 +599,11 @@ module ActiveRecord
       #  t.index([:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
       def index(column_name, options = {})
         @base.add_index(@table_name, column_name, options)
+      end
+
+      # Checks to see if an index exists. See SchemaStatements#index_exists?
+      def index_exists?(column_name, options = {})
+        @base.index_exists?(@table_name, column_name, options)
       end
 
       # Adds timestamps (created_at and updated_at) columns to the table. See SchemaStatements#add_timestamps

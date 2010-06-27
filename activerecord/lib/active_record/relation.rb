@@ -10,7 +10,7 @@ module ActiveRecord
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
-    delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
+    delegate :to_xml, :to_json, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
     delegate :insert, :to => :arel
 
     attr_reader :table, :klass
@@ -326,6 +326,15 @@ module ActiveRecord
 
     def inspect
       to_a.inspect
+    end
+
+    def extend(*args, &block)
+      if block_given?
+        apply_modules Module.new(&block)
+        self
+      else
+        super
+      end
     end
 
     protected

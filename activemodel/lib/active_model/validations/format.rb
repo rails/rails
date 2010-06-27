@@ -5,12 +5,12 @@ module ActiveModel
     class FormatValidator < EachValidator
       def validate_each(record, attribute, value)
         if options[:with] && value.to_s !~ options[:with]
-          record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
+          record.errors.add(attribute, :invalid, options.except(:with).merge!(:value => value))
         elsif options[:without] && value.to_s =~ options[:without]
-          record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
+          record.errors.add(attribute, :invalid, options.except(:without).merge!(:value => value))
         end
       end
-      
+
       def check_validity!
         unless options.include?(:with) ^ options.include?(:without)  # ^ == xor, or "exclusive or"
           raise ArgumentError, "Either :with or :without must be supplied (but not both)"

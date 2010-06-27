@@ -59,14 +59,6 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_singleton_resource
-    run_generator ["account", "--singleton"]
-
-    assert_file "config/routes.rb" do |route|
-      assert_match /resource :account$/, route
-    end
-  end
-
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/

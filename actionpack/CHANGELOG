@@ -1,5 +1,13 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Allow :path to be given to match/get/post/put/delete instead of :path_names in the new router [Carlos Antônio da Silva]
+
+* Added resources_path_names to the new router DSL [José Valim]
+
+* Allow options to be given to the namespace method in the new router [Carlos Antônio da Silva]
+
+* Deprecate :name_prefix in the new router DSL [José Valim]
+
 * Add shallow routes back to the new router [Diego Carrion, Andrew White]
 
     resources :posts do

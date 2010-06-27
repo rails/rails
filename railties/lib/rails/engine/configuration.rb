@@ -4,7 +4,7 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_writer :eager_load_paths, :load_once_paths, :load_paths
+      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
       def initialize(root=nil)
         super()
@@ -41,12 +41,12 @@ module Rails
         @eager_load_paths ||= paths.eager_load
       end
 
-      def load_once_paths
-        @load_once_paths ||= paths.load_once
+      def autoload_once_paths
+        @autoload_once_paths ||= paths.load_once
       end
 
-      def load_paths
-        @load_paths ||= paths.load_paths
+      def autoload_paths
+        @autoload_paths ||= paths.load_paths
       end
     end
   end

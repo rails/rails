@@ -99,7 +99,7 @@ module ActionView
     def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       super()
-      @path = Pathname.new(path).expand_path
+      @path = File.expand_path(path)
     end
 
     def eql?(resolver)

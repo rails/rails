@@ -1401,6 +1401,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal clone.id, dev.id
   end
 
+  def test_clone_does_not_clone_associations
+    author = authors(:david)
+    assert_not_equal [], author.posts
+
+    author_clone = author.clone
+    assert_equal [], author_clone.posts
+  end
+
   def test_clone_preserves_subtype
     clone = nil
     assert_nothing_raised { clone = Company.find(3).clone }
@@ -2235,7 +2243,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil>), topic.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil>), topic.inspect
   end
 
   def test_inspect_new_instance
