@@ -88,9 +88,7 @@ module ActionDispatch
 
         def exists?
           return @exists if instance_variable_defined?(:@exists)
-          stale_session_check! do
-            @exists = @by.send(:exists?, @env)
-          end
+          @exists = @by.send(:exists?, @env)
         end
 
         def loaded?
@@ -115,29 +113,12 @@ module ActionDispatch
           end
 
           def load!
-            stale_session_check! do
-              id, session = @by.send(:load_session, @env)
-              @env[ENV_SESSION_OPTIONS_KEY][:id] = id
-              replace(session.stringify_keys)
-              @loaded = true
-            end
+            id, session = @by.send(:load_session, @env)
+            @env[ENV_SESSION_OPTIONS_KEY][:id] = id
+            replace(session.stringify_keys)
+            @loaded = true
           end
 
-          def stale_session_check!
-            yield
-          rescue ArgumentError => argument_error
-            if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
-              begin
-                # Note that the regexp does not allow $1 to end with a ':'
-                $1.constantize
-              rescue LoadError, NameError => const_error
-                raise ActionDispatch::Session::SessionRestoreError, "Session contains objects whose class definition isn't available.\nRemember to require the classes for all objects kept in the session.\n(Original exception: #{const_error.message} [#{const_error.class}])\n"
-              end
-              retry
-            else
-              raise
-            end
-          end
       end
 
       DEFAULT_OPTIONS = {
@@ -204,16 +185,20 @@ module ActionDispatch
         end
 
         def load_session(env)
-          sid = current_session_id(env)
-          sid, session = get_session(env, sid)
-          [sid, session]
+          stale_session_check! do
+            sid = current_session_id(env)
+            sid, session = get_session(env, sid)
+            [sid, session]
+          end
         end
 
         def extract_session_id(env)
-          request = ActionDispatch::Request.new(env)
-          sid = request.cookies[@key]
-          sid ||= request.params[@key] unless @cookie_only
-          sid
+          stale_session_check! do
+            request = ActionDispatch::Request.new(env)
+            sid = request.cookies[@key]
+            sid ||= request.params[@key] unless @cookie_only
+            sid
+          end
         end
 
         def current_session_id(env)
@@ -226,6 +211,22 @@ module ActionDispatch
               'cookie containing the session data. Use ' +
               'config.session_store SESSION_STORE, { :key => ' +
               '"_myapp_session" } in config/application.rb'
+          end
+        end
+
+        def stale_session_check!
+          yield
+        rescue ArgumentError => argument_error
+          if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
+            begin
+              # Note that the regexp does not allow $1 to end with a ':'
+              $1.constantize
+            rescue LoadError, NameError => const_error
+              raise ActionDispatch::Session::SessionRestoreError, "Session contains objects whose class definition isn't available.\nRemember to require the classes for all objects kept in the session.\n(Original exception: #{const_error.message} [#{const_error.class}])\n"
+            end
+            retry
+          else
+            raise
           end
         end
 
@@ -245,7 +246,6 @@ module ActionDispatch
         def destroy(env)
           raise '#destroy needs to be implemented.'
         end
-
     end
   end
 end

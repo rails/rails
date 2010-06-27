@@ -11,6 +11,11 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       session[:foo] = "bar"
       head :ok
     end
+    
+    def set_serialized_session_value
+      session[:foo] = SessionAutoloadTest::Foo.new
+      head :ok
+    end
 
     def get_session_value
       render :text => "foo: #{session[:foo].inspect}"
@@ -114,6 +119,25 @@ class MemCacheStoreTest < ActionController::IntegrationTest
         get '/get_session_id'
         assert_response :success
         assert_equal session_id, response.body, "should be able to read session id without accessing the session hash"
+      end
+    end
+
+    def test_deserializes_unloaded_class
+      with_test_route_set do
+        with_autoload_path "session_autoload_test" do
+          get '/set_serialized_session_value'
+          assert_response :success
+          assert cookies['_session_id']
+        end
+        with_autoload_path "session_autoload_test" do
+          get '/get_session_id'
+          assert_response :success
+        end
+        with_autoload_path "session_autoload_test" do
+          get '/get_session_value'
+          assert_response :success
+          assert_equal 'foo: #<SessionAutoloadTest::Foo bar:"baz">', response.body, "should auto-load unloaded class"
+        end
       end
     end
 
