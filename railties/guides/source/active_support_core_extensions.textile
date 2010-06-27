@@ -1696,6 +1696,90 @@ foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h4. Conversions
+
+h5. +constantize+
+
+The method +constantize+ expects the receiver to contain the name of a constant, and tries to get you the object stored in there, assuming it is defined:
+
+<ruby>
+"ActiveRecord::Base".constantize # => ActiveRecord::Base
+</ruby>
+
+The name is assumed to be top-level, no matter whether it starts with "::" or not. No lexical context is taken into account:
+
+<ruby>
+C = 1
+module M
+  C = 2
+  "C".constantize # => 1, same as "::C".constantize
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
+h5. +ord+
+
+Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encondings like ASCII or ISO-8859-1 in Ruby 1.8:
+
+<ruby>
+"a".ord # => 97
+"à".ord # => 224, in ISO-8859-1
+</ruby>
+
+In Ruby 1.8 +ord+ doesn't work in general in UTF8 strings, use the multibyte support in Active Support for that:
+
+<ruby>
+"a".mb_chars.ord # => 97
+"à".mb_chars.ord # => 224, in UTF8
+</ruby>
+
+Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representattion in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
+
+INFO: +ord+ is equivalent to +getbyte(0)+.
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
+h5. +getbyte+
+
+Active Support backports +getbyte+ from Ruby 1.9:
+
+<ruby>
+"foo".getbyte(0)  # => 102, same as "foo".ord
+"foo".getbyte(1)  # => 111
+"foo".getbyte(9)  # => nil
+"foo".getbyte(-1) # => 111
+</ruby>
+
+INFO: +getbyte+ is equivalent to +[]+.
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
+h5. +to_date+, +to_time+, +to_datetime+
+
+The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wrappers around +Date._parse+:
+
+<ruby>
+"2010-07-27".to_date              # => Tue, 27 Jul 2010
+"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000 
+</ruby>
+
++to_time+ receivers an optional argument +:utc+ or +:local+, to indicate which time zone you want the time in:
+
+<ruby>
+"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
+"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+</ruby>
+
+Default is +:utc+.
+
+Please refer to the documentation of +Date._parse+ for further details.
+
+INFO: The three of them return +nil+ for blank receivers.
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
