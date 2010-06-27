@@ -189,7 +189,7 @@ module ActionDispatch
 
       attr_accessor :set, :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class
+      attr_accessor :default_url_options, :request_class, :valid_conditions
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -202,6 +202,7 @@ module ActionDispatch
         self.controller_namespaces = Set.new
         self.default_url_options = {}
         self.request_class = request_class
+        self.valid_conditions = request_class.public_instance_methods.select{ |m| m != "id" }.map{ |m| m.to_sym }
 
         @disable_clear_and_finalize = false
         clear!
@@ -279,7 +280,7 @@ module ActionDispatch
       end
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
-        route = Route.new(app, conditions, requirements, defaults, name, anchor)
+        route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
         @set.add_route(*route)
         named_routes[name] = route if name
         routes << route

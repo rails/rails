@@ -2,9 +2,10 @@ module ActionDispatch
   module Routing
     class Route #:nodoc:
       attr_reader :app, :conditions, :defaults, :name
-      attr_reader :path, :requirements
+      attr_reader :path, :requirements, :set
 
-      def initialize(app, conditions, requirements, defaults, name, anchor)
+      def initialize(set, app, conditions, requirements, defaults, name, anchor)
+        @set = set
         @app = app
         @defaults = defaults
         @name = name
@@ -24,6 +25,9 @@ module ActionDispatch
           h[k] = Rack::Mount::RegexpWithNamedGroups.new(v)
           h
         }
+
+        @conditions.delete_if{ |k,v| k != :path_info && !valid_condition?(k) }
+        @requirements.delete_if{ |k,v| !valid_condition?(k) }
       end
 
       def verb
@@ -50,6 +54,11 @@ module ActionDispatch
           "%-6s %-40s %s" % [(verb || :any).to_s.upcase, path, requirements.inspect]
         end
       end
+
+      private
+        def valid_condition?(method)
+          segment_keys.include?(method) || set.valid_conditions.include?(method)
+        end
     end
   end
 end

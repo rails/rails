@@ -330,6 +330,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :content
 
+      scope :constraints => { :id => /\d+/ } do
+        get '/tickets', :to => 'tickets#index', :as => :tickets
+      end
+
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
@@ -1543,6 +1547,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/messages/1'
       assert_equal 'messages#show', @response.body
+    end
+  end
+
+  def test_router_removes_invalid_conditions
+    with_test_routes do
+      get '/tickets'
+      assert_equal 'tickets#index', @response.body
+      assert_equal '/tickets', tickets_path
     end
   end
 
