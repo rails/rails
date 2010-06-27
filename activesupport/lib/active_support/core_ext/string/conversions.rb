@@ -28,6 +28,10 @@ class String
     self[0]
   end unless method_defined?(:ord)
 
+  def getbyte(index)
+    self[index]
+  end if RUBY_VERSION < '1.9'
+
   # Form can be either :utc (default) or :local.
   def to_time(form = :utc)
     return nil if self.blank?
