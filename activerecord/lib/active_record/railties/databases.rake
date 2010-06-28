@@ -175,6 +175,11 @@ namespace :db do
     desc "Display status of migrations"
     task :status => :environment do
       config = ActiveRecord::Base.configurations[Rails.env || 'development']
+      ActiveRecord::Base.establish_connection(config)
+      unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+        puts 'Schema migrations table does not exist yet.'
+        next  # means "return" for rake task
+      end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
       file_list = []
       Dir.foreach(File.join(Rails.root, 'db', 'migrate')) do |file|
