@@ -285,10 +285,6 @@ module ActionView
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - This will use the unobtrusive JavaScript driver to
-      #   set the input value to the message specified when the user clicks the button and disable the
-      #   button while the ajax call is executed. Then the input value is set to the original and the button
-      #   is enabled   
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behaviour. By default this behaviour is an ajax submit.
       #
