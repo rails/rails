@@ -530,7 +530,7 @@ module ActionView
           returning options.stringify_keys do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             html_options["action"]  = url_for(url_for_options, *parameters_for_url)
-            html_options["accept-encoding"] = "UTF-8"
+            html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
           end
         end
