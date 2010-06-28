@@ -357,6 +357,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal comments(:more_greetings), Author.find(authors(:david).id, :include => :comments_with_order_and_conditions).comments_with_order_and_conditions.first
   end
 
+  def test_eager_with_has_many_through_with_conditions_join_model_with_include
+    post_tags = Post.find(posts(:welcome).id).misc_tags
+    eager_post_tags = Post.find(1, :include => :misc_tags).misc_tags
+    assert_equal post_tags, eager_post_tags
+  end
+
+
   def test_eager_with_has_many_through_join_model_with_include
     author_comments = Author.find(authors(:david).id, :include => :comments_with_include).comments_with_include.to_a
     assert_no_queries do

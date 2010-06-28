@@ -282,7 +282,11 @@ module ActiveRecord
           end
           through_records.flatten!
         else
-          records.first.class.preload_associations(records, through_association)
+          options = {}
+          options[:include] = reflection.options[:include] || reflection.options[:source] if reflection.options[:conditions]
+          options[:order] = reflection.options[:order]
+          options[:conditions] = reflection.options[:conditions]
+          records.first.class.preload_associations(records, through_association, options)
           through_records = records.map {|record| record.send(through_association)}.flatten
         end
         through_records.compact!
