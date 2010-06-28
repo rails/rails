@@ -203,6 +203,7 @@ module ActionDispatch
         self.default_url_options = {}
         self.request_class = request_class
         self.valid_conditions = request_class.public_instance_methods.select{ |m| m != "id" }.map{ |m| m.to_sym }
+        self.valid_conditions += [:controller, :action]
 
         @disable_clear_and_finalize = false
         clear!
