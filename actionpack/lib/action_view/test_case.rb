@@ -181,7 +181,7 @@ module ActionView
       }
 
       def _instance_variables
-        instance_variables - EXCLUDE_IVARS
+        instance_variables.map(&:to_s) - EXCLUDE_IVARS
       end
 
       def _assigns
