@@ -278,6 +278,18 @@ module ActiveRecord #:nodoc:
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
 
+    class << self
+      def reset_subclasses #:nodoc:
+        ActiveSupport::Deprecation.warn 'ActiveRecord::Base.reset_subclasses no longer does anything in Rails 3. It will be removed in the final release; please update your apps and plugins.', caller
+      end
+
+      def subclasses
+        descendants
+      end
+
+      deprecate :subclasses => :descendants
+    end
+
     ##
     # :singleton-method:
     # Contains the database configuration - as is typically stored in config/database.yml -
