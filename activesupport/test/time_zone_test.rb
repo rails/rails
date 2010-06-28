@@ -261,6 +261,11 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { ActiveSupport::TimeZone[false] }
   end
 
+  def test_unknown_zones_dont_store_mapping_keys
+    ActiveSupport::TimeZone["bogus"]
+    assert !ActiveSupport::TimeZone.zones_map.key?("bogus")
+  end
+
   def test_new
     assert_equal ActiveSupport::TimeZone["Central Time (US & Canada)"], ActiveSupport::TimeZone.new("Central Time (US & Canada)")
   end
