@@ -283,6 +283,12 @@ class NestedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_with_exclusive_scope_with_relation
+    assert_raise(ArgumentError) do
+      Developer.all_johns
+    end
+  end
+
   def test_append_conditions
     Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
       Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do

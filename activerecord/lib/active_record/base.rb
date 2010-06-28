@@ -1156,7 +1156,20 @@ module ActiveRecord #:nodoc:
         end
 
         # Works like with_scope, but discards any nested properties.
+        # TODO : this method should be deprecated in favor of standard query API
         def with_exclusive_scope(method_scoping = {}, &block)
+          if method_scoping.values.any? { |e| e.is_a?(ActiveRecord::Relation) }
+            msg =<<-MSG
+              ARel can not be used with_exclusive_scope. You can either specify hash style conditions to with_exclusive_scope like this:
+              User.with_exclusive_scope {:find => :conditions => {:active => true} } do
+              end
+
+              Or you can use unscoped method instead of with_exclusive_scope like this:
+              User.unscoped.where(:active => true) do
+              end
+            MSG
+            raise ArgumentError.new(msg)
+          end
           with_scope(method_scoping, :overwrite, &block)
         end
 
