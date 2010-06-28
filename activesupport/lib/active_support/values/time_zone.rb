@@ -387,8 +387,10 @@ module ActiveSupport
       def [](arg)
         case arg
           when String
-            if tz = lookup(arg)
-              zones_map[arg] ||= tz
+            if tz = zones_map[arg]
+              tz
+            elsif tz = lookup(arg)
+              zones_map[arg] = tz
             end
           when Numeric, ActiveSupport::Duration
             arg *= 3600 if arg.abs <= 13
