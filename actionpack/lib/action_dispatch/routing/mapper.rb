@@ -433,6 +433,8 @@ module ActionDispatch
       end
 
       module Resources
+        MERGE_FROM_SCOPE_OPTIONS = [:shallow, :constraints]
+
         class Resource #:nodoc:
           def self.default_actions
             [:index, :create, :new, :show, :update, :destroy, :edit]
@@ -591,8 +593,6 @@ module ActionDispatch
 
         def resource(*resources, &block)
           options = resources.extract_options!
-          options = (@scope[:options] || {}).merge(options)
-          options[:shallow] = true if @scope[:shallow] && !options.has_key?(:shallow)
 
           if apply_common_behavior_for(:resource, resources, options, &block)
             return self
@@ -619,8 +619,6 @@ module ActionDispatch
 
         def resources(*resources, &block)
           options = resources.extract_options!
-          options = (@scope[:options] || {}).merge(options)
-          options[:shallow] = true if @scope[:shallow] && !options.has_key?(:shallow)
 
           if apply_common_behavior_for(:resources, resources, options, &block)
             return self
@@ -803,6 +801,10 @@ module ActionDispatch
               end
               return true
             end
+
+            scope_options = @scope.slice(*MERGE_FROM_SCOPE_OPTIONS).delete_if{ |k,v| v.blank? }
+            options.reverse_merge!(scope_options) unless scope_options.empty?
+            options.reverse_merge!(@scope[:options]) unless @scope[:options].blank?
 
             if resource_scope?
               nested do

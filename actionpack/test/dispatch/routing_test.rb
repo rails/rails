@@ -334,6 +334,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get '/tickets', :to => 'tickets#index', :as => :tickets
       end
 
+      scope :constraints => { :id => /\d{4}/ } do
+        resources :movies do
+          resources :reviews
+          resource :trailer
+        end
+      end
+
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
@@ -1555,6 +1562,42 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/tickets'
       assert_equal 'tickets#index', @response.body
       assert_equal '/tickets', tickets_path
+    end
+  end
+
+  def test_constraints_are_merged_from_scope
+    with_test_routes do
+      get '/movies/0001'
+      assert_equal 'movies#show', @response.body
+      assert_equal '/movies/0001', movie_path(:id => '0001')
+
+      get '/movies/00001'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_path(:id => '00001') }
+
+      get '/movies/0001/reviews'
+      assert_equal 'reviews#index', @response.body
+      assert_equal '/movies/0001/reviews', movie_reviews_path(:movie_id => '0001')
+
+      get '/movies/00001/reviews'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_reviews_path(:movie_id => '00001') }
+
+      get '/movies/0001/reviews/0001'
+      assert_equal 'reviews#show', @response.body
+      assert_equal '/movies/0001/reviews/0001', movie_review_path(:movie_id => '0001', :id => '0001')
+
+      get '/movies/00001/reviews/0001'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_path(:movie_id => '00001', :id => '00001') }
+
+      get '/movies/0001/trailer'
+      assert_equal 'trailers#show', @response.body
+      assert_equal '/movies/0001/trailer', movie_trailer_path(:movie_id => '0001')
+
+      get '/movies/00001/trailer'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_trailer_path(:movie_id => '00001') }
     end
   end
 
