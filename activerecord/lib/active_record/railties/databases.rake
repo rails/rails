@@ -175,7 +175,7 @@ namespace :db do
     desc "Display status of migrations"
     task :status => :environment do
       config = ActiveRecord::Base.configurations[Rails.env || 'development']
-      db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM schema_migrations")
+      db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
       file_list = []
       Dir.foreach(File.join(Rails.root, 'db', 'migrate')) do |file|
         # only files matching "20091231235959_some_name.rb" pattern
