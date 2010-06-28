@@ -268,7 +268,7 @@ class TimeZoneTest < Test::Unit::TestCase
   end
 
   def test_index
-    assert_not_nil ActiveSupport::TimeZone["bogus"]
+    assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[8]
     assert_raise(ArgumentError) { ActiveSupport::TimeZone[false] }

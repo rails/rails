@@ -832,9 +832,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
 
   def test_time_zone_setter_with_invalid_zone
     Time.zone = 'foo'
-    assert_not_nil Time.zone
-    assert_equal 'foo', Time.zone.name
-    assert_raise(TZInfo::InvalidTimezoneIdentifier) { Time.zone.utc_offset }
+    assert_nil Time.zone
 
     Time.zone = -15.hours
     assert_nil Time.zone
