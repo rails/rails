@@ -275,7 +275,7 @@ module Rails
       #
       def route(routing_code)
         log :route, routing_code
-        sentinel = "routes.draw do |map|"
+        sentinel = /\.routes\.draw do(\s*\|map\|)?\s*$/
 
         in_root do
           inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel, :verbose => false }
