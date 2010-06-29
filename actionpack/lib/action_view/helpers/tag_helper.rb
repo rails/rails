@@ -137,7 +137,7 @@ module ActionView
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
                 final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = escape_once(final_value) if escape
+                final_value = html_escape(final_value) if escape
                 attrs << %(#{key}="#{final_value}")
               end
             end
