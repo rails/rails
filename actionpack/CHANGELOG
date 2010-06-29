@@ -1,5 +1,8 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Added accept-charset parameter and _snowman hidden field to force the contents
+  of Rails POSTed forms to be in UTF-8 [Yehuda Katz]
+
 * Upgrade to Rack 1.2.1 [Jeremy Kemper]
 
 * Allow :path to be given to match/get/post/put/delete instead of :path_names in the new router [Carlos Antônio da Silva]
