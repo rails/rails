@@ -21,6 +21,68 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_create_by
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+    assert_nil person.readers.find_by_post_id post.id
+
+    reader = person.readers.create_by_post_id post.id
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+  def test_create_by_multi
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+
+    reader = person.readers.create_by_post_id_and_skimmer post.id, false
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+  def test_find_or_create_by
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+    assert_nil person.readers.find_by_post_id post.id
+
+    reader = person.readers.find_or_create_by_post_id post.id
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+  def test_find_or_create
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+    assert_nil person.readers.find(:first, :conditions => {
+      :post_id => post.id
+    })
+
+    reader = person.readers.find_or_create :post_id => post.id
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+
   def force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.each {|f| }
   end
