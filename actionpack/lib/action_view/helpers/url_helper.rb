@@ -15,9 +15,6 @@ module ActionView
       # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative /controller/action
       # instead of the fully qualified URL like http://example.com/controller/action.
       #
-      # When called from a view, url_for returns an HTML escaped url. If you
-      # need an unescaped url, pass <tt>:escape => false</tt> in the +options+.
-      #
       # ==== Options
       # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path.
       # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (<tt>true</tt> by default unless <tt>:host</tt> is specified).
@@ -27,7 +24,6 @@ module ActionView
       # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.
       # * <tt>:user</tt> - Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
       # * <tt>:password</tt> - Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
-      # * <tt>:escape</tt> - Determines whether the returned URL will be HTML escaped or not (<tt>true</tt> by default).
       #
       # ==== Relying on named routes
       #
@@ -49,10 +45,7 @@ module ActionView
       #   <%= url_for(:action => 'play', :anchor => 'player') %>
       #   # => /messages/play/#player
       #
-      #   <%= url_for(:action => 'checkout', :anchor => 'tax&ship') %>
-      #   # => /testing/jump/#tax&amp;ship
-      #
-      #   <%= url_for(:action => 'checkout', :anchor => 'tax&ship', :escape => false) %>
+      #   <%= url_for(:action => 'jump', :anchor => 'tax&ship') %>
       #   # => /testing/jump/#tax&ship
       #
       #   <%= url_for(Workshop.new) %>
@@ -77,21 +70,17 @@ module ActionView
         options ||= {}
         url = case options
         when String
-          escape = true
           options
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
-          escape  = options.key?(:escape) ? options.delete(:escape) : true
           @controller.send(:url_for, options)
         when :back
-          escape = false
           @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
         else
-          escape = false
           polymorphic_path(options)
         end
 
-        escape ? escape_once(url).html_safe : url
+        url
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
@@ -236,8 +225,8 @@ module ActionView
             tag_options = nil
           end
 
-          href_attr = "href=\"#{url}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{name || url}</a>".html_safe
+          href_attr = "href=\"#{escape_once(url)}\"" unless href
+          "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
         end
       end
 
@@ -538,7 +527,7 @@ module ActionView
       #   current_page?(:controller => 'library', :action => 'checkout')
       #   # => false
       def current_page?(options)
-        url_string = CGI.unescapeHTML(url_for(options))
+        url_string = url_for(options)
         request = @controller.request
         # We ignore any extra parameters in the request_uri if the 
         # submitted url doesn't have any either.  This lets the function
