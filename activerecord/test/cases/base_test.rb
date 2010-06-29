@@ -798,25 +798,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { t.title2 }
   end
 
-  def test_class_name
-    assert_equal "Firm", ActiveRecord::Base.class_name("firms")
-    assert_equal "Category", ActiveRecord::Base.class_name("categories")
-    assert_equal "AccountHolder", ActiveRecord::Base.class_name("account_holder")
-
-    ActiveRecord::Base.pluralize_table_names = false
-    assert_equal "Firms", ActiveRecord::Base.class_name( "firms" )
-    ActiveRecord::Base.pluralize_table_names = true
-
-    ActiveRecord::Base.table_name_prefix = "test_"
-    assert_equal "Firm", ActiveRecord::Base.class_name( "test_firms" )
-    ActiveRecord::Base.table_name_suffix = "_tests"
-    assert_equal "Firm", ActiveRecord::Base.class_name( "test_firms_tests" )
-    ActiveRecord::Base.table_name_prefix = ""
-    assert_equal "Firm", ActiveRecord::Base.class_name( "firms_tests" )
-    ActiveRecord::Base.table_name_suffix = ""
-    assert_equal "Firm", ActiveRecord::Base.class_name( "firms" )
-  end
-
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
