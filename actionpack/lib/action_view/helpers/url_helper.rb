@@ -243,7 +243,7 @@ module ActionView
             tag_options = nil
           end
 
-          href_attr = "href=\"#{escape_once(url)}\"" unless href
+          href_attr = "href=\"#{html_escape(url)}\"" unless href
           "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
         end
       end
@@ -328,7 +328,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 
@@ -474,24 +474,27 @@ module ActionView
       #            :subject => "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
+        email_address = html_escape(email_address)
+
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode").to_s
         cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
 
-        string = ''
-        extras = ''
-        extras << "cc=#{Rack::Utils.escape(cc).gsub("+", "%20")}&" unless cc.nil?
-        extras << "bcc=#{Rack::Utils.escape(bcc).gsub("+", "%20")}&" unless bcc.nil?
-        extras << "body=#{Rack::Utils.escape(body).gsub("+", "%20")}&" unless body.nil?
-        extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}&" unless subject.nil?
-        extras = "?" << extras.gsub!(/&?$/,"") unless extras.empty?
+        extras = []
+        extras << "cc=#{Rack::Utils.escape(cc).gsub("+", "%20")}" unless cc.nil?
+        extras << "bcc=#{Rack::Utils.escape(bcc).gsub("+", "%20")}" unless bcc.nil?
+        extras << "body=#{Rack::Utils.escape(body).gsub("+", "%20")}" unless body.nil?
+        extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}" unless subject.nil?
+        extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
 
-        email_address_obfuscated = html_escape(email_address)
+        email_address_obfuscated = email_address.dup
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
 
+        string = ''
+
         if encode == "javascript"
-          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');".each_byte do |c|
+          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
@@ -508,9 +511,9 @@ module ActionView
             char = c.chr
             string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
           end
-          content_tag "a", name || email_address_encoded.html_safe, html_options.merge({ "href" => "#{string}#{extras}" })
+          content_tag "a", name || email_address_encoded.html_safe, html_options.merge("href" => "#{string}#{extras}".html_safe)
         else
-          content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
+          content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
         end
       end
 

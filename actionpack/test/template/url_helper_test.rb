@@ -65,8 +65,8 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com/q1=v1&amp;q2=v2\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
   end
 
-  def test_button_to_with_escaped_query
-    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com/q1=v1&amp;q2=v2\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com/q1=v1&amp;q2=v2")
+  def test_button_to_with_html_safe_URL
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com/q1=v1&amp;q2=v2\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com/q1=v1&amp;q2=v2".html_safe)
   end
 
   def test_button_to_with_query_and_no_name
