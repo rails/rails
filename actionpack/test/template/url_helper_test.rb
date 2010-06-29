@@ -40,20 +40,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
   alias url_hash hash_for
 
-  def test_url_for_escapes_urls
-    assert_equal "/?a=b&amp;c=d", url_for(abcd)
-    assert_equal "/?a=b&amp;c=d", url_for(abcd(:escape => true))
-    assert_equal "/?a=b&c=d", url_for(abcd(:escape => false))
-  end
-
-  def test_url_for_escaping_is_safety_aware
-    assert url_for(abcd(:escape => true)).html_safe?, "escaped urls should be html_safe?"
-    assert !url_for(abcd(:escape => false)).html_safe?, "non-escaped urls should not be html_safe?"
-  end
-
-  def test_url_for_escapes_url_once
-    assert_equal "/?a=b&amp;c=d", url_for("/?a=b&amp;c=d")
-    assert_equal "/?a=b&amp;c=d", url_for(abcd)
+  def test_url_for_does_not_escape_urls
+    assert_equal "/?a=b&c=d", url_for(abcd)
   end
 
   def test_url_for_with_back
@@ -151,7 +139,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_with_query_and_no_name
-    link = link_to(nil, "http://www.example.com?q1=v1&amp;q2=v2")
+    link = link_to(nil, "http://www.example.com?q1=v1&q2=v2")
     expected = %{<a href="http://www.example.com?q1=v1&amp;q2=v2">http://www.example.com?q1=v1&amp;q2=v2</a>}
     assert_dom_equal expected, link
   end
@@ -308,7 +296,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/?order=desc&page=1")
 
     assert current_page?(hash_for(:order => "desc", :page => "1"))
-    assert current_page?("http://www.example.com/?order=desc&amp;page=1")
+    assert current_page?("http://www.example.com/?order=desc&page=1")
   end
 
   def test_link_unless_current

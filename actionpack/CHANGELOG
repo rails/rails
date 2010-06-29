@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* url_for returns always unescaped strings, and the :escape option is gone. [fxn]
+
 * Added accept-charset parameter and _snowman hidden field to force the contents
   of Rails POSTed forms to be in UTF-8 [Yehuda Katz]
 
