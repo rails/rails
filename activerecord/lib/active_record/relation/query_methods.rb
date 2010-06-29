@@ -86,8 +86,9 @@ module ActiveRecord
       clone.tap { |r| r.from_value = value }
     end
 
-    def extending(*modules)
-      clone.tap { |r| r.send :apply_modules, *modules }
+    def extending(*modules, &block)
+      modules << Module.new(&block) if block_given?
+      clone.tap { |r| r.send(:apply_modules, *modules) }
     end
 
     def reverse_order

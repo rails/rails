@@ -398,7 +398,7 @@ module ActiveRecord #:nodoc:
 
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -801,7 +801,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @unscoped = @arel_table = nil
+        @arel_engine = @relation = @arel_table = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -904,9 +904,9 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      def unscoped
-        @unscoped ||= Relation.new(self, arel_table)
-        finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
+      def relation
+        @relation ||= Relation.new(self, arel_table)
+        finder_needs_type_condition? ? @relation.where(type_condition) : @relation
       end
 
       def arel_table
@@ -921,6 +921,31 @@ module ActiveRecord #:nodoc:
             connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.arel_engine
           end
         end
+      end
+
+      # Returns a scope for this class without taking into account the default_scope.
+      #
+      #   class Post < ActiveRecord::Base
+      #     default_scope :published => true
+      #   end
+      #
+      #   Post.all          # Fires "SELECT * FROM posts WHERE published = true"
+      #   Post.unscoped.all # Fires "SELECT * FROM posts"
+      #
+      # This method also accepts a block meaning that all queries inside the block will
+      # not use the default_scope:
+      #
+      #   Post.unscoped {
+      #     limit(10) # Fires "SELECT * FROM posts LIMIT 10"
+      #   }
+      #
+      def unscoped
+        block_given? ? relation.scoping { yield } : relation
+      end
+
+      def scoped_methods #:nodoc:
+        key = :"#{self}_scoped_methods"
+        Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
       end
 
       private
@@ -1181,11 +1206,6 @@ module ActiveRecord #:nodoc:
         #   end
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
-        end
-
-        def scoped_methods #:nodoc:
-          key = :"#{self}_scoped_methods"
-          Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:

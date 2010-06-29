@@ -54,8 +54,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_respond_to_respects_include_private_parameter
-    assert !Topic.approved.respond_to?(:with_create_scope)
-    assert Topic.approved.respond_to?(:with_create_scope, true)
+    assert !Topic.approved.respond_to?(:tables_in_string)
+    assert Topic.approved.respond_to?(:tables_in_string, true)
   end
 
   def test_subclasses_inherit_scopes
