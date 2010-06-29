@@ -450,6 +450,12 @@ class NamedScopeTest < ActiveRecord::TestCase
       assert before.object_id != post.comments.containing_the_letter_e.object_id, "AssociationCollection##{method} should reset the named scopes cache"
     end
   end
+
+  def test_named_scoped_are_lazy_loaded_if_table_still_does_not_exist
+    assert_nothing_raised do
+      require "models/without_table"
+    end
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase

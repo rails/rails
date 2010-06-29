@@ -12,7 +12,7 @@ class LoadingTest < Test::Unit::TestCase
     @app ||= Rails.application
   end
 
-  def test_load_should_load_constants
+  def test_constants_in_app_are_autoloaded
     app_file "app/models/post.rb", <<-MODEL
       class Post < ActiveRecord::Base
         validates_acceptance_of :title, :accept => "omg"
@@ -27,6 +27,19 @@ class LoadingTest < Test::Unit::TestCase
     assert_equal 'omg', p.title
     p = Post.first
     assert_equal 'omg', p.title
+  end
+
+  def test_models_without_table_do_not_panic_on_scope_definitions_when_loaded
+    app_file "app/models/user.rb", <<-MODEL
+      class User < ActiveRecord::Base
+        default_scope where(:published => true)
+      end
+    MODEL
+
+    require "#{rails_root}/config/environment"
+    setup_ar!
+
+    User
   end
 
   def test_descendants_are_cleaned_on_each_request_without_cache_classes
