@@ -6,7 +6,7 @@ module ActiveRecord
       merged_relation = clone
       return merged_relation unless r
 
-      (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).reject {|m| [:joins, :where].include?(m)}.each do |method|
+      ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) - [:joins, :where]).each do |method|
         value = r.send(:"#{method}_values")
         merged_relation.send(:"#{method}_values=", value) if value.present?
       end
