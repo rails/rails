@@ -213,7 +213,7 @@ module ActiveRecord
       #   that will reject a record where all the attributes are blank.
       # [:limit]
       #   Allows you to specify the maximum number of the associated records that
-      #   can be processes with the nested attributes. If the size of the
+      #   can be processed with the nested attributes. If the size of the
       #   nested attributes array exceeds the specified limit, NestedAttributes::TooManyRecords
       #   exception is raised. If omitted, any number associations can be processed.
       #   Note that the :limit option is only applicable to one-to-many associations.
