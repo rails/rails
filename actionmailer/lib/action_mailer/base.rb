@@ -535,7 +535,9 @@ module ActionMailer #:nodoc:
     #                 :reply_to => 'bounces@test.lindsaar.net'
     #  end
     #
-    # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
+    # If you need other headers not listed above, you can either pass them in
+    # as part of the headers hash or use the <tt>headers['name'] = value</tt>
+    # method.
     #
     # When a <tt>:return_path</tt> is specified as header, that value will be used as the 'envelope from'
     # address for the Mail message.  Setting this is useful when you want delivery notifications
