@@ -352,7 +352,7 @@ module ActiveRecord
       elsif @klass.scopes[method]
         merge(@klass.send(method, *args, &block))
       elsif @klass.respond_to?(method)
-        @klass.send(:with_scope, self) { @klass.send(method, *args, &block) }
+        scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
       elsif match = DynamicFinderMatch.match(method)
