@@ -1,5 +1,7 @@
 *Rails 3.0.0 [RC1] (unreleased)*
 
+* Add scoping and unscoped as the syntax to replace the old with_scope and with_exclusive_scope [José Valim]
+
 * New rake task, db:migrate:status, displays status of migrations #4947 [Kevin Skoglund]
 
 * select and order for ActiveRecord now always concatenate nested calls. Use reorder if you want the original order to be overwritten [Santiago Pastorino]
