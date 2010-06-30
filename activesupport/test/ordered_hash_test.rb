@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/json'
+require 'active_support/core_ext/object/to_json'
 
 class OrderedHashTest < Test::Unit::TestCase
   def setup
