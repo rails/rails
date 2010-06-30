@@ -35,6 +35,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      scope "bookmark", :controller => "bookmarks", :as => :bookmark do
+        get  :new, :path => "build"
+        post :create, :path => "create", :as => ""
+        put  :update
+        get  "remove", :action => :destroy, :as => :remove
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -542,6 +549,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/openid/login'
       assert_equal 'openid#login', @response.body
+    end
+  end
+
+  def test_bookmarks
+    with_test_routes do
+      get '/bookmark/build'
+      assert_equal 'bookmarks#new', @response.body
+      assert_equal '/bookmark/build', new_bookmark_path
+
+      post '/bookmark/create'
+      assert_equal 'bookmarks#create', @response.body
+      assert_equal '/bookmark/create', bookmark_path
+
+      put '/bookmark'
+      assert_equal 'bookmarks#update', @response.body
+      assert_equal '/bookmark', update_bookmark_path
+
+      get '/bookmark/remove'
+      assert_equal 'bookmarks#destroy', @response.body
+      assert_equal '/bookmark/remove', bookmark_remove_path
     end
   end
 

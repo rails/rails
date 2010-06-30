@@ -131,6 +131,7 @@ module ActionDispatch
               end
 
               defaults[:controller] ||= default_controller
+              defaults[:action]     ||= default_action
 
               defaults.delete(:controller) if defaults[:controller].blank?
               defaults.delete(:action)     if defaults[:action].blank?
@@ -185,6 +186,12 @@ module ActionDispatch
               @options[:controller].to_s
             elsif @scope[:controller]
               @scope[:controller].to_s
+            end
+          end
+
+          def default_action
+            if @options[:action]
+              @options[:action].to_s
             end
           end
       end
@@ -717,7 +724,7 @@ module ActionDispatch
         end
 
         def match(*args)
-          options = args.extract_options!
+          options = args.extract_options!.dup
           options[:anchor] = true unless options.key?(:anchor)
 
           if args.length > 1
@@ -739,10 +746,12 @@ module ActionDispatch
           end
 
           path = options.delete(:path)
+          action = args.first
 
-          if args.first.is_a?(Symbol)
-            path = path_for_action(args.first, path)
-            options = options_for_action(args.first, options)
+          if action.is_a?(Symbol)
+            path = path_for_action(action, path)
+            options[:to] ||= action
+            options[:as]   = name_for_action(action, options[:as])
 
             with_exclusive_scope do
               return super(path, options)
@@ -874,11 +883,19 @@ module ActionDispatch
             end
           end
 
+          def canonical_action?(action, flag)
+            flag && CANONICAL_ACTIONS.include?(action)
+          end
+
+          def shallow_scoping?
+            parent_resource && parent_resource.shallow? && @scope[:scope_level] == :member
+          end
+
           def path_for_action(action, path)
-            prefix = parent_resource.shallow? && @scope[:scope_level] == :member ?
+            prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
-            if CANONICAL_ACTIONS.include?(action)
+            if canonical_action?(action, path.blank?)
               "#{prefix}(.:format)"
             else
               "#{prefix}/#{action_path(action, path)}(.:format)"
@@ -886,15 +903,10 @@ module ActionDispatch
           end
 
           def path_for_custom_action
-            case @scope[:scope_level]
-            when :collection, :new
-              @scope[:path]
+            if shallow_scoping?
+              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id"
             else
-              if parent_resource.shallow?
-                "#{@scope[:shallow_path]}/#{parent_resource.path}/:id"
-              else
-                @scope[:path]
-              end
+              @scope[:path]
             end
           end
 
@@ -902,28 +914,37 @@ module ActionDispatch
             path || @scope[:path_names][name.to_sym] || name.to_s
           end
 
-          def options_for_action(action, options)
-            options.reverse_merge(
-              :to => action,
-              :as => name_for_action(action)
-            )
+          def prefix_name_for_action(action, as)
+            if as.present?
+              "#{as}_"
+            elsif as
+              ""
+            elsif !canonical_action?(action, @scope[:scope_level])
+              "#{action}_"
+            end
           end
 
-          def name_for_action(action)
-            prefix = "#{action}_" unless CANONICAL_ACTIONS.include?(action)
-            name_prefix = "#{@scope[:as]}_" if @scope[:as].present?
+          def name_for_action(action, as=nil)
+            prefix = prefix_name_for_action(action, as)
+            name_prefix = @scope[:as]
+
+            if parent_resource
+              collection_name = parent_resource.collection_name
+              member_name = parent_resource.member_name
+              name_prefix = "#{name_prefix}_" if name_prefix.present?
+            end 
 
             case @scope[:scope_level]
             when :collection
-              "#{prefix}#{name_prefix}#{parent_resource.collection_name}"
+              "#{prefix}#{name_prefix}#{collection_name}"
             when :new
-              "#{prefix}new_#{name_prefix}#{parent_resource.member_name}"
+              "#{prefix}new_#{name_prefix}#{member_name}"
             else
-              if parent_resource.shallow?
+              if shallow_scoping?
                 shallow_prefix = "#{@scope[:shallow_prefix]}_" if @scope[:shallow_prefix].present?
-                "#{prefix}#{shallow_prefix}#{parent_resource.member_name}"
+                "#{prefix}#{shallow_prefix}#{member_name}"
               else
-                "#{prefix}#{name_prefix}#{parent_resource.member_name}"
+                "#{prefix}#{name_prefix}#{member_name}"
               end
             end
           end
