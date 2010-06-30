@@ -798,25 +798,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { t.title2 }
   end
 
-  def test_class_name
-    assert_equal "Firm", ActiveRecord::Base.class_name("firms")
-    assert_equal "Category", ActiveRecord::Base.class_name("categories")
-    assert_equal "AccountHolder", ActiveRecord::Base.class_name("account_holder")
-
-    ActiveRecord::Base.pluralize_table_names = false
-    assert_equal "Firms", ActiveRecord::Base.class_name( "firms" )
-    ActiveRecord::Base.pluralize_table_names = true
-
-    ActiveRecord::Base.table_name_prefix = "test_"
-    assert_equal "Firm", ActiveRecord::Base.class_name( "test_firms" )
-    ActiveRecord::Base.table_name_suffix = "_tests"
-    assert_equal "Firm", ActiveRecord::Base.class_name( "test_firms_tests" )
-    ActiveRecord::Base.table_name_prefix = ""
-    assert_equal "Firm", ActiveRecord::Base.class_name( "firms_tests" )
-    ActiveRecord::Base.table_name_suffix = ""
-    assert_equal "Firm", ActiveRecord::Base.class_name( "firms" )
-  end
-
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -1399,6 +1380,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert clone.save
     assert !clone.new_record?
     assert_not_equal clone.id, dev.id
+  end
+
+  def test_clone_does_not_clone_associations
+    author = authors(:david)
+    assert_not_equal [], author.posts
+
+    author_clone = author.clone
+    assert_equal [], author_clone.posts
   end
 
   def test_clone_preserves_subtype
@@ -2076,10 +2065,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert !SubStiPost.descends_from_active_record?
   end
 
-  def test_base_subclasses_is_public_method
-    assert ActiveRecord::Base.public_methods.map(&:to_sym).include?(:subclasses)
-  end
-
   def test_find_on_abstract_base_class_doesnt_use_type_condition
     old_class = LooseDescendant
     Object.send :remove_const, :LooseDescendant
@@ -2239,7 +2224,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil>), topic.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil>), topic.inspect
   end
 
   def test_inspect_new_instance

@@ -54,8 +54,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_respond_to_respects_include_private_parameter
-    assert !Topic.approved.respond_to?(:with_create_scope)
-    assert Topic.approved.respond_to?(:with_create_scope, true)
+    assert !Topic.approved.respond_to?(:tables_in_string)
+    assert Topic.approved.respond_to?(:tables_in_string, true)
   end
 
   def test_subclasses_inherit_scopes
@@ -448,6 +448,12 @@ class NamedScopeTest < ActiveRecord::TestCase
       before = post.comments.containing_the_letter_e
       post.comments.send(method)
       assert before.object_id != post.comments.containing_the_letter_e.object_id, "AssociationCollection##{method} should reset the named scopes cache"
+    end
+  end
+
+  def test_named_scoped_are_lazy_loaded_if_table_still_does_not_exist
+    assert_nothing_raised do
+      require "models/without_table"
     end
   end
 end

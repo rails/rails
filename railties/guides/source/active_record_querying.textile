@@ -51,7 +51,7 @@ Active Record will perform queries on the database for you and is compatible wit
 
 h3. Retrieving Objects from the Database
 
-To retrieve objects from the database, Active Record provides several finder methods. These methods allows you to pass arguments into it to perform certain queries on your database without the need of writing raw SQL.
+To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
 The methods are:
 * +where+
@@ -66,7 +66,7 @@ The methods are:
 * +readonly+
 * +from+
 
-All of these methods return a Relation
+All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
 Primary operation of <tt>Model.find(options)</tt> can be summarized as:
 

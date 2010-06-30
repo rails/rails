@@ -1,3 +1,5 @@
+require "action_controller/log_subscriber"
+
 module ActionController
   class Base < Metal
     abstract!

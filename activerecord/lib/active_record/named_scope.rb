@@ -4,11 +4,12 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
+  # = Active Record Named \Scopes
   module NamedScope
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Returns an anonymous scope.
+      # Returns an anonymous \scope.
       #
       #   posts = Post.scoped
       #   posts.size # Fires "select count(*) from  posts" and returns the count
@@ -18,14 +19,15 @@ module ActiveRecord
       #   fruits = fruits.where(:colour => 'red') if options[:red_only]
       #   fruits = fruits.limit(10) if limited?
       #
-      # Anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
-      # intermediate values (scopes) around as first-class objects is convenient.
+      # Anonymous \scopes tend to be useful when procedurally generating complex
+      # queries, where passing intermediate values (\scopes) around as first-class 
+      # objects is convenient.
       #
-      # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
-      def scoped(options = {}, &block)
+      # You can define a \scope that applies to all finders using 
+      # ActiveRecord::Base.default_scope.
+      def scoped(options = nil)
         if options.present?
-          relation = scoped.apply_finder_options(options)
-          block_given? ? relation.extending(Module.new(&block)) : relation
+          scoped.apply_finder_options(options)
         else
           current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.clone
         end
@@ -35,7 +37,7 @@ module ActiveRecord
         read_inheritable_attribute(:scopes) || write_inheritable_attribute(:scopes, {})
       end
 
-      # Adds a class method for retrieving and querying objects. A scope represents a narrowing of a database query,
+      # Adds a class method for retrieving and querying objects. A \scope represents a narrowing of a database query,
       # such as <tt>where(:color => :red).select('shirts.*').includes(:washing_instructions)</tt>.
       #
       #   class Shirt < ActiveRecord::Base
@@ -85,18 +87,22 @@ module ActiveRecord
       #   end
       def scope(name, scope_options = {}, &block)
         name = name.to_sym
+        valid_scope_name?(name)
 
-        if !scopes[name] && respond_to?(name, true)
-          logger.warn "Creating scope :#{name}. " \
-                      "Overwriting existing method #{self.name}.#{name}."
-        end
+        extension = Module.new(&block) if block_given?
 
         scopes[name] = lambda do |*args|
           options = scope_options.is_a?(Proc) ? scope_options.call(*args) : scope_options
 
-          relation = scoped
-          relation = options.is_a?(Hash) ? relation.apply_finder_options(options) : scoped.merge(options) if options
-          block_given? ? relation.extending(Module.new(&block)) : relation
+          relation = if options.is_a?(Hash)
+            scoped.apply_finder_options(options)
+          elsif options
+            scoped.merge(options)
+          else
+            scoped
+          end
+
+          extension ? relation.extending(extension) : relation
         end
 
         singleton_class.send :define_method, name, &scopes[name]
@@ -106,7 +112,15 @@ module ActiveRecord
         ActiveSupport::Deprecation.warn("Base.named_scope has been deprecated, please use Base.scope instead", caller)
         scope(*args, &block)
       end
-    end
 
+    protected
+
+      def valid_scope_name?(name)
+        if !scopes[name] && respond_to?(name, true)
+          logger.warn "Creating scope :#{name}. " \
+                      "Overwriting existing method #{self.name}.#{name}."
+        end
+      end
+    end
   end
 end

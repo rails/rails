@@ -1,6 +1,8 @@
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
+
+  # == Active Model validates method
   module Validations
     module ClassMethods
       # This method is a shortcut to all default validators and any custom
@@ -20,7 +22,7 @@ module ActiveModel
       #   validates :username, :presence => true
       #   validates :username, :uniqueness => true
       # 
-      # The power of the +validates+ method comes when using cusom validators
+      # The power of the +validates+ method comes when using custom validators
       # and default validators in one call for a given attribute e.g.
       #
       #   class EmailValidator < ActiveModel::EachValidator

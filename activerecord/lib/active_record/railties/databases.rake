@@ -57,7 +57,7 @@ namespace :db do
       end
     rescue
       case config['adapter']
-      when 'mysql'
+      when /mysql/
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
@@ -171,6 +171,36 @@ namespace :db do
       ActiveRecord::Migrator.run(:down, "db/migrate/", version)
       Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
+
+    desc "Display status of migrations"
+    task :status => :environment do
+      config = ActiveRecord::Base.configurations[Rails.env || 'development']
+      ActiveRecord::Base.establish_connection(config)
+      unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+        puts 'Schema migrations table does not exist yet.'
+        next  # means "return" for rake task
+      end
+      db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
+      file_list = []
+      Dir.foreach(File.join(Rails.root, 'db', 'migrate')) do |file|
+        # only files matching "20091231235959_some_name.rb" pattern
+        if match_data = /(\d{14})_(.+)\.rb/.match(file)
+          status = db_list.delete(match_data[1]) ? 'up' : 'down'
+          file_list << [status, match_data[1], match_data[2]]
+        end
+      end
+      # output
+      puts "\ndatabase: #{config['database']}\n\n"
+      puts "#{"Status".center(8)}  #{"Migration ID".ljust(14)}  Migration Name"
+      puts "-" * 50
+      file_list.each do |file|
+        puts "#{file[0].center(8)}  #{file[1].ljust(14)}  #{file[2].humanize}"
+      end
+      db_list.each do |version|
+        puts "#{'up'.center(8)}  #{version.ljust(14)}  *** NO FILE ***"
+      end
+      puts
+    end
   end
 
   desc 'Rolls the schema back to the previous version (specify steps w/ STEP=n).'
@@ -194,7 +224,7 @@ namespace :db do
   task :charset => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     case config['adapter']
-    when 'mysql'
+    when /mysql/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.charset
     when 'postgresql'
@@ -212,7 +242,7 @@ namespace :db do
   task :collation => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     case config['adapter']
-    when 'mysql'
+    when /mysql/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.collation
     else
@@ -313,7 +343,7 @@ namespace :db do
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs[Rails.env]["adapter"]
-      when "mysql", "oci", "oracle"
+      when /mysql/, "oci", "oracle"
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
         File.open("#{Rails.root}/db/#{Rails.env}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when "postgresql"
@@ -361,7 +391,7 @@ namespace :db do
     task :clone_structure => [ "db:structure:dump", "db:test:purge" ] do
       abcs = ActiveRecord::Base.configurations
       case abcs["test"]["adapter"]
-      when "mysql"
+      when /mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
         IO.readlines("#{Rails.root}/db/#{Rails.env}_structure.sql").join.split("\n\n").each do |table|
@@ -395,7 +425,7 @@ namespace :db do
     task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs["test"]["adapter"]
-      when "mysql"
+      when /mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"], abcs["test"])
       when "postgresql"
@@ -451,7 +481,7 @@ task 'test:prepare' => 'db:test:prepare'
 
 def drop_database(config)
   case config['adapter']
-  when 'mysql'
+  when /mysql/
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/

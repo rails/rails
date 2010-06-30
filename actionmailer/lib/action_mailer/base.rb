@@ -4,6 +4,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
+require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -182,7 +183,7 @@ module ActionMailer #:nodoc:
   #   end
   #
   # Which will (if it had both a <tt>welcome.text.plain.erb</tt> and <tt>welcome.text.html.erb</tt>
-  # tempalte in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
+  # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
@@ -395,7 +396,7 @@ module ActionMailer #:nodoc:
       end
 
       # Wraps an email delivery inside of Active Support Notifications instrumentation. This
-      # method is actually called by the <tt>Mail::Message</tt> object itself through a call back
+      # method is actually called by the <tt>Mail::Message</tt> object itself through a callback
       # when you call <tt>:deliver</tt> on the Mail::Message, calling +deliver_mail+ directly
       # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
@@ -534,7 +535,9 @@ module ActionMailer #:nodoc:
     #                 :reply_to => 'bounces@test.lindsaar.net'
     #  end
     #
-    # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
+    # If you need other headers not listed above, you can either pass them in
+    # as part of the headers hash or use the <tt>headers['name'] = value</tt>
+    # method.
     #
     # When a <tt>:return_path</tt> is specified as header, that value will be used as the 'envelope from'
     # address for the Mail message.  Setting this is useful when you want delivery notifications

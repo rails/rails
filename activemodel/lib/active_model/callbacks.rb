@@ -2,11 +2,11 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/callbacks'
 
 module ActiveModel
-  # == Active Model Call Backs
+  # == Active Model Callbacks
   # 
   # Provides an interface for any class to have Active Record like callbacks.
   # 
-  # Like the Active Record methods, the call back chain is aborted as soon as
+  # Like the Active Record methods, the callback chain is aborted as soon as
   # one of the methods in the chain returns false.
   #
   # First, extend ActiveModel::Callbacks from the class you are creating:
@@ -15,13 +15,13 @@ module ActiveModel
   #     extend ActiveModel::Callbacks
   #   end
   # 
-  # Then define a list of methods that you want call backs attached to:
+  # Then define a list of methods that you want callbacks attached to:
   # 
   #   define_model_callbacks :create, :update
   # 
   # This will provide all three standard callbacks (before, around and after) around
   # both the :create and :update methods. To implement, you need to wrap the methods 
-  # you want call backs on in a block so that the call backs get a chance to fire:
+  # you want callbacks on in a block so that the callbacks get a chance to fire:
   # 
   #   def create
   #     _run_create_callbacks do
@@ -61,7 +61,7 @@ module ActiveModel
     #
     #   define_model_callbacks :initializer, :only => :after
     # 
-    # Note, the <tt>:only => <type></tt> hash will apply to all call backs defined on
+    # Note, the <tt>:only => <type></tt> hash will apply to all callbacks defined on
     # that method call.  To get around this you can call the define_model_callbacks
     # method as many times as you need.
     # 
@@ -72,8 +72,8 @@ module ActiveModel
     # Would create +after_create+, +before_update+ and +around_destroy+ methods only.
     # 
     # You can pass in a class to before_<type>, after_<type> and around_<type>, in which
-    # case the call back will call that class's <action>_<type> method passing the object
-    # that the call back is being called on.
+    # case the callback will call that class's <action>_<type> method passing the object
+    # that the callback is being called on.
     # 
     #   class MyModel
     #     extend ActiveModel::Callbacks
@@ -84,7 +84,7 @@ module ActiveModel
     # 
     #   class AnotherClass
     #     def self.before_create( obj )
-    #       # obj is the MyModel instance that the call back is being called on
+    #       # obj is the MyModel instance that the callback is being called on
     #     end
     #   end
     #     

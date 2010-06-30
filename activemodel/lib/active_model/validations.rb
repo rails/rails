@@ -3,6 +3,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_model/errors'
+require 'active_model/validations/callbacks'
 
 module ActiveModel
 
@@ -91,7 +92,7 @@ module ActiveModel
       end
 
       # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldly and
+      # overriding the +validate+ instance method becomes too unwieldy and
       # you're looking for more descriptive declaration of your validations.
       #
       # This can be done with a symbol pointing to a method:
@@ -164,8 +165,7 @@ module ActiveModel
     def valid?(context = nil)
       current_context, self.validation_context = validation_context, context
       errors.clear
-      _run_validate_callbacks
-      errors.empty?
+      run_validations!
     ensure
       self.validation_context = current_context
     end
@@ -176,7 +176,7 @@ module ActiveModel
       !valid?(context)
     end
 
-    # Hook method defining how an attribute value should be retieved. By default 
+    # Hook method defining how an attribute value should be retrieved. By default 
     # this is assumed to be an instance named after the attribute. Override this 
     # method in subclasses should you need to retrieve the value for a given
     # attribute differently:
@@ -194,6 +194,13 @@ module ActiveModel
     #   end
     #
     alias :read_attribute_for_validation :send
+
+  protected
+  
+    def run_validations!
+      _run_validate_callbacks
+      errors.empty?
+    end
   end
 end
 

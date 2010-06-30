@@ -47,8 +47,12 @@ module AbstractController
       end
       
       def index
-        self.response_body = @text
-      end      
+        self.response_body = @text.to_s
+      end
+    end
+
+    class Callback2Overwrite < Callback2
+      before_filter :first, :except => :index
     end
     
     class TestCallbacks2 < ActiveSupport::TestCase
@@ -69,6 +73,12 @@ module AbstractController
       test "around_filter works" do
         @controller.process(:index)
         assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
+      end
+
+      test "before_filter with overwritten condition" do
+        @controller = Callback2Overwrite.new
+        result = @controller.process(:index)
+        assert_equal "", @controller.response_body
       end
     end
     

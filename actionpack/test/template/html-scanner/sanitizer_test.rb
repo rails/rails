@@ -257,6 +257,10 @@ class SanitizerTest < ActionController::TestCase
      assert_sanitized %{<a href=\"http://www.domain.com?var1=1&amp;var2=2\">my link</a>}
   end
 
+  def test_should_sanitize_neverending_attribute
+    assert_sanitized "<span class=\"\\", "<span class=\"\\\">"
+  end
+
 protected
   def assert_sanitized(input, expected = nil)
     @sanitizer ||= HTML::WhiteListSanitizer.new

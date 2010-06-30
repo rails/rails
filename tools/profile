@@ -39,6 +39,7 @@ end
 
 GC.start
 before = GC.allocated_size
+before_gctime, before_gcruns = GC.time, GC.collections
 before_rss = `ps -o rss= -p #{Process.pid}`.to_i
 before_live_objects = ObjectSpace.live_objects
 
@@ -54,6 +55,7 @@ end
 elapsed = Benchmark.realtime { require path }
 results = RubyProf.stop if mode
 
+after_gctime, after_gcruns = GC.time, GC.collections
 GC.start
 after_live_objects = ObjectSpace.live_objects
 after_rss = `ps -o rss= -p #{Process.pid}`.to_i
@@ -61,7 +63,9 @@ after = GC.allocated_size
 usage = (after - before) / 1024.0
 
 if mode
-  if RubyProf.const_defined?(:CallStackPrinter)
+  if printer = ARGV.shift
+    RubyProf.const_get("#{printer.to_s.classify}Printer").new(results).print($stdout)
+  elsif RubyProf.const_defined?(:CallStackPrinter)
     File.open("#{File.basename(path, '.rb')}.#{mode}.html", 'w') do |out|
       RubyProf::CallStackPrinter.new(results).print(out)
     end
@@ -79,4 +83,4 @@ RequireProfiler.stats.each do |file, depth, sec, bytes, objects|
     puts "#{' ' * (42 + depth)}#{file}"
   end
 end
-puts "%10.2f KB %10d obj %8.1f ms  %d KB RSS" % [usage, after_live_objects - before_live_objects, elapsed * 1000, after_rss - before_rss]
+puts "%10.2f KB %10d obj %8.1f ms  %d KB RSS  %8.1f ms GC time  %d GC runs" % [usage, after_live_objects - before_live_objects, elapsed * 1000, after_rss - before_rss, (after_gctime - before_gctime) / 1000.0, after_gcruns - before_gcruns]

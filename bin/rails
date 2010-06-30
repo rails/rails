@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 begin
   require "rails/cli"
 rescue LoadError

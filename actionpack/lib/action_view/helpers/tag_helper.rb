@@ -2,6 +2,7 @@ require 'active_support/core_ext/object/blank'
 require 'set'
 
 module ActionView
+  # = Action View Tag Helpers
   module Helpers #:nodoc:
     # Provides methods to generate HTML tags programmatically when you can't use
     # a Builder. By default, they output XHTML compliant tags.
@@ -121,7 +122,7 @@ module ActionView
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
                 final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = escape_once(final_value) if escape
+                final_value = html_escape(final_value) if escape
                 attrs << %(#{key}="#{final_value}")
               end
             end

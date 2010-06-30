@@ -88,8 +88,8 @@ module ActiveRecord
     end
   end
 
-  # This error is raised when trying to destroy a parent instance in a N:1, 1:1 assosications
-  # (has_many, has_one) when there is at least 1 child assosociated instance.
+  # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
+  # (has_many, has_one) when there is at least 1 child associated instance.
   # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
   class DeleteRestrictionError < ActiveRecordError #:nodoc:
     def initialize(reflection)
@@ -886,11 +886,13 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
-      #   If true, always save any loaded members and destroy members marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated objects or destroy them if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated objects.
+      #   By default, only save associated objects that are new records.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_many</tt>
       #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.
-      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
@@ -1001,11 +1003,13 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated object when saving the parent object. +false+ by default.
       # [:autosave]
-      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated object.
+      #   By default, only save the associated object if it's a new record.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_one</tt>
       #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.
-      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
@@ -1103,14 +1107,16 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
       # [:autosave]
-      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated object.
+      #   By default, only save the associated object if it's a new record.
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to now) when this record is either saved or
       #   destroyed. If you specify a symbol, that attribute will be updated with the current time instead of the updated_at/on attribute.
       # [:inverse_of]
       #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated object that is the inverse of this <tt>belongs_to</tt>
       #   association.  Does not work in combination with the <tt>:polymorphic</tt> options.
-      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -1290,7 +1296,9 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +true+ by default.
       # [:autosave]
-      #   If true, always save any loaded members and destroy members marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated objects or destroy them if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated objects.
+      #   By default, only save associated objects that are new records.
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
@@ -2066,7 +2074,7 @@ module ActiveRecord
               unless klass.descends_from_active_record?
                 sti_column = aliased_table[klass.inheritance_column]
                 sti_condition = sti_column.eq(klass.sti_name)
-                klass.send(:subclasses).each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
+                klass.descendants.each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
 
                 @join << sti_condition
               end

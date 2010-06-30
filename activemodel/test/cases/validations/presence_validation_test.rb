@@ -32,7 +32,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert t.valid?
   end
 
-  test 'accepts array arguments' do
+  def test_accepts_array_arguments
     Topic.validates_presence_of %w(title content)
     t = Topic.new
     assert t.invalid?

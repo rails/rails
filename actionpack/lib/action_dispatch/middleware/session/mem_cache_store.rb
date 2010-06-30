@@ -42,6 +42,15 @@ module ActionDispatch
         rescue MemCache::MemCacheError, Errno::ECONNREFUSED
           false
         end
+
+        def destroy(env)
+          if sid = current_session_id(env)
+            @pool.delete(sid)
+          end
+        rescue MemCache::MemCacheError, Errno::ECONNREFUSED
+          false
+        end
+
     end
   end
 end

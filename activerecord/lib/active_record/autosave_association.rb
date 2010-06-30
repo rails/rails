@@ -1,6 +1,8 @@
 require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
+  # = Active Record Autosave Association
+  # 
   # AutosaveAssociation is a module that takes care of automatically saving
   # your associations when the parent is saved. In addition to saving, it
   # also destroys any associations that were marked for destruction.
@@ -145,12 +147,12 @@ module ActiveRecord
       #   add_autosave_association_callbacks(reflect_on_association(name))
       # end
       ASSOCIATION_TYPES.each do |type|
-        module_eval %{
+        module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{type}(name, options = {})
             super
             add_autosave_association_callbacks(reflect_on_association(name))
           end
-        }
+        CODE
       end
 
       # Adds a validate and save callback for the association as specified by
@@ -375,7 +377,7 @@ module ActiveRecord
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
             self[reflection.primary_key_name] = association_id
-            # TODO: Removing this code doesn't seem to matter…
+            # TODO: Removing this code doesn't seem to matter...
             if reflection.options[:polymorphic]
               self[reflection.options[:foreign_type]] = association.class.base_class.name.to_s
             end

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/json'
 
 class OrderedHashTest < Test::Unit::TestCase
   def setup
@@ -185,6 +186,12 @@ class OrderedHashTest < Test::Unit::TestCase
     assert @ordered_hash.inspect.include?(@hash.inspect)
   end
 
+  def test_json
+    ordered_hash = ActiveSupport::OrderedHash[:foo, :bar]
+    hash = Hash[:foo, :bar]
+    assert_equal ordered_hash.to_json, hash.to_json
+  end
+
   def test_alternate_initialization_with_splat
     alternate = ActiveSupport::OrderedHash[1,2,3,4]
     assert_kind_of ActiveSupport::OrderedHash, alternate
@@ -243,5 +250,17 @@ class OrderedHashTest < Test::Unit::TestCase
 
     assert_equal @ordered_hash.keys,   @deserialized_ordered_hash.keys
     assert_equal @ordered_hash.values, @deserialized_ordered_hash.values
+  end
+
+  def test_update_sets_keys
+    @updated_ordered_hash = ActiveSupport::OrderedHash.new
+    @updated_ordered_hash.update(:name => "Bob")
+    assert_equal [:name],  @updated_ordered_hash.keys
+  end
+
+  def test_invert
+    expected = ActiveSupport::OrderedHash[@values.zip(@keys)]
+    assert_equal expected, @ordered_hash.invert
+    assert_equal @values.zip(@keys), @ordered_hash.invert.to_a
   end
 end

@@ -3,6 +3,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActionView
+  # = Action View Template
   class Template
     extend ActiveSupport::Autoload
 
@@ -155,11 +156,12 @@ module ActionView
     end
 
     def inspect
-      if defined?(Rails.root)
-        identifier.sub("#{Rails.root}/", '')
-      else
-        identifier
-      end
+      @inspect ||=
+        if defined?(Rails.root)
+          identifier.sub("#{Rails.root}/", '')
+        else
+          identifier
+        end
     end
 
     private
@@ -266,9 +268,11 @@ module ActionView
       end
 
       def build_method_name(locals)
-        # TODO: is locals.keys.hash reliably the same?
-        @method_names[locals.keys.hash] ||=
-          "_render_template_#{@identifier.hash}_#{__id__}_#{locals.keys.hash}".gsub('-', "_")
+        @method_names[locals.keys.hash] ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}_#{locals.keys.hash}".gsub('-', "_")
+      end
+
+      def identifier_method_name
+        @identifier_method_name ||= inspect.gsub(/[^a-z_]/, '_')
       end
   end
 end

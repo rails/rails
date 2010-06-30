@@ -1,10 +1,9 @@
-require 'rails/log_subscriber'
 require 'active_support/core_ext/time/conversions'
 
 module Rails
   module Rack
     # Log the request started and flush all loggers after it.
-    class Logger < Rails::LogSubscriber
+    class Logger < ActiveSupport::LogSubscriber
       def initialize(app)
         @app = app
       end
@@ -16,20 +15,19 @@ module Rails
         after_dispatch(env)
       end
 
-      protected
+    protected
 
-        def before_dispatch(env)
-          request = ActionDispatch::Request.new(env)
-          path = request.fullpath
+      def before_dispatch(env)
+        request = ActionDispatch::Request.new(env)
+        path = request.fullpath
 
-          info "\n\nStarted #{env["REQUEST_METHOD"]} \"#{path}\" " \
-               "for #{request.ip} at #{Time.now.to_default_s}"
-        end
+        info "\n\nStarted #{env["REQUEST_METHOD"]} \"#{path}\" " \
+             "for #{request.ip} at #{Time.now.to_default_s}"
+      end
 
-        def after_dispatch(env)
-          Rails::LogSubscriber.flush_all!
-        end
-
+      def after_dispatch(env)
+        ActiveSupport::LogSubscriber.flush_all!
+      end
     end
   end
 end

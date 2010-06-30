@@ -120,36 +120,36 @@ class PathsTest < ActiveSupport::TestCase
 
   test "it is possible to add a path that should be loaded only once" do
     @root.app = "/app"
-    @root.app.load_once!
-    assert @root.app.load_once?
-    assert @root.load_once.include?(@root.app.paths.first)
+    @root.app.autoload_once!
+    assert @root.app.autoload_once?
+    assert @root.autoload_once.include?(@root.app.paths.first)
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
-    @root.app "/app", :load_once => true
-    assert @root.app.load_once?
-    assert @root.load_once.include?("/app")
+    @root.app "/app", :autoload_once => true
+    assert @root.app.autoload_once?
+    assert @root.autoload_once.include?("/app")
   end
 
   test "it is possible to add multiple paths without assignment and specify it should be loaded only once" do
-    @root.app "/app", "/app2", :load_once => true
-    assert @root.app.load_once?
-    assert @root.load_once.include?("/app")
-    assert @root.load_once.include?("/app2")
+    @root.app "/app", "/app2", :autoload_once => true
+    assert @root.app.autoload_once?
+    assert @root.autoload_once.include?("/app")
+    assert @root.autoload_once.include?("/app2")
   end
 
-  test "making a path load_once more than once only includes it once in @root.load_once" do
+  test "making a path autoload_once more than once only includes it once in @root.load_once" do
     @root.app = "/app"
-    @root.app.load_once!
-    @root.app.load_once!
-    assert_equal 1, @root.load_once.select {|p| p == @root.app.paths.first }.size
+    @root.app.autoload_once!
+    @root.app.autoload_once!
+    assert_equal 1, @root.autoload_once.select {|p| p == @root.app.paths.first }.size
   end
 
-  test "paths added to a load_once path should be added to the load_once collection" do
+  test "paths added to a load_once path should be added to the autoload_once collection" do
     @root.app = "/app"
-    @root.app.load_once!
+    @root.app.autoload_once!
     @root.app << "/app2"
-    assert_equal 2, @root.load_once.size
+    assert_equal 2, @root.autoload_once.size
   end
 
   test "it is possible to mark a path as eager" do
@@ -173,11 +173,11 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to create a path without assignment and mark it both as eager and load once" do
-    @root.app "/app", :eager_load => true, :load_once => true
+    @root.app "/app", :eager_load => true, :autoload_once => true
     assert @root.app.eager_load?
-    assert @root.app.load_once?
+    assert @root.app.autoload_once?
     assert @root.eager_load.include?("/app")
-    assert @root.load_once.include?("/app")
+    assert @root.autoload_once.include?("/app")
   end
 
   test "making a path eager more than once only includes it once in @root.eager_paths" do
@@ -218,16 +218,16 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal ["/app"], @root.load_paths
   end
 
-  test "adding a path to the eager paths also adds it to the load path" do
+  test "a path can be marked as autoload path" do
     @root.app = "app"
-    @root.app.eager_load!
-    assert_equal ["/foo/bar/app"], @root.load_paths
+    @root.app.autoload!
+    @root.app.models = "app/models"
+    assert_equal ["/foo/bar/app"], @root.autoload_paths
   end
 
-  test "adding a path to the load once paths also adds it to the load path" do
-    @root.app = "app"
-    @root.app.load_once!
-    assert_equal ["/foo/bar/app"], @root.load_paths
+  test "a path can be marked as autoload on creation" do
+    @root.app "/app", :autoload => true
+    assert @root.app.autoload?
+    assert_equal ["/app"], @root.autoload_paths
   end
-
 end

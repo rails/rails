@@ -40,7 +40,7 @@ module ActionController
       ActiveSupport::Notifications.unsubscribe("!render_template.action_view")
     end
 
-    # Asserts that the request was rendered with the appropriate template file or partials
+    # Asserts that the request was rendered with the appropriate template file or partials.
     #
     # ==== Examples
     #
@@ -52,6 +52,12 @@ module ActionController
     #
     #   # assert that no partials were rendered
     #   assert_template :partial => false
+    #
+    # In a view test case, you can also assert that specific locals are passed
+    # to partials:
+    #
+    #   # assert that the "_customer" partial was rendered with a specific object
+    #   assert_template :partial => '_customer', :locals => { :customer => @customer }
     #
     def assert_template(options = {}, message = nil)
       validate_request!
@@ -72,9 +78,13 @@ module ActionController
         end
       when Hash
         if expected_partial = options[:partial]
-          if expected_count = options[:count]
+          if expected_locals = options[:locals]
+            actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
+            expected_locals.each_pair do |k,v|
+              assert_equal(v, actual_locals[k])
+            end
+          elsif expected_count = options[:count]
             actual_count = @partials[expected_partial]
-            # actual_count = found.nil? ? 0 : found[1]
             msg = build_message(message,
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
@@ -183,12 +193,14 @@ module ActionController
       replace(session.stringify_keys)
       @loaded = true
     end
+
+    def exists?; true; end
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method. This should not be confused with
   # integration tests (see ActionController::IntegrationTest), which are more like
-  # "stories" that can involve multiple controllers and mutliple actions (i.e. multiple
+  # "stories" that can involve multiple controllers and multiple actions (i.e. multiple
   # different HTTP requests).
   #
   # == Basic example
@@ -442,7 +454,7 @@ module ActionController
     end
 
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
-    # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
+    # (skipping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
     # rescue_action process takes place. This means you can test your rescue_action code by setting remote_addr to something else
     # than 0.0.0.0.
     #

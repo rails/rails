@@ -27,7 +27,7 @@ module ActiveResource
 
     # Grabs errors from a json response.
     def from_json(json, save_cache = false)
-      array = ActiveSupport::JSON.decode(json)['errors'] rescue []
+      array = Array.wrap(ActiveSupport::JSON.decode(json)['errors']) rescue []
       from_array array, save_cache
     end
 

@@ -39,16 +39,6 @@ module ActionDispatch
     #
     # Note that changing digest or secret invalidates all existing sessions!
     class CookieStore < AbstractStore
-      class OptionsHash < Hash
-        def initialize(by, env, default_options)
-          @session_data = env[AbstractStore::ENV_SESSION_KEY]
-          merge!(default_options)
-        end
-
-        def [](key)
-          key == :id ? @session_data[:session_id] : super(key)
-        end
-      end
 
       def initialize(app, options = {})
         super(app, options.merge!(:cookie_only => true))
@@ -57,17 +47,30 @@ module ActionDispatch
 
       private
 
-        def prepare!(env)
-          env[ENV_SESSION_KEY] = SessionHash.new(self, env)
-          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
+        def load_session(env)
+          data = unpacked_cookie_data(env)
+          data = persistent_session_id!(data)
+          [data["session_id"], data]
         end
 
-        def load_session(env)
-          request = ActionDispatch::Request.new(env)
-          data = request.cookie_jar.signed[@key]
-          data = persistent_session_id!(data)
-          data.stringify_keys!
-          [data["session_id"], data]
+        def extract_session_id(env)
+          if data = unpacked_cookie_data(env)
+            data["session_id"]
+          else
+            nil
+          end
+        end
+
+        def unpacked_cookie_data(env)
+          env["action_dispatch.request.unsigned_session_cookie"] ||= begin
+            stale_session_check! do
+              request = ActionDispatch::Request.new(env)
+              if data = request.cookie_jar.signed[@key]
+                data.stringify_keys!
+              end
+              data || {}
+            end
+          end
         end
 
         def set_cookie(request, options)
@@ -76,6 +79,10 @@ module ActionDispatch
 
         def set_session(env, sid, session_data)
           persistent_session_id!(session_data, sid)
+        end
+
+        def destroy(env)
+          # session data is stored on client; nothing to do here
         end
 
         def persistent_session_id!(data, sid=nil)

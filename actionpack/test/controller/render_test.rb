@@ -7,6 +7,10 @@ module Fun
     # :ported:
     def hello_world
     end
+    
+    def nested_partial_with_form_builder
+      render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+    end
   end
 end
 
@@ -1229,6 +1233,13 @@ class RenderTest < ActionController::TestCase
     get :partial_with_form_builder_subclass
     assert_match(/<label/, @response.body)
     assert_template('test/_labelling_form')
+  end
+  
+  def test_nested_partial_with_form_builder
+    @controller = Fun::GamesController.new
+    get :nested_partial_with_form_builder
+    assert_match(/<label/, @response.body)
+    assert_template('fun/games/_form')
   end
 
   def test_partial_collection

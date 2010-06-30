@@ -3,6 +3,7 @@ require 'active_support/core_ext/string/filters'
 require 'action_view/helpers/tag_helper'
 
 module ActionView
+  # = Action View Text Helpers
   module Helpers #:nodoc:
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
@@ -52,7 +53,7 @@ module ActionView
       #   truncate("Once upon a time in a world far far away", :length => 17)
       #   # => "Once upon a ti..."
       #
-      #   truncate("Once upon a time in a world far far away", :lenght => 17, :separator => ' ')
+      #   truncate("Once upon a time in a world far far away", :length => 17, :separator => ' ')
       #   # => "Once upon a..."
       #
       #   truncate("And they found that many people were sleeping better.", :length => 25, :omission => '... (continued)')

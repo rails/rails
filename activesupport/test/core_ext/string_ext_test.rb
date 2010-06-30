@@ -110,6 +110,14 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal 97, 'abc'.ord
   end
 
+  if RUBY_VERSION < '1.9'
+    def test_getbyte
+      assert_equal 97, 'a'.getbyte(0)
+      assert_equal 99, 'abc'.getbyte(2)
+      assert_nil   'abc'.getbyte(3)
+    end
+  end
+
   def test_string_to_time
     assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
     assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)

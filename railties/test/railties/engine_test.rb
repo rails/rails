@@ -20,10 +20,6 @@ module RailtiesTest
       end
     end
 
-    def reload_config
-      :reload_engines
-    end
-
     test "Rails::Engine itself does not respond to config" do
       boot_rails
       assert !Rails::Engine.respond_to?(:config)
@@ -41,7 +37,7 @@ module RailtiesTest
 
       boot_rails
 
-      initializers = Rails.application.initializers
+      initializers = Rails.application.initializers.tsort
       index        = initializers.index { |i| i.name == "dummy_initializer" }
       selection    = initializers[(index-3)..(index)].map(&:name).map(&:to_s)
 

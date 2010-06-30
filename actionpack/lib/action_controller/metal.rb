@@ -52,8 +52,7 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    # :api: public
-    attr_internal :params, :env
+    attr_internal :env
 
     # Returns the last part of the controller's name, underscored, without the ending
     # "Controller". For instance, MyApp::MyPostsController would return "my_posts" for
@@ -62,7 +61,7 @@ module ActionController
     # ==== Returns
     # String
     def self.controller_name
-      @controller_name ||= controller_path.split("/").last
+      @controller_name ||= self.name.demodulize.sub(/Controller$/, '').underscore
     end
 
     # Delegates to the class' #controller_name
@@ -83,6 +82,14 @@ module ActionController
       @_headers = {"Content-Type" => "text/html"}
       @_status = 200
       super
+    end
+
+    def params
+      @_params ||= request.parameters
+    end
+
+    def params=(val)
+      @_params = val
     end
 
     # Basic implementations for content_type=, location=, and headers are

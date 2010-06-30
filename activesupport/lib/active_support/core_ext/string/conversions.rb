@@ -28,6 +28,9 @@ class String
     self[0]
   end unless method_defined?(:ord)
 
+  # +getbyte+ backport from Ruby 1.9
+  alias_method :getbyte, :[] unless method_defined?(:getbyte)
+
   # Form can be either :utc (default) or :local.
   def to_time(form = :utc)
     return nil if self.blank?
@@ -46,16 +49,5 @@ class String
     d = ::Date._parse(self, false).values_at(:year, :mon, :mday, :hour, :min, :sec, :zone, :sec_fraction).map { |arg| arg || 0 }
     d[5] += d.pop
     ::DateTime.civil(*d)
-  end
-
-  # +constantize+ tries to find a declared constant with the name specified
-  # in the string. It raises a NameError when the name is not in CamelCase
-  # or is not initialized.
-  #
-  # Examples
-  #   "Module".constantize # => Module
-  #   "Class".constantize  # => Class
-  def constantize
-    ActiveSupport::Inflector.constantize(self)
   end
 end

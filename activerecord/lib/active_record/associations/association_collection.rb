@@ -3,6 +3,8 @@ require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
   module Associations
+    # = Active Record Association Collection
+    #
     # AssociationCollection is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
     # collections. See the class hierarchy in AssociationProxy.
@@ -24,10 +26,10 @@ module ActiveRecord
 
       delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
 
-      def select(select = nil, &block)
+      def select(select = nil)
         if block_given?
           load_target
-          @target.select(&block)
+          @target.select.each { |e| yield e }
         else
           scoped.select(select)
         end
@@ -121,7 +123,7 @@ module ActiveRecord
         end
       end
 
-      # Add +records+ to this association.  Returns +self+ so method calls may be chained.  
+      # Add +records+ to this association.  Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
         result = true
@@ -166,7 +168,7 @@ module ActiveRecord
         reset_target!
         reset_named_scopes_cache!
       end
-      
+
       # Calculate sum using SQL, not Enumerable
       def sum(*args)
         if block_given?
@@ -239,7 +241,7 @@ module ActiveRecord
 
         if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
           destroy_all
-        else          
+        else
           delete_all
         end
 
@@ -388,7 +390,11 @@ module ActiveRecord
             begin
               if !loaded?
                 if @target.is_a?(Array) && @target.any?
-                  @target = find_target + @target.find_all {|t| t.new_record? }
+                  @target = find_target.map do |f|
+                    i = @target.index(f)
+                    t = @target.delete_at(i) if i
+                    (t && t.changed?) ? t : f
+                  end + @target
                 else
                   @target = find_target
                 end
@@ -403,6 +409,17 @@ module ActiveRecord
         end
 
         def method_missing(method, *args)
+          case method.to_s
+          when 'find_or_create'
+            return find(:first, :conditions => args.first) || create(args.first)
+          when /^find_or_create_by_(.*)$/
+            rest = $1
+            return  send("find_by_#{rest}", *args) ||
+                    method_missing("create_by_#{rest}", *args)
+          when /^create_by_(.*)$/
+            return create Hash[$1.split('_and_').zip(args)]
+          end
+
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?
               super { |*block_args| yield(*block_args) }
@@ -514,8 +531,8 @@ module ActiveRecord
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
-        end   
-        
+        end
+
         def ensure_owner_is_not_new
           if @owner.new_record?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"

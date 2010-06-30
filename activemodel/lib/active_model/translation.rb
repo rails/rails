@@ -13,7 +13,7 @@ module ActiveModel
   #     extend ActiveModel::Translation
   #   end
   # 
-  #   TranslatedPerson.human_attribute_name('my_attribue')
+  #   TranslatedPerson.human_attribute_name('my_attribute')
   #   #=> "My attribute"
   # 
   # This also provides the required class methods for hooking into the

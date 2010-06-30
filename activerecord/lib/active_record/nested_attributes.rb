@@ -15,7 +15,7 @@ module ActiveRecord
       self.nested_attributes_options = {}
     end
 
-    # == Nested Attributes
+    # = Active Record Nested Attributes
     #
     # Nested attributes allow you to save attributes on associated records
     # through the parent. By default nested attribute updating is turned off,
@@ -25,6 +25,7 @@ module ActiveRecord
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
+    # 
     # <tt>author_attributes=(attributes)</tt> and
     # <tt>pages_attributes=(attributes)</tt>.
     #
@@ -132,7 +133,7 @@ module ActiveRecord
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
     #
-    #  Alternatively, :reject_if also accepts a symbol for using methods:
+    # Alternatively, :reject_if also accepts a symbol for using methods:
     #
     #    class Member < ActiveRecord::Base
     #      has_many :posts
@@ -144,7 +145,7 @@ module ActiveRecord
     #      accepts_nested_attributes_for :posts, :reject_if => :reject_posts
     #
     #      def reject_posts(attributed)
-    #        attributed['title].blank?
+    #        attributed['title'].blank?
     #      end
     #    end
     #
@@ -212,7 +213,7 @@ module ActiveRecord
       #   that will reject a record where all the attributes are blank.
       # [:limit]
       #   Allows you to specify the maximum number of the associated records that
-      #   can be processes with the nested attributes. If the size of the
+      #   can be processed with the nested attributes. If the size of the
       #   nested attributes array exceeds the specified limit, NestedAttributes::TooManyRecords
       #   exception is raised. If omitted, any number associations can be processed.
       #   Note that the :limit option is only applicable to one-to-many associations.
@@ -278,7 +279,7 @@ module ActiveRecord
     # Assigns the given attributes to the association.
     #
     # If update_only is false and the given attributes include an <tt>:id</tt>
-    # that matches the existing record’s id, then the existing record will be
+    # that matches the existing record's id, then the existing record will be
     # modified. If update_only is true, a new record is only created when no
     # object exists. Otherwise a new record will be built.
     #
@@ -295,7 +296,9 @@ module ActiveRecord
         assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
 
       elsif attributes['id']
-        raise_nested_attributes_record_not_found(association_name, attributes['id'])
+        existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
+        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+        self.send(association_name.to_s+'=', existing_record)
 
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
@@ -365,11 +368,16 @@ module ActiveRecord
           unless reject_new_record?(association_name, attributes)
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
+
+        elsif existing_records.count == 0 #Existing record but not yet associated
+          existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
+          association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
+          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
           association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-        else
-          raise_nested_attributes_record_not_found(association_name, attributes['id'])
+
         end
       end
     end
@@ -389,7 +397,7 @@ module ActiveRecord
       ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
     end
 
-    # Determines if a new record should be build by checking for
+    # Determines if a new record should be built by checking for
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
@@ -405,9 +413,5 @@ module ActiveRecord
       end
     end
 
-    def raise_nested_attributes_record_not_found(association_name, record_id)
-      reflection = self.class.reflect_on_association(association_name)
-      raise RecordNotFound, "Couldn't find #{reflection.klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
-    end
   end
 end

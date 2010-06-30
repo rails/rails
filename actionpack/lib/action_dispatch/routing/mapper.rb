@@ -33,7 +33,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow]
+        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
 
         def initialize(set, scope, args)
           @set, @scope    = set, scope
@@ -55,7 +55,7 @@ module ActionDispatch
               path = args.first
             end
 
-            if @scope[:module] && options[:to]
+            if @scope[:module] && options[:to] && !options[:to].is_a?(Proc)
               if options[:to].to_s.include?("#")
                 options[:to] = "#{@scope[:module]}/#{options[:to]}"
               elsif @scope[:controller].nil?
@@ -102,7 +102,7 @@ module ActionDispatch
           end
 
           def requirements
-            @requirements ||= (@options[:constraints] || {}).tap do |requirements|
+            @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
             end
@@ -131,6 +131,7 @@ module ActionDispatch
               end
 
               defaults[:controller] ||= default_controller
+              defaults[:action]     ||= default_action
 
               defaults.delete(:controller) if defaults[:controller].blank?
               defaults.delete(:action)     if defaults[:action].blank?
@@ -187,6 +188,12 @@ module ActionDispatch
               @scope[:controller].to_s
             end
           end
+
+          def default_action
+            if @options[:action]
+              @options[:action].to_s
+            end
+          end
       end
 
       # Invokes Rack::Mount::Utils.normalize path and ensure that
@@ -194,7 +201,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Rack::Mount::Utils.normalize_path(path)
-        path.sub!(%r{/(\(+)/?:}, '\1/:') unless path =~ %r{^/\(+:.*\)$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^/]+\)$}
         path
       end
 
@@ -299,6 +306,11 @@ module ActionDispatch
           options = args.extract_options!
           options = options.dup
 
+          if name_prefix = options.delete(:name_prefix)
+            options[:as] ||= name_prefix
+            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
+          end
+
           case args.first
           when String
             options[:path] = args.first
@@ -341,9 +353,11 @@ module ActionDispatch
           scope(controller.to_sym) { yield }
         end
 
-        def namespace(path)
+        def namespace(path, options = {})
           path = path.to_s
-          scope(:path => path, :name_prefix => path, :module => path) { yield }
+          options = { :path => path, :as => path, :module => path,
+                      :shallow_path => path, :shallow_prefix => path }.merge!(options)
+          scope(options) { yield }
         end
 
         def constraints(constraints = {})
@@ -359,10 +373,10 @@ module ActionDispatch
 
           options = (@scope[:options] || {}).merge(options)
 
-          if @scope[:name_prefix] && !options[:as].blank?
-            options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
-          elsif @scope[:name_prefix] && options[:as] == ""
-            options[:as] = @scope[:name_prefix].to_s
+          if @scope[:as] && !options[:as].blank?
+            options[:as] = "#{@scope[:as]}_#{options[:as]}"
+          elsif @scope[:as] && options[:as] == ""
+            options[:as] = @scope[:as].to_s
           end
 
           args.push(options)
@@ -378,7 +392,15 @@ module ActionDispatch
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_name_prefix_scope(parent, child)
+          def merge_shallow_path_scope(parent, child)
+            Mapper.normalize_path("#{parent}/#{child}")
+          end
+
+          def merge_as_scope(parent, child)
+            parent ? "#{parent}_#{child}" : child
+          end
+
+          def merge_shallow_prefix_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
@@ -403,7 +425,9 @@ module ActionDispatch
           end
 
           def merge_blocks_scope(parent, child)
-            (parent || []) + [child]
+            merged = parent ? parent.dup : []
+            merged << child if child
+            merged
           end
 
           def merge_options_scope(parent, child)
@@ -416,22 +440,27 @@ module ActionDispatch
       end
 
       module Resources
+        # CANONICAL_ACTIONS holds all actions that does not need a prefix or
+        # a path appended since they fit properly in their scope level.
+        VALID_ON_OPTIONS = [:new, :collection, :member]
+        CANONICAL_ACTIONS = [:index, :create, :new, :show, :update, :destroy]
+        MERGE_FROM_SCOPE_OPTIONS = [:shallow, :constraints]
+
         class Resource #:nodoc:
-          def self.default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit]
-          end
+          DEFAULT_ACTIONS = [:index, :create, :new, :show, :update, :destroy, :edit]
 
           attr_reader :controller, :path, :options
 
           def initialize(entities, options = {})
             @name       = entities.to_s
             @path       = options.delete(:path) || @name
-            @controller = options.delete(:controller) || @name.to_s.pluralize
+            @controller = (options.delete(:controller) || @name).to_s
+            @as         = options.delete(:as)
             @options    = options
           end
 
           def default_actions
-            self.class.default_actions
+            self.class::DEFAULT_ACTIONS
           end
 
           def actions
@@ -445,7 +474,7 @@ module ActionDispatch
           end
 
           def name
-            options[:as] || @name
+            @as || @name
           end
 
           def plural
@@ -497,7 +526,7 @@ module ActionDispatch
 
           def nested_options
             {}.tap do |opts|
-              opts[:name_prefix] = member_name
+              opts[:as] = member_name
               opts["#{singular}_id".to_sym] = id_constraint if id_constraint?
               opts[:options] = { :shallow => shallow? } unless options[:shallow].nil?
             end
@@ -515,8 +544,8 @@ module ActionDispatch
             ["#{path}/:id", options]
           end
 
-          def new_scope
-            [path]
+          def new_scope(new_path)
+            ["#{path}/#{new_path}"]
           end
 
           def nested_scope
@@ -525,17 +554,20 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource #:nodoc:
-          def self.default_actions
-            [:show, :create, :update, :destroy, :new, :edit]
-          end
+          DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
 
-          def initialize(entity, options = {})
-            super
+          def initialize(entities, options)
+            @name       = entities.to_s
+            @path       = options.delete(:path) || @name
+            @controller = (options.delete(:controller) || @name.to_s.pluralize).to_s
+            @as         = options.delete(:as)
+            @options    = options
           end
 
           def member_name
             name
           end
+          alias :collection_name :member_name
 
           def nested_path
             path
@@ -543,7 +575,7 @@ module ActionDispatch
 
           def nested_options
             {}.tap do |opts|
-              opts[:name_prefix] = member_name
+              opts[:as] = member_name
               opts[:options] = { :shallow => shallow? } unless @options[:shallow].nil?
             end
           end
@@ -562,10 +594,12 @@ module ActionDispatch
           @scope[:path_names] = @set.resources_path_names
         end
 
+        def resources_path_names(options)
+          @scope[:path_names].merge!(options)
+        end
+
         def resource(*resources, &block)
           options = resources.extract_options!
-          options = (@scope[:options] || {}).merge(options)
-          options[:shallow] = true if @scope[:shallow] && !options.has_key?(:shallow)
 
           if apply_common_behavior_for(:resource, resources, options, &block)
             return self
@@ -575,9 +609,12 @@ module ActionDispatch
             yield if block_given?
 
             collection_scope do
-              post :create if parent_resource.actions.include?(:create)
-              get  :new if parent_resource.actions.include?(:new)
-            end
+              post :create
+            end if parent_resource.actions.include?(:create)
+
+            new_scope do
+              get :new
+            end if parent_resource.actions.include?(:new)
 
             member_scope  do
               get    :show if parent_resource.actions.include?(:show)
@@ -592,8 +629,6 @@ module ActionDispatch
 
         def resources(*resources, &block)
           options = resources.extract_options!
-          options = (@scope[:options] || {}).merge(options)
-          options[:shallow] = true if @scope[:shallow] && !options.has_key?(:shallow)
 
           if apply_common_behavior_for(:resources, resources, options, &block)
             return self
@@ -605,8 +640,11 @@ module ActionDispatch
             collection_scope do
               get  :index if parent_resource.actions.include?(:index)
               post :create if parent_resource.actions.include?(:create)
-              get  :new if parent_resource.actions.include?(:new)
             end
+
+            new_scope do
+              get :new
+            end if parent_resource.actions.include?(:new)
 
             member_scope  do
               get    :show if parent_resource.actions.include?(:show)
@@ -644,10 +682,8 @@ module ActionDispatch
             raise ArgumentError, "can't use new outside resource(s) scope"
           end
 
-          with_scope_level(:new) do
-            scope(*parent_resource.new_scope) do
-              yield
-            end
+          new_scope do
+            yield
           end
         end
 
@@ -659,10 +695,10 @@ module ActionDispatch
           with_scope_level(:nested) do
             if parent_resource.shallow?
               with_exclusive_scope do
-                if @scope[:module].blank?
+                if @scope[:shallow_path].blank?
                   scope(*parent_resource.nested_scope) { yield }
                 else
-                  scope(@scope[:module], :name_prefix => @scope[:module].tr('/', '_')) do
+                  scope(@scope[:shallow_path], :as => @scope[:shallow_prefix]) do
                     scope(*parent_resource.nested_scope) { yield }
                   end
                 end
@@ -673,7 +709,7 @@ module ActionDispatch
           end
         end
 
-        def namespace(path)
+        def namespace(path, options = {})
           if resource_scope?
             nested { super }
           else
@@ -688,8 +724,7 @@ module ActionDispatch
         end
 
         def match(*args)
-          options = args.extract_options!
-
+          options = args.extract_options!.dup
           options[:anchor] = true unless options.key?(:anchor)
 
           if args.length > 1
@@ -697,17 +732,12 @@ module ActionDispatch
             return self
           end
 
-          if [:collection, :member, :new].include?(options[:on])
+          on = options.delete(:on)
+          if VALID_ON_OPTIONS.include?(on)
             args.push(options)
-
-            case options.delete(:on)
-            when :collection
-              return collection { match(*args) }
-            when :member
-              return member { match(*args) }
-            when :new
-              return new { match(*args) }
-            end
+            return send(on){ match(*args) }
+          elsif on
+            raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
           if @scope[:scope_level] == :resource
@@ -715,14 +745,26 @@ module ActionDispatch
             return member { match(*args) }
           end
 
-          path_names = options.delete(:path_names)
+          path = options.delete(:path)
+          action = args.first
 
-          if args.first.is_a?(Symbol)
-            path = path_for_action(args.first, path_names)
-            options = options_for_action(args.first, options)
+          if action.is_a?(Symbol)
+            path = path_for_action(action, path)
+            options[:to] ||= action
+            options[:as]   = name_for_action(action, options[:as])
 
             with_exclusive_scope do
-              return match(path, options)
+              return super(path, options)
+            end
+          elsif resource_method_scope?
+            path = path_for_custom_action
+            options[:as] = name_for_action(options[:as]) if options[:as]
+            args.push(options)
+
+            with_exclusive_scope do
+              scope(path) do
+                return super
+              end
             end
           end
 
@@ -736,8 +778,8 @@ module ActionDispatch
 
         def root(options={})
           if @scope[:scope_level] == :resources
-            with_scope_level(:collection) do
-              scope(parent_resource.path, :name_prefix => parent_resource.collection_name) do
+            with_scope_level(:nested) do
+              scope(parent_resource.path, :as => parent_resource.collection_name) do
                 super(options)
               end
             end
@@ -747,11 +789,11 @@ module ActionDispatch
         end
 
         protected
+
           def parent_resource #:nodoc:
             @scope[:scope_level_resource]
           end
 
-        private
           def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
@@ -764,6 +806,10 @@ module ActionDispatch
               end
               return true
             end
+
+            scope_options = @scope.slice(*MERGE_FROM_SCOPE_OPTIONS).delete_if{ |k,v| v.blank? }
+            options.reverse_merge!(scope_options) unless scope_options.empty?
+            options.reverse_merge!(@scope[:options]) unless @scope[:options].blank?
 
             if resource_scope?
               nested do
@@ -779,14 +825,20 @@ module ActionDispatch
             [:resource, :resources].include?(@scope[:scope_level])
           end
 
+          def resource_method_scope?
+            [:collection, :member, :new].include?(@scope[:scope_level])
+          end
+
           def with_exclusive_scope
             begin
-              old_name_prefix, old_path = @scope[:name_prefix], @scope[:path]
-              @scope[:name_prefix], @scope[:path] = nil, nil
+              old_name_prefix, old_path = @scope[:as], @scope[:path]
+              @scope[:as], @scope[:path] = nil, nil
 
-              yield
+              with_scope_level(:exclusive) do
+                yield
+              end
             ensure
-              @scope[:name_prefix], @scope[:path] = old_name_prefix, old_path
+              @scope[:as], @scope[:path] = old_name_prefix, old_path
             end
           end
 
@@ -802,6 +854,14 @@ module ActionDispatch
           def resource_scope(resource)
             with_scope_level(resource.is_a?(SingletonResource) ? :resource : :resources, resource) do
               scope(*parent_resource.resource_scope) do
+                yield
+              end
+            end
+          end
+
+          def new_scope
+            with_scope_level(:new) do
+              scope(*parent_resource.new_scope(action_path(:new))) do
                 yield
               end
             end
@@ -823,91 +883,71 @@ module ActionDispatch
             end
           end
 
-          def path_for_action(action, path_names)
-            case action
-            when :index, :create
-              "#{@scope[:path]}(.:format)"
-            when :show, :update, :destroy
-              if parent_resource.shallow?
-                "#{@scope[:module]}/#{parent_resource.path}/:id(.:format)"
-              else
-                "#{@scope[:path]}(.:format)"
-              end
-            when :new
-              "#{@scope[:path]}/#{action_path(:new)}(.:format)"
-            when :edit
-              if parent_resource.shallow?
-                "#{@scope[:module]}/#{parent_resource.path}/:id/#{action_path(:edit)}(.:format)"
-              else
-                "#{@scope[:path]}/#{action_path(:edit)}(.:format)"
-              end
+          def canonical_action?(action, flag)
+            flag && CANONICAL_ACTIONS.include?(action)
+          end
+
+          def shallow_scoping?
+            parent_resource && parent_resource.shallow? && @scope[:scope_level] == :member
+          end
+
+          def path_for_action(action, path)
+            prefix = shallow_scoping? ?
+              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
+
+            if canonical_action?(action, path.blank?)
+              "#{prefix}(.:format)"
             else
-              case @scope[:scope_level]
-              when :collection
-                "#{@scope[:path]}/#{action_path(action)}(.:format)"
-              when :new
-                "#{@scope[:path]}/#{action_path(:new)}/#{action_path(action)}(.:format)"
-              else
-                if parent_resource.shallow?
-                  "#{@scope[:module]}/#{parent_resource.path}/:id/#{action_path(action)}(.:format)"
-                else
-                  "#{@scope[:path]}/#{action_path(action)}(.:format)"
-                end
-              end
+              "#{prefix}/#{action_path(action, path)}(.:format)"
             end
           end
 
-          def action_path(name, path_names = nil)
-            path_names ||= @scope[:path_names]
-            path_names[name.to_sym] || name.to_s
-          end
-
-          def options_for_action(action, options)
-            options.reverse_merge(
-              :to => action,
-              :as => name_for_action(action)
-            )
-          end
-
-          def name_for_action(action)
-            name_prefix = @scope[:name_prefix].blank? ? "" : "#{@scope[:name_prefix]}_"
-            shallow_prefix = @scope[:module].blank? ? "" : "#{@scope[:module].tr('/', '_')}_"
-
-            case action
-            when :index
-              "#{name_prefix}#{parent_resource.collection_name}"
-            when :show
-              if parent_resource.shallow?
-                "#{shallow_prefix}#{parent_resource.member_name}"
-              else
-                "#{name_prefix}#{parent_resource.member_name}"
-              end
-            when :edit
-              if parent_resource.shallow?
-                "edit_#{shallow_prefix}#{parent_resource.member_name}"
-              else
-                "edit_#{name_prefix}#{parent_resource.member_name}"
-              end
-            when :new
-              "new_#{name_prefix}#{parent_resource.member_name}"
-            when :update, :create, :destroy
-              nil
+          def path_for_custom_action
+            if shallow_scoping?
+              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id"
             else
-              case @scope[:scope_level]
-              when :collection
-                "#{action}_#{name_prefix}#{parent_resource.collection_name}"
-              when :new
-                "#{action}_new_#{name_prefix}#{parent_resource.member_name}"
-              else
-                if parent_resource.shallow?
-                  "#{action}_#{shallow_prefix}#{parent_resource.member_name}"
-                else
-                  "#{action}_#{name_prefix}#{parent_resource.member_name}"
-                end
-              end
+              @scope[:path]
             end
           end
 
+          def action_path(name, path = nil)
+            path || @scope[:path_names][name.to_sym] || name.to_s
+          end
+
+          def prefix_name_for_action(action, as)
+            if as.present?
+              "#{as}_"
+            elsif as
+              ""
+            elsif !canonical_action?(action, @scope[:scope_level])
+              "#{action}_"
+            end
+          end
+
+          def name_for_action(action, as=nil)
+            prefix = prefix_name_for_action(action, as)
+            name_prefix = @scope[:as]
+
+            if parent_resource
+              collection_name = parent_resource.collection_name
+              member_name = parent_resource.member_name
+              name_prefix = "#{name_prefix}_" if name_prefix.present?
+            end 
+
+            case @scope[:scope_level]
+            when :collection
+              "#{prefix}#{name_prefix}#{collection_name}"
+            when :new
+              "#{prefix}new_#{name_prefix}#{member_name}"
+            else
+              if shallow_scoping?
+                shallow_prefix = "#{@scope[:shallow_prefix]}_" if @scope[:shallow_prefix].present?
+                "#{prefix}#{shallow_prefix}#{member_name}"
+              else
+                "#{prefix}#{name_prefix}#{member_name}"
+              end
+            end
+          end
       end
 
       include Base

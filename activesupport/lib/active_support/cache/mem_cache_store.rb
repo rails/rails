@@ -35,7 +35,7 @@ module ActiveSupport
       def self.build_mem_cache(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost"] if addresses.empty?
+        addresses = ["localhost:11211"] if addresses.empty?
         MemCache.new(addresses, options)
       end
 
@@ -159,7 +159,7 @@ module ActiveSupport
 
       private
         def escape_key(key)
-          key = key.to_s.gsub(ESCAPE_KEY_CHARS){|match| "%#{match[0].to_s(16).upcase}"}
+          key = key.to_s.gsub(ESCAPE_KEY_CHARS){|match| "%#{match.getbyte(0).to_s(16).upcase}"}
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
           key
         end

@@ -3,16 +3,19 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/ordered_options'
+require 'action_view/log_subscriber'
 
 module ActionView #:nodoc:
   class NonConcattingString < ActiveSupport::SafeBuffer
   end
 
+  # = Action View Base
+  #
   # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
   # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
   # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
   #
-  # = ERb
+  # == ERb
   #
   # You trigger ERb by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the
   # following loop for names:
@@ -32,7 +35,7 @@ module ActionView #:nodoc:
   #
   # <%- and -%> suppress leading and trailing whitespace, including the trailing newline, and can be used interchangeably with <% and %>.
   #
-  # == Using sub templates
+  # === Using sub templates
   #
   # Using sub templates allows you to sidestep tedious replication and extract common display structures in shared templates. The
   # classic example is the use of a header and footer (even though the Action Pack-way would be to use Layouts):
@@ -54,7 +57,7 @@ module ActionView #:nodoc:
   #
   #   <title><%= @page_title %></title>
   #
-  # == Passing local variables to sub templates
+  # === Passing local variables to sub templates
   #
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
@@ -74,7 +77,7 @@ module ActionView #:nodoc:
   #
   # Testing using <tt>defined? headline</tt> will not work. This is an implementation restriction.
   #
-  # == Template caching
+  # === Template caching
   #
   # By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will
   # check the file's modification time and recompile it.
@@ -202,8 +205,12 @@ module ActionView #:nodoc:
         value.dup : ActionView::PathSet.new(Array.wrap(value))
     end
 
+    def assign(new_assigns) # :nodoc:
+      self.assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+    end
+
     def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
-      self.assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
+      assign(assigns_for_first_render)
       self.helpers = self.class.helpers || Module.new
 
       if @_controller = controller

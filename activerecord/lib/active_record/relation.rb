@@ -1,6 +1,7 @@
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
+  # = Active Record Relation
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
@@ -9,13 +10,13 @@ module ActiveRecord
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
-    delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
+    delegate :to_xml, :to_json, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
     delegate :insert, :to => :arel
 
     attr_reader :table, :klass
     attr_accessor :extensions
 
-    def initialize(klass, table, &block)
+    def initialize(klass, table)
       @klass, @table = klass, table
 
       @implicit_readonly = nil
@@ -24,12 +25,10 @@ module ActiveRecord
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
       @extensions = []
-
-      apply_modules(Module.new(&block)) if block_given?
     end
 
     def new(*args, &block)
-      with_create_scope { @klass.new(*args, &block) }
+      scoping { @klass.new(*args, &block) }
     end
 
     def initialize_copy(other)
@@ -39,11 +38,11 @@ module ActiveRecord
     alias build new
 
     def create(*args, &block)
-      with_create_scope { @klass.create(*args, &block) }
+      scoping { @klass.create(*args, &block) }
     end
 
     def create!(*args, &block)
-      with_create_scope { @klass.create!(*args, &block) }
+      scoping { @klass.create!(*args, &block) }
     end
 
     def respond_to?(method, include_private = false)
@@ -67,7 +66,7 @@ module ActiveRecord
       preload +=  @includes_values unless eager_loading?
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
 
-      # @readonly_value is true only if set explicity. @implicit_readonly is true if there are JOINS and no explicit SELECT.
+      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there are JOINS and no explicit SELECT.
       readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
       @records.each { |record| record.readonly! } if readonly
 
@@ -75,10 +74,12 @@ module ActiveRecord
       @records
     end
 
+    # Returns size of the records.
     def size
       loaded? ? @records.length : count
     end
 
+    # Returns true if there are no records.
     def empty?
       loaded? ? @records.empty? : count.zero?
     end
@@ -96,6 +97,25 @@ module ActiveRecord
         to_a.many? { |*block_args| yield(*block_args) }
       else
         @limit_value.present? ? to_a.many? : size > 1
+      end
+    end
+
+    # Scope all queries to the current scope.
+    #
+    # ==== Example
+    #
+    #   Comment.where(:post_id => 1).scoping do
+    #     Comment.first #=> SELECT * FROM comments WHERE post_id = 1
+    #   end
+    #
+    # Please check unscoped if you want to remove all previous scopes (including
+    # the default_scope) during the execution of a block.
+    def scoping
+      @klass.scoped_methods << self
+      begin
+        yield
+      ensure
+        @klass.scoped_methods.pop
       end
     end
 
@@ -240,8 +260,9 @@ module ActiveRecord
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
-    # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
+    # Both calls delete the affected posts all at once with a single DELETE statement. 
+    # If you need to destroy dependent associations or call your <tt>before_*</tt> or 
+    # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
       conditions ? where(conditions).delete_all : arel.delete.tap { reset }
     end
@@ -301,7 +322,6 @@ module ActiveRecord
           if where.is_a?(Arel::Predicates::Equality)
             hash[where.operand1.name] = where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2
           end
-
           hash
         end
       end
@@ -332,7 +352,7 @@ module ActiveRecord
       elsif @klass.scopes[method]
         merge(@klass.send(method, *args, &block))
       elsif @klass.respond_to?(method)
-        @klass.send(:with_scope, self) { @klass.send(method, *args, &block) }
+        scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
       elsif match = DynamicFinderMatch.match(method)
@@ -350,10 +370,6 @@ module ActiveRecord
     end
 
     private
-
-    def with_create_scope
-      @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
-    end
 
     def references_eager_loaded_tables?
       # always convert table names to downcase as in Oracle quoted table names are in uppercase

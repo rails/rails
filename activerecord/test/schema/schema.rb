@@ -485,6 +485,7 @@ ActiveRecord::Schema.define do
     t.integer  :parent_id
     t.string   :parent_title
     t.string   :type
+    t.string   :group
   end
 
   create_table :taggings, :force => true do |t|

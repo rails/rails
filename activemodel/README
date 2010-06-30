@@ -177,7 +177,8 @@ functionality from the following modules:
    end
 
 
-   person = Person.new(:first_name => 'zoolander')
+   person = Person.new
+   person.first_name = 'zoolander'
    person.valid?          #=> false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]

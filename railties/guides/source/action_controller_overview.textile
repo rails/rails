@@ -338,6 +338,25 @@ end
 
 Note that while for session values you set the key to +nil+, to delete a cookie value you should use +cookies.delete(:key)+.
 
+h3. Rendering xml and json data
+
+ActionController makes it extremely easy to render +xml+ or +json+ data. If you generate a controller using scaffold then your controller would look something like this.
+
+<ruby>
+class UsersController < ApplicationController
+  def index
+    @users = User.all
+    respond_to do |format|
+      format.html # index.html.erb
+      format.xml  { render :xml => @users}
+    end
+  end
+end
+</ruby>
+
+Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ . 
+
+
 h3. Filters
 
 Filters are methods that are run before, after or "around" a controller action. 

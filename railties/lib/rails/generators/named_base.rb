@@ -46,6 +46,30 @@ module Rails
           end
         end
 
+        def uncountable?
+          singular_name == plural_name
+        end
+
+        def index_helper
+          uncountable? ? "#{plural_table_name}_index" : plural_table_name
+        end
+
+        def singular_table_name
+          @singular_table_name ||= table_name.singularize
+        end
+
+        def plural_table_name
+          @plural_table_name ||= table_name.pluralize
+        end
+
+        def plural_file_name
+          @plural_file_name ||= file_name.pluralize
+        end
+
+        def route_url
+          @route_url ||= class_path.collect{|dname| "/" + dname  }.join('') + "/" + plural_file_name
+        end
+
         # Tries to retrieve the application name or simple return application.
         def application_name
           if defined?(Rails) && Rails.application

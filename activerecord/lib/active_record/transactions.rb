@@ -11,7 +11,8 @@ module ActiveRecord
     included do
       define_callbacks :commit, :rollback, :terminator => "result == false", :scope => [:kind, :name]
     end
-
+    # = Active Record Transactions
+    #
     # Transactions are protective blocks where SQL statements are only permanent
     # if they can all succeed as one atomic action. The classic example is a
     # transfer between two accounts where you can only have a deposit if the
@@ -19,7 +20,8 @@ module ActiveRecord
     # the database and guard the data against program errors or database
     # break-downs. So basically you should use transaction blocks whenever you
     # have a number of statements that must be executed together or not at all.
-    # Example:
+    #
+    # For example:
     #
     #   ActiveRecord::Base.transaction do
     #     david.withdrawal(100)
@@ -320,6 +322,7 @@ module ActiveRecord
         if @_start_transaction_state[:level] < 1
           restore_state = remove_instance_variable(:@_start_transaction_state)
           if restore_state
+            @attributes = @attributes.dup if @attributes.frozen?
             @new_record = restore_state[:new_record]
             @destroyed = restore_state[:destroyed]
             if restore_state[:id]

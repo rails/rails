@@ -5,9 +5,6 @@ module ActionMailer
   class Railtie < Rails::Railtie
     config.action_mailer = ActiveSupport::OrderedOptions.new
 
-    require "action_mailer/railties/log_subscriber"
-    log_subscriber :action_mailer, ActionMailer::Railties::LogSubscriber.new
-
     initializer "action_mailer.logger" do
       ActiveSupport.on_load(:action_mailer) { self.logger ||= Rails.logger }
     end

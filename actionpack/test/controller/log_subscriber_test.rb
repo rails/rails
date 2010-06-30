@@ -1,6 +1,6 @@
 require "abstract_unit"
-require "rails/log_subscriber/test_helper"
-require "action_controller/railties/log_subscriber"
+require "active_support/log_subscriber/test_helper"
+require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
@@ -37,7 +37,7 @@ end
 
 class ACLogSubscriberTest < ActionController::TestCase
   tests Another::LogSubscribersController
-  include Rails::LogSubscriber::TestHelper
+  include ActiveSupport::LogSubscriber::TestHelper
 
   def setup
     super
@@ -47,12 +47,12 @@ class ACLogSubscriberTest < ActionController::TestCase
     @cache_path = File.expand_path('../temp/test_cache', File.dirname(__FILE__))
     ActionController::Base.page_cache_directory = @cache_path
     @controller.cache_store = :file_store, @cache_path
-    Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
+    ActionController::LogSubscriber.attach_to :action_controller
   end
 
   def teardown
     super
-    Rails::LogSubscriber.log_subscribers.clear
+    ActiveSupport::LogSubscriber.log_subscribers.clear
     FileUtils.rm_rf(@cache_path)
     ActionController::Base.logger = @old_logger
   end

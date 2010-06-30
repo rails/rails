@@ -5,10 +5,7 @@ module InitializableTests
 
   class Foo
     include Rails::Initializable
-
-    class << self
-      attr_accessor :foo, :bar
-    end
+    attr_accessor :foo, :bar
 
     initializer :start do
       @foo ||= 0
@@ -158,30 +155,22 @@ module InitializableTests
     include ActiveSupport::Testing::Isolation
 
     test "initializers run" do
-      Foo.run_initializers
-      assert_equal 1, Foo.foo
+      foo = Foo.new
+      foo.run_initializers
+      assert_equal 1, foo.foo
     end
 
     test "initializers are inherited" do
-      Bar.run_initializers
-      assert_equal [1, 1], [Bar.foo, Bar.bar]
+      bar = Bar.new
+      bar.run_initializers
+      assert_equal [1, 1], [bar.foo, bar.bar]
     end
 
     test "initializers only get run once" do
-      Foo.run_initializers
-      Foo.run_initializers
-      assert_equal 1, Foo.foo
-    end
-
-    test "running initializers on children does not effect the parent" do
-      Bar.run_initializers
-      assert_nil Foo.foo
-      assert_nil Foo.bar
-    end
-
-    test "initializing with modules" do
-      Word.run_initializers
-      assert_equal "bird", $word
+      foo = Foo.new
+      foo.run_initializers
+      foo.run_initializers
+      assert_equal 1, foo.foo
     end
 
     test "creating initializer without a block raises an error" do
@@ -198,19 +187,19 @@ module InitializableTests
   class BeforeAfter < ActiveSupport::TestCase
     test "running on parent" do
       $arr = []
-      Parent.run_initializers
+      Parent.new.run_initializers
       assert_equal [5, 1, 2], $arr
     end
 
     test "running on child" do
       $arr = []
-      Child.run_initializers
+      Child.new.run_initializers
       assert_equal [5, 3, 1, 4, 2], $arr
     end
 
     test "handles dependencies introduced before all initializers are loaded" do
       $arr = []
-      Interdependent::Application.run_initializers
+      Interdependent::Application.new.run_initializers
       assert_equal [1, 2, 3, 4], $arr
     end
   end

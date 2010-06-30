@@ -194,9 +194,12 @@ module ActionDispatch
       @env['rack.input']
     end
 
+    # TODO This should be broken apart into AD::Request::Session and probably
+    # be included by the session middleware.
     def reset_session
-      self.session_options.delete(:id)
+      session.destroy if session
       self.session = {}
+      @env['action_dispatch.request.flash_hash'] = nil
     end
 
     def session=(session) #:nodoc:

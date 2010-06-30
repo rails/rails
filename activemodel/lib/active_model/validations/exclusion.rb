@@ -1,4 +1,6 @@
 module ActiveModel
+
+  # == Active Model Exclusion Validator
   module Validations
     class ExclusionValidator < EachValidator
       def check_validity!
@@ -7,8 +9,9 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        return unless options[:in].include?(value)
-        record.errors.add(attribute, :exclusion, :default => options[:message], :value => value)
+        if options[:in].include?(value)
+          record.errors.add(attribute, :exclusion, options.except(:in).merge!(:value => value))
+        end
       end
     end
 

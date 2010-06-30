@@ -1,10 +1,12 @@
 require 'active_support/core_ext/object/blank'
 
 module ActiveModel
+
+  # == Active Model Presence Validator
   module Validations
     class PresenceValidator < EachValidator
       def validate(record)
-        record.errors.add_on_blank(attributes, options[:message])
+        record.errors.add_on_blank(attributes, options)
       end
     end
 

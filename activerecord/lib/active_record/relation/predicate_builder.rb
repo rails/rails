@@ -20,15 +20,13 @@ module ActiveRecord
             table = Arel::Table.new(table_name, :engine => @engine)
           end
 
-          unless attribute = table[column]
-            raise StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
-          end
+          attribute = table[column] || Arel::Attribute.new(table, column)
 
           case value
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
             values = value.to_a
             attribute.in(values)
-          when Range
+          when Range, Arel::Relation
             attribute.in(value)
           else
             attribute.eq(value)

@@ -45,12 +45,16 @@ module ActiveSupport
         end
       end
 
+      def _run_class_setup      # class setup method should only happen in parent
+        unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
+          self.class.setup if self.class.respond_to?(:setup)
+          @@ran_class_setup = true
+        end
+      end
+
       module TestUnit
         def run(result)
-          unless defined?(@@ran_class_setup)
-            self.class.setup if self.class.respond_to?(:setup)
-            @@ran_class_setup = true
-          end
+          _run_class_setup
 
           yield(Test::Unit::TestCase::STARTED, name)
 
@@ -74,10 +78,7 @@ module ActiveSupport
 
       module MiniTest
         def run(runner)
-          unless defined?(@@ran_class_setup)
-            self.class.setup if self.class.respond_to?(:setup)
-            @@ran_class_setup = true
-          end
+          _run_class_setup
 
           serialized = run_in_isolation do |isolated_runner|
             super(isolated_runner)
@@ -109,6 +110,8 @@ module ActiveSupport
       end
 
       module Subprocess
+        ORIG_ARGV = ARGV.dup unless defined?(ORIG_ARGV)
+
         # Crazy H4X to get this working in windows / jruby with
         # no forking.
         def run_in_isolation(&blk)

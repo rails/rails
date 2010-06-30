@@ -2,6 +2,7 @@ require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'
 require 'active_support/dependencies'
+require 'active_support/descendants_tracker'
 require 'active_support/time'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
@@ -14,13 +15,17 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
+require 'active_record/log_subscriber'
 
 module ActiveRecord #:nodoc:
+  # = Active Record 
+  #
   # Active Record objects don't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
   # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain
@@ -274,27 +279,17 @@ module ActiveRecord #:nodoc:
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
 
-    def self.inherited(child) #:nodoc:
-      @@subclasses[self] ||= []
-      @@subclasses[self] << child
-      super
-    end
-
-    def self.reset_subclasses #:nodoc:
-      nonreloadables = []
-      subclasses.each do |klass|
-        unless ActiveSupport::Dependencies.autoloaded? klass
-          nonreloadables << klass
-          next
-        end
-        klass.instance_variables.each { |var| klass.send(:remove_instance_variable, var) }
-        klass.instance_methods(false).each { |m| klass.send :undef_method, m }
+    class << self
+      def reset_subclasses #:nodoc:
+        ActiveSupport::Deprecation.warn 'ActiveRecord::Base.reset_subclasses no longer does anything in Rails 3. It will be removed in the final release; please update your apps and plugins.', caller
       end
-      @@subclasses = {}
-      nonreloadables.each { |klass| (@@subclasses[klass.superclass] ||= []) << klass }
-    end
 
-    @@subclasses = {}
+      def subclasses
+        descendants
+      end
+
+      deprecate :subclasses => :descendants
+    end
 
     ##
     # :singleton-method:
@@ -403,7 +398,7 @@ module ActiveRecord #:nodoc:
 
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -725,14 +720,6 @@ module ActiveRecord #:nodoc:
       end
       alias :sequence_name= :set_sequence_name
 
-      # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
-      def class_name(table_name = table_name) # :nodoc:
-        # remove any prefix and/or suffix from the table name
-        class_name = table_name[table_name_prefix.length..-(table_name_suffix.length + 1)].camelize
-        class_name = class_name.singularize if pluralize_table_names
-        class_name
-      end
-
       # Indicates whether the table associated with this class exists
       def table_exists?
         connection.table_exists?(table_name)
@@ -806,11 +793,11 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @unscoped = @arel_table = nil
+        @arel_engine = @relation = @arel_table = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
-        subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
+        descendants.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
       def attribute_method?(attribute)
@@ -909,9 +896,9 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      def unscoped
-        @unscoped ||= Relation.new(self, arel_table)
-        finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
+      def relation
+        @relation ||= Relation.new(self, arel_table)
+        finder_needs_type_condition? ? @relation.where(type_condition) : @relation
       end
 
       def arel_table
@@ -928,6 +915,31 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      # Returns a scope for this class without taking into account the default_scope.
+      #
+      #   class Post < ActiveRecord::Base
+      #     default_scope :published => true
+      #   end
+      #
+      #   Post.all          # Fires "SELECT * FROM posts WHERE published = true"
+      #   Post.unscoped.all # Fires "SELECT * FROM posts"
+      #
+      # This method also accepts a block meaning that all queries inside the block will
+      # not use the default_scope:
+      #
+      #   Post.unscoped {
+      #     limit(10) # Fires "SELECT * FROM posts LIMIT 10"
+      #   }
+      #
+      def unscoped
+        block_given? ? relation.scoping { yield } : relation
+      end
+
+      def scoped_methods #:nodoc:
+        key = :"#{self}_scoped_methods"
+        Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
+      end
+
       private
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
@@ -935,8 +947,8 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.instance_variable_set(:'@attributes', record)
-          object.instance_variable_set(:'@attributes_cache', {})
+          object.instance_variable_set(:@attributes, record)
+          object.instance_variable_set(:@attributes_cache, {})
           object.instance_variable_set(:@new_record, false)
           object.instance_variable_set(:@readonly, false)
           object.instance_variable_set(:@destroyed, false)
@@ -975,7 +987,7 @@ module ActiveRecord #:nodoc:
         def type_condition
           sti_column = arel_table[inheritance_column]
           condition = sti_column.eq(sti_name)
-          subclasses.each{|subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
+          descendants.each { |subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
 
           condition
         end
@@ -1162,16 +1174,22 @@ module ActiveRecord #:nodoc:
 
         # Works like with_scope, but discards any nested properties.
         def with_exclusive_scope(method_scoping = {}, &block)
+          if method_scoping.values.any? { |e| e.is_a?(ActiveRecord::Relation) }
+            raise ArgumentError, <<-MSG
+New finder API can not be used with_exclusive_scope. You can either call unscoped to get an anonymous scope not bound to the default_scope:
+
+  User.unscoped.where(:active => true)
+
+Or call unscoped with a block:
+
+  User.unscoped do
+    User.where(:active => true).all
+  end
+
+MSG
+          end
           with_scope(method_scoping, :overwrite, &block)
         end
-
-        # Returns a list of all subclasses of this class, meaning all descendants.
-        def subclasses
-          @@subclasses[self] ||= []
-          @@subclasses[self] + @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
-        end
-
-        public :subclasses
 
         # Sets the default options for the model. The format of the
         # <tt>options</tt> argument is the same as in find.
@@ -1181,11 +1199,6 @@ module ActiveRecord #:nodoc:
         #   end
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
-        end
-
-        def scoped_methods #:nodoc:
-          key = :"#{self}_scoped_methods"
-          Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:
@@ -1440,14 +1453,6 @@ module ActiveRecord #:nodoc:
       # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
       # application specific and is therefore left to the application to implement according to its need.
       def initialize_copy(other)
-        # Think the assertion which fails if the after_initialize callback goes at the end of the method is wrong. The
-        # deleted clone method called new which therefore called the after_initialize callback. It then went on to copy
-        # over the attributes. But if it's copying the attributes afterwards then it hasn't finished initializing right?
-        # For example in the test suite the topic model's after_initialize method sets the author_email_address to
-        # test@test.com. I would have thought this would mean that all cloned models would have an author email address
-        # of test@test.com. However the test_clone test method seems to test that this is not the case. As a result the
-        # after_initialize callback has to be run *before* the copying of the atrributes rather than afterwards in order
-        # for all tests to pass. This makes no sense to me.
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
@@ -1460,6 +1465,7 @@ module ActiveRecord #:nodoc:
         end
 
         clear_aggregation_cache
+        clear_association_cache
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
@@ -1900,6 +1906,7 @@ module ActiveRecord #:nodoc:
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
     extend ActiveSupport::Benchmarkable
+    extend ActiveSupport::DescendantsTracker
 
     include ActiveModel::Conversion
     include Validations

@@ -39,11 +39,6 @@ module Rails
         select { |i| i.before == initializer.name || i.name == initializer.after }.each(&block)
       end
 
-      def initialize(initializers = [])
-        super(initializers)
-        replace(tsort)
-      end
-
       def +(other)
         Collection.new(to_a + other.to_a)
       end
@@ -51,7 +46,7 @@ module Rails
 
     def run_initializers(*args)
       return if instance_variable_defined?(:@ran)
-      initializers.each do |initializer|
+      initializers.tsort.each do |initializer|
         initializer.run(*args)
       end
       @ran = true
@@ -63,7 +58,7 @@ module Rails
 
     module ClassMethods
       def initializers
-        @initializers ||= []
+        @initializers ||= Collection.new
       end
 
       def initializers_chain
@@ -83,14 +78,6 @@ module Rails
         raise ArgumentError, "A block must be passed when defining an initializer" unless blk
         opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
         initializers << Initializer.new(name, nil, opts, &blk)
-      end
-
-      def run_initializers(*args)
-        return if @ran
-        initializers_chain.each do |initializer|
-          instance_exec(*args, &initializer.block)
-        end
-        @ran = true
       end
     end
   end

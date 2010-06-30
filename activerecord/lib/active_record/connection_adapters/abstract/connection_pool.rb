@@ -144,7 +144,9 @@ module ActiveRecord
         @connections.each do |conn|
           conn.disconnect! if conn.requires_reloading?
         end
-        @connections = []
+        @connections.delete_if do |conn|
+          conn.requires_reloading?
+        end
       end
 
       # Verify active connections and remove and disconnect connections

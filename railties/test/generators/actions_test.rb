@@ -130,9 +130,9 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
-    load_paths = 'config.load_paths += %w["#{Rails.root}/app/extras"]'
-    action :environment, load_paths
-    assert_file 'config/application.rb', /#{Regexp.escape(load_paths)}/
+    autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
+    action :environment, autoload_paths
+    assert_file 'config/application.rb', /#{Regexp.escape(autoload_paths)}/
   end
 
   def test_environment_with_block_should_include_block_contents_in_environment_initializer_block

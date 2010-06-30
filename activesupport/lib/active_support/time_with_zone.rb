@@ -18,7 +18,7 @@ module ActiveSupport
   #
   # See Time and TimeZone for further documentation of these methods.
   #
-  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangable. Examples:
+  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangeable. Examples:
   #
   #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25 EDT -04:00
   #   t.hour                                # => 13
