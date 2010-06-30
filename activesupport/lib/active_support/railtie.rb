@@ -25,14 +25,16 @@ module ActiveSupport
         if defaults.key?(env)
           msg = "You did not specify how you would like Rails to report " \
                 "deprecation notices for your #{env} environment, please " \
-                "set it to :#{defaults[env]} at config/environments/#{env}.rb"
+                "set config.active_support.deprecation to :#{defaults[env]} " \
+                "at config/environments/#{env}.rb"
 
           warn msg
           ActiveSupport::Deprecation.behavior = defaults[env]
         else
           msg = "You did not specify how you would like Rails to report " \
                 "deprecation notices for your #{env} environment, please " \
-                "set it to :log, :notify or :stderr at config/environments/#{env}.rb"
+                "set config.active_support.deprecation to :log, :notify or " \
+                ":stderr at config/environments/#{env}.rb"
 
           warn msg
           ActiveSupport::Deprecation.behavior = :stderr
