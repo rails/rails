@@ -58,13 +58,21 @@ module ActiveRecord
     end
 
     def update(*args) #:nodoc:
-      if record_timestamps && (!partial_updates? || changed?)
+      record_update_timestamps
+      super
+    end
+
+    def record_update_timestamps
+      if should_record_update_timestamps
         current_time = current_time_from_proper_timezone
         timestamp_attributes_for_update_in_model.each { |column| write_attribute(column.to_s, current_time) }
       end
-
-      super
     end
+
+    def should_record_update_timestamps
+      record_timestamps && (!partial_updates? || changed?)
+    end
+
 
     def timestamp_attributes_for_update #:nodoc:
       [:updated_at, :updated_on]

@@ -195,7 +195,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     [1, '1', true, 'true'].each do |truth|
       @pirate.reload.create_ship(:name => 'Mister Pablo')
       assert_difference('Ship.count', -1) do
-        @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_destroy => truth })
+        @pirate.update_attributes(:ship_attributes => { :id => @pirate.ship.id, :_destroy => truth })
       end
     end
   end
@@ -203,7 +203,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       assert_no_difference('Ship.count') do
-        @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_destroy => not_truth })
+        @pirate.update_attributes(:ship_attributes => { :id => @pirate.ship.id, :_destroy => not_truth })
       end
     end
   end
@@ -212,7 +212,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
 
     assert_no_difference('Ship.count') do
-      @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_destroy => '1' })
+      @pirate.update_attributes(:ship_attributes => { :id => @pirate.ship.id, :_destroy => '1' })
     end
 
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
@@ -247,13 +247,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_accept_update_only_option
-    @pirate.update_attribute(:update_only_ship_attributes, { :id => @pirate.ship.id, :name => 'Mayflower' })
+    @pirate.update_attributes(:update_only_ship_attributes => { :id => @pirate.ship.id, :name => 'Mayflower' })
   end
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
     @ship.delete
     assert_difference('Ship.count', 1) do
-      @pirate.reload.update_attribute(:update_only_ship_attributes, { :name => 'Mayflower' })
+      @pirate.reload.update_attributes(:update_only_ship_attributes => { :name => 'Mayflower' })
     end
   end
 
@@ -353,7 +353,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     [1, '1', true, 'true'].each do |truth|
       @ship.reload.create_pirate(:catchphrase => 'Arr')
       assert_difference('Pirate.count', -1) do
-        @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_destroy => truth })
+        @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => truth })
       end
     end
   end
@@ -361,7 +361,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       assert_no_difference('Pirate.count') do
-        @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_destroy => not_truth })
+        @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => not_truth })
       end
     end
   end
@@ -370,7 +370,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
 
     assert_no_difference('Pirate.count') do
-      @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_destroy => '1' })
+      @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => '1' })
     end
 
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
@@ -398,7 +398,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
     @pirate.delete
     assert_difference('Pirate.count', 1) do
-      @ship.reload.update_attribute(:update_only_pirate_attributes, { :catchphrase => 'Arr' })
+      @ship.reload.update_attributes(:update_only_pirate_attributes => { :catchphrase => 'Arr' })
     end
   end
 

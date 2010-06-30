@@ -893,6 +893,46 @@ class BasicsTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
+  def test_update_attribute_with_one_changed_and_one_updated
+    t = Topic.order('id').limit(1).first
+    title, author_name = t.title, t.author_name
+    t.author_name = 'John'
+    t.update_attribute(:title, 'super_title')
+    assert_equal 'John', t.author_name
+    assert_equal 'super_title', t.title
+    assert t.changed?, "topic should have changed"
+    assert t.author_name_changed?, "author_name should have changed"
+    assert !t.title_changed?, "title should not have changed"
+    assert_nil t.title_change, 'title change should be nil'
+    assert_equal ['author_name'], t.changed
+
+    t.reload
+    assert_equal 'David', t.author_name
+    assert_equal 'super_title', t.title
+  end
+
+  def test_update_attribute_with_one_updated
+    t = Topic.first
+    title = t.title
+    t.update_attribute(:title, 'super_title')
+    assert_equal 'super_title', t.title
+    assert !t.changed?, "topic should not have changed"
+    assert !t.title_changed?, "title should not have changed"
+    assert_nil t.title_change, 'title change should be nil'
+
+    t.reload
+    assert_equal 'super_title', t.title
+  end
+
+  def test_update_attribute_for_udpated_at_on
+    developer = Developer.find(1)
+    updated_at = developer.updated_at
+    developer.update_attribute(:salary, 80001)
+    assert_not_equal updated_at, developer.updated_at
+    developer.reload
+    assert_not_equal updated_at, developer.updated_at
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
