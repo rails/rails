@@ -896,11 +896,6 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      def relation
-        @relation ||= Relation.new(self, arel_table)
-        finder_needs_type_condition? ? @relation.where(type_condition) : @relation
-      end
-
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, :engine => arel_engine)
       end
@@ -941,6 +936,12 @@ module ActiveRecord #:nodoc:
       end
 
       private
+
+        def relation #:nodoc:
+          @relation ||= Relation.new(self, arel_table)
+          finder_needs_type_condition? ? @relation.where(type_condition) : @relation
+        end
+
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
