@@ -316,12 +316,12 @@ module ActiveSupport #:nodoc:
           result = @wrapped_string.slice(*args)
         elsif args.size == 1 && args[0].kind_of?(Numeric)
           character = Unicode.u_unpack(@wrapped_string)[args[0]]
-          result = character.nil? ? nil : [character].pack('U')
+          result = character && [character].pack('U')
         else
           cps = Unicode.u_unpack(@wrapped_string).slice(*args)
-          result = cps.nil? ? nil : cps.pack('U*')
+          result = cps && cps.pack('U*')
         end
-        result.nil? ? nil : chars(result)
+        result && chars(result)
       end
       alias_method :[], :slice
 
