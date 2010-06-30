@@ -135,13 +135,12 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_link_tag_with_query
     expected = %{<a href="http://www.example.com?q1=v1&amp;q2=v2">Hello</a>}
-    assert_dom_equal expected, link_to("Hello", "http://www.example.com?q1=v1&amp;q2=v2")
+    assert_dom_equal expected, link_to("Hello", "http://www.example.com?q1=v1&q2=v2")
   end
 
   def test_link_tag_with_query_and_no_name
-    link = link_to(nil, "http://www.example.com?q1=v1&q2=v2")
     expected = %{<a href="http://www.example.com?q1=v1&amp;q2=v2">http://www.example.com?q1=v1&amp;q2=v2</a>}
-    assert_dom_equal expected, link
+    assert_dom_equal expected, link_to(nil, "http://www.example.com?q1=v1&q2=v2")
   end
 
   def test_link_tag_with_back
