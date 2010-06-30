@@ -61,6 +61,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(topics(:first).author_email_address, Topic.find(1).author_email_address)
   end
 
+  def test_set_attributes_without_hash
+    topic = Topic.new
+    assert_nothing_raised do
+      topic.attributes = ''
+    end
+  end
+
   def test_integers_as_nil
     test = AutoId.create('value' => '')
     assert_nil AutoId.find(test.id).value
