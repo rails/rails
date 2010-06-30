@@ -105,7 +105,7 @@ module ActiveSupport #:nodoc:
         # Example:
         #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
         def +(other)
-          self << other
+          chars(@wrapped_string + other)
         end
 
         # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
@@ -316,11 +316,12 @@ module ActiveSupport #:nodoc:
           result = @wrapped_string.slice(*args)
         elsif args.size == 1 && args[0].kind_of?(Numeric)
           character = Unicode.u_unpack(@wrapped_string)[args[0]]
-          result = character.nil? ? nil : [character].pack('U')
+          result = character && [character].pack('U')
         else
-          result = Unicode.u_unpack(@wrapped_string).slice(*args).pack('U*')
+          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
+          result = cps && cps.pack('U*')
         end
-        result.nil? ? nil : chars(result)
+        result && chars(result)
       end
       alias_method :[], :slice
 

@@ -110,7 +110,11 @@ module ActiveRecord
           create_scoping = {}
           set_belongs_to_association_for(create_scoping)
           {
-            :find => { :conditions => @finder_sql, :readonly => false, :order => @reflection.options[:order], :limit => @reflection.options[:limit], :include => @reflection.options[:include]},
+            :find => { :conditions => @finder_sql, 
+                       :readonly => false, 
+                       :order => @reflection.options[:order], 
+                       :limit => @reflection.options[:limit], 
+                       :include => @reflection.options[:include]},
             :create => create_scoping
           }
         end

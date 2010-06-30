@@ -8,6 +8,36 @@ class FormTagHelperTest < ActionView::TestCase
     @controller = BasicController.new
   end
 
+  def snowman(options = {})
+    method = options[:method]
+
+    txt =  %{<div style="margin:0;padding:0;display:inline">}
+    txt << %{<input name="_snowman" type="hidden" value="&#9731;" />}
+    txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
+    txt << %{</div>}
+  end
+
+  def form_text(action = "http://www.example.com", options = {})
+    remote, enctype, html_class, id = options.values_at(:remote, :enctype, :html_class, :id)
+
+    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt << %{ enctype="multipart/form-data"} if enctype
+    txt << %{ data-remote="true"} if remote
+    txt << %{ class="#{html_class}"} if html_class
+    txt << %{ id="#{id}"} if id
+    txt << %{ method="post">}
+  end
+
+  def whole_form(action = "http://www.example.com", options = {})
+    out = form_text(action, options) + snowman(options)
+
+    if block_given?
+      out << yield << "</form>"
+    end
+
+    out
+  end
+
   def url_for(options)
     if options.is_a?(Hash)
       "http://www.example.com"
@@ -31,51 +61,57 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_form_tag
     actual = form_tag
-    expected = %(<form action="http://www.example.com" method="post">)
+    expected = whole_form
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_multipart
     actual = form_tag({}, { 'multipart' => true })
-    expected = %(<form action="http://www.example.com" enctype="multipart/form-data" method="post">)
+    expected = whole_form("http://www.example.com", :enctype => true)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_put
     actual = form_tag({}, { :method => :put })
-    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="put" /></div>)
+    expected = whole_form("http://www.example.com", :method => :put)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_delete
     actual = form_tag({}, { :method => :delete })
-    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="delete" /></div>)
+
+    expected = whole_form("http://www.example.com", :method => :delete)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_remote
     actual = form_tag({}, :remote => true)
-    expected = %(<form action="http://www.example.com" method="post" data-remote="true">)
+
+    expected = whole_form("http://www.example.com", :remote => true)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_remote_false
     actual = form_tag({}, :remote => false)
-    expected = %(<form action="http://www.example.com" method="post">)
+
+    expected = whole_form
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_block_in_erb
-    output_buffer = form_tag("http://example.com") { concat "Hello world!" }
+    output_buffer = form_tag("http://www.example.com") { concat "Hello world!" }
 
-    expected = %(<form action="http://example.com" method="post">Hello world!</form>)
+    expected = whole_form { "Hello world!" }
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method_in_erb
-    output_buffer = form_tag("http://example.com", :method => :put) { concat "Hello world!" }
+    output_buffer = form_tag("http://www.example.com", :method => :put) { concat "Hello world!" }
 
-    expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
+    expected = whole_form("http://www.example.com", :method => "put") do
+      "Hello world!"
+    end
+
     assert_dom_equal expected, output_buffer
   end
 

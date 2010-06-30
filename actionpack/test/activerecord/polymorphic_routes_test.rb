@@ -408,18 +408,18 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def with_admin_test_routes(options = {})
     with_routing do |set|
-      set.draw do |map|
-        map.namespace :admin do |admin|
-          admin.resources :projects do |projects|
-            projects.resources :tasks
-            projects.resource :bid do |bid|
-              bid.resources :tasks
+      set.draw do
+        namespace :admin do
+          resources :projects do
+            resources :tasks
+            resource :bid do
+              resources :tasks
             end
           end
-          admin.resources :taxes do |taxes|
-            taxes.resources :faxes
+          resources :taxes do
+            resources :faxes
           end
-          admin.resources :series
+          resources :series
         end
       end
 
@@ -430,12 +430,12 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def with_admin_and_site_test_routes(options = {})
     with_routing do |set|
-      set.draw do |map|
-        map.namespace :admin do |admin|
-          admin.resources :projects do |projects|
-            projects.namespace :site do |site|
-              site.resources :tasks do |tasks|
-                tasks.resources :steps
+      set.draw do
+        namespace :admin do
+          resources :projects do
+            namespace :site do
+              resources :tasks do
+                resources :steps
               end
             end
           end

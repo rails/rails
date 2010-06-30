@@ -15,12 +15,10 @@ module ActiveRecord
     end
 
     def eager_load(*args)
-      args.reject! { |a| a.blank? }
       clone.tap { |r| r.eager_load_values += args if args.present? }
     end
 
     def preload(*args)
-      args.reject! { |a| a.blank? }
       clone.tap { |r| r.preload_values += args if args.present? }
     end
 
@@ -28,29 +26,24 @@ module ActiveRecord
       if block_given?
         to_a.select { |*block_args| yield(*block_args) }
       else
-        args.reject! { |a| a.blank? }
         clone.tap { |r| r.select_values += args if args.present? }
       end
     end
 
     def group(*args)
-      args.reject! { |a| a.blank? }
       clone.tap { |r| r.group_values += args if args.present? }
     end
 
     def order(*args)
-      args.reject! { |a| a.blank? }
       clone.tap { |r| r.order_values += args if args.present? }
     end
 
     def reorder(*args)
-      args.reject! { |a| a.blank? }
       clone.tap { |r| r.order_values = args if args.present? }
     end
 
     def joins(*args)
       args.flatten!
-      args.reject! { |a| a.blank? }
       clone.tap { |r| r.joins_values += args if args.present? }
     end
 
@@ -93,8 +86,9 @@ module ActiveRecord
       clone.tap { |r| r.from_value = value }
     end
 
-    def extending(*modules)
-      clone.tap { |r| r.send :apply_modules, *modules }
+    def extending(*modules, &block)
+      modules << Module.new(&block) if block_given?
+      clone.tap { |r| r.send(:apply_modules, *modules) }
     end
 
     def reverse_order
@@ -201,7 +195,7 @@ module ActiveRecord
 
       stashed_association_joins = joins.select {|j| j.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)}
 
-      non_association_joins = (joins - association_joins - stashed_association_joins).reject {|j| j.blank?}
+      non_association_joins = (joins - association_joins - stashed_association_joins)
       custom_joins = custom_join_sql(*non_association_joins)
 
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)

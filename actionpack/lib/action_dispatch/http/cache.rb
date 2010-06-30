@@ -89,7 +89,7 @@ module ActionDispatch
           if etag? || last_modified? || !@cache_control.empty?
             set_conditional_cache_control!
           elsif nonempty_ok_response?
-            self.etag = @body
+            self.etag = body
 
             if request && request.etag_matches?(etag)
               self.status = 304

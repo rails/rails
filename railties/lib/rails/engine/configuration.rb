@@ -42,11 +42,11 @@ module Rails
       end
 
       def autoload_once_paths
-        @autoload_once_paths ||= paths.load_once
+        @autoload_once_paths ||= paths.autoload_once
       end
 
       def autoload_paths
-        @autoload_paths ||= paths.load_paths
+        @autoload_paths ||= paths.autoload_paths
       end
     end
   end

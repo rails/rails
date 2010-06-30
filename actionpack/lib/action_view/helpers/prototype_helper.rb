@@ -1,6 +1,5 @@
 require 'set'
 require 'active_support/json'
-require 'active_support/core_ext/object/returning'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
@@ -132,7 +131,7 @@ module ActionView
 
         url_options = options[:url]
         url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
-        function << "'#{escape_javascript(url_for(url_options))}'"
+        function << "'#{html_escape(escape_javascript(url_for(url_options)))}'"
         function << ", #{javascript_options})"
 
         function = "#{options[:before]}; #{function}" if options[:before]
@@ -228,7 +227,7 @@ module ActionView
         # <script> tag.
         module GeneratorMethods
           def to_s #:nodoc:
-            returning javascript = @lines * $/ do
+            (@lines * $/).tap do |javascript|
               if ActionView::Base.debug_rjs
                 source = javascript.dup
                 javascript.replace "try {\n#{source}\n} catch (e) "
@@ -530,9 +529,9 @@ module ActionView
             end
 
             def record(line)
-              returning line = "#{line.to_s.chomp.gsub(/\;\z/, '')};" do
-                self << line
-              end
+              line = "#{line.to_s.chomp.gsub(/\;\z/, '')};"
+              self << line
+              line
             end
 
             def render(*options)

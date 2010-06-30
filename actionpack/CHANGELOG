@@ -1,5 +1,14 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* link_to, button_to, and tag/tag_options now rely on html_escape instead of escape_once. [fxn]
+
+* url_for returns always unescaped strings, and the :escape option is gone. [fxn]
+
+* Added accept-charset parameter and _snowman hidden field to force the contents
+  of Rails POSTed forms to be in UTF-8 [Yehuda Katz]
+
+* Upgrade to Rack 1.2.1 [Jeremy Kemper]
+
 * Allow :path to be given to match/get/post/put/delete instead of :path_names in the new router [Carlos Antônio da Silva]
 
 * Added resources_path_names to the new router DSL [José Valim]
@@ -21,7 +30,6 @@
 * Add support for multi-subdomain session by setting cookie host in session cookie so you can share session between www.example.com, example.com and user.example.com. #4818 [Guillermo Álvarez]
 
 * Removed textilize, textilize_without_paragraph and markdown helpers. [Santiago Pastorino]
-
 
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 

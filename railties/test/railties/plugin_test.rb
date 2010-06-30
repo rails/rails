@@ -15,10 +15,6 @@ module RailtiesTest
       end
     end
 
-    def reload_config
-      :reload_plugins
-    end
-
     test "Rails::Plugin itself does not respond to config" do
       boot_rails
       assert !Rails::Plugin.respond_to?(:config)
@@ -35,6 +31,32 @@ module RailtiesTest
       boot_rails
       require "bukkits"
       assert_equal "Bukkits", Bukkits.name
+    end
+
+    test "plugin gets added to dependency list" do
+      boot_rails
+      assert_equal "Another", Another.name
+    end
+
+    test "plugin constants get reloaded if config.reload_plugins is set to true" do
+      add_to_config <<-RUBY
+        config.reload_plugins = true
+      RUBY
+
+      boot_rails
+
+      assert_equal "Another", Another.name
+      ActiveSupport::Dependencies.clear
+      @plugin.delete("lib/another.rb")
+      assert_raises(NameError) { Another }
+    end
+
+    test "plugin constants are not reloaded by default" do
+      boot_rails
+      assert_equal "Another", Another.name
+      ActiveSupport::Dependencies.clear
+      @plugin.delete("lib/another.rb")
+      assert_nothing_raised { Another }
     end
 
     test "it loads the plugin's init.rb file" do

@@ -1,5 +1,9 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Rails no longer autoload code in lib for application. You need to explicitly require it. [José Valim]
+
+* Rails::LogSubscriber was renamed to ActiveSupport::LogSubscriber [José Valim]
+
 * config.load_(once_)paths in config/application.rb got renamed to config.autoload_(once_)paths. [fxn]
 
 * Abort generation/booting on Ruby 1.9.1. [fxn]

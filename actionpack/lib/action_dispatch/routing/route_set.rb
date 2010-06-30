@@ -1,7 +1,9 @@
-require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
 require 'action_dispatch/routing/deprecated_mapper'
+
+$: << File.expand_path('../../vendor/rack-mount-0.6.6.pre', __FILE__)
+require 'rack/mount'
 
 module ActionDispatch
   module Routing
@@ -187,7 +189,7 @@ module ActionDispatch
 
       attr_accessor :set, :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class
+      attr_accessor :default_url_options, :request_class, :valid_conditions
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -199,7 +201,11 @@ module ActionDispatch
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
         self.default_url_options = {}
+
         self.request_class = request_class
+        self.valid_conditions = request_class.public_instance_methods.map { |m| m.to_sym }
+        self.valid_conditions.delete(:id)
+        self.valid_conditions.push(:controller, :action)
 
         @disable_clear_and_finalize = false
         clear!
@@ -277,7 +283,7 @@ module ActionDispatch
       end
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
-        route = Route.new(app, conditions, requirements, defaults, name, anchor)
+        route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
         @set.add_route(*route)
         named_routes[name] = route if name
         routes << route

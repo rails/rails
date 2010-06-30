@@ -58,12 +58,12 @@ module ActionController
 
     module ClassMethods
       def helpers_dir
-        ActiveSupport::Deprecation.warn "helpers_dir is deprecated, use helpers_path instead"
+        ActiveSupport::Deprecation.warn "helpers_dir is deprecated, use helpers_path instead", caller
         self.helpers_path
       end
 
       def helpers_dir=(value)
-        ActiveSupport::Deprecation.warn "helpers_dir= is deprecated, use helpers_path= instead"
+        ActiveSupport::Deprecation.warn "helpers_dir= is deprecated, use helpers_path= instead", caller
         self.helpers_path = Array(value)
       end
 

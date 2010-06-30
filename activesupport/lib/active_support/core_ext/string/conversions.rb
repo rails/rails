@@ -28,9 +28,8 @@ class String
     self[0]
   end unless method_defined?(:ord)
 
-  def getbyte(index)
-    self[index]
-  end if RUBY_VERSION < '1.9'
+  # +getbyte+ backport from Ruby 1.9
+  alias_method :getbyte, :[] unless method_defined?(:getbyte)
 
   # Form can be either :utc (default) or :local.
   def to_time(form = :utc)

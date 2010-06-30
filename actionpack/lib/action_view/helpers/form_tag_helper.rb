@@ -529,23 +529,34 @@ module ActionView
         def html_options_for_form(url_for_options, options, *parameters_for_url)
           returning options.stringify_keys do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
+            # The following URL is unescaped, this is just a hash of options, and it is the
+            # responsability of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options, *parameters_for_url)
+            html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
           end
         end
 
         def extra_tags_for_form(html_options)
-          case method = html_options.delete("method").to_s
+          snowman_tag = tag(:input, :type => "hidden",
+                            :name => "_snowman", :value => "&#9731;".html_safe)
+
+          method = html_options.delete("method").to_s
+
+          method_tag = case method
             when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
               html_options["method"] = "get"
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0;display:inline') : ''
+              token_tag
             else
               html_options["method"] = "post"
-              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0;display:inline')
+              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag
           end
+
+          tags = snowman_tag << method_tag
+          content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
 
         def form_tag_html(html_options)

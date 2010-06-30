@@ -12,6 +12,36 @@ module ActiveSupport
       require 'active_support/whiny_nil' if app.config.whiny_nils
     end
 
+    initializer "active_support.deprecation_behavior" do |app|
+      if deprecation = app.config.active_support.deprecation
+        ActiveSupport::Deprecation.behavior = deprecation
+      else
+        defaults = {"development" => :log,
+                    "production"  => :notify,
+                    "test"        => :stderr}
+
+        env = Rails.env
+
+        if defaults.key?(env)
+          msg = "You did not specify how you would like Rails to report " \
+                "deprecation notices for your #{env} environment, please " \
+                "set config.active_support.deprecation to :#{defaults[env]} " \
+                "at config/environments/#{env}.rb"
+
+          warn msg
+          ActiveSupport::Deprecation.behavior = defaults[env]
+        else
+          msg = "You did not specify how you would like Rails to report " \
+                "deprecation notices for your #{env} environment, please " \
+                "set config.active_support.deprecation to :log, :notify or " \
+                ":stderr at config/environments/#{env}.rb"
+
+          warn msg
+          ActiveSupport::Deprecation.behavior = :stderr
+        end
+      end
+    end
+
     # Sets the default value for Time.zone
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer "active_support.initialize_time_zone" do |app|

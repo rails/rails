@@ -365,7 +365,7 @@ module ActiveRecord
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
-        execute "DROP INDEX #{quote_column_name(index_name)} ON #{table_name}"
+        execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
       # Rename an index.

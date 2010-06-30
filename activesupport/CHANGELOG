@@ -1,5 +1,11 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Deprecation behavior is no longer hardcoded to the name of the environment.
+  Instead, it is set via config.active_support.deprecation and can be one
+  of :log, :stderr or :notify. :notify is a new style that sends the warning
+  via ActiveSupport::Notifications, and is the new default for production
+  [Yehuda Katz]
+
 * Renamed ActiveSupport::Dependecies.load_(once_)paths to autoload_(once_)paths. [fxn]
 
 * Added ActiveSupport::FileUpdateChecker to execute a block only if a set of files changed, used by Router and I18n locale files. [José Valim]

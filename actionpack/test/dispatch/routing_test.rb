@@ -35,6 +35,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      scope "bookmark", :controller => "bookmarks", :as => :bookmark do
+        get  :new, :path => "build"
+        post :create, :path => "create", :as => ""
+        put  :update
+        get  "remove", :action => :destroy, :as => :remove
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -330,6 +337,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :content
 
+      scope :constraints => { :id => /\d+/ } do
+        get '/tickets', :to => 'tickets#index', :as => :tickets
+      end
+
+      scope :constraints => { :id => /\d{4}/ } do
+        resources :movies do
+          resources :reviews
+          resource :trailer
+        end
+      end
+
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
@@ -531,6 +549,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/openid/login'
       assert_equal 'openid#login', @response.body
+    end
+  end
+
+  def test_bookmarks
+    with_test_routes do
+      get '/bookmark/build'
+      assert_equal 'bookmarks#new', @response.body
+      assert_equal '/bookmark/build', new_bookmark_path
+
+      post '/bookmark/create'
+      assert_equal 'bookmarks#create', @response.body
+      assert_equal '/bookmark/create', bookmark_path
+
+      put '/bookmark'
+      assert_equal 'bookmarks#update', @response.body
+      assert_equal '/bookmark', update_bookmark_path
+
+      get '/bookmark/remove'
+      assert_equal 'bookmarks#destroy', @response.body
+      assert_equal '/bookmark/remove', bookmark_remove_path
     end
   end
 
@@ -1543,6 +1581,50 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/messages/1'
       assert_equal 'messages#show', @response.body
+    end
+  end
+
+  def test_router_removes_invalid_conditions
+    with_test_routes do
+      get '/tickets'
+      assert_equal 'tickets#index', @response.body
+      assert_equal '/tickets', tickets_path
+    end
+  end
+
+  def test_constraints_are_merged_from_scope
+    with_test_routes do
+      get '/movies/0001'
+      assert_equal 'movies#show', @response.body
+      assert_equal '/movies/0001', movie_path(:id => '0001')
+
+      get '/movies/00001'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_path(:id => '00001') }
+
+      get '/movies/0001/reviews'
+      assert_equal 'reviews#index', @response.body
+      assert_equal '/movies/0001/reviews', movie_reviews_path(:movie_id => '0001')
+
+      get '/movies/00001/reviews'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_reviews_path(:movie_id => '00001') }
+
+      get '/movies/0001/reviews/0001'
+      assert_equal 'reviews#show', @response.body
+      assert_equal '/movies/0001/reviews/0001', movie_review_path(:movie_id => '0001', :id => '0001')
+
+      get '/movies/00001/reviews/0001'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_path(:movie_id => '00001', :id => '00001') }
+
+      get '/movies/0001/trailer'
+      assert_equal 'trailers#show', @response.body
+      assert_equal '/movies/0001/trailer', movie_trailer_path(:movie_id => '0001')
+
+      get '/movies/00001/trailer'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_trailer_path(:movie_id => '00001') }
     end
   end
 

@@ -173,7 +173,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
-    assert_equal very_special_client, VerySpecialClient.find(:first, :conditions => "name = 'veryspecial'")
+    assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
     assert_equal very_special_client, SpecialClient.find(:first, :conditions => "name = 'veryspecial'")
     assert_equal very_special_client, Company.find(:first, :conditions => "name = 'veryspecial'")
     assert_equal very_special_client, Client.find(:first, :conditions => "name = 'veryspecial'")

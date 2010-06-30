@@ -1,3 +1,7 @@
+# This file can be removed once with_exclusive_scope and with_scope are removed.
+# All the tests were already ported to relation_scoping_test.rb when the new
+# relation scoping API was added.
+
 require "cases/helper"
 require 'models/post'
 require 'models/author'
@@ -283,6 +287,12 @@ class NestedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_with_exclusive_scope_with_relation
+    assert_raise(ArgumentError) do
+      Developer.all_johns
+    end
+  end
+
   def test_append_conditions
     Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
       Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
@@ -534,204 +544,3 @@ class NestedScopingTest < ActiveRecord::TestCase
     assert_equal authors(:david).attributes, scoped_authors.first.attributes
   end
 end
-
-class HasManyScopingTest< ActiveRecord::TestCase
-  fixtures :comments, :posts
-
-  def setup
-    @welcome = Post.find(1)
-  end
-
-  def test_forwarding_of_static_methods
-    assert_equal 'a comment...', Comment.what_are_you
-    assert_equal 'a comment...', @welcome.comments.what_are_you
-  end
-
-  def test_forwarding_to_scoped
-    assert_equal 4, Comment.search_by_type('Comment').size
-    assert_equal 2, @welcome.comments.search_by_type('Comment').size
-  end
-
-  def test_forwarding_to_dynamic_finders
-    assert_equal 4, Comment.find_all_by_type('Comment').size
-    assert_equal 2, @welcome.comments.find_all_by_type('Comment').size
-  end
-
-  def test_nested_scope
-    Comment.send(:with_scope, :find => { :conditions => '1=1' }) do
-      assert_equal 'a comment...', @welcome.comments.what_are_you
-    end
-  end
-end
-
-class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
-  fixtures :posts, :categories, :categories_posts
-
-  def setup
-    @welcome = Post.find(1)
-  end
-
-  def test_forwarding_of_static_methods
-    assert_equal 'a category...', Category.what_are_you
-    assert_equal 'a category...', @welcome.categories.what_are_you
-  end
-
-  def test_forwarding_to_dynamic_finders
-    assert_equal 4, Category.find_all_by_type('SpecialCategory').size
-    assert_equal 0, @welcome.categories.find_all_by_type('SpecialCategory').size
-    assert_equal 2, @welcome.categories.find_all_by_type('Category').size
-  end
-
-  def test_nested_scope
-    Category.send(:with_scope, :find => { :conditions => '1=1' }) do
-      assert_equal 'a comment...', @welcome.comments.what_are_you
-    end
-  end
-end
-
-class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :posts
-
-  def test_default_scope
-    expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-
-  def test_default_scope_with_conditions_string
-    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.find(:all).map(&:id).sort
-    assert_equal nil, DeveloperCalledDavid.create!.name
-  end
-
-  def test_default_scope_with_conditions_hash
-    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.find(:all).map(&:id).sort
-    assert_equal 'Jamis', DeveloperCalledJamis.create!.name
-  end
-
-  def test_default_scoping_with_threads
-    2.times do
-      Thread.new { assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values }.join
-    end
-  end
-
-  def test_default_scoping_with_inheritance
-    # Inherit a class having a default scope and define a new default scope
-    klass = Class.new(DeveloperOrderedBySalary)
-    klass.send :default_scope, :limit => 1 
-
-    # Scopes added on children should append to parent scope
-    assert_equal 1,               klass.scoped.limit_value
-    assert_equal ['salary DESC'], klass.scoped.order_values
-
-    # Parent should still have the original scope
-    assert_nil DeveloperOrderedBySalary.scoped.limit_value
-    assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values
-  end
-
-  def test_default_scope_called_twice_merges_conditions
-    Developer.destroy_all
-    Developer.create!(:name => "David", :salary => 80000)
-    Developer.create!(:name => "David", :salary => 100000)
-    Developer.create!(:name => "Brian", :salary => 100000)
-
-    klass = Class.new(Developer)
-    klass.__send__ :default_scope, :conditions => { :name => "David" }
-    klass.__send__ :default_scope, :conditions => { :salary => 100000 }
-    assert_equal 1,       klass.count
-    assert_equal "David", klass.first.name
-    assert_equal 100000,  klass.first.salary
-  end
-  def test_method_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-
-  def test_nested_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
-      DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    end
-    assert_equal expected, received
-  end
-
-  def test_named_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
-    assert_equal expected, received
-  end
-
-  def test_nested_exclusive_scope
-    expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
-      DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    end
-    assert_equal expected, received
-  end
-
-  def test_overwriting_default_scope
-    expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-
-  def test_default_scope_using_relation
-    posts = PostWithComment.scoped
-    assert_equal 2, posts.count
-    assert_equal posts(:thinking), posts.first
-  end
-
-  def test_create_attribute_overwrites_default_scoping
-    assert_equal 'David', PoorDeveloperCalledJamis.create!(:name => 'David').name
-    assert_equal 200000, PoorDeveloperCalledJamis.create!(:name => 'David', :salary => 200000).salary
-  end
- 
-  def test_create_attribute_overwrites_default_values
-    assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
-    assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
-  end
-end
-
-=begin
-# We disabled the scoping for has_one and belongs_to as we can't think of a proper use case
-
-class BelongsToScopingTest< ActiveRecord::TestCase
-  fixtures :comments, :posts
-
-  def setup
-    @greetings = Comment.find(1)
-  end
-
-  def test_forwarding_of_static_method
-    assert_equal 'a post...', Post.what_are_you
-    assert_equal 'a post...', @greetings.post.what_are_you
-  end
-
-  def test_forwarding_to_dynamic_finders
-    assert_equal 4, Post.find_all_by_type('Post').size
-    assert_equal 1, @greetings.post.find_all_by_type('Post').size
-  end
-
-end
-
-class HasOneScopingTest< ActiveRecord::TestCase
-  fixtures :comments, :posts
-
-  def setup
-    @sti_comments = Post.find(4)
-  end
-
-  def test_forwarding_of_static_methods
-    assert_equal 'a comment...', Comment.what_are_you
-    assert_equal 'a very special comment...', @sti_comments.very_special_comment.what_are_you
-  end
-
-  def test_forwarding_to_dynamic_finders
-    assert_equal 1, Comment.find_all_by_type('VerySpecialComment').size
-    assert_equal 1, @sti_comments.very_special_comment.find_all_by_type('VerySpecialComment').size
-    assert_equal 0, @sti_comments.very_special_comment.find_all_by_type('Comment').size
-  end
-
-end
-
-=end

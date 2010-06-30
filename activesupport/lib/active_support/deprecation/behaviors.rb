@@ -1,28 +1,27 @@
+require "active_support/notifications"
+
 module ActiveSupport
   module Deprecation
     class << self
-      # Behavior is a block that takes a message argument.
-      attr_writer :behavior
-
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
 
       def behavior
-        @behavior ||= default_behavior
+        @behavior ||= DEFAULT_BEHAVIORS[:stderr]
       end
 
-      def default_behavior
-        Deprecation::DEFAULT_BEHAVIORS[defined?(Rails.env) ? Rails.env.to_s : 'test']
+      def behavior=(behavior)
+        @behavior = DEFAULT_BEHAVIORS[behavior] || behavior
       end
     end
 
-    # Default warning behaviors per Rails.env. Ignored in production.
+    # Default warning behaviors per Rails.env.
     DEFAULT_BEHAVIORS = {
-      'test' => Proc.new { |message, callstack|
+      :stderr => Proc.new { |message, callstack|
          $stderr.puts(message)
          $stderr.puts callstack.join("\n  ") if debug
        },
-      'development' => Proc.new { |message, callstack|
+      :log => Proc.new { |message, callstack|
          logger =
            if defined?(Rails) && Rails.logger
              Rails.logger
@@ -32,6 +31,10 @@ module ActiveSupport
            end
          logger.warn message
          logger.debug callstack.join("\n  ") if debug
+       },
+       :notify => Proc.new { |message, callstack|
+          ActiveSupport::Notifications.instrument("deprecation.rails",
+            :message => message, :callstack => callstack)
        }
     }
   end

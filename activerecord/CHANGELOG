@@ -1,6 +1,12 @@
 *Rails 3.0.0 [RC1] (unreleased)*
 
-* PostgreSQL: ensure the database time zone matches Ruby's time zone.  #4895 [Aaron Patterson]
+* Add scoping and unscoped as the syntax to replace the old with_scope and with_exclusive_scope [José Valim]
+
+* New rake task, db:migrate:status, displays status of migrations #4947 [Kevin Skoglund]
+
+* select and order for ActiveRecord now always concatenate nested calls. Use reorder if you want the original order to be overwritten [Santiago Pastorino]
+
+* PostgreSQL: ensure the database time zone matches Ruby's time zone #4895 [Aaron Patterson]
 
 
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*

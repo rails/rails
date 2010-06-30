@@ -178,9 +178,7 @@ module ActionView
       def flush_output_buffer #:nodoc:
         if output_buffer && !output_buffer.empty?
           response.body_parts << output_buffer
-          new = ''
-          new.force_encoding(output_buffer.encoding) if new.respond_to?(:force_encoding)
-          self.output_buffer = new
+          self.output_buffer = output_buffer[0,0]
           nil
         end
       end

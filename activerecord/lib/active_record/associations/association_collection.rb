@@ -409,6 +409,17 @@ module ActiveRecord
         end
 
         def method_missing(method, *args)
+          case method.to_s
+          when 'find_or_create'
+            return find(:first, :conditions => args.first) || create(args.first)
+          when /^find_or_create_by_(.*)$/
+            rest = $1
+            return  send("find_by_#{rest}", *args) ||
+                    method_missing("create_by_#{rest}", *args)
+          when /^create_by_(.*)$/
+            return create Hash[$1.split('_and_').zip(args)]
+          end
+
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?
               super { |*block_args| yield(*block_args) }
