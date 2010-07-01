@@ -136,6 +136,13 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 123, result
   end
 
+  def test_assert_deprecated_warn_work_with_default_behavior
+    ActiveSupport::Deprecation.instance_variable_set('@behavior' , nil)
+    assert_deprecated('abc') do
+      ActiveSupport::Deprecation.warn 'abc'
+    end
+  end
+
   def test_silence
     ActiveSupport::Deprecation.silence do
       assert_not_deprecated { @dtc.partially }

@@ -8,7 +8,7 @@ module ActiveSupport
       attr_accessor :debug
 
       def behavior
-        @behavior ||= DEFAULT_BEHAVIORS[:stderr]
+        @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
       def behavior=(behavior)
