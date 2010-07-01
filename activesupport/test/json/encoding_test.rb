@@ -1,7 +1,5 @@
 # encoding: utf-8
 require 'abstract_unit'
-require 'bigdecimal'
-require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/json'
 
 class TestJSONEncoding < Test::Unit::TestCase
@@ -136,6 +134,10 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   ensure
     ActiveSupport.use_standard_json_time_format = false
+  end
+
+  def test_hash_with_time_to_json
+    assert_equal '{"time":"2009/01/01 00:00:00 +0000"}', { :time => Time.utc(2009) }.to_json
   end
 
   def test_nested_hash_with_float

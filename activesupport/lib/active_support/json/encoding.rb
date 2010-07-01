@@ -9,7 +9,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/instance_variables'
-require 'active_support/time'
+require 'time'
 
 module ActiveSupport
   class << self
@@ -212,7 +212,7 @@ class Time
     if ActiveSupport.use_standard_json_time_format
       xmlschema
     else
-      %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
+      strftime("%Y/%m/%d %H:%M:%S %z")
     end
   end
 end
