@@ -34,6 +34,11 @@ module ActionController
           super
         end
 
+        def clear
+          load! unless @loaded
+          super
+        end
+
         def to_hash
           h = {}.replace(self)
           h.delete_if { |k,v| v.nil? }
