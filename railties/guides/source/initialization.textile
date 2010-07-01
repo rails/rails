@@ -141,7 +141,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * activesupport-3.0.0.beta4.gem
 * arel-0.4.0.gem
 * builder-2.1.2.gem
-* bundler-0.9.26.gem
+* bundler-1.0.0.beta.2.gem
 * erubis-2.6.5.gem
 * i18n-0.4.1.gem
 * mail-2.2.4.gem
