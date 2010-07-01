@@ -177,5 +177,27 @@ module RailtiesTest
 
       assert Bukkits::Engine.config.environment_loaded
     end
+
+    test "it passes router in env" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'hello'] }
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      env = Rack::MockRequest.env_for("/")
+      response = Bukkits::Engine.call(env)
+
+      assert_equal Bukkits::Engine.routes, env['action_dispatch.routes']
+
+      env = Rack::MockRequest.env_for("/")
+      response = Rails.application.call(env)
+
+      assert_equal Rails.application.routes, env['action_dispatch.routes']
+    end
   end
 end

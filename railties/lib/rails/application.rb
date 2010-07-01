@@ -125,10 +125,10 @@ module Rails
     end
 
     def env_defaults
-      @env_defaults ||= {
+      @env_defaults ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token
-      }
+      })
     end
 
     def initializers

@@ -159,7 +159,13 @@ module Rails
     end
 
     def call(env)
-      app.call(env)
+      app.call(env.reverse_merge!(env_defaults))
+    end
+
+    def env_defaults
+      @env_defaults ||= {
+        "action_dispatch.routes" => routes
+      }
     end
 
     def routes
