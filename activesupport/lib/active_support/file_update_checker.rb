@@ -1,16 +1,15 @@
 module ActiveSupport
   # This class is responsible to track files and invoke the given block
   # whenever one of these files are changed. For example, this class
-  # is used by Rails to reload routes whenever they are changed upon
-  # a new request.
+  # is used by Rails to reload the I18n framework whenever they are
+  # changed upon a new request.
   #
-  #   routes_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
-  #     paths.each { |p| load(p) }
-  #     Rails::Application.routes.reload!
+  #   i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
+  #     I18n.reload!
   #   end
   #
   #   ActionDispatch::Callbacks.to_prepare do
-  #     routes_reloader.execute_if_updated
+  #     i18n_reloader.execute_if_updated
   #   end
   #
   class FileUpdateChecker

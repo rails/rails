@@ -36,7 +36,7 @@ module ApplicationTests
 
     test "allows me to configure default url options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
-        Rails::Application.configure do
+        AppTemplate::Application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
         end
       RUBY

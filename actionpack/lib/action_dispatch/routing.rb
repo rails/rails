@@ -167,7 +167,7 @@ module ActionDispatch
   #
   # You can reload routes if you feel you must:
   #
-  #   Rails::Application.reload_routes!
+  #   Rails.application.reload_routes!
   #
   # This will clear all named routes and reload routes.rb if the file has been modified from
   # last load. To absolutely force reloading, use <tt>reload!</tt>.

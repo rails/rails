@@ -11,7 +11,7 @@ This guide first describes the process of +rails server+ then explains the Passe
 
 h3. Launch!
 
-As of Rails 3, +script/server+ has become +rails server+. This was done to centralise all rails related commands to one common file.
+As of Rails 3, +script/server+ has become +rails server+. This was done to centralize all rails related commands to one common file.
 
 The actual +rails+ command is kept in _railties/bin/rails_ and goes like this:
 
@@ -58,11 +58,8 @@ In +script/rails+ we see the following:
   #!/usr/bin/env ruby
   # This command will automatically be run when you run "rails" with Rails 3 gems installed from the root of your application.
 
-  ENV_PATH  = File.expand_path('../../config/environment',  __FILE__)
-  BOOT_PATH = File.expand_path('../../config/boot',  __FILE__)
-  APP_PATH  = File.expand_path('../../config/application',  __FILE__)
-
-  require BOOT_PATH
+  APP_PATH = File.expand_path('../../config/application',  __FILE__)
+  require File.expand_path('../../config/boot',  __FILE__)
   require 'rails/commands'
 </ruby>
 
@@ -79,15 +76,19 @@ h3. _config/boot.rb_
 _config/boot.rb_ is the first stop for everything for initializing your application. This boot process does quite a bit of work for you and so this section attempts to go in-depth enough to explain what each of the pieces does.
 
 <ruby>
-  # Use Bundler (preferred)
+  require 'rubygems'
+
+  # Set up gems listed in the Gemfile.
+  gemfile = File.expand_path('../../Gemfile', __FILE__)
   begin
-    require File.expand_path('../../.bundle/environment', __FILE__)
-  rescue LoadError
-    require 'rubygems'
+    ENV['BUNDLE_GEMFILE'] = gemfile
     require 'bundler'
     Bundler.setup
-  end
-
+  rescue Bundler::GemNotFound => e
+    STDERR.puts e.message
+    STDERR.puts "Try running `bundle install`."
+    exit!
+  end if File.exist?(gemfile)
 </ruby>
 
 h3. Bundled Rails (3.x)
@@ -164,33 +165,7 @@ TODO: Prettify when it becomes more stable.
 
 I won't go into what each of these gems are, as that is really something that needs covering on a case-by-case basis. We will however just dig a little under the surface of Bundler.
 
-Back in _config/boot.rb_, the first line will try to include _.bundle/environment.rb_, which doesn't exist in a bare-bones Rails application and because this file does not exist Ruby will raise a +LoadError+ which will be rescued and run the following code:
-
-<ruby>
-  require 'rubygems'
-  require 'bundler'
-  Bundler.setup
-</ruby>
-
-+Bundler.setup+ here will load and parse the +Gemfile+ and add the _lib_ directory of the gems mentioned **and** their dependencies (**and** their dependencies' dependencies, and so on) to the +$LOAD_PATH+.
-
-Now we will go down the alternate timeline where we generate a _.bundle/environment.rb_ file using the +bundle lock+ command. This command also creates a _Gemfile.lock_ file which is actually a YAML file loaded by this method in Bundler before it moves on to check for _Gemfile_:
-
-<ruby>
-  def definition(gemfile = default_gemfile)
-    configure
-    root = Pathname.new(gemfile).dirname
-    lockfile = root.join("Gemfile.lock")
-    if lockfile.exist?
-      Definition.from_lock(lockfile)
-    else
-      Definition.from_gemfile(gemfile)
-    end
-  end
-</ruby>
-
-
-The _.bundle/environment.rb_ file adds the _lib_ directory of all the gems specified in +Gemfile.lock+ to +$LOAD_PATH+.
+Back in _config/boot.rb_, we call +Bundler.setup+ which will load and parse the +Gemfile+ and add the _lib_ directory of the gems mentioned **and** their dependencies (**and** their dependencies' dependencies, and so on) to the +$LOAD_PATH+.
 
 h3. Requiring Rails
 
@@ -326,6 +301,11 @@ As you can see for the duration of the +eager_autoload+ block the class variable
   module ActiveSupport
     extend ActiveSupport::Autoload
 
+    autoload :DescendantsTracker
+    autoload :FileUpdateChecker
+    autoload :LogSubscriber
+    autoload :Notifications
+
     # TODO: Narrow this list down
     eager_autoload do
       autoload :BacktraceCleaner
@@ -348,7 +328,6 @@ As you can see for the duration of the +eager_autoload+ block the class variable
       autoload :OptionMerger
       autoload :OrderedHash
       autoload :OrderedOptions
-      autoload :Notifications
       autoload :Rescuable
       autoload :SecureRandom
       autoload :StringInquirer
@@ -589,19 +568,20 @@ This file (_railties/lib/rails.rb_) requires the very, very basics that Rails ne
   require 'action_dispatch/railtie'
 </ruby>
 
-+require 'pathname'+ requires the Pathname class which is used for returning a Pathname object for +Rails.root+ so that instead of doing:
-
-<ruby>
-  File.join(Rails.root, "app/controllers")
-</ruby>
-
-You may do:
++require 'pathname'+ requires the Pathname class which is used for returning a Pathname object for +Rails.root+. Although is coming to use this path name to generate paths as below:
 
 <ruby>
   Rails.root.join("app/controllers")
 </ruby>
 
-Although this is not new to Rails 3 (it was available in 2.3.5), it is something worthwhile pointing out.
+Pathname can also be converted to string, so the following syntax is preferred:
+
+<ruby>
+  "#{Rails.root}/app/controllers"
+</ruby>
+
+
+This works because Ruby automatically handles file path conversions. Although this is not new to Rails 3 (it was available in 2.3.5), it is something worthwhile pointing out.
 
 Inside this file there are other helpful helper methods defined, such as +Rails.root+, +Rails.env+, +Rails.logger+ and +Rails.application+.
 
@@ -1833,7 +1813,7 @@ We do not already have a +Rails.application+, so instead this resorts to calling
   end
 </ruby>
 
-This +called_from+ setting looks a little overwhelming to begin with, but the short end of it is that it returns the route to your application's config directory, something like: _/home/you/yourapp/config_. After +called_from+ has been set, +super+ is again called and this means the +Rails::Railtie#inherited+ method (in _railties/lib/rails/railtie.rb_):
+This +called_from+ setting looks a little overwhelming to begin with, but the short end of it is that it returns your application's root, something like: _/home/you/yourapp_. After +called_from+ has been set, +super+ is again called and this means the +Rails::Railtie#inherited+ method (in _railties/lib/rails/railtie.rb_):
 
 <ruby>
   def inherited(base)

@@ -8,14 +8,6 @@ module Rails
   # In Rails 3.0, a Rails::Application object was introduced which is nothing more than
   # an Engine but with the responsibility of coordinating the whole boot process.
   #
-  # Opposite to Rails::Engine, you can only have one Rails::Application instance
-  # in your process and both Rails::Application and YourApplication::Application
-  # points to it.
-  #
-  # In other words, Rails::Application is Singleton and whenever you are accessing
-  # Rails::Application.config or YourApplication::Application.config, you are actually
-  # accessing YourApplication::Application.instance.config.
-  #
   # == Initialization
   #
   # Rails::Application is responsible for executing all railties, engines and plugin
@@ -57,6 +49,10 @@ module Rails
 
       def instance
         if self == Rails::Application
+          if Rails.application
+            ActiveSupport::Deprecation.warn "Calling a method in Rails::Application is deprecated, " <<
+              "please call it directly in your application constant #{Rails.application.class.name}.", caller
+          end
           Rails.application
         else
           @@instance ||= new
