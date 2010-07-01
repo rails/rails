@@ -737,13 +737,13 @@ module ActionMailer #:nodoc:
         raise "You can no longer call ActionMailer::Base.default_url_options " \
               "directly. You need to set config.action_mailer.default_url_options. " \
               "If you are using ActionMailer standalone, you need to include the " \
-              "url_helpers of a router directly."
+              "url_helpers of a routes directly."
       end
     end
 
     # This module will complain if the user tries to set default_url_options
     # directly instead of through the config object. In Action Mailer's Railtie,
-    # we include the url_helpers of the router, which will override this module
+    # we include the url_helpers of the routes, which will override this module
     extend DeprecatedUrlOptions
 
     ActiveSupport.run_load_hooks(:action_mailer, self)

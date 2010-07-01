@@ -173,7 +173,7 @@ module ActionView #:nodoc:
     @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     class_attribute :helpers
-    class_attribute :_router
+    class_attribute :_routes
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'

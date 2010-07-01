@@ -41,7 +41,7 @@ require 'pp' # require 'pp' early to prevent hidden_methods from not picking up 
 module Rails
 end
 
-# Monkey patch the old router initialization to be silenced.
+# Monkey patch the old routes initialization to be silenced.
 class ActionDispatch::Routing::DeprecatedMapper
   def initialize_with_silencer(*args)
     ActiveSupport::Deprecation.silence { initialize_without_silencer(*args) }
@@ -275,9 +275,9 @@ end
 
 class ActionController::Base
   def self.test_routes(&block)
-    router = ActionDispatch::Routing::RouteSet.new
-    router.draw(&block)
-    include router.url_helpers
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.draw(&block)
+    include routes.url_helpers
   end
 end
 

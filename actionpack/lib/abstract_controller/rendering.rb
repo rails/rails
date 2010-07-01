@@ -50,8 +50,8 @@ module AbstractController
             if controller.respond_to?(:_helpers)
               include controller._helpers
 
-              if controller.respond_to?(:_router)
-                include controller._router.url_helpers
+              if controller.respond_to?(:_routes)
+                include controller._routes.url_helpers
               end
 
               # TODO: Fix RJS to not require this

@@ -268,10 +268,10 @@ module ActionDispatch
             # Yes plz - JP
             included do
               routes.install_helpers(self)
-              singleton_class.send(:define_method, :_router) { routes }
+              singleton_class.send(:define_method, :_routes) { routes }
             end
 
-            define_method(:_router) { routes }
+            define_method(:_routes) { routes }
           end
 
           helpers
@@ -474,7 +474,7 @@ module ActionDispatch
         path_options = yield(path_options) if block_given?
         path = generate(path_options, path_segments || {})
 
-        # ROUTES TODO: This can be called directly, so script_name should probably be set in the router
+        # ROUTES TODO: This can be called directly, so script_name should probably be set in routes
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
         rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
 
