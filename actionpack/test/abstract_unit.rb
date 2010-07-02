@@ -182,13 +182,16 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
-  class StubDispatcher
-    def self.new(*args)
-      lambda { |env|
-        params = env['action_dispatch.request.path_parameters']
-        controller, action = params[:controller], params[:action]
-        [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
-      }
+  # Stub Rails dispatcher so it does not get controller references and
+  # simply return the controller#action as Rack::Body.
+  class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
+    protected
+    def controller_reference(controller_param)
+      controller_param
+    end
+
+    def dispatch(controller, action, env)
+      [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
     end
   end
 

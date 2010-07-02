@@ -91,7 +91,7 @@ module ActionDispatch
 
           def app
             Constraints.new(
-              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
+              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults, :module => @scope[:module]),
               blocks,
               @set.request_class
             )

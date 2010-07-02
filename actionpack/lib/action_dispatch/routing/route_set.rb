@@ -14,6 +14,7 @@ module ActionDispatch
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
+          @module = options.delete(:module)
           @controllers = {}
         end
 
@@ -26,7 +27,7 @@ module ActionDispatch
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          controller.action(params[:action]).call(env)
+          dispatch(controller, params[:action], env)
         end
 
         def prepare_params!(params)
@@ -34,29 +35,44 @@ module ActionDispatch
           split_glob_param!(params) if @glob_param
         end
 
-        def controller(params, raise_error=true)
+        # If this is a default_controller (i.e. a controller specified by the user)
+        # we should raise an error in case it's not found, because it usually means
+        # an user error. However, if the controller was retrieved through a dynamic
+        # segment, as in :controller(/:action), we should simply return nil and
+        # delegate the control back to Rack cascade. Besides, if this is not a default 
+        # controller, it means we should respect the @scope[:module] parameter.
+        def controller(params, default_controller=true)
           if params && params.key?(:controller)
-            controller_param = params[:controller]
-            unless controller = @controllers[controller_param]
-              controller_name = "#{controller_param.camelize}Controller"
-              controller = @controllers[controller_param] =
-                ActiveSupport::Dependencies.ref(controller_name)
-            end
-
-            controller.get
+            controller_param = @module && !default_controller ?
+              "#{@module}/#{params[:controller]}" : params[:controller]
+            controller_reference(controller_param)
           end
         rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace if raise_error
+          raise ActionController::RoutingError, e.message, e.backtrace if default_controller
         end
 
-        private
-          def merge_default_action!(params)
-            params[:action] ||= 'index'
-          end
+      private
 
-          def split_glob_param!(params)
-            params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+        def controller_reference(controller_param)
+          unless controller = @controllers[controller_param]
+            controller_name = "#{controller_param.camelize}Controller"
+            controller = @controllers[controller_param] =
+              ActiveSupport::Dependencies.ref(controller_name)
           end
+          controller.get
+        end
+
+        def dispatch(controller, action, env)
+          controller.action(action).call(env)
+        end
+
+        def merge_default_action!(params)
+          params[:action] ||= 'index'
+        end
+
+        def split_glob_param!(params)
+          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+        end
       end
 
       # A NamedRouteCollection instance is a collection of named routes, and also

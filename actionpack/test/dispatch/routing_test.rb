@@ -310,11 +310,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match '/' => 'mes#index'
       end
 
-      namespace :private do
-        root :to => redirect('/private/index')
-        match "index", :to => 'private#index'
-      end
-
       get "(/:username)/followers" => "followers#index"
       get "/groups(/user/:username)" => "groups#index"
       get "(/user/:username)/photos" => "photos#index"
@@ -346,6 +341,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           resources :reviews
           resource :trailer
         end
+      end
+
+      namespace :private do
+        root :to => redirect('/private/index')
+        match "index", :to => 'private#index'
+        match ":controller(/:action(/:id))"
       end
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
@@ -467,6 +468,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/private/index', @response.headers['Location']
       assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_namespace_with_controller_segment
+    with_test_routes do
+      get '/private/foo'
+      assert_equal 'private/foo#index', @response.body
+
+      get '/private/foo/bar'
+      assert_equal 'private/foo#bar', @response.body
+
+      get '/private/foo/bar/1'
+      assert_equal 'private/foo#bar', @response.body
     end
   end
 
