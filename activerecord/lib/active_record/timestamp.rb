@@ -35,8 +35,7 @@ module ActiveRecord
       if attribute
         write_attribute(attribute, current_time)
       else
-        write_attribute('updated_at', current_time) if respond_to?(:updated_at)
-        write_attribute('updated_on', current_time) if respond_to?(:updated_on)
+        timestamp_attributes_for_update_in_model.each { |column| write_attribute(column.to_s, current_time) }
       end
 
       save!
@@ -50,8 +49,9 @@ module ActiveRecord
         write_attribute('created_at', current_time) if respond_to?(:created_at) && created_at.nil?
         write_attribute('created_on', current_time) if respond_to?(:created_on) && created_on.nil?
 
-        write_attribute('updated_at', current_time) if respond_to?(:updated_at) && updated_at.nil?
-        write_attribute('updated_on', current_time) if respond_to?(:updated_on) && updated_on.nil?
+        timestamp_attributes_for_update.each do |column|
+          write_attribute(column.to_s, current_time) if respond_to?(column) && self.send(column).nil?
+        end
       end
 
       super
@@ -60,16 +60,23 @@ module ActiveRecord
     def update(*args) #:nodoc:
       if record_timestamps && (!partial_updates? || changed?)
         current_time = current_time_from_proper_timezone
-
-        write_attribute('updated_at', current_time) if respond_to?(:updated_at)
-        write_attribute('updated_on', current_time) if respond_to?(:updated_on)
+        timestamp_attributes_for_update_in_model.each { |column| write_attribute(column.to_s, current_time) }
       end
 
       super
     end
+
+    def timestamp_attributes_for_update #:nodoc:
+      [:updated_at, :updated_on]
+    end
+
+    def timestamp_attributes_for_update_in_model #:nodoc:
+      ([:updated_at, :updated_on].inject([]) { |sum, elem| respond_to?(elem) ? sum << elem : sum })
+    end
     
-    def current_time_from_proper_timezone
+    def current_time_from_proper_timezone #:nodoc:
       self.class.default_timezone == :utc ? Time.now.utc : Time.now
     end
   end
 end
+
