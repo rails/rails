@@ -212,7 +212,7 @@ class Time
     if ActiveSupport.use_standard_json_time_format
       xmlschema
     else
-      strftime("%Y/%m/%d %H:%M:%S %z")
+      %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
     end
   end
 end
