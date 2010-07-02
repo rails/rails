@@ -121,14 +121,13 @@ module Rails
     end
 
     def reload_routes!
-      routes = Rails::Application.routes
-      routes.disable_clear_and_finalize = true
-
-      routes.clear!
+      _routes = self.routes
+      _routes.disable_clear_and_finalize = true
+      _routes.clear!
       routes_reloader.paths.each { |path| load(path) }
-      ActiveSupport.on_load(:action_controller) { routes.finalize! }
+      ActiveSupport.on_load(:action_controller) { _routes.finalize! }
     ensure
-      routes.disable_clear_and_finalize = false
+      _routes.disable_clear_and_finalize = false
     end
 
     def initialize!
