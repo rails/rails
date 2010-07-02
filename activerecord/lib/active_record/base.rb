@@ -1152,11 +1152,6 @@ MSG
           end
         end
 
-        # Returns the name of the class descending directly from Active Record in the inheritance hierarchy.
-        def class_name_of_active_record_descendant(klass) #:nodoc:
-          klass.base_class.name
-        end
-
         # Accepts an array, hash, or string of SQL conditions and sanitizes
         # them into a valid SQL fragment for a WHERE clause.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
