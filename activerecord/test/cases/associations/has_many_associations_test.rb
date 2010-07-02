@@ -11,6 +11,32 @@ require 'models/comment'
 require 'models/person'
 require 'models/reader'
 require 'models/tagging'
+require 'models/invoice'
+require 'models/line_item'
+
+class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
+  class Invoice < ActiveRecord::Base
+    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
+  end
+  def test_should_fail
+    assert_raise(ArgumentError) do
+      Invoice.create.custom_line_items.count(:conditions => {:amount => 0})
+    end
+  end
+end
+
+class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
+  class Invoice < ActiveRecord::Base
+    has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
+  end
+  def test_should_fail
+    assert_raise(ArgumentError) do
+      Invoice.create.custom_line_items.count(:conditions => {:amount => 0})
+    end
+  end
+end
+
+
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,

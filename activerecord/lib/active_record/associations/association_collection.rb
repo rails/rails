@@ -183,10 +183,13 @@ module ActiveRecord
       # descendant's +construct_sql+ method will have set :counter_sql automatically.
       # Otherwise, construct options and pass them with scope to the target class's +count+.
       def count(column_name = nil, options = {})
-        if @reflection.options[:counter_sql]
+        column_name, options = nil, column_name if column_name.is_a?(Hash)
+
+        if @reflection.options[:counter_sql] && !options.blank?
+          raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
+        elsif @reflection.options[:counter_sql]
           @reflection.klass.count_by_sql(@counter_sql)
         else
-          column_name, options = nil, column_name if column_name.is_a?(Hash)
 
           if @reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
