@@ -41,11 +41,6 @@ class Time
       ::Time.zone = old_zone
     end
 
-    # Returns <tt>Time.zone.now</tt> when <tt>config.time_zone</tt> is set, otherwise just returns <tt>Time.now</tt>.
-    def current
-      ::Time.zone_default ? ::Time.zone.now : ::Time.now
-    end
-
     private
       def get_zone(time_zone)
         return time_zone if time_zone.nil? || time_zone.is_a?(ActiveSupport::TimeZone)
