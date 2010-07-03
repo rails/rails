@@ -10,6 +10,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/instance_variables'
 require 'time'
+require 'active_support/core_ext/time/conversions'
 
 module ActiveSupport
   class << self
