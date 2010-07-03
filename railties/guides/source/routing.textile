@@ -647,11 +647,11 @@ end
 
 h4. Overriding the Named Helper Prefix
 
-You can use the :name_prefix option to add a prefix to the named route helpers that Rails generates for a route. You can use this option to prevent collisions between routes using a path scope.
+You can use the :as option to rename the named route helpers that Rails generates for a route. You can use this option to prevent collisions between routes using a path scope.
 
 <ruby>
 scope "admin" do
-  resources :photos, :name_prefix => "admin"
+  resources :photos, :as => "admin_photos"
 end
 
 resources :photos
@@ -662,14 +662,14 @@ This will provide route helpers such as +admin_photos_path+, +new_admin_photo_pa
 You could specify a name prefix to use for a group of routes in the scope:
 
 <ruby>
-scope "admin", :name_prefix => "admin" do
+scope "admin", :as => "admin" do
   resources :photos, :accounts
 end
 
 resources :photos, :accounts
 </ruby>
 
-NOTE: The +namespace+ scope will automatically add a +:name_prefix+ as well as +:module+ and +:path+ prefixes.
+NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ and +:path+ prefixes.
 
 h4. Restricting the Routes Created
 
@@ -722,13 +722,13 @@ ActiveSupport::Inflector.inflections do |inflect|
 end
 </ruby>
 
-h4(#nested-name-prefix). Using +:name_prefix+ in Nested Resources
+h4(#nested-names). Using +:as+ in Nested Resources
 
-The +:name_prefix+ option overrides the automatically-generated prefix for the parent resource in nested route helpers. For example,
+The +:as+ option overrides the automatically-generated name for the resource in nested route helpers. For example,
 
 <ruby>
 resources :magazines do
-  resources :ads, :name_prefix => 'periodical'
+  resources :ads, :as => 'periodical_ads'
 end
 </ruby>
 
