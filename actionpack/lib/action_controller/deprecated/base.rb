@@ -96,7 +96,7 @@ module ActionController
 
       def resource_action_separator=(val)
         ActiveSupport::Deprecation.warn "ActionController::Base.resource_action_separator is deprecated and only " \
-                                        "works with the deprecated routes DSL."
+                                        "works with the deprecated router DSL."
         @resource_action_separator = val
       end
 

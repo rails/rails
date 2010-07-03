@@ -13,8 +13,8 @@ module ActionController
     end
 
     def _routes
-      raise "In order to use #url_for, you must include the helpers of a particular " \
-            "routes. For instance, `include Rails.application.routes.url_helpers"
+      raise "In order to use #url_for, you must include routing helpers explicitly. " \
+            "For instance, `include Rails.application.routes.url_helpers"
     end
 
     module ClassMethods

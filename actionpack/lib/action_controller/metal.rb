@@ -47,7 +47,7 @@ module ActionController
   #
   # In AbstractController, dispatching is triggered directly by calling #process on a new controller.
   # ActionController::Metal provides an #action method that returns a valid Rack application for a
-  # given action. Other rack builders, such as Rack::Builder, Rack::URLMap, and the Rails routes,
+  # given action. Other rack builders, such as Rack::Builder, Rack::URLMap, and the Rails router,
   # can dispatch directly to the action returned by FooController.action(:index).
   class Metal < AbstractController::Base
     abstract!

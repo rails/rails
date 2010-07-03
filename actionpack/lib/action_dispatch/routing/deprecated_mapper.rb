@@ -30,7 +30,7 @@ module ActionDispatch
 
     class DeprecatedMapper #:nodoc:
       def initialize(set) #:nodoc:
-        ActiveSupport::Deprecation.warn "You are using the old routes DSL which will be removed in Rails 3.1. " <<
+        ActiveSupport::Deprecation.warn "You are using the old router DSL which will be removed in Rails 3.1. " <<
           "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
         @set = set
       end

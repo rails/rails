@@ -480,7 +480,7 @@ module ActionDispatch
         path_options = yield(path_options) if block_given?
         path = generate(path_options, path_segments || {})
 
-        # ROUTES TODO: This can be called directly, so script_name should probably be set in routes
+        # ROUTES TODO: This can be called directly, so script_name should probably be set in the routes
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
         rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
 

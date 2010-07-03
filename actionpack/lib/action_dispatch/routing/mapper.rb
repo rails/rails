@@ -308,7 +308,7 @@ module ActionDispatch
 
           if name_prefix = options.delete(:name_prefix)
             options[:as] ||= name_prefix
-            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new routes syntax. Use :as instead.", caller
+            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
           end
 
           case args.first
