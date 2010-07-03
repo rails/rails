@@ -714,13 +714,13 @@ Rails now creates routes to the +CategoriesControlleR+.
 
 h4. Overriding the Singular Form
 
-If you want to customize the singular name of the route in the named helpers, you can use the +:singular+ option.
+If you want to define the singular form of a resource, you should add additional rules to the +Inflector+.
 
 <ruby>
-resources :teeth, :singular => "tooth"
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.irregular 'tooth', 'teeth'
+end
 </ruby>
-
-TIP: If you want to define the singular form of a word for your entire application, you should add additional rules to the +Inflector+ instead.
 
 h4(#nested-name-prefix). Using +:name_prefix+ in Nested Resources
 
