@@ -1,3 +1,5 @@
+require 'active_support/core_ext/time/zones'
+
 class DateTime
   # Returns the simultaneous time in <tt>Time.zone</tt>.
   #

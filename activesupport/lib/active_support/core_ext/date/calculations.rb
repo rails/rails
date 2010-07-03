@@ -1,7 +1,8 @@
 require 'date'
 require 'active_support/duration'
-require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/date/zones'
+require 'active_support/core_ext/time/zones'
 
 class Date
   if RUBY_VERSION < '1.9'
