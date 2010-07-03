@@ -406,6 +406,14 @@ end
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
     test_routes do |map|
+      match 'url_helper_controller_test/url_helper/show/:id',
+        :to => 'url_helper_controller_test/url_helper#show',
+        :as => :show
+
+      match 'url_helper_controller_test/url_helper/profile/:name',
+        :to => 'url_helper_controller_test/url_helper#show',
+        :as => :profile
+
       match 'url_helper_controller_test/url_helper/show_named_route',
         :to => 'url_helper_controller_test/url_helper#show_named_route',
         :as => :show_named_route
@@ -416,6 +424,14 @@ class UrlHelperControllerTest < ActionController::TestCase
       match 'url_helper_controller_test/url_helper/normalize_recall_params',
         :to => UrlHelperController.action(:normalize_recall),
         :as => :normalize_recall_params
+    end
+
+    def show
+      if params[:name]
+        render :inline => 'ok'
+      else
+        redirect_to profile_path(params[:id])
+      end
     end
 
     def show_url_for
@@ -484,14 +500,23 @@ class UrlHelperControllerTest < ActionController::TestCase
     assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
 
-  def test_recall_params_should_be_normalized_when_using_block_route
+  def test_recall_params_should_be_normalized
     get :normalize_recall_params
     assert_equal '/url_helper_controller_test/url_helper/normalize_recall_params', @response.body
   end
 
-  def test_recall_params_should_not_be_changed_when_using_normal_route
+  def test_recall_params_should_not_be_changed
     get :recall_params_not_changed
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
+  end
+
+  def test_recall_params_should_normalize_id
+    get :show, :id => '123'
+    assert_equal 302, @response.status
+    assert_equal 'http://test.host/url_helper_controller_test/url_helper/profile/123', @response.location
+
+    get :show, :name => '123'
+    assert_equal 'ok', @response.body
   end
 end
 

@@ -318,7 +318,6 @@ module ActionDispatch
           @extras      = extras
 
           normalize_options!
-          normalize_recall!
           normalize_controller_action_id!
           use_relative_controller!
           controller.sub!(%r{^/}, '') if controller
@@ -335,7 +334,11 @@ module ActionDispatch
 
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
-            @options[key] = @recall.delete(key)
+            if named_route_exists?
+              @options[key] = @recall.delete(key) if segment_keys.include?(key)
+            else
+              @options[key] = @recall.delete(key)
+            end
           end
         end
 
@@ -356,15 +359,6 @@ module ActionDispatch
 
           if options[:action]
             options[:action] = options[:action].to_s
-          end
-        end
-
-        def normalize_recall!
-          # If the target route is not a standard route then remove controller and action
-          # from the options otherwise they will appear in the url parameters
-          if block_or_proc_route_target?
-            recall.delete(:controller) unless segment_keys.include?(:controller)
-            recall.delete(:action) unless segment_keys.include?(:action)
           end
         end
 
@@ -440,12 +434,8 @@ module ActionDispatch
             named_route && set.named_routes[named_route]
           end
 
-          def block_or_proc_route_target?
-            named_route_exists? && !set.named_routes[named_route].app.is_a?(Dispatcher)
-          end
-
           def segment_keys
-            named_route_exists? ? set.named_routes[named_route].segment_keys : []
+            set.named_routes[named_route].segment_keys
           end
       end
 
