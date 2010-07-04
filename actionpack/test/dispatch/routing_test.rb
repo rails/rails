@@ -1656,19 +1656,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'Not Found', @response.body
       assert_raises(ActionController::RoutingError){ movie_trailer_path(:movie_id => '00001') }
     end
+  end
 
-    def test_only_option_should_be_overwritten
+  def test_only_option_should_be_overwritten
+    with_test_routes do
       get '/clubs'
       assert_equal 'clubs#index', @response.body
       assert_equal '/clubs', clubs_path
 
       get '/clubs/1'
       assert_equal 'Not Found', @response.body
-      assert_raise(NameError) { club_path(:id => '1') }
+      assert_raise(NoMethodError) { club_path(:id => '1') }
 
       get '/clubs/1/players'
       assert_equal 'Not Found', @response.body
-      assert_raise(NameError) { club_players_path(:club_id => '1') }
+      assert_raise(NoMethodError) { club_players_path(:club_id => '1') }
 
       get '/clubs/1/players/2'
       assert_equal 'players#show', @response.body
@@ -1676,48 +1678,52 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/clubs/1/chairman/new'
       assert_equal 'Not Found', @response.body
-      assert_raise(NameError) { new_club_chairman_path(:club_id => '1') }
+      assert_raise(NoMethodError) { new_club_chairman_path(:club_id => '1') }
 
       get '/clubs/1/chairman'
       assert_equal 'chairmen#show', @response.body
       assert_equal '/clubs/1/chairman', club_chairman_path(:club_id => '1')
     end
+  end
 
-    def test_except_option_should_be_overwritten
+  def test_except_option_should_be_overwritten
+    with_test_routes do
       get '/sectors'
       assert_equal 'sectors#index', @response.body
       assert_equal '/sectors', sectors_path
 
-      get '/sectors/new'
+      get '/sectors/1/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NameError) { new_sector_path }
+      assert_raise(NoMethodError) { edit_sector_path(:id => '1') }
 
       delete '/sectors/1'
       assert_equal 'sectors#destroy', @response.body
 
       get '/sectors/1/companies/new'
       assert_equal 'companies#new', @response.body
-      assert_equal '/sectors/1/companies/new', new_sector_company_path
+      assert_equal '/sectors/1/companies/new', new_sector_company_path(:sector_id => '1')
 
       delete '/sectors/1/companies/1'
       assert_equal 'Not Found', @response.body
 
       get '/sectors/1/leader/new'
       assert_equal 'leaders#new', @response.body
-      assert_equal '/sectors/1/leader/new', new_sector_leader_path
+      assert_equal '/sectors/1/leader/new', new_sector_leader_path(:sector_id => '1')
 
       delete '/sectors/1/leader'
       assert_equal 'Not Found', @response.body
     end
+  end
 
-    def test_only_option_should_overwrite_except_option
+  def test_only_option_should_overwrite_except_option
+    with_test_routes do
       get '/sectors/1/companies/2/divisions'
       assert_equal 'divisions#index', @response.body
-      assert_equal '/sectors/1/companies/2/divisions', sector_company_divisions_path
+      assert_equal '/sectors/1/companies/2/divisions', sector_company_divisions_path(:sector_id => '1', :company_id => '2')
 
       get '/sectors/1/companies/2/divisions/3'
       assert_equal 'Not Found', @response.body
-      assert_raise(NameError) { sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+      assert_raise(NoMethodError) { sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
     end
   end
 
