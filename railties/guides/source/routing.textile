@@ -645,9 +645,9 @@ scope :path_names => { :new => "make" } do
 end
 </ruby>
 
-h4. Overriding the Named Helper Prefix
+h4. Prefixing the Named Route Helpers
 
-You can use the :as option to rename the named route helpers that Rails generates for a route. You can use this option to prevent collisions between routes using a path scope.
+You can use the +:as+ option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope.
 
 <ruby>
 scope "admin" do
@@ -659,7 +659,7 @@ resources :photos
 
 This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
-You could specify a name prefix to use for a group of routes in the scope:
+To prefix a group of routes, use +:as+ with +scope+:
 
 <ruby>
 scope "admin", :as => "admin" do
