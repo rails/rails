@@ -444,7 +444,7 @@ module ActionDispatch
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS = [:new, :collection, :member]
         CANONICAL_ACTIONS = [:index, :create, :new, :show, :update, :destroy]
-        MERGE_FROM_SCOPE_OPTIONS = [:shallow, :constraints]
+        RESOURCE_OPTIONS = [:as, :controller, :path]
 
         class Resource #:nodoc:
           DEFAULT_ACTIONS = [:index, :create, :new, :show, :update, :destroy, :edit]
@@ -463,16 +463,6 @@ module ActionDispatch
             self.class::DEFAULT_ACTIONS
           end
 
-          def actions
-            if only = options[:only]
-              Array(only).map(&:to_sym)
-            elsif except = options[:except]
-              default_actions - Array(except).map(&:to_sym)
-            else
-              default_actions
-            end
-          end
-
           def name
             @as || @name
           end
@@ -489,68 +479,31 @@ module ActionDispatch
             singular
           end
 
-          alias_method :nested_name, :member_name
-
           # Checks for uncountable plurals, and appends "_index" if they're.
           def collection_name
             singular == plural ? "#{plural}_index" : plural
           end
 
-          def shallow?
-            options[:shallow] ? true : false
-          end
-
-          def constraints
-            options[:constraints] || {}
-          end
-
-          def id_constraint?
-            options[:id] && options[:id].is_a?(Regexp) || constraints[:id] && constraints[:id].is_a?(Regexp)
-          end
-
-          def id_constraint
-            options[:id] || constraints[:id]
-          end
-
-          def collection_options
-            (options || {}).dup.tap do |opts|
-              opts.delete(:id)
-              opts[:constraints] = options[:constraints].dup if options[:constraints]
-              opts[:constraints].delete(:id) if options[:constraints].is_a?(Hash)
-            end
-          end
-
-          def nested_path
-            "#{path}/:#{singular}_id"
-          end
-
-          def nested_options
-            {}.tap do |opts|
-              opts[:as] = member_name
-              opts["#{singular}_id".to_sym] = id_constraint if id_constraint?
-              opts[:options] = { :shallow => shallow? } unless options[:shallow].nil?
-            end
-          end
-
           def resource_scope
-            [{ :controller => controller }]
+            { :controller => controller }
           end
 
           def collection_scope
-            [path, collection_options]
+            path
           end
 
           def member_scope
-            ["#{path}/:id", options]
+            "#{path}/:id"
           end
 
           def new_scope(new_path)
-            ["#{path}/#{new_path}"]
+            "#{path}/#{new_path}"
           end
 
           def nested_scope
-            [nested_path, nested_options]
+            "#{path}/:#{singular}_id"
           end
+
         end
 
         class SingletonResource < Resource #:nodoc:
@@ -559,7 +512,7 @@ module ActionDispatch
           def initialize(entities, options)
             @name       = entities.to_s
             @path       = options.delete(:path) || @name
-            @controller = (options.delete(:controller) || @name.to_s.pluralize).to_s
+            @controller = (options.delete(:controller) || plural).to_s
             @as         = options.delete(:as)
             @options    = options
           end
@@ -569,24 +522,10 @@ module ActionDispatch
           end
           alias :collection_name :member_name
 
-          def nested_path
+          def member_scope
             path
           end
-
-          def nested_options
-            {}.tap do |opts|
-              opts[:as] = member_name
-              opts[:options] = { :shallow => shallow? } unless @options[:shallow].nil?
-            end
-          end
-
-          def shallow?
-            false
-          end
-
-          def member_scope
-            [path, options]
-          end
+          alias :nested_scope :member_scope
         end
 
         def initialize(*args) #:nodoc:
@@ -610,17 +549,17 @@ module ActionDispatch
 
             collection_scope do
               post :create
-            end if parent_resource.actions.include?(:create)
+            end if resource_actions.include?(:create)
 
             new_scope do
               get :new
-            end if parent_resource.actions.include?(:new)
+            end if resource_actions.include?(:new)
 
             member_scope  do
-              get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
-              delete :destroy if parent_resource.actions.include?(:destroy)
-              get    :edit if parent_resource.actions.include?(:edit)
+              get    :show if resource_actions.include?(:show)
+              put    :update if resource_actions.include?(:update)
+              delete :destroy if resource_actions.include?(:destroy)
+              get    :edit if resource_actions.include?(:edit)
             end
           end
 
@@ -638,19 +577,19 @@ module ActionDispatch
             yield if block_given?
 
             collection_scope do
-              get  :index if parent_resource.actions.include?(:index)
-              post :create if parent_resource.actions.include?(:create)
+              get  :index if resource_actions.include?(:index)
+              post :create if resource_actions.include?(:create)
             end
 
             new_scope do
               get :new
-            end if parent_resource.actions.include?(:new)
+            end if resource_actions.include?(:new)
 
             member_scope  do
-              get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
-              delete :destroy if parent_resource.actions.include?(:destroy)
-              get    :edit if parent_resource.actions.include?(:edit)
+              get    :show if resource_actions.include?(:show)
+              put    :update if resource_actions.include?(:update)
+              delete :destroy if resource_actions.include?(:destroy)
+              get    :edit if resource_actions.include?(:edit)
             end
           end
 
@@ -693,18 +632,18 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            if parent_resource.shallow?
+            if shallow?
               with_exclusive_scope do
                 if @scope[:shallow_path].blank?
-                  scope(*parent_resource.nested_scope) { yield }
+                  scope(parent_resource.nested_scope, nested_options) { yield }
                 else
                   scope(@scope[:shallow_path], :as => @scope[:shallow_prefix]) do
-                    scope(*parent_resource.nested_scope) { yield }
+                    scope(parent_resource.nested_scope, nested_options) { yield }
                   end
                 end
               end
             else
-              scope(*parent_resource.nested_scope) { yield }
+              scope(parent_resource.nested_scope, nested_options) { yield }
             end
           end
         end
@@ -721,6 +660,10 @@ module ActionDispatch
           scope(:shallow => true) do
             yield
           end
+        end
+
+        def shallow?
+          parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
         def match(*args)
@@ -794,22 +737,29 @@ module ActionDispatch
             @scope[:scope_level_resource]
           end
 
+          def resource_actions
+            if only = @scope[:options][:only]
+              Array(only).map(&:to_sym)
+            elsif except = @scope[:options][:except]
+              parent_resource.default_actions - Array(except).map(&:to_sym)
+            else
+              parent_resource.default_actions
+            end
+          end
+
           def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
               return true
             end
 
-            if path_names = options.delete(:path_names)
-              scope(:path_names => path_names) do
+            scope_options = options.slice!(*RESOURCE_OPTIONS)
+            unless scope_options.empty?
+              scope(scope_options) do
                 send(method, resources.pop, options, &block)
               end
               return true
             end
-
-            scope_options = @scope.slice(*MERGE_FROM_SCOPE_OPTIONS).delete_if{ |k,v| v.blank? }
-            options.reverse_merge!(scope_options) unless scope_options.empty?
-            options.reverse_merge!(@scope[:options]) unless @scope[:options].blank?
 
             if resource_scope?
               nested do
@@ -853,7 +803,7 @@ module ActionDispatch
 
           def resource_scope(resource)
             with_scope_level(resource.is_a?(SingletonResource) ? :resource : :resources, resource) do
-              scope(*parent_resource.resource_scope) do
+              scope(parent_resource.resource_scope) do
                 yield
               end
             end
@@ -861,7 +811,7 @@ module ActionDispatch
 
           def new_scope
             with_scope_level(:new) do
-              scope(*parent_resource.new_scope(action_path(:new))) do
+              scope(parent_resource.new_scope(action_path(:new))) do
                 yield
               end
             end
@@ -869,7 +819,7 @@ module ActionDispatch
 
           def collection_scope
             with_scope_level(:collection) do
-              scope(*parent_resource.collection_scope) do
+              scope(parent_resource.collection_scope) do
                 yield
               end
             end
@@ -877,10 +827,25 @@ module ActionDispatch
 
           def member_scope
             with_scope_level(:member) do
-              scope(*parent_resource.member_scope) do
+              scope(parent_resource.member_scope) do
                 yield
               end
             end
+          end
+
+          def nested_options
+            {}.tap do |options|
+              options[:as] = parent_resource.member_name
+              options[:constraints] = { "#{parent_resource.singular}_id".to_sym => id_constraint } if id_constraint?
+            end
+          end
+
+          def id_constraint?
+            @scope[:id].is_a?(Regexp) || (@scope[:constraints] && @scope[:constraints][:id].is_a?(Regexp))
+          end
+
+          def id_constraint
+            @scope[:id] || @scope[:constraints][:id]
           end
 
           def canonical_action?(action, flag)
@@ -888,7 +853,7 @@ module ActionDispatch
           end
 
           def shallow_scoping?
-            parent_resource && parent_resource.shallow? && @scope[:scope_level] == :member
+            shallow? && @scope[:scope_level] == :member
           end
 
           def path_for_action(action, path)
