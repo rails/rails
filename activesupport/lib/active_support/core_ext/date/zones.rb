@@ -11,11 +11,4 @@ class Date
       to_time
     end
   end
-
-  # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
-  remove_method :xmlschema if instance_methods.include?(:xmlschema)
-
-  def xmlschema
-    to_time_in_current_zone.xmlschema
-  end
 end

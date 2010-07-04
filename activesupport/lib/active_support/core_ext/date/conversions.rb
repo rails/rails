@@ -1,5 +1,6 @@
 require 'date'
 require 'active_support/inflector'
+require 'active_support/core_ext/date/zones'
 
 class Date
   DATE_FORMATS = {
@@ -12,7 +13,10 @@ class Date
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
-  remove_method :to_time if instance_methods.include?(:to_time)
+  remove_method :to_time if method_defined?(:to_time)
+
+  # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
+  remove_method :xmlschema if method_defined?(:xmlschema)
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
@@ -77,7 +81,7 @@ class Date
   def to_time(form = :local)
     ::Time.send("#{form}_time", year, month, day)
   end
-  
+
   # Converts a Date instance to a DateTime, where the time is set to the beginning of the day
   # and UTC offset is set to 0.
   #
@@ -88,4 +92,8 @@ class Date
   def to_datetime
     ::DateTime.civil(year, month, day, 0, 0, 0, 0)
   end if RUBY_VERSION < '1.9'
+
+  def xmlschema
+    to_time_in_current_zone.xmlschema
+  end
 end
