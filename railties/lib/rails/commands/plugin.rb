@@ -335,7 +335,7 @@ module Commands
         command = Commands.const_get(command.capitalize).new(self)
         command.parse!(sub)
       else
-        puts "Unknown command: #{command}"
+        puts "Unknown command: #{command}" unless command.blank?
         puts options
         exit 1
       end
@@ -345,7 +345,7 @@ module Commands
       left = []
       left << args.shift while args[0] and args[0] =~ /^-/
       left << args.shift if args[0]
-      return [left, args]
+      [left, args]
     end
 
     def self.parse!(args=ARGV)
@@ -410,6 +410,10 @@ module Commands
 
     def parse!(args)
       options.parse!(args)
+      if args.blank?
+        puts options
+        exit 1
+      end
       environment = @base_command.environment
       install_method = determine_install_method
       puts "Plugins will be installed using #{install_method}" if $verbose
@@ -438,6 +442,10 @@ module Commands
 
     def parse!(args)
       options.parse!(args)
+      if args.blank?
+        puts options
+        exit 1
+      end
       root = @base_command.environment.root
       args.each do |name|
         ::Plugin.new(name).uninstall
