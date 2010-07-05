@@ -20,8 +20,8 @@ module ActionDispatch
       def in_memory_controller_namespaces
         namespaces = Set.new
         ActionController::Base.descendants.each do |klass|
-          controller_name = klass.name.underscore
-          namespaces << controller_name.split('/')[0...-1].join('/')
+          next if klass.anonymous?
+          namespaces << klass.name.underscore.split('/')[0...-1].join('/')
         end
         namespaces.delete('')
         namespaces
