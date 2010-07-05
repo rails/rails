@@ -4,16 +4,23 @@ module ActiveSupport
   # This module provides an internal implementation to track descendants
   # which is faster than iterating through ObjectSpace.
   module DescendantsTracker
-    @@descendants = Hash.new { |h, k| h[k] = [] }
+    @@direct_descendants = Hash.new { |h, k| h[k] = [] }
 
-    def self.descendants
-      @@descendants
+    def self.direct_descendants(klass)
+      @@direct_descendants[klass]
+    end
+
+    def self.descendants(klass)
+      @@direct_descendants[klass].inject([]) do |descendants, klass|
+        descendants << klass
+        descendants.concat klass.descendants
+      end
     end
 
     def self.clear
-      @@descendants.each do |klass, descendants|
+      @@direct_descendants.each do |klass, descendants|
         if ActiveSupport::Dependencies.autoloaded?(klass)
-          @@descendants.delete(klass)
+          @@direct_descendants.delete(klass)
         else
           descendants.reject! { |v| ActiveSupport::Dependencies.autoloaded?(v) }
         end
@@ -26,14 +33,11 @@ module ActiveSupport
     end
 
     def direct_descendants
-      @@descendants[self]
+      DescendantsTracker.direct_descendants(self)
     end
 
     def descendants
-      @@descendants[self].inject([]) do |descendants, klass|
-        descendants << klass
-        descendants.concat klass.descendants
-      end
+      DescendantsTracker.descendants(self)
     end
   end
 end

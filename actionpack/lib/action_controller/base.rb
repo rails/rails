@@ -60,17 +60,11 @@ module ActionController
     include ActionController::Compatibility
 
     def self.inherited(klass)
-      ::ActionController::Base.subclasses << klass.to_s
       super
       klass.helper :all
     end
 
-    def self.subclasses
-      @subclasses ||= []
-    end
-
     config_accessor :asset_host, :asset_path
-
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

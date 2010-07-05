@@ -94,7 +94,7 @@ module ActiveRecord
 
     def initialize
       super
-      observed_subclasses.each { |klass| add_observer!(klass) }
+      observed_descendants.each { |klass| add_observer!(klass) }
     end
 
     def self.method_added(method)
@@ -108,8 +108,8 @@ module ActiveRecord
 
     protected
 
-      def observed_subclasses
-        observed_classes.sum([]) { |klass| klass.send(:descendants) }
+      def observed_descendants
+        observed_classes.sum([]) { |klass| klass.descendants }
       end
 
       def observe_callbacks?
