@@ -13,6 +13,8 @@ module ActionDispatch
           end
         end
 
+        attr_reader :app
+
         def initialize(app, constraints, request)
           @app, @constraints, @request = app, constraints, request
         end

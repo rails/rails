@@ -45,7 +45,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
-      match 'account/overview'
+      constraints(lambda { |req| true }) do
+        match 'account/overview'
+      end
+
       match '/account/nested/overview'
       match 'sign_in' => "sessions#new"
 
