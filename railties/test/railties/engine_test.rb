@@ -127,5 +127,31 @@ module RailtiesTest
 
       assert Bukkits::Engine.config.yaffle_loaded
     end
+
+    test "engine can serve files" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            paths.public = "#{File.join(@plugin.path, "lib/bukkits/public")}"
+            config.serve_static_assets = true
+          end
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits/public/omg.txt", <<-RUBY
+        OMG
+      RUBY
+
+      boot_rails
+
+      Rails::Application.routes.draw do |map|
+        mount(Bukkits::Engine => "/bukkits")
+      end
+
+      env = Rack::MockRequest.env_for("/bukkits/omg.txt")
+      response = Rails::Application.call(env)
+
+      assert_equal response[2].path, File.join(@plugin.path, "lib/bukkits/public/omg.txt")
+    end
   end
 end

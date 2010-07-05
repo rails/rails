@@ -5,12 +5,13 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :middleware, :plugins
+      attr_accessor :middleware, :plugins, :serve_static_assets
 
       def initialize(root=nil)
         super()
         @root = root
-        @middleware = ActionDispatch::MiddlewareStack.new
+        @serve_static_assets = true
+        @middleware = Rails::Configuration::MiddlewareStackProxy.new
       end
 
       def paths

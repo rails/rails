@@ -152,11 +152,20 @@ module Rails
     end
 
     def app
-      @app ||= config.middleware.build(endpoint)
+      @app ||= begin
+        config.middleware = config.middleware.merge_into(default_middleware_stack)
+        config.middleware.build(endpoint)
+      end
     end
 
     def endpoint
       self.class.endpoint || routes
+    end
+
+    def default_middleware_stack
+      ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        middleware.use ::ActionDispatch::Static, paths.public.to_a.first if config.serve_static_assets
+      end
     end
 
     def call(env)

@@ -11,7 +11,7 @@ module Rails
                     :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger,
                     :preload_frameworks, :reload_plugins,
-                    :secret_token, :serve_static_assets, :session_options,
+                    :secret_token, :session_options,
                     :time_zone, :whiny_nils
 
       def initialize(*)
