@@ -323,7 +323,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match "whatever/:controller(/:action(/:id))"
+      match "whatever/:controller(/:action(/:id))", :id => /\d+/
 
       resource :profile do
         get :settings
@@ -349,7 +349,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       namespace :private do
         root :to => redirect('/private/index')
         match "index", :to => 'private#index'
-        match ":controller(/:action(/:id))"
       end
 
       scope :only => [:index, :show] do
@@ -527,15 +526,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_namespace_with_controller_segment
-    with_test_routes do
-      get '/private/foo'
-      assert_equal 'private/foo#index', @response.body
-
-      get '/private/foo/bar'
-      assert_equal 'private/foo#bar', @response.body
-
-      get '/private/foo/bar/1'
-      assert_equal 'private/foo#bar', @response.body
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw do
+          namespace :admin do
+            match '/:controller(/:action(/:id(.:format)))'
+          end
+        end
+      end
     end
   end
 
@@ -1351,6 +1349,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_equal 'http://www.example.com/whatever/foo/bar/1',
         url_for(:controller => "foo", :action => "bar", :id => 1)
+    end
+  end
+
+  def test_url_generator_for_namespaced_generic_route
+    with_test_routes do
+      get 'whatever/foo/bar/show'
+      assert_equal 'foo/bar#show', @response.body
+
+      get 'whatever/foo/bar/show/1'
+      assert_equal 'foo/bar#show', @response.body
+
+      assert_equal 'http://www.example.com/whatever/foo/bar/show',
+        url_for(:controller => "foo/bar", :action => "show")
+
+      assert_equal 'http://www.example.com/whatever/foo/bar/show/1',
+        url_for(:controller => "foo/bar", :action => "show", :id => '1')
     end
   end
 

@@ -65,6 +65,16 @@ module ActionDispatch
               end
             end
 
+            if path.match(':controller')
+              raise ArgumentError, ":controller segment is not allowed within a namespace block" if @scope[:module]
+
+              # Add a default constraint for :controller path segments that matches namespaced
+              # controllers with default routes like :controller/:action/:id(.:format), e.g:
+              # GET /admin/products/show/1
+              # => { :controller => 'admin/products', :action => 'show', :id => '1' }
+              options.reverse_merge!(:controller => /.+?/)
+            end
+
             path = normalize_path(path)
             path_without_format = path.sub(/\(\.:format\)$/, '')
 
@@ -93,7 +103,7 @@ module ActionDispatch
 
           def app
             Constraints.new(
-              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults, :module => @scope[:module]),
+              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
               blocks,
               @set.request_class
             )
@@ -135,8 +145,11 @@ module ActionDispatch
               defaults[:controller] ||= default_controller
               defaults[:action]     ||= default_action
 
-              defaults.delete(:controller) if defaults[:controller].blank?
-              defaults.delete(:action)     if defaults[:action].blank?
+              defaults.delete(:controller) if defaults[:controller].blank? || defaults[:controller].is_a?(Regexp)
+              defaults.delete(:action)     if defaults[:action].blank? || defaults[:action].is_a?(Regexp)
+
+              defaults[:controller] = defaults[:controller].to_s if defaults.key?(:controller)
+              defaults[:action] = defaults[:action].to_s if defaults.key?(:action)
 
               if defaults[:controller].blank? && segment_keys.exclude?("controller")
                 raise ArgumentError, "missing :controller"
@@ -185,15 +198,15 @@ module ActionDispatch
 
           def default_controller
             if @options[:controller]
-              @options[:controller].to_s
+              @options[:controller]
             elsif @scope[:controller]
-              @scope[:controller].to_s
+              @scope[:controller]
             end
           end
 
           def default_action
             if @options[:action]
-              @options[:action].to_s
+              @options[:action]
             end
           end
       end
