@@ -352,19 +352,55 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match ":controller(/:action(/:id))"
       end
 
-      scope :only => :index do
-        resources :clubs do
-          resources :players, :only => [:show]
-          resource  :chairman, :only => [:show]
+      scope :only => [:index, :show] do
+        namespace :only do
+          resources :clubs do
+            resources :players
+            resource  :chairman
+          end
         end
       end
 
-      scope :except => [:new, :create, :edit, :update] do
-        resources :sectors do
-          resources :companies, :except => :destroy do
-            resources :divisions, :only => :index
+      scope :except => [:new, :create, :edit, :update, :destroy] do
+        namespace :except do
+          resources :clubs do
+            resources :players
+            resource  :chairman
           end
-          resource  :leader, :except => :destroy
+        end
+      end
+
+      scope :only => :show do
+        namespace :only do
+          resources :sectors, :only => :index do
+            resources :companies do
+              scope :only => :index do
+                resources :divisions
+              end
+              scope :except => [:show, :update, :destroy] do
+                resources :departments
+              end
+            end
+            resource  :leader
+            resources :managers, :except => [:show, :update, :destroy]
+          end
+        end
+      end
+
+      scope :except => :index do
+        namespace :except do
+          resources :sectors, :except => [:show, :update, :destroy] do
+            resources :companies do
+              scope :except => [:show, :update, :destroy] do
+                resources :divisions
+              end
+              scope :only => :index do
+                resources :departments
+              end
+            end
+            resource  :leader
+            resources :managers, :only => :index
+          end
         end
       end
 
@@ -1661,72 +1697,179 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_only_option_should_be_overwritten
+  def test_only_should_be_read_from_scope
     with_test_routes do
-      get '/clubs'
-      assert_equal 'clubs#index', @response.body
-      assert_equal '/clubs', clubs_path
+      get '/only/clubs'
+      assert_equal 'only/clubs#index', @response.body
+      assert_equal '/only/clubs', only_clubs_path
 
-      get '/clubs/1'
+      get '/only/clubs/1/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { club_path(:id => '1') }
+      assert_raise(NoMethodError) { edit_only_club_path(:id => '1') }
 
-      get '/clubs/1/players'
+      get '/only/clubs/1/players'
+      assert_equal 'only/players#index', @response.body
+      assert_equal '/only/clubs/1/players', only_club_players_path(:club_id => '1')
+
+      get '/only/clubs/1/players/2/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { club_players_path(:club_id => '1') }
+      assert_raise(NoMethodError) { edit_only_club_player_path(:club_id => '1', :id => '2') }
 
-      get '/clubs/1/players/2'
-      assert_equal 'players#show', @response.body
-      assert_equal '/clubs/1/players/2', club_player_path(:club_id => '1', :id => '2')
+      get '/only/clubs/1/chairman'
+      assert_equal 'only/chairmen#show', @response.body
+      assert_equal '/only/clubs/1/chairman', only_club_chairman_path(:club_id => '1')
 
-      get '/clubs/1/chairman/new'
+      get '/only/clubs/1/chairman/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { new_club_chairman_path(:club_id => '1') }
-
-      get '/clubs/1/chairman'
-      assert_equal 'chairmen#show', @response.body
-      assert_equal '/clubs/1/chairman', club_chairman_path(:club_id => '1')
+      assert_raise(NoMethodError) { edit_only_club_chairman_path(:club_id => '1') }
     end
   end
 
-  def test_except_option_should_be_overwritten
+  def test_except_should_be_read_from_scope
     with_test_routes do
-      get '/sectors'
-      assert_equal 'sectors#index', @response.body
-      assert_equal '/sectors', sectors_path
+      get '/except/clubs'
+      assert_equal 'except/clubs#index', @response.body
+      assert_equal '/except/clubs', except_clubs_path
 
-      get '/sectors/1/edit'
+      get '/except/clubs/1/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_sector_path(:id => '1') }
+      assert_raise(NoMethodError) { edit_except_club_path(:id => '1') }
 
-      delete '/sectors/1'
-      assert_equal 'sectors#destroy', @response.body
+      get '/except/clubs/1/players'
+      assert_equal 'except/players#index', @response.body
+      assert_equal '/except/clubs/1/players', except_club_players_path(:club_id => '1')
 
-      get '/sectors/1/companies/new'
-      assert_equal 'companies#new', @response.body
-      assert_equal '/sectors/1/companies/new', new_sector_company_path(:sector_id => '1')
-
-      delete '/sectors/1/companies/1'
+      get '/except/clubs/1/players/2/edit'
       assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_except_club_player_path(:club_id => '1', :id => '2') }
 
-      get '/sectors/1/leader/new'
-      assert_equal 'leaders#new', @response.body
-      assert_equal '/sectors/1/leader/new', new_sector_leader_path(:sector_id => '1')
+      get '/except/clubs/1/chairman'
+      assert_equal 'except/chairmen#show', @response.body
+      assert_equal '/except/clubs/1/chairman', except_club_chairman_path(:club_id => '1')
 
-      delete '/sectors/1/leader'
+      get '/except/clubs/1/chairman/edit'
       assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_except_club_chairman_path(:club_id => '1') }
     end
   end
 
-  def test_only_option_should_overwrite_except_option
+  def test_only_option_should_override_scope
     with_test_routes do
-      get '/sectors/1/companies/2/divisions'
-      assert_equal 'divisions#index', @response.body
-      assert_equal '/sectors/1/companies/2/divisions', sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+      get '/only/sectors'
+      assert_equal 'only/sectors#index', @response.body
+      assert_equal '/only/sectors', only_sectors_path
 
-      get '/sectors/1/companies/2/divisions/3'
+      get '/only/sectors/1'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+      assert_raise(NoMethodError) { only_sector_path(:id => '1') }
+    end
+  end
+
+  def test_only_option_should_not_inherit
+    with_test_routes do
+      get '/only/sectors/1/companies/2'
+      assert_equal 'only/companies#show', @response.body
+      assert_equal '/only/sectors/1/companies/2', only_sector_company_path(:sector_id => '1', :id => '2')
+
+      get '/only/sectors/1/leader'
+      assert_equal 'only/leaders#show', @response.body
+      assert_equal '/only/sectors/1/leader', only_sector_leader_path(:sector_id => '1')
+    end
+  end
+
+  def test_except_option_should_override_scope
+    with_test_routes do
+      get '/except/sectors'
+      assert_equal 'except/sectors#index', @response.body
+      assert_equal '/except/sectors', except_sectors_path
+
+      get '/except/sectors/1'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_path(:id => '1') }
+    end
+  end
+
+  def test_except_option_should_not_inherit
+    with_test_routes do
+      get '/except/sectors/1/companies/2'
+      assert_equal 'except/companies#show', @response.body
+      assert_equal '/except/sectors/1/companies/2', except_sector_company_path(:sector_id => '1', :id => '2')
+
+      get '/except/sectors/1/leader'
+      assert_equal 'except/leaders#show', @response.body
+      assert_equal '/except/sectors/1/leader', except_sector_leader_path(:sector_id => '1')
+    end
+  end
+
+  def test_except_option_should_override_scoped_only
+    with_test_routes do
+      get '/only/sectors/1/managers'
+      assert_equal 'only/managers#index', @response.body
+      assert_equal '/only/sectors/1/managers', only_sector_managers_path(:sector_id => '1')
+
+      get '/only/sectors/1/managers/2'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_manager_path(:sector_id => '1', :id => '2') }
+    end
+  end
+
+  def test_only_option_should_override_scoped_except
+    with_test_routes do
+      get '/except/sectors/1/managers'
+      assert_equal 'except/managers#index', @response.body
+      assert_equal '/except/sectors/1/managers', except_sector_managers_path(:sector_id => '1')
+
+      get '/except/sectors/1/managers/2'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_manager_path(:sector_id => '1', :id => '2') }
+    end
+  end
+
+  def test_only_scope_should_override_parent_scope
+    with_test_routes do
+      get '/only/sectors/1/companies/2/divisions'
+      assert_equal 'only/divisions#index', @response.body
+      assert_equal '/only/sectors/1/companies/2/divisions', only_sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+
+      get '/only/sectors/1/companies/2/divisions/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+    end
+  end
+
+  def test_except_scope_should_override_parent_scope
+    with_test_routes do
+      get '/except/sectors/1/companies/2/divisions'
+      assert_equal 'except/divisions#index', @response.body
+      assert_equal '/except/sectors/1/companies/2/divisions', except_sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+
+      get '/except/sectors/1/companies/2/divisions/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+    end
+  end
+
+  def test_except_scope_should_override_parent_only_scope
+    with_test_routes do
+      get '/only/sectors/1/companies/2/departments'
+      assert_equal 'only/departments#index', @response.body
+      assert_equal '/only/sectors/1/companies/2/departments', only_sector_company_departments_path(:sector_id => '1', :company_id => '2')
+
+      get '/only/sectors/1/companies/2/departments/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_company_department_path(:sector_id => '1', :company_id => '2', :id => '3') }
+    end
+  end
+
+  def test_only_scope_should_override_parent_except_scope
+    with_test_routes do
+      get '/except/sectors/1/companies/2/departments'
+      assert_equal 'except/departments#index', @response.body
+      assert_equal '/except/sectors/1/companies/2/departments', except_sector_company_departments_path(:sector_id => '1', :company_id => '2')
+
+      get '/except/sectors/1/companies/2/departments/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_company_department_path(:sector_id => '1', :company_id => '2', :id => '3') }
     end
   end
 

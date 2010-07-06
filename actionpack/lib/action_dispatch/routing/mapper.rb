@@ -433,11 +433,15 @@ module ActionDispatch
           end
 
           def merge_options_scope(parent, child)
-            (parent || {}).merge(child)
+            (parent || {}).except(*override_keys(child)).merge(child)
           end
 
           def merge_shallow_scope(parent, child)
             child ? true : false
+          end
+
+          def override_keys(child)
+            child.key?(:only) || child.key?(:except) ? [:only, :except] : []
           end
       end
 
@@ -446,7 +450,7 @@ module ActionDispatch
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS = [:new, :collection, :member]
         CANONICAL_ACTIONS = [:index, :create, :new, :show, :update, :destroy]
-        RESOURCE_OPTIONS = [:as, :controller, :path]
+        RESOURCE_OPTIONS = [:as, :controller, :path, :only, :except]
 
         class Resource #:nodoc:
           DEFAULT_ACTIONS = [:index, :create, :new, :show, :update, :destroy, :edit]
@@ -463,6 +467,16 @@ module ActionDispatch
 
           def default_actions
             self.class::DEFAULT_ACTIONS
+          end
+
+          def actions
+            if only = @options[:only]
+              Array(only).map(&:to_sym)
+            elsif except = @options[:except]
+              default_actions - Array(except).map(&:to_sym)
+            else
+              default_actions
+            end
           end
 
           def name
@@ -551,17 +565,17 @@ module ActionDispatch
 
             collection_scope do
               post :create
-            end if resource_actions.include?(:create)
+            end if parent_resource.actions.include?(:create)
 
             new_scope do
               get :new
-            end if resource_actions.include?(:new)
+            end if parent_resource.actions.include?(:new)
 
             member_scope  do
-              get    :show if resource_actions.include?(:show)
-              put    :update if resource_actions.include?(:update)
-              delete :destroy if resource_actions.include?(:destroy)
-              get    :edit if resource_actions.include?(:edit)
+              get    :show if parent_resource.actions.include?(:show)
+              put    :update if parent_resource.actions.include?(:update)
+              delete :destroy if parent_resource.actions.include?(:destroy)
+              get    :edit if parent_resource.actions.include?(:edit)
             end
           end
 
@@ -579,19 +593,19 @@ module ActionDispatch
             yield if block_given?
 
             collection_scope do
-              get  :index if resource_actions.include?(:index)
-              post :create if resource_actions.include?(:create)
+              get  :index if parent_resource.actions.include?(:index)
+              post :create if parent_resource.actions.include?(:create)
             end
 
             new_scope do
               get :new
-            end if resource_actions.include?(:new)
+            end if parent_resource.actions.include?(:new)
 
             member_scope  do
-              get    :show if resource_actions.include?(:show)
-              put    :update if resource_actions.include?(:update)
-              delete :destroy if resource_actions.include?(:destroy)
-              get    :edit if resource_actions.include?(:edit)
+              get    :show if parent_resource.actions.include?(:show)
+              put    :update if parent_resource.actions.include?(:update)
+              delete :destroy if parent_resource.actions.include?(:destroy)
+              get    :edit if parent_resource.actions.include?(:edit)
             end
           end
 
@@ -739,16 +753,6 @@ module ActionDispatch
             @scope[:scope_level_resource]
           end
 
-          def resource_actions
-            if only = @scope[:options][:only]
-              Array(only).map(&:to_sym)
-            elsif except = @scope[:options][:except]
-              parent_resource.default_actions - Array(except).map(&:to_sym)
-            else
-              parent_resource.default_actions
-            end
-          end
-
           def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
@@ -763,6 +767,10 @@ module ActionDispatch
               return true
             end
 
+            unless action_options?(options)
+              options.merge!(scope_action_options) if scope_action_options?
+            end
+
             if resource_scope?
               nested do
                 send(method, resources.pop, options, &block)
@@ -771,6 +779,18 @@ module ActionDispatch
             end
 
             false
+          end
+
+          def action_options?(options)
+            options[:only] || options[:except]
+          end
+
+          def scope_action_options?
+            @scope[:options].is_a?(Hash) && (@scope[:options][:only] || @scope[:options][:except])
+          end
+
+          def scope_action_options
+            @scope[:options].slice(:only, :except)
           end
 
           def resource_scope?
@@ -899,7 +919,7 @@ module ActionDispatch
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
               name_prefix = "#{name_prefix}_" if name_prefix.present?
-            end 
+            end
 
             case @scope[:scope_level]
             when :collection
