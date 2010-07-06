@@ -768,15 +768,20 @@ module ActiveRecord
       #   Objects will be in addition destroyed if they're associated with <tt>:dependent => :destroy</tt>,
       #   and deleted if they're associated with <tt>:dependent => :delete_all</tt>.
       # [collection=objects]
-      #   Replaces the collections content by deleting and adding objects as appropriate.
+      #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
+      #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
+      #   direct.
       # [collection_singular_ids]
       #   Returns an array of the associated objects' ids
       # [collection_singular_ids=ids]
-      #   Replace the collection with the objects identified by the primary keys in +ids+
+      #   Replace the collection with the objects identified by the primary keys in +ids+. This
+      #   method loads the models and calls <tt>collection=</tt>. See above.
       # [collection.clear]
       #   Removes every object from the collection. This destroys the associated objects if they
       #   are associated with <tt>:dependent => :destroy</tt>, deletes them directly from the
       #   database if <tt>:dependent => :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
+      #   If the <tt>:through</tt> option is true no destroy callbacks are invoked on the join models.
+      #   Join models are directly deleted.
       # [collection.empty?]
       #   Returns +true+ if there are no associated objects.
       # [collection.size]
@@ -869,9 +874,11 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
+      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
       #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
-      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model.
+      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model. The collection of join models can be managed via the collection
+      #   API. For example, new join models are created for newly associated objects, and if some are gone their rows are deleted (directly,
+      #   no destroy callbacks are triggered).
       # [:source]
       #   Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be
       #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either <tt>:subscribers</tt> or
