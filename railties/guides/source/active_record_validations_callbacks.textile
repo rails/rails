@@ -86,9 +86,9 @@ The following methods skip validations, and will save the object to the database
 * +update_attribute+
 * +update_counters+
 
-Note that +save+ also has the ability to skip validations if passed +false+ as argument. This technique should be used with caution.
+Note that +save+ also has the ability to skip validations if passed +:validate => false+ as argument. This technique should be used with caution.
 
-* +save(false)+
+* +save(:validate => false)+
 
 h4. +valid?+ and +invalid?+
 
