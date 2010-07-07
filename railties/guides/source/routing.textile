@@ -382,6 +382,12 @@ match ':controller/:action/:id/:user_id'
 
 An incoming URL of +/photos/show/1/2+ will be dispatched to the +show+ action of the +PhotosController+. +params[:id]+ will be +"1"+, and +params[:user_id]+ will be +"2"+.
 
+NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
+
+<ruby>
+match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
+</ruby>
+
 h4. Static Segments
 
 You can specify static segments when creating a route:
@@ -645,13 +651,13 @@ scope :path_names => { :new => "make" } do
 end
 </ruby>
 
-h4. Overriding the Named Helper Prefix
+h4. Prefixing the Named Route Helpers
 
-You can use the :name_prefix option to add a prefix to the named route helpers that Rails generates for a route. You can use this option to prevent collisions between routes using a path scope.
+You can use the +:as+ option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope.
 
 <ruby>
 scope "admin" do
-  resources :photos, :name_prefix => "admin"
+  resources :photos, :as => "admin_photos"
 end
 
 resources :photos
@@ -659,17 +665,17 @@ resources :photos
 
 This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
-You could specify a name prefix to use for a group of routes in the scope:
+To prefix a group of routes, use +:as+ with +scope+:
 
 <ruby>
-scope "admin", :name_prefix => "admin" do
+scope "admin", :as => "admin" do
   resources :photos, :accounts
 end
 
 resources :photos, :accounts
 </ruby>
 
-NOTE: The +namespace+ scope will automatically add a +:name_prefix+ as well as +:module+ and +:path+ prefixes.
+NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ and +:path+ prefixes.
 
 h4. Restricting the Routes Created
 
@@ -714,21 +720,21 @@ Rails now creates routes to the +CategoriesControlleR+.
 
 h4. Overriding the Singular Form
 
-If you want to customize the singular name of the route in the named helpers, you can use the +:singular+ option.
+If you want to define the singular form of a resource, you should add additional rules to the +Inflector+.
 
 <ruby>
-resources :teeth, :singular => "tooth"
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.irregular 'tooth', 'teeth'
+end
 </ruby>
 
-TIP: If you want to define the singular form of a word for your entire application, you should add additional rules to the +Inflector+ instead.
+h4(#nested-names). Using +:as+ in Nested Resources
 
-h4(#nested-name-prefix). Using +:name_prefix+ in Nested Resources
-
-The +:name_prefix+ option overrides the automatically-generated prefix for the parent resource in nested route helpers. For example,
+The +:as+ option overrides the automatically-generated name for the resource in nested route helpers. For example,
 
 <ruby>
 resources :magazines do
-  resources :ads, :name_prefix => 'periodical'
+  resources :ads, :as => 'periodical_ads'
 end
 </ruby>
 

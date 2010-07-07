@@ -869,6 +869,9 @@ module ActiveRecord #:nodoc:
       # Returns the base AR subclass that this class descends from. If A
       # extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
+      #
+      # If B < A and C < B and if A is an abstract_class then both B.base_class
+      # and C.base_class would return B as the answer since A is an abstract_class.
       def base_class
         class_of_active_record_descendant(self)
       end
@@ -876,8 +879,7 @@ module ActiveRecord #:nodoc:
       # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
       attr_accessor :abstract_class
 
-      # Returns whether this class is a base AR class.  If A is a base class and
-      # B descends from A, then B.base_class will return B.
+      # Returns whether this class is an abstract class or not.
       def abstract_class?
         defined?(@abstract_class) && @abstract_class == true
       end
