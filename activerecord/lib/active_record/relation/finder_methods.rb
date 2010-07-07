@@ -339,7 +339,7 @@ module ActiveRecord
     end
 
     def using_limitable_reflections?(reflections)
-      reflections.collect(&:collection?).length.zero?
+      reflections.none?(&:collection?)
     end
 
   end
