@@ -8,23 +8,23 @@ class PermissionSetTest < ActiveRecord::TestCase
 
   test "+ stringifies added collection values" do
     symbol_collection = [ :admin ]
-    @permission_list += symbol_collection
+    new_list = @permission_list += symbol_collection
 
-    assert @permission_list.include?('admin'), "did not add collection to #{@permission_list.inspect}}"
+    assert new_list.include?('admin'), "did not add collection to #{@permission_list.inspect}}"
   end
 
   test "include? normalizes multi-parameter keys" do
     multi_param_key = 'admin(1)'
-    @permission_list += [ 'admin' ]
+    new_list = @permission_list += [ 'admin' ]
 
-    assert_equal true, @permission_list.include?(multi_param_key), "#{multi_param_key} not found in #{@permission_list.inspect}"
+    assert new_list.include?(multi_param_key), "#{multi_param_key} not found in #{@permission_list.inspect}"
   end
 
   test "include? normal keys" do
     normal_key = 'admin'
-    @permission_list +=  [ normal_key ]
+    new_list = @permission_list +=  [ normal_key ]
 
-    assert_equal true,  @permission_list.include?(normal_key), "#{normal_key} not found in #{@permission_list.inspect}"
+    assert new_list.include?(normal_key), "#{normal_key} not found in #{@permission_list.inspect}"
   end
 
 end

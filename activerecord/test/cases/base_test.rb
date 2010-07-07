@@ -17,6 +17,7 @@ require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
+require 'models/mass_assignment_specific'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -37,44 +38,11 @@ class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
-class LoosePerson < ActiveRecord::Base
-  self.table_name = 'people'
-  self.abstract_class = true
-  attr_protected :credit_rating, :administrator
-end
-
-class LooseDescendant < LoosePerson
-  attr_protected :phone_number
-end
-
-class LooseDescendantSecond< LoosePerson
-  attr_protected :phone_number
-  attr_protected :name
-end
-
-class TightPerson < ActiveRecord::Base
-  self.table_name = 'people'
-  attr_accessible :name, :address
-end
-
-class TightDescendant < TightPerson
-  attr_accessible :phone_number
-end
-
 class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
 class Booleantest < ActiveRecord::Base; end
-
-class Task < ActiveRecord::Base
-  attr_protected :starting
-end
-
-class TopicWithProtectedContent < ActiveRecord::Base
-  self.table_name = 'topics'
-  attr_protected  :content
-end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
@@ -954,89 +922,6 @@ class BasicsTest < ActiveRecord::TestCase
     Reply.reset_callbacks(:validate)
   end
 
-  def test_mass_assignment_should_raise_exception_if_accessible_and_protected_attribute_writers_are_both_used
-    assert_raise(RuntimeError) do
-      TopicWithProtectedContent.attr_accessible :author_name
-    end
-  end
-
-  def test_mass_assignment_protection
-    firm = Firm.new
-    firm.attributes = { "name" => "Next Angle", "rating" => 5 }
-    assert_equal 1, firm.rating
-  end
-
-  def test_mass_assignment_protection_against_class_attribute_writers
-    [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names,
-      :default_timezone, :schema_format, :lock_optimistically, :record_timestamps].each do |method|
-      assert_respond_to  Task, method
-      assert_respond_to  Task, "#{method}="
-      assert_respond_to  Task.new, method
-      assert !Task.new.respond_to?("#{method}=")
-    end
-  end
-
-  def test_customized_primary_key_remains_protected
-    subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
-    assert_nil subscriber.id
-
-    keyboard = Keyboard.new(:key_number => 9, :name => 'nice try')
-    assert_nil keyboard.id
-  end
-
-  def test_customized_primary_key_remains_protected_when_referred_to_as_id
-    subscriber = Subscriber.new(:id => 'webster123', :name => 'nice try')
-    assert_nil subscriber.id
-
-    keyboard = Keyboard.new(:id => 9, :name => 'nice try')
-    assert_nil keyboard.id
-  end
-
-  def test_mass_assigning_invalid_attribute
-    firm = Firm.new
-
-    assert_raise(ActiveRecord::UnknownAttributeError) do
-      firm.attributes = { "id" => 5, "type" => "Client", "i_dont_even_exist" => 20 }
-    end
-  end
-
-  def test_mass_assignment_protection_on_defaults
-    firm = Firm.new
-    firm.attributes = { "id" => 5, "type" => "Client" }
-    assert_nil firm.id
-    assert_equal "Firm", firm[:type]
-  end
-
-  def test_mass_assignment_accessible
-    reply = Reply.new("title" => "hello", "content" => "world", "approved" => true)
-    reply.save
-
-    assert reply.approved?
-
-    reply.approved = false
-    reply.save
-
-    assert !reply.approved?
-  end
-
-  def test_mass_assignment_protection_inheritance
-    assert LoosePerson.accessible_attributes.blank?
-    assert_equal Set.new([ 'credit_rating', 'administrator', *LoosePerson.attributes_protected_by_default ]), LoosePerson.protected_attributes
-
-    assert LooseDescendant.accessible_attributes.blank?
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', *LoosePerson.attributes_protected_by_default ]), LooseDescendant.protected_attributes
-
-    assert LooseDescendantSecond.accessible_attributes.blank?
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name', *LoosePerson.attributes_protected_by_default ]), LooseDescendantSecond.protected_attributes,
-      'Running attr_protected twice in one class should merge the protections'
-
-    assert (TightPerson.protected_attributes - TightPerson.attributes_protected_by_default).blank?
-    assert_equal Set.new([ 'name', 'address' ]), TightPerson.accessible_attributes
-
-    assert (TightDescendant.protected_attributes - TightDescendant.attributes_protected_by_default).blank?
-    assert_equal Set.new([ 'name', 'address', 'phone_number' ]), TightDescendant.accessible_attributes
-  end
-
   def test_readonly_attributes
     assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
 
@@ -1237,15 +1122,6 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
-  end
-
-  def test_multiparameter_mass_assignment_protector
-    task = Task.new
-    time = Time.mktime(2000, 1, 1, 1)
-    task.starting = time
-    attributes = { "starting(1i)" => "2004", "starting(2i)" => "6", "starting(3i)" => "24" }
-    task.attributes = attributes
-    assert_equal time, task.starting
   end
 
   def test_multiparameter_assignment_of_aggregation

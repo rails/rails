@@ -13,13 +13,15 @@ module ActiveRecord
 
         def debug_protected_attribute_removal(attributes, sanitized_attributes)
           removed_keys = attributes.keys - sanitized_attributes.keys
-          if removed_keys.any?
-            logger.debug "WARNING: Can't mass-assign protected attributes: #{removed_keys.join(', ')}"
-          end
+          warn!(removed_keys) if removed_keys.any?
         end
 
         def debug?
           logger.present?
+        end
+
+        def warn!(attrs)
+          logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}"
         end
 
     end

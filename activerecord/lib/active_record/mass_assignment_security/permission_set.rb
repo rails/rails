@@ -2,11 +2,11 @@ require 'active_record/mass_assignment_security/sanitizer'
 
 module ActiveRecord
   module MassAssignmentSecurity
-    class PermissionSet < Set
 
+    class PermissionSet < Set
       attr_accessor :logger
 
-      def merge(values)
+      def +(values)
         super(values.map(&:to_s))
       end
 
@@ -19,7 +19,6 @@ module ActiveRecord
         def remove_multiparameter_id(key)
           key.gsub(/\(.+/, '')
         end
-
     end
 
     class WhiteList < PermissionSet
@@ -28,7 +27,6 @@ module ActiveRecord
       def deny?(key)
         !include?(key)
       end
-
     end
 
     class BlackList < PermissionSet
@@ -37,7 +35,6 @@ module ActiveRecord
       def deny?(key)
         include?(key)
       end
-
     end
 
   end

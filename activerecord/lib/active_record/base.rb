@@ -1480,7 +1480,7 @@ MSG
         attributes = new_attributes.stringify_keys
 
         multi_parameter_attributes = []
-        attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
+        attributes = sanitize_for_mass_assignment(attributes) if guard_protected_attributes
 
         attributes.each do |k, v|
           if k.include?("(")
@@ -1797,7 +1797,7 @@ MSG
     include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
-    extend MassAssignmentSecurity
+    include MassAssignmentSecurity
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
 
