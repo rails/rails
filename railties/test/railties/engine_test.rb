@@ -120,7 +120,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "lib/bukkits/plugins/yaffle/init.rb", <<-RUBY
-        Bukkits::Engine.config.yaffle_loaded = true
+        config.yaffle_loaded = true
       RUBY
 
       boot_rails
