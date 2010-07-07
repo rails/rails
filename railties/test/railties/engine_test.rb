@@ -114,12 +114,11 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
-            paths.vendor.plugins = "#{File.join(@plugin.path, "lib/bukkits/plugins")}"
           end
         end
       RUBY
 
-      @plugin.write "lib/bukkits/plugins/yaffle/init.rb", <<-RUBY
+      @plugin.write "vendor/plugins/yaffle/init.rb", <<-RUBY
         config.yaffle_loaded = true
       RUBY
 
@@ -132,13 +131,12 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
-            paths.public = "#{File.join(@plugin.path, "lib/bukkits/public")}"
             config.serve_static_assets = true
           end
         end
       RUBY
 
-      @plugin.write "lib/bukkits/public/omg.txt", <<-RUBY
+      @plugin.write "public/omg.txt", <<-RUBY
         OMG
       RUBY
 
@@ -151,7 +149,7 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits/omg.txt")
       response = Rails::Application.call(env)
 
-      assert_equal response[2].path, File.join(@plugin.path, "lib/bukkits/public/omg.txt")
+      assert_equal response[2].path, File.join(@plugin.path, "public/omg.txt")
     end
   end
 end
