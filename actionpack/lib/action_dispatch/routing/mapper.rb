@@ -289,7 +289,7 @@ module ActionDispatch
             app.routes.class_eval do
               define_method :_generate_prefix do |options|
                 keys = _route.segment_keys + ActionDispatch::Routing::RouteSet::RESERVED_OPTIONS
-                prefix_options = options.reject { |k, v| !(keys).include?(k) }
+                prefix_options = options.slice(*keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
                 _router.url_helpers.send("#{name}_path", prefix_options)

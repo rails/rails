@@ -129,9 +129,9 @@ module ActionDispatch
           options
         when nil, Hash
           routes = (options ? options.delete(:routes) : nil) || _routes
-
-          if respond_to?(:env) && env && routes.equal?(env["action_dispatch.routes"])
-             options[:skip_prefix] = true
+          if respond_to?(:env) && env
+              options[:skip_prefix] = true if routes.equal?(env["action_dispatch.routes"])
+              options[:script_name] = env["ORIGINAL_SCRIPT_NAME"] if routes.equal?(env["action_dispatch.parent_routes"])
           end
 
           routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)

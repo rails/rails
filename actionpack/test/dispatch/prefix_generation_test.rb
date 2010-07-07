@@ -8,6 +8,7 @@ module TestGenerationPrefix
           routes = ActionDispatch::Routing::RouteSet.new
           routes.draw do
             match "/posts/:id", :to => "inside_engine_generating#index", :as => :post
+            match "/bare_url_for", :to => "inside_engine_generating#bare_url_for", :as => :bare_url_for
           end
 
           routes
@@ -37,6 +38,10 @@ module TestGenerationPrefix
 
       def self.call(env)
         env['action_dispatch.routes'] = routes
+
+        # the next to values should be set only in application
+        env['ORIGINAL_SCRIPT_NAME'] = env['SCRIPT_NAME']
+        env['action_dispatch.parent_routes'] = routes
         routes.call(env)
       end
     end
@@ -45,6 +50,14 @@ module TestGenerationPrefix
       include BlogEngine.routes.url_helpers
       def index
         render :text => post_path(:id => params[:id])
+      end
+
+      def bare_url_for
+        path = url_for( :routes => RailsApplication.routes,
+                        :controller => "outside_engine_generating", 
+                        :action => "index",
+                        :only_path => true)
+        render :text => path
       end
     end
 
@@ -73,9 +86,8 @@ module TestGenerationPrefix
     end
 
     test "use SCRIPT_NAME inside the engine" do
-      env = Rack::MockRequest.env_for("/posts/1")
-      env["SCRIPT_NAME"] = "/pure-awesomness/blog"
-      response = ActionDispatch::Response.new(*BlogEngine.call(env))
+      env = Rack::MockRequest.env_for("/pure-awesomness/blog/posts/1")
+      response = ActionDispatch::Response.new(*RailsApplication.call(env))
       assert_equal "/pure-awesomness/blog/posts/1", response.body
     end
 
@@ -97,6 +109,13 @@ module TestGenerationPrefix
 
     test "generating urls from a regular class" do
       assert_equal "/awesome/blog/posts/42", Foo.new.foo
+    end
+
+    test "passing :routes to url_for to change current routes" do
+      env = Rack::MockRequest.env_for("/pure-awesomness/blog/bare_url_for")
+      env["SCRIPT_NAME"] = "/something"
+      response = ActionDispatch::Response.new(*RailsApplication.call(env))
+      assert_equal "/something/generate", response.body
     end
   end
 end
