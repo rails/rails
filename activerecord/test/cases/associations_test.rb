@@ -74,6 +74,16 @@ class AssociationsTest < ActiveRecord::TestCase
       assert_queries(1) { assert_not_nil firm.clients(true).each {} }
     end
   end
+  
+  def test_using_limitable_reflections_helper
+    using_limitable_reflections = lambda { |reflections| ActiveRecord::Base.send :using_limitable_reflections?, reflections }
+    belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
+    has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
+    mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
+    assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
+    assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
+    assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
+  end
 
   def test_storing_in_pstore
     require "tmpdir"

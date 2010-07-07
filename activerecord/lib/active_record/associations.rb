@@ -1782,7 +1782,7 @@ module ActiveRecord
         end
 
         def using_limitable_reflections?(reflections)
-          reflections.collect(&:collection?).length.zero?
+          reflections.none?(&:collection?)
         end
 
         def column_aliases(join_dependency)
