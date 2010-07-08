@@ -1615,15 +1615,6 @@ MSG
         end
       end
 
-      # Removes attributes which have been marked as readonly.
-      def remove_readonly_attributes(attributes)
-        unless self.class.readonly_attributes.nil?
-          attributes.delete_if { |key, value| self.class.readonly_attributes.include?(key.gsub(/\(.+/,"")) }
-        else
-          attributes
-        end
-      end
-
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
       def self.attributes_protected_by_default
         default = [ primary_key, inheritance_column ]
