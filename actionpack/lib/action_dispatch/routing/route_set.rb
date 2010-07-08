@@ -452,7 +452,7 @@ module ActionDispatch
         Generator.new(options, recall, self, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name, :skip_prefix, :routes]
+      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name, :routes]
 
       def _generate_prefix(options = {})
         nil
@@ -478,15 +478,12 @@ module ActionDispatch
           rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
         end
 
-        path = [options.delete(:script_name)]
-        if !options.delete(:skip_prefix)
-          path << _generate_prefix(options)
-        end
+        script_name = options.delete(:script_name)
+        path = (script_name.blank? ? _generate_prefix(options) : script_name).to_s
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
         path << generate(path_options, path_segments || {})
-        path = path.compact.join ''
 
         # ROUTES TODO: This can be called directly, so script_name should probably be set in the routes
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
