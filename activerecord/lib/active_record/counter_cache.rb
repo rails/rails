@@ -18,14 +18,17 @@ module ActiveRecord
       object = find(id)
       counters.each do |association|
         has_many_association = reflect_on_association(association.to_sym)
-        polymorphic_class = has_many_association.options[:as]
-        child_class = has_many_association.klass
-        belongs_to = child_class.reflect_on_all_associations(:belongs_to)
-        belongs_to_association = belongs_to.detect do |e| 
-          polymorphic_class.nil? ?  (e.class_name == self.name) : (e.class_name.to_s.downcase == polymorphic_class.to_s.downcase)
+
+        expected_name = if has_many_association.options[:as]
+          has_many_association.options[:as].to_s.classify
+        else
+          self.name
         end
-        belongs_name = belongs_to_association.name
-        counter_name = child_class.reflect_on_association(belongs_name).counter_cache_column
+
+        child_class  = has_many_association.klass
+        belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
+        reflection   = belongs_to.find { |e| e.class_name == expected_name }
+        counter_name = reflection.counter_cache_column
 
         self.unscoped.where(arel_table[self.primary_key].eq(object.id)).arel.update({
           arel_table[counter_name] => object.send(association).count
