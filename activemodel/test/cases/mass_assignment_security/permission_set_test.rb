@@ -1,9 +1,9 @@
 require "cases/helper"
 
-class PermissionSetTest < ActiveRecord::TestCase
+class PermissionSetTest < ActiveModel::TestCase
 
   def setup
-    @permission_list = ActiveRecord::MassAssignmentSecurity::PermissionSet.new
+    @permission_list = ActiveModel::MassAssignmentSecurity::PermissionSet.new
   end
 
   test "+ stringifies added collection values" do

@@ -1,6 +1,6 @@
-require 'active_record/mass_assignment_security/sanitizer'
+require 'active_model/mass_assignment_security/sanitizer'
 
-module ActiveRecord
+module ActiveModel
   module MassAssignmentSecurity
 
     class PermissionSet < Set

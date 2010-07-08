@@ -1,9 +1,9 @@
 require "cases/helper"
 
-class WhiteListTest < ActiveRecord::TestCase
+class WhiteListTest < ActiveModel::TestCase
 
   def setup
-    @white_list   = ActiveRecord::MassAssignmentSecurity::WhiteList.new
+    @white_list   = ActiveModel::MassAssignmentSecurity::WhiteList.new
     @included_key = 'first_name'
     @white_list  += [ @included_key ]
   end

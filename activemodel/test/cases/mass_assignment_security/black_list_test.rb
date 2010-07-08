@@ -1,9 +1,9 @@
 require "cases/helper"
 
-class BlackListTest < ActiveRecord::TestCase
+class BlackListTest < ActiveModel::TestCase
 
   def setup
-    @black_list   = ActiveRecord::MassAssignmentSecurity::BlackList.new
+    @black_list   = ActiveModel::MassAssignmentSecurity::BlackList.new
     @included_key = 'admin'
     @black_list  += [ @included_key ]
   end

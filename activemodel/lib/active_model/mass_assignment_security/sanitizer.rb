@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module MassAssignmentSecurity
     module Sanitizer
 
@@ -17,11 +17,11 @@ module ActiveRecord
         end
 
         def debug?
-          logger.present?
+          self.logger.present?
         end
 
         def warn!(attrs)
-          logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}"
+          self.logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}"
         end
 
     end

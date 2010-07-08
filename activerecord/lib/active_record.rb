@@ -64,7 +64,6 @@ module ActiveRecord
     autoload :CounterCache
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
-    autoload :MassAssignmentSecurity
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
     autoload :NamedScope

@@ -1,6 +1,7 @@
-require 'active_record/mass_assignment_security/permission_set'
+require 'active_support/core_ext/class/attribute.rb'
+require 'active_model/mass_assignment_security/permission_set'
 
-module ActiveRecord
+module ActiveModel
   # = Active Record Mass-Assignment Security
   module MassAssignmentSecurity
     extend ActiveSupport::Concern
@@ -112,11 +113,13 @@ module ActiveRecord
       end
 
       def protected_attributes
-        self._protected_attributes ||= BlackList.new(attributes_protected_by_default).tap { |w| w.logger = logger }
+        self._protected_attributes ||= BlackList.new(attributes_protected_by_default).tap do |w|
+          w.logger = self.logger if self.respond_to?(:logger)
+        end
       end
 
       def accessible_attributes
-        self._accessible_attributes ||= WhiteList.new.tap { |w| w.logger = logger }
+        self._accessible_attributes ||= WhiteList.new.tap { |w| w.logger = self.logger if self.respond_to?(:logger) }
       end
 
       def active_authorizer

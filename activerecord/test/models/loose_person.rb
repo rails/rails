@@ -1,6 +1,7 @@
 class LoosePerson < ActiveRecord::Base
   self.table_name = 'people'
   self.abstract_class = true
+
   attr_protected :credit_rating, :administrator
 end
 
@@ -20,13 +21,4 @@ end
 
 class TightDescendant < TightPerson
   attr_accessible :phone_number
-end
-
-class Task < ActiveRecord::Base
-  attr_protected :starting
-end
-
-class TopicWithProtectedContent < ActiveRecord::Base
-  self.table_name = 'topics'
-  attr_protected  :content
 end

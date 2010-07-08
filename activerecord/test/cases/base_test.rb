@@ -17,7 +17,7 @@ require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
-require 'models/mass_assignment_specific'
+require 'models/loose_person'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 

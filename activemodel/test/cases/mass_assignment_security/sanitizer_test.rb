@@ -1,9 +1,10 @@
 require "cases/helper"
+require 'logger'
 
-class SanitizerTest < ActiveRecord::TestCase
+class SanitizerTest < ActiveModel::TestCase
 
   class SanitizingAuthorizer
-    include ActiveRecord::MassAssignmentSecurity::Sanitizer
+    include ActiveModel::MassAssignmentSecurity::Sanitizer
 
     attr_accessor :logger
 
