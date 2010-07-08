@@ -234,8 +234,9 @@ module ActiveRecord
       # See destroy for more info.
       def destroy_all
         load_target
-        destroy(@target)
-        reset_target!
+        destroy(@target).tap do
+          reset_target!
+        end
       end
 
       def create(attrs = {})
