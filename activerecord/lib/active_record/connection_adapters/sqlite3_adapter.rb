@@ -16,8 +16,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database],
-        :results_as_hash => true,
-        :type_translation => false
+        :results_as_hash => true
       )
 
       db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
