@@ -2,25 +2,6 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 
 module ActiveRecord
-  class Base
-    class << self
-      private
-        def parse_sqlite_config!(config)
-          # Require database.
-          unless config[:database]
-            raise ArgumentError, "No database file specified. Missing argument: database"
-          end
-
-          # Allow database path relative to Rails.root, but only if
-          # the database path is not the special path that tells
-          # Sqlite to build a database only in memory.
-          if defined?(Rails.root) && ':memory:' != config[:database]
-            config[:database] = File.expand_path(config[:database], Rails.root)
-          end
-        end
-    end
-  end
-
   module ConnectionAdapters #:nodoc:
     class SQLiteColumn < Column #:nodoc:
       class <<  self
