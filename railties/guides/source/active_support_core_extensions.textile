@@ -387,40 +387,6 @@ TIP: Since +with_options+ forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
 
-h5. +subclasses_of+
-
-The method +subclasses_of+ receives an arbitrary number of class objects and returns all their anonymous or reachable descendants as a single array:
-
-<ruby>
-class C; end
-subclasses_of(C) # => []
-
-subclasses_of(Integer) # => [Bignum, Fixnum]
-
-module M
-  class A; end
-  class B1 < A; end
-  class B2 < A; end
-end
-
-module N
-  class C < M::B1; end
-end
-
-subclasses_of(M::A) # => [N::C, M::B2, M::B1]
-</ruby>
-
-The order in which these classes are returned is unspecified. The returned collection may have duplicates:
-
-<ruby>
-subclasses_of(Numeric, Integer)
-# => [Bignum, Float, Fixnum, Integer, Date::Infinity, Rational, BigDecimal, Bignum, Fixnum]
-</ruby>
-
-See also +Class#subclasses+ in "Extensions to +Class+ FIX THIS LINK":FIXME.
-
-NOTE: Defined in +active_support/core_ext/object/extending.rb+.
-
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
@@ -1141,36 +1107,47 @@ If for whatever reason an application loads the definition of a mailer class and
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
-h4. Descendants
+h4. Descendants & Subclasses
 
-h5. +subclasses+
+h5. +descendants+
 
-The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
+The +descendants+ method returns all classes, including its children, that inherits from self.
 
 <ruby>
 class C; end
-C.subclasses # => []
+C.descendants #=> []
 
-Integer.subclasses # => ["Bignum", "Fixnum"]
+class B < C; end
+C.descendants #=> [B]
 
-module M
-  class A; end
-  class B1 < A; end
-  class B2 < A; end
-end
+class A < B; end
+C.descendants #=> [B, A]
 
-module N
-  class C < M::B1; end
-end
-
-M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
+class D < C; end
+C.descendants #=> [B, A, D]
 </ruby>
 
-The order in which these class names are returned is unspecified.
+h5. +subclasses+
 
-See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+The +subclasses+ method returns all direct classes that inherits from self.
 
-WARNING: This method is redefined in some Rails core classes.
+<ruby>
+class C; end
+C.subclasses #=> []
+
+class B < C; end
+C.subclasses #=> [B]
+
+class A < B; end
+C.subclasses #=> [B]
+
+class D < C; end
+C.subclasses #=> [B, D]
+</ruby>
+
+The order in which these class are returned is unspecified.
+
+WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
 
 NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 

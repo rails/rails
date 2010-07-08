@@ -382,6 +382,12 @@ match ':controller/:action/:id/:user_id'
 
 An incoming URL of +/photos/show/1/2+ will be dispatched to the +show+ action of the +PhotosController+. +params[:id]+ will be +"1"+, and +params[:user_id]+ will be +"2"+.
 
+NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
+
+<ruby>
+match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
+</ruby>
+
 h4. Static Segments
 
 You can specify static segments when creating a route:

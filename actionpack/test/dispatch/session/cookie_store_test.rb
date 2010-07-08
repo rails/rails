@@ -30,6 +30,11 @@ class CookieStoreTest < ActionController::IntegrationTest
       render :text => "id: #{request.session_options[:id]}"
     end
 
+    def call_session_clear
+      session.clear
+      head :ok
+    end
+
     def call_reset_session
       reset_session
       head :ok
@@ -172,6 +177,23 @@ class CookieStoreTest < ActionController::IntegrationTest
       assert_response :success
       assert_equal 'foo: nil', response.body
       assert_nil headers['Set-Cookie'], "should only create session on write, not read"
+    end
+  end
+
+  def test_setting_session_value_after_session_clear
+    with_test_route_set do
+      get '/set_session_value'
+      assert_response :success
+      session_payload = response.body
+      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
+        headers['Set-Cookie']
+
+      get '/call_session_clear'
+      assert_response :success
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body
     end
   end
 

@@ -2,7 +2,6 @@ require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
 require "action_view/railtie"
-require "active_support/core_ext/class/subclasses"
 require "active_support/deprecation/proxy_wrappers"
 require "active_support/deprecation"
 

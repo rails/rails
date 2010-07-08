@@ -80,6 +80,19 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/foo=nil/) { @dtc.partially }
   end
 
+  def test_several_behaviors
+    @a, @b = nil, nil
+
+    ActiveSupport::Deprecation.behavior = [
+      Proc.new { |msg, callstack| @a = msg },
+      Proc.new { |msg, callstack| @b = msg }
+    ]
+
+    @dtc.partially
+    assert_match(/foo=nil/, @a)
+    assert_match(/foo=nil/, @b)
+  end
+
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 
@@ -121,6 +134,13 @@ class DeprecationTest < ActiveSupport::TestCase
       123
     end
     assert_equal 123, result
+  end
+
+  def test_assert_deprecated_warn_work_with_default_behavior
+    ActiveSupport::Deprecation.instance_variable_set('@behavior' , nil)
+    assert_deprecated('abc') do
+      ActiveSupport::Deprecation.warn 'abc'
+    end
   end
 
   def test_silence

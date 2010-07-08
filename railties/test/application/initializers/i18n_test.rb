@@ -16,7 +16,7 @@ module ApplicationTests
     end
 
     def app
-      @app ||= Rails::Application
+      @app ||= Rails.application
     end
 
     def assert_fallbacks(fallbacks)

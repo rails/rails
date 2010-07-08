@@ -41,7 +41,7 @@ require 'pp' # require 'pp' early to prevent hidden_methods from not picking up 
 module Rails
 end
 
-# Monkey patch the old router initialization to be silenced.
+# Monkey patch the old routes initialization to be silenced.
 class ActionDispatch::Routing::DeprecatedMapper
   def initialize_with_silencer(*args)
     ActiveSupport::Deprecation.silence { initialize_without_silencer(*args) }
@@ -182,13 +182,16 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
-  class StubDispatcher
-    def self.new(*args)
-      lambda { |env|
-        params = env['action_dispatch.request.path_parameters']
-        controller, action = params[:controller], params[:action]
-        [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
-      }
+  # Stub Rails dispatcher so it does not get controller references and
+  # simply return the controller#action as Rack::Body.
+  class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
+    protected
+    def controller_reference(controller_param)
+      controller_param
+    end
+
+    def dispatch(controller, action, env)
+      [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
     end
   end
 
@@ -275,9 +278,9 @@ end
 
 class ActionController::Base
   def self.test_routes(&block)
-    router = ActionDispatch::Routing::RouteSet.new
-    router.draw(&block)
-    include router.url_helpers
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.draw(&block)
+    include routes.url_helpers
   end
 end
 

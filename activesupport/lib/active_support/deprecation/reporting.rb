@@ -4,8 +4,9 @@ module ActiveSupport
       attr_accessor :silenced
 
       def warn(message = nil, callstack = caller)
-        if behavior && !silenced
-          behavior.call(deprecation_message(callstack, message), callstack)
+        return if silenced
+        deprecation_message(callstack, message).tap do |m|
+          behavior.each { |b| b.call(m, callstack) }
         end
       end
 

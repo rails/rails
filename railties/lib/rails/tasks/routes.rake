@@ -1,6 +1,6 @@
 desc 'Print out all defined routes in match order, with names. Target specific controller with CONTROLLER=x.'
 task :routes => :environment do
-  Rails::Application.reload_routes!
+  Rails.application.reload_routes!
   all_routes = ENV['CONTROLLER'] ? Rails.application.routes.routes.select { |route| route.defaults[:controller] == ENV['CONTROLLER'] } : Rails.application.routes.routes
   routes = all_routes.collect do |route|
     # TODO: The :index method is deprecated in 1.9 in favor of :key

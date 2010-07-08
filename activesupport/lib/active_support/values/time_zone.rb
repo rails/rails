@@ -1,11 +1,5 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
-begin
-  require 'tzinfo'
-rescue LoadError => e
-  $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
-  raise e
-end
 
 # The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
 #
@@ -201,6 +195,12 @@ module ActiveSupport
     # (GMT). Seconds were chosen as the offset unit because that is the unit that
     # Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
+      begin
+        require 'tzinfo'
+      rescue LoadError => e
+        $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
+        raise e
+      end
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)

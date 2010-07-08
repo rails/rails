@@ -19,9 +19,9 @@ module ActionDispatch
 
       def in_memory_controller_namespaces
         namespaces = Set.new
-        ActionController::Base.subclasses.each do |klass|
-          controller_name = klass.underscore
-          namespaces << controller_name.split('/')[0...-1].join('/')
+        ActionController::Base.descendants.each do |klass|
+          next if klass.anonymous?
+          namespaces << klass.name.underscore.split('/')[0...-1].join('/')
         end
         namespaces.delete('')
         namespaces
@@ -31,7 +31,7 @@ module ActionDispatch
     class DeprecatedMapper #:nodoc:
       def initialize(set) #:nodoc:
         ActiveSupport::Deprecation.warn "You are using the old router DSL which will be removed in Rails 3.1. " <<
-          "Please check how to update your router file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
+          "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
         @set = set
       end
 

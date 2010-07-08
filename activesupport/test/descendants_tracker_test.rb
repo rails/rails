@@ -37,7 +37,9 @@ class DescendantsTrackerTest < Test::Unit::TestCase
   def test_clear_with_autoloaded_parent_children_and_granchildren
     mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear
-      assert ActiveSupport::DescendantsTracker.descendants.slice(*ALL).empty?
+      ALL.each do |k|
+        assert ActiveSupport::DescendantsTracker.descendants(k).empty?
+      end
     end
   end
 
@@ -64,12 +66,12 @@ class DescendantsTrackerTest < Test::Unit::TestCase
     old_autoloaded = ActiveSupport::Dependencies.autoloaded_constants.dup
     ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)
 
-    old_descendants = ActiveSupport::DescendantsTracker.descendants.dup
+    old_descendants = ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").dup
     old_descendants.each { |k, v| old_descendants[k] = v.dup }
 
     yield
   ensure
     ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded
-    ActiveSupport::DescendantsTracker.descendants.replace(old_descendants)
+    ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").replace(old_descendants)
   end
 end

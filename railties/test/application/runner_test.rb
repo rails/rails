@@ -19,7 +19,7 @@ module ApplicationTests
     end
 
     def test_should_run_ruby_statement
-       assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "puts User.count"` }
+      assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "puts User.count"` }
     end
 
     def test_should_run_file

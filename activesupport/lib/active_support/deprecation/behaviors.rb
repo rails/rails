@@ -1,4 +1,5 @@
 require "active_support/notifications"
+require "active_support/core_ext/array/wrap"
 
 module ActiveSupport
   module Deprecation
@@ -7,11 +8,11 @@ module ActiveSupport
       attr_accessor :debug
 
       def behavior
-        @behavior ||= DEFAULT_BEHAVIORS[:stderr]
+        @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
       def behavior=(behavior)
-        @behavior = DEFAULT_BEHAVIORS[behavior] || behavior
+        @behavior = Array.wrap(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
       end
     end
 

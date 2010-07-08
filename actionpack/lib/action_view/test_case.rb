@@ -151,7 +151,7 @@ module ActionView
         @view ||= begin
                      view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
                      view.singleton_class.send :include, _helpers
-                     view.singleton_class.send :include, @controller._router.url_helpers
+                     view.singleton_class.send :include, @controller._routes.url_helpers
                      view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
                      view.extend(Locals)
                      view.locals = self.locals
@@ -192,13 +192,13 @@ module ActionView
         end
       end
 
-      def _router
-        @controller._router if @controller.respond_to?(:_router)
+      def _routes
+        @controller._routes if @controller.respond_to?(:_routes)
       end
 
       def method_missing(selector, *args)
-        if @controller.respond_to?(:_router) &&
-        @controller._router.named_routes.helpers.include?(selector)
+        if @controller.respond_to?(:_routes) &&
+        @controller._routes.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super
