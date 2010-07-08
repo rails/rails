@@ -2,7 +2,6 @@ require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel
   module MassAssignmentSecurity
-
     class PermissionSet < Set
       attr_accessor :logger
 
@@ -14,11 +13,11 @@ module ActiveModel
         super(remove_multiparameter_id(key))
       end
 
-      protected
+    protected
 
-        def remove_multiparameter_id(key)
-          key.gsub(/\(.+/, '')
-        end
+      def remove_multiparameter_id(key)
+        key.to_s.gsub(/\(.+/, '')
+      end
     end
 
     class WhiteList < PermissionSet
@@ -36,6 +35,5 @@ module ActiveModel
         include?(key)
       end
     end
-
   end
 end

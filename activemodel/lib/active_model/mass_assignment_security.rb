@@ -2,7 +2,7 @@ require 'active_support/core_ext/class/attribute.rb'
 require 'active_model/mass_assignment_security/permission_set'
 
 module ActiveModel
-  # = Active Record Mass-Assignment Security
+  # = Active Model Mass-Assignment Security
   module MassAssignmentSecurity
     extend ActiveSupport::Concern
 
@@ -21,7 +21,7 @@ module ActiveModel
     # on their role:
     #
     # class AccountsController < ApplicationController
-    #   include ActiveRecord::MassAssignmentSecurity
+    #   include ActiveModel::MassAssignmentSecurity
     #
     #   attr_accessible :first_name, :last_name
     #
@@ -48,23 +48,32 @@ module ActiveModel
     # end
     #
     module ClassMethods
-      # Attributes named in this macro are protected from mass-assignment,
-      # such as <tt>new(attributes)</tt>,
-      # <tt>update_attributes(attributes)</tt>, or
-      # <tt>attributes=(attributes)</tt>.
+      # Attributes named in this macro are protected from mass-assignment
+      # whenever attributes are sanitized before assignment.
       #
       # Mass-assignment to these attributes will simply be ignored, to assign
       # to them you can use direct writer methods. This is meant to protect
       # sensitive attributes from being overwritten by malicious users
       # tampering with URLs or forms.
       #
-      #   class Customer < ActiveRecord::Base
+      # == Example
+      #
+      #   class Customer
+      #     include ActiveModel::MassAssignmentSecurity
+      #
+      #     attr_accessor :name, :credit_rating
       #     attr_protected :credit_rating
+      #
+      #     def attributes=(values)
+      #       sanitize_for_mass_assignment(values).each do |k, v|
+      #         send("#{k}=", v)
+      #       end
+      #     end
       #   end
       #
-      #   customer = Customer.new("name" => David, "credit_rating" => "Excellent")
-      #   customer.credit_rating # => nil
-      #   customer.attributes = { "description" => "Jolly fellow", "credit_rating" => "Superb" }
+      #   customer = Customer.new
+      #   customer.attributes = { "name" => "David", "credit_rating" => "Excellent" }
+      #   customer.name          # => "David"
       #   customer.credit_rating # => nil
       #
       #   customer.credit_rating = "Average"
@@ -81,9 +90,7 @@ module ActiveModel
       end
 
       # Specifies a white list of model attributes that can be set via
-      # mass-assignment, such as <tt>new(attributes)</tt>,
-      # <tt>update_attributes(attributes)</tt>, or
-      # <tt>attributes=(attributes)</tt>
+      # mass-assignment.
       #
       # This is the opposite of the +attr_protected+ macro: Mass-assignment
       # will only set attributes in this list, to assign to the rest of
@@ -93,13 +100,22 @@ module ActiveModel
       # default and restrict attributes as needed, have a look at
       # +attr_protected+.
       #
-      #   class Customer < ActiveRecord::Base
-      #     attr_accessible :name, :nickname
+      #   class Customer
+      #     include ActiveModel::MassAssignmentSecurity
+      #
+      #     attr_accessor :name, :credit_rating
+      #     attr_accessible :name
+      #
+      #     def attributes=(values)
+      #       sanitize_for_mass_assignment(values).each do |k, v|
+      #         send("#{k}=", v)
+      #       end
+      #     end
       #   end
       #
-      #   customer = Customer.new(:name => "David", :nickname => "Dave", :credit_rating => "Excellent")
-      #   customer.credit_rating # => nil
-      #   customer.attributes = { :name => "Jolly fellow", :credit_rating => "Superb" }
+      #   customer = Customer.new
+      #   customer.attributes = { :name => "David", :credit_rating => "Excellent" }
+      #   customer.name          # => "David"
       #   customer.credit_rating # => nil
       #
       #   customer.credit_rating = "Average"
@@ -131,15 +147,14 @@ module ActiveModel
       end
     end
 
-    protected
+  protected
 
-      def sanitize_for_mass_assignment(attributes)
-        mass_assignment_authorizer.sanitize(attributes)
-      end
+    def sanitize_for_mass_assignment(attributes)
+      mass_assignment_authorizer.sanitize(attributes)
+    end
 
-      def mass_assignment_authorizer
-        self.class.active_authorizer
-      end
-
+    def mass_assignment_authorizer
+      self.class.active_authorizer
+    end
   end
 end
