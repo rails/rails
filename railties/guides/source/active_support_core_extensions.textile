@@ -1107,47 +1107,51 @@ If for whatever reason an application loads the definition of a mailer class and
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
-h4. Descendants & Subclasses
-
-h5. +descendants+
-
-The +descendants+ method returns all classes, including its children, that inherits from self.
-
-<ruby>
-class C; end
-C.descendants #=> []
-
-class B < C; end
-C.descendants #=> [B]
-
-class A < B; end
-C.descendants #=> [B, A]
-
-class D < C; end
-C.descendants #=> [B, A, D]
-</ruby>
+h4. Subclasses & Descendants
 
 h5. +subclasses+
 
-The +subclasses+ method returns all direct classes that inherits from self.
+The +subclasses+ method returns the subclasses of the receiver:
 
 <ruby>
 class C; end
-C.subclasses #=> []
+C.subclasses # => []
 
 class B < C; end
-C.subclasses #=> [B]
+C.subclasses # => [B]
 
 class A < B; end
-C.subclasses #=> [B]
+C.subclasses # => [B]
 
 class D < C; end
-C.subclasses #=> [B, D]
+C.subclasses # => [B, D]
 </ruby>
 
-The order in which these class are returned is unspecified.
+The order in which these classes are returned is unspecified.
 
 WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
+
+NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
+
+h5. +descendants+
+
+The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver: 
+
+<ruby>
+class C; end
+C.descendants # => []
+
+class B < C; end
+C.descendants # => [B]
+
+class A < B; end
+C.descendants # => [B, A]
+
+class D < C; end
+C.descendants # => [B, A, D]
+</ruby>
+
+The order in which these classes are returned is unspecified.
 
 NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
