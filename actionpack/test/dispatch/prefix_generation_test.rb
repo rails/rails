@@ -114,6 +114,7 @@ module TestGenerationPrefix
     test "passing :routes to url_for to change current routes" do
       env = Rack::MockRequest.env_for("/pure-awesomness/blog/bare_url_for")
       env["SCRIPT_NAME"] = "/something"
+      RailsApplication.routes.default_url_options = {:script_name => "/something"}
       response = ActionDispatch::Response.new(*RailsApplication.call(env))
       assert_equal "/something/generate", response.body
     end

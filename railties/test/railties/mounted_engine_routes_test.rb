@@ -99,6 +99,9 @@ module ApplicationTests
       # test generating application's route from engine
       get "/someone/blog/generate_application_route"
       assert_equal "/", last_response.body
+
+      # with script_name
+      Rails.application.default_url_options = {:script_name => "/foo"}
       get "/someone/blog/generate_application_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/", last_response.body
     end

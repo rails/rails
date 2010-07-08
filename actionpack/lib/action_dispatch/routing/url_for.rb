@@ -129,15 +129,20 @@ module ActionDispatch
           options
         when nil, Hash
           routes = (options ? options.delete(:routes) : nil) || _routes
-          if respond_to?(:env) && env
-              options[:skip_prefix] = true if routes.equal?(env["action_dispatch.routes"])
-              options[:script_name] = env["ORIGINAL_SCRIPT_NAME"] if routes.equal?(env["action_dispatch.parent_routes"])
-          end
 
-          routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)
+          _with_routes(routes) do
+            routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)
+          end
         else
           polymorphic_url(options)
         end
+      end
+
+      def _with_routes(routes)
+        old_routes, @_routes = @_routes, routes
+        yield
+      ensure
+        @_routes = old_routes
       end
     end
   end

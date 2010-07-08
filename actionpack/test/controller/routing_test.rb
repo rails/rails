@@ -251,7 +251,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       map.pages 'pages', :controller => 'content', :action => 'show_page', :host => 'foo.com'
     end
     x = setup_for_named_route
-    x.expects(:url_for).with(:host => 'foo.com', :only_path => false, :controller => 'content', :action => 'show_page', :use_route => :pages, :router => rs).once
+    x.expects(:url_for).with(:host => 'foo.com', :only_path => false, :controller => 'content', :action => 'show_page', :use_route => :pages).once
     x.send(:pages_url)
   end
 

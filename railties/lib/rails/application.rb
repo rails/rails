@@ -50,6 +50,8 @@ module Rails
       end
     end
 
+    delegate :default_url_options, :default_url_options=, :to => :routes
+
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
     # configuration.
@@ -121,11 +123,6 @@ module Rails
     alias :build_middleware_stack :app
 
     def call(env)
-      if Rails.application == self
-        env["ORIGINAL_SCRIPT_NAME"] = env["SCRIPT_NAME"]
-        env["action_dispatch.parent_routes"] = routes
-      end
-
       env["action_dispatch.routes"] = routes
       app.call(env.reverse_merge!(env_defaults))
     end
