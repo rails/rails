@@ -106,15 +106,17 @@ module ActiveRecord
     # or callbacks. This is especially useful for boolean flags on existing records.
     def update_attribute(name, value)
       send("#{name}=", value)
-      primary_key = self.class.primary_key
-      h = {name => value}
-      if should_record_update_timestamps
-        self.send(:record_update_timestamps)
-        current_time = current_time_from_proper_timezone
-        timestamp_attributes_for_update_in_model.each { |column| h.merge!(column => current_time) }
+      hash = { name => read_attribute(name) }
+
+      if record_update_timestamps
+        timestamp_attributes_for_update_in_model.each do |column|
+          hash[column] = read_attribute(column)
+        end
       end
-      self.class.update_all(h, {primary_key => self[primary_key]}) == 1
+
       @changed_attributes.delete(name.to_s)
+      primary_key = self.class.primary_key
+      self.class.update_all(hash, { primary_key => self[primary_key] }) == 1
     end
 
     # Updates all the attributes from the passed-in Hash and saves the record. 
