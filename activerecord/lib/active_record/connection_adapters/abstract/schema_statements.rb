@@ -106,7 +106,13 @@ module ActiveRecord
       #   Join tables for +has_and_belongs_to_many+ should set <tt>:id => false</tt>.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
-      #   Defaults to +id+.
+      #   Defaults to +id+. You must NOT pass :id => false otherwise :primary_key option
+      #   will have no effect.
+      #
+      #   Also note that this just sets the primary_key in the table. You still need to
+      #   add :set_primary_key => '' in the model to tell model what column is the 
+      #   primary_key. Models do NOT auto-detect the primary_key from table defintion. 
+      #   
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]
