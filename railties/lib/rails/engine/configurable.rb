@@ -21,11 +21,6 @@ module Rails
         def instance
           @instance ||= new
         end
-
-        def endpoint(endpoint = nil)
-          @endpoint = endpoint if endpoint
-          @endpoint
-        end
       end
 
       def config

@@ -147,12 +147,6 @@ module Rails
       self
     end
 
-    def app
-      @app ||= begin
-        config.middleware = config.middleware.merge_into(default_middleware_stack)
-        config.middleware.build(routes)
-      end
-    end
     alias :build_middleware_stack :app
 
     def call(env)

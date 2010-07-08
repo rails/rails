@@ -124,6 +124,11 @@ module Rails
           Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
 
+      def endpoint(endpoint = nil)
+        @endpoint = endpoint if endpoint
+        @endpoint
+      end
+
     protected
 
       def method_missing(*args, &block)
@@ -160,12 +165,6 @@ module Rails
 
     def endpoint
       self.class.endpoint || routes
-    end
-
-    def default_middleware_stack
-      ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        middleware.use ::ActionDispatch::Static, paths.public.to_a.first if config.serve_static_assets
-      end
     end
 
     def call(env)
@@ -251,6 +250,9 @@ module Rails
     end
 
   protected
+    def default_middleware_stack
+      ActionDispatch::MiddlewareStack.new
+    end
 
     def _all_autoload_paths
       @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
