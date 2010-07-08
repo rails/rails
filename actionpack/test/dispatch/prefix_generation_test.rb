@@ -2,6 +2,9 @@ require 'abstract_unit'
 
 module TestGenerationPrefix
   class WithMountedEngine < ActionDispatch::IntegrationTest
+    require 'rack/test'
+    include Rack::Test::Methods
+
     class BlogEngine
       def self.routes
         @routes ||= begin
@@ -30,6 +33,7 @@ module TestGenerationPrefix
               mount BlogEngine => "/blog"
             end
             match "/generate", :to => "outside_engine_generating#index"
+            root :to => "outside_engine_generating#index"
           end
 
           routes
@@ -77,25 +81,39 @@ module TestGenerationPrefix
       end
     end
 
+    class Bar
+      include ActionDispatch::Routing::UrlFor
+      include RailsApplication.routes.url_helpers
+
+      def bar
+        root_path
+      end
+    end
 
     RailsApplication.routes # force draw
     include BlogEngine.routes.url_helpers
+
+    def app
+      RailsApplication
+    end
+
+    def setup
+      RailsApplication.routes.default_url_options = {}
+    end
 
     test "generating URL with prefix" do
       assert_equal "/awesome/blog/posts/1", post_path(:id => 1)
     end
 
     test "use SCRIPT_NAME inside the engine" do
-      env = Rack::MockRequest.env_for("/pure-awesomness/blog/posts/1")
-      response = ActionDispatch::Response.new(*RailsApplication.call(env))
-      assert_equal "/pure-awesomness/blog/posts/1", response.body
+      get "/pure-awesomness/blog/posts/1"
+      assert_equal "/pure-awesomness/blog/posts/1", last_response.body
     end
 
     test "prepend prefix outside the engine" do
-      env = Rack::MockRequest.env_for("/generate")
-      env["SCRIPT_NAME"] = "/something" # it could be set by passenger
-      response = ActionDispatch::Response.new(*RailsApplication.call(env))
-      assert_equal "/something/awesome/blog/posts/1", response.body
+      RailsApplication.routes.default_url_options = {:script_name => "/something"}
+      get "/generate", {}, 'SCRIPT_NAME' => "/something"
+      assert_equal "/something/awesome/blog/posts/1", last_response.body
     end
 
     test "generating urls with options for both prefix and named_route" do
@@ -112,11 +130,14 @@ module TestGenerationPrefix
     end
 
     test "passing :routes to url_for to change current routes" do
-      env = Rack::MockRequest.env_for("/pure-awesomness/blog/bare_url_for")
-      env["SCRIPT_NAME"] = "/something"
       RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      response = ActionDispatch::Response.new(*RailsApplication.call(env))
-      assert_equal "/something/generate", response.body
+      get "/pure-awesomness/blog/bare_url_for", {}, 'SCRIPT_NAME' => "/something"
+      assert_equal "/something/generate", last_response.body
+    end
+
+    test "using default_url_options[:script_name] in regular classes" do
+      RailsApplication.routes.default_url_options = {:script_name => "/something"}
+      assert_equal "/something/", Bar.new.bar
     end
   end
 end
