@@ -253,9 +253,10 @@ module ActiveRecord
       # See destroy for more info.
       def destroy_all
         load_target
-        destroy(@target)
-        reset_target!
-        reset_named_scopes_cache!
+        destroy(@target).tap do
+          reset_target!
+          reset_named_scopes_cache!
+        end
       end
 
       def create(attrs = {})

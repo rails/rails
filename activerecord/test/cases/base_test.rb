@@ -651,16 +651,24 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    original_count = Topic.count
-    topics_by_mary = Topic.count(:conditions => mary = "author_name = 'Mary'")
+    conditions = "author_name = 'Mary'"
+    topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
+    assert ! topics_by_mary.empty?
 
-    Topic.destroy_all mary
-    assert_equal original_count - topics_by_mary, Topic.count
+    assert_difference('Topic.count', -topics_by_mary.size) do
+      destroyed = Topic.destroy_all(conditions).sort_by(&:id)
+      assert_equal topics_by_mary, destroyed
+      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+    end
   end
 
   def test_destroy_many
+    clients = Client.find([2, 3], :order => 'id')
+
     assert_difference('Client.count', -2) do
-      Client.destroy([2, 3])
+      destroyed = Client.destroy([2, 3]).sort_by(&:id)
+      assert_equal clients, destroyed
+      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
     end
   end
 
