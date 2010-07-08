@@ -325,18 +325,6 @@ module ActiveSupport #:nodoc:
       end
       alias_method :[], :slice
 
-      # Like <tt>String#slice!</tt>, except instead of byte offsets you specify character offsets.
-      #
-      # Example:
-      #   s = 'こんにちは'
-      #   s.mb_chars.slice!(2..3).to_s #=> "にち"
-      #   s #=> "こんは"
-      def slice!(*args)
-        slice = self[*args]
-        self[*args] = ''
-        slice
-      end
-
       # Limit the byte size of the string to a number of bytes without breaking characters. Usable
       # when the storage for a string is limited for some reason.
       #
@@ -425,14 +413,14 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
-      %w(lstrip rstrip strip reverse upcase downcase tidy_bytes capitalize).each do |method|
-        define_method("#{method}!") do |*args|
-          unless args.nil?
-            @wrapped_string = send(method, *args).to_s
-          else
-            @wrapped_string = send(method).to_s
+       %w(capitalize downcase lstrip reverse rstrip slice strip tidy_bytes upcase).each do |method|
+        # Only define a corresponding bang method for methods defined in the proxy; On 1.9 the proxy will
+        # exclude lstrip!, rstrip! and strip! because they are already work as expected on multibyte strings.
+        if public_method_defined?(method)
+          define_method("#{method}!") do |*args|
+            @wrapped_string = send(args.nil? ? method : method, *args).to_s
+            self
           end
-          self
         end
       end
 
