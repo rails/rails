@@ -201,4 +201,11 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     }
     assert_equal %({"1":{"author":{"name":"David"}}}), ActiveSupport::JSON.encode(authors_hash, :only => [1, :name])
   end
+
+  def test_should_be_able_to_encode_relation
+    authors_relation = Author.where(:id => [@david.id, @mary.id])
+    
+    json = ActiveSupport::JSON.encode authors_relation, :only => :name
+    assert_equal '[{"author":{"name":"David"}},{"author":{"name":"Mary"}}]', json
+  end
 end
