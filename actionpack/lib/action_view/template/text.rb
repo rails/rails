@@ -1,4 +1,5 @@
 module ActionView #:nodoc:
+  # = Action View Text Template
   class Template
     class Text < String #:nodoc:
       attr_accessor :mime_type

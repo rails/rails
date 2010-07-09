@@ -1,9 +1,11 @@
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Capture Helper
   module Helpers
     # CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
+    #
     # It provides a method to capture blocks into variables through capture and
     # a way to capture a block of markup for use in a layout through content_for.
     module CaptureHelper
@@ -176,9 +178,7 @@ module ActionView
       def flush_output_buffer #:nodoc:
         if output_buffer && !output_buffer.empty?
           response.body_parts << output_buffer
-          new = ''
-          new.force_encoding(output_buffer.encoding) if new.respond_to?(:force_encoding)
-          self.output_buffer = new
+          self.output_buffer = output_buffer[0,0]
           nil
         end
       end

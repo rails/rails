@@ -1,4 +1,5 @@
-require 'rubygems'
+gem 'rdoc', '= 2.2'
+require 'rdoc'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
@@ -53,5 +54,5 @@ end
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do
   require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/am", "doc").upload
+  Rake::SshDirPublisher.new("rails@api.rubyonrails.org", "public_html/am", "doc").upload
 end

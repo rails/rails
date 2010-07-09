@@ -89,9 +89,7 @@ module ActionController #:nodoc:
 
     def initialize(controller, resources, options={})
       @controller = controller
-      @request = controller.request
-      @format = controller.formats.first
-      @resource = resources.is_a?(Array) ? resources.last : resources
+      @resource = resources.last
       @resources = resources
       @options = options
       @action = options.delete(:action)
@@ -100,6 +98,14 @@ module ActionController #:nodoc:
 
     delegate :head, :render, :redirect_to,   :to => :controller
     delegate :get?, :post?, :put?, :delete?, :to => :request
+
+    def request
+      @request ||= @controller.request
+    end
+
+    def format
+      @format ||= @controller.formats.first
+    end
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)
@@ -147,7 +153,7 @@ module ActionController #:nodoc:
       elsif has_errors? && default_action
         render :action => default_action
       else
-        redirect_to resource_location
+        redirect_to navigation_location
       end
     end
 
@@ -160,7 +166,7 @@ module ActionController #:nodoc:
       elsif has_errors?
         display resource.errors, :status => :unprocessable_entity
       elsif post?
-        display resource, :status => :created, :location => resource_location
+        display resource, :status => :created, :location => api_location
       else
         head :ok
       end
@@ -178,6 +184,8 @@ module ActionController #:nodoc:
     def resource_location
       options[:location] || resources
     end
+    alias :navigation_location :resource_location
+    alias :api_location :resource_location
 
     # If a given response block was given, use it, otherwise call render on
     # controller.

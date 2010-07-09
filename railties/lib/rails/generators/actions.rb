@@ -267,7 +267,7 @@ module Rails
         ActiveSupport::Deprecation.warn "freeze! is deprecated since your rails app now comes bundled with Rails by default, please check your Gemfile"
       end
 
-      # Make an entry in Rails routing file conifg/routes.rb
+      # Make an entry in Rails routing file config/routes.rb
       #
       # === Example
       #
@@ -275,7 +275,7 @@ module Rails
       #
       def route(routing_code)
         log :route, routing_code
-        sentinel = "routes.draw do |map|"
+        sentinel = /\.routes\.draw do(\s*\|map\|)?\s*$/
 
         in_root do
           inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel, :verbose => false }

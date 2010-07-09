@@ -109,7 +109,7 @@ module ActiveModel #:nodoc:
       @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
     end
 
-    # Accepts options that will be made availible through the +options+ reader.
+    # Accepts options that will be made available through the +options+ reader.
     def initialize(options)
       @options = options
     end
@@ -155,7 +155,7 @@ module ActiveModel #:nodoc:
       end
     end
 
-    # Override this method in subclasses with the validation logic, adding
+    # Override this method in subclasses with the validation logic, adding
     # errors to the records +errors+ array where necessary.
     def validate_each(record, attribute, value)
       raise NotImplementedError

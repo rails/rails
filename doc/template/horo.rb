@@ -11,8 +11,12 @@ if defined?(RDoc::Diagram)
 	end
 end
 
+require 'rdoc/generator/html'
+
 module RDoc
-module Page
+module Generator
+class HTML
+class HORO
 
 FONTS = "\"Bitstream Vera Sans\", Verdana, Arial, Helvetica, sans-serif"
 
@@ -28,7 +32,7 @@ a:hover {
 }
 
 body, td, p {
-  font-family: %fonts%;
+  font-family: <%= values['fonts'] %>;
   background: #FFF;
   color: #000;
   margin: 0px;
@@ -206,7 +210,7 @@ dd {
 }
 CSS
 
-XHTML_PREAMBLE = %{<?xml version="1.0" encoding="%charset%"?>
+XHTML_PREAMBLE = %{<?xml version="1.0" encoding="<%= values['charset'] %>"?>
 <!DOCTYPE html 
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -221,9 +225,9 @@ XHTML_FRAMESET_PREAMBLE = %{
 HEADER = XHTML_PREAMBLE + <<ENDHEADER
 <html>
   <head>
-    <title>%title%</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=%charset%" />
-    <link rel="stylesheet" href="%style_url%" type="text/css" media="screen" />
+    <title><%= values['title'] %></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=<%= values['charset'] %>" />
+    <link rel="stylesheet" href="<%= values['style_url'] %>" type="text/css" media="screen" />
 
     <script language="JavaScript" type="text/javascript">
     // <![CDATA[
@@ -273,20 +277,20 @@ FILE_PAGE = <<HTML
 <table border='0' cellpadding='0' cellspacing='0' width="100%" class='banner'>
   <tr><td>
     <table width="100%" border='0' cellpadding='0' cellspacing='0'><tr>
-      <td class="file-title" colspan="2"><span class="file-title-prefix">File</span><br />%short_name%</td>
+      <td class="file-title" colspan="2"><span class="file-title-prefix">File</span><br /><%= values['short_name'] %></td>
       <td align="right">
         <table border='0' cellspacing="0" cellpadding="2">
           <tr>
             <td>Path:</td>
-            <td>%full_path%
-IF:cvsurl
-				&nbsp;(<a href="%cvsurl%">CVS</a>)
-ENDIF:cvsurl
+            <td><%= values['full_path'] %>
+<% if values['cvsurl'] %>
+				&nbsp;(<a href="<%= values['cvsurl'] %>">CVS</a>)
+<% end %>
             </td>
           </tr>
           <tr>
             <td>Modified:</td>
-            <td>%dtm_modified%</td>
+            <td><%= values['dtm_modified'] %></td>
           </tr>
         </table>
       </td></tr>
@@ -299,34 +303,34 @@ HTML
 
 CLASS_PAGE = <<HTML
 <table width="100%" border='0' cellpadding='0' cellspacing='0' class='banner'><tr>
-  <td class="file-title"><span class="file-title-prefix">%classmod%</span><br />%full_name%</td>
+  <td class="file-title"><span class="file-title-prefix"><%= values['classmod'] %></span><br /><%= values['full_name'] %></td>
   <td align="right">
     <table cellspacing="0" cellpadding="2">
       <tr valign="top">
         <td>In:</td>
         <td>
-START:infiles
-HREF:full_path_url:full_path:
-IF:cvsurl
-&nbsp;(<a href="%cvsurl%">CVS</a>)
-ENDIF:cvsurl
-END:infiles
+<% values['infiles'].each do |infile| %>
+<%= href infile['full_path_url'], infile['full_path'] %>:
+<% if infile['cvsurl'] %>
+&nbsp;(<a href="<%= infile['cvsurl'] %>">CVS</a>)
+<% end %>
+<% end %>
         </td>
       </tr>
-IF:parent
+<% if values['parent'] %>
     <tr>
       <td>Parent:</td>
       <td>
-IF:par_url
-        <a href="%par_url%">
-ENDIF:par_url
-%parent%
-IF:par_url
+<% if values['par_url'] %>
+        <a href="<%= values['par_url'] %>">
+<% end %>
+<%= values['parent'] %>
+<% if values['par_url'] %>
          </a>
-ENDIF:par_url
+<% end %>
      </td>
    </tr>
-ENDIF:parent
+<% end %>
          </table>
         </td>
         </tr>
@@ -337,149 +341,149 @@ HTML
 
 METHOD_LIST = <<HTML
   <div id="content">
-IF:diagram
+<% if values['diagram'] %>
   <table cellpadding='0' cellspacing='0' border='0' width="100%"><tr><td align="center">
-    %diagram%
+    <%= values['diagram'] %>
   </td></tr></table>
-ENDIF:diagram
+<% end %>
 
-IF:description
-  <div class="description">%description%</div>
-ENDIF:description
+<% if values['description'] %>
+  <div class="description"><%= values['description'] %></div>
+<% end %>
 
-IF:requires
+<% if values['requires'] %>
   <div class="sectiontitle">Required Files</div>
   <ul>
-START:requires
-  <li>HREF:aref:name:</li>
-END:requires
+<% values['requires'].each do |require| %>
+  <li><%= href require['aref'], require['name'] %>:</li>
+<% end %>
   </ul>
-ENDIF:requires
+<% end %>
 
-IF:toc
+<% if values['toc'] %>
   <div class="sectiontitle">Contents</div>
   <ul>
-START:toc
-  <li><a href="#%href%">%secname%</a></li>
-END:toc
+<% values['toc'].each do |toc| %>
+  <li><a href="#<%= toc['href'] %>"><%= toc['secname'] %></a></li>
+<% end %>
   </ul>
-ENDIF:toc
+<% end %>
 
-IF:methods
+<% if values['methods'] %>
   <div class="sectiontitle">Methods</div>
   <ul>
-START:methods
-  <li>HREF:aref:name:</li>
-END:methods
+<% values['methods'].each do |method| %>
+  <li><%= href method['aref'], method['name'] %></li>
+<% end %>
   </ul>
-ENDIF:methods
+<% end %>
 
-IF:includes
+<% if values['includes'] %>
 <div class="sectiontitle">Included Modules</div>
 <ul>
-START:includes
-  <li>HREF:aref:name:</li>
-END:includes
+<% values['includes'].each do |include| %>
+  <li><%= href include['aref'], include['name'] %>:</li>
+<% end %>
 </ul>
-ENDIF:includes
+<% end %>
 
-START:sections
-IF:sectitle
-<div class="sectiontitle"><a name="%secsequence%">%sectitle%</a></div>
-IF:seccomment
+<% values['sections'].each do |section| %>
+<% if section['sectitle'] %>
+<div class="sectiontitle"><a name="<%= section['secsequence'] %>"><%= section['sectitle'] %></a></div>
+<% if section['seccomment'] %>
 <div class="description">
-%seccomment%
+<%= section['seccomment'] %>
 </div>
-ENDIF:seccomment
-ENDIF:sectitle
+<% end %>
+<% end %>
 
-IF:classlist
+<% if section['classlist'] %>
   <div class="sectiontitle">Classes and Modules</div>
-  %classlist%
-ENDIF:classlist
+  <%= section['classlist'] %>
+<% end %>
 
-IF:constants
+<% if section['constants'] %>
   <div class="sectiontitle">Constants</div>
   <table border='0' cellpadding='5'>
-START:constants
+<% section['constants'].each do |constant| %>
   <tr valign='top'>
-    <td class="attr-name">%name%</td>
+    <td class="attr-name"><%= constant['name'] %></td>
     <td>=</td>
-    <td class="attr-value">%value%</td>
+    <td class="attr-value"><%= constant['value'] %></td>
   </tr>
-IF:desc
+<% if constant['desc'] %>
   <tr valign='top'>
     <td>&nbsp;</td>
-    <td colspan="2" class="attr-desc">%desc%</td>
+    <td colspan="2" class="attr-desc"><%= constant['desc'] %></td>
   </tr>
-ENDIF:desc
-END:constants
+<% end %>
+<% end %>
   </table>
-ENDIF:constants
+<% end %>
 
-IF:attributes
+<% if section['attributes'] %>
   <div class="sectiontitle">Attributes</div>
   <table border='0' cellpadding='5'>
-START:attributes
+<% section['attributes'].each do |attribute| %>
   <tr valign='top'>
     <td class='attr-rw'>
-IF:rw
-[%rw%]
-ENDIF:rw
+<% if attribute['rw'] %>
+[<%= attribute['rw'] %>]
+<% end %>
     </td>
-    <td class='attr-name'>%name%</td>
-    <td class='attr-desc'>%a_desc%</td>
+    <td class='attr-name'><%= attribute['name'] %></td>
+    <td class='attr-desc'><%= attribute['a_desc'] %></td>
   </tr>
-END:attributes
+<% end %>
   </table>
-ENDIF:attributes
+<% end %>
 
-IF:method_list
-START:method_list
-IF:methods
-<div class="sectiontitle">%type% %category% methods</div>
-START:methods
+<% if section['method_list'] %>
+<% section['method_list'].each do |method_list| %>
+<% if method_list['methods'] %>
+<div class="sectiontitle"><%= method_list['type'] %> <%= method_list['category'] %> methods</div>
+<% method_list['methods'].each do |method| %>
 <div class="method">
   <div class="title">
-IF:callseq
-    <a name="%aref%"></a><b>%callseq%</b>
-ENDIF:callseq
-IFNOT:callseq
-    <a name="%aref%"></a><b>%name%</b>%params%
-ENDIF:callseq
-IF:codeurl
-[&nbsp;<a href="%codeurl%" target="SOURCE_CODE" onclick="javascript:openCode('%codeurl%'); return false;">source</a>&nbsp;]
-ENDIF:codeurl
+<% if method['callseq'] %>
+    <a name="<%= method['aref'] %>"></a><b><%= method['callseq'] %></b>
+<% end %>
+<% unless method['callseq'] %>
+    <a name="<%= method['aref'] %>"></a><b><%= method['name'] %></b><%= method['params'] %>
+<% end %>
+<% if method['codeurl'] %>
+[&nbsp;<a href="<%= method['codeurl'] %>" target="SOURCE_CODE" onclick="javascript:openCode('<%= method['codeurl'] %>'); return false;">source</a>&nbsp;]
+<% end %>
   </div>
-IF:m_desc
+<% if method['m_desc'] %>
   <div class="description">
-  %m_desc%
+  <%= method['m_desc'] %>
   </div>
-ENDIF:m_desc
-IF:aka
+<% end %>
+<% if method['aka'] %>
 <div class="aka">
   This method is also aliased as
-START:aka
-  <a href="%aref%">%name%</a>
-END:aka
+<% method['aka'].each do |aka| %>
+  <a href="<%= aka['aref'] %>"><%= aka['name'] %></a>
+<% end %>
 </div>
-ENDIF:aka
-IF:sourcecode
+<% end %>
+<% if method['sourcecode'] %>
 <div class="sourcecode">
-  <p class="source-link">[ <a href="javascript:toggleSource('%aref%_source')" id="l_%aref%_source">show source</a> ]</p>
-  <div id="%aref%_source" class="dyn-source">
+  <p class="source-link">[ <a href="javascript:toggleSource('<%= method['aref'] %>_source')" id="l_<%= method['aref'] %>_source">show source</a> ]</p>
+  <div id="<%= method['aref'] %>_source" class="dyn-source">
 <pre>
-%sourcecode%
+<%= method['sourcecode'] %>
 </pre>
   </div>
 </div>
-ENDIF:sourcecode
+<% end %>
 </div>
-END:methods
-ENDIF:methods
-END:method_list
-ENDIF:method_list
-END:sections
+<% end %>
+<% end %>
+<% end %>
+<% end %>
+<% end %>
 </div>
 HTML
 
@@ -489,7 +493,7 @@ FOOTER = <<ENDFOOTER
 ENDFOOTER
 
 BODY = HEADER + <<ENDBODY
-  !INCLUDE! <!-- banner header -->
+  <%= template_include %> <!-- banner header -->
 
   <div id="bodyContent">
     #{METHOD_LIST}
@@ -502,8 +506,8 @@ ENDBODY
 
 SRC_PAGE = XHTML_PREAMBLE + <<HTML
 <html>
-<head><title>%title%</title>
-<meta http-equiv="Content-Type" content="text/html; charset=%charset%" />
+<head><title><%= values['title'] %></title>
+<meta http-equiv="Content-Type" content="text/html; charset=<%= values['charset'] %>" />
 <style type="text/css">
 .ruby-comment    { color: green; font-style: italic }
 .ruby-constant   { color: #4433aa; font-weight: bold; }
@@ -521,7 +525,7 @@ SRC_PAGE = XHTML_PREAMBLE + <<HTML
 </style>
 </head>
 <body bgcolor="white">
-<pre>%code%</pre>
+<pre><%= values['code'] %></pre>
 </body>
 </html>
 HTML
@@ -529,13 +533,13 @@ HTML
 ########################## Index ################################
 
 FR_INDEX_BODY = <<HTML
-!INCLUDE!
+<%= template_include %>
 HTML
 
 FILE_INDEX = XHTML_PREAMBLE + <<HTML
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=%charset%" />
+<meta http-equiv="Content-Type" content="text/html; charset=<%= values['charset'] %>" />
 <title>Index</title>
 <style type="text/css">
 <!--
@@ -571,11 +575,11 @@ FILE_INDEX = XHTML_PREAMBLE + <<HTML
 <base target="docwin" />
 </head>
 <body>
-<div class="banner">%list_title%</div>
+<div class="banner"><%= values['list_title'] %></div>
 <div class="entries">
-START:entries
-<a href="%href%">%name%</a><br />
-END:entries
+<% values['entries'].each do |entrie| %>
+<a href="<%= entrie['href'] %>"><%= entrie['name'] %></a><br />
+<% end %>
 </div>
 </body></html>
 HTML
@@ -586,8 +590,8 @@ METHOD_INDEX = FILE_INDEX
 INDEX = XHTML_FRAMESET_PREAMBLE + <<HTML
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>%title%</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=%charset%" />
+  <title><%= values['title'] %></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=<%= values['charset'] %>" />
 </head>
 
 <frameset cols="20%,*">
@@ -596,7 +600,7 @@ INDEX = XHTML_FRAMESET_PREAMBLE + <<HTML
         <frame src="fr_class_index.html"  name="Classes" />
         <frame src="fr_method_index.html" name="Methods" />
     </frameset>
-    <frame  src="%initial_page%" name="docwin" />
+    <frame  src="<%= values['initial_page'] %>" name="docwin" />
     <noframes>
           <body bgcolor="white">
             Click <a href="html/index.html">here</a> for a non-frames
@@ -610,4 +614,5 @@ HTML
 
 end
 end
-
+end
+end

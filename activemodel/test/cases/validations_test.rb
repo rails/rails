@@ -6,6 +6,9 @@ require 'models/reply'
 require 'models/custom_reader'
 require 'models/automobile'
 
+require 'active_support/json'
+require 'active_support/xml_mini'
+
 class ValidationsTest < ActiveModel::TestCase
 
   def setup
@@ -83,15 +86,30 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.content = "Mismatch"
     r.valid?
-    r.errors[:base] << "Reply is not dignifying"
+    r.errors.add(:base, "Reply is not dignifying")
 
-    errors = []
-    r.errors.to_a.each { |error| errors << error }
+    errors = r.errors.to_a.inject([]) { |result, error| result + [error] }
 
     assert_equal ["Reply is not dignifying"], r.errors[:base]
 
     assert errors.include?("Title is Empty")
     assert errors.include?("Reply is not dignifying")
+    assert_equal 2, r.errors.count
+  end
+
+  def test_errors_on_base_with_symbol_message
+    r = Reply.new
+    r.content = "Mismatch"
+    r.valid?
+    r.errors.add(:base, :invalid)
+
+    errors = r.errors.to_a.inject([]) { |result, error| result + [error] }
+
+    assert_equal ["is invalid"], r.errors[:base]
+
+    assert errors.include?("Title is Empty")
+    assert errors.include?("is invalid")
+
     assert_equal 2, r.errors.count
   end
 
@@ -143,12 +161,18 @@ class ValidationsTest < ActiveModel::TestCase
     end
   end
 
-  def test_errors_to_xml
-    r = Reply.new :title => "Wrong Create"
-    assert r.invalid?
-    xml = r.errors.to_xml(:skip_instruct => true)
-    assert_equal "<errors>", xml.first(8)
-    assert xml.include?("<error>Content is Empty</error>")
+  def test_errors_conversions
+    Topic.validates_presence_of %w(title content)
+    t = Topic.new
+    assert t.invalid?
+
+    xml = t.errors.to_xml
+    assert_match %r{<errors>}, xml
+    assert_match %r{<error>Title can't be blank</error>}, xml
+    assert_match %r{<error>Content can't be blank</error>}, xml
+
+    json = t.errors.to_json
+    assert_equal t.errors.to_a.to_json, json
   end
 
   def test_validation_order

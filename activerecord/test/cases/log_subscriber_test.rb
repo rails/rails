@@ -1,20 +1,19 @@
 require "cases/helper"
 require "models/developer"
-require "rails/log_subscriber/test_helper"
-require "active_record/railties/log_subscriber"
+require "active_support/log_subscriber/test_helper"
 
 class LogSubscriberTest < ActiveSupport::TestCase
-  include Rails::LogSubscriber::TestHelper
+  include ActiveSupport::LogSubscriber::TestHelper
 
   def setup
     @old_logger = ActiveRecord::Base.logger
     super
-
-    Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
+    ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
 
   def teardown
     super
+    ActiveRecord::LogSubscriber.log_subscribers.pop
     ActiveRecord::Base.logger = @old_logger
   end
 

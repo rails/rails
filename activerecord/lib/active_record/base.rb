@@ -2,6 +2,7 @@ require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'
 require 'active_support/dependencies'
+require 'active_support/descendants_tracker'
 require 'active_support/time'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
@@ -14,13 +15,17 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
+require 'active_record/log_subscriber'
 
 module ActiveRecord #:nodoc:
+  # = Active Record
+  #
   # Active Record objects don't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
   # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain
@@ -274,27 +279,17 @@ module ActiveRecord #:nodoc:
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
 
-    def self.inherited(child) #:nodoc:
-      @@subclasses[self] ||= []
-      @@subclasses[self] << child
-      super
-    end
-
-    def self.reset_subclasses #:nodoc:
-      nonreloadables = []
-      subclasses.each do |klass|
-        unless ActiveSupport::Dependencies.autoloaded? klass
-          nonreloadables << klass
-          next
-        end
-        klass.instance_variables.each { |var| klass.send(:remove_instance_variable, var) }
-        klass.instance_methods(false).each { |m| klass.send :undef_method, m }
+    class << self
+      def reset_subclasses #:nodoc:
+        ActiveSupport::Deprecation.warn 'ActiveRecord::Base.reset_subclasses no longer does anything in Rails 3. It will be removed in the final release; please update your apps and plugins.', caller
       end
-      @@subclasses = {}
-      nonreloadables.each { |klass| (@@subclasses[klass.superclass] ||= []) << klass }
-    end
 
-    @@subclasses = {}
+      def subclasses
+        descendants
+      end
+
+      deprecate :subclasses => :descendants
+    end
 
     ##
     # :singleton-method:
@@ -403,7 +398,7 @@ module ActiveRecord #:nodoc:
 
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -481,111 +476,15 @@ module ActiveRecord #:nodoc:
         connection.select_value(sql, "#{name} Count").to_i
       end
 
-      # Attributes named in this macro are protected from mass-assignment,
-      # such as <tt>new(attributes)</tt>,
-      # <tt>update_attributes(attributes)</tt>, or
-      # <tt>attributes=(attributes)</tt>.
-      #
-      # Mass-assignment to these attributes will simply be ignored, to assign
-      # to them you can use direct writer methods. This is meant to protect
-      # sensitive attributes from being overwritten by malicious users
-      # tampering with URLs or forms.
-      #
-      #   class Customer < ActiveRecord::Base
-      #     attr_protected :credit_rating
-      #   end
-      #
-      #   customer = Customer.new("name" => David, "credit_rating" => "Excellent")
-      #   customer.credit_rating # => nil
-      #   customer.attributes = { "description" => "Jolly fellow", "credit_rating" => "Superb" }
-      #   customer.credit_rating # => nil
-      #
-      #   customer.credit_rating = "Average"
-      #   customer.credit_rating # => "Average"
-      #
-      # To start from an all-closed default and enable attributes as needed,
-      # have a look at +attr_accessible+.
-      #
-      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
-      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
-      # passed to Active Record.
-      #
-      # For example, it could be the case that the list of protected attributes
-      # for a given model depends on the role of the user:
-      #
-      #   # Assumes plan_id is not protected because it depends on the role.
-      #   params[:account] = params[:account].except(:plan_id) unless admin?
-      #   @account.update_attributes(params[:account])
-      #
-      # Note that +attr_protected+ is still applied to the received hash. Thus,
-      # with this technique you can at most _extend_ the list of protected
-      # attributes for a particular mass-assignment call.
-      def attr_protected(*attributes)
-        write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
+      # Attributes listed as readonly can be set for a new record, but will be ignored in database updates afterwards.
+      def attr_readonly(*attributes)
+        write_inheritable_attribute(:attr_readonly, Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
       end
 
-      # Returns an array of all the attributes that have been protected from mass-assignment.
-      def protected_attributes # :nodoc:
-        read_inheritable_attribute(:attr_protected)
+      # Returns an array of all the attributes that have been specified as readonly.
+      def readonly_attributes
+        read_inheritable_attribute(:attr_readonly) || []
       end
-
-      # Specifies a white list of model attributes that can be set via
-      # mass-assignment, such as <tt>new(attributes)</tt>,
-      # <tt>update_attributes(attributes)</tt>, or
-      # <tt>attributes=(attributes)</tt>
-      #
-      # This is the opposite of the +attr_protected+ macro: Mass-assignment
-      # will only set attributes in this list, to assign to the rest of
-      # attributes you can use direct writer methods. This is meant to protect
-      # sensitive attributes from being overwritten by malicious users
-      # tampering with URLs or forms. If you'd rather start from an all-open
-      # default and restrict attributes as needed, have a look at
-      # +attr_protected+.
-      #
-      #   class Customer < ActiveRecord::Base
-      #     attr_accessible :name, :nickname
-      #   end
-      #
-      #   customer = Customer.new(:name => "David", :nickname => "Dave", :credit_rating => "Excellent")
-      #   customer.credit_rating # => nil
-      #   customer.attributes = { :name => "Jolly fellow", :credit_rating => "Superb" }
-      #   customer.credit_rating # => nil
-      #
-      #   customer.credit_rating = "Average"
-      #   customer.credit_rating # => "Average"
-      #
-      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
-      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
-      # passed to Active Record.
-      #
-      # For example, it could be the case that the list of accessible attributes
-      # for a given model depends on the role of the user:
-      #
-      #   # Assumes plan_id is accessible because it depends on the role.
-      #   params[:account] = params[:account].except(:plan_id) unless admin?
-      #   @account.update_attributes(params[:account])
-      #
-      # Note that +attr_accessible+ is still applied to the received hash. Thus,
-      # with this technique you can at most _narrow_ the list of accessible
-      # attributes for a particular mass-assignment call.
-      def attr_accessible(*attributes)
-        write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
-      end
-
-      # Returns an array of all the attributes that have been made accessible to mass-assignment.
-      def accessible_attributes # :nodoc:
-        read_inheritable_attribute(:attr_accessible)
-      end
-
-       # Attributes listed as readonly can be set for a new record, but will be ignored in database updates afterwards.
-       def attr_readonly(*attributes)
-         write_inheritable_attribute(:attr_readonly, Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
-       end
-
-       # Returns an array of all the attributes that have been specified as readonly.
-       def readonly_attributes
-         read_inheritable_attribute(:attr_readonly) || []
-       end
 
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
       # then specify the name of that attribute using this method and it will be handled automatically.
@@ -725,14 +624,6 @@ module ActiveRecord #:nodoc:
       end
       alias :sequence_name= :set_sequence_name
 
-      # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
-      def class_name(table_name = table_name) # :nodoc:
-        # remove any prefix and/or suffix from the table name
-        class_name = table_name[table_name_prefix.length..-(table_name_suffix.length + 1)].camelize
-        class_name = class_name.singularize if pluralize_table_names
-        class_name
-      end
-
       # Indicates whether the table associated with this class exists
       def table_exists?
         connection.table_exists?(table_name)
@@ -806,11 +697,11 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @unscoped = @arel_table = nil
+        @arel_engine = @relation = @arel_table = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
-        subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
+        descendants.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
       def attribute_method?(attribute)
@@ -882,6 +773,9 @@ module ActiveRecord #:nodoc:
       # Returns the base AR subclass that this class descends from. If A
       # extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
+      #
+      # If B < A and C < B and if A is an abstract_class then both B.base_class
+      # and C.base_class would return B as the answer since A is an abstract_class.
       def base_class
         class_of_active_record_descendant(self)
       end
@@ -889,8 +783,7 @@ module ActiveRecord #:nodoc:
       # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
       attr_accessor :abstract_class
 
-      # Returns whether this class is a base AR class.  If A is a base class and
-      # B descends from A, then B.base_class will return B.
+      # Returns whether this class is an abstract class or not.
       def abstract_class?
         defined?(@abstract_class) && @abstract_class == true
       end
@@ -909,11 +802,6 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      def unscoped
-        @unscoped ||= Relation.new(self, arel_table)
-        finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
-      end
-
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, :engine => arel_engine)
       end
@@ -928,15 +816,46 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      # Returns a scope for this class without taking into account the default_scope.
+      #
+      #   class Post < ActiveRecord::Base
+      #     default_scope :published => true
+      #   end
+      #
+      #   Post.all          # Fires "SELECT * FROM posts WHERE published = true"
+      #   Post.unscoped.all # Fires "SELECT * FROM posts"
+      #
+      # This method also accepts a block meaning that all queries inside the block will
+      # not use the default_scope:
+      #
+      #   Post.unscoped {
+      #     limit(10) # Fires "SELECT * FROM posts LIMIT 10"
+      #   }
+      #
+      def unscoped
+        block_given? ? relation.scoping { yield } : relation
+      end
+
+      def scoped_methods #:nodoc:
+        key = :"#{self}_scoped_methods"
+        Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
+      end
+
       private
+
+        def relation #:nodoc:
+          @relation ||= Relation.new(self, arel_table)
+          finder_needs_type_condition? ? @relation.where(type_condition) : @relation
+        end
+
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.instance_variable_set(:'@attributes', record)
-          object.instance_variable_set(:'@attributes_cache', {})
+          object.instance_variable_set(:@attributes, record)
+          object.instance_variable_set(:@attributes_cache, {})
           object.instance_variable_set(:@new_record, false)
           object.instance_variable_set(:@readonly, false)
           object.instance_variable_set(:@destroyed, false)
@@ -975,7 +894,7 @@ module ActiveRecord #:nodoc:
         def type_condition
           sti_column = arel_table[inheritance_column]
           condition = sti_column.eq(sti_name)
-          subclasses.each{|subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
+          descendants.each { |subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
 
           condition
         end
@@ -1162,16 +1081,22 @@ module ActiveRecord #:nodoc:
 
         # Works like with_scope, but discards any nested properties.
         def with_exclusive_scope(method_scoping = {}, &block)
+          if method_scoping.values.any? { |e| e.is_a?(ActiveRecord::Relation) }
+            raise ArgumentError, <<-MSG
+New finder API can not be used with_exclusive_scope. You can either call unscoped to get an anonymous scope not bound to the default_scope:
+
+  User.unscoped.where(:active => true)
+
+Or call unscoped with a block:
+
+  User.unscoped do
+    User.where(:active => true).all
+  end
+
+MSG
+          end
           with_scope(method_scoping, :overwrite, &block)
         end
-
-        # Returns a list of all subclasses of this class, meaning all descendants.
-        def subclasses
-          @@subclasses[self] ||= []
-          @@subclasses[self] + @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
-        end
-
-        public :subclasses
 
         # Sets the default options for the model. The format of the
         # <tt>options</tt> argument is the same as in find.
@@ -1181,11 +1106,6 @@ module ActiveRecord #:nodoc:
         #   end
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
-        end
-
-        def scoped_methods #:nodoc:
-          key = :"#{self}_scoped_methods"
-          Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:
@@ -1230,11 +1150,6 @@ module ActiveRecord #:nodoc:
           else
             class_of_active_record_descendant(klass.superclass)
           end
-        end
-
-        # Returns the name of the class descending directly from Active Record in the inheritance hierarchy.
-        def class_name_of_active_record_descendant(klass) #:nodoc:
-          klass.base_class.name
         end
 
         # Accepts an array, hash, or string of SQL conditions and sanitizes
@@ -1440,14 +1355,6 @@ module ActiveRecord #:nodoc:
       # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
       # application specific and is therefore left to the application to implement according to its need.
       def initialize_copy(other)
-        # Think the assertion which fails if the after_initialize callback goes at the end of the method is wrong. The
-        # deleted clone method called new which therefore called the after_initialize callback. It then went on to copy
-        # over the attributes. But if it's copying the attributes afterwards then it hasn't finished initializing right?
-        # For example in the test suite the topic model's after_initialize method sets the author_email_address to
-        # test@test.com. I would have thought this would mean that all cloned models would have an author email address
-        # of test@test.com. However the test_clone test method seems to test that this is not the case. As a result the
-        # after_initialize callback has to be run *before* the copying of the atrributes rather than afterwards in order
-        # for all tests to pass. This makes no sense to me.
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
@@ -1460,6 +1367,7 @@ module ActiveRecord #:nodoc:
         end
 
         clear_aggregation_cache
+        clear_association_cache
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
@@ -1563,11 +1471,11 @@ module ActiveRecord #:nodoc:
       #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
       #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
-        return if new_attributes.nil?
+        return unless new_attributes.is_a? Hash
         attributes = new_attributes.stringify_keys
 
         multi_parameter_attributes = []
-        attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
+        attributes = sanitize_for_mass_assignment(attributes) if guard_protected_attributes
 
         attributes.each do |k, v|
           if k.include?("(")
@@ -1707,46 +1615,10 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def remove_attributes_protected_from_mass_assignment(attributes)
-        safe_attributes =
-          if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-            attributes.reject { |key, value| attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
-          elsif self.class.protected_attributes.nil?
-            attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.gsub(/\(.+/, "")) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
-          elsif self.class.accessible_attributes.nil?
-            attributes.reject { |key, value| self.class.protected_attributes.include?(key.gsub(/\(.+/,"")) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
-          else
-            raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
-          end
-
-        removed_attributes = attributes.keys - safe_attributes.keys
-
-        if removed_attributes.any?
-          log_protected_attribute_removal(removed_attributes)
-        end
-
-        safe_attributes
-      end
-
-      # Removes attributes which have been marked as readonly.
-      def remove_readonly_attributes(attributes)
-        unless self.class.readonly_attributes.nil?
-          attributes.delete_if { |key, value| self.class.readonly_attributes.include?(key.gsub(/\(.+/,"")) }
-        else
-          attributes
-        end
-      end
-
-      def log_protected_attribute_removal(*attributes)
-        if logger
-          logger.debug "WARNING: Can't mass-assign these protected attributes: #{attributes.join(', ')}"
-        end
-      end
-
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
-      def attributes_protected_by_default
-        default = [ self.class.primary_key, self.class.inheritance_column ]
-        default << 'id' unless self.class.primary_key.eql? 'id'
+      def self.attributes_protected_by_default
+        default = [ primary_key, inheritance_column ]
+        default << 'id' unless primary_key.eql? 'id'
         default
       end
 
@@ -1900,6 +1772,7 @@ module ActiveRecord #:nodoc:
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
     extend ActiveSupport::Benchmarkable
+    extend ActiveSupport::DescendantsTracker
 
     include ActiveModel::Conversion
     include Validations
@@ -1910,6 +1783,7 @@ module ActiveRecord #:nodoc:
     include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
+    include ActiveModel::MassAssignmentSecurity
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
 

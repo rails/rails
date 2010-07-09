@@ -260,23 +260,25 @@ begin
             end
 
             protected
-              if GC.respond_to?(:enable_stats)
+              # Ruby 1.9 with GC::Profiler
+              if defined?(GC::Profiler)
+                def with_gc_stats
+                  GC::Profiler.enable
+                  GC.start
+                  yield
+                ensure
+                  GC::Profiler.disable
+                end
+
+              # Ruby 1.8 + ruby-prof wrapper (enable/disable stats for Benchmarker)
+              elsif GC.respond_to?(:enable_stats)
                 def with_gc_stats
                   GC.enable_stats
                   yield
                 ensure
                   GC.disable_stats
                 end
-              elsif defined?(GC::Profiler)
-                def with_gc_stats
-                  GC.start
-                  GC.disable
-                  GC::Profiler.enable
-                  yield
-                ensure
-                  GC::Profiler.disable
-                  GC.enable
-                end
+
               else
                 def with_gc_stats
                   yield
@@ -290,7 +292,7 @@ begin
             end
 
             def format(measurement)
-              if measurement < 2
+              if measurement < 1
                 '%d ms' % (measurement * 1000)
               else
                 '%.2f sec' % measurement
@@ -319,7 +321,7 @@ begin
 
             def initialize(*args)
               # FIXME: yeah my CPU is 2.33 GHz
-              RubyProf.cpu_frequency = 2.33e9
+              RubyProf.cpu_frequency = 2.33e9 unless RubyProf.cpu_frequency > 0
               super
             end
 
@@ -331,44 +333,16 @@ begin
           class Memory < Base
             Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
-            # ruby-prof wrapper
-            if RubyProf.respond_to?(:measure_memory)
-              def measure
-                RubyProf.measure_memory / 1024.0
-              end
-
-            # Ruby 1.8 + railsbench patch
-            elsif GC.respond_to?(:allocated_size)
-              def measure
-                GC.allocated_size / 1024.0
-              end
-
-            # Ruby 1.8 + lloyd patch
-            elsif GC.respond_to?(:heap_info)
-              def measure
-                GC.heap_info['heap_current_memory'] / 1024.0
-              end
-
-            # Ruby 1.9 with total_malloc_allocated_size patch
-            elsif GC.respond_to?(:malloc_total_allocated_size)
-              def measure
-                GC.total_malloc_allocated_size / 1024.0
-              end
-
-            # Ruby 1.9 unpatched
-            elsif GC.respond_to?(:malloc_allocated_size)
+            # Ruby 1.9 + GCdata patch
+            if GC.respond_to?(:malloc_allocated_size)
               def measure
                 GC.malloc_allocated_size / 1024.0
               end
 
-            # Ruby 1.9 + GC profiler patch
-            elsif defined?(GC::Profiler)
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_memory)
               def measure
-                GC.enable
-                GC.start
-                kb = GC::Profiler.data.last[:HEAP_USE_SIZE] / 1024.0
-                GC.disable
-                kb
+                RubyProf.measure_memory / 1024.0
               end
             end
 
@@ -380,26 +354,16 @@ begin
           class Objects < Base
             Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
-            if RubyProf.respond_to?(:measure_allocations)
+            # Ruby 1.9 + GCdata patch
+            if GC.respond_to?(:malloc_allocations)
+              def measure
+                GC.malloc_allocations
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_allocations)
               def measure
                 RubyProf.measure_allocations
-              end
-
-            # Ruby 1.8 + railsbench patch
-            elsif ObjectSpace.respond_to?(:allocated_objects)
-              def measure
-                ObjectSpace.allocated_objects
-              end
-
-            # Ruby 1.9 + GC profiler patch
-            elsif defined?(GC::Profiler)
-              def measure
-                GC.enable
-                GC.start
-                last = GC::Profiler.data.last
-                count = last[:HEAP_LIVE_OBJECTS] + last[:HEAP_FREE_OBJECTS]
-                GC.disable
-                count
               end
             end
 
@@ -411,17 +375,16 @@ begin
           class GcRuns < Base
             Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
 
-            if RubyProf.respond_to?(:measure_gc_runs)
+            # Ruby 1.9
+            if GC.respond_to?(:count)
+              def measure
+                GC.count
+              end
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_gc_runs)
               def measure
                 RubyProf.measure_gc_runs
-              end
-            elsif GC.respond_to?(:collections)
-              def measure
-                GC.collections
-              end
-            elsif GC.respond_to?(:heap_info)
-              def measure
-                GC.heap_info['num_gc_passes']
               end
             end
 
@@ -433,18 +396,21 @@ begin
           class GcTime < Base
             Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
-            if RubyProf.respond_to?(:measure_gc_time)
+            # Ruby 1.9 with GC::Profiler
+            if GC.respond_to?(:total_time)
               def measure
-                RubyProf.measure_gc_time
+                GC::Profiler.total_time
               end
-            elsif GC.respond_to?(:time)
+
+            # Ruby 1.8 + ruby-prof wrapper
+            elsif RubyProf.respond_to?(:measure_gc_time)
               def measure
-                GC.time
+                RubyProf.measure_gc_time / 1000
               end
             end
 
             def format(measurement)
-              '%d ms' % (measurement / 1000)
+              '%.2f ms' % measurement
             end
           end
         end

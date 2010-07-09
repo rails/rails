@@ -39,6 +39,13 @@ class ActiveModelHelperTest < ActionView::TestCase
     )
   end
 
+  def test_hidden_field_does_not_render_errors
+    assert_dom_equal(
+      %(<input id="post_author_name" name="post[author_name]" type="hidden" value="" />),
+      hidden_field("post", "author_name")
+    )
+  end
+
   def test_field_error_proc
     old_proc = ActionView::Base.field_error_proc
     ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|

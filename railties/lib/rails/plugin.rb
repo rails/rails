@@ -61,6 +61,16 @@ module Rails
       @config ||= Engine::Configuration.new
     end
 
+    initializer :handle_lib_autoload, :before => :set_load_path do |app|
+      paths = if app.config.reload_plugins
+        config.autoload_paths
+      else
+        config.autoload_once_paths
+      end
+
+      paths.concat config.paths.lib.to_a
+    end
+
     initializer :load_init_rb, :before => :load_config_initializers do |app|
       files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
       if initrb = files.find { |path| File.file? path }
@@ -76,12 +86,6 @@ module Rails
       if Engine.subclasses.map { |k| k.root.to_s }.include?(root.to_s)
         raise "\"#{name}\" is a Railtie/Engine and cannot be installed as plugin"
       end
-    end
-
-  protected
-
-    def reloadable?(app)
-      app.config.reload_plugins
     end
   end
 end

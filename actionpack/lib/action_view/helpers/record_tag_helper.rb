@@ -1,4 +1,5 @@
 module ActionView
+  # = Action View Record Tag Helpers
   module Helpers
     module RecordTagHelper
       # Produces a wrapper DIV element with id and class parameters that

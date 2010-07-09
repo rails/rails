@@ -1,4 +1,5 @@
 module ActiveRecord
+  # = Active Record Belongs To Associations
   module Associations
     class BelongsToAssociation < AssociationProxy #:nodoc:
       def create(attributes = {})

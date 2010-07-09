@@ -183,20 +183,20 @@ A short rundown of the major features:
 
 * Automated benchmarking and integrated logging
 
-    Processing WeblogController#index (for 127.0.0.1 at Fri May 28 00:41:55)
-    Parameters: {"action"=>"index", "controller"=>"weblog"}
-    Rendering weblog/index (200 OK)
-    Completed in 0.029281 (34 reqs/sec)
+    Started GET "/weblog" for 127.0.0.1 at Fri May 28 00:41:55
+      Processing by WeblogController#index as HTML
+    Rendered weblog/index.html.erb within layouts/application (25.7ms)
+    Completed 200 OK in 29.3ms
 
     If Active Record is used as the model, you'll have the database debugging
     as well:
 
-    Processing PostsController#create (for 127.0.0.1 at Sat Jun 19 14:04:23)
-    Params: {"controller"=>"posts", "action"=>"create",
-             "post"=>{"title"=>"this is good"} }
-    SQL (0.000627) INSERT INTO posts (title) VALUES('this is good')
+    Started POST "/posts" for 127.0.0.1 at Sat Jun 19 14:04:23
+      Processing by PostsController#create as HTML
+      Parameters: {"post"=>{"title"=>"this is good"}}
+    SQL (0.6ms) INSERT INTO posts (title) VALUES('this is good')
     Redirected to http://example.com/posts/5
-    Completed in 0.221764 (4 reqs/sec) | DB: 0.059920 (27%)
+    Completed 302 Found in 221ms (Views: 215ms | ActiveRecord: 0.6ms)
 
     You specify a logger through a class method, such as:
 

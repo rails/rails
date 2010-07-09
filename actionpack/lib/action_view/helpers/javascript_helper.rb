@@ -1,6 +1,7 @@
 require 'action_view/helpers/tag_helper'
 
 module ActionView
+  # = Action View JavaScript Helpers
   module Helpers
     # Provides functionality for working with JavaScript in your views.
     #

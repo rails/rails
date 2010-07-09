@@ -2,25 +2,6 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 
 module ActiveRecord
-  class Base
-    class << self
-      private
-        def parse_sqlite_config!(config)
-          # Require database.
-          unless config[:database]
-            raise ArgumentError, "No database file specified. Missing argument: database"
-          end
-
-          # Allow database path relative to Rails.root, but only if
-          # the database path is not the special path that tells
-          # Sqlite to build a database only in memory.
-          if defined?(Rails.root) && ':memory:' != config[:database]
-            config[:database] = File.expand_path(config[:database], Rails.root)
-          end
-        end
-    end
-  end
-
   module ConnectionAdapters #:nodoc:
     class SQLiteColumn < Column #:nodoc:
       class <<  self
@@ -151,7 +132,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def execute(sql, name = nil) #:nodoc:
-        catch_schema_changes { log(sql, name) { @connection.execute(sql) } }
+        log(sql, name) { @connection.execute(sql) }
       end
 
       def update_sql(sql, name = nil) #:nodoc:
@@ -176,15 +157,15 @@ module ActiveRecord
       end
 
       def begin_db_transaction #:nodoc:
-        catch_schema_changes { @connection.transaction }
+        @connection.transaction
       end
 
       def commit_db_transaction #:nodoc:
-        catch_schema_changes { @connection.commit }
+        @connection.commit
       end
 
       def rollback_db_transaction #:nodoc:
-        catch_schema_changes { @connection.rollback }
+        @connection.rollback
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -246,6 +227,7 @@ module ActiveRecord
       end
 
       def remove_column(table_name, *column_names) #:nodoc:
+        raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
         column_names.flatten.each do |column_name|
           alter_table(table_name) do |definition|
             definition.columns.delete(definition[column_name])
@@ -387,17 +369,6 @@ module ActiveRecord
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
             @connection.execute sql
-          end
-        end
-
-        def catch_schema_changes
-          return yield
-        rescue ActiveRecord::StatementInvalid => exception
-          if exception.message =~ /database schema has changed/
-            reconnect!
-            retry
-          else
-            raise
           end
         end
 

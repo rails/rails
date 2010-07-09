@@ -16,6 +16,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes = routes
     Routes.draw do
       default_url_options :host => "rubyonrails.org"
+      resources_path_names :correlation_indexes => "info_about_correlation_indexes"
 
       controller :sessions do
         get  'login' => :new
@@ -34,10 +35,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      scope "bookmark", :controller => "bookmarks", :as => :bookmark do
+        get  :new, :path => "build"
+        post :create, :path => "create", :as => ""
+        put  :update
+        get  "remove", :action => :destroy, :as => :remove
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
-      match 'account/overview'
+      constraints(lambda { |req| true }) do
+        match 'account/overview'
+      end
+
       match '/account/nested/overview'
       match 'sign_in' => "sessions#new"
 
@@ -68,12 +79,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin/accounts' => "queenbee#accounts"
       end
 
-      scope 'pt', :name_prefix => 'pt' do
+      get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
+
+      scope 'pt', :as => 'pt' do
         resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
           post :preview, :on => :new
+          put :close, :on => :member, :path => 'fechar'
+          get :open, :on => :new, :path => 'abrir'
         end
-        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador' do
+        resource  :admin, :path_names => { :new => 'novo', :activate => 'ativar' }, :path => 'administrador' do
           post :preview, :on => :new
+          put :activate, :on => :member
         end
         resources :products, :path_names => { :new => 'novo' } do
           new do
@@ -84,6 +100,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :projects, :controller => :project do
         resources :involvements, :attachments
+        get :correlation_indexes, :on => :collection
 
         resources :participants do
           put :update_all, :on => :collection
@@ -110,6 +127,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
 
           member do
+            get  :some_path_with_name
             put  :accessible_projects
             post :resend, :generate_new_password
           end
@@ -142,6 +160,32 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :comments, :except => :destroy
       end
 
+      resource  :past, :only => :destroy
+      resource  :present, :only => :update
+      resource  :future, :only => :create
+      resources :relationships, :only => [:create, :destroy]
+      resources :friendships,   :only => [:update]
+
+      shallow do
+        namespace :api do
+          resources :teams do
+            resources :players
+            resource :captain
+          end
+        end
+      end
+
+      resources :threads, :shallow => true do
+        resource :owner
+        resources :messages do
+          resources :comments do
+            member do
+              post :preview
+            end
+          end
+        end
+      end
+
       resources :sheep
 
       resources :clients do
@@ -151,6 +195,36 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
               resource :info
             end
           end
+        end
+      end
+
+      resources :customers do
+        get "recent" => "customers#recent", :as => :recent, :on => :collection
+        get "profile" => "customers#profile", :as => :profile, :on => :member
+        post "preview" => "customers#preview", :as => :preview, :on => :new
+        resource :avatar do
+          get "thumbnail(.:format)" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+        end
+        resources :invoices do
+          get "outstanding" => "invoices#outstanding", :as => :outstanding, :on => :collection
+          get "overdue", :to => :overdue, :on => :collection
+          get "print" => "invoices#print", :as => :print, :on => :member
+          post "preview" => "invoices#preview", :as => :preview, :on => :new
+        end
+        resources :notes, :shallow => true do
+          get "preview" => "notes#preview", :as => :preview, :on => :new
+          get "print" => "notes#print", :as => :print, :on => :member
+        end
+      end
+
+      namespace :api do
+        resources :customers do
+          get "recent" => "customers#recent", :as => :recent, :on => :collection
+          get "profile" => "customers#profile", :as => :profile, :on => :member
+          post "preview" => "customers#preview", :as => :preview, :on => :new
+        end
+        scope(':version', :version => /.+/) do
+          resources :users, :id => /.+?/, :format => /json|xml/
         end
       end
 
@@ -187,10 +261,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :users, :path => 'usuarios' do
+        root :to => 'home#index'
+      end
+
       controller :articles do
-        scope '/articles', :name_prefix => 'article' do
+        scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            match '/:id', :to => :with_id
+            match '/:id', :to => :with_id, :as => ""
           end
         end
       end
@@ -223,8 +301,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
 
-      scope :module => 'api' do
-        resource :token
+      resource :token, :module => :api
+      scope :module => :api do
+        resources :errors, :shallow => true do
+          resources :notices
+        end
       end
 
       scope :path => 'api' do
@@ -232,7 +313,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match '/' => 'mes#index'
       end
 
-      match "whatever/:controller(/:action(/:id))"
+      get "(/:username)/followers" => "followers#index"
+      get "/groups(/user/:username)" => "groups#index"
+      get "(/user/:username)/photos" => "photos#index"
+
+      scope '(groups)' do
+        scope '(discussions)' do
+          resources :messages
+        end
+      end
+
+      match "whatever/:controller(/:action(/:id))", :id => /\d+/
 
       resource :profile do
         get :settings
@@ -241,6 +332,78 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           post :preview
         end
       end
+
+      resources :content
+
+      scope :constraints => { :id => /\d+/ } do
+        get '/tickets', :to => 'tickets#index', :as => :tickets
+      end
+
+      scope :constraints => { :id => /\d{4}/ } do
+        resources :movies do
+          resources :reviews
+          resource :trailer
+        end
+      end
+
+      namespace :private do
+        root :to => redirect('/private/index')
+        match "index", :to => 'private#index'
+      end
+
+      scope :only => [:index, :show] do
+        namespace :only do
+          resources :clubs do
+            resources :players
+            resource  :chairman
+          end
+        end
+      end
+
+      scope :except => [:new, :create, :edit, :update, :destroy] do
+        namespace :except do
+          resources :clubs do
+            resources :players
+            resource  :chairman
+          end
+        end
+      end
+
+      scope :only => :show do
+        namespace :only do
+          resources :sectors, :only => :index do
+            resources :companies do
+              scope :only => :index do
+                resources :divisions
+              end
+              scope :except => [:show, :update, :destroy] do
+                resources :departments
+              end
+            end
+            resource  :leader
+            resources :managers, :except => [:show, :update, :destroy]
+          end
+        end
+      end
+
+      scope :except => :index do
+        namespace :except do
+          resources :sectors, :except => [:show, :update, :destroy] do
+            resources :companies do
+              scope :except => [:show, :update, :destroy] do
+                resources :divisions
+              end
+              scope :only => :index do
+                resources :departments
+              end
+            end
+            resource  :leader
+            resources :managers, :only => :index
+          end
+        end
+      end
+
+      match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
 
@@ -353,6 +516,27 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_namespace_redirect
+    with_test_routes do
+      get '/private'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/private/index', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_namespace_with_controller_segment
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw do
+          namespace :admin do
+            match '/:controller(/:action(/:id(.:format)))'
+          end
+        end
+      end
+    end
+  end
+
   def test_session_singleton_resource
     with_test_routes do
       get '/session'
@@ -435,6 +619,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_bookmarks
+    with_test_routes do
+      get '/bookmark/build'
+      assert_equal 'bookmarks#new', @response.body
+      assert_equal '/bookmark/build', new_bookmark_path
+
+      post '/bookmark/create'
+      assert_equal 'bookmarks#create', @response.body
+      assert_equal '/bookmark/create', bookmark_path
+
+      put '/bookmark'
+      assert_equal 'bookmarks#update', @response.body
+      assert_equal '/bookmark', update_bookmark_path
+
+      get '/bookmark/remove'
+      assert_equal 'bookmarks#destroy', @response.body
+      assert_equal '/bookmark/remove', bookmark_remove_path
+    end
+  end
+
   def test_admin
     with_test_routes do
       get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
@@ -447,6 +651,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'queenbee#accounts', @response.body
 
       get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'}
+      assert_equal 'pass', @response.headers['X-Cascade']
+
+      get '/admin/passwords', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#passwords', @response.body
+
+      get '/admin/passwords', {}, {'REMOTE_ADDR' => '10.0.0.100'}
       assert_equal 'pass', @response.headers['X-Cascade']
     end
   end
@@ -642,6 +852,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_projects_with_resources_path_names
+    with_test_routes do
+      get '/projects/info_about_correlation_indexes'
+      assert_equal 'project#correlation_indexes', @response.body
+      assert_equal '/projects/info_about_correlation_indexes', correlation_indexes_projects_path
+    end
+  end
+
   def test_projects_posts
     with_test_routes do
       get '/projects/1/posts'
@@ -709,6 +927,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resource_routes_only_create_update_destroy
+    with_test_routes do
+      delete '/past'
+      assert_equal 'pasts#destroy', @response.body
+      assert_equal '/past', past_path
+
+      put '/present'
+      assert_equal 'presents#update', @response.body
+      assert_equal '/present', present_path
+
+      post '/future'
+      assert_equal 'futures#create', @response.body
+      assert_equal '/future', future_path
+    end
+  end
+
+  def test_resources_routes_only_create_update_destroy
+    with_test_routes do
+      post '/relationships'
+      assert_equal 'relationships#create', @response.body
+      assert_equal '/relationships', relationships_path
+
+      delete '/relationships/1'
+      assert_equal 'relationships#destroy', @response.body
+      assert_equal '/relationships/1', relationship_path(1)
+
+      put '/friendships/1'
+      assert_equal 'friendships#update', @response.body
+      assert_equal '/friendships/1', friendship_path(1)
+    end
+  end
+
   def test_resource_with_slugs_in_ids
     with_test_routes do
       get '/posts/rails-rocks'
@@ -743,6 +993,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/pt/administrador/novo'
       assert_equal 'admins#new', @response.body
       assert_equal '/pt/administrador/novo', new_pt_admin_path
+
+      put '/pt/administrador/ativar'
+      assert_equal 'admins#activate', @response.body
+      assert_equal '/pt/administrador/ativar', activate_pt_admin_path
+    end
+  end
+
+  def test_path_option_override
+    with_test_routes do
+      get '/pt/projetos/novo/abrir'
+      assert_equal 'projects#open', @response.body
+      assert_equal '/pt/projetos/novo/abrir', open_new_pt_project_path
+
+      put '/pt/projetos/1/fechar'
+      assert_equal 'projects#close', @response.body
+      assert_equal '/pt/projetos/1/fechar', close_pt_project_path(1)
     end
   end
 
@@ -823,7 +1089,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/admin/subscription', account_admin_subscription_path
     end
   end
-  
+
   def test_namespace_nested_in_resources
     with_test_routes do
       get '/clients/1/google/account'
@@ -833,6 +1099,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/clients/1/google/account/secret/info'
       assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
       assert_equal 'google/secret/infos#show', @response.body
+    end
+  end
+
+  def test_namespace_with_options
+    with_test_routes do
+      get '/usuarios'
+      assert_equal '/usuarios', users_root_path
+      assert_equal 'users/home#index', @response.body
     end
   end
 
@@ -1033,7 +1307,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'pass', @response.headers['X-Cascade']
       get '/products/0001/images'
       assert_equal 'images#index', @response.body
-      get '/products/0001/images/1'
+      get '/products/0001/images/0001'
       assert_equal 'images#show', @response.body
 
       get '/dashboard', {}, {'REMOTE_ADDR' => '10.0.0.100'}
@@ -1075,6 +1349,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_equal 'http://www.example.com/whatever/foo/bar/1',
         url_for(:controller => "foo", :action => "bar", :id => 1)
+    end
+  end
+
+  def test_url_generator_for_namespaced_generic_route
+    with_test_routes do
+      get 'whatever/foo/bar/show'
+      assert_equal 'foo/bar#show', @response.body
+
+      get 'whatever/foo/bar/show/1'
+      assert_equal 'foo/bar#show', @response.body
+
+      assert_equal 'http://www.example.com/whatever/foo/bar/show',
+        url_for(:controller => "foo/bar", :action => "show")
+
+      assert_equal 'http://www.example.com/whatever/foo/bar/show/1',
+        url_for(:controller => "foo/bar", :action => "show", :id => '1')
     end
   end
 
@@ -1129,6 +1419,471 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/products/1/images/2/edit'
       assert_equal 404, status
+    end
+  end
+
+  def test_shallow_nested_resources
+    with_test_routes do
+
+      get '/api/teams'
+      assert_equal 'api/teams#index', @response.body
+      assert_equal '/api/teams', api_teams_path
+
+      get '/api/teams/new'
+      assert_equal 'api/teams#new', @response.body
+      assert_equal '/api/teams/new', new_api_team_path
+
+      get '/api/teams/1'
+      assert_equal 'api/teams#show', @response.body
+      assert_equal '/api/teams/1', api_team_path(:id => '1')
+
+      get '/api/teams/1/edit'
+      assert_equal 'api/teams#edit', @response.body
+      assert_equal '/api/teams/1/edit', edit_api_team_path(:id => '1')
+
+      get '/api/teams/1/players'
+      assert_equal 'api/players#index', @response.body
+      assert_equal '/api/teams/1/players', api_team_players_path(:team_id => '1')
+
+      get '/api/teams/1/players/new'
+      assert_equal 'api/players#new', @response.body
+      assert_equal '/api/teams/1/players/new', new_api_team_player_path(:team_id => '1')
+
+      get '/api/players/2'
+      assert_equal 'api/players#show', @response.body
+      assert_equal '/api/players/2', api_player_path(:id => '2')
+
+      get '/api/players/2/edit'
+      assert_equal 'api/players#edit', @response.body
+      assert_equal '/api/players/2/edit', edit_api_player_path(:id => '2')
+
+      get '/api/teams/1/captain'
+      assert_equal 'api/captains#show', @response.body
+      assert_equal '/api/teams/1/captain', api_team_captain_path(:team_id => '1')
+
+      get '/api/teams/1/captain/new'
+      assert_equal 'api/captains#new', @response.body
+      assert_equal '/api/teams/1/captain/new', new_api_team_captain_path(:team_id => '1')
+
+      get '/api/teams/1/captain/edit'
+      assert_equal 'api/captains#edit', @response.body
+      assert_equal '/api/teams/1/captain/edit', edit_api_team_captain_path(:team_id => '1')
+
+      get '/threads'
+      assert_equal 'threads#index', @response.body
+      assert_equal '/threads', threads_path
+
+      get '/threads/new'
+      assert_equal 'threads#new', @response.body
+      assert_equal '/threads/new', new_thread_path
+
+      get '/threads/1'
+      assert_equal 'threads#show', @response.body
+      assert_equal '/threads/1', thread_path(:id => '1')
+
+      get '/threads/1/edit'
+      assert_equal 'threads#edit', @response.body
+      assert_equal '/threads/1/edit', edit_thread_path(:id => '1')
+
+      get '/threads/1/owner'
+      assert_equal 'owners#show', @response.body
+      assert_equal '/threads/1/owner', thread_owner_path(:thread_id => '1')
+
+      get '/threads/1/messages'
+      assert_equal 'messages#index', @response.body
+      assert_equal '/threads/1/messages', thread_messages_path(:thread_id => '1')
+
+      get '/threads/1/messages/new'
+      assert_equal 'messages#new', @response.body
+      assert_equal '/threads/1/messages/new', new_thread_message_path(:thread_id => '1')
+
+      get '/messages/2'
+      assert_equal 'messages#show', @response.body
+      assert_equal '/messages/2', message_path(:id => '2')
+
+      get '/messages/2/edit'
+      assert_equal 'messages#edit', @response.body
+      assert_equal '/messages/2/edit', edit_message_path(:id => '2')
+
+      get '/messages/2/comments'
+      assert_equal 'comments#index', @response.body
+      assert_equal '/messages/2/comments', message_comments_path(:message_id => '2')
+
+      get '/messages/2/comments/new'
+      assert_equal 'comments#new', @response.body
+      assert_equal '/messages/2/comments/new', new_message_comment_path(:message_id => '2')
+
+      get '/comments/3'
+      assert_equal 'comments#show', @response.body
+      assert_equal '/comments/3', comment_path(:id => '3')
+
+      get '/comments/3/edit'
+      assert_equal 'comments#edit', @response.body
+      assert_equal '/comments/3/edit', edit_comment_path(:id => '3')
+
+      post '/comments/3/preview'
+      assert_equal 'comments#preview', @response.body
+      assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
+    end
+  end
+
+  def test_custom_resource_routes_are_scoped
+    with_test_routes do
+      assert_equal '/customers/recent', recent_customers_path
+      assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
+      assert_equal '/customers/new/preview', preview_new_customer_path
+      assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
+      assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
+      assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(:customer_id => '1', :id => '2')
+      assert_equal '/customers/1/invoices/new/preview', preview_new_customer_invoice_path(:customer_id => '1')
+      assert_equal '/customers/1/notes/new/preview', preview_new_customer_note_path(:customer_id => '1')
+      assert_equal '/notes/1/print', print_note_path(:id => '1')
+      assert_equal '/api/customers/recent', recent_api_customers_path
+      assert_equal '/api/customers/1/profile', profile_api_customer_path(:id => '1')
+      assert_equal '/api/customers/new/preview', preview_new_api_customer_path
+
+      get '/customers/1/invoices/overdue'
+      assert_equal 'invoices#overdue', @response.body
+    end
+  end
+
+  def test_shallow_nested_routes_ignore_module
+    with_test_routes do
+      get '/errors/1/notices'
+      assert_equal 'api/notices#index', @response.body
+      assert_equal '/errors/1/notices', error_notices_path(:error_id => '1')
+
+      get '/notices/1'
+      assert_equal 'api/notices#show', @response.body
+      assert_equal '/notices/1', notice_path(:id => '1')
+    end
+  end
+
+  def test_non_greedy_regexp
+    with_test_routes do
+      get '/api/1.0/users'
+      assert_equal 'api/users#index', @response.body
+      assert_equal '/api/1.0/users', api_users_path(:version => '1.0')
+
+      get '/api/1.0/users.json'
+      assert_equal 'api/users#index', @response.body
+      assert_equal true, @request.format.json?
+      assert_equal '/api/1.0/users.json', api_users_path(:version => '1.0', :format => :json)
+
+      get '/api/1.0/users/first.last'
+      assert_equal 'api/users#show', @response.body
+      assert_equal 'first.last', @request.params[:id]
+      assert_equal '/api/1.0/users/first.last', api_user_path(:version => '1.0', :id => 'first.last')
+
+      get '/api/1.0/users/first.last.xml'
+      assert_equal 'api/users#show', @response.body
+      assert_equal 'first.last', @request.params[:id]
+      assert_equal true, @request.format.xml?
+      assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
+    end
+  end
+
+  def test_glob_parameter_accepts_regexp
+    with_test_routes do
+      get '/en/path/to/existing/file.html'
+      assert_equal 200, @response.status
+    end
+  end
+
+  def test_resources_controller_name_is_not_pluralized
+    with_test_routes do
+      get '/content'
+      assert_equal 'content#index', @response.body
+    end
+  end
+
+  def test_url_generator_for_optional_prefix_dynamic_segment
+    with_test_routes do
+      get '/bob/followers'
+      assert_equal 'followers#index', @response.body
+      assert_equal 'http://www.example.com/bob/followers',
+        url_for(:controller => "followers", :action => "index", :username => "bob")
+
+      get '/followers'
+      assert_equal 'followers#index', @response.body
+      assert_equal 'http://www.example.com/followers',
+        url_for(:controller => "followers", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_generator_for_optional_suffix_static_and_dynamic_segment
+    with_test_routes do
+      get '/groups/user/bob'
+      assert_equal 'groups#index', @response.body
+      assert_equal 'http://www.example.com/groups/user/bob',
+        url_for(:controller => "groups", :action => "index", :username => "bob")
+
+      get '/groups'
+      assert_equal 'groups#index', @response.body
+      assert_equal 'http://www.example.com/groups',
+        url_for(:controller => "groups", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_generator_for_optional_prefix_static_and_dynamic_segment
+    with_test_routes do
+      get 'user/bob/photos'
+      assert_equal 'photos#index', @response.body
+      assert_equal 'http://www.example.com/user/bob/photos',
+        url_for(:controller => "photos", :action => "index", :username => "bob")
+
+      get 'photos'
+      assert_equal 'photos#index', @response.body
+      assert_equal 'http://www.example.com/photos',
+        url_for(:controller => "photos", :action => "index", :username => nil)
+    end
+  end
+
+  def test_url_recognition_for_optional_static_segments
+    with_test_routes do
+      get '/groups/discussions/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/groups/discussions/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/groups/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/groups/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/discussions/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/discussions/messages/1'
+      assert_equal 'messages#show', @response.body
+
+      get '/messages'
+      assert_equal 'messages#index', @response.body
+
+      get '/messages/1'
+      assert_equal 'messages#show', @response.body
+    end
+  end
+
+  def test_router_removes_invalid_conditions
+    with_test_routes do
+      get '/tickets'
+      assert_equal 'tickets#index', @response.body
+      assert_equal '/tickets', tickets_path
+    end
+  end
+
+  def test_constraints_are_merged_from_scope
+    with_test_routes do
+      get '/movies/0001'
+      assert_equal 'movies#show', @response.body
+      assert_equal '/movies/0001', movie_path(:id => '0001')
+
+      get '/movies/00001'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_path(:id => '00001') }
+
+      get '/movies/0001/reviews'
+      assert_equal 'reviews#index', @response.body
+      assert_equal '/movies/0001/reviews', movie_reviews_path(:movie_id => '0001')
+
+      get '/movies/00001/reviews'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_reviews_path(:movie_id => '00001') }
+
+      get '/movies/0001/reviews/0001'
+      assert_equal 'reviews#show', @response.body
+      assert_equal '/movies/0001/reviews/0001', movie_review_path(:movie_id => '0001', :id => '0001')
+
+      get '/movies/00001/reviews/0001'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_path(:movie_id => '00001', :id => '00001') }
+
+      get '/movies/0001/trailer'
+      assert_equal 'trailers#show', @response.body
+      assert_equal '/movies/0001/trailer', movie_trailer_path(:movie_id => '0001')
+
+      get '/movies/00001/trailer'
+      assert_equal 'Not Found', @response.body
+      assert_raises(ActionController::RoutingError){ movie_trailer_path(:movie_id => '00001') }
+    end
+  end
+
+  def test_only_should_be_read_from_scope
+    with_test_routes do
+      get '/only/clubs'
+      assert_equal 'only/clubs#index', @response.body
+      assert_equal '/only/clubs', only_clubs_path
+
+      get '/only/clubs/1/edit'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_only_club_path(:id => '1') }
+
+      get '/only/clubs/1/players'
+      assert_equal 'only/players#index', @response.body
+      assert_equal '/only/clubs/1/players', only_club_players_path(:club_id => '1')
+
+      get '/only/clubs/1/players/2/edit'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_only_club_player_path(:club_id => '1', :id => '2') }
+
+      get '/only/clubs/1/chairman'
+      assert_equal 'only/chairmen#show', @response.body
+      assert_equal '/only/clubs/1/chairman', only_club_chairman_path(:club_id => '1')
+
+      get '/only/clubs/1/chairman/edit'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_only_club_chairman_path(:club_id => '1') }
+    end
+  end
+
+  def test_except_should_be_read_from_scope
+    with_test_routes do
+      get '/except/clubs'
+      assert_equal 'except/clubs#index', @response.body
+      assert_equal '/except/clubs', except_clubs_path
+
+      get '/except/clubs/1/edit'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_except_club_path(:id => '1') }
+
+      get '/except/clubs/1/players'
+      assert_equal 'except/players#index', @response.body
+      assert_equal '/except/clubs/1/players', except_club_players_path(:club_id => '1')
+
+      get '/except/clubs/1/players/2/edit'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_except_club_player_path(:club_id => '1', :id => '2') }
+
+      get '/except/clubs/1/chairman'
+      assert_equal 'except/chairmen#show', @response.body
+      assert_equal '/except/clubs/1/chairman', except_club_chairman_path(:club_id => '1')
+
+      get '/except/clubs/1/chairman/edit'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { edit_except_club_chairman_path(:club_id => '1') }
+    end
+  end
+
+  def test_only_option_should_override_scope
+    with_test_routes do
+      get '/only/sectors'
+      assert_equal 'only/sectors#index', @response.body
+      assert_equal '/only/sectors', only_sectors_path
+
+      get '/only/sectors/1'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_path(:id => '1') }
+    end
+  end
+
+  def test_only_option_should_not_inherit
+    with_test_routes do
+      get '/only/sectors/1/companies/2'
+      assert_equal 'only/companies#show', @response.body
+      assert_equal '/only/sectors/1/companies/2', only_sector_company_path(:sector_id => '1', :id => '2')
+
+      get '/only/sectors/1/leader'
+      assert_equal 'only/leaders#show', @response.body
+      assert_equal '/only/sectors/1/leader', only_sector_leader_path(:sector_id => '1')
+    end
+  end
+
+  def test_except_option_should_override_scope
+    with_test_routes do
+      get '/except/sectors'
+      assert_equal 'except/sectors#index', @response.body
+      assert_equal '/except/sectors', except_sectors_path
+
+      get '/except/sectors/1'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_path(:id => '1') }
+    end
+  end
+
+  def test_except_option_should_not_inherit
+    with_test_routes do
+      get '/except/sectors/1/companies/2'
+      assert_equal 'except/companies#show', @response.body
+      assert_equal '/except/sectors/1/companies/2', except_sector_company_path(:sector_id => '1', :id => '2')
+
+      get '/except/sectors/1/leader'
+      assert_equal 'except/leaders#show', @response.body
+      assert_equal '/except/sectors/1/leader', except_sector_leader_path(:sector_id => '1')
+    end
+  end
+
+  def test_except_option_should_override_scoped_only
+    with_test_routes do
+      get '/only/sectors/1/managers'
+      assert_equal 'only/managers#index', @response.body
+      assert_equal '/only/sectors/1/managers', only_sector_managers_path(:sector_id => '1')
+
+      get '/only/sectors/1/managers/2'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_manager_path(:sector_id => '1', :id => '2') }
+    end
+  end
+
+  def test_only_option_should_override_scoped_except
+    with_test_routes do
+      get '/except/sectors/1/managers'
+      assert_equal 'except/managers#index', @response.body
+      assert_equal '/except/sectors/1/managers', except_sector_managers_path(:sector_id => '1')
+
+      get '/except/sectors/1/managers/2'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_manager_path(:sector_id => '1', :id => '2') }
+    end
+  end
+
+  def test_only_scope_should_override_parent_scope
+    with_test_routes do
+      get '/only/sectors/1/companies/2/divisions'
+      assert_equal 'only/divisions#index', @response.body
+      assert_equal '/only/sectors/1/companies/2/divisions', only_sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+
+      get '/only/sectors/1/companies/2/divisions/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+    end
+  end
+
+  def test_except_scope_should_override_parent_scope
+    with_test_routes do
+      get '/except/sectors/1/companies/2/divisions'
+      assert_equal 'except/divisions#index', @response.body
+      assert_equal '/except/sectors/1/companies/2/divisions', except_sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+
+      get '/except/sectors/1/companies/2/divisions/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+    end
+  end
+
+  def test_except_scope_should_override_parent_only_scope
+    with_test_routes do
+      get '/only/sectors/1/companies/2/departments'
+      assert_equal 'only/departments#index', @response.body
+      assert_equal '/only/sectors/1/companies/2/departments', only_sector_company_departments_path(:sector_id => '1', :company_id => '2')
+
+      get '/only/sectors/1/companies/2/departments/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { only_sector_company_department_path(:sector_id => '1', :company_id => '2', :id => '3') }
+    end
+  end
+
+  def test_only_scope_should_override_parent_except_scope
+    with_test_routes do
+      get '/except/sectors/1/companies/2/departments'
+      assert_equal 'except/departments#index', @response.body
+      assert_equal '/except/sectors/1/companies/2/departments', except_sector_company_departments_path(:sector_id => '1', :company_id => '2')
+
+      get '/except/sectors/1/companies/2/departments/3'
+      assert_equal 'Not Found', @response.body
+      assert_raise(NoMethodError) { except_sector_company_department_path(:sector_id => '1', :company_id => '2', :id => '3') }
     end
   end
 

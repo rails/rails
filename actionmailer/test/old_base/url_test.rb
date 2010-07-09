@@ -28,7 +28,7 @@ class UrlTestMailer < ActionMailer::Base
   end
 end
 
-class ActionMailerUrlTest < Test::Unit::TestCase
+class ActionMailerUrlTest < ActionMailer::TestCase
 
   def encode( text, charset="UTF-8" )
     quoted_printable( text, charset )
@@ -57,10 +57,12 @@ class ActionMailerUrlTest < Test::Unit::TestCase
 
   def test_signed_up_with_url
     UrlTestMailer.delivery_method = :test
-    
-    AppRoutes.draw do |map|
-      map.connect ':controller/:action/:id'
-      map.welcome 'welcome', :controller=>"foo", :action=>"bar"
+
+    assert_deprecated do
+      AppRoutes.draw do |map|
+        map.connect ':controller/:action/:id'
+        map.welcome 'welcome', :controller=>"foo", :action=>"bar"
+      end
     end
 
     expected = new_mail

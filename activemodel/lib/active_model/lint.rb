@@ -56,7 +56,7 @@ module ActiveModel
       # Returns a boolean that specifies whether the object has been persisted yet.
       # This is used when calculating the URL for an object. If the object is
       # not persisted, a form for that object, for instance, will be POSTed to the
-      # collection. If it is persisted, a form for the object will put PUTed to the
+      # collection. If it is persisted, a form for the object will be PUT to the
       # URL for the object.
       def test_persisted?
         assert model.respond_to?(:persisted?), "The model should respond to persisted?"
@@ -65,7 +65,7 @@ module ActiveModel
 
       # == Naming
       #
-      # Model.model_name must returns a string with some convenience methods as
+      # Model.model_name must return a string with some convenience methods as
       # :human and :partial_path. Check ActiveModel::Naming for more information.
       #
       def test_model_naming

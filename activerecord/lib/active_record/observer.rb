@@ -1,6 +1,8 @@
 require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
+  # = Active Record Observer
+  #
   # Observer classes respond to lifecycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
@@ -92,7 +94,7 @@ module ActiveRecord
 
     def initialize
       super
-      observed_subclasses.each { |klass| add_observer!(klass) }
+      observed_descendants.each { |klass| add_observer!(klass) }
     end
 
     def self.method_added(method)
@@ -105,8 +107,9 @@ module ActiveRecord
     end
 
     protected
-      def observed_subclasses
-        observed_classes.sum([]) { |klass| klass.send(:subclasses) }
+
+      def observed_descendants
+        observed_classes.sum([]) { |klass| klass.descendants }
       end
 
       def observe_callbacks?

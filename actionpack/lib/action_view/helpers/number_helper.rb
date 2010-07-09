@@ -3,6 +3,7 @@ require 'active_support/core_ext/float/rounding'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Number Helpers
   module Helpers #:nodoc:
 
     # Provides methods for converting numbers into formatted strings.
@@ -332,7 +333,7 @@ module ActionView
       #  number_to_human_size(483989, :precision => 2)                      # => 470 KB
       #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,2 MB
       #
-      # Unsignificant zeros after the fractional separator are stripped out by default (set
+      # Non-significant zeros after the fractional separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
       #  number_to_human_size(524288000, :precision=>5)              # => "500 MB"

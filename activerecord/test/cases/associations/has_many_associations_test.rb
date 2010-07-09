@@ -21,6 +21,68 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_create_by
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+    assert_nil person.readers.find_by_post_id post.id
+
+    reader = person.readers.create_by_post_id post.id
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+  def test_create_by_multi
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+
+    reader = person.readers.create_by_post_id_and_skimmer post.id, false
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+  def test_find_or_create_by
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+    assert_nil person.readers.find_by_post_id post.id
+
+    reader = person.readers.find_or_create_by_post_id post.id
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+  def test_find_or_create
+    person = Person.create! :first_name => 'tenderlove'
+    post   = Post.find :first
+
+    assert_equal [], person.readers
+    assert_nil person.readers.find(:first, :conditions => {
+      :post_id => post.id
+    })
+
+    reader = person.readers.find_or_create :post_id => post.id
+
+    assert_equal 1, person.readers.count
+    assert_equal 1, person.readers.length
+    assert_equal post, person.readers.first.post
+    assert_equal person, person.readers.first.person
+  end
+
+
   def force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.each {|f| }
   end
@@ -755,8 +817,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_destroy_all
     force_signal37_to_load_all_clients_of_firm
-    assert !companies(:first_firm).clients_of_firm.empty?, "37signals has clients after load"
-    companies(:first_firm).clients_of_firm.destroy_all
+    clients = companies(:first_firm).clients_of_firm.to_a
+    assert !clients.empty?, "37signals has clients after load"
+    destroyed = companies(:first_firm).clients_of_firm.destroy_all
+    assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
+    assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
     assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
     assert companies(:first_firm).clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
   end

@@ -3,7 +3,7 @@ require 'active_support/core_ext/regexp'
 require 'action_controller/polymorphic_routes'
 
 module ActionDispatch
-  # == Routing
+  # = Routing
   #
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
@@ -167,7 +167,7 @@ module ActionDispatch
   #
   # You can reload routes if you feel you must:
   #
-  #   Rails::Application.reload_routes!
+  #   Rails.application.reload_routes!
   #
   # This will clear all named routes and reload routes.rb if the file has been modified from
   # last load. To absolutely force reloading, use <tt>reload!</tt>.

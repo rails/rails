@@ -1,12 +1,11 @@
 require "abstract_unit"
 require "fixtures/person"
-require "rails/log_subscriber/test_helper"
-require "active_resource/railties/log_subscriber"
+require "active_support/log_subscriber/test_helper"
+require "active_resource/log_subscriber"
 require "active_support/core_ext/hash/conversions"
 
-# TODO: This test should be part of Railties
 class LogSubscriberTest < ActiveSupport::TestCase
-  include Rails::LogSubscriber::TestHelper
+  include ActiveSupport::LogSubscriber::TestHelper
 
   def setup
     super
@@ -16,7 +15,7 @@ class LogSubscriberTest < ActiveSupport::TestCase
       mock.get "/people/1.xml", {}, @matz
     end
 
-    Rails::LogSubscriber.add(:active_resource, ActiveResource::Railties::LogSubscriber.new)
+    ActiveResource::LogSubscriber.attach_to :active_resource
   end
 
   def set_logger(logger)

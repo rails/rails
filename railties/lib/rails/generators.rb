@@ -50,7 +50,6 @@ module Rails
         :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
-        :singleton => false,
         :stylesheets => true,
         :test_framework => nil,
         :template_engine => :erb

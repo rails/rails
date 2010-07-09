@@ -44,7 +44,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
     @controller.request = @request
 
-    ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :defaults => ['prototype', 'effects', 'dragdrop', 'controls', 'rails']
   end
 
   def url_for(*args)
@@ -256,19 +256,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert javascript_include_tag("prototype").html_safe?
   end
 
-  def test_register_javascript_include_default
-    ENV["RAILS_ASSET_ID"] = ""
-    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'bank'
-    assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
-  end
-
-  def test_register_javascript_include_default_mixed_defaults
-    ENV["RAILS_ASSET_ID"] = ""
-    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'bank'
-    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'robber', '/elsewhere/cools.js'
-    assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/elsewhere/cools.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
-  end
-
   def test_custom_javascript_expansions
     ENV["RAILS_ASSET_ID"] = ""
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :robbery => ["bank", "robber"]
@@ -284,6 +271,11 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_custom_javascript_expansions_with_undefined_symbol
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => nil
     assert_raise(ArgumentError) { javascript_include_tag('first', :monkey, 'last') }
+  end
+
+  def test_reset_javascript_expansions
+    ActionView::Helpers::AssetTagHelper.javascript_expansions.clear
+    assert_raise(ArgumentError) { javascript_include_tag(:defaults) }
   end
 
   def test_stylesheet_path
@@ -923,7 +915,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @request = Struct.new(:protocol).new("gopher://")
     @controller.request = @request
 
-    ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
+    ActionView::Helpers::AssetTagHelper.javascript_expansions.clear
   end
 
   def url_for(options)

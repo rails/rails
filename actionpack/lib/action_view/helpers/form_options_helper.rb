@@ -4,6 +4,7 @@ require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Form Option Helpers
   module Helpers
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     # == Options
@@ -398,7 +399,7 @@ module ActionView
           options_for_select += "<optgroup label=\"#{html_escape(group_label_string)}\">"
           options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
           options_for_select += '</optgroup>'
-        end
+        end.html_safe
       end
 
       # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but
@@ -412,8 +413,8 @@ module ActionView
       # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
       #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
       #   as you might have the same option in multiple groups.  Each will then get <tt>selected="selected"</tt>.
-      # * +prompt+ - set to true or a prompt string. When the select element doesn’t have a value yet, this
-      #   prepends an option with a generic prompt — "Please select" — or the given prompt string.
+      # * +prompt+ - set to true or a prompt string. When the select element doesn't have a value yet, this
+      #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
       #
       # Sample usage (Array):
       #   grouped_options = [

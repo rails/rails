@@ -24,7 +24,7 @@ h5. Cherry-picking a Definition
 
 The most lightweight way to get +blank?+ is to cherry-pick the file that defines it.
 
-For every single method defined as a core extension this guide has a note that says where is such a method defined. In the case of +blank?+ the note reads:
+For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of +blank?+ the note reads:
 
 NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
@@ -124,7 +124,7 @@ NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
 h4. +duplicable?+
 
-A few fundamental objects in Ruby are singletons. For example, in the whole live of a program the integer 1 refers always to the same instance:
+A few fundamental objects in Ruby are singletons. For example, in the whole life of a program the integer 1 refers always to the same instance:
 
 <ruby>
 1.object_id                 # => 3
@@ -159,7 +159,7 @@ NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +returning+
 
-The method +returning+ yields its argument to a block and returns it. You tipically use it with a mutable object that gets modified in the block:
+The method +returning+ yields its argument to a block and returns it. You typically use it with a mutable object that gets modified in the block:
 
 <ruby>
 def html_options_for_form(url_for_options, options, *parameters_for_url)
@@ -187,7 +187,7 @@ def log_info(sql, name, ms)
 end
 </ruby>
 
-You can shorten that using +Object#try+. This method is a synonim for +Object#send+ except that it returns +nil+ if sent to +nil+. The previous example could then be rewritten as:
+You can shorten that using +Object#try+. This method is a synonym for +Object#send+ except that it returns +nil+ if sent to +nil+. The previous example could then be rewritten as:
 
 <ruby>
 def log_info(sql, name, ms)
@@ -209,8 +209,7 @@ String.singleton_class     # => #<Class:String>
 String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
 </ruby>
 
-WARNING: Fixnums and symbols have no singleton classes, +singleton_class+
-raises +TypeError+ on them. Moreover, the singleton classes of +nil+, +true+, and +false+, are +NilClass+, +TrueClass+, and +FalseClass+, respectively.
+WARNING: Fixnums and symbols have no singleton classes, +singleton_class+ raises +TypeError+ on them. Moreover, the singleton classes of +nil+, +true+, and +false+, are +NilClass+, +TrueClass+, and +FalseClass+, respectively.
 
 NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
@@ -256,7 +255,7 @@ NOTE: Defined in +active_support/core_ext/object/acts_like.rb+.
 
 h4. +to_param+
 
-All objects in Rails respond to the method +to_param+, which is meant to return something that represents them as values in a query string, or as a URL fragments.
+All objects in Rails respond to the method +to_param+, which is meant to return something that represents them as values in a query string, or as URL fragments.
 
 By default +to_param+ just calls +to_s+:
 
@@ -294,7 +293,7 @@ we get:
 user_path(@user) # => "/users/357-john-smith"
 </ruby>
 
-WARNING. Controllers need to be aware of any redifinition of +to_param+ because when a request like that comes in "357-john-smith" is the value of +params[:id]+.
+WARNING. Controllers need to be aware of any redefinition of +to_param+ because when a request like that comes in "357-john-smith" is the value of +params[:id]+.
 
 NOTE: Defined in +active_support/core_ext/object/to_param.rb+.
 
@@ -332,7 +331,7 @@ Arrays return the result of applying +to_query+ to each element with <tt>_key_[]
 # => "sample%5B%5D=3.4&sample%5B%5D=-45.6"
 </ruby>
 
-Hashes also respond to +to_query+ but with a different signature. If no argument is passed a call generates a sorted series of key/value assigments calling +to_query(key)+ on its values. Then it joins the result with "&":
+Hashes also respond to +to_query+ but with a different signature. If no argument is passed a call generates a sorted series of key/value assignments calling +to_query(key)+ on its values. Then it joins the result with "&":
 
 <ruby>
 {:c => 3, :b => 2, :a => 1}.to_query # => "a=1&b=2&c=3"
@@ -387,40 +386,6 @@ end
 TIP: Since +with_options+ forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
-
-h5. +subclasses_of+
-
-The method +subclasses_of+ receives an arbitrary number of class objects and returns all their anonymous or reachable descendants as a single array:
-
-<ruby>
-class C; end
-subclasses_of(C) # => []
-
-subclasses_of(Integer) # => [Bignum, Fixnum]
-
-module M
-  class A; end
-  class B1 < A; end
-  class B2 < A; end
-end
-
-module N
-  class C < M::B1; end
-end
-
-subclasses_of(M::A) # => [N::C, M::B2, M::B1]
-</ruby>
-
-The order in which these classes are returned is unspecified. The returned collection may have duplicates:
-
-<ruby>
-subclasses_of(Numeric, Integer)
-# => [Bignum, Float, Fixnum, Integer, Date::Infinity, Rational, BigDecimal, Bignum, Fixnum]
-</ruby>
-
-See also +Class#subclasses+ in "Extensions to +Class+ FIX THIS LINK":FIXME.
-
-NOTE: Defined in +active_support/core_ext/object/extending.rb+.
 
 h4. Instance Variables
 
@@ -656,9 +621,9 @@ h5. Internal Attributes
 
 When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
 
-Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby builtin +attr_*+ counterparts, except they name the unerlying instace variable in a way that makes collisions less likely.
+Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby builtin +attr_*+ counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
 
-The macro +attr_internal+ is a synonim for +attr_internal_accessor+:
+The macro +attr_internal+ is a synonym for +attr_internal_accessor+:
 
 <ruby>
 # library
@@ -721,7 +686,7 @@ h4. Method Delegation
 
 The class method +delegate+ offers an easy way to forward methods.
 
-For example, if +User+ has some details like the age factored out to +Profile+, it could be handy to still be able to acces such attribute directly, <tt>user.age</tt>, instead of having to explicit the chain <tt>user.profile.age</tt>.
+For example, if +User+ has some details like the age factored out to +Profile+, it could be handy to still be able to access such attributes directly, <tt>user.age</tt>, instead of having to explicit the chain <tt>user.profile.age</tt>.
 
 That can be accomplished by hand:
 
@@ -935,7 +900,7 @@ NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
 h4. Reachable
 
-A named module is reachable if it is stored in its correspoding constant. It means you can reach the module object via the constant.
+A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
 
 That is what ordinarily happens, if a module is called "M", the +M+ constant exists and holds it:
 
@@ -1016,7 +981,7 @@ h3. Extensions to +Class+
 
 h4. Class Attributes
 
-The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overriden at any level down the hierarchy:
+The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
 
 <ruby>
 class A
@@ -1088,7 +1053,7 @@ NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
 h4. Class Inheritable Attributes
 
-Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accesors for class-level data which is inherited but not shared with children:
+Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accessors for class-level data which is inherited but not shared with children:
 
 <ruby>
 module ActionController
@@ -1142,36 +1107,47 @@ If for whatever reason an application loads the definition of a mailer class and
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
-h4. Descendants
+h4. Descendants & Subclasses
 
-h5. +subclasses+
+h5. +descendants+
 
-The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
+The +descendants+ method returns all classes, including its children, that inherits from self.
 
 <ruby>
 class C; end
-C.subclasses # => []
+C.descendants #=> []
 
-Integer.subclasses # => ["Bignum", "Fixnum"]
+class B < C; end
+C.descendants #=> [B]
 
-module M
-  class A; end
-  class B1 < A; end
-  class B2 < A; end
-end
+class A < B; end
+C.descendants #=> [B, A]
 
-module N
-  class C < M::B1; end
-end
-
-M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
+class D < C; end
+C.descendants #=> [B, A, D]
 </ruby>
 
-The order in which these class names are returned is unspecified.
+h5. +subclasses+
 
-See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+The +subclasses+ method returns all direct classes that inherits from self.
 
-WARNING: This method is redefined in some Rails core classes.
+<ruby>
+class C; end
+C.subclasses #=> []
+
+class B < C; end
+C.subclasses #=> [B]
+
+class A < B; end
+C.subclasses #=> [B]
+
+class D < C; end
+C.subclasses #=> [B, D]
+</ruby>
+
+The order in which these class are returned is unspecified.
+
+WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
 
 NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
@@ -1204,7 +1180,7 @@ s.html_safe? # => true
 s            # => "<script>...</script>"
 </ruby>
 
-It is your responsability to ensure calling +html_safe+ on a particular string is fine.
+It is your responsibility to ensure calling +html_safe+ on a particular string is fine.
 
 NOTE: For performance reasons safe strings are implemented in a way that cannot offer an in-place +html_safe!+ variant.
 
@@ -1377,7 +1353,7 @@ The method +pluralize+ returns the plural of its receiver:
 "equipment".pluralize # => "equipment"
 </ruby>
 
-As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Builtin rules can be extended in +config/initializers/inflections.rb+. That file is generated by the +rails+ command and has instructions in comments.
+As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Built-in rules can be extended in +config/initializers/inflections.rb+. That file is generated by the +rails+ command and has instructions in comments.
 
 Active Record uses this method to compute the default table name that corresponds to a model:
 
@@ -1697,6 +1673,90 @@ foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h4. Conversions
+
+h5. +constantize+
+
+The method +constantize+ expects the receiver to contain the name of a constant, and tries to get you the object stored in there, assuming it is defined:
+
+<ruby>
+"ActiveRecord::Base".constantize # => ActiveRecord::Base
+</ruby>
+
+The name is assumed to be top-level, no matter whether it starts with "::" or not. No lexical context is taken into account:
+
+<ruby>
+C = 1
+module M
+  C = 2
+  "C".constantize # => 1, same as "::C".constantize
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
+h5. +ord+
+
+Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encondings like ASCII or ISO-8859-1 in Ruby 1.8:
+
+<ruby>
+"a".ord # => 97
+"à".ord # => 224, in ISO-8859-1
+</ruby>
+
+In Ruby 1.8 +ord+ doesn't work in general in UTF8 strings, use the multibyte support in Active Support for that:
+
+<ruby>
+"a".mb_chars.ord # => 97
+"à".mb_chars.ord # => 224, in UTF8
+</ruby>
+
+Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representattion in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
+
+INFO: +ord+ is equivalent to +getbyte(0)+.
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
+h5. +getbyte+
+
+Active Support backports +getbyte+ from Ruby 1.9:
+
+<ruby>
+"foo".getbyte(0)  # => 102, same as "foo".ord
+"foo".getbyte(1)  # => 111
+"foo".getbyte(9)  # => nil
+"foo".getbyte(-1) # => 111
+</ruby>
+
+INFO: +getbyte+ is equivalent to +[]+.
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
+h5. +to_date+, +to_time+, +to_datetime+
+
+The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wrappers around +Date._parse+:
+
+<ruby>
+"2010-07-27".to_date              # => Tue, 27 Jul 2010
+"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000 
+</ruby>
+
++to_time+ receives an optional argument +:utc+ or +:local+, to indicate which time zone you want the time in:
+
+<ruby>
+"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
+"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+</ruby>
+
+Default is +:utc+.
+
+Please refer to the documentation of +Date._parse+ for further details.
+
+INFO: The three of them return +nil+ for blank receivers.
+
+NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
@@ -1760,7 +1820,7 @@ h3. Extensions to +Float+
 
 h4. +round+
 
-The builtin method +Float#round+ rounds a float to the nearest integer. Active Support adds an optional parameter to let you specify a precision:
+The built-in method +Float#round+ rounds a float to the nearest integer. Active Support adds an optional parameter to let you specify a precision:
 
 <ruby>
 Math::E.round(4) # => 2.7183
@@ -1925,7 +1985,7 @@ Similarly, +from+ returns the tail from the element at the passed index on:
 [].from(0)           # => []
 </ruby>
 
-The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is builtin). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
+The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is built-in). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
 
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
 
@@ -2120,7 +2180,7 @@ NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
 h4. Wrapping
 
-The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behaviour for enumerables:
+The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behavior for enumerables:
 
 <ruby>
 Array.wrap(:foo => :bar) # => [{:foo => :bar}]
@@ -2282,7 +2342,7 @@ NOTE: Defined in +active_support/core_ext/hash/conversions.rb+.
 
 h4. Merging
 
-Ruby has a builtin method +Hash#merge+ that merges two hashes:
+Ruby has a built-in method +Hash#merge+ that merges two hashes:
 
 <ruby>
 {:a => 1, :b => 1}.merge(:a => 0, :c => 2)
@@ -2511,7 +2571,7 @@ NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
 h4. Slicing
 
-Ruby has builtin support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
+Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
 
 <ruby>
 {:a => 1, :b => 2, :c => 3}.slice(:a, :c)
@@ -2625,7 +2685,7 @@ Active Support extends this method so that the argument may be another range in 
 (1...9).include?(3..9)  # => false
 </ruby>
 
-WARNING: The orginal +Range#include?+ is still the one aliased to +Range#===+.
+WARNING: The original +Range#include?+ is still the one aliased to +Range#===+.
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
 
@@ -3080,7 +3140,7 @@ Active Support adds +missing_name?+ to +NameError+, which tests whether the exce
 
 The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully-qualified constant name.
 
-TIP: A symbol can represent a fully-qualified constant name as in +:"ActiveRecord::Base"+, so the behaviour for symbols is defined for convenience, not because it has to be that way technically.
+TIP: A symbol can represent a fully-qualified constant name as in +:"ActiveRecord::Base"+, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
 For example, when an action of +PostsController+ is called Rails tries optimistically to use +PostsHelper+. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that +posts_helper.rb+ raises a +NameError+ due to an actual unknown constant. That should be reraised. The method +missing_name?+ provides a way to distinguish both cases:
 

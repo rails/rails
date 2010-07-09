@@ -9,7 +9,7 @@ module Rails
         args, options = args.dup, {}
 
         opt_parser = OptionParser.new do |opts|
-          opts.banner = "Usage: rails server [options]"
+          opts.banner = "Usage: rails server [mongrel, thin, etc] [options]"
           opts.on("-p", "--port=port", Integer,
                   "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
           opts.on("-b", "--binding=ip", String,
@@ -21,6 +21,9 @@ module Rails
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
+          opts.on("-P","--pid=pid",String,
+                  "Specifies the PID file.",
+                  "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
 
           opts.separator ""
 
@@ -83,7 +86,8 @@ module Rails
         :environment => (ENV['RAILS_ENV'] || "development").dup,
         :daemonize   => false,
         :debugger    => false,
-        :pid         => "tmp/pids/server.pid"
+        :pid         => File.expand_path("tmp/pids/server.pid"),
+        :config      => File.expand_path("config.ru")
       })
     end
   end

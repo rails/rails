@@ -1,7 +1,7 @@
 module ActionMailer
   # This is the API which is deprecated and is going to be removed on Rails 3.1 release.
   # Part of the old API will be deprecated after 3.1, for a smoother deprecation process.
-  # Chech those in OldApi instead.
+  # Check those in OldApi instead.
   module DeprecatedApi #:nodoc:
     extend ActiveSupport::Concern
 

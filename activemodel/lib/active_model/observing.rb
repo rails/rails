@@ -1,8 +1,8 @@
 require 'singleton'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/string/conversions'
 
 module ActiveModel
   module Observing
@@ -158,6 +158,7 @@ module ActiveModel
       def observe(*models)
         models.flatten!
         models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
+        remove_possible_method(:observed_classes)
         define_method(:observed_classes) { models }
       end
 

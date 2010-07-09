@@ -10,51 +10,25 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
-    def test_plugin_puts_its_lib_directory_on_load_path
+    def test_puts_its_lib_directory_on_load_path
       boot_rails
       require "another"
       assert_equal "Another", Another.name
     end
 
-    def test_plugin_paths_get_added_to_as_dependency_list
-      boot_rails
-      assert_equal "Another", Another.name
-    end
-
-    def test_plugins_constants_are_not_reloaded_by_default
-      boot_rails
-      assert_equal "Another", Another.name
-      ActiveSupport::Dependencies.clear
-      @plugin.delete("lib/another.rb")
-      assert_nothing_raised { Another }
-    end
-
-    def test_plugin_constants_get_reloaded_if_config_reload_plugins
-      add_to_config <<-RUBY
-        config.#{reload_config} = true
-      RUBY
-
-      boot_rails
-
-      assert_equal "Another", Another.name
-      ActiveSupport::Dependencies.clear
-      @plugin.delete("lib/another.rb")
-      assert_raises(NameError) { Another }
-    end
-
-    def test_plugin_puts_its_models_directory_on_load_path
+    def test_puts_its_models_directory_on_autoload_path
       @plugin.write "app/models/my_bukkit.rb", "class MyBukkit ; end"
       boot_rails
       assert_nothing_raised { MyBukkit }
     end
 
-    def test_plugin_puts_its_controllers_directory_on_the_load_path
+    def test_puts_its_controllers_directory_on_autoload_path
       @plugin.write "app/controllers/bukkit_controller.rb", "class BukkitController ; end"
       boot_rails
       assert_nothing_raised { BukkitController }
     end
 
-    def test_plugin_adds_its_views_to_view_paths
+    def test_adds_its_views_to_view_paths
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
           def index
@@ -72,7 +46,7 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
-    def test_plugin_adds_its_views_to_view_paths_with_lower_proriority
+    def test_adds_its_views_to_view_paths_with_lower_proriority_than_app_ones
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
           def index
@@ -91,7 +65,7 @@ module RailtiesTest
       assert_equal "Hi bukkits\n", response[2].body
     end
 
-    def test_plugin_adds_helpers_to_controller_views
+    def test_adds_helpers_to_controller_views
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
           def index
@@ -116,11 +90,10 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
-    def test_plugin_eager_load_any_path_under_app
+    def test_autoload_any_path_under_app
       @plugin.write "app/anything/foo.rb", <<-RUBY
         module Foo; end
       RUBY
-
       boot_rails
       assert Foo
     end
@@ -269,7 +242,7 @@ YAML
       assert_equal "Rendered from namespace", last_response.body
     end
 
-    def test_plugin_initializers
+    def test_initializers
       $plugin_initializer = false
       @plugin.write "config/initializers/foo.rb", <<-RUBY
         $plugin_initializer = true
@@ -279,7 +252,7 @@ YAML
       assert $plugin_initializer
     end
 
-    def test_plugin_midleware_referenced_in_configuration
+    def test_midleware_referenced_in_configuration
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           def initialize(app)

@@ -1,6 +1,8 @@
 require 'active_support/core_ext/object/blank'
 
 module ActionView
+  # = Action View Partials
+  #
   # There's also a convenience method for rendering sub templates within the current controller that depends on a
   # single object (we call this kind of sub templates for partials). It relies on the fact that partials should
   # follow the naming convention of being prefixed with an underscore -- as to separate them from regular
@@ -316,7 +318,7 @@ module ActionView
 
           object.class.model_name.partial_path.dup.tap do |partial|
             path = @view.controller_path
-            partial.insert(0, "#{File.dirname(path)}/") if path.include?(?/)
+            partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
           end
         end
       end

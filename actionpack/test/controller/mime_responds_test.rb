@@ -36,6 +36,15 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
+  
+  def json_xml_or_html
+    respond_to do |type|
+      type.json { render :text => 'JSON' }
+      type.xml { render :xml => 'XML' }
+      type.html { render :text => 'HTML' }
+    end
+  end
+  
 
   def forced_xml
     request.format = :xml
@@ -364,6 +373,17 @@ class RespondToControllerTest < ActionController::TestCase
     get :handle_any_any
     assert_equal 'Whatever you ask for, I got it', @response.body
   end
+  
+  def test_browser_check_with_any_any
+    @request.accept = "application/json, application/xml"
+    get :json_xml_or_html
+    assert_equal 'JSON', @response.body
+    
+    @request.accept = "application/json, application/xml, */*"
+    get :json_xml_or_html
+    assert_equal 'HTML', @response.body
+  end
+  
 
   def test_rjs_type_skips_layout
     @request.accept = "text/javascript"

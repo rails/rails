@@ -37,13 +37,14 @@ ARGV.delete(code_or_file)
 ENV["RAILS_ENV"] = options[:environment]
 
 require APP_PATH
-Rails::Application.require_environment!
+Rails.application.require_environment!
 
 begin
   if code_or_file.nil?
     $stderr.puts "Run '#{$0} -h' for help."
     exit 1
   elsif File.exist?(code_or_file)
+    $0 = code_or_file
     eval(File.read(code_or_file), nil, code_or_file)
   else
     eval(code_or_file)

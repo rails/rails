@@ -55,7 +55,7 @@ class Array
   #   ["6", "7"]
   def in_groups(number, fill_with = nil)
     # size / number gives minor group size;
-    # size % number gives how many objects need extra accomodation;
+    # size % number gives how many objects need extra accommodation;
     # each group hold either division or division + 1 items.
     division = size / number
     modulo = size % number

@@ -10,7 +10,7 @@ module ActionDispatch
 
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|
-      ActionDispatch::Callbacks.to_prepare { app.routes_reloader.reload_if_changed }
+      ActionDispatch::Callbacks.to_prepare { app.routes_reloader.execute_if_updated }
     end
   end
 end

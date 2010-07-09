@@ -177,6 +177,7 @@ module HTML #:nodoc:
                     case text
                       when "\\" then
                         value << text
+                        break if scanner.eos?
                         value << scanner.getch
                       when delim
                         break

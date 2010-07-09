@@ -4,6 +4,8 @@ require 'active_support/core_ext/hash/slice'
 
 module ActionView
   module Helpers
+    # = Action View Date Helpers
+    #
     # The Date Helper primarily creates select/option tags for different kinds of dates and date elements. All of the
     # select-type methods share a number of common options that are as follows:
     #
@@ -580,10 +582,10 @@ module ActionView
       extend ActiveSupport::Memoizable
       include ActionView::Helpers::TagHelper
 
-      DEFAULT_PREFIX = 'date'.freeze unless const_defined?('DEFAULT_PREFIX')
+      DEFAULT_PREFIX = 'date'.freeze
       POSITION = {
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
-      }.freeze unless const_defined?('POSITION')
+      }.freeze
 
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
@@ -894,8 +896,10 @@ module ActionView
         # Returns the separator for a given datetime component
         def separator(type)
           case type
-            when :month, :day
-              @options[:date_separator]
+            when :month
+              @options[:discard_month] ? "" : @options[:date_separator]
+            when :day
+              @options[:discard_day] ? "" : @options[:date_separator]
             when :hour
               (@options[:discard_year] && @options[:discard_day]) ? "" : @options[:datetime_separator]
             when :minute

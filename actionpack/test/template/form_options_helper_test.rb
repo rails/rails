@@ -177,15 +177,14 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_option_groups_from_collection_for_select
-    @continents = [
-      Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),
-      Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")] )
-    ]
-
     assert_dom_equal(
       "<optgroup label=\"&lt;Africa&gt;\"><option value=\"&lt;sa&gt;\">&lt;South Africa&gt;</option>\n<option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"dk\" selected=\"selected\">Denmark</option>\n<option value=\"ie\">Ireland</option></optgroup>",
-      option_groups_from_collection_for_select(@continents, "countries", "continent_name", "country_id", "country_name", "dk")
+      option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk")
     )
+  end
+
+  def test_option_groups_from_collection_for_select_returns_html_safe_string
+    assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
   end
 
   def test_grouped_options_for_select_with_array
@@ -824,31 +823,21 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_grouped_collection_select
-    @continents = [
-      Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),
-      Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")] )
-    ]
-
     @post = Post.new
     @post.origin = 'dk'
 
     assert_dom_equal(
       %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>\n<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk" selected="selected">Denmark</option>\n<option value="ie">Ireland</option></optgroup></select>},
-      grouped_collection_select("post", "origin", @continents, :countries, :continent_name, :country_id, :country_name)
+      grouped_collection_select("post", "origin", dummy_continents, :countries, :continent_name, :country_id, :country_name)
     )
   end
 
   def test_grouped_collection_select_under_fields_for
-    @continents = [
-      Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),
-      Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")] )
-    ]
-
     @post = Post.new
     @post.origin = 'dk'
 
     output_buffer = fields_for :post, @post do |f|
-      concat f.grouped_collection_select("origin", @continents, :countries, :continent_name, :country_id, :country_name)
+      concat f.grouped_collection_select("origin", dummy_continents, :countries, :continent_name, :country_id, :country_name)
     end
 
     assert_dom_equal(
@@ -863,5 +852,10 @@ class FormOptionsHelperTest < ActionView::TestCase
       [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
         Post.new("Babe went home", "Babe", "To a little house", "shh!"),
         Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
+    end
+
+    def dummy_continents
+      [ Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),
+       Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")] ) ]
     end
 end

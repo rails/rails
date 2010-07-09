@@ -3,6 +3,7 @@ require "active_support/core_ext/class"
 require "action_view/template"
 
 module ActionView
+  # = Action View Resolver
   class Resolver
     def initialize
       @cached = Hash.new { |h1,k1| h1[k1] =
@@ -98,7 +99,7 @@ module ActionView
     def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       super()
-      @path = Pathname.new(path).expand_path
+      @path = File.expand_path(path)
     end
 
     def eql?(resolver)

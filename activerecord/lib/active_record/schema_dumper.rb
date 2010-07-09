@@ -2,6 +2,8 @@ require 'stringio'
 require 'active_support/core_ext/big_decimal'
 
 module ActiveRecord
+  # = Active Record Schema Dumper
+  #
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
   class SchemaDumper #:nodoc:
@@ -39,13 +41,14 @@ module ActiveRecord
         define_params = @version ? ":version => #{@version}" : ""
 
         stream.puts <<HEADER
-# This file is auto-generated from the current state of the database. Instead of editing this file, 
-# please use the migrations feature of Active Record to incrementally modify your database, and
-# then regenerate this schema definition.
+# This file is auto-generated from the current state of the database. Instead 
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
 #
-# Note that this schema.rb definition is the authoritative source for your database schema. If you need
-# to create the application database on another system, you should be using db:schema:load, not running
-# all the migrations from scratch. The latter is a flawed and unsustainable approach (the more migrations
+# Note that this schema.rb definition is the authoritative source for your 
+# database schema. If you need to create the application database on another
+# system, you should be using db:schema:load, not running all the migrations
+# from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
 # It's strongly recommended to check this file into your version control system.
@@ -173,15 +176,15 @@ HEADER
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            statment_parts = [ ('add_index ' + index.table.inspect) ]
-            statment_parts << index.columns.inspect
-            statment_parts << (':name => ' + index.name.inspect)
-            statment_parts << ':unique => true' if index.unique
+            statement_parts = [ ('add_index ' + index.table.inspect) ]
+            statement_parts << index.columns.inspect
+            statement_parts << (':name => ' + index.name.inspect)
+            statement_parts << ':unique => true' if index.unique
 
             index_lengths = index.lengths.compact if index.lengths.is_a?(Array)
-            statment_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index_lengths.present?
+            statement_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index_lengths.present?
 
-            '  ' + statment_parts.join(', ')
+            '  ' + statement_parts.join(', ')
           end
 
           stream.puts add_index_statements.sort.join("\n")

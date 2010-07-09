@@ -4,7 +4,7 @@ if %w(--version -v).include? ARGV.first
   exit(0)
 end
 
-if ARGV.first != "new" || ARGV.empty?
+if ARGV.first != "new"
   ARGV[0] = "--help"
 else
   ARGV.shift

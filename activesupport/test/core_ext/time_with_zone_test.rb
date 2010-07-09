@@ -737,6 +737,13 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     end
   end
 
+  def test_nil_time_zone
+    Time.use_zone nil do
+      assert !@t.in_time_zone.respond_to?(:period), 'no period method'
+      assert !@dt.in_time_zone.respond_to?(:period), 'no period method'
+    end
+  end
+
   def test_in_time_zone_with_argument
     Time.use_zone 'Eastern Time (US & Canada)' do # Time.zone will not affect #in_time_zone(zone)
       assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @t.in_time_zone('Alaska').inspect
@@ -825,9 +832,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
 
   def test_time_zone_setter_with_invalid_zone
     Time.zone = 'foo'
-    assert_not_nil Time.zone
-    assert_equal 'foo', Time.zone.name
-    assert_raise(TZInfo::InvalidTimezoneIdentifier) { Time.zone.utc_offset }
+    assert_nil Time.zone
 
     Time.zone = -15.hours
     assert_nil Time.zone

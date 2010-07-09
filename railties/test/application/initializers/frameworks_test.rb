@@ -28,19 +28,40 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      ActionController::Base.view_paths.include?(File.expand_path("app/views", app_path))
-      ActionMailer::Base.view_paths.include?(File.expand_path("app/views", app_path))
+
+      expanded_path = File.expand_path("app/views", app_path)
+      assert_equal ActionController::Base.view_paths[0].to_s, expanded_path
+      assert_equal ActionMailer::Base.view_paths[0].to_s, expanded_path
     end
 
     test "allows me to configure default url options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
-        Rails::Application.configure do
+        AppTemplate::Application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
         end
       RUBY
 
       require "#{app_path}/config/environment"
-      assert "test.rails", ActionMailer::Base.default_url_options[:host]
+      assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
+    end
+
+    test "does not include url helpers as action methods" do
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
+        end
+      RUBY
+
+      app_file "app/mailers/foo.rb", <<-RUBY
+        class Foo < ActionMailer::Base
+          def notify
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert Foo.method_defined?(:foo_path)
+      assert_equal ["notify"], Foo.action_methods
     end
 
     # AS
@@ -57,7 +78,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].sample }
+        assert_raises(NoMethodError) { [1,2,3].forty_two }
       end
     end
 

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/file_update_checker'
 require 'fileutils'
 require 'rails/plugin'
 require 'rails/engine'
@@ -6,14 +7,6 @@ require 'rails/engine'
 module Rails
   # In Rails 3.0, a Rails::Application object was introduced which is nothing more than
   # an Engine but with the responsibility of coordinating the whole boot process.
-  #
-  # Opposite to Rails::Engine, you can only have one Rails::Application instance
-  # in your process and both Rails::Application and YourApplication::Application
-  # points to it.
-  #
-  # In other words, Rails::Application is Singleton and whenever you are accessing
-  # Rails::Application.config or YourApplication::Application.config, you are actually
-  # accessing YourApplication::Application.instance.config.
   #
   # == Initialization
   #
@@ -27,7 +20,7 @@ module Rails
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
   # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger", "reload_engines", "reload_plugins" and so forth.
+  # "logger", "reload_plugins" and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -46,7 +39,6 @@ module Rails
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
-    autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
       private :new
@@ -57,6 +49,10 @@ module Rails
 
       def instance
         if self == Rails::Application
+          if Rails.application
+            ActiveSupport::Deprecation.warn "Calling a method in Rails::Application is deprecated, " <<
+              "please call it directly in your application constant #{Rails.application.class.name}.", caller
+          end
           Rails.application
         else
           @@instance ||= new
@@ -67,7 +63,7 @@ module Rails
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
-        Rails.application.add_lib_to_load_paths!
+        Rails.application.add_lib_to_load_path!
         ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
 
@@ -84,17 +80,30 @@ module Rails
 
     delegate :middleware, :to => :config
 
-    def add_lib_to_load_paths!
+    # This method is called just after an application inherits from Rails::Application,
+    # allowing the developer to load classes in lib and use them during application
+    # configuration.
+    #
+    #   class MyApplication < Rails::Application
+    #     require "my_backend" # in lib/my_backend
+    #     config.i18n.backend = MyBackend
+    #   end
+    #
+    # Notice this method takes into consideration the default root path. So if you
+    # are changing config.root inside your application definition or having a custom
+    # Rails application, you will need to add lib to $LOAD_PATH on your own in case
+    # you need to load files in lib/ during the application configuration as well.
+    def add_lib_to_load_path! #:nodoc:
       path = config.root.join('lib').to_s
       $LOAD_PATH.unshift(path) if File.exists?(path)
     end
 
-    def require_environment!
+    def require_environment! #:nodoc:
       environment = paths.config.environment.to_a.first
       require environment if environment
     end
 
-    def eager_load!
+    def eager_load! #:nodoc:
       railties.all(&:eager_load!)
       super
     end
@@ -108,11 +117,17 @@ module Rails
     end
 
     def routes_reloader
-      @routes_reloader ||= RoutesReloader.new
+      @routes_reloader ||= ActiveSupport::FileUpdateChecker.new([]){ reload_routes! }
     end
 
     def reload_routes!
-      routes_reloader.reload!
+      _routes = self.routes
+      _routes.disable_clear_and_finalize = true
+      _routes.clear!
+      routes_reloader.paths.each { |path| load(path) }
+      ActiveSupport.on_load(:action_controller) { _routes.finalize! }
+    ensure
+      _routes.disable_clear_and_finalize = false
     end
 
     def initialize!
@@ -140,6 +155,7 @@ module Rails
         config.middleware.build(routes)
       end
     end
+    alias :build_middleware_stack :app
 
     def call(env)
       app.call(env.reverse_merge!(env_defaults))
@@ -195,11 +211,6 @@ module Rails
 
     def initialize_generators
       require "rails/generators"
-    end
-
-    # Application is always reloadable when config.cache_classes is false.
-    def reloadable?(app)
-      true
     end
   end
 end

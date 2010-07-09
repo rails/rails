@@ -1,4 +1,5 @@
 require "active_support/notifications"
+require "active_support/descendants_tracker"
 
 module Rails
   class Application
@@ -55,6 +56,7 @@ module Rails
       initializer :set_clear_dependencies_hook do
         unless config.cache_classes
           ActionDispatch::Callbacks.after do
+            ActiveSupport::DescendantsTracker.clear
             ActiveSupport::Dependencies.clear
           end
         end

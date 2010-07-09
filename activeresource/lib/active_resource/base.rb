@@ -17,6 +17,7 @@ require 'active_resource/exceptions'
 require 'active_resource/connection'
 require 'active_resource/formats'
 require 'active_resource/schema'
+require 'active_resource/log_subscriber'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
@@ -763,7 +764,7 @@ module ActiveResource
       #   With any other scope, find returns nil when no data is returned.
       #
       #   Person.find(1)
-      #   # => raises ResourcenotFound
+      #   # => raises ResourceNotFound
       #
       #   Person.find(:all)
       #   Person.find(:first)
@@ -941,7 +942,7 @@ module ActiveResource
     end
 
     # This is a list of known attributes for this resource. Either
-    # gathered fromthe provided <tt>schema</tt>, or from the attributes
+    # gathered from the provided <tt>schema</tt>, or from the attributes
     # set on this instance after it has been fetched from the remote system.
     def known_attributes
       self.class.known_attributes + self.attributes.keys.map(&:to_s)

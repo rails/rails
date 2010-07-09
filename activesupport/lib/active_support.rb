@@ -39,6 +39,11 @@ require "active_support/dependencies/autoload"
 module ActiveSupport
   extend ActiveSupport::Autoload
 
+  autoload :DescendantsTracker
+  autoload :FileUpdateChecker
+  autoload :LogSubscriber
+  autoload :Notifications
+
   # TODO: Narrow this list down
   eager_autoload do
     autoload :BacktraceCleaner
@@ -61,7 +66,6 @@ module ActiveSupport
     autoload :OptionMerger
     autoload :OrderedHash
     autoload :OrderedOptions
-    autoload :Notifications
     autoload :Rescuable
     autoload :SecureRandom
     autoload :StringInquirer

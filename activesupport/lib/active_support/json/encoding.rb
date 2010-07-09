@@ -1,20 +1,18 @@
-# encoding: utf-8
+require 'active_support/core_ext/object/to_json'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/deprecation'
+require 'active_support/json/variable'
+
 require 'bigdecimal'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/instance_variables'
-require 'active_support/deprecation'
-
-require 'active_support/time'
-
-# Hack to load json gem first so we can overwrite its to_json.
-begin
-  require 'json'
-rescue LoadError
-end
+require 'time'
+require 'active_support/core_ext/time/conversions'
+require 'active_support/core_ext/date_time/conversions'
+require 'active_support/core_ext/date/conversions'
 
 module ActiveSupport
   class << self
@@ -129,11 +127,6 @@ module ActiveSupport
 end
 
 class Object
-  # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
-  def to_json(options = nil)
-    ActiveSupport::JSON.encode(self, options)
-  end
-
   def as_json(options = nil) #:nodoc:
     if respond_to?(:to_hash)
       to_hash
@@ -141,12 +134,6 @@ class Object
       instance_values
     end
   end
-end
-
-# A string that returns itself as its JSON-encoded form.
-class ActiveSupport::JSON::Variable < String
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) self end #:nodoc:
 end
 
 class TrueClass

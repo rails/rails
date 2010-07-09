@@ -50,10 +50,6 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      def <=>(other)
-        @wrapped_string <=> other
-      end
-
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         if method.to_s =~ /!$/
@@ -87,6 +83,16 @@ module ActiveSupport #:nodoc:
 
       include Comparable
 
+      # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
+      # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
+      # See <tt>String#<=></tt> for more details.
+      #
+      # Example:
+      #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
+      def <=>(other)
+        @wrapped_string <=> other.to_s
+      end
+
       if RUBY_VERSION < "1.9"
         # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
         # +false+ otherwise.
@@ -94,22 +100,12 @@ module ActiveSupport #:nodoc:
           $KCODE == 'UTF8' && consumes?(string)
         end
 
-        # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
-        # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
-        # See <tt>String#<=></tt> for more details.
-        #
-        # Example:
-        #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
-        def <=>(other)
-          @wrapped_string <=> other.to_s
-        end
-
         # Returns a new Chars object containing the _other_ object concatenated to the string.
         #
         # Example:
         #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
         def +(other)
-          self << other
+          chars(@wrapped_string + other)
         end
 
         # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
@@ -199,6 +195,45 @@ module ActiveSupport #:nodoc:
           Unicode.u_unpack(@wrapped_string)[0]
         end
 
+        # Works just like <tt>String#rjust</tt>, only integer specifies characters instead of bytes.
+        #
+        # Example:
+        #
+        #   "¾ cup".mb_chars.rjust(8).to_s
+        #   #=> "   ¾ cup"
+        #
+        #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
+        #   #=> "   ¾ cup"
+        def rjust(integer, padstr=' ')
+          justify(integer, :right, padstr)
+        end
+
+        # Works just like <tt>String#ljust</tt>, only integer specifies characters instead of bytes.
+        #
+        # Example:
+        #
+        #   "¾ cup".mb_chars.rjust(8).to_s
+        #   #=> "¾ cup   "
+        #
+        #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
+        #   #=> "¾ cup   "
+        def ljust(integer, padstr=' ')
+          justify(integer, :left, padstr)
+        end
+
+        # Works just like <tt>String#center</tt>, only integer specifies characters instead of bytes.
+        #
+        # Example:
+        #
+        #   "¾ cup".mb_chars.center(8).to_s
+        #   #=> " ¾ cup  "
+        #
+        #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
+        #   #=> " ¾ cup  "
+        def center(integer, padstr=' ')
+          justify(integer, :center, padstr)
+        end
+
       else
         def =~(other)
           @wrapped_string =~ other
@@ -254,46 +289,6 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      # Works just like <tt>String#rjust</tt>, only integer specifies characters instead of bytes.
-      #
-      # Example:
-      #
-      #   "¾ cup".mb_chars.rjust(8).to_s
-      #   #=> "   ¾ cup"
-      #
-      #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-      #   #=> "   ¾ cup"
-      def rjust(integer, padstr=' ')
-        justify(integer, :right, padstr)
-      end
-
-      # Works just like <tt>String#ljust</tt>, only integer specifies characters instead of bytes.
-      #
-      # Example:
-      #
-      #   "¾ cup".mb_chars.rjust(8).to_s
-      #   #=> "¾ cup   "
-      #
-      #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-      #   #=> "¾ cup   "
-      def ljust(integer, padstr=' ')
-        justify(integer, :left, padstr)
-      end
-
-      # Works just like <tt>String#center</tt>, only integer specifies characters instead of bytes.
-      #
-      # Example:
-      #
-      #   "¾ cup".mb_chars.center(8).to_s
-      #   #=> " ¾ cup  "
-      #
-      #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
-      #   #=> " ¾ cup  "
-      def center(integer, padstr=' ')
-        justify(integer, :center, padstr)
-      end
-
-
       # Reverses all characters in the string.
       #
       # Example:
@@ -321,25 +316,14 @@ module ActiveSupport #:nodoc:
           result = @wrapped_string.slice(*args)
         elsif args.size == 1 && args[0].kind_of?(Numeric)
           character = Unicode.u_unpack(@wrapped_string)[args[0]]
-          result = character.nil? ? nil : [character].pack('U')
+          result = character && [character].pack('U')
         else
-          result = Unicode.u_unpack(@wrapped_string).slice(*args).pack('U*')
+          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
+          result = cps && cps.pack('U*')
         end
-        result.nil? ? nil : chars(result)
+        result && chars(result)
       end
       alias_method :[], :slice
-
-      # Like <tt>String#slice!</tt>, except instead of byte offsets you specify character offsets.
-      #
-      # Example:
-      #   s = 'こんにちは'
-      #   s.mb_chars.slice!(2..3).to_s #=> "にち"
-      #   s #=> "こんは"
-      def slice!(*args)
-        slice = self[*args]
-        self[*args] = ''
-        slice
-      end
 
       # Limit the byte size of the string to a number of bytes without breaking characters. Usable
       # when the storage for a string is limited for some reason.
@@ -374,6 +358,16 @@ module ActiveSupport #:nodoc:
       def capitalize
         (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
       end
+
+      # Capitalizes the first letter of every word, when possible.
+      #
+      # Example:
+      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
+      #   "日本語".mb_chars.titleize                 # => "日本語"
+      def titleize
+        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.apply_mapping $1, :uppercase_mapping })
+      end
+      alias_method :titlecase, :titleize
 
       # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
       # passing strings to databases and validations.
@@ -419,14 +413,14 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
-      %w(lstrip rstrip strip reverse upcase downcase tidy_bytes capitalize).each do |method|
-        define_method("#{method}!") do |*args|
-          unless args.nil?
-            @wrapped_string = send(method, *args).to_s
-          else
-            @wrapped_string = send(method).to_s
+       %w(capitalize downcase lstrip reverse rstrip slice strip tidy_bytes upcase).each do |method|
+        # Only define a corresponding bang method for methods defined in the proxy; On 1.9 the proxy will
+        # exclude lstrip!, rstrip! and strip! because they are already work as expected on multibyte strings.
+        if public_method_defined?(method)
+          define_method("#{method}!") do |*args|
+            @wrapped_string = send(args.nil? ? method : method, *args).to_s
+            self
           end
-          self
         end
       end
 

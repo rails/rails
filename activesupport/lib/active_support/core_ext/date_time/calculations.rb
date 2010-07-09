@@ -1,5 +1,6 @@
 require 'rational' unless RUBY_VERSION >= '1.9.2'
 require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/time/zones'
 
 class DateTime
   class << self

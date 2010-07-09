@@ -14,10 +14,6 @@ module ActionController
       super(action, request)
     end
 
-    def params
-      @_params ||= @_request.parameters
-    end
-
     def response_body=(body)
       response.body = body if response
       super

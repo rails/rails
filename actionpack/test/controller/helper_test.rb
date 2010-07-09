@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/kernel/reporting'
 
-ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
+ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
 
 module Fun
   class GamesController < ActionController::Base
@@ -106,7 +106,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_all_helpers_with_alternate_helper_dir
-    @controller_class.helpers_path = [File.dirname(__FILE__) + '/../fixtures/alternate_helpers']
+    @controller_class.helpers_path = File.expand_path('../../fixtures/alternate_helpers', __FILE__)
 
     # Reload helpers
     @controller_class._helpers = Module.new
@@ -143,7 +143,7 @@ class HelperTest < ActiveSupport::TestCase
       assert_equal ["some/foo/bar"], ActionController::Base.helpers_dir
     end
   ensure
-    ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
+    ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
   end
 
   private

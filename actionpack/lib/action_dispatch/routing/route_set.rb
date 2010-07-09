@@ -1,7 +1,9 @@
-require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
 require 'action_dispatch/routing/deprecated_mapper'
+
+$: << File.expand_path('../../vendor/rack-mount-0.6.6.pre', __FILE__)
+require 'rack/mount'
 
 module ActionDispatch
   module Routing
@@ -24,7 +26,7 @@ module ActionDispatch
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          controller.action(params[:action]).call(env)
+          dispatch(controller, params[:action], env)
         end
 
         def prepare_params!(params)
@@ -32,29 +34,43 @@ module ActionDispatch
           split_glob_param!(params) if @glob_param
         end
 
-        def controller(params, raise_error=true)
+        # If this is a default_controller (i.e. a controller specified by the user)
+        # we should raise an error in case it's not found, because it usually means
+        # an user error. However, if the controller was retrieved through a dynamic
+        # segment, as in :controller(/:action), we should simply return nil and
+        # delegate the control back to Rack cascade. Besides, if this is not a default
+        # controller, it means we should respect the @scope[:module] parameter.
+        def controller(params, default_controller=true)
           if params && params.key?(:controller)
             controller_param = params[:controller]
-            unless controller = @controllers[controller_param]
-              controller_name = "#{controller_param.camelize}Controller"
-              controller = @controllers[controller_param] =
-                ActiveSupport::Dependencies.ref(controller_name)
-            end
-
-            controller.get
+            controller_reference(controller_param)
           end
         rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace if raise_error
+          raise ActionController::RoutingError, e.message, e.backtrace if default_controller
         end
 
-        private
-          def merge_default_action!(params)
-            params[:action] ||= 'index'
-          end
+      private
 
-          def split_glob_param!(params)
-            params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+        def controller_reference(controller_param)
+          unless controller = @controllers[controller_param]
+            controller_name = "#{controller_param.camelize}Controller"
+            controller = @controllers[controller_param] =
+              ActiveSupport::Dependencies.ref(controller_name)
           end
+          controller.get
+        end
+
+        def dispatch(controller, action, env)
+          controller.action(action).call(env)
+        end
+
+        def merge_default_action!(params)
+          params[:action] ||= 'index'
+        end
+
+        def split_glob_param!(params)
+          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+        end
       end
 
       # A NamedRouteCollection instance is a collection of named routes, and also
@@ -185,9 +201,9 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes
+      attr_accessor :set, :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class
+      attr_accessor :default_url_options, :request_class, :valid_conditions
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -199,7 +215,11 @@ module ActionDispatch
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
         self.default_url_options = {}
+
         self.request_class = request_class
+        self.valid_conditions = request_class.public_instance_methods.map { |m| m.to_sym }
+        self.valid_conditions.delete(:id)
+        self.valid_conditions.push(:controller, :action)
 
         @disable_clear_and_finalize = false
         clear!
@@ -262,10 +282,10 @@ module ActionDispatch
             # Yes plz - JP
             included do
               routes.install_helpers(self)
-              singleton_class.send(:define_method, :_router) { routes }
+              singleton_class.send(:define_method, :_routes) { routes }
             end
 
-            define_method(:_router) { routes }
+            define_method(:_routes) { routes }
           end
 
           helpers
@@ -277,7 +297,7 @@ module ActionDispatch
       end
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
-        route = Route.new(app, conditions, requirements, defaults, name, anchor)
+        route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
         @set.add_route(*route)
         named_routes[name] = route if name
         routes << route
@@ -312,7 +332,11 @@ module ActionDispatch
 
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
-            @options[key] = @recall.delete(key)
+            if named_route_exists?
+              @options[key] = @recall.delete(key) if segment_keys.include?(key)
+            else
+              @options[key] = @recall.delete(key)
+            end
           end
         end
 
@@ -371,7 +395,7 @@ module ActionDispatch
 
         def generate
           error = ActionController::RoutingError.new("No route matches #{options.inspect}")
-          path, params = @set.generate(:path_info, named_route, options, recall, opts)
+          path, params = @set.set.generate(:path_info, named_route, options, recall, opts)
 
           raise error unless path
 
@@ -402,6 +426,15 @@ module ActionDispatch
           return false unless current_controller
           controller.to_param != current_controller.to_param
         end
+
+        private
+          def named_route_exists?
+            named_route && set.named_routes[named_route]
+          end
+
+          def segment_keys
+            set.named_routes[named_route].segment_keys
+          end
       end
 
       # Generate the path indicated by the arguments, and return an array of
@@ -415,7 +448,7 @@ module ActionDispatch
       end
 
       def generate(options, recall = {}, extras = false)
-        Generator.new(options, recall, @set, extras).generate
+        Generator.new(options, recall, self, extras).generate
       end
 
       RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
@@ -445,9 +478,9 @@ module ActionDispatch
         path_options = yield(path_options) if block_given?
         path = generate(path_options, path_segments || {})
 
-        # ROUTES TODO: This can be called directly, so script_name should probably be set in the router
+        # ROUTES TODO: This can be called directly, so script_name should probably be set in the routes
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-        rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
+        rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
 
         rewritten_url
       end
@@ -477,6 +510,8 @@ module ActionDispatch
           end
 
           dispatcher = route.app
+          dispatcher = dispatcher.app while dispatcher.is_a?(Mapper::Constraints)
+
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)
             return params

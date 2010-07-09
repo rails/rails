@@ -137,6 +137,16 @@ end
 
 !images/has_many_through.png(has_many :through Association Diagram)!
 
+The collection of join models can be managed via the API. For example, if you assign
+
+<ruby>
+physician.patients = patients
+</ruby>
+
+new join models are created for newly associated objects, and if some are gone their rows are deleted.
+
+WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
+
 The +has_many :through+ association is also useful for setting up "shortcuts" through nested +has_many+ associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
 
 <ruby>

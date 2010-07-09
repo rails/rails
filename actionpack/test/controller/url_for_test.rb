@@ -34,9 +34,15 @@ module AbstractController
         )
       end
 
-      def test_anchor_should_be_cgi_escaped
-        assert_equal('/c/a#anc%2Fhor',
-          W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => Struct.new(:to_param).new('anc/hor'))
+      def test_anchor_should_escape_unsafe_pchar
+        assert_equal('/c/a#%23anchor',
+          W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => Struct.new(:to_param).new('#anchor'))
+        )
+      end
+
+      def test_anchor_should_not_escape_safe_pchar
+        assert_equal('/c/a#name=user&email=user@domain.com',
+          W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => Struct.new(:to_param).new('name=user&email=user@domain.com'))
         )
       end
 
@@ -114,7 +120,7 @@ module AbstractController
 
       def test_relative_url_root_is_respected
         # ROUTES TODO: Tests should not have to pass :relative_url_root directly. This
-        # should probably come from the router.
+        # should probably come from routes.
 
         add_host!
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',

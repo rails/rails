@@ -16,7 +16,7 @@ module ActiveModel
     end
 
     def add_to_base(msg)
-      ActiveSupport::Deprecation.warn "Errors#add_to_base(msg) has been deprecated, use Errors#[:base] << msg instead"
+      ActiveSupport::Deprecation.warn "Errors#add_to_base(msg) has been deprecated, use Errors#add(:base, msg) instead"
       self[:base] << msg
     end
 

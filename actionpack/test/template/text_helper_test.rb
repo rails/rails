@@ -19,6 +19,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal 'foobar', output_buffer
   end
 
+  def test_simple_format_should_be_html_safe
+    assert simple_format("<b> test with html tags </b>").html_safe?
+  end
+
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 
@@ -36,43 +40,25 @@ class TextHelperTest < ActionView::TestCase
      assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
   end
 
-  def test_simple_format_should_be_html_safe
-    assert simple_format("<b> test with html tags </b>").html_safe?
+  def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
+    assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
-  def test_simple_format_should_escape_unsafe_input
-    assert_equal "<p>&lt;b&gt; test with unsafe string &lt;/b&gt;&lt;script&gt;code!&lt;/script&gt;</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
+  def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
+    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
 
-  def test_simple_format_should_not_escape_input_if_safe_option
-    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :safe => true)
+  def test_truncate_should_not_be_html_safe
+    assert !truncate("Hello World!", :length => 12).html_safe?
   end
 
-  def test_simple_format_should_not_escape_safe_input
-    assert_equal "<p><b> test with safe string </b></p>", simple_format("<b> test with safe string </b>".html_safe)
-  end
-
-  def test_truncate_should_be_html_safe
-    assert truncate("Hello World!", :length => 12).html_safe?
-  end
-  
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", :length => 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
   end
 
-  def test_truncate_should_escape_unsafe_input
-    assert_equal "Hello &lt...", truncate("Hello <script>code!</script>World!!", :length => 12)
-  end
-
-  def test_truncate_should_not_escape_input_if_safe_option
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!", :length => 12, :safe => true)
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12, :safe => true)
-  end
-
-  def test_truncate_should_not_escape_safe_input
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!".html_safe, :length => 12)
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!".html_safe, :length => 12)
+  def test_truncate_should_not_escape_input
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
   end
 
   def test_truncate_should_use_default_length_of_30
@@ -138,24 +124,17 @@ class TextHelperTest < ActionView::TestCase
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
   end
 
-  def test_highlight_should_escape_unsafe_input
+  def test_highlight_should_sanitize_input
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning&lt;script&gt;code!&lt;/script&gt;",
+      "This is a <strong class=\"highlight\">beautiful</strong> morning",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end
 
-  def test_highlight_should_not_escape_input_if_safe_option
+  def test_highlight_should_not_sanitize_if_sanitize_option_if_false
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
-      highlight("This is a beautiful morning<script>code!</script>", "beautiful", :safe => true)
-    )
-  end
-
-  def test_highlight_should_not_escape_safe_input
-    assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
-      highlight("This is a beautiful morning<script>code!</script>".html_safe, "beautiful")
+      highlight("This is a beautiful morning<script>code!</script>", "beautiful", :sanitize => false)
     )
   end
 
@@ -189,23 +168,23 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_with_html
     assert_equal(
-      "&lt;p&gt;This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
+      "<p>This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "&lt;p&gt;This is a &lt;em&gt;<strong class=\"highlight\">beautiful</strong>&lt;/em&gt; morning, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
+      "<p>This is a <em><strong class=\"highlight\">beautiful</strong></em> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a <em>beautiful</em> morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "&lt;p&gt;This is a &lt;em class=&quot;error&quot;&gt;<strong class=\"highlight\">beautiful</strong>&lt;/em&gt; morning, but also a <strong class=\"highlight\">beautiful</strong> &lt;span class=&quot;last&quot;&gt;day&lt;/span&gt;&lt;/p&gt;",
+      "<p>This is a <em class=\"error\"><strong class=\"highlight\">beautiful</strong></em> morning, but also a <strong class=\"highlight\">beautiful</strong> <span class=\"last\">day</span></p>",
       highlight("<p>This is a <em class=\"error\">beautiful</em> morning, but also a beautiful <span class=\"last\">day</span></p>", "beautiful")
     )
     assert_equal(
-      "&lt;p class=&quot;<strong class=\"highlight\">beautiful</strong>&quot;&gt;This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
+      "<p class=\"beautiful\">This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p class=\"beautiful\">This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "&lt;p&gt;This is a <strong class=\"highlight\">beautiful</strong> &lt;a href=&quot;http://example.com/<strong class=\"highlight\">beautiful</strong>#top?what=<strong class=\"highlight\">beautiful</strong>%20morning&amp;when=now+then&quot;&gt;morning&lt;/a&gt;, but also a <strong class=\"highlight\">beautiful</strong> day&lt;/p&gt;",
+      "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
   end
@@ -215,6 +194,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", 5))
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", 5))
     assert_nil excerpt("This is a beautiful morning", "day")
+  end
+
+  def test_excerpt_should_not_be_html_safe
+    assert !excerpt('This is a beautiful! morning', 'beautiful', 5).html_safe?
   end
 
   def test_excerpt_in_borderline_cases
@@ -323,9 +306,13 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
-  def generate_result(link_text, href = nil)
+  def generate_result(link_text, href = nil, escape = false)
     href ||= link_text
-    %{<a href="#{CGI::escapeHTML href}">#{CGI::escapeHTML link_text}</a>}
+    if escape
+      %{<a href="#{CGI::escapeHTML href}">#{CGI::escapeHTML link_text}</a>}
+    else
+      %{<a href="#{href}">#{link_text}</a>}
+    end
   end
 
   def test_auto_link_should_be_html_safe
@@ -430,19 +417,14 @@ class TextHelperTest < ActionView::TestCase
     assert_equal %(<p>#{link10_result} Link</p>), auto_link("<p>#{link10_raw} Link</p>")
   end
 
-  def test_auto_link_should_sanitize_unsafe_input
+  def test_auto_link_should_sanitize_input_when_sanitize_option_is_not_false
     link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
-    assert_equal %{<a href="http://www.rubyonrails.com?id=1&amp;num=2">http://www.rubyonrails.com?id=1&amp;num=2</a>}, auto_link(link_raw)
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw)
   end
 
-  def test_auto_link_should_sanitize_unsafe_input
+  def test_auto_link_should_not_sanitize_input_when_sanitize_option_is_false
     link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
-    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw, :safe => true)
-  end
-
-  def test_auto_link_should_not_sanitize_safe_input
-    link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
-    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw.html_safe)
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw, :sanitize => false)
   end
 
   def test_auto_link_other_protocols
@@ -453,6 +435,7 @@ class TextHelperTest < ActionView::TestCase
     z39_scheme    = 'z39.50r://host:696/db'
     chrome_scheme = 'chrome://package/section/path'
     view_source   = 'view-source:http://en.wikipedia.org/wiki/URI_scheme'
+    assert_equal generate_result(file_scheme), auto_link(file_scheme)
     assert_equal generate_result(z39_scheme), auto_link(z39_scheme)
     assert_equal generate_result(chrome_scheme), auto_link(chrome_scheme)
     assert_equal generate_result(view_source), auto_link(view_source)

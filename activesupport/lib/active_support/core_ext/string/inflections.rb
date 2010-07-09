@@ -28,6 +28,17 @@ class String
     ActiveSupport::Inflector.singularize(self)
   end
 
+  # +constantize+ tries to find a declared constant with the name specified
+  # in the string. It raises a NameError when the name is not in CamelCase
+  # or is not initialized.
+  #
+  # Examples
+  #   "Module".constantize # => Module
+  #   "Class".constantize  # => Class
+  def constantize
+    ActiveSupport::Inflector.constantize(self)
+  end
+
   # By default, +camelize+ converts strings to UpperCamelCase. If the argument to camelize
   # is set to <tt>:lower</tt> then camelize produces lowerCamelCase.
   #

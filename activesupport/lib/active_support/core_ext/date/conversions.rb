@@ -1,6 +1,6 @@
 require 'date'
 require 'active_support/inflector'
-require 'active_support/core_ext/time/calculations'
+require 'active_support/core_ext/date/zones'
 
 class Date
   DATE_FORMATS = {
@@ -13,10 +13,10 @@ class Date
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
-  remove_method :to_time if instance_methods.include?(:to_time)
+  remove_method :to_time if method_defined?(:to_time)
 
   # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
-  remove_method :xmlschema if instance_methods.include?(:xmlschema)
+  remove_method :xmlschema if method_defined?(:xmlschema)
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
@@ -80,16 +80,6 @@ class Date
   #   date.to_time(:utc)             # => Sat Nov 10 00:00:00 UTC 2007
   def to_time(form = :local)
     ::Time.send("#{form}_time", year, month, day)
-  end
-  
-  # Converts Date to a TimeWithZone in the current zone if Time.zone_default is set,
-  # otherwise converts Date to a Time via Date#to_time
-  def to_time_in_current_zone
-    if ::Time.zone_default
-      ::Time.zone.local(year, month, day)
-    else
-      to_time
-    end
   end
 
   # Converts a Date instance to a DateTime, where the time is set to the beginning of the day

@@ -88,8 +88,8 @@ module ActiveRecord
     end
   end
 
-  # This error is raised when trying to destroy a parent instance in a N:1, 1:1 assosications
-  # (has_many, has_one) when there is at least 1 child assosociated instance.
+  # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
+  # (has_many, has_one) when there is at least 1 child associated instance.
   # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
   class DeleteRestrictionError < ActiveRecordError #:nodoc:
     def initialize(reflection)
@@ -763,20 +763,27 @@ module ActiveRecord
       #   An empty array is returned if none are found.
       # [collection<<(object, ...)]
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
+      #   Note that this operation instantly fires update sql without waiting for the save or update call on the 
+      #   parent object.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
       #   Objects will be in addition destroyed if they're associated with <tt>:dependent => :destroy</tt>,
       #   and deleted if they're associated with <tt>:dependent => :delete_all</tt>.
       # [collection=objects]
-      #   Replaces the collections content by deleting and adding objects as appropriate.
+      #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
+      #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
+      #   direct.
       # [collection_singular_ids]
       #   Returns an array of the associated objects' ids
       # [collection_singular_ids=ids]
-      #   Replace the collection with the objects identified by the primary keys in +ids+
+      #   Replace the collection with the objects identified by the primary keys in +ids+. This
+      #   method loads the models and calls <tt>collection=</tt>. See above.
       # [collection.clear]
       #   Removes every object from the collection. This destroys the associated objects if they
       #   are associated with <tt>:dependent => :destroy</tt>, deletes them directly from the
       #   database if <tt>:dependent => :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
+      #   If the <tt>:through</tt> option is true no destroy callbacks are invoked on the join models.
+      #   Join models are directly deleted.
       # [collection.empty?]
       #   Returns +true+ if there are no associated objects.
       # [collection.size]
@@ -869,9 +876,11 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
+      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
       #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
-      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model.
+      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model. The collection of join models can be managed via the collection
+      #   API. For example, new join models are created for newly associated objects, and if some are gone their rows are deleted (directly,
+      #   no destroy callbacks are triggered).
       # [:source]
       #   Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be
       #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either <tt>:subscribers</tt> or
@@ -886,11 +895,13 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
-      #   If true, always save any loaded members and destroy members marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated objects or destroy them if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated objects.
+      #   By default, only save associated objects that are new records.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_many</tt>
       #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.
-      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
@@ -1001,11 +1012,13 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated object when saving the parent object. +false+ by default.
       # [:autosave]
-      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated object.
+      #   By default, only save the associated object if it's a new record.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_one</tt>
       #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.
-      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
@@ -1103,14 +1116,16 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
       # [:autosave]
-      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated object.
+      #   By default, only save the associated object if it's a new record.
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to now) when this record is either saved or
       #   destroyed. If you specify a symbol, that attribute will be updated with the current time instead of the updated_at/on attribute.
       # [:inverse_of]
       #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated object that is the inverse of this <tt>belongs_to</tt>
       #   association.  Does not work in combination with the <tt>:polymorphic</tt> options.
-      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -1180,6 +1195,8 @@ module ActiveRecord
       # [collection<<(object, ...)]
       #   Adds one or more objects to the collection by creating associations in the join table
       #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
+      #   Note that this operation instantly fires update sql without waiting for the save or update call on the 
+      #   parent object.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by removing their associations from the join table.
       #   This does not destroy the objects.
@@ -1290,7 +1307,9 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +true+ by default.
       # [:autosave]
-      #   If true, always save any loaded members and destroy members marked for destruction, when saving the parent object. Off by default.
+      #   If true, always save the associated objects or destroy them if marked for destruction, when saving the parent object.
+      #   If false, never save or destroy the associated objects.
+      #   By default, only save associated objects that are new records.
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
@@ -2066,7 +2085,7 @@ module ActiveRecord
               unless klass.descends_from_active_record?
                 sti_column = aliased_table[klass.inheritance_column]
                 sti_condition = sti_column.eq(klass.sti_name)
-                klass.send(:subclasses).each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
+                klass.descendants.each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
 
                 @join << sti_condition
               end
