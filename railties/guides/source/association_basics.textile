@@ -1371,7 +1371,47 @@ The +:through+ option specifies a join model through which to perform the query.
 
 h6(#has_many-uniq). +:uniq+
 
-Specify the +:uniq => true+ option to remove duplicates from the collection. This is most useful in conjunction with the +:through+ option.
+Specify the +:uniq => true+ option to remove duplicates from the collection. It only works with +:through+ option.
+
+<ruby>
+class Person < ActiveRecord::Base
+  has_many :readers
+  has_many :posts, :through => :readers
+
+  def self.lab
+    person = Person.create(:name => 'john')
+    p = Post.create(:name => 'a1')
+    person.posts << p
+    person.posts << p
+    person.reload
+    puts person.posts.inspect #=> [#<Post id: 5, name: "a1">, #<Post id: 5, name: "a1">]
+    puts Reader.all.inspect #=> [#<Reader id: 12, person_id: 5, post_id: 5>, #<Reader id: 13, person_id: 5, post_id: 5>]
+  end
+end
+</ruby>
+
+In the above case +readers+ table has two records and +person.posts+ brings out both of these records even though these records are basically pointing to the same +post+ record.
+
+Now let's add +uniq => true+ option.
+
+<ruby>
+class Person
+  has_many :readers
+  has_many :posts, :through => :readers, :uniq => true
+
+  def self.experiment
+    person = Person.create(:name => 'honda')
+    p = Post.create(:name => 'a1')
+    person.posts << p
+    person.posts << p
+    person.reload
+    puts person.posts.inspect #=> [#<Post id: 7, name: "a1">] 
+    puts Reader.all.inspect #=> [#<Reader id: 16, person_id: 7, post_id: 7>, #<Reader id: 17, person_id: 7, post_id: 7>] 
+  end
+end
+</ruby>
+
+In the above case +readers+ table still has two records. However +person.posts+ will show only one +post+ record because collection will load only +unique+ records.
 
 h6(#has_many-validate). +:validate+
 

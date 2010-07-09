@@ -889,7 +889,7 @@ module ActiveRecord
       #   Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
       #   association is a polymorphic +belongs_to+.
       # [:uniq]
-      #   If true, duplicates will be omitted from the collection. Useful in conjunction with <tt>:through</tt>.
+      #   If true, duplicates will be omitted from the collection. Works only in conjunction with <tt>:through</tt>.
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
