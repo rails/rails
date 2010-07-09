@@ -35,7 +35,7 @@ module ActionDispatch
     #   such as 'MD5', 'RIPEMD160', 'SHA256', etc.
     #
     # To generate a secret key for an existing application, run
-    # "rake secret" and set the key in config/environment.rb.
+    # "rake secret" and set the key in config/initializers/secret_token.rb.
     #
     # Note that changing digest or secret invalidates all existing sessions!
     class CookieStore < AbstractStore

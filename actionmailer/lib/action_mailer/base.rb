@@ -129,7 +129,7 @@ module ActionMailer #:nodoc:
   #
   #   ActionMailer::Base.default_url_options[:host] = "example.com"
   #
-  # This can also be set as a configuration option in <tt>config/environment.rb</tt>:
+  # This can also be set as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
