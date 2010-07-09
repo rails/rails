@@ -31,7 +31,7 @@ module ActionDispatch
   # Think of creating routes as drawing a map for your requests. The map tells
   # them where to go based on some predefined pattern:
   #
-  #   AppName::Applications.routes.draw do |map|
+  #   AppName::Application.routes.draw do |map|
   #     Pattern 1 tells some request to go to one place
   #     Pattern 2 tell them to go to another
   #     ...
@@ -62,7 +62,7 @@ module ActionDispatch
   #
   #   redirect_to show_item_path(:id => 25)
   #
-  # Use <tt>root</tt> as a shorthand to name a route for the root path "".
+  # Use <tt>root</tt> as a shorthand to name a route for the root path "/".
   #
   #   # In routes.rb
   #   root :to => 'blogs#index'
@@ -72,7 +72,7 @@ module ActionDispatch
   #
   #   # and provide these named routes
   #   root_url   # => 'http://www.example.com/'
-  #   root_path  # => ''
+  #   root_path  # => '/'
   #
   # Note: when using +controller+, the route is simply named after the
   # method you call on the block parameter rather than map.
@@ -91,9 +91,7 @@ module ActionDispatch
   #
   # Routes can generate pretty URLs. For example:
   #
-  #   match '/articles/:year/:month/:day', :constraints => {
-  #     :controller => 'articles',
-  #     :action     => 'find_by_date',
+  #   match '/articles/:year/:month/:day' => 'articles#find_by_id', :constraints => {
   #     :year       => /\d{4}/,
   #     :month      => /\d{1,2}/,
   #     :day        => /\d{1,2}/
