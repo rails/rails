@@ -549,7 +549,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert the_client.new_record?
   end
 
-  def test_find_or_create
+  def test_find_or_create_updates_size
     number_of_clients = companies(:first_firm).clients.size
     the_client = companies(:first_firm).clients.find_or_create_by_name("Yet another client")
     assert_equal number_of_clients + 1, companies(:first_firm, :reload).clients.size
