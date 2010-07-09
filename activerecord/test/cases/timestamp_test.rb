@@ -25,16 +25,26 @@ class TimestampTest < ActiveRecord::TestCase
   end
   
   def test_touching_a_record_updates_its_timestamp
+    previous_salary = @developer.salary
+    @developer.salary = previous_salary + 10000
     @developer.touch
     
     assert_not_equal @previously_updated_at, @developer.updated_at
+    assert_equal previous_salary + 10000, @developer.salary
+    assert @developer.salary_changed?, 'developer salary should have changed'
+    assert @developer.changed?, 'developer should be marked as changed'
+    @developer.reload
+    assert_equal previous_salary, @developer.salary
   end
   
   def test_touching_a_different_attribute
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)
 
+    assert !@developer.created_at_changed? , 'created_at should not be changed'
+    assert !@developer.changed?, 'record should not be changed'
     assert_not_equal previously_created_at, @developer.created_at
+    assert_not_equal @previously_updated_at, @developer.updated_at
   end
   
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at

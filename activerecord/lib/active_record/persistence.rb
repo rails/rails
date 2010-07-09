@@ -111,6 +111,7 @@ module ActiveRecord
       if record_update_timestamps
         timestamp_attributes_for_update_in_model.each do |column|
           hash[column] = read_attribute(column)
+          @changed_attributes.delete(column.to_s)
         end
       end
 
