@@ -11,7 +11,7 @@ module TestGenerationPrefix
           routes = ActionDispatch::Routing::RouteSet.new
           routes.draw do
             match "/posts/:id", :to => "inside_engine_generating#index", :as => :post
-            match "/bare_url_for", :to => "inside_engine_generating#bare_url_for", :as => :bare_url_for
+            match "/url_to_application", :to => "inside_engine_generating#url_to_application"
           end
 
           routes
@@ -42,10 +42,6 @@ module TestGenerationPrefix
 
       def self.call(env)
         env['action_dispatch.routes'] = routes
-
-        # the next to values should be set only in application
-        env['ORIGINAL_SCRIPT_NAME'] = env['SCRIPT_NAME']
-        env['action_dispatch.parent_routes'] = routes
         routes.call(env)
       end
     end
@@ -56,7 +52,7 @@ module TestGenerationPrefix
         render :text => post_path(:id => params[:id])
       end
 
-      def bare_url_for
+      def url_to_application
         path = url_for( :routes => RailsApplication.routes,
                         :controller => "outside_engine_generating", 
                         :action => "index",
@@ -111,12 +107,23 @@ module TestGenerationPrefix
     end
 
     test "prepend prefix outside the engine" do
+      get "/generate"
+      assert_equal "/awesome/blog/posts/1", last_response.body
+    end
+
+    test "prepend prefix outside the engine and use default_url_options[:script_name]" do
       RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/generate", {}, 'SCRIPT_NAME' => "/something"
+      get "/generate"
       assert_equal "/something/awesome/blog/posts/1", last_response.body
     end
 
-    test "generating urls with options for both prefix and named_route" do
+    test "give higher priority to default_url_options[:script_name]" do
+      RailsApplication.routes.default_url_options = {:script_name => "/something"}
+      get "/generate", {}, 'SCRIPT_NAME' => "/foo"
+      assert_equal "/something/awesome/blog/posts/1", last_response.body
+    end
+
+    test "generating urls with options for prefix and named_route" do
       assert_equal "/pure-awesomness/blog/posts/3", post_path(:id => 3, :omg => "pure-awesomness")
     end
 
@@ -129,9 +136,20 @@ module TestGenerationPrefix
       assert_equal "/awesome/blog/posts/42", Foo.new.foo
     end
 
-    test "passing :routes to url_for to change current routes" do
+    test "generating application's url from engine" do
+      get "/pure-awesomness/blog/url_to_application"
+      assert_equal "/generate", last_response.body
+    end
+
+    test "generating application's url from engine with default_url_options[:script_name]" do
       RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/pure-awesomness/blog/bare_url_for", {}, 'SCRIPT_NAME' => "/something"
+      get "/pure-awesomness/blog/url_to_application"
+      assert_equal "/something/generate", last_response.body
+    end
+
+    test "generating application's url from engine should give higher priority to default_url_options[:script_name]" do
+      RailsApplication.routes.default_url_options = {:script_name => "/something"}
+      get "/pure-awesomness/blog/url_to_application", {}, 'SCRIPT_NAME' => '/foo'
       assert_equal "/something/generate", last_response.body
     end
 

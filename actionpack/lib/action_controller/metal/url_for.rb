@@ -5,10 +5,10 @@ module ActionController
     include ActionDispatch::Routing::UrlFor
 
     def url_options
-        options = {}
-        if respond_to?(:env) && env && _routes.equal?(env["action_dispatch.routes"])
-          options[:script_name] = request.script_name
-        end
+      options = {}
+      if respond_to?(:env) && env && _routes.equal?(env["action_dispatch.routes"])
+        options[:script_name] = request.script_name
+      end
 
       super.merge(options).reverse_merge(
         :host => request.host_with_port,
