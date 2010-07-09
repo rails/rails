@@ -1405,7 +1405,7 @@ person.posts.inspect # => [#<Post id: 7, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>] 
 </ruby>
 
-In the above case there are still two readings. However +person.posts+ shows only one post because collection loads only unique records.
+In the above case there are still two readings. However +person.posts+ shows only one post because the collection loads only unique records.
 
 h6(#has_many-validate). +:validate+
 
