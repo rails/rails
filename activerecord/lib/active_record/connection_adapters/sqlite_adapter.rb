@@ -190,16 +190,21 @@ module ActiveRecord
 
       def indexes(table_name, name = nil) #:nodoc:
         execute("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
-          index = IndexDefinition.new(table_name, row['name'])
-          index.unique = row['unique'].to_i != 0
-          index.columns = execute("PRAGMA index_info('#{index.name}')").map { |col| col['name'] }
-          index
+          IndexDefinition.new(
+            table_name,
+            row['name'],
+            row['unique'].to_i != 0,
+            execute("PRAGMA index_info('#{row['name']}')").map { |col|
+              col['name']
+            })
         end
       end
 
       def primary_key(table_name) #:nodoc:
-        column = table_structure(table_name).find {|field| field['pk'].to_i == 1}
-        column ? column['name'] : nil
+        column = table_structure(table_name).find { |field|
+          field['pk'].to_i == 1
+        }
+        column && column['name']
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
