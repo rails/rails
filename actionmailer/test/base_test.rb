@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'active_support/time'
 
 class BaseTest < ActiveSupport::TestCase
   # TODO Add some tests for implicity layout render and url helpers

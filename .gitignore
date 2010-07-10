@@ -1,6 +1,7 @@
 *.gem
 pkg
 .bundle
+Gemfile.lock
 debug.log
 doc/rdoc
 activemodel/doc

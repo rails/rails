@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 
 module ActionController
@@ -64,7 +65,7 @@ module ActionController
 
       def helpers_dir=(value)
         ActiveSupport::Deprecation.warn "helpers_dir= is deprecated, use helpers_path= instead", caller
-        self.helpers_path = Array(value)
+        self.helpers_path = Array.wrap(value)
       end
 
       # Declares helper accessors for controller attributes. For example, the
@@ -103,7 +104,7 @@ module ActionController
         # Extract helper names from files in app/helpers/**/*_helper.rb
         def all_application_helpers
           helpers = []
-          helpers_path.each do |path|
+          Array.wrap(helpers_path).each do |path|
             extract  = /^#{Regexp.quote(path.to_s)}\/?(.*)_helper.rb$/
             helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
           end

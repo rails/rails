@@ -29,7 +29,7 @@ module ActiveRecord
         if options.present?
           scoped.apply_finder_options(options)
         else
-          current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.clone
+          current_scoped_methods ? relation.merge(current_scoped_methods) : relation.clone
         end
       end
 

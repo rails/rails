@@ -213,8 +213,7 @@ module ActiveRecord
       if conditions
         where(conditions).destroy_all
       else
-        to_a.each {|object| object.destroy}
-        reset
+        to_a.each {|object| object.destroy }.tap { reset }
       end
     end
 

@@ -1284,7 +1284,7 @@ class YaffleMigrationGenerator < Rails::Generator::NamedBase
 end
 </ruby>
 
-The generator creates a new file in 'db/migrate' with a timestamp and an 'add_column' statement.  It reuses the built in rails +migration_template+ method, and reuses the built-in rails migration template.
+The generator creates a new file in 'db/migrate' with a timestamp and an 'add_column' statement.  It reuses the built-in rails +migration_template+ method, and reuses the built-in rails migration template.
 
 It's courteous to check to see if table names are being pluralized whenever you create a generator that needs to be aware of table names.  This way people using your generator won't have to manually change the generated files if they've turned pluralization off.
 

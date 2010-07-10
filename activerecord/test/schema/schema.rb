@@ -82,6 +82,12 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :cars, :force => true do |t|
+    t.string  :name
+    t.integer :engines_count
+    t.integer :wheels_count
+  end
+
   create_table :categories, :force => true do |t|
     t.string :name, :null => false
     t.string :type
@@ -179,6 +185,9 @@ ActiveRecord::Schema.define do
   end
   add_index :edges, [:source_id, :sink_id], :unique => true, :name => 'unique_edge_index'
 
+  create_table :engines, :force => true do |t|
+    t.integer :car_id
+  end
 
   create_table :entrants, :force => true do |t|
     t.string  :name, :null => false
@@ -564,6 +573,10 @@ ActiveRecord::Schema.define do
     t.integer :polymorphic_man_id
     t.string :polymorphic_man_type
     t.integer :zine_id
+  end
+
+  create_table :wheels, :force => true do |t|
+    t.references :wheelable, :polymorphic => true
   end
 
   create_table :zines, :force => true do |t|

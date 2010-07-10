@@ -282,7 +282,12 @@ module ActiveRecord
             end
           end
         else
-          records.first.class.preload_associations(records, through_association)
+          options = {}
+          options[:include] = reflection.options[:include] || reflection.options[:source] if reflection.options[:conditions]
+          options[:order] = reflection.options[:order]
+          options[:conditions] = reflection.options[:conditions]
+          records.first.class.preload_associations(records, through_association, options)
+
           records.each do |record|
             through_records.concat Array.wrap(record.send(through_association))
           end

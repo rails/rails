@@ -18,7 +18,7 @@ end
 
 require 'logger'
 
-# Extensions to the built in Ruby logger.
+# Extensions to the built-in Ruby logger.
 #
 # If you want to use the default log formatter as defined in the Ruby core, then you
 # will need to set the formatter for the logger as in:

@@ -670,7 +670,7 @@ Also, the second query renames some columns with the AS statement so that the we
 
 h5(#sql-injection-countermeasures). Countermeasures
 
-Ruby on Rails has a built in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+:conditions => "..."+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
+Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+:conditions => "..."+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
 
 Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
 

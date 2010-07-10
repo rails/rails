@@ -64,6 +64,11 @@ module ActionDispatch
           super(key.to_s, value)
         end
 
+        def clear
+          load_for_write!
+          super
+        end
+
         def to_hash
           load_for_read!
           h = {}.replace(self)

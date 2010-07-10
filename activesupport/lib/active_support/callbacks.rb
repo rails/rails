@@ -432,7 +432,7 @@ module ActiveSupport
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 
-        ([self] + self.descendants).each do |target|
+        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
           chain = target.send("_#{name}_callbacks")
           yield chain, type, filters, options
           target.__define_runner(name)
@@ -506,7 +506,7 @@ module ActiveSupport
       def reset_callbacks(symbol)
         callbacks = send("_#{symbol}_callbacks")
 
-        self.descendants.each do |target|
+        ActiveSupport::DescendantsTracker.descendants(self).each do |target|
           chain = target.send("_#{symbol}_callbacks")
           callbacks.each { |c| chain.delete(c) }
           target.__define_runner(symbol)

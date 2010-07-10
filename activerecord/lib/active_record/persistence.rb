@@ -102,12 +102,21 @@ module ActiveRecord
       became
     end
 
-    # Updates a single attribute and saves the record without going through the normal validation procedure.
-    # This is especially useful for boolean flags on existing records. The regular +update_attribute+ method
-    # in Base is replaced with this when the validations module is mixed in, which it is by default.
+    # Updates a single attribute and saves the record without going through the normal validation procedure
+    # or callbacks. This is especially useful for boolean flags on existing records.
     def update_attribute(name, value)
       send("#{name}=", value)
-      save(:validate => false)
+      hash = { name => read_attribute(name) }
+
+      if record_update_timestamps
+        timestamp_attributes_for_update_in_model.each do |column|
+          hash[column] = read_attribute(column)
+        end
+      end
+
+      @changed_attributes.delete(name.to_s)
+      primary_key = self.class.primary_key
+      self.class.update_all(hash, { primary_key => self[primary_key] }) == 1
     end
 
     # Updates all the attributes from the passed-in Hash and saves the record. 

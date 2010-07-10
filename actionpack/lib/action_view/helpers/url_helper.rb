@@ -12,7 +12,7 @@ module ActionView
     # and controllers.
     module UrlHelper
       # This helper may be included in any class that includes the
-      # URL helpers of a router (router.url_helpers). Some methods
+      # URL helpers of a routes (routes.url_helpers). Some methods
       # provided here will only work in the4 context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.

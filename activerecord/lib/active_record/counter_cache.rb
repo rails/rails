@@ -17,9 +17,18 @@ module ActiveRecord
     def reset_counters(id, *counters)
       object = find(id)
       counters.each do |association|
-        child_class = reflect_on_association(association.to_sym).klass
-        belongs_name = self.name.demodulize.underscore.to_sym
-        counter_name = child_class.reflect_on_association(belongs_name).counter_cache_column
+        has_many_association = reflect_on_association(association.to_sym)
+
+        expected_name = if has_many_association.options[:as]
+          has_many_association.options[:as].to_s.classify
+        else
+          self.name
+        end
+
+        child_class  = has_many_association.klass
+        belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
+        reflection   = belongs_to.find { |e| e.class_name == expected_name }
+        counter_name = reflection.counter_cache_column
 
         self.unscoped.where(arel_table[self.primary_key].eq(object.id)).arel.update({
           arel_table[counter_name] => object.send(association).count

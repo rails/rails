@@ -2,54 +2,49 @@ require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/reachable'
 
 class Class #:nodoc:
-  # Returns an array with the names of the subclasses of +self+ as strings.
-  #
-  #   Integer.subclasses # => ["Bignum", "Fixnum"]
-  def subclasses
-    Class.subclasses_of(self).map { |o| o.to_s }
-  end
-
   # Rubinius
   if defined?(Class.__subclasses__)
+    alias :subclasses :__subclasses__
+
     def descendants
-      subclasses = []
-      __subclasses__.each {|k| subclasses << k; subclasses.concat k.descendants }
-      subclasses
+      descendants = []
+      __subclasses__.each do |k|
+        descendants << k
+        descendants.concat k.descendants
+      end
+      descendants
     end
-  else
-    # MRI
+  else # MRI
     begin
       ObjectSpace.each_object(Class.new) {}
 
       def descendants
-        subclasses = []
+        descendants = []
         ObjectSpace.each_object(class << self; self; end) do |k|
-          subclasses << k unless k == self
+          descendants.unshift k unless k == self
         end
-        subclasses
+        descendants
       end
-    # JRuby
-    rescue StandardError
+    rescue StandardError # JRuby
       def descendants
-        subclasses = []
+        descendants = []
         ObjectSpace.each_object(Class) do |k|
-          subclasses << k if k < self
+          descendants.unshift k if k < self
         end
-        subclasses.uniq!
-        subclasses
+        descendants.uniq!
+        descendants
       end
     end
-  end
 
-  # Exclude this class unless it's a subclass of our supers and is defined.
-  # We check defined? in case we find a removed class that has yet to be
-  # garbage collected. This also fails for anonymous classes -- please
-  # submit a patch if you have a workaround.
-  def self.subclasses_of(*superclasses) #:nodoc:
-    subclasses = []
-    superclasses.each do |klass|
-      subclasses.concat klass.descendants.select {|k| k.anonymous? || k.reachable?}
+    # Returns an array with the direct children of +self+.
+    #
+    #   Integer.subclasses # => [Bignum, Fixnum]
+    def subclasses
+      subclasses, chain = [], descendants
+      chain.each do |k|
+        subclasses << k unless chain.any? { |c| c > k }
+      end
+      subclasses
     end
-    subclasses
   end
 end

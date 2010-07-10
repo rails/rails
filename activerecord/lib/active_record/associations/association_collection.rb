@@ -253,9 +253,10 @@ module ActiveRecord
       # See destroy for more info.
       def destroy_all
         load_target
-        destroy(@target)
-        reset_target!
-        reset_named_scopes_cache!
+        destroy(@target).tap do
+          reset_target!
+          reset_named_scopes_cache!
+        end
       end
 
       def create(attrs = {})
@@ -393,7 +394,12 @@ module ActiveRecord
                   @target = find_target.map do |f|
                     i = @target.index(f)
                     t = @target.delete_at(i) if i
-                    (t && t.changed?) ? t : f
+                    if t && t.changed?
+                      t
+                    else
+                      f.mark_for_destruction if t && t.marked_for_destruction?
+                      f
+                    end
                   end + @target
                 else
                   @target = find_target

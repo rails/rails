@@ -65,10 +65,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), @member.sponsor_club
   end
 
-  def has_one_through_to_has_many
-    assert_equal 2, @member.fellow_members.size
-  end
-
   def test_has_one_through_eager_loading
     members = assert_queries(3) do #base table, through table, clubs table
       Member.find(:all, :include => :club, :conditions => ["name = ?", "Groucho Marx"])

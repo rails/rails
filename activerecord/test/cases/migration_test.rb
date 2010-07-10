@@ -1358,6 +1358,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.forward(MIGRATIONS_ROOT + "/valid")
       assert_equal(3, ActiveRecord::Migrator.current_version)
     end
+    
+    def test_get_all_versions
+      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
+      assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)      
+
+      ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
+      assert_equal([1,2], ActiveRecord::Migrator.get_all_versions)
+
+      ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
+      assert_equal([1], ActiveRecord::Migrator.get_all_versions)
+
+      ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
+      assert_equal([], ActiveRecord::Migrator.get_all_versions)
+    end
 
     def test_schema_migrations_table_name
       ActiveRecord::Base.table_name_prefix = "prefix_"

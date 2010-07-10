@@ -2,7 +2,7 @@
 require 'active_support/multibyte'
 
 class String
-  if '1.9'.respond_to?(:force_encoding)
+  if RUBY_VERSION >= "1.9"
     # == Multibyte proxy
     #
     # +mb_chars+ is a multibyte safe proxy for string methods.

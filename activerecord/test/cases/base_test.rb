@@ -17,6 +17,7 @@ require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
+require 'models/loose_person'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -37,45 +38,11 @@ class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
-class LoosePerson < ActiveRecord::Base
-  self.table_name = 'people'
-  self.abstract_class = true
-  attr_protected :credit_rating, :administrator
-end
-
-class LooseDescendant < LoosePerson
-  attr_protected :phone_number
-end
-
-class LooseDescendantSecond< LoosePerson
-  attr_protected :phone_number
-  attr_protected :name
-end
-
-class TightPerson < ActiveRecord::Base
-  self.table_name = 'people'
-  attr_accessible :name, :address
-end
-
-class TightDescendant < TightPerson
-  attr_accessible :phone_number
-end
-
 class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
 class Booleantest < ActiveRecord::Base; end
-
-class Task < ActiveRecord::Base
-  attr_protected :starting
-end
-
-class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
-  self.table_name = 'topics'
-  attr_accessible :author_name
-  attr_protected  :content
-end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
@@ -92,6 +59,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("Budget", topic.title)
     assert_equal("Jason", topic.author_name)
     assert_equal(topics(:first).author_email_address, Topic.find(1).author_email_address)
+  end
+
+  def test_set_attributes_without_hash
+    topic = Topic.new
+    assert_nothing_raised do
+      topic.attributes = ''
+    end
   end
 
   def test_integers_as_nil
@@ -684,16 +658,24 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    original_count = Topic.count
-    topics_by_mary = Topic.count(:conditions => mary = "author_name = 'Mary'")
+    conditions = "author_name = 'Mary'"
+    topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
+    assert ! topics_by_mary.empty?
 
-    Topic.destroy_all mary
-    assert_equal original_count - topics_by_mary, Topic.count
+    assert_difference('Topic.count', -topics_by_mary.size) do
+      destroyed = Topic.destroy_all(conditions).sort_by(&:id)
+      assert_equal topics_by_mary, destroyed
+      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+    end
   end
 
   def test_destroy_many
+    clients = Client.find([2, 3], :order => 'id')
+
     assert_difference('Client.count', -2) do
-      Client.destroy([2, 3])
+      destroyed = Client.destroy([2, 3]).sort_by(&:id)
+      assert_equal clients, destroyed
+      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
     end
   end
 
@@ -918,6 +900,46 @@ class BasicsTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
+  def test_update_attribute_with_one_changed_and_one_updated
+    t = Topic.order('id').limit(1).first
+    title, author_name = t.title, t.author_name
+    t.author_name = 'John'
+    t.update_attribute(:title, 'super_title')
+    assert_equal 'John', t.author_name
+    assert_equal 'super_title', t.title
+    assert t.changed?, "topic should have changed"
+    assert t.author_name_changed?, "author_name should have changed"
+    assert !t.title_changed?, "title should not have changed"
+    assert_nil t.title_change, 'title change should be nil'
+    assert_equal ['author_name'], t.changed
+
+    t.reload
+    assert_equal 'David', t.author_name
+    assert_equal 'super_title', t.title
+  end
+
+  def test_update_attribute_with_one_updated
+    t = Topic.first
+    title = t.title
+    t.update_attribute(:title, 'super_title')
+    assert_equal 'super_title', t.title
+    assert !t.changed?, "topic should not have changed"
+    assert !t.title_changed?, "title should not have changed"
+    assert_nil t.title_change, 'title change should be nil'
+
+    t.reload
+    assert_equal 'super_title', t.title
+  end
+
+  def test_update_attribute_for_udpated_at_on
+    developer = Developer.find(1)
+    updated_at = developer.updated_at
+    developer.update_attribute(:salary, 80001)
+    assert_not_equal updated_at, developer.updated_at
+    developer.reload
+    assert_not_equal updated_at, developer.updated_at
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
@@ -953,88 +975,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
   ensure
     Reply.reset_callbacks(:validate)
-  end
-
-  def test_mass_assignment_should_raise_exception_if_accessible_and_protected_attribute_writers_are_both_used
-    topic = TopicWithProtectedContentAndAccessibleAuthorName.new
-    assert_raise(RuntimeError) { topic.attributes = { "author_name" => "me" } }
-    assert_raise(RuntimeError) { topic.attributes = { "content" => "stuff" } }
-  end
-
-  def test_mass_assignment_protection
-    firm = Firm.new
-    firm.attributes = { "name" => "Next Angle", "rating" => 5 }
-    assert_equal 1, firm.rating
-  end
-
-  def test_mass_assignment_protection_against_class_attribute_writers
-    [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names,
-      :default_timezone, :schema_format, :lock_optimistically, :record_timestamps].each do |method|
-      assert_respond_to  Task, method
-      assert_respond_to  Task, "#{method}="
-      assert_respond_to  Task.new, method
-      assert !Task.new.respond_to?("#{method}=")
-    end
-  end
-
-  def test_customized_primary_key_remains_protected
-    subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
-    assert_nil subscriber.id
-
-    keyboard = Keyboard.new(:key_number => 9, :name => 'nice try')
-    assert_nil keyboard.id
-  end
-
-  def test_customized_primary_key_remains_protected_when_referred_to_as_id
-    subscriber = Subscriber.new(:id => 'webster123', :name => 'nice try')
-    assert_nil subscriber.id
-
-    keyboard = Keyboard.new(:id => 9, :name => 'nice try')
-    assert_nil keyboard.id
-  end
-
-  def test_mass_assigning_invalid_attribute
-    firm = Firm.new
-
-    assert_raise(ActiveRecord::UnknownAttributeError) do
-      firm.attributes = { "id" => 5, "type" => "Client", "i_dont_even_exist" => 20 }
-    end
-  end
-
-  def test_mass_assignment_protection_on_defaults
-    firm = Firm.new
-    firm.attributes = { "id" => 5, "type" => "Client" }
-    assert_nil firm.id
-    assert_equal "Firm", firm[:type]
-  end
-
-  def test_mass_assignment_accessible
-    reply = Reply.new("title" => "hello", "content" => "world", "approved" => true)
-    reply.save
-
-    assert reply.approved?
-
-    reply.approved = false
-    reply.save
-
-    assert !reply.approved?
-  end
-
-  def test_mass_assignment_protection_inheritance
-    assert_nil LoosePerson.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator' ]), LoosePerson.protected_attributes
-
-    assert_nil LooseDescendant.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number' ]), LooseDescendant.protected_attributes
-
-    assert_nil LooseDescendantSecond.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name' ]), LooseDescendantSecond.protected_attributes, 'Running attr_protected twice in one class should merge the protections'
-
-    assert_nil TightPerson.protected_attributes
-    assert_equal Set.new([ 'name', 'address' ]), TightPerson.accessible_attributes
-
-    assert_nil TightDescendant.protected_attributes
-    assert_equal Set.new([ 'name', 'address', 'phone_number' ]), TightDescendant.accessible_attributes
   end
 
   def test_readonly_attributes
@@ -1237,15 +1177,6 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
-  end
-
-  def test_multiparameter_mass_assignment_protector
-    task = Task.new
-    time = Time.mktime(2000, 1, 1, 1)
-    task.starting = time
-    attributes = { "starting(1i)" => "2004", "starting(2i)" => "6", "starting(3i)" => "24" }
-    task.attributes = attributes
-    assert_equal time, task.starting
   end
 
   def test_multiparameter_assignment_of_aggregation

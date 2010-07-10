@@ -357,6 +357,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_with_has_many_through_with_conditions_join_model_with_include
+    post_tags = Post.find(posts(:welcome).id).misc_tags
+    eager_post_tags = Post.find(1, :include => :misc_tags).misc_tags
+    assert_equal post_tags, eager_post_tags
+  end
+
   def test_eager_with_has_many_and_limit
     posts = Post.find(:all, :order => 'posts.id asc', :include => [ :author, :comments ], :limit => 2)
     assert_equal 2, posts.size
