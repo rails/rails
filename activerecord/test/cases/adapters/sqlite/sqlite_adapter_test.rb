@@ -83,6 +83,26 @@ module ActiveRecord
         assert_equal 0, @ctx.select_rows(count_sql).first.first
       end
 
+      def test_tables
+        assert_equal %w{ items }, @ctx.tables
+
+        @ctx.execute <<-eosql
+          CREATE TABLE people (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer
+          )
+        eosql
+        assert_equal %w{ items people }.sort, @ctx.tables.sort
+      end
+
+      def test_tables_logs_name
+        name = "hello"
+        assert_logged [[name]] do
+          @ctx.tables(name)
+          assert_not_nil @ctx.logged.first.shift
+        end
+      end
+
       def assert_logged logs
         @ctx.extend(Module.new {
           attr_reader :logged
