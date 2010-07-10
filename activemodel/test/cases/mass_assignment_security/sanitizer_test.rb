@@ -31,7 +31,7 @@ class SanitizerTest < ActiveModel::TestCase
     log = StringIO.new
     @sanitizer.logger = Logger.new(log)
     @sanitizer.sanitize(original_attributes)
-    assert (log.string =~ /admin/), "Should log removed attributes: #{log.string}"
+    assert_match(/admin/, log.string, "Should log removed attributes: #{log.string}")
   end
 
 end
