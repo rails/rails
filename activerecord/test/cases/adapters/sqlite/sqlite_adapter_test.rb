@@ -170,6 +170,23 @@ module ActiveRecord
         assert_equal %w{ id number }.sort, index.columns.sort
       end
 
+      def test_primary_key
+        assert_equal 'id', @ctx.primary_key('items')
+
+        @ctx.execute <<-eosql
+          CREATE TABLE foos (
+            internet integer PRIMARY KEY AUTOINCREMENT,
+            number integer not null
+          )
+        eosql
+        assert_equal 'internet', @ctx.primary_key('foos')
+      end
+
+      def test_no_primary_key
+        @ctx.execute 'CREATE TABLE failboat (number integer not null)'
+        assert_nil @ctx.primary_key('failboat')
+      end
+
       private
 
       def assert_logged logs
