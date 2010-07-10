@@ -25,5 +25,5 @@ Gem::Specification.new do |s|
   s.add_dependency('activeresource', version)
   s.add_dependency('actionmailer',   version)
   s.add_dependency('railties',       version)
-  s.add_dependency('bundler',        '>= 1.0.0.beta.2')
+  s.add_dependency('bundler',        '>= 1.0.0.beta.3')
 end
