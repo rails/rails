@@ -474,7 +474,7 @@ $ rails console
 After the console loads, you can use it to work with your application's models:
 
 <shell>
->> p = Post.create(:content => "A new post")
+>> p = Post.new(:content => "A new post")
 => #<Post id: nil, name: nil, title: nil, 
      content: "A new post", created_at: nil,
      updated_at: nil>
