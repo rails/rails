@@ -200,6 +200,11 @@ class FormHelperTest < ActionView::TestCase
     assert_equal object_name, "post[]"
   end
 
+  def test_file_field_has_no_size
+    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
+    assert_dom_equal expected, file_field("user", "avatar")
+  end
+
   def test_hidden_field
     assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
       hidden_field("post", "title")
