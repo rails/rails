@@ -862,7 +862,19 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     assert_equal 1, @ship.parts.proxy_target.size
     assert_equal 'Deck', @ship.parts[0].name
   end
-  
+
+  test "if association is not loaded and child doesn't change and I am saving a grandchild then in memory record should be used" do
+    @ship.parts_attributes=[{:id => @part.id,:trinkets_attributes =>[{:id => @trinket.id, :name => 'Ruby'}]}]
+    assert_equal 1, @ship.parts.proxy_target.size
+    assert_equal 'Mast', @ship.parts[0].name
+    assert_no_difference("@ship.parts[0].trinkets.proxy_target.size") do
+      @ship.parts[0].trinkets.proxy_target.size
+    end
+    assert_equal 'Ruby', @ship.parts[0].trinkets[0].name
+    @ship.save
+    assert_equal 'Ruby', @ship.parts[0].trinkets[0].name
+  end
+
   test "when grandchild changed in memory, saving parent should save grandchild" do
     @trinket.name = "changed"
     @ship.save

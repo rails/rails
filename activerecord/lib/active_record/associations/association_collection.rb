@@ -396,11 +396,12 @@ module ActiveRecord
                 if @target.is_a?(Array) && @target.any?
                   @target = find_target.map do |f|
                     i = @target.index(f)
-                    t = @target.delete_at(i) if i
-                    if t && t.changed?
+                    if i
+                      t = @target.delete_at(i)
+                      keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
+                      t.attributes = f.attributes.except(*keys)
                       t
                     else
-                      f.mark_for_destruction if t && t.marked_for_destruction?
                       f
                     end
                   end + @target
