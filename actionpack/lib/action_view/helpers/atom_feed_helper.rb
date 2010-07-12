@@ -10,7 +10,7 @@ module ActionView
       # Full usage example:
       #
       #   config/routes.rb:
-      #     Basecamp::Application.routes.draw do |map|
+      #     Basecamp::Application.routes.draw do
       #       resources :posts
       #       root :to => "posts#index"
       #     end
