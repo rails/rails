@@ -245,7 +245,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       namespace :account do
         match 'shorthand'
-        match 'description', :to => "description", :as => "description"
+        match 'description', :to => :description, :as => "description"
+        match ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
         resource :subscription, :credit, :credit_card
 
         root :to => "account#index"
@@ -1159,7 +1160,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_convention_match_with_no_scope
+  def test_match_shorthand_with_no_scope
     with_test_routes do
       assert_equal '/account/overview', account_overview_path
       get '/account/overview'
@@ -1167,11 +1168,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_convention_match_inside_namespace
+  def test_match_shorthand_inside_namespace
     with_test_routes do
       assert_equal '/account/shorthand', account_shorthand_path
       get '/account/shorthand'
       assert_equal 'account#shorthand', @response.body
+    end
+  end
+
+  def test_scoped_controller_with_namespace_and_action
+    with_test_routes do
+      assert_equal '/account/twitter/callback', account_callback_path("twitter")
+      get '/account/twitter/callback'
+      assert_equal 'account/callbacks#twitter', @response.body
+
+      get '/account/whatever/callback'
+      assert_equal 'Not Found', @response.body
     end
   end
 
