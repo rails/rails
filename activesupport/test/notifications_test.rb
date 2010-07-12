@@ -198,9 +198,9 @@ module Notifications
       time = Time.now
       event = event(:foo, time, time + 0.01, random_id, {})
 
-      assert_equal :foo, event.name
-      assert_equal time, event.time
-      assert_equal 10.0, event.duration
+      assert_equal    :foo, event.name
+      assert_equal    time, event.time
+      assert_in_delta 10.0, event.duration, 0.00000000000001
     end
 
     def test_events_consumes_information_given_as_payload
