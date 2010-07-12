@@ -381,9 +381,9 @@ module ActiveRecord
 
         def default_primary_key_type
           if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'.freeze
+            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
           else
-            'INTEGER PRIMARY KEY NOT NULL'.freeze
+            'INTEGER PRIMARY KEY NOT NULL'
           end
         end
 
