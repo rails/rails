@@ -66,15 +66,9 @@ module ActiveRecord
           unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
 
           begin
-            require 'rubygems'
-            gem "activerecord-#{spec[:adapter]}-adapter"
             require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
           rescue LoadError
-            begin
-              require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
-            rescue LoadError
-              raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{$!})"
-            end
+            raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{$!})"
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
