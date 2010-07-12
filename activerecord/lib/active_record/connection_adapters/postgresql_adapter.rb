@@ -941,15 +941,9 @@ module ActiveRecord
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil)
           fields, rows = select_raw(sql, name)
-          result = []
-          for row in rows
-            row_hash = {}
-            fields.each_with_index do |f, i|
-              row_hash[f] = row[i]
-            end
-            result << row_hash
+          rows.map do |row|
+            Hash[*fields.zip(row).flatten]
           end
-          result
         end
 
         def select_raw(sql, name = nil)
