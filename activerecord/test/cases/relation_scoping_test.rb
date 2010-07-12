@@ -364,6 +364,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_named_scope_reorders_default
+    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.reordered_by_name.find(:all).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
   def test_nested_exclusive_scope
     expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
