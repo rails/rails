@@ -950,7 +950,7 @@ module ActiveRecord
           res = execute(sql, name)
           results = result_as_array(res)
           fields = res.fields
-          rows = results.map do |row|
+          results.each do |row|
             row.each_with_index do |cell, cell_index|
               # If this is a money type column and there are any currency symbols,
               # then strip them off. Indeed it would be prettier to do this in
@@ -963,16 +963,15 @@ module ActiveRecord
                 #  (2) $12.345.678,12
                 case cell
                 when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                  row[cell_index] = cell.gsub(/[^-\d\.]/, '')
+                  cell.gsub!(/[^-\d\.]/, '')
                 when /^-?\D+[\d\.]+,\d{2}$/  # (2)
-                  row[cell_index] = cell.gsub(/[^-\d,]/, '').sub(/,/, '.')
+                  cell.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
                 end
               end
             end
-            row
           end
           res.clear
-          return fields, rows
+          return fields, results
         end
 
         # Returns the list of a table's column names, data types, and default values.
