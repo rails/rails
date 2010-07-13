@@ -431,15 +431,15 @@ module ActiveRecord
       def result_as_array(res) #:nodoc:
         # check if we have any binary column and if they need escaping
         unescape_col = []
-        for j in 0...res.nfields do
+        res.nfields.times do |j|
           # unescape string passed BYTEA field (OID == 17)
           unescape_col << ( res.ftype(j)==17 )
         end
 
         ary = []
-        for i in 0...res.ntuples do
+        res.ntuples.times do |i|
           ary << []
-          for j in 0...res.nfields do
+          res.nfields.times do |j|
             data = res.getvalue(i,j)
             data = unescape_bytea(data) if unescape_col[j] and data.is_a?(String)
             ary[i] << data
