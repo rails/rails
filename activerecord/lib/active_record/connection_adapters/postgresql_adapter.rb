@@ -949,34 +949,30 @@ module ActiveRecord
         def select_raw(sql, name = nil)
           res = execute(sql, name)
           results = result_as_array(res)
-          fields = []
-          rows = []
-          if res.ntuples > 0
-            fields = res.fields
-            results.each do |row|
-              hashed_row = {}
-              row.each_index do |cell_index|
-                # If this is a money type column and there are any currency symbols,
-                # then strip them off. Indeed it would be prettier to do this in
-                # PostgreSQLColumn.string_to_decimal but would break form input
-                # fields that call value_before_type_cast.
-                if res.ftype(cell_index) == MONEY_COLUMN_TYPE_OID
-                  # Because money output is formatted according to the locale, there are two
-                  # cases to consider (note the decimal separators):
-                  #  (1) $12,345,678.12
-                  #  (2) $12.345.678,12
-                  case column = row[cell_index]
-                    when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                      row[cell_index] = column.gsub(/[^-\d\.]/, '')
-                    when /^-?\D+[\d\.]+,\d{2}$/  # (2)
-                      row[cell_index] = column.gsub(/[^-\d,]/, '').sub(/,/, '.')
-                  end
+          fields = res.fields
+          rows = results.map do |row|
+            hashed_row = {}
+            row.each_index do |cell_index|
+              # If this is a money type column and there are any currency symbols,
+              # then strip them off. Indeed it would be prettier to do this in
+              # PostgreSQLColumn.string_to_decimal but would break form input
+              # fields that call value_before_type_cast.
+              if res.ftype(cell_index) == MONEY_COLUMN_TYPE_OID
+                # Because money output is formatted according to the locale, there are two
+                # cases to consider (note the decimal separators):
+                #  (1) $12,345,678.12
+                #  (2) $12.345.678,12
+                case column = row[cell_index]
+                when /^-?\D+[\d,]+\.\d{2}$/  # (1)
+                  row[cell_index] = column.gsub(/[^-\d\.]/, '')
+                when /^-?\D+[\d\.]+,\d{2}$/  # (2)
+                  row[cell_index] = column.gsub(/[^-\d,]/, '').sub(/,/, '.')
                 end
-
-                hashed_row[fields[cell_index]] = column
               end
-              rows << row
+
+              hashed_row[fields[cell_index]] = column
             end
+            row
           end
           res.clear
           return fields, rows
