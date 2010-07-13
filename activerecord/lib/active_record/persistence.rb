@@ -105,19 +105,17 @@ module ActiveRecord
     # Updates a single attribute and saves the record without going through the normal validation procedure
     # or callbacks. This is especially useful for boolean flags on existing records.
     def update_attribute(name, value)
-      send("#{name}=", value)
-      hash = { name => read_attribute(name) }
+      changes = record_update_timestamps || {}
 
-      if record_update_timestamps
-        timestamp_attributes_for_update_in_model.each do |column|
-          hash[column] = read_attribute(column)
-          @changed_attributes.delete(column.to_s)
-        end
+      if name
+        name = name.to_s
+        send("#{name}=", value)
+        changes[name] = read_attribute(name)
       end
 
-      @changed_attributes.delete(name.to_s)
+      @changed_attributes.except!(*changes.keys)
       primary_key = self.class.primary_key
-      self.class.update_all(hash, { primary_key => self[primary_key] }) == 1
+      self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
     end
 
     # Updates all the attributes from the passed-in Hash and saves the record. 

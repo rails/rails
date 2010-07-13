@@ -30,16 +30,11 @@ module ActiveRecord
     #   product.touch               # updates updated_at/on
     #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
     def touch(attribute = nil)
-      current_time = current_time_from_proper_timezone
-
-      if attribute
-        self.update_attribute(attribute, current_time)
-      else
-        timestamp_attributes_for_update_in_model.each { |column| self.update_attribute(column, current_time) }
-      end
+      update_attribute(attribute, current_time_from_proper_timezone)
     end
 
   private
+
     def create #:nodoc:
       if record_timestamps
         current_time = current_time_from_proper_timezone
@@ -56,17 +51,16 @@ module ActiveRecord
     end
 
     def update(*args) #:nodoc:
-      record_update_timestamps
+      record_update_timestamps if !partial_updates? || changed?
       super
     end
 
-    def record_update_timestamps
-      if record_timestamps && (!partial_updates? || changed?)
-        current_time = current_time_from_proper_timezone
-        timestamp_attributes_for_update_in_model.each { |column| write_attribute(column.to_s, current_time) }
-        true
-      else
-        false
+    def record_update_timestamps #:nodoc:
+      return unless record_timestamps
+      current_time = current_time_from_proper_timezone
+      timestamp_attributes_for_update_in_model.inject({}) do |hash, column|
+        hash[column.to_s] = write_attribute(column.to_s, current_time)
+        hash
       end
     end
 
