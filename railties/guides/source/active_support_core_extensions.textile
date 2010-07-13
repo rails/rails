@@ -1840,9 +1840,7 @@ h3. Extensions to +Enumerable+
 
 h4. +group_by+
 
-Ruby 1.8.7 and up define +group_by+, and Active Support does it for previous versions.
-
-This iterator takes a block and builds an ordered hash with its return values as keys. Each key is mapped to the array of elements for which the block returned that value:
+Active Support redefines +group_by+ in Ruby 1.8.7 so that it returns an ordered hash as in 1.9:
 
 <ruby>
 entries_by_surname_initial = address_book.group_by do |entry|
@@ -1850,7 +1848,7 @@ entries_by_surname_initial = address_book.group_by do |entry|
 end
 </ruby>
 
-WARNING. Active Support redefines +group_by+ in Ruby 1.8.7 so that it still returns an ordered hash.
+Distinct block return values are added to the hash as they come, so that's the resulting order.
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
