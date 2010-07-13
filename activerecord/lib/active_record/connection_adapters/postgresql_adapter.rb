@@ -951,7 +951,6 @@ module ActiveRecord
           results = result_as_array(res)
           fields = res.fields
           rows = results.map do |row|
-            hashed_row = {}
             row.each_with_index do |cell, cell_index|
               # If this is a money type column and there are any currency symbols,
               # then strip them off. Indeed it would be prettier to do this in
@@ -969,8 +968,6 @@ module ActiveRecord
                   row[cell_index] = cell.gsub(/[^-\d,]/, '').sub(/,/, '.')
                 end
               end
-
-              hashed_row[fields[cell_index]] = cell
             end
             row
           end
