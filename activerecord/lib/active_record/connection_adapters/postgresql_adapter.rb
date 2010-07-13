@@ -433,7 +433,7 @@ module ActiveRecord
         unescape_col = []
         res.nfields.times do |j|
           # unescape string passed BYTEA field (OID == 17)
-          unescape_col << ( res.ftype(j)==17 )
+          unescape_col << ( res.ftype(j) == BYTEA_COLUMN_TYPE_OID )
         end
 
         ary = []
@@ -889,6 +889,8 @@ module ActiveRecord
       private
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
+        # The internal PostgreSQL identifier of the BYTEA data type.
+        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
