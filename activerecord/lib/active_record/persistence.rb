@@ -121,15 +121,19 @@ module ActiveRecord
     # Updates all the attributes from the passed-in Hash and saves the record. 
     # If the object is invalid, the saving will fail and false will be returned.
     def update_attributes(attributes)
-      self.attributes = attributes
-      save
+      with_transaction_returning_status do
+        self.attributes = attributes
+        save
+      end
     end
 
     # Updates an object just like Base.update_attributes but calls save! instead
     # of save so an exception is raised if the record is invalid.
     def update_attributes!(attributes)
-      self.attributes = attributes
-      save!
+      with_transaction_returning_status do
+        self.attributes = attributes
+        save!
+      end
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
