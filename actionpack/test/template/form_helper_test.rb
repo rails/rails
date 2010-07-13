@@ -77,13 +77,35 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on  = Date.new(2004, 6, 15)
   end
 
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    resources :posts do
+      resources :comments
+    end
+
+    namespace :admin do
+      resources :posts do
+        resources :comments
+      end
+    end
+
+    match "/foo", :to => "controller#action"
+    root :to => "main#index"
+  end
+
+  def _routes
+    Routes
+  end
+
+  include Routes.url_helpers
+
   def url_for(object)
     @url_for_options = object
-    if object.is_a?(Hash)
-      "http://www.example.com"
-    else
-      super
+    if object.is_a?(Hash) && object[:use_route].blank? && object[:controller].blank?
+      object.merge!(:controller => "main", :action => "index")
     end
+    object
+    super
   end
 
   def test_label
@@ -628,7 +650,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected =
-      "<form accept-charset='UTF-8' action='http://www.example.com' id='create-post' method='post'>" +
+      "<form accept-charset='UTF-8' action='/' id='create-post' method='post'>" +
       snowman +
       "<label for='post_title'>The Title</label>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
@@ -683,7 +705,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    expected =  whole_form("http://www.example.com", "create-post", nil, "put") do
+    expected =  whole_form("/", "create-post", nil, "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -702,7 +724,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    expected =  whole_form("http://www.example.com", "create-post", nil, :method => "put", :remote => true) do
+    expected =  whole_form("/", "create-post", nil, :method => "put", :remote => true) do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -721,7 +743,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    expected =  whole_form("http://www.example.com", nil, nil, :remote => true) do
+    expected =  whole_form("/", nil, nil, :remote => true) do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -738,7 +760,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.check_box(:secret)
     end
 
-    expected =  whole_form("http://www.example.com", "create-post") do
+    expected =  whole_form("/", "create-post") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -1478,7 +1500,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected =
-      "<form accept-charset='UTF-8' action='http://www.example.com' id='create-post' method='post'>" +
+      "<form accept-charset='UTF-8' action='/' id='create-post' method='post'>" +
       snowman +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -1502,7 +1524,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected =
-      whole_form("http://www.example.com", "create-post") do
+      whole_form("/", "create-post") do
         "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
         "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
         "<input name='post[comment][name]' type='text' id='post_comment_name' value='new comment' size='30' />"
@@ -1546,7 +1568,7 @@ class FormHelperTest < ActionView::TestCase
     txt << %{</div>}
   end
 
-  def form_text(action = "http://www.example.com", id = nil, html_class = nil, remote = nil)
+  def form_text(action = "/", id = nil, html_class = nil, remote = nil)
     txt =  %{<form accept-charset="UTF-8" action="#{action}"}
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
@@ -1554,7 +1576,7 @@ class FormHelperTest < ActionView::TestCase
     txt << %{ method="post">}
   end
 
-  def whole_form(action = "http://www.example.com", id = nil, html_class = nil, options = nil)
+  def whole_form(action = "/", id = nil, html_class = nil, options = nil)
     contents = block_given? ? yield : ""
 
     if options.is_a?(Hash)
@@ -1655,7 +1677,7 @@ class FormHelperTest < ActionView::TestCase
     assert_deprecated do
       form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
     end
-    expected = whole_form("http://www.example.com", "some_form", "some_class")
+    expected = whole_form("/", "some_form", "some_class")
 
     assert_dom_equal expected, output_buffer
   end
@@ -1710,14 +1732,14 @@ class FormHelperTest < ActionView::TestCase
     @comment.save
     form_for([@post, @comment]) {}
 
-    expected = whole_form(comment_path(@post, @comment), "edit_comment_1", "edit_comment", "put")
+    expected = whole_form(post_comment_path(@post, @comment), "edit_comment_1", "edit_comment", "put")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object_in_list
     form_for([@post, @comment]) {}
 
-    expected = whole_form(comments_path(@post), "new_comment", "new_comment")
+    expected = whole_form(post_comments_path(@post), "new_comment", "new_comment")
     assert_dom_equal expected, output_buffer
   end
 
@@ -1725,14 +1747,14 @@ class FormHelperTest < ActionView::TestCase
     @comment.save
     form_for([:admin, @post, @comment]) {}
 
-    expected = whole_form(admin_comment_path(@post, @comment), "edit_comment_1", "edit_comment", "put")
+    expected = whole_form(admin_post_comment_path(@post, @comment), "edit_comment_1", "edit_comment", "put")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object_and_namespace_in_list
     form_for([:admin, @post, @comment]) {}
 
-    expected = whole_form(admin_comments_path(@post), "new_comment", "new_comment")
+    expected = whole_form(admin_post_comments_path(@post), "new_comment", "new_comment")
     assert_dom_equal expected, output_buffer
   end
 
@@ -1749,38 +1771,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   protected
-    def comments_path(post)
-      "/posts/#{post.id}/comments"
-    end
-    alias_method :post_comments_path, :comments_path
-
-    def comment_path(post, comment)
-      "/posts/#{post.id}/comments/#{comment.id}"
-    end
-    alias_method :post_comment_path, :comment_path
-
-    def admin_comments_path(post)
-      "/admin/posts/#{post.id}/comments"
-    end
-    alias_method :admin_post_comments_path, :admin_comments_path
-
-    def admin_comment_path(post, comment)
-      "/admin/posts/#{post.id}/comments/#{comment.id}"
-    end
-    alias_method :admin_post_comment_path, :admin_comment_path
-
-    def posts_path
-      "/posts"
-    end
-
-    def post_path(post, options = {})
-      if options[:format]
-        "/posts/#{post.id}.#{options[:format]}"
-      else
-        "/posts/#{post.id}"
-      end
-    end
-
     def protect_against_forgery?
       false
     end

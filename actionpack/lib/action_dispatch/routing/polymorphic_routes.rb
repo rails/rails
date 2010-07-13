@@ -111,7 +111,7 @@ module ActionDispatch
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
 
-        send(named_route, *args)
+        url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
       end
 
       # Returns the path component of a URL for the given record. It uses

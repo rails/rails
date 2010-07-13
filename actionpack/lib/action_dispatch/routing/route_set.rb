@@ -158,10 +158,17 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              def #{selector}(options = nil)                                      # def hash_for_users_url(options = nil)
-                options ? #{options.inspect}.merge(options) : #{options.inspect}  #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
-              end                                                                 # end
-              protected :#{selector}                                              # protected :hash_for_users_url
+              def #{selector}(*args)
+                options = args.extract_options!
+
+                if args.any?
+                  options[:_positional_args] = args
+                  options[:_positional_keys] = #{route.segment_keys.inspect}
+                end
+
+                options ? #{options.inspect}.merge(options) : #{options.inspect}
+              end
+              protected :#{selector}
             END_EVAL
             helpers << selector
           end
@@ -185,14 +192,7 @@ module ActionDispatch
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
-                options =  #{hash_access_method}(args.extract_options!)
-
-                if args.any?
-                  options[:_positional_args] = args
-                  options[:_positional_keys] = #{route.segment_keys.inspect}
-                end
-
-                url_for(options)
+                url_for(#{hash_access_method}(*args))
               end
             END_EVAL
             helpers << selector
