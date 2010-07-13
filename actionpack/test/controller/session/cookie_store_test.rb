@@ -34,6 +34,10 @@ class CookieStoreTest < ActionController::IntegrationTest
       render :text => "foo: #{session[:foo].inspect}; id: #{request.session_options[:id]}"
     end
 
+    def get_session_id_only
+      render :text => "id: #{request.session_options[:id]}"      
+    end
+
     def call_session_clear
       session.clear
       head :ok
@@ -132,6 +136,10 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/get_session_id'
       assert_response :success
       assert_equal "foo: \"bar\"; id: #{session_id}", response.body
+      
+      get '/get_session_id_only'
+      assert_response :success
+      assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
     end
   end
 
@@ -203,6 +211,40 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_getting_from_nonexistent_session
+    with_test_route_set do
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body
+      assert_nil headers['Set-Cookie'], "should only create session on write, not read"
+    end
+  end
+
+  # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}  
+  SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhciIIYmF6Og9zZXNzaW9uX2lkIiVjZThiMDc1MmE2YWI3YzdhZjNjZGI4YTgwZTZiOWU0Ng==--2bf3af1ae8bd4e52b9ac2099258ace0c380e601c"
+  
+  def test_deserializes_unloaded_classes_on_get_id
+    with_test_route_set do
+      with_autoload_path "session_autoload_test" do
+        cookies[SessionKey] = SignedSerializedCookie
+        get '/get_session_id_only'
+        assert_response :success
+        assert_equal 'id: ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
+      end
+    end
+  end  
+  
+  def test_deserializes_unloaded_classes_on_get_value
+    with_test_route_set do
+      with_autoload_path "session_autoload_test" do 
+        cookies[SessionKey] = SignedSerializedCookie
+        get '/get_session_value'
+        assert_response :success
+        assert_equal 'foo: #<SessionAutoloadTest::Foo bar:"baz">', response.body, "should auto-load unloaded class"
+      end
     end
   end
 

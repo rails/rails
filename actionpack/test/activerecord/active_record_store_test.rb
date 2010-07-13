@@ -22,7 +22,6 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
 
     def get_session_id
-      session[:foo]
       render :text => "#{request.session_options[:id]}"
     end
 
@@ -45,23 +44,27 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     ActiveRecord::SessionStore.session_class.drop_table!
   end
 
-  def test_setting_and_getting_session_value
-    with_test_route_set do
-      get '/set_session_value'
-      assert_response :success
-      assert cookies['_session_id']
+  %w{ session sql_bypass }.each do |class_name|
+    define_method("test_setting_and_getting_session_value_with_#{class_name}_store") do
+      with_store class_name do
+        with_test_route_set do
+          get '/set_session_value'
+          assert_response :success
+          assert cookies['_session_id']
 
-      get '/get_session_value'
-      assert_response :success
-      assert_equal 'foo: "bar"', response.body
+          get '/get_session_value'
+          assert_response :success
+          assert_equal 'foo: "bar"', response.body
 
-      get '/set_session_value', :foo => "baz"
-      assert_response :success
-      assert cookies['_session_id']
+          get '/set_session_value', :foo => "baz"
+          assert_response :success
+          assert cookies['_session_id']
 
-      get '/get_session_value'
-      assert_response :success
-      assert_equal 'foo: "baz"', response.body
+          get '/get_session_value'
+          assert_response :success
+          assert_equal 'foo: "baz"', response.body
+        end
+      end
     end
   end
 
@@ -107,7 +110,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
   end
 
-  def test_doesnt_write_session_cookie_if_session_id_is_already_exists
+  def test_getting_session_value
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
@@ -116,6 +119,26 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal nil, headers['Set-Cookie'], "should not resend the cookie again if session_id cookie is already exists"
+      session_id = cookies["_session_id"]
+
+      get '/call_reset_session'
+      assert_response :success
+      assert_not_equal [], headers['Set-Cookie']
+
+      cookies["_session_id"] = session_id # replace our new session_id with our old, pre-reset session_id
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body, "data for this session should have been obliterated from the database"
+    end
+  end
+
+  def test_getting_from_nonexistent_session
+    with_test_route_set do
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body
+      assert_nil cookies['_session_id'], "should only create session on write, not read"
     end
   end
 
@@ -183,4 +206,16 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
         yield
       end
     end
+
+    def with_store(class_name)
+      begin
+        session_class = ActiveRecord::SessionStore.session_class
+        ActiveRecord::SessionStore.session_class = "ActiveRecord::SessionStore::#{class_name.camelize}".constantize
+        yield
+      rescue
+        ActiveRecord::SessionStore.session_class = session_class
+        raise
+      end
+    end
+
 end

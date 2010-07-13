@@ -446,8 +446,8 @@ EOM
     end
 
     def reset_session
-      @env['rack.session.options'].delete(:id)
-      @env['rack.session'] = {}
+      session.destroy if session
+      self.session = {}
     end
 
     def session_options
