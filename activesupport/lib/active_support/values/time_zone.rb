@@ -8,10 +8,10 @@ require 'active_support/core_ext/object/try'
 # * Lazily load TZInfo::Timezone instances only when they're needed.
 # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+, +parse+, +at+ and +now+ methods.
 #
-# If you set <tt>config.time_zone</tt> in the Rails Initializer, you can access this TimeZone object via <tt>Time.zone</tt>:
+# If you set <tt>config.time_zone</tt> in the Rails Application, you can access this TimeZone object via <tt>Time.zone</tt>:
 #
-#   # environment.rb:
-#   Rails::Initializer.run do |config|
+#   # application.rb:
+#   class Application < Rails::Application
 #     config.time_zone = "Eastern Time (US & Canada)"
 #   end
 #

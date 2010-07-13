@@ -16,7 +16,7 @@ module ActiveRecord
   # ActionController::SessionOverflowError will be raised.
   #
   # You may configure the table name, primary key, and data column.
-  # For example, at the end of <tt>config/environment.rb</tt>:
+  # For example, at the end of <tt>config/application.rb</tt>:
   #
   #   ActiveRecord::SessionStore::Session.table_name = 'legacy_session_table'
   #   ActiveRecord::SessionStore::Session.primary_key = 'session_id'

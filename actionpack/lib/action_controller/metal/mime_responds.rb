@@ -145,7 +145,7 @@ module ActionController #:nodoc:
     # and accept Rails' defaults, life will be much easier.
     #
     # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
-    # environment.rb as follows.
+    # config/initializers/mime_types.rb as follows.
     #
     #   Mime::Type.register "image/jpg", :jpg
     #
