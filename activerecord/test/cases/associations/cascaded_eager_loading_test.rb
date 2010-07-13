@@ -46,6 +46,13 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_equal people(:michael), Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('people.id').first
   end
 
+  def test_eager_associatoin_loading_with_join_for_count
+    authors = Author.joins(:special_posts).includes([:posts, :categorizations])
+
+    assert_nothing_raised { authors.count }
+    assert_queries(3) { authors.all }
+  end
+
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
     authors = Author.find(:all, :include=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id")
     assert_equal 2, authors.size
