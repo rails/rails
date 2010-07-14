@@ -2,7 +2,7 @@ require "cases/helper"
 require "models/developer"
 require "active_support/log_subscriber/test_helper"
 
-class LogSubscriberTest < ActiveSupport::TestCase
+class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
 
   def setup
