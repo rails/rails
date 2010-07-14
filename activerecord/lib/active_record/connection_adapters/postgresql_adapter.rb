@@ -311,14 +311,16 @@ module ActiveRecord
 
       # Quotes PostgreSQL-specific data types for SQL input.
       def quote(value, column = nil) #:nodoc:
-        if value.kind_of?(String) && column && column.type == :binary
+        return super unless column
+
+        if value.kind_of?(String) && column.type == :binary
           "'#{escape_bytea(value)}'"
-        elsif value.kind_of?(String) && column && column.sql_type == 'xml'
+        elsif value.kind_of?(String) && column.sql_type == 'xml'
           "xml '#{quote_string(value)}'"
-        elsif value.kind_of?(Numeric) && column && column.sql_type == 'money'
+        elsif value.kind_of?(Numeric) && column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
           "'#{value.to_s}'"
-        elsif value.kind_of?(String) && column && column.sql_type =~ /^bit/
+        elsif value.kind_of?(String) && column.sql_type =~ /^bit/
           case value
             when /^[01]*$/
               "B'#{value}'" # Bit-string notation
