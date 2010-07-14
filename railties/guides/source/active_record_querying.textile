@@ -337,7 +337,7 @@ Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash C
 
 h4. Hash Conditions
 
-Active Record also allows you to pass in a hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
 
 NOTE: Only equality, range and subset checking are possible with Hash conditions.
 
@@ -473,7 +473,7 @@ SELECT * FROM clients LIMIT 5, 5
 
 h4. Group
 
-To apply +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
+To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
 
 For example, if you want to find a collection of the dates orders were created on:
 
@@ -527,7 +527,9 @@ client.save
 
 h4. Locking Records for Update
 
-Locking is helpful for preventing the race conditions when updating records in the database and ensuring atomic updated. Active Record provides two locking mechanism:
+Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
+
+Active Record provides two locking mechanisms:
 
 * Optimistic Locking
 * Pessimistic Locking
@@ -569,7 +571,7 @@ end
 
 h5. Pessimistic Locking
 
-Pessimistic locking uses locking mechanism provided by the underlying database. Passing +:lock => true+ to +Model.find+ obtains an exclusive lock on the selected rows. +Model.find+ using +:lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
+Pessimistic locking uses a locking mechanism provided by the underlying database. Passing +:lock => true+ to +Model.find+ obtains an exclusive lock on the selected rows. +Model.find+ using +:lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
 For example:
 
@@ -601,7 +603,7 @@ end
 
 h3. Joining Tables
 
-<tt>Model.find</tt> provides a +:joins+ option for specifying +JOIN+ clauses on the resulting SQL. There multiple different ways to specify the +:joins+ option:
+<tt>Model.find</tt> provides a +:joins+ option for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to specify the +:joins+ option:
 
 h4. Using a String SQL Fragment
 
@@ -782,7 +784,7 @@ You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic find
 If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_first_name_and_locked("Ryan", true)+.
 
 
-There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will firstly perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:
+There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will first perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:
 
 <sql>
 SELECT * FROM clients WHERE (clients.first_name = 'Ryan') LIMIT 1
@@ -792,7 +794,7 @@ INSERT INTO clients (first_name, updated_at, created_at, orders_count, locked)
 COMMIT
 </sql>
 
-+find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similar to calling +new+ with the arguments you passed in. For example:
++find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similarly to calling +new+ with the arguments you passed in. For example:
 
 <ruby>
 client = Client.find_or_initialize_by_first_name('Ryan')
