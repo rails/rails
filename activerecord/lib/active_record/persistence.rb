@@ -118,18 +118,23 @@ module ActiveRecord
       self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
     end
 
-    # Updates all the attributes from the passed-in Hash and saves the record. 
-    # If the object is invalid, the saving will fail and false will be returned.
+    # Updates the attributes of the model from the passed-in hash and saves the
+    # record, all wrapped in a transaction. If the object is invalid, the saving
+    # will fail and false will be returned.
     def update_attributes(attributes)
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
         self.attributes = attributes
         save
       end
     end
 
-    # Updates an object just like Base.update_attributes but calls save! instead
-    # of save so an exception is raised if the record is invalid.
+    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    # of +save+, so an exception is raised if the record is invalid.
     def update_attributes!(attributes)
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
         self.attributes = attributes
         save!
