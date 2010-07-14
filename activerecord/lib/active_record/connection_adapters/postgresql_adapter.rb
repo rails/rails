@@ -375,7 +375,7 @@ module ActiveRecord
 
       def supports_disable_referential_integrity?() #:nodoc:
         version = query("SHOW server_version")[0][0].split('.')
-        (version[0].to_i >= 8 && version[1].to_i >= 1) ? true : false
+        version[0].to_i >= 8 && version[1].to_i >= 1
       rescue
         return false
       end
