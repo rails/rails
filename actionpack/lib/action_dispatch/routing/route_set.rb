@@ -452,7 +452,7 @@ module ActionDispatch
         Generator.new(options, recall, self, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name, :routes]
+      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name]
 
       def _generate_prefix(options = {})
         nil

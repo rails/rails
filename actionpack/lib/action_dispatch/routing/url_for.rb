@@ -123,19 +123,17 @@ module ActionDispatch
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :anchor => 'ok', :only_path => true    # => '/tasks/testing#ok'
       #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash=>true  # => 'http://somehost.org/tasks/testing/'
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :number => '33'  # => 'http://somehost.org/tasks/testing?number=33'
-      def url_for(*args)
-        if args.first.respond_to?(:routes)
-          app = args.shift
-          _with_routes(app.routes) do
+      def url_for(options = nil, *args)
+        if options.respond_to?(:routes)
+          _with_routes(options.routes) do
             if args.first.is_a? Symbol
               named_route = args.shift
-              url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
+              url_for _routes.url_helpers.send("hash_for_#{named_route}", *args)
             else
               url_for(*args)
             end
           end
         else
-          options = args.first
           case options
           when String
             options

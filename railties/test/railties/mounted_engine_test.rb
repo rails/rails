@@ -50,10 +50,10 @@ module ApplicationTests
           end
 
           def generate_application_route
-            path = url_for( :routes => Rails.application.routes,
-                            :controller => "main",
-                            :action => "index",
-                            :only_path => true)
+            path = url_for(Rails.application,
+                           :controller => "main",
+                           :action => "index",
+                           :only_path => true)
             render :text => path
           end
         end
@@ -66,7 +66,7 @@ module ApplicationTests
           end
 
           def url_for_engine_route
-            render :text => url_for(:controller => "posts", :action => "index", :user => "john", :only_path => true, :routes => Blog::Engine.routes)
+            render :text => url_for(Blog::Engine, :controller => "posts", :action => "index", :user => "john", :only_path => true)
           end
         end
       RUBY
@@ -110,6 +110,7 @@ module ApplicationTests
       script_name "/foo"
       get "/engine_route", {}, 'SCRIPT_NAME' => "/foo"
       assert_equal "/foo/anonymous/blog/posts", last_response.body
+
       script_name "/foo"
       get "/url_for_engine_route", {}, 'SCRIPT_NAME' => "/foo"
       assert_equal "/foo/john/blog/posts", last_response.body
