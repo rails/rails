@@ -319,7 +319,7 @@ module ActiveRecord
           "xml '#{quote_string(value)}'"
         elsif value.kind_of?(Numeric) && column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
-          "'#{value.to_s}'"
+          "'#{value}'"
         elsif value.kind_of?(String) && column.sql_type =~ /^bit/
           case value
             when /^[01]*$/
