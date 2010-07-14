@@ -2664,12 +2664,20 @@ module ActiveRecord #:nodoc:
       # Updates all the attributes from the passed-in Hash and saves the record. If the object is invalid, the saving will
       # fail and false will be returned.
       def update_attributes(attributes)
+        with_transaction_returning_status(:update_attributes_inside_transaction, attributes)
+      end
+
+      def update_attributes_inside_transaction(attributes) #:nodoc:
         self.attributes = attributes
         save
       end
 
       # Updates an object just like Base.update_attributes but calls save! instead of save so an exception is raised if the record is invalid.
       def update_attributes!(attributes)
+        with_transaction_returning_status(:update_attributes_inside_transaction!, attributes)
+      end
+
+      def update_attributes_inside_transaction!(attributes) #:nodoc:
         self.attributes = attributes
         save!
       end

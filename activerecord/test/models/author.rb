@@ -106,6 +106,8 @@ class Author < ActiveRecord::Base
     "#{id}-#{name}"
   end
 
+  validates_presence_of :name
+
   private
     def log_before_adding(object)
       @post_log << "before_adding#{object.id || '<new>'}"
