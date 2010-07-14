@@ -465,7 +465,7 @@ Or chaining both +limit+ and +offset+:
 Client.limit(5).offset(5)
 </ruby>
 
-This code will return a maximum of 5 clients and because it specifies an offset this time, it will return these records starting from the 5th client in the clients table. The SQL looks like:
+This code will return a maximum of 5 clients beginning with the 6th client in the clients table, skipping the first five clients as specified by the offset. The SQL looks like:
 
 <sql>
 SELECT * FROM clients LIMIT 5, 5
