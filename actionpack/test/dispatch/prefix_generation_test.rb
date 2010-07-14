@@ -47,9 +47,8 @@ module TestGenerationPrefix
     end
 
     class ::InsideEngineGeneratingController < ActionController::Base
-      include BlogEngine.routes.url_helpers
       def index
-        render :text => post_path(:id => params[:id])
+        render :text => url_for(BlogEngine, :post_path, :id => params[:id])
       end
 
       def url_to_application
@@ -64,7 +63,7 @@ module TestGenerationPrefix
     class ::OutsideEngineGeneratingController < ActionController::Base
       include BlogEngine.routes.url_helpers
       def index
-        render :text => post_path(:id => 1)
+        render :text => url_for(BlogEngine, :post_path, :id => 1)
       end
     end
 

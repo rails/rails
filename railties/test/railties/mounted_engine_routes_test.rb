@@ -45,10 +45,8 @@ module ApplicationTests
 
       @plugin.write "app/controllers/posts_controller.rb", <<-RUBY
         class PostsController < ActionController::Base
-          include Blog::Engine.routes.url_helpers
-
           def index
-            render :text => post_path(1)
+            render :text => url_for(Blog::Engine, :post_path, 1)
           end
 
           def generate_application_route
@@ -63,10 +61,8 @@ module ApplicationTests
 
       app_file "app/controllers/application_generating_controller.rb", <<-RUBY
         class ApplicationGeneratingController < ActionController::Base
-          include Blog::Engine.routes.url_helpers
-
           def engine_route
-            render :text => posts_path
+            render :text => url_for(Blog::Engine, :posts_path)
           end
 
           def url_for_engine_route
