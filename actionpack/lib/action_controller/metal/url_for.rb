@@ -6,7 +6,7 @@ module ActionController
 
     def url_options
       options = {}
-      if respond_to?(:env) && env && _routes.equal?(env["action_dispatch.routes"])
+      if _routes.equal?(env["action_dispatch.routes"])
         options[:script_name] = request.script_name
       end
 
