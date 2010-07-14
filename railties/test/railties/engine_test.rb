@@ -1,8 +1,23 @@
 require "isolation/abstract_unit"
 require "railties/shared_tests"
+require 'stringio'
 
 module RailtiesTest
   class EngineTest < Test::Unit::TestCase
+    # TODO: it's copied from generators/test_case, maybe make a module with such helpers?
+    def capture(stream)
+      begin
+        stream = stream.to_s
+        eval "$#{stream} = StringIO.new"
+        yield
+        result = eval("$#{stream}").string
+      ensure
+        eval("$#{stream} = #{stream.upcase}")
+      end
+
+      result
+    end
+
     include ActiveSupport::Testing::Isolation
     include SharedTests
 
@@ -125,6 +140,29 @@ module RailtiesTest
       boot_rails
 
       assert Bukkits::Engine.config.yaffle_loaded
+    end
+
+    test "engine does not load plugins that already exists in application" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      @plugin.write "vendor/plugins/yaffle/init.rb", <<-RUBY
+        config.engine_yaffle_loaded = true
+      RUBY
+
+      app_file "vendor/plugins/yaffle/init.rb", <<-RUBY
+        config.app_yaffle_loaded = true
+      RUBY
+
+      warnings = capture(:stderr) { boot_rails }
+
+      assert !warnings.empty?
+      assert !Bukkits::Engine.config.respond_to?(:engine_yaffle_loaded)
+      assert Rails.application.config.app_yaffle_loaded
     end
   end
 end
