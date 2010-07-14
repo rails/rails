@@ -123,6 +123,14 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"]
     else
       assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"].to_s(:db)
+
+      developer.created_at = "345643456"
+      assert_equal developer.created_at_before_type_cast, "345643456"
+      assert_equal developer.created_at, nil
+
+      developer.created_at = "2010-03-21T21:23:32+01:00"
+      assert_equal developer.created_at_before_type_cast, "2010-03-21T21:23:32+01:00"
+      assert_equal developer.created_at, Time.parse("2010-03-21T21:23:32+01:00")
     end
   end
 
