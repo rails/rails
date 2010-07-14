@@ -218,6 +218,9 @@ module ActiveRecord
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
+        @table_alias_length = nil
+        @postgresql_version = nil
+
         connect
         @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
       end
