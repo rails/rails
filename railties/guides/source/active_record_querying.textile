@@ -347,7 +347,7 @@ h5. Equality Conditions
 Client.where({ :locked => true })
 </ruby>
 
-The field name does not have to be a symbol it can also be a string:
+The field name can also be a string:
 
 <ruby>
 Client.where({ 'locked' => true })
@@ -447,7 +447,7 @@ h4. Limit and Offset
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +limit+ and +offset+ methods on the relation.
 
-If you want to limit the amount of records to a certain subset of all the records retrieved you usually use +limit+ for this, sometimes coupled with +offset+. Limit is the maximum number of records that will be retrieved from a query, and offset is the number of records it will start reading from from the first record of the set. For example:
+You can use +limit+ to specify the number of records to be retrieved, and use +offset+ to specify the number of records to skip before starting to return the records. For example:
 
 <ruby>
 Client.limit(5)
@@ -491,7 +491,7 @@ SELECT * FROM orders GROUP BY date(created_at)
 
 h4. Having
 
-SQL uses +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can specify the +HAVING+ clause to the SQL fired by the +Model.find+ using +:having+ option on the find.
+SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can add the +HAVING+ clause to the SQL fired by the +Model.find+ by adding the +:having+ option to the find.
 
 For example:
 
@@ -517,7 +517,7 @@ Any attempt to alter or destroy the readonly records will not succeed, raising a
 Client.first.readonly(true)
 </ruby>
 
-If you assign this record to a variable client, calling the following code will raise an +ActiveRecord::ReadOnlyRecord+ exception:
+For example, calling the following code will raise an +ActiveRecord::ReadOnlyRecord+ exception:
 
 <ruby>
 client = Client.first.readonly(true)
@@ -540,7 +540,7 @@ Optimistic locking allows multiple users to access the same record for edits, an
 
 <strong>Optimistic locking column</strong>
 
-In order to use optimistic locking, the table needs to have a column called +lock_version+. Each time the record is updated, Active Record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice will let the last one saved raise an +ActiveRecord::StaleObjectError+ exception if the first was also updated. Example:
+In order to use optimistic locking, the table needs to have a column called +lock_version+. Each time the record is updated, Active Record increments the +lock_version+ column. If an update request is made with a lower value in the +lock_version+ field than is currently in the +lock_version+ column in the database, the update request will fail with an +ActiveRecord::StaleObjectError+. Example:
 
 <ruby>
 c1 = Client.find(1)
@@ -700,7 +700,7 @@ time_range = (Time.now.midnight - 1.day)..Time.now.midnight
 Client.joins(:orders).where('orders.created_at' => time_range)
 </ruby>
 
-An alternative and cleaner syntax to this is to nest the hash conditions:
+An alternative and cleaner syntax is to nest the hash conditions:
 
 <ruby>
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -729,7 +729,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 <strong>Solution to N <plus> 1 queries problem</strong>
 
-Active Record lets you specify all the associations in advanced that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all the specified associations are loaded using minimum possible number of queries.
+Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
 Revisiting the above case, we could rewrite +Client.all+ to use eager load addresses:
 
@@ -751,7 +751,7 @@ SELECT addresses.* FROM addresses
 
 h4. Eager Loading Multiple Associations
 
-Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
+Active Record lets you eager load any number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
 
 h5. Array of Multiple Associations 
 
@@ -767,7 +767,7 @@ h5. Nested Associations Hash
 Category.find(1).includes(:posts => [{:comments => :guest}, :tags])
 </ruby>
 
-The above code finds the category with id 1 and eager loads all the posts associated with the found category. Additionally, it will also eager load every posts' tags and comments. Every comment's guest association will get eager loaded as well.
+This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
 
 h4. Specifying Conditions on Eager Loaded Associations
 
@@ -838,7 +838,7 @@ Client.exists?(1,2,3)
 Client.exists?([1,2,3])
 </ruby>
 
-Further more, +exists+ takes a +conditions+ option much like find:
+The +exists+ method may also take a +conditions+ option much like find:
 
 <ruby>
 Client.exists?(:conditions => "first_name = 'Ryan'")
