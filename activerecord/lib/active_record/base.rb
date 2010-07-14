@@ -1471,7 +1471,7 @@ MSG
       #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
       #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
-        return unless new_attributes.is_a? Hash
+        return unless new_attributes.is_a?(Hash)
         attributes = new_attributes.stringify_keys
 
         multi_parameter_attributes = []
