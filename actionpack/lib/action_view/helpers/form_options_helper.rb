@@ -447,7 +447,7 @@ module ActionView
       # wrap the output in an appropriate <tt><select></tt> tag.
       def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
         body = ''
-        body << content_tag(:option, prompt, :value => "") if prompt
+        body << content_tag(:option, prompt, { :value => "" }, true) if prompt
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
@@ -593,11 +593,11 @@ module ActionView
       private
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = "<option value=\"\">#{options[:include_blank] if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
+            option_tags = "<option value=\"\">#{html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = "<option value=\"\">#{prompt}</option>\n" + option_tags
+            option_tags = "<option value=\"\">#{html_escape(prompt)}</option>\n" + option_tags
           end
           option_tags.html_safe
         end
