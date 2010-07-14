@@ -218,9 +218,9 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        remove_records(records) do |records, old_records|
+        remove_records(records) do |_records, old_records|
           delete_records(old_records) if old_records.any?
-          records.each { |record| @target.delete(record) }
+          _records.each { |record| @target.delete(record) }
         end
       end
 
@@ -231,7 +231,7 @@ module ActiveRecord
       # ignoring the +:dependent+ option.
       def destroy(*records)
         records = find(records) if records.any? {|record| record.kind_of?(Fixnum) || record.kind_of?(String)}
-        remove_records(records) do |records, old_records|
+        remove_records(records) do |_records, old_records|
           old_records.each { |record| record.destroy }
         end
 

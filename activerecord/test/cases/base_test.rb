@@ -1816,8 +1816,8 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_to_xml_with_block
     value = "Rockin' the block"
-    xml = Company.new.to_xml(:skip_instruct => true) do |xml|
-      xml.tag! "arbitrary-element", value
+    xml = Company.new.to_xml(:skip_instruct => true) do |_xml|
+      _xml.tag! "arbitrary-element", value
     end
     assert_equal "<company>", xml.first(9)
     assert xml.include?(%(<arbitrary-element>#{value}</arbitrary-element>))
