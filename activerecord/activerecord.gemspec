@@ -24,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency('activesupport', version)
   s.add_dependency('activemodel',   version)
   s.add_dependency('arel',          '~> 0.4.0')
-  s.add_dependency('tzinfo',        '~> 0.3.16')
+  s.add_dependency('tzinfo',        '~> 0.3.22')
 end
