@@ -1,9 +1,7 @@
+require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
 require 'action_dispatch/routing/deprecated_mapper'
-
-$: << File.expand_path('../../vendor/rack-mount-0.6.6.pre', __FILE__)
-require 'rack/mount'
 
 module ActionDispatch
   module Routing

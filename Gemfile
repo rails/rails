@@ -1,7 +1,6 @@
 source 'http://rubygems.org'
 
 gem "arel", :git => "git://github.com/rails/arel.git"
-#gem "rack-mount", :git => "git://github.com/rails/rack-mount.git"
 gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
