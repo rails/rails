@@ -1,5 +1,6 @@
 require 'yaml'
 require 'set'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
@@ -515,7 +516,7 @@ module ActiveRecord #:nodoc:
     @@timestamped_migrations = true
 
     # Determine whether to store the full constant name including namespace when using STI
-    superclass_delegating_accessor :store_full_sti_class
+    class_attribute :store_full_sti_class
     self.store_full_sti_class = false
 
     # Stores the default scope for the class

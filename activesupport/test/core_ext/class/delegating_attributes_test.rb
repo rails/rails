@@ -5,7 +5,7 @@ module DelegatingFixtures
   end
 
   class Child < Parent
-    superclass_delegating_accessor :some_attribute
+    class_attribute :some_attribute
   end
 
   class Mokopuna < Child
@@ -42,7 +42,7 @@ class DelegatingAttributesTest < Test::Unit::TestCase
   end
 
   def test_simple_accessor_declaration
-    single_class.superclass_delegating_accessor :both
+    single_class.class_attribute :both, :instance_writer => false
     # Class should have accessor and mutator
     # the instance should have an accessor only
     assert single_class.respond_to?(:both)
@@ -52,7 +52,7 @@ class DelegatingAttributesTest < Test::Unit::TestCase
   end
 
   def test_working_with_simple_attributes
-    single_class.superclass_delegating_accessor :both
+    single_class.class_attribute :both
 
     single_class.both = "HMMM"
 
@@ -81,7 +81,7 @@ class DelegatingAttributesTest < Test::Unit::TestCase
 
   def test_child_class_delegates_to_parent_but_can_be_overridden
     parent = Class.new
-    parent.superclass_delegating_accessor :both
+    parent.class_attribute :both
     child = Class.new(parent)
     parent.both = "1"
     assert_equal "1", child.both

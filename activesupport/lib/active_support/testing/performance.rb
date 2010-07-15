@@ -24,7 +24,7 @@ module ActiveSupport
         end.freeze
 
       def self.included(base)
-        base.superclass_delegating_accessor :profile_options
+        base.class_attribute :profile_options
         base.profile_options = DEFAULTS
       end
 

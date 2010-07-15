@@ -278,7 +278,7 @@ module ActionMailer #:nodoc:
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
 
-    superclass_delegating_accessor :delivery_method
+    class_attribute :delivery_method
     self.delivery_method = :smtp
 
     @@perform_deliveries = true
