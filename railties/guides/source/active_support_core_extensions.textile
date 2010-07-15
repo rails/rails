@@ -981,7 +981,9 @@ h3. Extensions to +Class+
 
 h4. Class Attributes
 
-The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
+h5. +class_attribute+
+
+The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
 
 <ruby>
 class A
@@ -1005,16 +1007,49 @@ A.x # => :a
 B.x # => :b
 </ruby>
 
-For example that's the way the +allow_forgery_protection+ flag is implemented for controllers:
+For example +ActionMailer::Base+ defines:
 
 <ruby>
-class_attribute :allow_forgery_protection
-self.allow_forgery_protection = true
+class_attribute :default_params
+self.default_params = {
+  :mime_version => "1.0",
+  :charset      => "UTF-8",
+  :content_type => "text/plain",
+  :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+}.freeze
 </ruby>
 
-For convenience +class_attribute+ defines also a predicate, so that declaration also generates +allow_forgery_protection?+. Such predicate returns the double boolean negation of the value.
+They can be also accessed and overridden at the instance level:
+
+<ruby>
+A.x = 1
+
+a1 = A.new
+a2 = A.new
+a2.x = 2
+
+a1.x # => 1, comes from A
+a2.x # => 2, overridden in a2
+</ruby>
+
+The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to false, as in
+
+<ruby>
+module AcitveRecord
+  class Base
+    class_attribute :table_name_prefix, :instance_writer => false
+    self.table_name_prefix = ""
+  end
+end
+</ruby>
+
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
+
+For convenience +class_attribute+ defines also an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
+
+h5. +cattr_reader+, +cattr_writer+, and +cattr_accessor+
 
 The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
 
@@ -1026,17 +1061,18 @@ class MysqlAdapter < AbstractAdapter
 end
 </ruby>
 
-Instance methods are created as well for convenience. For example given
+Instance methods are created as well for convenience, they are just proxies to the class attribute. So, instances can change the class attribute, but cannot override it as it happens with +class_attribute+ (see above). For example given
 
 <ruby>
-module ActionController
+module ActionView
   class Base
-    cattr_accessor :logger
+    cattr_accessor :field_error_proc
+    @@field_error_proc = Proc.new{ ... }
   end
 end
 </ruby>
 
-we can access +logger+ in actions. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+we can access +field_error_proc+ in views. The generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
 
 <ruby>
 module ActiveRecord
@@ -1047,7 +1083,7 @@ module ActiveRecord
 end
 </ruby>
 
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute. 
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
