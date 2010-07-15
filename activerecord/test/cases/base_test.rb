@@ -63,7 +63,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_set_attributes_without_hash
     topic = Topic.new
-    assert_nothing_raised { topic.attributes = '' }
+    assert_nothing_raised do
+      topic.attributes = ''
+    end
   end
 
   def test_integers_as_nil
