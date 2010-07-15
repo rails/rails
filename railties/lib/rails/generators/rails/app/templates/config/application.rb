@@ -39,6 +39,9 @@ module <%= app_const_base %>
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
+    # Add your default javascripts
+    # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
+
     # Configure generators values. Many other options are available, be sure to check the documentation.
     # config.generators do |g|
     #   g.orm             :active_record
