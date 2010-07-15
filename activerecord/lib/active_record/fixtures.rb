@@ -669,9 +669,8 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def timestamp_column_names
-      @timestamp_column_names ||= %w(created_at created_on updated_at updated_on).select do |name|
-        column_names.include?(name)
-      end
+      @timestamp_column_names ||=
+        %w(created_at created_on updated_at updated_on) & column_names
     end
 
     def inheritance_column_name
