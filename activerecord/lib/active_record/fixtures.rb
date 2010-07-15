@@ -664,8 +664,8 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def has_primary_key_column?
-      @has_primary_key_column ||= model_class && primary_key_name &&
-        model_class.columns.find { |c| c.name == primary_key_name }
+      @has_primary_key_column ||= primary_key_name &&
+        model_class.columns.any? { |c| c.name == primary_key_name }
     end
 
     def timestamp_column_names
