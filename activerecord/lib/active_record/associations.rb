@@ -1965,7 +1965,7 @@ module ActiveRecord
           end
 
           class JoinAssociation < JoinBase # :nodoc:
-            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name
+            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name, :join_class
             delegate    :options, :klass, :through_reflection, :source_reflection, :to => :reflection
 
             def initialize(reflection, join_dependency, parent = nil)
@@ -1982,6 +1982,7 @@ module ActiveRecord
               @parent_table_name  = parent.active_record.table_name
               @aliased_table_name = aliased_table_name_for(table_name)
               @join               = nil
+              @join_class         = Arel::InnerJoin
 
               if reflection.macro == :has_and_belongs_to_many
                 @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
@@ -2002,10 +2003,6 @@ module ActiveRecord
               other_join_dependency.joins.detect do |join|
                 self.parent == join
               end
-            end
-
-            def join_class
-              @join_class ||= Arel::InnerJoin
             end
 
             def with_join_class(join_class)
