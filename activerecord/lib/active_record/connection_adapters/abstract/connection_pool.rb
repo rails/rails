@@ -161,8 +161,13 @@ module ActiveRecord
       # Return any checked-out connections back to the pool by threads that
       # are no longer alive.
       def clear_stale_cached_connections!
-        remove_stale_cached_threads!(@reserved_connections) do |name, conn|
-          checkin conn
+        keys = @reserved_connections.keys - Thread.list.find_all { |t|
+          t.alive?
+        }.map { |thread| thread.object_id }
+
+        keys.each do |key|
+          checkin @reserved_connections[key]
+          @reserved_connections.delete(key)
         end
       end
 
@@ -230,20 +235,6 @@ module ActiveRecord
 
       def current_connection_id #:nodoc:
         Thread.current.object_id
-      end
-
-      # Remove stale threads from the cache.
-      def remove_stale_cached_threads!(cache, &block)
-        keys = Set.new(cache.keys)
-
-        Thread.list.each do |thread|
-          keys.delete(thread.object_id) if thread.alive?
-        end
-        keys.each do |key|
-          next unless cache.has_key?(key)
-          block.call(key, cache[key])
-          cache.delete(key)
-        end
       end
 
       def checkout_new_connection
