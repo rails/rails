@@ -40,7 +40,11 @@ module <%= app_const_base %>
     # config.i18n.default_locale = :de
 
     # Add your default javascripts
+<% if options[:skip_prototype] -%>
+    config.action_view.javascript_expansions[:defaults] = []
+<% else -%>
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
+<% end -%>
 
     # Configure generators values. Many other options are available, be sure to check the documentation.
     # config.generators do |g|
