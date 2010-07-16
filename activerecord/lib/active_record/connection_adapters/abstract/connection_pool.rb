@@ -343,9 +343,11 @@ module ActiveRecord
       # re-establishing the connection.
       def remove_connection(klass)
         pool = @connection_pools[klass.name]
+        return nil unless pool
+
         @connection_pools.delete_if { |key, value| value == pool }
-        pool.disconnect! if pool
-        pool.spec.config if pool
+        pool.disconnect!
+        pool.spec.config
       end
 
       def retrieve_connection_pool(klass)
