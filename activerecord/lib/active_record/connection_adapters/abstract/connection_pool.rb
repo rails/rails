@@ -290,12 +290,10 @@ module ActiveRecord
     # ActiveRecord::Base.connection_handler. Active Record models use this to
     # determine that connection pool that they should use.
     class ConnectionHandler
+      attr_reader :connection_pools
+
       def initialize(pools = {})
         @connection_pools = pools
-      end
-
-      def connection_pools
-        @connection_pools ||= {}
       end
 
       def establish_connection(name, spec)
