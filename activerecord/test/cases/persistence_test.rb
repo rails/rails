@@ -253,13 +253,14 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_udpated_at_on
     developer = Developer.find(1)
-    updated_at = developer.updated_at
+    prev_month = Time.now.prev_month
+    developer.update_attribute(:updated_at, prev_month)
+    assert_equal prev_month, developer.updated_at
     developer.update_attribute(:salary, 80001)
-    assert_not_equal updated_at, developer.updated_at
+    assert_not_equal prev_month, developer.updated_at
     developer.reload
-    assert_not_equal updated_at, developer.updated_at
+    assert_not_equal prev_month, developer.updated_at
   end
-
 
   def test_update_attributes
     topic = Topic.find(1)
