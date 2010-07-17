@@ -45,7 +45,7 @@ module ActiveSupport
 
         def publish(*args)
           return unless subscribed_to?(args.first)
-          push(*args)
+          @block.call(*args)
           true
         end
 
@@ -58,19 +58,9 @@ module ActiveSupport
         end
 
         def matches?(subscriber_or_name)
-          case subscriber_or_name
-          when String
+          self === subscriber_or_name ||
             @pattern && @pattern === subscriber_or_name
-          when self
-            true
-          end
         end
-
-        private
-
-          def push(*args)
-            @block.call(*args)
-          end
       end
     end
   end
