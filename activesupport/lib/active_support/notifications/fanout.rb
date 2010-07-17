@@ -49,10 +49,6 @@ module ActiveSupport
           true
         end
 
-        def drained?
-          true
-        end
-
         def subscribed_to?(name)
           !@pattern || @pattern === name.to_s
         end
