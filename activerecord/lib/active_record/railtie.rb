@@ -22,6 +22,12 @@ module ActiveRecord
       load "active_record/railties/databases.rake"
     end
 
+    # When loading console, force ActiveRecord to be loaded to avoid cross
+    # references when loading a constant for the first time.
+    console do
+      ActiveRecord::Base
+    end
+
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true

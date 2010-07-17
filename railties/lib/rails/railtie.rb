@@ -156,6 +156,12 @@ module Rails
         @rake_tasks
       end
 
+      def console(&blk)
+        @load_console ||= []
+        @load_console << blk if blk
+        @load_console
+      end
+
       def generators(&blk)
         @generators ||= []
         @generators << blk if blk
@@ -170,20 +176,16 @@ module Rails
     def eager_load!
     end
 
-    def rake_tasks
-      self.class.rake_tasks
-    end
-
-    def generators
-      self.class.generators
+    def load_console
+      self.class.console.each(&:call)
     end
 
     def load_tasks
-      rake_tasks.each { |blk| blk.call }
+      self.class.rake_tasks.each(&:call)
     end
 
     def load_generators
-      generators.each { |blk| blk.call }
+      self.class.generators.each(&:call)
     end
   end
 end

@@ -9,10 +9,8 @@ class ConsoleTest < Test::Unit::TestCase
   end
 
   def load_environment
-    # Load steps taken from rails/commands/console.rb
     require "#{rails_root}/config/environment"
-    require 'rails/console/app'
-    require 'rails/console/helpers'
+    Rails.application.load_console
   end
 
   def test_app_method_should_return_integration_session
@@ -74,5 +72,22 @@ class ConsoleTest < Test::Unit::TestCase
     assert_instance_of ActionView::Base, helper
     assert_equal 'Once upon a time in a world...',
       helper.truncate('Once upon a time in a world far far away')
+  end
+
+  def test_active_record_does_not_panic_when_referencing_an_observed_constant
+    add_to_config "config.active_record.observers = :user_observer"
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User < ActiveRecord::Base
+      end
+    MODEL
+
+    app_file "app/models/user_observer.rb", <<-MODEL
+      class UserObserver < ActiveRecord::Observer
+      end
+    MODEL
+
+    load_environment
+    assert_nothing_raised { User }
   end
 end
