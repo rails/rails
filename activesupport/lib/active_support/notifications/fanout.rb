@@ -6,13 +6,15 @@ module ActiveSupport
       def initialize
         @subscribers = []
         @listeners_for = {}
+        @pattern = nil
       end
 
       def bind(pattern)
-        Binding.new(self, pattern)
+        @pattern = pattern
+        self
       end
 
-      def subscribe(pattern = nil, &block)
+      def subscribe(pattern = @pattern, &block)
         @listeners_for.clear
         @subscribers << Subscriber.new(pattern, &block)
         @subscribers.last
@@ -33,18 +35,6 @@ module ActiveSupport
 
       # This is a sync queue, so there is not waiting.
       def wait
-      end
-
-      # Used for internal implementation only.
-      class Binding #:nodoc:
-        def initialize(queue, pattern)
-          @queue = queue
-          @pattern = pattern
-        end
-
-        def subscribe(&block)
-          @queue.subscribe(@pattern, &block)
-        end
       end
 
       class Subscriber #:nodoc:
