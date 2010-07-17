@@ -45,10 +45,10 @@ module ActionDispatch
   # * <tt>:value</tt> - The cookie's value or list of values (as an array).
   # * <tt>:path</tt> - The path for which this cookie applies.  Defaults to the root
   #   of the application.
-  # * <tt>:domain</tt> - The domain for which this cookie applies so you can 
-  #   restrict to the domain level. If you use a schema like www.example.com 
+  # * <tt>:domain</tt> - The domain for which this cookie applies so you can
+  #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
-  #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with 
+  #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
   #   <tt>:all</tt> again when deleting keys.
   #
   #     :domain => nil  # Does not sets cookie domain. (default)
@@ -63,7 +63,7 @@ module ActionDispatch
   class Cookies
     HTTP_HEADER = "Set-Cookie".freeze
     TOKEN_KEY   = "action_dispatch.secret_token".freeze
-    
+
     # Raised when storing more than 4K of session data.
     class CookieOverflow < StandardError; end
 
@@ -101,7 +101,7 @@ module ActionDispatch
 
       def handle_options(options) #:nodoc:
         options[:path] ||= "/"
-        
+
         if options[:domain] == :all
           @host =~ DOMAIN_REGEXP
           options[:domain] = ".#{$2}.#{$3}"
@@ -122,7 +122,7 @@ module ActionDispatch
         value = super(key.to_s, value)
 
         handle_options(options)
-        
+
         @set_cookies[key] = options
         @delete_cookies.delete(key)
         value
@@ -151,7 +151,7 @@ module ActionDispatch
       # This jar allows chaining with the signed jar as well, so you can set permanent, signed cookies. Examples:
       #
       #   cookies.permanent.signed[:remember_me] = current_user.id
-      #   # => Set-Cookie: discount=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
         @permanent ||= PermanentCookieJar.new(self, @secret)
       end
