@@ -125,7 +125,7 @@ class OverridingAggregationsTest < ActiveRecord::TestCase
   class Name; end
   class DifferentName; end
 
-  class Person   < ActiveRecord::Base
+  class Person < ActiveRecord::Base
     composed_of :composed_of, :mapping => %w(person_first_name first_name)
   end
 
