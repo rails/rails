@@ -39,13 +39,7 @@ module ActiveSupport
       class Binding #:nodoc:
         def initialize(queue, pattern)
           @queue = queue
-          @pattern =
-            case pattern
-            when Regexp, NilClass
-              pattern
-            else
-              /^#{Regexp.escape(pattern.to_s)}$/
-            end
+          @pattern = pattern
         end
 
         def subscribe(&block)
@@ -70,13 +64,13 @@ module ActiveSupport
         end
 
         def subscribed_to?(name)
-          !@pattern || @pattern =~ name.to_s
+          !@pattern || @pattern === name.to_s
         end
 
         def matches?(subscriber_or_name)
           case subscriber_or_name
           when String
-            @pattern && @pattern =~ subscriber_or_name
+            @pattern && @pattern === subscriber_or_name
           when self
             true
           end
