@@ -36,7 +36,6 @@ module ActionDispatch
           parameters.dup
         end
       end
-      alias :fitered_params :filtered_parameters
 
       # Return a hash of request.env with all sensitive data replaced.
       def filtered_env
