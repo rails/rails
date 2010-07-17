@@ -1,9 +1,12 @@
 require 'abstract_unit'
+require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
 require 'active_support/buffered_logger'
 
 class BufferedLoggerTest < Test::Unit::TestCase
+  include MultibyteTestHelpers
+
   Logger = ActiveSupport::BufferedLogger
 
   def setup
@@ -145,5 +148,17 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.send :buffer
     @logger.expects :clear_buffer
     @logger.flush
+  end
+
+  def test_buffer_multibyte
+    @logger.auto_flushing = 2
+    @logger.info(UNICODE_STRING)
+    @logger.info(BYTE_STRING)
+    assert @output.string.include?(UNICODE_STRING)
+    byte_string = @output.string.dup
+    if byte_string.respond_to?(:force_encoding)
+      byte_string.force_encoding("ASCII-8BIT")
+    end
+    assert byte_string.include?(BYTE_STRING)
   end
 end
