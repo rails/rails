@@ -129,11 +129,15 @@ module ActiveSupport
       camelize  = options.has_key?(:camelize) && options[:camelize]
       dasherize = !options.has_key?(:dasherize) || options[:dasherize]
       key = key.camelize  if camelize
-      key = key.dasherize if dasherize
+      key = _dasherize(key) if dasherize
       key
     end
 
     protected
+
+    def _dasherize(key)
+      key.gsub(/(?!^[_]*)_(?![_]*$)/, '-')
+    end
 
 	  # TODO: Add support for other encodings
     def _parse_binary(bin, entity) #:nodoc:
