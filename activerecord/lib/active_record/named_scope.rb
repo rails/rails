@@ -105,7 +105,7 @@ module ActiveRecord
           extension ? relation.extending(extension) : relation
         end
 
-        singleton_class.send :define_method, name, &scopes[name]
+        singleton_class.send(:redefine_method, name, &scopes[name])
       end
 
       def named_scope(*args, &block)

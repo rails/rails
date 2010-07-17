@@ -101,6 +101,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
       #we need to actually modify some data, so we make execute point to the original method
       ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
         alias_method :execute_with_stub, :execute
+        remove_method :execute
         alias_method :execute, :execute_without_stub
       end
       yield

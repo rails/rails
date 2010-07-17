@@ -871,7 +871,7 @@ module ActiveRecord
         table_names.each do |table_name|
           table_name = table_name.to_s.tr('./', '_')
 
-          define_method(table_name) do |*fixtures|
+          redefine_method(table_name) do |*fixtures|
             force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
 
             @fixture_cache[table_name] ||= {}
