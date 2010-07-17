@@ -5,9 +5,7 @@ class Module
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
+        @@#{sym} = nil unless defined? @@#{sym}
 
         def self.#{sym}
           @@#{sym}
@@ -28,10 +26,6 @@ class Module
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
-
         def self.#{sym}=(obj)
           @@#{sym} = obj
         end
