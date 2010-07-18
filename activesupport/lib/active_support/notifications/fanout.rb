@@ -6,15 +6,9 @@ module ActiveSupport
       def initialize
         @subscribers = []
         @listeners_for = {}
-        @pattern = nil
       end
 
-      def bind(pattern)
-        @pattern = pattern
-        self
-      end
-
-      def subscribe(pattern = @pattern, &block)
+      def subscribe(pattern = nil, &block)
         @listeners_for.clear
         @subscribers << Subscriber.new(pattern, &block)
         @subscribers.last

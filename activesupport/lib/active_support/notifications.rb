@@ -65,7 +65,7 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, &block)
-        @queue.bind(pattern).subscribe(&block)
+        @queue.subscribe(pattern, &block)
       end
 
       def unsubscribe(subscriber)
