@@ -52,6 +52,7 @@ module AbstractController
 
               if controller.respond_to?(:_routes)
                 include controller._routes.url_helpers
+                include controller._routes.mounted_helpers
               end
 
               # TODO: Fix RJS to not require this

@@ -285,13 +285,14 @@ module ActionDispatch
             return unless app.respond_to?(:routes)
 
             _route = @set.named_routes.routes[name.to_sym]
-            _router = @set
+            _routes = @set
+            app.routes.define_mounted_helper(name)
             app.routes.class_eval do
               define_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
-                _router.url_helpers.send("#{name}_path", prefix_options)
+                _routes.url_helpers.send("#{name}_path", prefix_options)
               end
             end
           end

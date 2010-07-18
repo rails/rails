@@ -123,28 +123,14 @@ module ActionDispatch
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :anchor => 'ok', :only_path => true    # => '/tasks/testing#ok'
       #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash=>true  # => 'http://somehost.org/tasks/testing/'
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :number => '33'  # => 'http://somehost.org/tasks/testing?number=33'
-      def url_for(options = nil, *args)
-        if options.respond_to?(:routes)
-          _with_routes(options.routes) do
-            if args.first.is_a? Symbol
-              named_route = args.shift
-              url_for _routes.url_helpers.send("hash_for_#{named_route}", *args)
-            else
-              url_for(*args)
-            end
-          end
+      def url_for(options = nil)
+        case options
+        when String
+          options
+        when nil, Hash
+          _routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)
         else
-          case options
-          when String
-            options
-          when nil, Hash
-            routes = (options ? options.delete(:routes) : nil) || _routes
-            _with_routes(routes) do
-              routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)
-            end
-          else
-            polymorphic_url(options)
-          end
+          polymorphic_url(options)
         end
       end
 

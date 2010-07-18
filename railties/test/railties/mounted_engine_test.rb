@@ -16,9 +16,10 @@ module ApplicationTests
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do |map|
           match "/engine_route" => "application_generating#engine_route"
+          match "/engine_route_in_view" => "application_generating#engine_route_in_view"
           match "/url_for_engine_route" => "application_generating#url_for_engine_route"
           scope "/:user", :user => "anonymous" do
-            mount Blog::Engine => "/blog"
+            mount Blog::Engine => "/blog", :as => "blog_engine"
           end
           root :to => 'main#index'
         end
@@ -39,6 +40,7 @@ module ApplicationTests
         Blog::Engine.routes.draw do
           resources :posts do
             get :generate_application_route
+            get :application_route_in_view
           end
         end
       RUBY
@@ -46,15 +48,18 @@ module ApplicationTests
       @plugin.write "app/controllers/posts_controller.rb", <<-RUBY
         class PostsController < ActionController::Base
           def index
-            render :text => url_for(Blog::Engine, :post_path, 1)
+            render :text => blog_engine.post_path(1)
           end
 
           def generate_application_route
-            path = url_for(Rails.application,
-                           :controller => "main",
-                           :action => "index",
-                           :only_path => true)
+            path = app.url_for(:controller => "main",
+                               :action => "index",
+                               :only_path => true)
             render :text => path
+          end
+
+          def application_route_in_view
+            render :inline => "<%= app.root_path %>"
           end
         end
       RUBY
@@ -62,11 +67,15 @@ module ApplicationTests
       app_file "app/controllers/application_generating_controller.rb", <<-RUBY
         class ApplicationGeneratingController < ActionController::Base
           def engine_route
-            render :text => url_for(Blog::Engine, :posts_path)
+            render :text => blog_engine.posts_path
+          end
+
+          def engine_route_in_view
+            render :inline => "<%= blog_engine.posts_path %>"
           end
 
           def url_for_engine_route
-            render :text => url_for(Blog::Engine, :controller => "posts", :action => "index", :user => "john", :only_path => true)
+            render :text => blog_engine.url_for(:controller => "posts", :action => "index", :user => "john", :only_path => true)
           end
         end
       RUBY
@@ -103,6 +112,10 @@ module ApplicationTests
       # test generating engine's route from application
       get "/engine_route"
       assert_equal "/anonymous/blog/posts", last_response.body
+
+      get "/engine_route_in_view"
+      assert_equal "/anonymous/blog/posts", last_response.body
+
       get "/url_for_engine_route"
       assert_equal "/john/blog/posts", last_response.body
 
@@ -118,6 +131,9 @@ module ApplicationTests
 
       # test generating application's route from engine
       get "/someone/blog/generate_application_route"
+      assert_equal "/", last_response.body
+
+      get "/somone/blog/application_route_in_view"
       assert_equal "/", last_response.body
 
       # test generating application's route from engine with default_url_options

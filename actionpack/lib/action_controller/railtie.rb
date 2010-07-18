@@ -51,6 +51,7 @@ module ActionController
 
       ActiveSupport.on_load(:action_controller) do
         include app.routes.url_helpers
+        include app.routes.mounted_helpers(:app)
         options.each { |k,v| send("#{k}=", v) }
       end
     end
