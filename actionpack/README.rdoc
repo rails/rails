@@ -355,15 +355,15 @@ new model). After creating the post, it'll redirect to the show page using
 an URL such as /weblog/5 (where 5 is the id of the post).
 
 
-== Download
+== Download and installation
 
 The latest version of Action Pack can be installed with Rubygems:
 
-* gem install actionpack
+  % [sudo] gem install actionpack
 
-Documentation can be found at 
+Source code can be downloaded as part of the Rails project on GitHub
 
-* http://api.rubyonrails.org
+* http://github.com/rails/rails/tree/master/actionpack/
 
 
 == License
@@ -373,10 +373,10 @@ Action Pack is released under the MIT license.
 
 == Support
 
-The Action Pack homepage is http://www.rubyonrails.org. You can find
-the Action Pack RubyForge page at http://rubyforge.org/projects/actionpack.
-And as Jim from Rake says:
+API documentation is at
 
-   Feel free to submit commits or feature requests.  If you send a patch,
-   remember to update the corresponding unit tests.  If fact, I prefer
-   new feature to be submitted in the form of new unit tests.
+* http://api.rubyonrails.com
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets
