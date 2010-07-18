@@ -10,8 +10,9 @@ module ActiveSupport
 
       def subscribe(pattern = nil, &block)
         @listeners_for.clear
-        @subscribers << Subscriber.new(pattern, &block)
-        @subscribers.last
+        Subscriber.new(pattern, &block).tap do |s|
+          @subscribers << s
+        end
       end
 
       def unsubscribe(subscriber)
