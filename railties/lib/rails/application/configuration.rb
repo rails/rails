@@ -48,7 +48,6 @@ module Rails
           paths.app.controllers << builtin_controller if builtin_controller
           paths.config.database     "config/database.yml"
           paths.config.environment  "config/environment.rb"
-          paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
           paths.lib.templates       "lib/templates"
           paths.log                 "log/#{Rails.env}.log"
           paths.tmp                 "tmp"

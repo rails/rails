@@ -42,6 +42,23 @@ class LoadingTest < Test::Unit::TestCase
     User
   end
 
+  test "load config/environments/environment before Bootstrap initializers" do
+    app_file "config/environments/development.rb", <<-RUBY
+      AppTemplate::Application.configure do
+        config.development_environment_loaded = true
+      end
+    RUBY
+
+    add_to_config <<-RUBY
+      config.before_initialize do
+        config.loaded = config.development_environment_loaded
+      end
+    RUBY
+
+    require "#{app_path}/config/environment"
+    assert ::AppTemplate::Application.config.loaded
+  end
+
   def test_descendants_are_cleaned_on_each_request_without_cache_classes
     add_to_config <<-RUBY
       config.cache_classes = false

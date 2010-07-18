@@ -43,10 +43,6 @@ module Rails
     class << self
       private :new
 
-      def configure(&block)
-        class_eval(&block)
-      end
-
       def instance
         if self == Rails::Application
           if Rails.application

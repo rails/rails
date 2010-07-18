@@ -28,6 +28,7 @@ module Rails
           paths.config.initializers "config/initializers", :glob => "**/*.rb"
           paths.config.locales      "config/locales",      :glob => "*.{rb,yml}"
           paths.config.routes       "config/routes.rb"
+          paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
           paths.public              "public"
           paths.public.javascripts  "public/javascripts"
           paths.public.stylesheets  "public/stylesheets"

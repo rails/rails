@@ -54,15 +54,9 @@ module RailtiesTest
 
       initializers = Rails.application.initializers.tsort
       index        = initializers.index { |i| i.name == "dummy_initializer" }
-      selection    = initializers[(index-3)..(index)].map(&:name).map(&:to_s)
 
-      assert_equal %w(
-       load_config_initializers
-       load_config_initializers
-       engines_blank_point
-       dummy_initializer
-      ), selection
-
+      assert index > initializers.index { |i| i.name == :load_config_initializers }
+      assert index > initializers.index { |i| i.name == :engines_blank_point }
       assert index < initializers.index { |i| i.name == :build_middleware_stack }
     end
 
@@ -163,6 +157,25 @@ module RailtiesTest
       assert !warnings.empty?
       assert !Bukkits::Engine.config.respond_to?(:engine_yaffle_loaded)
       assert Rails.application.config.app_yaffle_loaded
+    end
+
+    test "it loads its environment file" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      @plugin.write "config/environments/development.rb", <<-RUBY
+        Bukkits::Engine.configure do
+          config.environment_loaded = true
+        end
+      RUBY
+
+      boot_rails
+
+      assert Bukkits::Engine.config.environment_loaded
     end
   end
 end

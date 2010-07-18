@@ -129,6 +129,10 @@ module Rails
         @endpoint
       end
 
+      def configure(&block)
+        class_eval(&block)
+      end
+
     protected
 
       def method_missing(*args, &block)
@@ -247,6 +251,11 @@ module Rails
     initializer :engines_blank_point do
       # We need this initializer so all extra initializers added in engines are
       # consistently executed after all the initializers above across all engines.
+    end
+
+    initializer :load_environment_config, :before => :load_environment_hook do
+      environment = config.paths.config.environments.to_a.first
+      require environment if environment
     end
 
   protected
