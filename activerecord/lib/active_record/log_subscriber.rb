@@ -6,6 +6,8 @@ module ActiveRecord
     end
 
     def sql(event)
+      return unless logger.debug?
+
       name = '%s (%.1fms)' % [event.payload[:name], event.duration]
       sql  = event.payload[:sql].squeeze(' ')
 

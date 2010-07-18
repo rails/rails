@@ -21,11 +21,11 @@ module ActiveSupport
       end
 
       def publish(name, *args)
-        if listeners = @listeners_for[name]
-          listeners.each { |s| s.publish(name, *args) }
-        else
-          @listeners_for[name] = @subscribers.select { |s| s.publish(name, *args) }
-        end
+        listeners_for(name).each { |s| s.publish(name, *args) }
+      end
+
+      def listeners_for(name)
+        @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }
       end
 
       # This is a sync queue, so there is not waiting.
@@ -39,9 +39,7 @@ module ActiveSupport
         end
 
         def publish(message, *args)
-          return unless subscribed_to?(message)
           @delegate.call(message, *args)
-          true
         end
 
         def subscribed_to?(name)
