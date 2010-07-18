@@ -33,7 +33,7 @@ module ActiveSupport
     module TestHelper
       def setup
         @logger   = MockLogger.new
-        @notifier = ActiveSupport::Notifications::Notifier.new(queue)
+        @notifier = ActiveSupport::Notifications::Fanout.new
 
         ActiveSupport::LogSubscriber.colorize_logging = false
 
@@ -80,10 +80,6 @@ module ActiveSupport
       #
       def set_logger(logger)
         ActiveSupport::LogSubscriber.logger = logger
-      end
-
-      def queue
-        ActiveSupport::Notifications::Fanout.new
       end
     end
   end
