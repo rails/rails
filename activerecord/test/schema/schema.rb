@@ -300,6 +300,7 @@ ActiveRecord::Schema.define do
     t.string :minivan_id
     t.string :name
     t.string :speedometer_id
+    t.string :color
   end
 
   create_table :minimalistics, :force => true do |t|

@@ -3,4 +3,7 @@ class Minivan < ActiveRecord::Base
   
   belongs_to :speedometer
   has_one :dashboard, :through => :speedometer
+  
+  attr_readonly :color
+
 end
