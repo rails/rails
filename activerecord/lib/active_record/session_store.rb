@@ -294,7 +294,6 @@ module ActiveRecord
     private
       def get_session(env, sid)
         Base.silence do
-          sid ||= generate_sid
           session = find_session(sid)
           env[SESSION_RECORD_KEY] = session
           [sid, session.data]
