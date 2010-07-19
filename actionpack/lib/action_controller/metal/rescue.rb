@@ -4,9 +4,9 @@ module ActionController #:nodoc:
     include ActiveSupport::Rescuable
 
     def rescue_with_handler(exception)
-      if ((exception.respond_to?(:original_exception)) &&
-        (orig_exception = exception.original_exception) &&
-        (orig_handler = handler_for_rescue(orig_exception)))
+      if (exception.respond_to?(:original_exception) &&
+          (orig_exception = exception.original_exception) &&
+          handler_for_rescue(orig_exception))
         exception = orig_exception
       end
       super(exception)
