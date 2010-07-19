@@ -199,11 +199,14 @@ module ActiveRecord
 
         def log(sql, name)
           name ||= "SQL"
-          result = nil
-          ActiveSupport::Notifications.instrument("sql.active_record",
-            :sql => sql, :name => name, :connection_id => self.object_id) do
-            @runtime += Benchmark.ms { result = yield }
+          instrumenter = ActiveSupport::Notifications.instrumenter
+
+          result = instrumenter.instrument("sql.active_record",
+            :sql => sql, :name => name, :connection_id => object_id) do
+            yield
           end
+          @runtime += instrumenter.elapsed
+
           result
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
