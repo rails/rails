@@ -1,12 +1,9 @@
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/encoding'
 require 'rails/engine/configuration'
 
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      include ::Rails::Configuration::Deprecated
-
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger,
@@ -52,12 +49,6 @@ module Rails
           paths.log                 "log/#{Rails.env}.log"
           paths.tmp                 "tmp"
           paths.tmp.cache           "tmp/cache"
-
-          if File.exists?("#{root}/test/mocks/#{Rails.env}")
-            ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<
-              "automatically to load paths anymore in future releases"
-            paths.mocks_path  "test/mocks", :autoload => true, :glob => Rails.env
-          end
 
           paths
         end

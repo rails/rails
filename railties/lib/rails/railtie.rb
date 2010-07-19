@@ -1,7 +1,6 @@
 require 'rails/initializable'
 require 'rails/configuration'
 require 'active_support/inflector'
-require 'active_support/deprecation'
 
 module Rails
   # Railtie is the core of the Rails Framework and provides several hooks to extend
@@ -140,14 +139,6 @@ module Rails
           base.send(:include, self::Configurable)
           subclasses << base
         end
-      end
-
-      def railtie_name(*)
-        ActiveSupport::Deprecation.warn "railtie_name is deprecated and has no effect", caller
-      end
-
-      def log_subscriber(*)
-        ActiveSupport::Deprecation.warn "log_subscriber is deprecated and has no effect", caller
       end
 
       def rake_tasks(&blk)

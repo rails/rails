@@ -94,9 +94,6 @@ module Rails
     class << self
       attr_accessor :called_from
 
-      # TODO Remove this. It's deprecated.
-      alias :engine_name :railtie_name
-
       def inherited(base)
         unless base.abstract_railtie?
           base.called_from = begin
