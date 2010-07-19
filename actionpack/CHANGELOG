@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Allow stylesheet/javascript extensions to be changed through railties. [Josh Kalderimis]
+
 * link_to, button_to, and tag/tag_options now rely on html_escape instead of escape_once. [fxn]
 
 * url_for returns always unescaped strings, and the :escape option is gone. [fxn]
