@@ -22,6 +22,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   def test_basic_query_logging
+    @logger.debugging = true
     Developer.all
     wait
     assert_equal 1, @logger.logged(:debug).size
@@ -30,6 +31,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   def test_cached_queries
+    @logger.debugging = true
     ActiveRecord::Base.cache do
       Developer.all
       Developer.all

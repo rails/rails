@@ -48,9 +48,12 @@ module ActiveSupport
 
       class MockLogger
         attr_reader :flush_count
+        attr_accessor :debugging
+        alias :debug? :debugging
 
         def initialize
           @flush_count = 0
+          @debugging = false
           @logged = Hash.new { |h,k| h[k] = [] }
         end
 
