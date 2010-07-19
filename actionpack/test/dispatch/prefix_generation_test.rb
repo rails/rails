@@ -14,6 +14,7 @@ module TestGenerationPrefix
             match "/posts", :to => "inside_engine_generating#index", :as => :posts
             match "/url_to_application", :to => "inside_engine_generating#url_to_application"
             match "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
+            match "/conflicting_url", :to => "inside_engine_generating#conflicting"
           end
 
           routes
@@ -37,6 +38,7 @@ module TestGenerationPrefix
             match "/generate", :to => "outside_engine_generating#index"
             match "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
             match "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
+            match "/conflicting_url", :to => "outside_engine_generating#conflicting"
             root :to => "outside_engine_generating#index"
           end
 
@@ -90,6 +92,10 @@ module TestGenerationPrefix
       def polymorphic_path_for_engine
         render :text => polymorphic_path(Post.new)
       end
+
+      def conflicting
+        render :text => "engine"
+      end
     end
 
     class ::OutsideEngineGeneratingController < ActionController::Base
@@ -105,6 +111,10 @@ module TestGenerationPrefix
 
       def polymorphic_with_url_for
         render :text => blog_engine.url_for(Post.new)
+      end
+
+      def conflicting
+        render :text => "application"
       end
     end
 
@@ -160,6 +170,11 @@ module TestGenerationPrefix
     test "[ENGINE] generating engine's url with polymorphic path" do
       get "/pure-awesomeness/blog/polymorphic_path_for_engine"
       assert_equal "/pure-awesomeness/blog/posts/1", last_response.body
+    end
+
+    test "[ENGINE] url_helpers from engine have higher priotity than application's url_helpers" do
+      get "/awesome/blog/conflicting_url"
+      assert_equal "engine", last_response.body
     end
 
     # Inside Application
