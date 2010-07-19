@@ -105,7 +105,7 @@ module ActionDispatch
   # You can specify a regular expression to define a format for a parameter.
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show', :constraints => {
+  #     match 'geocode/:postalcode' => :show, :constraints => {
   #       :postalcode => /\d{5}(-\d{4})?/
   #     }
   #
@@ -113,13 +113,13 @@ module ActionDispatch
   # expression modifiers:
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show', :constraints => {
+  #     match 'geocode/:postalcode' => :show, :constraints => {
   #       :postalcode => /hx\d\d\s\d[a-z]{2}/i
   #     }
   #   end
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show', :constraints => {
+  #     match 'geocode/:postalcode' => :show, :constraints => {
   #       :postalcode => /# Postcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
