@@ -8,9 +8,9 @@ module ActiveSupport
         @listeners_for = {}
       end
 
-      def subscribe(pattern = nil, &block)
+      def subscribe(pattern = nil, block = Proc.new)
         @listeners_for.clear
-        Subscriber.new(pattern, &block).tap do |s|
+        Subscriber.new(pattern, block).tap do |s|
           @subscribers << s
         end
       end
@@ -33,14 +33,14 @@ module ActiveSupport
       end
 
       class Subscriber #:nodoc:
-        def initialize(pattern, &block)
+        def initialize(pattern, delegate)
           @pattern = pattern
-          @block = block
+          @delegate = delegate
         end
 
         def publish(*args)
           return unless subscribed_to?(args.first)
-          @block.call(*args)
+          @delegate.call(*args)
           true
         end
 
