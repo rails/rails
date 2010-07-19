@@ -38,9 +38,9 @@ module ActiveSupport
           @delegate = delegate
         end
 
-        def publish(*args)
-          return unless subscribed_to?(args.first)
-          @delegate.call(*args)
+        def publish(message, *args)
+          return unless subscribed_to?(message)
+          @delegate.call(message, *args)
           true
         end
 
