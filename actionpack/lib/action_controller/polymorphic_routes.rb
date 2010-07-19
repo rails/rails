@@ -110,7 +110,7 @@ module ActionController
         args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
       end
 
-      __send__(named_route, *args)
+      send(named_route, *args)
     end
 
     # Returns the path component of a URL for the given record. It uses
@@ -154,7 +154,7 @@ module ActionController
             if parent.is_a?(Symbol) || parent.is_a?(String)
               string << "#{parent}_"
             else
-              string << RecordIdentifier.__send__("plural_class_name", parent).singularize
+              string << RecordIdentifier.plural_class_name(parent).singularize
               string << "_"
             end
           end
@@ -163,7 +163,7 @@ module ActionController
         if record.is_a?(Symbol) || record.is_a?(String)
           route << "#{record}_"
         else
-          route << RecordIdentifier.__send__("plural_class_name", record)
+          route << RecordIdentifier.plural_class_name(record)
           route = route.singularize if inflection == :singular
           route << "_"
           route << "index_" if RecordIdentifier.uncountable?(record) && inflection == :plural
