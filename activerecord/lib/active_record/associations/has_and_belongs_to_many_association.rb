@@ -49,9 +49,9 @@ module ActiveRecord
             attributes = columns.inject({}) do |attrs, column|
               case column.name.to_s
                 when @reflection.primary_key_name.to_s
-                  attrs[relation[column.name]] = owner_quoted_id
+                  attrs[relation[column.name]] = @owner.send(:id)
                 when @reflection.association_foreign_key.to_s
-                  attrs[relation[column.name]] = record.quoted_id
+                  attrs[relation[column.name]] = record.send(:id)
                 else
                   if record.has_attribute?(column.name)
                     value = @owner.send(:quote_value, record[column.name], column)
