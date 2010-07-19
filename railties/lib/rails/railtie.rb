@@ -130,13 +130,15 @@ module Rails
     ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
 
     class << self
+      private :new
+
       def subclasses
         @subclasses ||= []
       end
 
       def inherited(base)
         unless base.abstract_railtie?
-          base.send(:include, self::Configurable)
+          base.send(:include, Railtie::Configurable)
           subclasses << base
         end
       end
@@ -162,6 +164,10 @@ module Rails
       def abstract_railtie?
         ABSTRACT_RAILTIES.include?(name)
       end
+    end
+
+    def config
+      @config ||= Railtie::Configuration.new
     end
 
     def eager_load!

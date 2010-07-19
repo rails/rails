@@ -10,7 +10,7 @@ module Rails
       end
 
       def railties
-        @railties ||= ::Rails::Railtie.subclasses.map(&:new)
+        @railties ||= ::Rails::Railtie.subclasses.map(&:instance)
       end
 
       def engines

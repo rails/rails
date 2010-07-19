@@ -85,12 +85,12 @@ module RailtiesTest
 
       boot_rails
 
-      Rails::Application.routes.draw do |map|
+      Rails.application.routes.draw do |map|
         mount(Bukkits::Engine => "/bukkits")
       end
 
       env = Rack::MockRequest.env_for("/bukkits")
-      response = Rails::Application.call(env)
+      response = Rails.application.call(env)
 
       assert_equal "HELLO WORLD", response[2]
     end
@@ -109,12 +109,12 @@ module RailtiesTest
         match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, 'foo'] }
       end
 
-      Rails::Application.routes.draw do |map|
+      Rails.application.routes.draw do |map|
         mount(Bukkits::Engine => "/bukkits")
       end
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
-      response = Rails::Application.call(env)
+      response = Rails.application.call(env)
 
       assert_equal "foo", response[2]
     end

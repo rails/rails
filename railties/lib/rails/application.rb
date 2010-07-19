@@ -41,20 +41,6 @@ module Rails
     autoload :Railties,       'rails/application/railties'
 
     class << self
-      private :new
-
-      def instance
-        if self == Rails::Application
-          if Rails.application
-            ActiveSupport::Deprecation.warn "Calling a method in Rails::Application is deprecated, " <<
-              "please call it directly in your application constant #{Rails.application.class.name}.", caller
-          end
-          Rails.application
-        else
-          @@instance ||= new
-        end
-      end
-
       def inherited(base)
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
@@ -62,14 +48,7 @@ module Rails
         Rails.application.add_lib_to_load_path!
         ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
-
-      def respond_to?(*args)
-        super || instance.respond_to?(*args)
-      end
-
     end
-
-    delegate :middleware, :to => :config
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
@@ -97,10 +76,6 @@ module Rails
     def eager_load! #:nodoc:
       railties.all(&:eager_load!)
       super
-    end
-
-    def railties
-      @railties ||= Railties.new(config)
     end
 
     def routes_reloader
@@ -161,6 +136,10 @@ module Rails
       initializers += super
       initializers += Finisher.initializers_for(self)
       initializers
+    end
+
+    def config
+      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
   protected

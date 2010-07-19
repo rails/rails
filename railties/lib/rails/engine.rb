@@ -125,19 +125,9 @@ module Rails
         @endpoint = endpoint if endpoint
         @endpoint
       end
-
-      def configure(&block)
-        class_eval(&block)
-      end
-
-    protected
-
-      def method_missing(*args, &block)
-        instance.send(*args, &block)
-      end
     end
 
-    delegate :paths, :root, :to => :config
+    delegate :middleware, :root, :paths, :to => :config
 
     def load_tasks
       super
@@ -154,7 +144,7 @@ module Rails
     end
 
     def railties
-      @railties ||= Railties.new(config)
+      @railties ||= self.class::Railties.new(config)
     end
 
     def app
@@ -181,6 +171,10 @@ module Rails
       railties.all { |r| initializers += r.initializers }
       initializers += super
       initializers
+    end
+
+    def config
+      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
@@ -256,6 +250,21 @@ module Rails
     end
 
   protected
+    def find_root_with_flag(flag, default=nil)
+      root_path = self.class.called_from
+
+      while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
+        parent = File.dirname(root_path)
+        root_path = parent != root_path && parent
+      end
+
+      root = File.exist?("#{root_path}/#{flag}") ? root_path : default
+      raise "Could not find root path for #{self}" unless root
+
+      Config::CONFIG['host_os'] =~ /mswin|mingw/ ?
+        Pathname.new(root).expand_path : Pathname.new(root).realpath
+    end
+
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new
     end

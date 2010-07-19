@@ -26,18 +26,17 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    test "Rails::Application.instance is nil until app is initialized" do
+    test "Rails.application is nil until app is initialized" do
       require 'rails'
-      assert_nil Rails::Application.instance
+      assert_nil Rails.application
       require "#{app_path}/config/environment"
-      assert_equal AppTemplate::Application.instance, Rails::Application.instance
+      assert_equal AppTemplate::Application.instance, Rails.application
     end
 
-    test "Rails::Application responds to all instance methods" do
+    test "Rails.application responds to all instance methods" do
       require "#{app_path}/config/environment"
-      assert_respond_to Rails::Application, :routes_reloader
-      assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
-      assert_equal Rails::Application.routes_reloader, AppTemplate::Application.routes_reloader
+      assert_respond_to Rails.application, :routes_reloader
+      assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
     test "Rails::Application responds to paths" do
