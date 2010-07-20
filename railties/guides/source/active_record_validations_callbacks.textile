@@ -1020,7 +1020,7 @@ Like in validations, we can also make our callbacks conditional, calling them on
 
 h4. Using +:if+ and +:unless+ with a Symbol
 
-You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before the callback. When using the +:if+ option, the callback won't be executed if the method returns +false+; when using the +:unless+ option, the callback won't be executed if the method returns +true+. This is the most common option. Using this form of registration it's also possible to register several different methods that should be called to check if the callback should be executed.
+You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before the callback. When using the +:if+ option, the callback won't be executed if the method returns false; when using the +:unless+ option, the callback won't be executed if the method returns true. This is the most common option. Using this form of registration it's also possible to register several different methods that should be called to check if the callback should be executed.
 
 <ruby>
 class Order < ActiveRecord::Base
