@@ -378,7 +378,7 @@ module ActiveRecord
           :order => preload_options[:order] || options[:order]
         }
 
-        reflection.klass.unscoped.apply_finder_options(find_options).to_a
+        reflection.klass.scoped.apply_finder_options(find_options).to_a
       end
 
 
