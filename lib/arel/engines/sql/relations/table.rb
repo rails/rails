@@ -12,7 +12,11 @@ module Arel
       if options.is_a?(Hash)
         @options = options
         @engine = options[:engine] || Table.engine
-        @table_alias = options[:as].to_s if options[:as].present? && options[:as].to_s != @name
+
+        if options[:as]
+          as = options[:as].to_s
+          @table_alias = as unless as == @name
+        end
       else
         @engine = options # Table.new('foo', engine)
       end
