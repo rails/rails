@@ -30,7 +30,7 @@ module Arel
       end
     end
 
-    describe Session::CRUD do
+    describe 'session crud' do
       before do
         @insert = Insert.new(@relation, @relation[:name] => 'nick')
         @update = Update.new(@relation, @relation[:name] => 'nick')
