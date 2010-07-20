@@ -19,7 +19,7 @@ module Arel
     end
 
     class Polyadic < Predicate
-      attributes :predicates
+      attr_reader :predicates
 
       def initialize(*predicates)
         @predicates = predicates
