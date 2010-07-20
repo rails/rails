@@ -52,7 +52,7 @@ module Arel
       end
     end
 
-    class Inequality < Binary
+    class Inequality < Equality
       def predicate_sql
         operand2.inequality_predicate_sql
       end

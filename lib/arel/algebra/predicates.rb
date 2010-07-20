@@ -109,7 +109,7 @@ module Arel
 
     class Equality < Binary
       def ==(other)
-        Equality === other and
+        self.class === other and
           ((operand1 == other.operand1 and operand2 == other.operand2) or
            (operand1 == other.operand2 and operand2 == other.operand1))
       end
@@ -119,13 +119,7 @@ module Arel
       end
     end
 
-    class Inequality  < Binary
-      def ==(other)
-        Equality === other and
-          ((operand1 == other.operand1 and operand2 == other.operand2) or
-           (operand1 == other.operand2 and operand2 == other.operand1))
-      end
-
+    class Inequality < Equality
       def complement
         Equality.new(operand1, operand2)
       end
