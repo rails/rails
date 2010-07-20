@@ -270,27 +270,27 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert Topic.base.many?
   end
 
-  def test_should_build_with_proxy_options
+  def test_should_build_on_top_of_named_scope
     topic = Topic.approved.build({})
     assert topic.approved
   end
 
-  def test_should_build_new_with_proxy_options
+  def test_should_build_new_on_top_of_named_scope
     topic = Topic.approved.new
     assert topic.approved
   end
 
-  def test_should_create_with_proxy_options
+  def test_should_create_on_top_of_named_scope
     topic = Topic.approved.create({})
     assert topic.approved
   end
 
-  def test_should_create_with_bang_with_proxy_options
+  def test_should_create_with_bang_on_top_of_named_scope
     topic = Topic.approved.create!({})
     assert topic.approved
   end
 
-  def test_should_build_with_proxy_options_chained
+  def test_should_build_on_top_of_chained_named_scopes
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
     assert_equal 'lifo', topic.author_name
