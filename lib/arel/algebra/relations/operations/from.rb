@@ -1,6 +1,10 @@
 module Arel
   class From < Compound
-    attributes :relation, :sources
-    deriving :initialize, :==
+    attr_reader :sources
+
+    def initialize relation, sources
+      super(relation)
+      @sources = sources
+    end
   end
 end
