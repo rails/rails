@@ -102,8 +102,15 @@ module ActiveRecord
       became
     end
 
-    # Updates a single attribute and saves the record without going through the normal validation procedure
-    # or callbacks. This is especially useful for boolean flags on existing records.
+    # Updates a single attribute and saves the record.  
+    # This is especially useful for boolean flags on existing records. Also note that
+    #
+    # * validation is skipped
+    # * No callbacks are invoked 
+    # * updated_at/updated_on column is updated if that column is available
+    # * does not work on associations
+    # * does not work on attr_accessor attributes. The attribute that is being updated must be column name.
+    #
     def update_attribute(name, value)
       raise ActiveRecordError, "#{name.to_s} is marked as readonly" if self.class.readonly_attributes.include? name.to_s
 
