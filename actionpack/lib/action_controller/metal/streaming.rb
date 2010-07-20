@@ -1,3 +1,5 @@
+require 'active_support/core_ext/file/path'
+
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
