@@ -33,9 +33,10 @@ module Arel
       end
 
       def read(select)
-        (@read ||= Hash.new do |hash, x|
-          hash[x] = x.call
-        end)[select]
+        @read ||= {}
+        key = select.object_id
+        return @read[key] if @read.key? key
+        @read[key] = select.call
       end
 
       def update(update)
