@@ -1,30 +1,14 @@
 module Arel
   class Session
-    class << self
-      attr_accessor :instance
-      alias_method :manufacture, :new
+    def self.instance
+      @instance || new
+    end
 
-      def start
-        if defined?(@started) && @started
-          yield
-        else
-          begin
-            @started = true
-            @instance = manufacture
-            singleton_class.class_eval do
-              undef :new
-              alias_method :new, :instance
-            end
-            yield
-          ensure
-            singleton_class.class_eval do
-              undef :new
-              alias_method :new, :manufacture
-            end
-            @started = false
-          end
-        end
-      end
+    def self.start
+      @instance ||= new
+      yield @instance
+    ensure
+      @instance = nil
     end
 
     module CRUD

@@ -3,7 +3,7 @@ module Arel
     attr_reader :count
 
     def session
-      Session.new
+      Session.instance
     end
 
     def call

@@ -148,8 +148,8 @@ module Arel
       describe Relation::Operable::Writable do
         describe '#delete' do
           it 'manufactures a deletion relation' do
-            Session.start do
-              Session.new.should_receive(:delete).with(Deletion.new(@relation))
+            Session.start do |s|
+              s.should_receive(:delete).with(Deletion.new(@relation))
               @relation.delete
             end
           end
@@ -157,9 +157,9 @@ module Arel
 
         describe '#insert' do
           it 'manufactures an insertion relation' do
-            Session.start do
+            Session.start do |s|
               record = { @relation[:name] => 'carl' }
-              Session.new.should_receive(:create).with(Insert.new(@relation, record))
+              s.should_receive(:create).with(Insert.new(@relation, record))
               @relation.insert(record)
             end
           end
@@ -167,9 +167,9 @@ module Arel
 
         describe '#update' do
           it 'manufactures an update relation' do
-            Session.start do
+            Session.start do |s|
               assignments = { @relation[:name] => Value.new('bob', @relation) }
-              Session.new.should_receive(:update).with(Update.new(@relation, assignments))
+              s.should_receive(:update).with(Update.new(@relation, assignments))
               @relation.update(assignments)
             end
           end
