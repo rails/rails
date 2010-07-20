@@ -1,6 +1,6 @@
 module Arel
   module Predicates
-    class Predicate
+    class Predicate < Struct.new(:children)
       def or(other_predicate)
         Or.new(self, other_predicate)
       end
@@ -16,13 +16,17 @@ module Arel
       def not
         self.complement
       end
+
+      def == other
+        super || (self.class === other && children == other.children)
+      end
     end
 
     class Polyadic < Predicate
-      attr_reader :predicates
+      alias :predicates :children
 
       def initialize(*predicates)
-        @predicates = predicates
+        super(predicates)
       end
 
       # Build a Polyadic predicate based on:
@@ -72,8 +76,7 @@ module Arel
     end
 
     class Unary < Predicate
-      attributes :operand
-      deriving :initialize, :==
+      alias :operand :children
 
       def bind(relation)
         self.class.new(operand.find_correlate_in(relation))
@@ -87,13 +90,16 @@ module Arel
     end
 
     class Binary < Predicate
-      attributes :operand1, :operand2
-      deriving :initialize
+      alias :operand1 :children
+      attr_reader :operand2
+
+      def initialize left, right
+        super(left)
+        @operand2 = right
+      end
 
       def ==(other)
-        self.class === other          and
-        @operand1  ==  other.operand1 and
-        @operand2  ==  other.operand2
+        super && @operand2 == other.operand2
       end
 
       def bind(relation)
