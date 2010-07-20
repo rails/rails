@@ -13,6 +13,10 @@ module Arel
       @requires
     end
 
+    def initialize relation
+      @relation = relation
+    end
+
     [:wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
       class_eval <<-OPERATION, __FILE__, __LINE__
         def #{operation_name}
