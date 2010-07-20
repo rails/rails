@@ -43,10 +43,13 @@ module Arel
         join(other_relation, OuterJoin)
       end
 
-      [:where, :project, :order, :take, :skip, :group, :from, :having].each do |operation_name|
+      %w{
+        where project order take skip group from having
+      }.each do |operation_name|
         class_eval <<-OPERATION, __FILE__, __LINE__
           def #{operation_name}(*arguments, &block)
-            arguments.all?(&:blank?) && !block_given?? self : #{operation_name.to_s.classify}.new(self, *arguments, &block)
+            arguments.all?(&:blank?) && !block_given? ?
+              self : #{operation_name.capitalize}.new(self, *arguments, &block)
           end
         OPERATION
       end
