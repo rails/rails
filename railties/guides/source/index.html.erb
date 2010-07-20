@@ -123,10 +123,6 @@ Ruby on Rails Guides
 <%= guide("Caching with Rails", 'caching_with_rails.html', :ticket => 10) do %>
   <p>Various caching techniques provided by Rails.</p>
 <% end %>
-
-<%= guide("Contributing to Rails", 'contributing_to_rails.html') do %>
-  <p>Rails is not &quot;somebody else's framework.&quot; This guide covers a variety of ways that you can get involved in the ongoing development of Rails.</p>
-<% end %>
 </dl>
 
 <h3>Extending Rails</h3>
@@ -144,6 +140,18 @@ Ruby on Rails Guides
     <p>This guide covers the process of adding a brand new generator to your extension
       or providing an alternative to an element of a built-in Rails generator (such as
       providing alternative test stubs for the scaffold generator).</p>
+  <% end %>
+</dl>
+
+<h3>Contributing to Rails</h3>
+
+<dl>
+  <%= guide("Contributing to Rails", 'contributing_to_rails.html') do %>
+    <p>Rails is not &quot;somebody else's framework.&quot; This guide covers a variety of ways that you can get involved in the ongoing development of Rails.</p>
+  <% end %>
+
+  <%= guide('API Documentation Guidelines', 'api_documentation_guidelines.html') do %>
+    <p>This guide documents the Ruby on Rails API documentation guidelines.</p>
   <% end %>
 </dl>
 

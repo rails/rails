@@ -1,7 +1,6 @@
 source 'http://rubygems.org'
 
 gem "arel", :git => "git://github.com/rails/arel.git"
-#gem "rack-mount", :git => "git://github.com/rails/rack-mount.git"
 gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
@@ -17,21 +16,21 @@ end
 if mri || RUBY_ENGINE == "rbx"
   gem 'json'
   gem 'yajl-ruby'
-  gem "nokogiri", ">= 1.4.0"
+  gem "nokogiri", ">= 1.4.2"
 elsif RUBY_ENGINE == "jruby"
   gem "ruby-debug"
   gem "jruby-openssl"
 end
 
 # AS
-gem "memcache-client", ">= 1.7.5"
+gem "memcache-client", ">= 1.8.5"
 
 # AM
 gem "text-format", "~> 1.0.0"
 
 # AR
 if mri || RUBY_ENGINE == "rbx"
-  gem "sqlite3-ruby", "~> 1.3.0", :require => 'sqlite3'
+  gem "sqlite3-ruby", "~> 1.3.1", :require => 'sqlite3'
 
   group :db do
     gem "pg", ">= 0.9.0"
@@ -47,8 +46,8 @@ elsif RUBY_ENGINE == "jruby"
 end
 
 if ENV['CI']
-  gem "nokogiri", ">= 1.4.0"
+  gem "nokogiri", ">= 1.4.2"
 
   # fcgi gem doesn't compile on 1.9
-  gem "fcgi", ">= 0.8.7" if RUBY_VERSION < '1.9.0'
+  gem "fcgi", ">= 0.8.8" if RUBY_VERSION < '1.9.0'
 end

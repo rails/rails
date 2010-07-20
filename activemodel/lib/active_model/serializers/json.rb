@@ -19,8 +19,8 @@ module ActiveModel
       # passed through +options+.
       #
       # The option <tt>ActiveModel::Base.include_root_in_json</tt> controls the
-      # top-level behavior of to_json. It is true by default. When it is <tt>true</tt>,
-      # to_json will emit a single root node named after the object's type. For example:
+      # top-level behavior of <tt>to_json</tt>. It is <tt>true</tt> by default. When it is <tt>true</tt>,
+      # <tt>to_json</tt> will emit a single root node named after the object's type. For example:
       #
       #   konata = User.find(1)
       #   konata.to_json

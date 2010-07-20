@@ -58,7 +58,7 @@ end
 sqlfile = File.expand_path("../performance.sql", __FILE__)
 
 if File.exists?(sqlfile)
-  mysql_bin = %w[mysql mysql5].select { |bin| `which #{bin}`.length > 0 }
+  mysql_bin = %w[mysql mysql5].detect { |bin| `which #{bin}`.length > 0 }
   `#{mysql_bin} -u #{conn[:username]} #{"-p#{conn[:password]}" unless conn[:password].blank?} #{conn[:database]} < #{sqlfile}`
 else
   puts 'Generating data...'

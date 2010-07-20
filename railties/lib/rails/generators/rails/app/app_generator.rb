@@ -115,6 +115,7 @@ module Rails
         directory "public/javascripts"
       else
         empty_directory_with_gitkeep "public/javascripts"
+        create_file "public/javascripts/application.js"
       end
     end
 

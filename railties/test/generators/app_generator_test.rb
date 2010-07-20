@@ -129,14 +129,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_prototype_and_test_unit_are_added_by_default
     run_generator
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "public/javascripts/application.js"
     assert_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts/rails.js"
     assert_file "test"
   end
 
   def test_prototype_and_test_unit_are_skipped_if_required
     run_generator [destination_root, "--skip-prototype", "--skip-testunit"]
+    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
+    assert_file "public/javascripts/application.js"
     assert_no_file "public/javascripts/prototype.js"
-    assert_file "public/javascripts"
+    assert_no_file "public/javascripts/rails.js"
     assert_no_file "test"
   end
 

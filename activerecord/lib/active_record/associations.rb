@@ -1761,7 +1761,7 @@ module ActiveRecord
           def graft(*associations)
             associations.each do |association|
               join_associations.detect {|a| association == a} ||
-              build(association.reflection.name, association.find_parent_in(self), association.join_class)
+              build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class)
             end
             self
           end
