@@ -42,10 +42,6 @@ module Arel
         )
       end
 
-      def ==(other)
-        super || children == other.children
-      end
-
       def bind(relation)
         self.class.new(
           *predicates.map {|p| p.find_correlate_in(relation)}
