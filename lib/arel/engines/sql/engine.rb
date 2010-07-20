@@ -4,10 +4,11 @@ module Arel
 
       def initialize(ar = nil)
         @ar = ar
+        @connection = nil
       end
 
       def connection
-        @ar ? @ar.connection : nil
+        @connection ||= @ar && @ar.connection
       end
 
       def adapter_name
@@ -22,9 +23,9 @@ module Arel
 
       def method_missing(method, *args)
         if block_given?
-          @ar.connection.send(method, *args)  { |*block_args| yield(*block_args) }
+          connection.send(method, *args)  { |*block_args| yield(*block_args) }
         else
-          @ar.connection.send(method, *args)
+          connection.send(method, *args)
         end
       end
 
