@@ -1,6 +1,5 @@
 require "cases/helper"
 require 'models/topic'
-require 'models/reply'
 
 class TransactionCallbacksTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
