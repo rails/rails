@@ -43,20 +43,13 @@ module Arel
       end
 
       def ==(other)
-        same_elements?(@predicates, other.predicates)
+        super || children == other.children
       end
 
       def bind(relation)
         self.class.new(
           *predicates.map {|p| p.find_correlate_in(relation)}
         )
-      end
-
-      private
-
-      def same_elements?(a1, a2)
-        a1.inject({}) { |h,e| h[e] = a1.count(e); h } ==
-        a2.inject({}) { |h,e| h[e] = a2.count(e); h }
       end
     end
 
