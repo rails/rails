@@ -17,8 +17,8 @@ module ActiveSupport
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block
       def instrument(name, payload={})
-        @started = Time.now
         begin
+          @started = Time.now
           yield(payload) if block_given?
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
@@ -30,7 +30,7 @@ module ActiveSupport
       end
 
       def elapsed
-        1000.0 * @finished.to_f - @started.to_f
+        1000.0 * (@finished.to_f - @started.to_f)
       end
 
       private

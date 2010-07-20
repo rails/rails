@@ -1,3 +1,4 @@
+require 'benchmark'
 require 'abstract_controller/logger'
 
 module ActionController
