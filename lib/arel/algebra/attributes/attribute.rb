@@ -19,10 +19,6 @@ module Arel
       false
     end
 
-    def inspect
-      "<Attribute #{name}>"
-    end
-
     module Transformations
       def self.included(klass)
         klass.send :alias_method, :eql?, :==
