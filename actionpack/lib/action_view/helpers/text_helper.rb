@@ -61,27 +61,8 @@ module ActionView
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
       #   # => "<p>Once upon a time in a wo..."
-      #
-      # You can still use <tt>truncate</tt> with the old API that accepts the
-      # +length+ as its optional second and the +ellipsis+ as its
-      # optional third parameter:
-      #   truncate("Once upon a time in a world far far away", 14)
-      #   # => "Once upon a..."
-      #
-      #   truncate("And they found that many people were sleeping better.", 25, "... (continued)")
-      #   # => "And they f... (continued)"
-      def truncate(text, *args)
-        options = args.extract_options!
-        unless args.empty?
-          ActiveSupport::Deprecation.warn('truncate takes an option hash instead of separate ' +
-            'length and omission arguments', caller)
-
-          options[:length] = args[0] || 30
-          options[:omission] = args[1] || "..."
-        end
-
+      def truncate(text, options = {})
         options.reverse_merge!(:length => 30)
-
         text.truncate(options.delete(:length), options) if text
       end
 

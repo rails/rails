@@ -82,16 +82,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '12.345.678,05', number_with_delimiter(12345678.05, :delimiter => '.', :separator => ',')
   end
 
-  def test_number_with_delimiter_old_api
-    silence_deprecation_warnings
-    assert_equal '12 345 678', number_with_delimiter(12345678, " ")
-    assert_equal '12-345-678.05', number_with_delimiter(12345678.05, '-')
-    assert_equal '12.345.678,05', number_with_delimiter(12345678.05, '.', ',')
-    assert_equal '12,345,678.05', number_with_delimiter(12345678.05, ',', '.')
-    assert_equal '12 345 678-05', number_with_delimiter(12345678.05, ',', '.', :delimiter => ' ', :separator => '-')
-    restore_deprecation_warnings
-  end
-
   def test_number_with_precision
     assert_equal("111.235", number_with_precision(111.2346))
     assert_equal("31.83", number_with_precision(31.825, :precision => 2))
@@ -146,15 +136,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "12", number_with_precision("12.3", :precision => 0, :significant => true )
   end
 
-  def test_number_with_precision_old_api
-    silence_deprecation_warnings
-    assert_equal("31.8250", number_with_precision(31.825, 4))
-    assert_equal("111.235", number_with_precision(111.2346, 3))
-    assert_equal("111.00", number_with_precision(111, 2))
-    assert_equal("111.000", number_with_precision(111, 2, :precision =>3))
-    restore_deprecation_warnings
-  end
-
   def test_number_to_human_size
     assert_equal '0 Bytes',   number_to_human_size(0)
     assert_equal '1 Byte',    number_to_human_size(1)
@@ -200,14 +181,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '1,01 KB',     number_to_human_size(kilobytes(1.0123), :precision => 3, :separator => ',')
     assert_equal '1,01 KB',     number_to_human_size(kilobytes(1.0100), :precision => 4, :separator => ',')
     assert_equal '1.000,1 TB',  number_to_human_size(terabytes(1000.1), :precision => 5, :delimiter => '.', :separator => ',')
-  end
-
-  def test_number_to_human_size_old_api
-    silence_deprecation_warnings
-    assert_equal '1.3143 KB',   number_to_human_size(kilobytes(1.3143), 4, :significant => false)
-    assert_equal '10.45 KB',   number_to_human_size(kilobytes(10.453), 4)
-    assert_equal '10 KB',   number_to_human_size(kilobytes(10.453), 4, :precision => 2)
-    restore_deprecation_warnings
   end
 
   def test_number_to_human
