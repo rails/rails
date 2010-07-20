@@ -32,10 +32,6 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/bla.rb", <<-RUBY
-        Blog::Engine.eager_load!
-      RUBY
-
       @plugin.write "config/routes.rb", <<-RUBY
         Blog::Engine.routes.draw do
           resources :posts do
