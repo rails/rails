@@ -33,8 +33,8 @@ module Arel
       end
 
       def read(select)
-        (@read ||= Hash.new do |hash, select|
-          hash[select] = select.call
+        (@read ||= Hash.new do |hash, x|
+          hash[x] = x.call
         end)[select]
       end
 
