@@ -55,11 +55,8 @@ module Arel
       private
 
       def same_elements?(a1, a2)
-        [:select, :inject, :size].each do |m|
-          return false unless [a1, a2].each {|a| a.respond_to?(m) }
-        end
-        a1.inject({}) { |h,e| h[e] = a1.select { |i| i == e }.size; h } ==
-        a2.inject({}) { |h,e| h[e] = a2.select { |i| i == e }.size; h }
+        a1.inject({}) { |h,e| h[e] = a1.count(e); h } ==
+        a2.inject({}) { |h,e| h[e] = a2.count(e); h }
       end
     end
 
