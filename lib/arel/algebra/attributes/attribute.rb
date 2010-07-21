@@ -3,12 +3,20 @@ require 'set'
 module Arel
   class TypecastError < StandardError ; end
   class Attribute
-    attributes :relation, :name, :alias, :ancestor
-    deriving :==
+    attr_reader :relation, :name, :alias, :ancestor
     delegate :engine, :christener, :to => :relation
 
     def initialize(relation, name, options = {})
       @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
+    end
+
+    def == other
+      super ||
+        Attribute === other &&
+        @relation  == other.relation &&
+        @name      == other.name &&
+        @alias     == other.alias &&
+        @ancestor  == other.ancestor
     end
 
     def named?(hypothetical_name)
