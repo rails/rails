@@ -259,7 +259,7 @@ module ActiveRecord
       end
 
       def loaded?
-        !!@data
+        @data
       end
 
       def save

@@ -22,6 +22,16 @@ module ActiveRecord
         s = SqlBypass.new :data => 'foo', :session_id => 10
         assert s.new_record?, 'this is a new record!'
       end
+
+      def test_not_loaded?
+        s = SqlBypass.new({})
+        assert !s.loaded?, 'it is not loaded'
+      end
+
+      def test_loaded?
+        s = SqlBypass.new :data => 'hello'
+        assert s.loaded?, 'it is loaded'
+      end
     end
   end
 end
