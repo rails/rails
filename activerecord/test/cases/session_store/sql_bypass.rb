@@ -17,6 +17,11 @@ module ActiveRecord
         SqlBypass.drop_table!
         assert !Session.table_exists?
       end
+
+      def test_new_record?
+        s = SqlBypass.new :data => 'foo', :session_id => 10
+        assert s.new_record?, 'this is a new record!'
+      end
     end
   end
 end

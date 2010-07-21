@@ -231,7 +231,9 @@ module ActiveRecord
         end
       end
 
-      attr_reader :session_id
+      attr_reader :session_id, :new_record
+      alias :new_record? :new_record
+
       attr_writer :data
 
       # Look for normal and marshaled data, self.find_by_session_id's way of
@@ -242,10 +244,6 @@ module ActiveRecord
         @data           = attributes[:data]
         @marshaled_data = attributes[:marshaled_data]
         @new_record     = @marshaled_data.nil?
-      end
-
-      def new_record?
-        @new_record
       end
 
       # Lazy-unmarshal session state.
