@@ -19,7 +19,7 @@ module ActiveSupport
       def instrument(name, payload={})
         begin
           @started = Time.now
-          yield(payload) if block_given?
+          yield
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           raise e

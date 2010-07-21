@@ -41,10 +41,30 @@ module ActiveSupport
     autoload :Event, 'active_support/notifications/instrumenter'
     autoload :Fanout, 'active_support/notifications/fanout'
 
+    @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
+
     class << self
       attr_writer :notifier
-      delegate :publish, :subscribe, :unsubscribe, :to => :notifier
-      delegate :instrument, :to => :instrumenter
+      delegate :publish, :unsubscribe, :to => :notifier
+
+      def instrument(name, payload = {})
+        if @instrumenters[name]
+          instrumenter.instrument(name, payload) { yield payload if block_given? }
+        else
+          yield payload if block_given?
+        end
+      end
+
+      def subscribe(*args, &block)
+        notifier.subscribe(*args, &block).tap do
+          @instrumenters.clear
+        end
+      end
+
+      def unsubscribe(*args)
+        notifier.unsubscribe(*args)
+        @instrumenters.clear
+      end
 
       def notifier
         @notifier ||= Fanout.new

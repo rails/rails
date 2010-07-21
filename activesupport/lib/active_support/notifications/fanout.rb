@@ -9,15 +9,16 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, block = Proc.new)
-        @listeners_for.clear
-        Subscriber.new(pattern, block).tap do |s|
+        subscriber = Subscriber.new(pattern, block).tap do |s|
           @subscribers << s
         end
+        @listeners_for.clear
+        subscriber
       end
 
       def unsubscribe(subscriber)
-        @listeners_for.clear
         @subscribers.reject! {|s| s.matches?(subscriber)}
+        @listeners_for.clear
       end
 
       def publish(name, *args)
@@ -26,6 +27,10 @@ module ActiveSupport
 
       def listeners_for(name)
         @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }
+      end
+
+      def listening?(name)
+        listeners_for(name).any?
       end
 
       # This is a sync queue, so there is not waiting.
