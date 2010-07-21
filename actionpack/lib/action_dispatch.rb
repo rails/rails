@@ -27,6 +27,8 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require 'active_support'
 require 'active_support/dependencies/autoload'
 
+require 'action_pack'
+require 'active_model'
 require 'rack'
 
 module Rack
