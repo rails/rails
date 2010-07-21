@@ -397,10 +397,10 @@ module ActiveRecord
                   @target = find_target.map do |f|
                     i = @target.index(f)
                     if i
-                      t = @target.delete_at(i)
-                      keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                      t.attributes = f.attributes.except(*keys)
-                      t
+                      @target.delete_at(i).tap do |t|
+                        keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
+                        t.attributes = f.attributes.except(*keys)
+                      end
                     else
                       f
                     end
