@@ -5,6 +5,8 @@ require 'models/developer'
 require 'models/project'
 require 'models/comment'
 require 'models/category'
+require 'models/person'
+require 'models/reference'
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
@@ -218,7 +220,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
 end
 
 class HasManyScopingTest< ActiveRecord::TestCase
-  fixtures :comments, :posts
+  fixtures :comments, :posts, :people, :references
 
   def setup
     @welcome = Post.find(1)
@@ -249,6 +251,23 @@ class HasManyScopingTest< ActiveRecord::TestCase
       assert_equal 2, @welcome.comments.count
       assert_equal 'a comment...', @welcome.comments.what_are_you
     end
+  end
+
+  def test_should_maintain_default_scope_on_associations
+    person = people(:michael)
+    magician = BadReference.find(1)
+    assert_equal [magician], people(:michael).bad_references
+  end
+
+  def test_should_default_scope_on_associations_is_overriden_by_association_conditions
+    person = people(:michael)
+    assert_equal [], people(:michael).fixed_bad_references
+  end
+
+  def test_should_maintain_default_scope_on_eager_loaded_associations
+    michael = Person.where(:id => people(:michael).id).includes(:bad_references).first
+    magician = BadReference.find(1)
+    assert_equal [magician], michael.bad_references
   end
 end
 

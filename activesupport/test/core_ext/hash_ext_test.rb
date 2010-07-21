@@ -2,6 +2,8 @@ require 'abstract_unit'
 require 'active_support/core_ext/hash'
 require 'bigdecimal'
 require 'active_support/core_ext/string/access'
+require 'active_support/ordered_hash'
+require 'active_support/core_ext/object/conversions'
 
 class HashExtTest < Test::Unit::TestCase
   def setup
@@ -446,6 +448,33 @@ class IWriteMyOwnXML
     xml.level_one do
       xml.tag!(:second_level, 'content')
     end
+  end
+end
+
+class HashExtToParamTests < Test::Unit::TestCase
+  class ToParam < String
+    def to_param
+      "#{self}-1"
+    end
+  end
+
+  def test_string_hash
+    assert_equal '', {}.to_param
+    assert_equal 'hello=world', { :hello => "world" }.to_param
+    assert_equal 'hello=10', { "hello" => 10 }.to_param
+    assert_equal 'hello=world&say_bye=true', ActiveSupport::OrderedHash[:hello, "world", "say_bye", true].to_param
+  end
+
+  def test_number_hash
+    assert_equal '10=20&30=40&50=60', ActiveSupport::OrderedHash[10, 20, 30, 40, 50, 60].to_param
+  end
+
+  def test_to_param_hash
+    assert_equal 'custom=param-1&custom2=param2-1', ActiveSupport::OrderedHash[ToParam.new('custom'), ToParam.new('param'), ToParam.new('custom2'), ToParam.new('param2')].to_param
+  end
+
+  def test_to_param_hash_escapes_its_keys_and_values
+    assert_equal 'param+1=A+string+with+%2F+characters+%26+that+should+be+%3F+escaped', { 'param 1' => 'A string with / characters & that should be ? escaped' }.to_param
   end
 end
 

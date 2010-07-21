@@ -11,14 +11,11 @@ module Notifications
       @named_subscription = @notifier.subscribe("named.subscription") { |*args| @named_events << event(*args) }
     end
 
-    private
-      def event(*args)
-        ActiveSupport::Notifications::Event.new(*args)
-      end
+  private
 
-      def drain
-        @notifier.wait
-      end
+    def event(*args)
+      ActiveSupport::Notifications::Event.new(*args)
+    end
   end
 
   class UnsubscribeTest < TestCase
@@ -132,13 +129,10 @@ module Notifications
 
     def test_instrument_returns_block_result
       assert_equal 2, instrument(:awesome) { 1 + 1 }
-      drain
     end
 
     def test_instrument_yields_the_paylod_for_further_modification
       assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
-      drain
-
       assert_equal 1, @events.size
       assert_equal :awesome, @events.first.name
       assert_equal Hash[:result => 2], @events.first.payload
@@ -154,14 +148,10 @@ module Notifications
           1 + 1
         end
 
-        drain
-
         assert_equal 1, @events.size
         assert_equal :wot, @events.first.name
         assert_equal Hash[:payload => "child"], @events.first.payload
       end
-
-      drain
 
       assert_equal 2, @events.size
       assert_equal :awesome, @events.last.name
@@ -177,16 +167,22 @@ module Notifications
         assert_equal "FAIL", e.message
       end
 
-      drain
       assert_equal 1, @events.size
       assert_equal Hash[:payload => "notifications",
         :exception => ["RuntimeError", "FAIL"]], @events.last.payload
     end
 
+    def test_elapsed
+      instrument(:something) do
+        sleep(0.001)
+      end
+
+      # Elapsed returns duration in ms
+      assert_in_delta 1, ActiveSupport::Notifications.instrumenter.elapsed, 100
+    end
+
     def test_event_is_pushed_even_without_block
       instrument(:awesome, :payload => "notifications")
-      drain
-
       assert_equal 1, @events.size
       assert_equal :awesome, @events.last.name
       assert_equal Hash[:payload => "notifications"], @events.last.payload
@@ -200,7 +196,7 @@ module Notifications
 
       assert_equal    :foo, event.name
       assert_equal    time, event.time
-      assert_in_delta 10.0, event.duration, 0.00000000000001
+      assert_in_delta 10.0, event.duration, 0.00001
     end
 
     def test_events_consumes_information_given_as_payload

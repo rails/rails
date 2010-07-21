@@ -1,7 +1,11 @@
+require 'action_controller/record_identifier'
+
 module ActionView
   # = Action View Record Tag Helpers
   module Helpers
     module RecordTagHelper
+      include ActionController::RecordIdentifier
+
       # Produces a wrapper DIV element with id and class parameters that
       # relate to the specified Active Record object. Usage example:
       #

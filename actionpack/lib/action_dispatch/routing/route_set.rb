@@ -414,7 +414,8 @@ module ActionDispatch
             elsif value.is_a?(Array)
               value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
             else
-              Rack::Mount::Utils.escape_uri(value.to_param)
+              return nil unless param = value.to_param
+              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
             end
           end
           {:parameterize => parameterize}

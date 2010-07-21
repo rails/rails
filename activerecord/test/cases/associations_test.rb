@@ -2,11 +2,6 @@ require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
-require 'models/topic'
-require 'models/reply'
-require 'models/computer'
-require 'models/customer'
-require 'models/order'
 require 'models/categorization'
 require 'models/category'
 require 'models/post'
@@ -17,17 +12,30 @@ require 'models/tagging'
 require 'models/person'
 require 'models/reader'
 require 'models/parrot'
-require 'models/pirate'
-require 'models/treasure'
-require 'models/price_estimate'
-require 'models/club'
-require 'models/member'
-require 'models/membership'
-require 'models/sponsor'
+require 'models/ship_part'
+require 'models/ship'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers
+
+  def test_loading_the_association_target_should_keep_child_records_marked_for_destruction
+    ship = Ship.create!(:name => "The good ship Dollypop")
+    part = ship.parts.create!(:name => "Mast")
+    part.mark_for_destruction
+    ship.parts.send(:load_target)
+    assert ship.parts[0].marked_for_destruction?
+  end
+
+  def test_loading_the_association_target_should_load_most_recent_attributes_for_child_records_marked_for_destruction
+    ship = Ship.create!(:name => "The good ship Dollypop")
+    part = ship.parts.create!(:name => "Mast")
+    part.mark_for_destruction
+    ShipPart.find(part.id).update_attribute(:name, 'Deck')
+    ship.parts.send(:load_target)
+    assert_equal 'Deck', ship.parts[0].name
+  end
+  
 
   def test_include_with_order_works
     assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}

@@ -47,33 +47,11 @@ module ActiveSupport
       delegate :instrument, :to => :instrumenter
 
       def notifier
-        @notifier ||= Notifier.new
+        @notifier ||= Fanout.new
       end
 
       def instrumenter
         Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
-      end
-    end
-
-    class Notifier
-      def initialize(queue = Fanout.new)
-        @queue = queue
-      end
-
-      def publish(*args)
-        @queue.publish(*args)
-      end
-
-      def subscribe(pattern = nil, &block)
-        @queue.bind(pattern).subscribe(&block)
-      end
-
-      def unsubscribe(subscriber)
-        @queue.unsubscribe(subscriber)
-      end
-
-      def wait
-        @queue.wait
       end
     end
   end

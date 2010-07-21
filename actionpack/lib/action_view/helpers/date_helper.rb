@@ -800,7 +800,8 @@ module ActionView
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
           step          = options.delete(:step) || 1
-          leading_zeros = options.delete(:leading_zeros).nil? ? true : false
+          options.reverse_merge!({:leading_zeros => true})
+          leading_zeros = options.delete(:leading_zeros)
 
           select_options = []
           start.step(stop, step) do |i|

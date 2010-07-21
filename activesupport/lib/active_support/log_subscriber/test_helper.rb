@@ -1,4 +1,5 @@
 require 'active_support/log_subscriber'
+require 'active_support/buffered_logger'
 
 module ActiveSupport
   class LogSubscriber
@@ -33,7 +34,7 @@ module ActiveSupport
     module TestHelper
       def setup
         @logger   = MockLogger.new
-        @notifier = ActiveSupport::Notifications::Notifier.new(queue)
+        @notifier = ActiveSupport::Notifications::Fanout.new
 
         ActiveSupport::LogSubscriber.colorize_logging = false
 
@@ -47,10 +48,14 @@ module ActiveSupport
       end
 
       class MockLogger
-        attr_reader :flush_count
+        include ActiveSupport::BufferedLogger::Severity
 
-        def initialize
+        attr_reader :flush_count
+        attr_accessor :level
+
+        def initialize(level = DEBUG)
           @flush_count = 0
+          @level = level
           @logged = Hash.new { |h,k| h[k] = [] }
         end
 
@@ -64,6 +69,14 @@ module ActiveSupport
 
         def flush
           @flush_count += 1
+        end
+
+        ActiveSupport::BufferedLogger::Severity.constants.each do |severity|
+          class_eval <<-EOT, __FILE__, __LINE__ + 1
+            def #{severity.downcase}?
+              #{severity} >= @level
+            end
+          EOT
         end
       end
 
@@ -80,10 +93,6 @@ module ActiveSupport
       #
       def set_logger(logger)
         ActiveSupport::LogSubscriber.logger = logger
-      end
-
-      def queue
-        ActiveSupport::Notifications::Fanout.new
       end
     end
   end

@@ -9,21 +9,28 @@ module ActiveSupport
       def initialize(notifier)
         @id = unique_id
         @notifier = notifier
+        @started = nil
+        @finished = nil
       end
 
       # Instrument the given block by measuring the time taken to execute it
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block
       def instrument(name, payload={})
-        time = Time.now
         begin
+          @started = Time.now
           yield(payload) if block_given?
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           raise e
         ensure
-          @notifier.publish(name, time, Time.now, @id, payload)
+          @finished = Time.now
+          @notifier.publish(name, @started, @finished, @id, payload)
         end
+      end
+
+      def elapsed
+        1000.0 * (@finished.to_f - @started.to_f)
       end
 
       private
@@ -33,7 +40,7 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :transaction_id, :payload
+      attr_reader :name, :time, :end, :transaction_id, :payload, :duration
 
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
@@ -41,14 +48,11 @@ module ActiveSupport
         @time           = start
         @transaction_id = transaction_id
         @end            = ending
-      end
-
-      def duration
-        @duration ||= 1000.0 * (@end - @time)
+        @duration       = 1000.0 * (@end - @time)
       end
 
       def parent_of?(event)
-        start = (self.time - event.time) * 1000
+        start = (time - event.time) * 1000
         start <= 0 && (start + duration >= event.duration)
       end
     end

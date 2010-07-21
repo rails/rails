@@ -10,7 +10,6 @@ require 'models/entrant'
 require 'models/project'
 require 'models/developer'
 require 'models/customer'
-require 'models/job'
 
 class DynamicFinderMatchTest < ActiveRecord::TestCase
   def test_find_no_match

@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
-require 'action_controller/polymorphic_routes'
 
 module ActionDispatch
   # = Routing
@@ -217,13 +216,14 @@ module ActionDispatch
     autoload :Route, 'action_dispatch/routing/route'
     autoload :RouteSet, 'action_dispatch/routing/route_set'
     autoload :UrlFor, 'action_dispatch/routing/url_for'
+    autoload :PolymorphicRoutes, 'action_dispatch/routing/polymorphic_routes'
 
     SEPARATORS = %w( / . ? ) #:nodoc:
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options] #:nodoc:
 
     # A helper module to hold URL related helpers.
     module Helpers #:nodoc:
-      include ActionController::PolymorphicRoutes
+      include PolymorphicRoutes
     end
   end
 end

@@ -2,7 +2,6 @@ require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
-require 'models/category'
 require 'models/categorization'
 require 'models/company'
 require 'models/topic'

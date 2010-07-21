@@ -35,13 +35,6 @@ end
 
 # Update spinoffs -------------------------------------------------------------------
 
-desc "Updates application README to the latest version Railties README"
-task :update_readme do
-  readme = "lib/rails/generators/rails/app/templates/README"
-  rm readme
-  cp "./README", readme
-end
-
 desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
 task :generate_guides do
   ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
@@ -66,7 +59,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
   rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'CHANGELOG')
+  rdoc.rdoc_files.include('README.rdoc', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
   rdoc.rdoc_files.exclude('lib/rails/generators/**/templates/*')
 }

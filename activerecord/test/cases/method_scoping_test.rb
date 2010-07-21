@@ -8,7 +8,6 @@ require 'models/author'
 require 'models/developer'
 require 'models/project'
 require 'models/comment'
-require 'models/category'
 
 class MethodScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects

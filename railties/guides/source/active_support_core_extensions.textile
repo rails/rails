@@ -781,6 +781,28 @@ end
 
 This may come in handy if you need to define a method that may already exist, since redefining a method issues a warning "method redefined; discarding old redefined_method_name".
 
+h5. +redefine_method(method_name, &block)+
+
+The method first removes method with given name (using +remove_possible_method+) and then defines new one.
+
+<ruby>
+class A; end
+
+A.class_eval do
+  redefine_method(:foobar) do |foo|
+    #do something here
+  end
+  
+  #Code above does the same as this:
+  
+  method_name = :foobar
+  remove_possible_method(method_name)
+  define_method(method_name) do |foo|
+    #do something here
+  end
+end
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/module/remove_method.rb+.
 
 h4. Parents

@@ -398,7 +398,7 @@ module ActionView
       def link_to_unless(condition, name, options = {}, html_options = {}, &block)
         if condition
           if block_given?
-            block.arity <= 1 ? yield(name) : yield(name, options, html_options)
+            block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
           else
             name
           end

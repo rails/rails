@@ -300,6 +300,7 @@ ActiveRecord::Schema.define do
     t.string :minivan_id
     t.string :name
     t.string :speedometer_id
+    t.string :color
   end
 
   create_table :minimalistics, :force => true do |t|
@@ -598,6 +599,21 @@ ActiveRecord::Schema.define do
 
   create_table :zines, :force => true do |t|
     t.string :title
+  end
+
+  create_table :countries, :force => true, :id => false, :primary_key => 'country_id' do |t|
+    t.string :country_id
+    t.string :name
+  end
+  create_table :treaties, :force => true, :id => false, :primary_key => 'treaty_id' do |t|
+    t.string :treaty_id
+    t.string :name
+  end
+  create_table :countries_treaties, :force => true, :id => false do |t|
+    t.string :country_id, :null => false
+    t.string :treaty_id, :null => false
+    t.datetime :created_at
+    t.datetime :updated_at
   end
 
   except 'SQLite' do

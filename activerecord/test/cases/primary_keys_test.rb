@@ -13,7 +13,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     topic = Topic.new
     assert topic.to_key.nil?
     topic = Topic.find(1)
-    assert_equal topic.to_key, [1]
+    assert_equal [1], topic.to_key
   end
 
   def test_to_key_with_customized_primary_key
@@ -26,7 +26,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy
-    assert_equal topic.to_key, [1]
+    assert_equal [1], topic.to_key
   end
 
   def test_integer_key

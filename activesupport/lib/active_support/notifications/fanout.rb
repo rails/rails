@@ -8,14 +8,11 @@ module ActiveSupport
         @listeners_for = {}
       end
 
-      def bind(pattern)
-        Binding.new(self, pattern)
-      end
-
-      def subscribe(pattern = nil, &block)
+      def subscribe(pattern = nil, block = Proc.new)
         @listeners_for.clear
-        @subscribers << Subscriber.new(pattern, &block)
-        @subscribers.last
+        Subscriber.new(pattern, block).tap do |s|
+          @subscribers << s
+        end
       end
 
       def unsubscribe(subscriber)
@@ -24,69 +21,35 @@ module ActiveSupport
       end
 
       def publish(name, *args)
-        if listeners = @listeners_for[name]
-          listeners.each { |s| s.publish(name, *args) }
-        else
-          @listeners_for[name] = @subscribers.select { |s| s.publish(name, *args) }
-        end
+        listeners_for(name).each { |s| s.publish(name, *args) }
+      end
+
+      def listeners_for(name)
+        @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }
       end
 
       # This is a sync queue, so there is not waiting.
       def wait
       end
 
-      # Used for internal implementation only.
-      class Binding #:nodoc:
-        def initialize(queue, pattern)
-          @queue = queue
-          @pattern =
-            case pattern
-            when Regexp, NilClass
-              pattern
-            else
-              /^#{Regexp.escape(pattern.to_s)}$/
-            end
-        end
-
-        def subscribe(&block)
-          @queue.subscribe(@pattern, &block)
-        end
-      end
-
       class Subscriber #:nodoc:
-        def initialize(pattern, &block)
+        def initialize(pattern, delegate)
           @pattern = pattern
-          @block = block
+          @delegate = delegate
         end
 
-        def publish(*args)
-          return unless subscribed_to?(args.first)
-          push(*args)
-          true
-        end
-
-        def drained?
-          true
+        def publish(message, *args)
+          @delegate.call(message, *args)
         end
 
         def subscribed_to?(name)
-          !@pattern || @pattern =~ name.to_s
+          !@pattern || @pattern === name.to_s
         end
 
         def matches?(subscriber_or_name)
-          case subscriber_or_name
-          when String
-            @pattern && @pattern =~ subscriber_or_name
-          when self
-            true
-          end
+          self === subscriber_or_name ||
+            @pattern && @pattern === subscriber_or_name
         end
-
-        private
-
-          def push(*args)
-            @block.call(*args)
-          end
       end
     end
   end

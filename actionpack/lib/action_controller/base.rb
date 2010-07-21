@@ -28,7 +28,6 @@ module ActionController
       SessionManagement,
       Caching,
       MimeResponds,
-      PolymorphicRoutes,
       ImplicitRender,
 
       Cookies,

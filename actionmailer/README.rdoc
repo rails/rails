@@ -126,35 +126,19 @@ or is accessible as a GEM.
 
 Additionally, Action Mailer requires the Mail gem, http://github.com/mikel/mail
 
-== Bundled software
-
-* Text::Format 0.63 by Austin Ziegler released under OpenSource
-  Read more on http://www.halostatue.ca/ruby/Text__Format.html
-
 == Download
 
-The latest version of Action Mailer can be found at
+The latest version of Action Mailer can be installed with Rubygems:
 
-* http://rubyforge.org/project/showfiles.php?group_id=361
+* gem install actionmailer
 
 Documentation can be found at 
 
-* http://actionmailer.rubyonrails.org
-
-
-== Installation
-
-You can install Action Mailer with the following command.
-
-  % [sudo] ruby install.rb
-
-from its distribution directory.
-
+* http://api.rubyonrails.org
 
 == License
 
 Action Mailer is released under the MIT license.
-
 
 == Support
 

@@ -112,6 +112,8 @@ module ActiveRecord
     # * does not work on attr_accessor attributes. The attribute that is being updated must be column name.
     #
     def update_attribute(name, value)
+      raise ActiveRecordError, "#{name.to_s} is marked as readonly" if self.class.readonly_attributes.include? name.to_s
+
       changes = record_update_timestamps || {}
 
       if name

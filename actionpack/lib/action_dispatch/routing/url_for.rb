@@ -82,6 +82,7 @@ module ActionDispatch
     #
     module UrlFor
       extend ActiveSupport::Concern
+      include PolymorphicRoutes
 
       included do
         # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options

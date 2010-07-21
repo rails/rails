@@ -7,22 +7,13 @@ Ruby sweeter.
 
 == Download
 
-The latest version of Active Support can be found at
+The latest version of Active Support can be installed with Rubygems:
 
-* http://rubyforge.org/project/showfiles.php?group_id=182
+* gem install activesupport
 
 Documentation can be found at 
 
-* http://as.rubyonrails.com
-
-
-== Installation
-
-The preferred method of installing Active Support is through its GEM file. You'll need to have
-RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have it,
-then use:
-
-  % [sudo] gem install activesupport-1.0.0.gem
+* http://api.rubyonrails.org
 
 
 == License

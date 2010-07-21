@@ -63,15 +63,9 @@ module ActiveSupport
       @@flushable_loggers = nil
 
       log_subscriber.public_methods(false).each do |event|
-        notifier.subscribe("#{event}.#{namespace}") do |*args|
-          next if log_subscriber.logger.nil?
+        next if 'call' == event.to_s
 
-          begin
-            log_subscriber.send(event, ActiveSupport::Notifications::Event.new(*args))
-          rescue Exception => e
-            log_subscriber.logger.error "Could not log #{args[0].inspect} event. #{e.class}: #{e.message}"
-          end
-        end
+        notifier.subscribe("#{event}.#{namespace}", log_subscriber)
       end
     end
 
@@ -90,6 +84,17 @@ module ActiveSupport
     # Flush all log_subscribers' logger.
     def self.flush_all!
       flushable_loggers.each(&:flush)
+    end
+
+    def call(message, *args)
+      return unless logger
+
+      method = message.split('.').first
+      begin
+        send(method, ActiveSupport::Notifications::Event.new(message, *args))
+      rescue Exception => e
+        logger.error "Could not log #{message.inspect} event. #{e.class}: #{e.message}"
+      end
     end
 
   protected

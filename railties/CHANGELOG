@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Added console to Rails::Railtie as a hook called just after console starts. [José Valim]
+
 * Rails no longer autoload code in lib for application. You need to explicitly require it. [José Valim]
 
 * Rails::LogSubscriber was renamed to ActiveSupport::LogSubscriber [José Valim]
@@ -13,26 +15,26 @@
 
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
-* Version bump
-* Removed Rails Metal [YK & JV].
+* Removed Rails Metal [Yehuda Katz, José Valim].
+
 
 *Rails 3.0.0 [beta 3] (April 13th, 2010)*
 
-* Renamed config.cookie_secret to config.secret_token and pass it as env key. [JV]
+* Renamed config.cookie_secret to config.secret_token and pass it as env key. [José Valim]
 
 
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
-* Session store configuration has changed [YK & CL]
+* Session store configuration has changed [Yehuda Katz, Carl Lerche]
 
     config.session_store :cookie_store, {:key => "..."}
     config.cookie_secret = "fdsfhisdghfidugnfdlg"
 
 * railtie_name and engine_name are deprecated. You can now add any object to
-  the configuration object: config.your_plugin = {} [JV]
+  the configuration object: config.your_plugin = {} [José Valim]
 
 * Added config.generators.templates to provide alternative paths for the generators
-  to look for templates [JV]
+  to look for templates [José Valim]
 
 *Rails 3.0.0 [beta 1] (February 4, 2010)*
 

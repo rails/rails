@@ -5,25 +5,19 @@ require 'models/topic'
 require 'models/reply'
 require 'models/category'
 require 'models/company'
-require 'models/customer'
 require 'models/developer'
 require 'models/project'
-require 'models/default'
-require 'models/auto_id'
-require 'models/column_name'
-require 'models/subscriber'
-require 'models/keyboard'
-require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
+require 'models/minivan'
 require 'models/loose_person'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
 class PersistencesTest < ActiveRecord::TestCase
 
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
 
   def test_create
     topic = Topic.new
@@ -218,6 +212,11 @@ class PersistencesTest < ActiveRecord::TestCase
 
     Topic.find(1).update_attribute(:approved, false)
     assert !Topic.find(1).approved?
+  end
+
+  def test_update_attribute_for_readonly_attribute
+    minivan = Minivan.find('m1')
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
   end
 
   def test_update_attribute_with_one_changed_and_one_updated

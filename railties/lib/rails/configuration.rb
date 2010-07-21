@@ -56,12 +56,11 @@ module Rails
 
         return @options[method] if args.empty?
 
-        if method == :rails
-          namespace, configuration = :rails, args.shift
-        elsif args.first.is_a?(Hash)
+        if method == :rails || args.first.is_a?(Hash)
           namespace, configuration = method, args.shift
         else
           namespace, configuration = args.shift, args.shift
+          namespace = namespace.to_sym if namespace.respond_to?(:to_sym)
           @options[:rails][method] = namespace
         end
 

@@ -210,6 +210,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]]).html_safe?
   end
 
+  def test_grouped_options_for_select_with_prompt_returns_html_escaped_string
+    assert_dom_equal(
+      "<option value=\"\">&lt;Choose One&gt;</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+      grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, '<Choose One>'))
+  end
+
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
        "<optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup><optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup>",
@@ -367,6 +373,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_blank_as_string_escaped
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;None&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :include_blank => '<None>')
+    )
+  end
+
   def test_select_with_default_prompt
     @post = Post.new
     @post.category = ""
@@ -391,6 +406,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">The prompt</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest), :prompt => 'The prompt')
+    )
+  end
+
+  def test_select_with_given_prompt_escaped
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;The prompt&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :prompt => '<The prompt>')
     )
   end
 
