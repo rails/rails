@@ -95,7 +95,7 @@ module ActionView
         when String
           options
         when Hash
-          options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
+          options = options.symbolize_keys.reverse_merge!(:only_path => options[:host].nil?)
           super
         when :back
           controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
