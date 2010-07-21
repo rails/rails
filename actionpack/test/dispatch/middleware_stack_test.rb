@@ -66,6 +66,16 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack[0].klass
   end
 
+  test "raise an error on invalid index" do
+    assert_raise RuntimeError do
+      @stack.insert("HiyaMiddleware", BazMiddleware)
+    end
+
+    assert_raise RuntimeError do
+      @stack.insert_after("HiyaMiddleware", BazMiddleware)
+    end
+  end
+
   test "lazy evaluates middleware class" do
     assert_difference "@stack.size" do
       @stack.use "MiddlewareStackTest::BazMiddleware"

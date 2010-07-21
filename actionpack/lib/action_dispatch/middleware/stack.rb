@@ -46,7 +46,7 @@ module ActionDispatch
     end
 
     def insert(index, *args, &block)
-      index = self.index(index) unless index.is_a?(Integer)
+      index = assert_index(index, :before)
       middleware = self.class::Middleware.new(*args, &block)
       super(index, middleware)
     end
@@ -54,9 +54,8 @@ module ActionDispatch
     alias_method :insert_before, :insert
 
     def insert_after(index, *args, &block)
-      i = index.is_a?(Integer) ? index : self.index(index)
-      raise "No such middleware to insert after: #{index.inspect}" unless i
-      insert(i + 1, *args, &block)
+      index = assert_index(index, :after)
+      insert(index + 1, *args, &block)
     end
 
     def swap(target, *args, &block)
@@ -78,6 +77,14 @@ module ActionDispatch
       app ||= block
       raise "MiddlewareStack#build requires an app" unless app
       reverse.inject(app) { |a, e| e.build(a) }
+    end
+
+  protected
+
+    def assert_index(index, where)
+      i = index.is_a?(Integer) ? index : self.index(index)
+      raise "No such middleware to insert #{where}: #{index.inspect}" unless i
+      i
     end
   end
 end
