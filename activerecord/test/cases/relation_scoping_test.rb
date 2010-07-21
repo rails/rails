@@ -259,6 +259,11 @@ class HasManyScopingTest< ActiveRecord::TestCase
     assert_equal [magician], people(:michael).bad_references
   end
 
+  def test_should_default_scope_on_associations_is_overriden_by_association_conditions
+    person = people(:michael)
+    assert_equal [], people(:michael).fixed_bad_references
+  end
+
   def test_should_maintain_default_scope_on_eager_loaded_associations
     michael = Person.where(:id => people(:michael).id).includes(:bad_references).first
     magician = BadReference.find(1)
