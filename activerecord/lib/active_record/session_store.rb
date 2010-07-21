@@ -62,7 +62,7 @@ module ActiveRecord
 
       class << self
         def data_column_size_limit
-          @data_column_size_limit ||= columns_hash[@@data_column_name].limit
+          @data_column_size_limit ||= columns_hash[data_column_name].limit
         end
 
         # Hook to set up sessid compatibility.
@@ -83,8 +83,8 @@ module ActiveRecord
           connection.execute <<-end_sql
             CREATE TABLE #{table_name} (
               id INTEGER PRIMARY KEY,
-              #{connection.quote_column_name('session_id')} TEXT UNIQUE,
-              #{connection.quote_column_name(@@data_column_name)} TEXT(255)
+              #{connection.quote_column_name(session_id_column)} TEXT UNIQUE,
+              #{connection.quote_column_name(data_column_name)} TEXT(255)
             )
           end_sql
         end
@@ -94,6 +94,10 @@ module ActiveRecord
         end
 
         private
+          def session_id_column
+            'session_id'
+          end
+
           # Compatibility with tables using sessid instead of session_id.
           def setup_sessid_compatibility!
             # Reset column info since it may be stale.
@@ -106,6 +110,8 @@ module ActiveRecord
               define_method(:session_id)  { sessid }
               define_method(:session_id=) { |session_id| self.sessid = session_id }
             else
+              class << self; remove_method :find_by_session_id; end
+
               def self.find_by_session_id(session_id)
                 find :first, :conditions => {:session_id=>session_id}
               end
