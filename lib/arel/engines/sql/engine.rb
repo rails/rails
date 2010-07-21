@@ -4,11 +4,10 @@ module Arel
 
       def initialize(ar = nil)
         @ar = ar
-        @connection = nil
       end
 
       def connection
-        @connection ||= @ar && @ar.connection
+        @ar ? @ar.connection : nil
       end
 
       def adapter_name

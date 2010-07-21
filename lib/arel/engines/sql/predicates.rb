@@ -1,6 +1,6 @@
 module Arel
   module Predicates
-    class Binary < Predicate
+    class Binary < Unary
       def to_sql(formatter = nil)
         "#{operand1.to_sql} #{predicate_sql} #{operand1.format(operand2)}"
       end

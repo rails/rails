@@ -1,5 +1,7 @@
 module Arel
   class Session
+    @instance = nil
+
     def self.instance
       @instance || new
     end

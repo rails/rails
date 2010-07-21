@@ -1,6 +1,6 @@
 module Arel
   module Predicates
-    class Binary < Predicate
+    class Binary < Unary
       def eval(row)
         operand1.eval(row).send(operator, operand2.eval(row))
       end
