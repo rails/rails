@@ -1,12 +1,15 @@
 module Arel
   class Expression < Attribute
-    attributes :attribute, :alias, :ancestor
-    deriving :==
-    delegate :relation, :to => :attribute
-    alias_method :name, :alias
+    attr_reader :attribute
+    alias :name :alias
 
     def initialize(attribute, aliaz = nil, ancestor = nil)
-      @attribute, @alias, @ancestor = attribute, aliaz, ancestor
+      super(attribute.relation, aliaz, :alias => aliaz, :ancestor => ancestor)
+      @attribute = attribute
+    end
+
+    def == other
+      super && Expression === other && attribute == other.attribute
     end
 
     def aggregation?
