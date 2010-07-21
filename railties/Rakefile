@@ -35,13 +35,6 @@ end
 
 # Update spinoffs -------------------------------------------------------------------
 
-desc "Updates application README to the latest version Railties README"
-task :update_readme do
-  readme = "lib/rails/generators/rails/app/templates/README"
-  rm readme
-  cp "./README", readme
-end
-
 desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
 task :generate_guides do
   ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this

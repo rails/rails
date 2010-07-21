@@ -19,15 +19,6 @@ the HTML. To avoid cluttering the templates with code, a bunch of helper
 classes provide common behavior for forms, dates, and strings. And it's easy
 to add specific helpers to keep the separation as the application evolves.
 
-Note: Some of the features, such as scaffolding and form building, are tied to
-ActiveRecord[http://activerecord.rubyonrails.org] (an object-relational
-mapping package), but that doesn't mean that Action Pack depends on Active
-Record. Action Pack is an independent package that can be used with any sort
-of backend (Instiki[http://www.instiki.org], which is based on an older version
-of Action Pack, used Madeleine for example). Read more about the role Action
-Pack can play when used together with Active Record on
-http://www.rubyonrails.org.
-
 A short rundown of the major features:
 
 * Actions grouped in controller as methods instead of separate command objects
