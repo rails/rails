@@ -69,7 +69,7 @@ Rake::RDocTask.new do |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.options << '--main' << 'railties/README'
+  rdoc.options << '--main' << 'README.rdoc'
 
   # Workaround: RDoc assumes that rdoc.template can be required, and that
   # rdoc.template.upcase is a constant living in RDoc::Generator::HTML
@@ -83,38 +83,38 @@ Rake::RDocTask.new do |rdoc|
 
   rdoc.rdoc_files.include('railties/CHANGELOG')
   rdoc.rdoc_files.include('railties/MIT-LICENSE')
-  rdoc.rdoc_files.include('railties/README')
+  rdoc.rdoc_files.include('railties/README.rdoc')
   rdoc.rdoc_files.include('railties/lib/**/*.rb')
   rdoc.rdoc_files.exclude('railties/lib/rails/generators/**/templates/*')
 
-  rdoc.rdoc_files.include('activerecord/README')
+  rdoc.rdoc_files.include('activerecord/README.rdoc')
   rdoc.rdoc_files.include('activerecord/CHANGELOG')
   rdoc.rdoc_files.include('activerecord/lib/active_record/**/*.rb')
   rdoc.rdoc_files.exclude('activerecord/lib/active_record/vendor/*')
 
-  rdoc.rdoc_files.include('activeresource/README')
+  rdoc.rdoc_files.include('activeresource/README.rdoc')
   rdoc.rdoc_files.include('activeresource/CHANGELOG')
   rdoc.rdoc_files.include('activeresource/lib/active_resource.rb')
   rdoc.rdoc_files.include('activeresource/lib/active_resource/*')
 
-  rdoc.rdoc_files.include('actionpack/README')
+  rdoc.rdoc_files.include('actionpack/README.rdoc')
   rdoc.rdoc_files.include('actionpack/CHANGELOG')
   rdoc.rdoc_files.include('actionpack/lib/action_controller/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_dispatch/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_view/**/*.rb')
   rdoc.rdoc_files.exclude('actionpack/lib/action_controller/vendor/*')
 
-  rdoc.rdoc_files.include('actionmailer/README')
+  rdoc.rdoc_files.include('actionmailer/README.rdoc')
   rdoc.rdoc_files.include('actionmailer/CHANGELOG')
   rdoc.rdoc_files.include('actionmailer/lib/action_mailer/base.rb')
   rdoc.rdoc_files.exclude('actionmailer/lib/action_mailer/vendor/*')
 
-  rdoc.rdoc_files.include('activesupport/README')
+  rdoc.rdoc_files.include('activesupport/README.rdoc')
   rdoc.rdoc_files.include('activesupport/CHANGELOG')
   rdoc.rdoc_files.include('activesupport/lib/active_support/**/*.rb')
   rdoc.rdoc_files.exclude('activesupport/lib/active_support/vendor/*')
 
-  rdoc.rdoc_files.include('activemodel/README')
+  rdoc.rdoc_files.include('activemodel/README.rdoc')
   rdoc.rdoc_files.include('activemodel/CHANGELOG')
   rdoc.rdoc_files.include('activemodel/lib/active_model/**/*.rb')
 end

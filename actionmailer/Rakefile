@@ -32,7 +32,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
   rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'CHANGELOG')
+  rdoc.rdoc_files.include('README.rdoc', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/action_mailer.rb')
   rdoc.rdoc_files.include('lib/action_mailer/*.rb')
   rdoc.rdoc_files.include('lib/action_mailer/delivery_method/*.rb')
