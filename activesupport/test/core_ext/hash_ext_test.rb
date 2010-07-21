@@ -472,6 +472,10 @@ class HashExtToParamTests < Test::Unit::TestCase
   def test_to_param_hash
     assert_equal 'custom=param-1&custom2=param2-1', ActiveSupport::OrderedHash[ToParam.new('custom'), ToParam.new('param'), ToParam.new('custom2'), ToParam.new('param2')].to_param
   end
+
+  def test_to_param_hash_escapes_its_keys_and_values
+    assert_equal 'param+1=A+string+with+%2F+characters+%26+that+should+be+%3F+escaped', { 'param 1' => 'A string with / characters & that should be ? escaped' }.to_param
+  end
 end
 
 class HashToXmlTest < Test::Unit::TestCase
