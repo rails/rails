@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.homepage          = 'http://www.rubyonrails.org'
   s.rubyforge_project = 'rails'
 
-  s.files              = Dir['CHANGELOG', 'README', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
+  s.files              = Dir['CHANGELOG', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path       = 'lib'
 
   s.rdoc_options << '--exclude' << '.'
