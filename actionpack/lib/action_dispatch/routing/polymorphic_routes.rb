@@ -155,7 +155,7 @@ module ActionDispatch
               if parent.is_a?(Symbol) || parent.is_a?(String)
                 string << "#{parent}_"
               else
-                string << ActionController::RecordIdentifier.plural_class_name(parent).singularize
+                string << ActiveModel::Naming.plural(parent).singularize
                 string << "_"
               end
             end
@@ -164,10 +164,10 @@ module ActionDispatch
           if record.is_a?(Symbol) || record.is_a?(String)
             route << "#{record}_"
           else
-            route << ActionController::RecordIdentifier.plural_class_name(record)
+            route << ActiveModel::Naming.plural(record)
             route = route.singularize if inflection == :singular
             route << "_"
-            route << "index_" if ActionController::RecordIdentifier.uncountable?(record) && inflection == :plural
+            route << "index_" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
           end
 
           action_prefix(options) + route + routing_type(options).to_s

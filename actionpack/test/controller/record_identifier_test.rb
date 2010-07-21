@@ -26,20 +26,6 @@ class Sheep
   end
 end
 
-class Comment::Nested < Comment; end
-
-class Test::Unit::TestCase
-  protected
-    def comments_url
-      'http://www.example.com/comments'
-    end
-
-    def comment_url(comment)
-      "http://www.example.com/comments/#{comment.id}"
-    end
-end
-
-
 class RecordIdentifierTest < Test::Unit::TestCase
   include ActionController::RecordIdentifier
 
@@ -76,30 +62,4 @@ class RecordIdentifierTest < Test::Unit::TestCase
   def test_dom_class_with_prefix
     assert_equal "custom_prefix_#{@singular}", dom_class(@record, :custom_prefix)
   end
-
-  def test_singular_class_name
-    assert_equal @singular, singular_class_name(@record)
-  end
-
-  def test_singular_class_name_for_class
-    assert_equal @singular, singular_class_name(@klass)
-  end
-
-  def test_plural_class_name
-    assert_equal @plural, plural_class_name(@record)
-  end
-
-  def test_plural_class_name_for_class
-    assert_equal @plural, plural_class_name(@klass)
-  end
-
-  def test_uncountable
-    assert_equal true, uncountable?(@uncountable)
-    assert_equal false, uncountable?(@klass)
-  end
-
-  private
-    def method_missing(method, *args)
-      RecordIdentifier.send(method, *args)
-    end
 end
