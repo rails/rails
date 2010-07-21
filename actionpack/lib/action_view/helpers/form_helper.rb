@@ -150,10 +150,6 @@ module ActionView
       #   here a named route directly as well. Defaults to the current action.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
-      # Worth noting is that the +form_for+ tag is called in a ERb evaluation
-      # block, not an ERb output block. So that's <tt><% %></tt>, not
-      # <tt><%= %></tt>.
-      #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
