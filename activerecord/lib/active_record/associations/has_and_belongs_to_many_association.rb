@@ -53,7 +53,11 @@ module ActiveRecord
                 when @reflection.association_foreign_key.to_s
                   attrs[relation[column.name]] = record.id
                 else
-                  if record.has_attribute?(column.name)
+                  if record.send(:all_timestamp_attributes).include?(column.name.to_sym)
+                    if record.record_timestamps
+                      attrs[relation[column.name]] = record.send(:current_time_from_proper_timezone)
+                    end
+                  elsif record.has_attribute?(column.name)
                     value = @owner.send(:quote_value, record[column.name], column)
                     attrs[relation[column.name]] = value unless value.nil?
                   end

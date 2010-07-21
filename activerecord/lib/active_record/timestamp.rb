@@ -39,8 +39,9 @@ module ActiveRecord
       if record_timestamps
         current_time = current_time_from_proper_timezone
 
-        write_attribute('created_at', current_time) if respond_to?(:created_at) && created_at.nil?
-        write_attribute('created_on', current_time) if respond_to?(:created_on) && created_on.nil?
+        timestamp_attributes_for_create.each do |column|
+          write_attribute(column.to_s, current_time) if respond_to?(column) && self.send(column).nil?
+        end
 
         timestamp_attributes_for_update_in_model.each do |column|
           write_attribute(column.to_s, current_time) if self.send(column).nil?
@@ -65,7 +66,19 @@ module ActiveRecord
     end
 
     def timestamp_attributes_for_update_in_model #:nodoc:
-      [:updated_at, :updated_on].select { |elem| respond_to?(elem) }
+      timestamp_attributes_for_update.select { |elem| respond_to?(elem) }
+    end
+
+    def timestamp_attributes_for_update #:nodoc:
+      [:updated_at, :updated_on]
+    end
+
+    def timestamp_attributes_for_create #:nodoc:
+      [:created_at, :created_on]
+    end
+
+    def all_timestamp_attributes #:nodoc:
+      timestamp_attributes_for_update + timestamp_attributes_for_create
     end
     
     def current_time_from_proper_timezone #:nodoc:
