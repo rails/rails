@@ -1491,13 +1491,15 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
+INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
+
 +camelize+ is aliased to +camelcase+.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h5. +underscore+
 
-The method +underscore+ is the inverse of +camelize+, explained above:
+The method +underscore+ goes the other way around, from camel case to paths:
 
 <ruby>
 "Product".underscore   # => "product"
@@ -1529,6 +1531,8 @@ def load_missing_constant(from_mod, const_name)
   ...
 end
 </ruby>
+
+INFO: As a rule of thumb you can think of +underscore+ as the inverse of +camelize+, though there are cases where that does not hold. For example, <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
