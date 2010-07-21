@@ -238,8 +238,10 @@ module ActiveRecord
       # telling us to postpone unmarshaling until the data is requested.
       # We need to handle a normal data attribute in case of a new record.
       def initialize(attributes)
-        @session_id, @data, @marshaled_data = attributes[:session_id], attributes[:data], attributes[:marshaled_data]
-        @new_record = @marshaled_data.nil?
+        @session_id     = attributes[:session_id]
+        @data           = attributes[:data]
+        @marshaled_data = attributes[:marshaled_data]
+        @new_record     = @marshaled_data.nil?
       end
 
       def new_record?
