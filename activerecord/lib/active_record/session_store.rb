@@ -217,17 +217,17 @@ module ActiveRecord
         end
 
         def create_table!
-          @@connection.execute <<-end_sql
+          connection.execute <<-end_sql
             CREATE TABLE #{table_name} (
               id INTEGER PRIMARY KEY,
-              #{@@connection.quote_column_name(session_id_column)} TEXT UNIQUE,
-              #{@@connection.quote_column_name(data_column)} TEXT
+              #{connection.quote_column_name(session_id_column)} TEXT UNIQUE,
+              #{connection.quote_column_name(data_column)} TEXT
             )
           end_sql
         end
 
         def drop_table!
-          @@connection.execute "DROP TABLE #{table_name}"
+          connection.execute "DROP TABLE #{table_name}"
         end
       end
 
