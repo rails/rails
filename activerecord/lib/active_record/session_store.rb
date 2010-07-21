@@ -138,17 +138,17 @@ module ActiveRecord
 
       private
         def marshal_data!
-          return false if !loaded?
-          write_attribute(@@data_column_name, self.class.marshal(self.data))
+          return false unless loaded?
+          write_attribute(@@data_column_name, self.class.marshal(data))
         end
 
         # Ensures that the data about to be stored in the database is not
         # larger than the data storage column. Raises
         # ActionController::SessionOverflowError.
         def raise_on_session_data_overflow!
-          return false if !loaded?
+          return false unless loaded?
           limit = self.class.data_column_size_limit
-          if loaded? and limit and read_attribute(@@data_column_name).size > limit
+          if limit and read_attribute(@@data_column_name).size > limit
             raise ActionController::SessionOverflowError
           end
         end
@@ -265,7 +265,7 @@ module ActiveRecord
       end
 
       def save
-        return false if !loaded?
+        return false unless loaded?
         marshaled_data = self.class.marshal(data)
 
         if @new_record
