@@ -366,22 +366,13 @@ an URL such as /weblog/5 (where 5 is the id of the post).
 
 == Download
 
-The latest version of Action Pack can be found at
+The latest version of Action Pack can be installed with Rubygems:
 
-* http://rubyforge.org/project/showfiles.php?group_id=249
+* gem install actionpack
 
-Documentation can be found at
+Documentation can be found at 
 
-* http://api.rubyonrails.com
-
-
-== Installation
-
-You can install Action Pack with the following command.
-
-  % [sudo] ruby install.rb
-
-from its distribution directory.
+* http://api.rubyonrails.org
 
 
 == License

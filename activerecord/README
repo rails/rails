@@ -309,28 +309,13 @@ Admit the Database:
 
 == Download
 
-The latest version of Active Record can be found at
+The latest version of Active Record can be installed with Rubygems:
 
-* http://rubyforge.org/project/showfiles.php?group_id=182
+* gem install activerecord
 
 Documentation can be found at 
 
-* http://ar.rubyonrails.com
-
-
-== Installation
-
-The prefered method of installing Active Record is through its GEM file. You'll need to have
-RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have,
-then use:
-
-  % [sudo] gem install activerecord-1.10.0.gem
-
-You can also install Active Record the old-fashioned way with the following command:
-
-  % [sudo] ruby install.rb
-
-from its distribution directory.
+* http://api.rubyonrails.org
 
 
 == License
