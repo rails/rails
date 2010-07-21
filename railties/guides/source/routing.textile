@@ -441,13 +441,13 @@ h4. Segment Constraints
 You can use the +:constraints+ option to enforce a format for a dynamic segment:
 
 <ruby>
-match 'photo/:id' => 'photos#show', :constraints => { :id => /[A-Z]\d{5}/ }
+match 'photos/:id' => 'photos#show', :constraints => { :id => /[A-Z]\d{5}/ }
 </ruby>
 
-This route would match URLs such as +/photo/A12345+. You can more succinctly express the same route this way:
+This route would match URLs such as +/photos/A12345+. You can more succinctly express the same route this way:
 
 <ruby>
-match 'photo/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 </ruby>
 
 +:constraints+ takes regular expression. However note that regexp anchors can't be used within constraints. For example following route will not work:
@@ -472,7 +472,7 @@ You can also constrain a route based on any method on the <a href="action_contro
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 <ruby>
-match "photo", :constraints => {:subdomain => "admin"}
+match "photos", :constraints => {:subdomain => "admin"}
 </ruby>
 
 You can also specify constrains in a block form:
@@ -511,10 +511,10 @@ h4. Route Globbing
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example
 
 <ruby>
-match 'photo/*other' => 'photos#unknown'
+match 'photos/*other' => 'photos#unknown'
 </ruby>
 
-This route would match +photo/12+ or +/photo/long/path/to/12+, setting +params[:other]+ to +"12"+ or +"long/path/to/12"+.
+This route would match +photos/12+ or +/photos/long/path/to/12+, setting +params[:other]+ to +"12"+ or +"long/path/to/12"+.
 
 h4. Redirection
 
