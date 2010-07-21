@@ -60,6 +60,7 @@ module Rails
           namespace, configuration = method, args.shift
         else
           namespace, configuration = args.shift, args.shift
+          namespace = namespace.to_sym if namespace.respond_to?(:to_sym)
           @options[:rails][method] = namespace
         end
 
