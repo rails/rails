@@ -125,13 +125,12 @@ module ActionMailer #:nodoc:
   # make sense to generate relative URLs in email messages.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
-  # option in the <tt>ActionMailer::Base.default_url_options</tt> hash as follows:
-  #
-  #   ActionMailer::Base.default_url_options[:host] = "example.com"
-  #
-  # This can also be set as a configuration option in <tt>config/application.rb</tt>:
+  # option as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { :host => "example.com" }
+  #
+  # Setting <tt>ActionMailer::Base.default_url_options</tt> directly is now deprecated, use the configuration
+  # option mentioned above to set the default host.
   #
   # If you do decide to set a default <tt>:host</tt> for your mailers you will want to use the
   # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are
