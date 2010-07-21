@@ -119,6 +119,11 @@ module ActiveRecord
           end
       end
 
+      def initialize(attributes = nil)
+        @data = nil
+        super
+      end
+
       # Lazy-unmarshal session state.
       def data
         @data ||= self.class.unmarshal(read_attribute(@@data_column_name)) || {}
@@ -128,7 +133,7 @@ module ActiveRecord
 
       # Has the session been loaded yet?
       def loaded?
-        !!@data
+        @data
       end
 
       private
