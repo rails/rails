@@ -11,9 +11,9 @@ module ActiveSupport
     end
 
     def self.descendants(klass)
-      @@direct_descendants[klass].inject([]) do |descendants, klass|
-        descendants << klass
-        descendants.concat klass.descendants
+      @@direct_descendants[klass].inject([]) do |descendants, _klass|
+        descendants << _klass
+        descendants.concat _klass.descendants
       end
     end
 
