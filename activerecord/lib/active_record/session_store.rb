@@ -82,9 +82,9 @@ module ActiveRecord
         def create_table!
           connection.execute <<-end_sql
             CREATE TABLE #{table_name} (
-              id INTEGER PRIMARY KEY,
-              #{connection.quote_column_name(session_id_column)} TEXT UNIQUE,
-              #{connection.quote_column_name(data_column_name)} TEXT(255)
+              id #{connection.type_to_sql(:primary_key)},
+              #{connection.quote_column_name(session_id_column)} VARCHAR(255) UNIQUE,
+              #{connection.quote_column_name(data_column_name)} VARCHAR(255)
             )
           end_sql
         end
@@ -219,8 +219,8 @@ module ActiveRecord
         def create_table!
           connection.execute <<-end_sql
             CREATE TABLE #{table_name} (
-              id INTEGER PRIMARY KEY,
-              #{connection.quote_column_name(session_id_column)} TEXT UNIQUE,
+              id #{connection.type_to_sql(:primary_key)},
+              #{connection.quote_column_name(session_id_column)} VARCHAR(255) UNIQUE,
               #{connection.quote_column_name(data_column)} TEXT
             )
           end_sql
