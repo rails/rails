@@ -265,22 +265,23 @@ module ActiveRecord
       def save
         return false unless loaded?
         marshaled_data = self.class.marshal(data)
+        connect        = connection
 
         if @new_record
           @new_record = false
-          @@connection.update <<-end_sql, 'Create session'
-            INSERT INTO #{@@table_name} (
-              #{@@connection.quote_column_name(@@session_id_column)},
-              #{@@connection.quote_column_name(@@data_column)} )
+          connect.update <<-end_sql, 'Create session'
+            INSERT INTO #{table_name} (
+              #{connect.quote_column_name(session_id_column)},
+              #{connect.quote_column_name(data_column)} )
             VALUES (
-              #{@@connection.quote(session_id)},
-              #{@@connection.quote(marshaled_data)} )
+              #{connect.quote(session_id)},
+              #{connect.quote(marshaled_data)} )
           end_sql
         else
-          @@connection.update <<-end_sql, 'Update session'
-            UPDATE #{@@table_name}
-            SET #{@@connection.quote_column_name(@@data_column)}=#{@@connection.quote(marshaled_data)}
-            WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
+          connect.update <<-end_sql, 'Update session'
+            UPDATE #{table_name}
+            SET #{connect.quote_column_name(data_column)}=#{connect.quote(marshaled_data)}
+            WHERE #{connect.quote_column_name(session_id_column)}=#{connect.quote(session_id)}
           end_sql
         end
       end
