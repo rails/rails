@@ -147,6 +147,19 @@ module Rails
   #
   # Now, Engine will get only requests that were not handled by application.
   #
+  # == Asset path
+  #
+  # When you use engine with its own public directory, you will probably want to copy or symlink it
+  # to application's public directory. To simplify generating paths for assets, you can set asset_path
+  # for an Engine:
+  #
+  # class MyEngine::Engine < Rails::Engine
+  #   config.asset_path = "/my_engine/%s"
+  # end
+  #
+  # With such config, asset paths will be automatically modified inside Engine:
+  # image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
+  #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
@@ -219,8 +232,14 @@ module Rails
     end
 
     def call(env)
-      env["action_dispatch.routes"] = routes
-      app.call(env)
+      app.call(env.merge!(env_config))
+    end
+
+    def env_config
+      @env_config ||= {
+        'action_dispatch.routes' => routes,
+        'action_dispatch.asset_path' => config.asset_path
+      }
     end
 
     def routes

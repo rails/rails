@@ -199,5 +199,65 @@ module RailtiesTest
 
       assert_equal Rails.application.routes, env['action_dispatch.routes']
     end
+
+    test "it allows to set asset_path" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            config.asset_path = "/bukkits%s"
+          end
+        end
+      RUBY
+
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          match "/foo" => "foo#index"
+        end
+      RUBY
+
+      @plugin.write "app/controllers/foo_controller.rb", <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            render :index
+          end
+        end
+      RUBY
+
+      @plugin.write "app/views/foo/index.html.erb", <<-RUBY
+        <%= compute_public_path("/foo", "") %>
+        <%= image_path("foo.png") %>
+        <%= javascript_include_tag("foo") %>
+        <%= stylesheet_link_tag("foo") %>
+      RUBY
+
+
+      app_file "app/controllers/bar_controller.rb", <<-RUBY
+        class BarController < ActionController::Base
+          def index
+            render :index
+          end
+        end
+      RUBY
+
+      app_file "app/views/bar/index.html.erb", <<-RUBY
+        <%= compute_public_path("/foo", "") %>
+      RUBY
+
+      add_to_config 'config.asset_path = "/omg%s"'
+
+      boot_rails
+
+      env = Rack::MockRequest.env_for("/foo")
+      response = Bukkits::Engine.call(env)
+      stripped_body = response[2].body.split("\n").map(&:strip).join("\n")
+
+      expected =  "/omg/bukkits/foo\n" +
+                  "/omg/bukkits/images/foo.png\n" +
+                  "<script src=\"/omg/bukkits/javascripts/foo.js\" type=\"text/javascript\"></script>\n" +
+                  "<link href=\"/omg/bukkits/stylesheets/foo.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"
+      assert_equal expected, stripped_body
+
+    end
   end
 end

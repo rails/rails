@@ -5,7 +5,7 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :middleware, :plugins
+      attr_accessor :middleware, :plugins, :asset_path
 
       def initialize(root=nil)
         super()

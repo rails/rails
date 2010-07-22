@@ -25,6 +25,18 @@ module Rails
         @middleware = app_middleware
       end
 
+      def asset_path=(value)
+        action_mailer.asset_path = value if respond_to?(:action_mailer) && action_mailer
+        action_controller.asset_path = value if respond_to?(:action_controller) && action_controller
+        super(value)
+      end
+
+      def asset_host=(value)
+        action_mailer.asset_host = value if action_mailer
+        action_controller.asset_host = value if action_controller
+        super(value)
+      end
+
       def encoding=(value)
         @encoding = value
         if "ruby".encoding_aware?

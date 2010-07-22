@@ -10,7 +10,7 @@ module ActionDispatch
     end
 
     def initialize(env = {})
-      env = Rails.application.env_defaults.merge(env) if defined?(Rails.application)
+      env = Rails.application.env_config.merge(env) if defined?(Rails.application)
       super(DEFAULT_ENV.merge(env))
 
       self.host        = 'test.host'

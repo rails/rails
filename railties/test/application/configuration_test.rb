@@ -260,5 +260,20 @@ module ApplicationTests
       get "/"
       assert_not_equal res, last_response.body
     end
+
+    test "config.asset_path is not passed through env" do
+      make_basic_app do |app|
+        app.config.asset_path = "/omg%s"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :inline => "<%= image_path('foo.jpg') %>"
+        end
+      end
+
+      get "/"
+      assert_equal "/omg/images/foo.jpg", last_response.body
+    end
   end
 end

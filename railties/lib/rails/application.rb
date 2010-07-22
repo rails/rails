@@ -124,16 +124,12 @@ module Rails
 
     alias :build_middleware_stack :app
 
-    def call(env)
-      env["action_dispatch.routes"] = routes
-      app.call(env.reverse_merge!(env_defaults))
-    end
-
-    def env_defaults
-      @env_defaults ||= {
+    def env_config
+      @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
-        "action_dispatch.secret_token" => config.secret_token
-      }
+        "action_dispatch.secret_token" => config.secret_token,
+        "action_dispatch.asset_path" => nil
+      })
     end
 
     def initializers

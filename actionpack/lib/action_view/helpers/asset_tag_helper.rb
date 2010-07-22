@@ -727,6 +727,9 @@ module ActionView
 
           source += ".#{ext}" if rewrite_extension?(source, dir, ext)
           source  = "/#{dir}/#{source}" unless source[0] == ?/
+          if controller.respond_to?(:env) && controller.env["action_dispatch.asset_path"]
+            source = rewrite_asset_path(source, controller.env["action_dispatch.asset_path"])
+          end
           source = rewrite_asset_path(source, config.asset_path)
 
           has_request = controller.respond_to?(:request)
