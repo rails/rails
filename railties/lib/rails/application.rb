@@ -95,7 +95,9 @@ module Rails
     end
 
     def initialize!
+      raise "Application has been already initialized." if @initialized
       run_initializers(self)
+      @initialized = true
       self
     end
 

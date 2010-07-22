@@ -89,6 +89,11 @@ class LoadingTest < Test::Unit::TestCase
     assert_equal [], ActiveRecord::Base.descendants
   end
 
+  test "initialize_cant_be_called_twice" do
+    require "#{app_path}/config/environment"
+    assert_raise(RuntimeError) { ::AppTemplate::Application.initialize! }
+  end
+
   protected
 
   def setup_ar!
