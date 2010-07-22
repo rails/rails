@@ -120,6 +120,13 @@ module ActiveSupport
     end
 
     class DeprecationProxy #:nodoc:
+      def self.new(*args, &block)
+        object = args.first
+        
+        return object unless object
+        super
+      end
+      
       silence_warnings do
         instance_methods.each { |m| undef_method m unless m =~ /^__/ }
       end
