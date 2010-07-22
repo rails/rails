@@ -87,6 +87,66 @@ module Rails
   # all folders under "app" are automatically added to the load path. So if you have
   # "app/observers", it's added by default.
   #
+  # == Endpoint
+  #
+  # Engine can be also a rack application. It can be useful if you have a rack application that
+  # you would like to wrap with Engine and provide some of the Engine's features.
+  #
+  # To do that, use endpoint method:
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       endpoint MyRackApplication
+  #     end
+  #   end
+  #
+  # Now you can mount your engine in application's routes just like that:
+  #
+  # MyRailsApp::Application.routes.draw do
+  #   mount MyEngine::Engine => "/engine"
+  # end
+  #
+  # == Middleware stack
+  #
+  # As Engine can now be rack endpoint, it can also have a middleware stack. The usage is exactly
+  # the same as in application:
+  #
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       middleware.use SomeMiddleware
+  #     end
+  #   end
+  #
+  # == Routes
+  #
+  # If you don't specify endpoint, routes will be used as default endpoint. You can use them
+  # just like you use application's routes:
+  #
+  # # ENGINE/config/routes.rb
+  # MyEngine::Engine.routes.draw do
+  #   match "/" => "posts#index"
+  # end
+  #
+  # == Mount priority
+  #
+  # Note that now there can be more than one router in you application and it's better to avoid
+  # passing requests through many routers. Consider such situation:
+  #
+  # MyRailsApp::Application.routes.draw do
+  #   mount MyEngine::Engine => "/blog"
+  #   match "/blog/omg" => "main#omg"
+  # end
+  #
+  # MyEngine is mounted at "/blog" path and additionaly "/blog/omg" points application's controller.
+  # In such situation request to "/blog/omg" will go through MyEngine and if there is no such route
+  # in Engine's routes, it will be dispatched to "main#omg". It's much better to swap that:
+  #
+  # MyRailsApp::Application.routes.draw do
+  #   match "/blog/omg" => "main#omg"
+  #   mount MyEngine::Engine => "/blog"
+  # end
+  #
+  # Now, Engine will get only requests that were not handled by application.
+  #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
