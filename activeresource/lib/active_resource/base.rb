@@ -577,7 +577,7 @@ module ActiveResource
       # Default value is <tt>site.path</tt>.
       def prefix=(value = '/')
         # Replace :placeholders with '#{embedded options[:lookups]}'
-        prefix_call = value.gsub(/:\w+/) { |key| "\#{options[#{key}]}" }
+        prefix_call = value.gsub(/:\w+/) { |key| "\#{URI.escape options[#{key}].to_s}" }
 
         # Clear prefix parameters in case they have been cached
         @prefix_parameters = nil
@@ -622,7 +622,7 @@ module ActiveResource
       #
       def element_path(id, prefix_options = {}, query_options = nil)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"
+        "#{prefix(prefix_options)}#{collection_name}/#{URI.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
       end
 
       # Gets the new element path for REST resources.
