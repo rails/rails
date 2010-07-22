@@ -32,6 +32,16 @@ module ActiveRecord
         s = SqlBypass.new :data => 'hello'
         assert s.loaded?, 'it is loaded'
       end
+
+      def test_save
+        SqlBypass.create_table! unless Session.table_exists?
+        session_id = 20
+        s = SqlBypass.new :data => 'hello', :session_id => session_id
+        s.save
+        t = SqlBypass.find_by_session_id session_id
+        assert_equal s.session_id, t.session_id
+        assert_equal s.data, t.data
+      end
     end
   end
 end
