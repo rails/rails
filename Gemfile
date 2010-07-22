@@ -5,7 +5,8 @@ gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
-gem "rdoc",  "2.2"
+gem "rdoc",  ">= 2.5.9"
+gem "horo"
 
 mri = !defined?(RUBY_ENGINE) || RUBY_ENGINE == "ruby"
 if mri && RUBY_VERSION < '1.9'
