@@ -119,17 +119,6 @@ The Base class has the full list of configuration options. Here's an example:
     :authentication => :plain                 # :plain, :login or :cram_md5
   }
 
-== Dependencies
-
-Action Mailer depends on Action Pack.
-
-Additionally, Action Mailer requires the {Mail gem}[http://github.com/mikel/mail].
-
-== Bundled software
-
-* Text::Format 0.63 by Austin Ziegler released under OpenSource
-  Read more on http://www.halostatue.ca/ruby/Text__Format.html
-
 
 == Download and installation
 
