@@ -37,20 +37,20 @@ module ActiveRecord
 
         assert klass.columns_hash['sessid'], 'sessid column exists'
         session = klass.new(:data => 'hello')
-        session.sessid = 100
+        session.sessid = "100"
         session.save!
 
-        found = klass.find_by_session_id(100)
+        found = klass.find_by_session_id("100")
         assert_equal session, found
-        assert_equal session.sessid, found.session_id.to_i
+        assert_equal session.sessid, found.session_id
       ensure
         klass.drop_table!
       end
 
       def test_find_by_session_id
         Session.create_table!
-        s = Session.create!(:data => 'world', :session_id => 10)
-        assert_equal s, Session.find_by_session_id(10)
+        s = Session.create!(:data => 'world', :session_id => "10")
+        assert_equal s, Session.find_by_session_id("10")
         Session.drop_table!
       end
 
