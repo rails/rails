@@ -181,7 +181,7 @@ There are only a few configuration options for Action View, starting with four o
 
 * +config.action_view.warn_cache_misses+ tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is +false+.
 
-* +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is <tt>Proc.new{ |html_tag, instance| "&lt;div class=\"fieldWithErrors\"&gt;#{html_tag}&lt;/div&gt;" }</tt>
+* +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is <tt>Proc.new{ |html_tag, instance| "&lt;div class=\"field_with_errors\"&gt;#{html_tag}&lt;/div&gt;" }</tt>
 
 * +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
 

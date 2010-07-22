@@ -799,7 +799,7 @@ h4. Customizing the Error Messages CSS
 
 The selectors to customize the style of error messages are:
 
-* +.fieldWithErrors+ - Style for the form fields and labels with errors.
+* +.field_with_errors+ - Style for the form fields and labels with errors.
 * +#errorExplanation+ - Style for the +div+ element with the error messages.
 * +#errorExplanation h2+ - Style for the header of the +div+ element.
 * +#errorExplanation p+ - Style for the paragraph that holds the message that appears right below the header of the +div+ element.
@@ -811,7 +811,7 @@ The name of the class and the id can be changed with the +:class+ and +:id+ opti
 
 h4. Customizing the Error Messages HTML
 
-By default, form fields with errors are displayed enclosed by a +div+ element with the +fieldWithErrors+ CSS class. However, it's possible to override that. 
+By default, form fields with errors are displayed enclosed by a +div+ element with the +field_with_errors+ CSS class. However, it's possible to override that. 
 
 The way form fields with errors are treated is defined by +ActionView::Base.field_error_proc+. This is a +Proc+ that receives two parameters:
 
