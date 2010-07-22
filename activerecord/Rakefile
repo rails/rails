@@ -1,4 +1,4 @@
-gem 'rdoc', '= 2.2'
+gem 'rdoc', '>= 2.5.9'
 require 'rdoc'
 require 'rake'
 require 'rake/testtask'
