@@ -84,7 +84,7 @@ module ActiveRecord
             CREATE TABLE #{table_name} (
               id #{connection.type_to_sql(:primary_key)},
               #{connection.quote_column_name(session_id_column)} VARCHAR(255) UNIQUE,
-              #{connection.quote_column_name(data_column_name)} VARCHAR(255)
+              #{connection.quote_column_name(data_column_name)} TEXT
             )
           end_sql
         end
