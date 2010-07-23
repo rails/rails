@@ -114,8 +114,8 @@ module ActiveSupport
     end
     alias_method :iso8601, :xmlschema
 
-    # Coerces the date to a string for JSON encoding. The default format is ISO 8601. You can get
-    # %Y/%m/%d %H:%M:%S +offset style by setting ActiveSupport::JSON::Encoding.use_standard_json_time_format
+    # Coerces time to a string for JSON encoding. The default format is ISO 8601. You can get
+    # %Y/%m/%d %H:%M:%S +offset style by setting <tt>ActiveSupport::JSON::Encoding.use_standard_json_time_format</tt>
     # to false.
     #
     # ==== Examples
