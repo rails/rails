@@ -287,7 +287,7 @@ module ActiveRecord
     cattr_accessor :session_class
     self.session_class = Session
 
-    SESSION_RECORD_KEY = 'rack.session.record'.freeze
+    SESSION_RECORD_KEY = 'rack.session.record'
 
     private
       def get_session(env, sid)
