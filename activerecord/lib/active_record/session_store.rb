@@ -314,7 +314,7 @@ module ActiveRecord
 
         sid
       end
-      
+
       def destroy(env)
         if sid = current_session_id(env)
           Base.silence do
