@@ -214,7 +214,7 @@ class OrderedHashTest < Test::Unit::TestCase
 
   def test_alternate_initialization_raises_exception_on_odd_length_args
     begin
-      alternate = ActiveSupport::OrderedHash[1,2,3,4,5]
+      ActiveSupport::OrderedHash[1,2,3,4,5]
       flunk "Hash::[] should have raised an exception on initialization " +
           "with an odd number of parameters"
     rescue

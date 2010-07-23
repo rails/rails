@@ -28,7 +28,7 @@ module ActionMailer
 
         def determine_default_mailer(name)
           name.sub(/Test$/, '').constantize
-        rescue NameError => e
+        rescue NameError
           raise NonInferrableMailerError.new(name)
         end
       end

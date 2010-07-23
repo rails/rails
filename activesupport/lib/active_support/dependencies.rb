@@ -592,7 +592,7 @@ module ActiveSupport #:nodoc:
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
-      name = case desc
+      case desc
         when String then desc.sub(/^::/, '')
         when Symbol then desc.to_s
         when Module

@@ -419,7 +419,6 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_removal_from_tree_should_be_detected
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.autoload_paths.first
       c = ServiceOne
       ActiveSupport::Dependencies.clear
       assert ! defined?(ServiceOne)
@@ -434,7 +433,6 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_references_should_work
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.autoload_paths.first
       c = ActiveSupport::Dependencies.ref("ServiceOne")
       service_one_first = ServiceOne
       assert_equal service_one_first, c.get

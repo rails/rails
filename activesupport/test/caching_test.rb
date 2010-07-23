@@ -279,7 +279,7 @@ module CacheStoreBehavior
         assert_equal 'bar', @cache.read('foo')
         raise ArgumentError.new
       end
-    rescue ArgumentError => e
+    rescue ArgumentError
     end
     assert_equal "bar", @cache.read('foo')
     Time.stubs(:now).returns(time + 71)
