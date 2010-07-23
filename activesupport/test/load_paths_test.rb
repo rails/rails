@@ -9,7 +9,6 @@ class LoadPathsTest < Test::Unit::TestCase
       paths
     }
 
-    # CI has a bunch of duplicate load paths
-    # assert_equal [], load_paths_count.select { |k, v| v > 1 }, $LOAD_PATH.inspect
+    assert_equal [], load_paths_count.select { |k, v| v > 1 }, $LOAD_PATH.inspect
   end
 end
