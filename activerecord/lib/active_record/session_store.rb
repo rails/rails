@@ -49,8 +49,24 @@ module ActiveRecord
   # The example SqlBypass class is a generic SQL session store.  You may
   # use it as a basis for high-performance database-specific stores.
   class SessionStore < ActionDispatch::Session::AbstractStore
+    module ClassMethods # :nodoc:
+      def marshal(data)
+        ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
+      end
+
+      def unmarshal(data)
+        Marshal.load(ActiveSupport::Base64.decode64(data)) if data
+      end
+
+      def drop_table!
+        connection.execute "DROP TABLE #{table_name}"
+      end
+    end
+
     # The default Active Record class.
     class Session < ActiveRecord::Base
+      extend ClassMethods
+
       ##
       # :singleton-method:
       # Customizable data column name.  Defaults to 'data'.
@@ -71,14 +87,6 @@ module ActiveRecord
           find_by_session_id(session_id)
         end
 
-        def marshal(data)
-          ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
-        end
-
-        def unmarshal(data)
-          Marshal.load(ActiveSupport::Base64.decode64(data)) if data
-        end
-
         def create_table!
           connection.execute <<-end_sql
             CREATE TABLE #{table_name} (
@@ -87,10 +95,6 @@ module ActiveRecord
               #{connection.quote_column_name(data_column_name)} TEXT
             )
           end_sql
-        end
-
-        def drop_table!
-          connection.execute "DROP TABLE #{table_name}"
         end
 
         private
@@ -173,6 +177,8 @@ module ActiveRecord
     # binary session data in a +text+ column.  For higher performance,
     # store in a +blob+ column instead and forgo the Base64 encoding.
     class SqlBypass
+      extend ClassMethods
+
       ##
       # :singleton-method:
       # Use the ActiveRecord::Base.connection by default.
@@ -208,14 +214,6 @@ module ActiveRecord
           end
         end
 
-        def marshal(data)
-          ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
-        end
-
-        def unmarshal(data)
-          Marshal.load(ActiveSupport::Base64.decode64(data)) if data
-        end
-
         def create_table!
           connection.execute <<-end_sql
             CREATE TABLE #{table_name} (
@@ -224,10 +222,6 @@ module ActiveRecord
               #{connection.quote_column_name(data_column)} TEXT
             )
           end_sql
-        end
-
-        def drop_table!
-          connection.execute "DROP TABLE #{table_name}"
         end
       end
 

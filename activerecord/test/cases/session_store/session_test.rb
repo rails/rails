@@ -49,8 +49,11 @@ module ActiveRecord
 
       def test_find_by_session_id
         Session.create_table!
-        s = Session.create!(:data => 'world', :session_id => "10")
-        assert_equal s, Session.find_by_session_id("10")
+        session_id = "10"
+        s = Session.create!(:data => 'world', :session_id => session_id)
+        t = Session.find_by_session_id(session_id)
+        assert_equal s, t
+        assert_equal s.data, t.data
         Session.drop_table!
       end
 
