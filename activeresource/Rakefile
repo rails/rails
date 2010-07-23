@@ -2,7 +2,7 @@ gem 'rdoc', '>= 2.5.9'
 require 'rdoc'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
@@ -29,12 +29,12 @@ end
 
 # Generate the RDoc documentation
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Resource -- Object-oriented REST services"
-  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+  rdoc.options << '-f' << 'horo'
+  rdoc.options << '--main' << 'README.rdoc'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README.rdoc', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
   rdoc.rdoc_files.exclude('lib/activeresource.rb')

@@ -1,9 +1,8 @@
 gem 'rdoc', '>= 2.5.9'
 require 'rdoc'
-require 'horo'
 
 require 'rake'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/gempackagetask'
 
 PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
@@ -63,12 +62,11 @@ task :install => :gem do
 end
 
 desc "Generate documentation for the Rails framework"
-Rake::RDocTask.new do |rdoc|
+RDoc::Task.new do |rdoc|
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.title    = "Ruby on Rails Documentation"
 
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.options << '-A cattr_accessor=object'
+  rdoc.options << '-f' << 'horo'
   rdoc.options << '--charset' << 'utf-8'
   rdoc.options << '--main' << 'README.rdoc'
 

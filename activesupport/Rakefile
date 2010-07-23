@@ -1,7 +1,7 @@
 gem 'rdoc', '>= 2.5.9'
 require 'rdoc'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/gempackagetask'
 
 task :default => :test
@@ -22,12 +22,12 @@ dist_dirs = [ "lib", "test"]
 
 # Genereate the RDoc documentation
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Support -- Utility classes and standard library extensions from Rails"
-  rdoc.options << '--line-numbers' << '--inline-source'
+  rdoc.options << '-f' << 'horo'
+  rdoc.options << '--main' << 'README.rdoc'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README.rdoc', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')
   rdoc.rdoc_files.include('lib/active_support/**/*.rb')

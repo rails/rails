@@ -2,7 +2,7 @@ gem 'rdoc', '>= 2.5.9'
 require 'rdoc'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
@@ -38,12 +38,12 @@ end
 
 # Genereate the RDoc documentation
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Pack -- On rails from request to response"
-  rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
+  rdoc.options << '-f' << 'horo'
+  rdoc.options << '--main' << 'README.rdoc'
   if ENV['DOC_FILES']
     rdoc.rdoc_files.include(ENV['DOC_FILES'].split(/,\s*/))
   else
