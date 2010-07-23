@@ -117,6 +117,7 @@ class DependenciesTest < Test::Unit::TestCase
       assert_equal true, $checked_verbose, 'After first load warnings should be left alone.'
 
       assert ActiveSupport::Dependencies.loaded.include?(expanded)
+      ActiveSupport::Dependencies.warnings_on_first_load = old_warnings
     end
   end
 
