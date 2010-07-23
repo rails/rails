@@ -273,12 +273,13 @@ module ActiveRecord
       end
 
       def destroy
-        unless @new_record
-          @@connection.delete <<-end_sql, 'Destroy session'
-            DELETE FROM #{@@table_name}
-            WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
-          end_sql
-        end
+        return if @new_record
+
+        connect = connection
+        connect.delete <<-end_sql, 'Destroy session'
+          DELETE FROM #{table_name}
+          WHERE #{connect.quote_column_name(session_id_column)}=#{connect.quote(session_id)}
+        end_sql
       end
     end
 

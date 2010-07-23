@@ -42,6 +42,15 @@ module ActiveRecord
         assert_equal s.session_id, t.session_id
         assert_equal s.data, t.data
       end
+
+      def test_destroy
+        SqlBypass.create_table! unless Session.table_exists?
+        session_id = 20
+        s = SqlBypass.new :data => 'hello', :session_id => session_id
+        s.save
+        s.destroy
+        assert_nil SqlBypass.find_by_session_id session_id
+      end
     end
   end
 end
