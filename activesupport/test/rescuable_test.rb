@@ -14,6 +14,8 @@ class Stargate
 
   include ActiveSupport::Rescuable
 
+  rescue_from WraithAttack, :with => :sos_first
+
   rescue_from WraithAttack, :with => :sos
 
   rescue_from NuclearExplosion do
@@ -45,6 +47,11 @@ class Stargate
   def sos
     @result = 'killed'
   end
+
+  def sos_first
+    @result = 'sos_first'
+  end
+
 end
 
 class RescueableTest < Test::Unit::TestCase
@@ -66,4 +73,11 @@ class RescueableTest < Test::Unit::TestCase
     @stargate.dispatch :ronanize
     assert_equal 'dex', @stargate.result
   end  
+
+  def test_rescues_defined_later_are_added_at_end_of_the_rescue_handlers_array
+    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon"]
+    result = @stargate.send(:rescue_handlers).collect {|e| e.first}
+    assert_equal expected, result
+  end
+
 end
