@@ -21,7 +21,7 @@ module ActiveSupport
   #   ActiveRecord::LogSubscriber.attach_to :active_record
   #
   # Since we need to know all instance methods before attaching the log subscriber,
-  # the line above shuold be called after your ActiveRecord::LogSubscriber definition.
+  # the line above should be called after your ActiveRecord::LogSubscriber definition.
   #
   # After configured, whenever a "sql.active_record" notification is published,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
