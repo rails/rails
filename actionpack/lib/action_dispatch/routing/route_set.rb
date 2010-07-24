@@ -264,21 +264,17 @@ module ActionDispatch
       class RoutesProxy
         include ActionDispatch::Routing::UrlFor
 
-        %w(url_options polymorphic_url polymorphic_path).each do |method|
-          self.class_eval <<-RUBY, __FILE__, __LINE__ +1
-            def #{method}(*args)
-              scope.send(:_with_routes, routes) do
-                scope.#{method}(*args)
-              end
-            end
-          RUBY
-        end
-
         attr_accessor :scope, :routes
         alias :_routes :routes
 
         def initialize(routes, scope)
           @routes, @scope = routes, scope
+        end
+
+        def url_options
+          scope.send(:_with_routes, routes) do
+            scope.url_options
+          end
         end
 
         def method_missing(method, *args)
