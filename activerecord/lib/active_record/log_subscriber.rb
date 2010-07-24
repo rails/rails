@@ -6,6 +6,7 @@ module ActiveRecord
     end
 
     def sql(event)
+      connection.runtime += event.duration
       return unless logger.debug?
 
       name = '%s (%.1fms)' % [event.payload[:name], event.duration]
@@ -23,6 +24,10 @@ module ActiveRecord
 
     def odd?
       @odd_or_even = !@odd_or_even
+    end
+
+    def connection
+      ActiveRecord::Base.connection
     end
 
     def logger

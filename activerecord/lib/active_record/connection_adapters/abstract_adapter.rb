@@ -34,9 +34,8 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
 
+      attr_accessor :runtime
       define_callbacks :checkout, :checkin
-
-      @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
@@ -199,15 +198,10 @@ module ActiveRecord
 
         def log(sql, name)
           name ||= "SQL"
-          instrumenter = ActiveSupport::Notifications.instrumenter
-
-          result = instrumenter.instrument("sql.active_record",
+          ActiveSupport::Notifications.instrument("sql.active_record",
             :sql => sql, :name => name, :connection_id => object_id) do
             yield
           end
-          @runtime += instrumenter.elapsed
-
-          result
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger

@@ -172,15 +172,6 @@ module Notifications
         :exception => ["RuntimeError", "FAIL"]], @events.last.payload
     end
 
-    def test_elapsed
-      instrument(:something) do
-        sleep(0.001)
-      end
-
-      # Elapsed returns duration in ms
-      assert_in_delta 1, ActiveSupport::Notifications.instrumenter.elapsed, 100
-    end
-
     def test_event_is_pushed_even_without_block
       instrument(:awesome, :payload => "notifications")
       assert_equal 1, @events.size

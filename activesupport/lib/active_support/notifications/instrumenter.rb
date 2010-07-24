@@ -9,28 +9,22 @@ module ActiveSupport
       def initialize(notifier)
         @id = unique_id
         @notifier = notifier
-        @started = nil
-        @finished = nil
       end
 
       # Instrument the given block by measuring the time taken to execute it
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block
       def instrument(name, payload={})
+        started = Time.now
+
         begin
-          @started = Time.now
           yield
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           raise e
         ensure
-          @finished = Time.now
-          @notifier.publish(name, @started, @finished, @id, payload)
+          @notifier.publish(name, started, Time.now, @id, payload)
         end
-      end
-
-      def elapsed
-        1000.0 * (@finished.to_f - @started.to_f)
       end
 
       private
