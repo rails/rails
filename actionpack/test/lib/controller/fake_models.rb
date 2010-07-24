@@ -83,7 +83,7 @@ class Comment
   def to_key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
   def persisted?; @id.present? end
-  def to_param; @id; end
+  def to_param; @id.to_s; end
   def name
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
   end
