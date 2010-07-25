@@ -50,7 +50,7 @@ module ActiveRecord
       # Returns an array of AssociationReflection objects for all the 
       # associations in the class. If you only want to reflect on a certain 
       # association type, pass in the symbol (<tt>:has_many</tt>, <tt>:has_one</tt>, 
-      # <tt>:belongs_to</tt>) for that as the first parameter.
+      # <tt>:belongs_to</tt>) as the first parameter.
       #
       # Example:
       #
@@ -62,9 +62,9 @@ module ActiveRecord
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 
-      # Returns the AssociationReflection object for the named +association+ (use the symbol). Example:
+      # Returns the AssociationReflection object for the +association+ (use the symbol).
       #
-      #   Account.reflect_on_association(:owner) # returns the owner AssociationReflection
+      #   Account.reflect_on_association(:owner)             # returns the owner AssociationReflection
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
@@ -88,34 +88,37 @@ module ActiveRecord
         @macro, @name, @options, @active_record = macro, name, options, active_record
       end
 
-      # Returns the name of the macro.  For example, <tt>composed_of :balance, 
-      # :class_name => 'Money'</tt> will return <tt>:balance</tt> or for 
-      # <tt>has_many :clients</tt> it will return <tt>:clients</tt>.
+      # Returns the name of the macro.
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>:balance</tt> 
+      # <tt>has_many :clients</tt> will return <tt>:clients</tt>
       def name
         @name
       end
 
-      # Returns the macro type. For example, 
+      # Returns the macro type. 
       # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>:composed_of</tt>
-      # or for <tt>has_many :clients</tt> will return <tt>:has_many</tt>.
+      # <tt>has_many :clients</tt> will return <tt>:has_many</tt>
       def macro
         @macro
       end
 
-      # Returns the hash of options used for the macro.  For example, it would return <tt>{ :class_name => "Money" }</tt> for
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> or +{}+ for <tt>has_many :clients</tt>.
+      # Returns the hash of options used for the macro.  
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>{ :class_name => "Money" }</tt>
+      # <tt>has_many :clients</tt> will return +{}+
       def options
         @options
       end
 
-      # Returns the class for the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money
-      # class and <tt>has_many :clients</tt> returns the Client class.
+      # Returns the class for the macro.  
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return the Money class
+      # <tt>has_many :clients</tt> will return the Client class
       def klass
         @klass ||= class_name.constantize
       end
 
-      # Returns the class name for the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
-      # and <tt>has_many :clients</tt> returns <tt>'Client'</tt>.
+      # Returns the class name for the macro.  
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>'Money'</tt>
+      # <tt>has_many :clients</tt> will return <tt>'Client'</tt>
       def class_name
         @class_name ||= options[:class_name] || derive_class_name
       end

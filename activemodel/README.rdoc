@@ -1,21 +1,21 @@
-= Active Model - defined interfaces for Rails
- 
-Prior to Rails 3.0, if a plugin or gem developer wanted to be able to have
-an object interact with Action Pack helpers, it was required to either
-copy chunks of code from Rails, or monkey patch entire helpers to make them
-handle objects that did not look like Active Record.  This generated code
-duplication and fragile applications that broke on upgrades.
- 
-Active Model is a solution for this problem.
- 
-Active Model provides a known set of interfaces that your objects can implement
-to then present a common interface to the Action Pack helpers.  You can include
-functionality from the following modules:
+= Active Model -- model interfaces for Rails
 
-* Adding attribute magic to your objects
+Active Model provides a known set of interfaces for usage in model classes.
+They allow for Action Pack helpers to interact with non-ActiveRecord models,
+for example. Active Model also helps building custom ORMs for use outside of
+the Rails framework.
 
-    Add prefixes and suffixes to defined attribute methods...
-    
+Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
+interact with Action Pack helpers, it was required to either copy chunks of
+code from Rails, or monkey patch entire helpers to make them handle objects
+that did not exacly conform to the Active Record interface. This would result
+in code duplication and fragile applications that broke on upgrades.
+
+Active Model solves this. You can include functionality from the following
+modules:
+
+* Add attribute magic to objects
+
     class Person
       include ActiveModel::AttributeMethods
       
@@ -23,17 +23,18 @@ functionality from the following modules:
       define_attribute_methods [:name, :age]
       
       attr_accessor :name, :age
-    
+      
       def clear_attribute(attr)
         send("#{attr}=", nil)
       end
     end
     
-    ...gives you clear_name, clear_age.
+    person.clear_name
+    person.clear_age
   
   {Learn more}[link:classes/ActiveModel/AttributeMethods.html]
   
-* Adding callbacks to your objects
+* Callbacks for certain operations
 
     class Person
       extend ActiveModel::Callbacks
@@ -45,26 +46,16 @@ functionality from the following modules:
         end
       end
     end
-    
-    ...gives you before_create, around_create and after_create class methods that
-    wrap your create method.
-   
+  
+  This generates +before_create+, +around_create+ and +after_create+
+  class methods that wrap your create method.
+  
   {Learn more}[link:classes/ActiveModel/CallBacks.html]
 
-* For classes that already look like an Active Record object
+* Tracking value changes
 
-    class Person
-      include ActiveModel::Conversion
-    end
-    
-    ...returns the class itself when sent :to_model
+  The ActiveModel::Dirty module allows for tracking attribute changes:
 
-   {Learn more}[link:classes/ActiveModel/Conversion.html]
-
-* Tracking changes in your object
-
-    Provides all the value tracking features implemented by ActiveRecord...
-    
     person = Person.new
     person.name # => nil
     person.changed? # => false
@@ -75,14 +66,14 @@ functionality from the following modules:
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
- 
+  
   {Learn more}[link:classes/ActiveModel/Dirty.html]
 
-* Adding +errors+ support to your object
+* Adding +errors+ interface to objects
 
-    Provides the error messages to allow your object to interact with Action Pack
-    helpers seamlessly...
-    
+  Exposing error messages allows objects to interact with Action Pack
+  helpers seamlessly.
+  
     class Person
     
       def initialize
@@ -102,51 +93,38 @@ functionality from the following modules:
     
     end
     
-    ... gives you...
-    
     person.errors.full_messages
     # => ["Name Can not be nil"]
+    
     person.errors.full_messages
     # => ["Name Can not be nil"]
 
   {Learn more}[link:classes/ActiveModel/Errors.html]
 
-* Testing the compliance of your object
+* Model name introspection
 
-    Use ActiveModel::Lint to test the compliance of your object to the
-    basic ActiveModel API...
-    
-  {Learn more}[link:classes/ActiveModel/Lint/Tests.html]
-
-* Providing a human face to your object
-
-    ActiveModel::Naming provides your model with the model_name convention
-    and a human_name attribute...
-    
     class NamedPerson
       extend ActiveModel::Naming
     end
-    
-    ...gives you...
     
     NamedPerson.model_name        #=> "NamedPerson"
     NamedPerson.model_name.human  #=> "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 
-* Adding observer support to your objects
+* Observer support
 
-    ActiveModel::Observers allows your object to implement the Observer
-    pattern in a Rails App and take advantage of all the standard observer
-    functions.
+  ActiveModel::Observers allows your object to implement the Observer
+  pattern in a Rails App and take advantage of all the standard observer
+  functions.
   
   {Learn more}[link:classes/ActiveModel/Observer.html]
 
-* Making your object serializable
+* Making objects serializable
 
-    ActiveModel::Serialization provides a standard interface for your object
-    to provide to_json or to_xml serialization...
-    
+  ActiveModel::Serialization provides a standard interface for your object
+  to provide +to_json+ or +to_xml+ serialization.
+  
     s = SerialPerson.new
     s.serializable_hash   # => {"name"=>nil}
     s.to_json             # => "{\"name\":null}"
@@ -154,36 +132,36 @@ functionality from the following modules:
   
   {Learn more}[link:classes/ActiveModel/Serialization.html]
 
-* Integrating with Rail's internationalization (i18n) handling through
-  ActiveModel::Translations...
+* Internationalization (i18n) support
 
     class Person
       extend ActiveModel::Translation
     end
+    
+    Person.human_attribute_name('my_attribute')
+    #=> "My attribute"
   
   {Learn more}[link:classes/ActiveModel/Translation.html]
 
-* Providing a full Validation stack for your objects...
+* Validation support
 
    class Person
      include ActiveModel::Validations
 
      attr_accessor :first_name, :last_name
 
-
      validates_each :first_name, :last_name do |record, attr, value|
        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
      end
    end
 
-
    person = Person.new
    person.first_name = 'zoolander'
-   person.valid?          #=> false
+   person.valid?  #=> false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
   
-* Make custom validators
+* Custom validators
 
    class Person
      include ActiveModel::Validations
@@ -196,7 +174,7 @@ functionality from the following modules:
       record.errors[:name] = "must exist" if record.name.blank?
      end
    end
-  
+   
    p = ValidatorPerson.new
    p.valid?                  #=>  false
    p.errors.full_messages    #=> ["Name must exist"]

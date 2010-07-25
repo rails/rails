@@ -119,33 +119,29 @@ The Base class has the full list of configuration options. Here's an example:
     :authentication => :plain                 # :plain, :login or :cram_md5
   }
 
-== Dependencies
 
-Action Mailer requires that the Action Pack is either available to be required immediately
-or is accessible as a GEM.
-
-Additionally, Action Mailer requires the Mail gem, http://github.com/mikel/mail
-
-== Download
+== Download and installation
 
 The latest version of Action Mailer can be installed with Rubygems:
 
-* gem install actionmailer
+  % [sudo] gem install actionmailer
 
-Documentation can be found at 
+Source code can be downloaded as part of the Rails project on GitHub
 
-* http://api.rubyonrails.org
+* http://github.com/rails/rails/tree/master/actionmailer/
+
 
 == License
 
 Action Mailer is released under the MIT license.
 
+
 == Support
 
-The Action Mailer homepage is http://www.rubyonrails.org. You can find
-the Action Mailer RubyForge page at http://rubyforge.org/projects/actionmailer.
-And as Jim from Rake says:
+API documentation is at
 
-   Feel free to submit commits or feature requests.  If you send a patch,
-   remember to update the corresponding unit tests.  If fact, I prefer
-   new feature to be submitted in the form of new unit tests.
+* http://api.rubyonrails.com
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets

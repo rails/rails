@@ -70,7 +70,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     initializer "my_railtie.configure_rails_initialization" do |app|
-  #       app.middlewares.use MyRailtie::Middleware
+  #       app.middleware.use MyRailtie::Middleware
   #     end
   #   end
   #
