@@ -43,6 +43,7 @@ module ActiveRecord
         @runtime = 0
         @query_cache_enabled = false
         @query_cache = {}
+        @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
       # Returns the human-readable name of the adapter.  Use mixed case - one
@@ -198,7 +199,7 @@ module ActiveRecord
 
         def log(sql, name)
           name ||= "SQL"
-          ActiveSupport::Notifications.instrument("sql.active_record",
+          @instrumenter.instrument("sql.active_record",
             :sql => sql, :name => name, :connection_id => object_id) do
             yield
           end
