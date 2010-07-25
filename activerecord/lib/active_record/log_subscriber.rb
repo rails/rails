@@ -5,7 +5,7 @@ module ActiveRecord
     end
 
     def self.runtime
-      Thread.current["active_record_sql_runtime"]
+      Thread.current["active_record_sql_runtime"] ||= 0
     end
 
     def self.reset_runtime
@@ -45,5 +45,4 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::LogSubscriber.runtime = 0
 ActiveRecord::LogSubscriber.attach_to :active_record
