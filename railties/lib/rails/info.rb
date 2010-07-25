@@ -1,4 +1,3 @@
-require "active_support/core_ext/object/misc"
 require "cgi"
 require "active_support/core_ext/cgi"
 
