@@ -157,21 +157,6 @@ WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded l
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
-h4. +returning+
-
-The method +returning+ yields its argument to a block and returns it. You typically use it with a mutable object that gets modified in the block:
-
-<ruby>
-def html_options_for_form(url_for_options, options, *parameters_for_url)
-  returning options.stringify_keys do |html_options|
-    html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
-    html_options["action"]  = url_for(url_for_options, *parameters_for_url)
-  end
-end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/object/returning.rb+.
-
 h4. +try+
 
 Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
