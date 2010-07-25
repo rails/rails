@@ -377,7 +377,7 @@ module ActionController
     ActiveSupport::Inflector.module_eval do
       # Ensures that routes are reloaded when Rails inflections are updated.
       def inflections_with_route_reloading(&block)
-        returning(inflections_without_route_reloading(&block)) {
+        (inflections_without_route_reloading(&block)).tap {
           ActionController::Routing::Routes.reload! if block_given?
         }
       end

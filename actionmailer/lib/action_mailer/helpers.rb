@@ -105,7 +105,7 @@ module ActionMailer
     private
       # Extend the template class instance with our controller's helper module.
       def initialize_template_class_with_helper(assigns)
-        returning(template = initialize_template_class_without_helper(assigns)) do
+        initialize_template_class_without_helper(assigns).tap do |template|
           template.extend self.class.master_helper_module
         end
       end

@@ -653,7 +653,7 @@ module ActionView
         # <script> tag.
         module GeneratorMethods
           def to_s #:nodoc:
-            returning javascript = @lines * $/ do
+            (@lines * $/).tap do |javascript|
               if ActionView::Base.debug_rjs
                 source = javascript.dup
                 javascript.replace "try {\n#{source}\n} catch (e) "
@@ -981,8 +981,8 @@ module ActionView
             end
 
             def record(line)
-              returning line = "#{line.to_s.chomp.gsub(/\;\z/, '')};" do
-                self << line
+              "#{line.to_s.chomp.gsub(/\;\z/, '')};".tap do |_line|
+                self << _line
               end
             end
 

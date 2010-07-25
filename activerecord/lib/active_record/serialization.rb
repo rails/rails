@@ -74,7 +74,7 @@ module ActiveRecord #:nodoc:
       end
 
       def serializable_record
-        returning(serializable_record = {}) do
+        {}.tap do |serializable_record|
           serializable_names.each { |name| serializable_record[name] = @record.send(name) }
           add_includes do |association, records, opts|
             if records.is_a?(Enumerable)

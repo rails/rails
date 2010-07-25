@@ -12,7 +12,7 @@ module ActiveSupport #:nodoc:
             if block_given?
               step_without_blockless(value, &block)
             else
-              returning [] do |array|
+              [].tap do |array|
                 step_without_blockless(value) { |step| array << step }
               end
             end

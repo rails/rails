@@ -35,7 +35,7 @@ module Rails
     def load_paths
       report_nonexistant_or_empty_plugin! unless valid?
       
-      returning [] do |load_paths|
+      [].tap do |load_paths|
         load_paths << lib_path  if has_lib_directory?
         load_paths << app_paths if has_app_directory?
       end.flatten

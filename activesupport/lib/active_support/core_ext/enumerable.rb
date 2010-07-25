@@ -75,7 +75,7 @@ module Enumerable
   #   (1..5).each_with_object(1) { |value, memo| memo *= value } # => 1
   #
   def each_with_object(memo, &block)
-    returning memo do |m|
+    memo.tap do |m|
       each do |element|
         block.call(element, m)
       end

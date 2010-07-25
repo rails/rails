@@ -2646,7 +2646,7 @@ module ActiveRecord #:nodoc:
       # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
       # instance will affect the other.
       def becomes(klass)
-        returning klass.new do |became|
+        klass.new.tap do |became|
           became.instance_variable_set("@attributes", @attributes)
           became.instance_variable_set("@attributes_cache", @attributes_cache)
           became.instance_variable_set("@new_record", new_record?)

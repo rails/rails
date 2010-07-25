@@ -440,7 +440,7 @@ module ActionView
 
       private
         def html_options_for_form(url_for_options, options, *parameters_for_url)
-          returning options.stringify_keys do |html_options|
+          options.stringify_keys.tap do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             html_options["action"]  = url_for(url_for_options, *parameters_for_url)
           end
