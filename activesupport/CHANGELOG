@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Removed Object#returning, Object#tap should be used instead. [Santiago Pastorino]
+
 * Deprecation behavior is no longer hardcoded to the name of the environment.
   Instead, it is set via config.active_support.deprecation and can be one
   of :log, :stderr or :notify. :notify is a new style that sends the warning
