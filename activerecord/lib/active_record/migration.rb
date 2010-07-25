@@ -409,6 +409,8 @@ module ActiveRecord
 
   class Migrator#:nodoc:
     class << self
+      attr_writer :migrations_path
+
       def migrate(migrations_path, target_version = nil)
         case
           when target_version.nil?
@@ -441,10 +443,6 @@ module ActiveRecord
         self.new(direction, migrations_path, target_version).run
       end
 
-      def migrations_path
-        'db/migrate'
-      end
-
       def schema_migrations_table_name
         Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
       end
@@ -466,6 +464,10 @@ module ActiveRecord
       def proper_table_name(name)
         # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
         name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+      end
+
+      def migrations_path
+        @migrations_path ||= 'db/migrate'
       end
 
       private

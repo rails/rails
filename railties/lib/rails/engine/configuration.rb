@@ -34,6 +34,8 @@ module Rails
           paths.public.stylesheets  "public/stylesheets"
           paths.vendor              "vendor", :load_path => true
           paths.vendor.plugins      "vendor/plugins"
+          paths.db                  "db"
+          paths.db.migrate          "db/migrate"
           paths
         end
       end
