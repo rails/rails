@@ -11,9 +11,10 @@ module ActiveRecord
 
       def cleanup_view_runtime
         if ActiveRecord::Base.connected?
-          db_rt_before_render = ActiveRecord::Base.connection.reset_runtime
+          connection = ActiveRecord::Base.connection
+          db_rt_before_render = connection.reset_runtime
           runtime = super
-          db_rt_after_render = ActiveRecord::Base.connection.reset_runtime
+          db_rt_after_render = connection.reset_runtime
           self.db_runtime = db_rt_before_render + db_rt_after_render
           runtime - db_rt_after_render
         else
