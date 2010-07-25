@@ -38,7 +38,7 @@ module ApplicationTests
       ], middleware
     end
 
-    test "removing activerecord omits its middleware" do
+    test "removing Active Record omits its middleware" do
       use_frameworks []
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")

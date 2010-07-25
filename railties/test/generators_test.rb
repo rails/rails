@@ -108,7 +108,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_match /^  fixjour$/, output
   end
 
-  def test_rails_generators_does_not_show_activerecord_hooks
+  def test_rails_generators_does_not_show_active_record_hooks
     output = capture(:stdout){ Rails::Generators.help }
     assert_match /ActiveRecord:/, output
     assert_match /^  active_record:fixjour$/, output

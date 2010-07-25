@@ -1,6 +1,6 @@
 require File.expand_path('../boot', __FILE__)
 
-<% unless options[:skip_activerecord] -%>
+<% unless options[:skip_active_record] -%>
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:

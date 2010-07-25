@@ -1,5 +1,8 @@
 *Rails 3.0.0 [Release Candidate] (unreleased)*
 
+* Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit
+  and --skip-active-record respectively. [fxn]
+
 * Added console to Rails::Railtie as a hook called just after console starts. [José Valim]
 
 * Rails no longer autoload code in lib for application. You need to explicitly require it. [José Valim]

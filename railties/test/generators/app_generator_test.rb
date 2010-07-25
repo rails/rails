@@ -65,7 +65,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_options_before_application_name_raises_an_error
-    content = capture(:stderr){ run_generator(["--skip-activerecord", destination_root]) }
+    content = capture(:stderr){ run_generator(["--skip-active-record", destination_root]) }
     assert_equal "Options should be given after the application name. For details run: rails --help\n", content
   end
 
@@ -117,13 +117,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql["']$/
   end
 
-  def test_config_database_is_not_added_if_skip_activerecord_is_given
-    run_generator [destination_root, "--skip-activerecord"]
+  def test_config_database_is_not_added_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
   end
 
-  def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
-    run_generator [destination_root, "--skip-activerecord"]
+  def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
@@ -137,7 +137,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_prototype_and_test_unit_are_skipped_if_required
-    run_generator [destination_root, "--skip-prototype", "--skip-testunit"]
+    run_generator [destination_root, "--skip-prototype", "--skip-test-unit"]
     assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
     assert_file "public/javascripts/application.js"
     assert_no_file "public/javascripts/prototype.js"
