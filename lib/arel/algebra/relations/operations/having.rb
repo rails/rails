@@ -2,7 +2,6 @@ module Arel
   class Having < Compound
     attributes :relation, :predicates
     deriving   :==
-    requires   :restricting
 
     def initialize(relation, *predicates)
       predicates = [yield(relation)] + predicates if block_given?

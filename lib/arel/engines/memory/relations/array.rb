@@ -4,7 +4,7 @@ module Arel
 
     attributes :array,  :attribute_names_and_types
     include Recursion::BaseCase
-    deriving :==, :initialize
+    deriving :==
 
     def initialize(array, attribute_names_and_types)
       @array, @attribute_names_and_types = array, attribute_names_and_types

@@ -1,7 +1,7 @@
 module Arel
   class Lock < Compound
     attributes :relation, :locked
-    deriving :initialize, :==
+    deriving :==
 
     def initialize(relation, locked)
       @relation = relation

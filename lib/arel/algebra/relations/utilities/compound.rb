@@ -4,7 +4,7 @@ module Arel
 
     attr_reader :relation
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
-             :column_for, :engine, :sources, :locked, :table_alias,
+             :column_for, :sources, :locked, :table_alias,
              :to => :relation
 
     def self.requires(feature = nil)
