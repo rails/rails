@@ -120,9 +120,6 @@ desc "Publish API docs for Rails as a whole and for each component"
 task :pdoc => :rdoc do
   require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new("rails@api.rubyonrails.org", "public_html/api", "doc/rdoc").upload
-  PROJECTS.each do |project|
-    system %(cd #{project} && #{$0} pdoc)
-  end
 end
 
 task :update_versions do

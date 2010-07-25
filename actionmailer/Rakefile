@@ -50,9 +50,3 @@ task :release => :package do
   Rake::Gemcutter::Tasks.new(spec).define
   Rake::Task['gem:push'].invoke
 end
-
-desc "Publish the API documentation"
-task :pdoc => [:rdoc] do
-  require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("rails@api.rubyonrails.org", "public_html/am", "doc").upload
-end
