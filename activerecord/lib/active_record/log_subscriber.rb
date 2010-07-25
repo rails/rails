@@ -6,6 +6,7 @@ module ActiveRecord
     end
 
     def sql(event)
+      connection = ActiveRecord::Base.connection
       connection.runtime += event.duration
       return unless logger.debug?
 
@@ -24,10 +25,6 @@ module ActiveRecord
 
     def odd?
       @odd_or_even = !@odd_or_even
-    end
-
-    def connection
-      ActiveRecord::Base.connection
     end
 
     def logger
