@@ -89,6 +89,15 @@ class JavaScriptHelperTest < ActionView::TestCase
       link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
   end
 
+  def test_link_to_function_with_inner_block
+    html = link_to_function("Greet me!") do |page|
+      content_tag :h1 do
+        'Hi'
+      end
+    end
+  end
+
+
   def test_javascript_tag
     self.output_buffer = 'foo'
 
