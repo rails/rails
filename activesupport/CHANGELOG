@@ -1,5 +1,7 @@
 *2.3.9 (unreleased)*
 
+* Deprecate Object#returning in favor of Object#tap [Santiago Pastorino]
+
 * Deprecates ActiveSupport::Dependencies.load_(once_)paths in favor of autolaod_(once_)paths. [fxn]
 
 * Deprecates Array#random_element in favor of Array#sample, backported from Ruby 1.9, thanks to 
