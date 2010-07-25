@@ -114,7 +114,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def view_with_controller
-    returning(TestController.new.view_context) do |view|
+    TestController.new.view_context.tap do |view|
       view.output_buffer = ActionView::OutputBuffer.new
     end
   end

@@ -500,7 +500,7 @@ module ActionDispatch
         end
 
         def add_conditions_for(conditions, method)
-          returning({:conditions => conditions.dup}) do |options|
+          {:conditions => conditions.dup}.tap do |options|
             options[:conditions][:method] = method unless method == :any
           end
         end

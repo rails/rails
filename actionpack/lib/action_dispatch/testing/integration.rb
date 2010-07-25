@@ -319,7 +319,7 @@ module ActionDispatch
           reset! unless @integration_session
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless %w(cookies assigns).include?(method)
-          returning @integration_session.__send__(method, *args) do
+          @integration_session.__send__(method, *args).tap do
             copy_session_variables!
           end
         end
@@ -362,7 +362,7 @@ module ActionDispatch
       def method_missing(sym, *args, &block)
         reset! unless @integration_session
         if @integration_session.respond_to?(sym)
-          returning @integration_session.__send__(sym, *args, &block) do
+          @integration_session.__send__(sym, *args, &block).tap do
             copy_session_variables!
           end
         else
