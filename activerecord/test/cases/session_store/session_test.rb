@@ -5,6 +5,8 @@ require 'active_record/session_store'
 module ActiveRecord
   class SessionStore
     class SessionTest < ActiveRecord::TestCase
+      self.use_transactional_fixtures = false
+
       def setup
         super
         Session.drop_table! if Session.table_exists?
