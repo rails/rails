@@ -1255,6 +1255,8 @@ MSG
             replace_named_bind_variables(statement, values.first)
           elsif statement.include?('?')
             replace_bind_variables(statement, values)
+          elsif statement.blank?
+            statement
           else
             statement % values.collect { |value| connection.quote_string(value.to_s) }
           end
