@@ -34,13 +34,11 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
 
-      attr_accessor :runtime
       define_callbacks :checkout, :checkin
 
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
         @connection, @logger = connection, logger
-        @runtime = 0
         @query_cache_enabled = false
         @query_cache = {}
       end
@@ -89,11 +87,6 @@ module ActiveRecord
       # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
         false
-      end
-
-      def reset_runtime #:nodoc:
-        rt, @runtime = @runtime, 0
-        rt
       end
 
       # QUOTING ==================================================
