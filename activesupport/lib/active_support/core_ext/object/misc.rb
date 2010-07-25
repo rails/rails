@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 class Object
   # Returns +value+ after yielding +value+ to the block. This simplifies the
   # process of constructing an object, performing work on the object, and then
@@ -36,6 +38,7 @@ class Object
   #  
   #  foo # => ['bar', 'baz']
   def returning(value)
+    ActiveSupport::Deprecation.warn('Object#returning has been deprecated in favor of Object#tap.', caller)
     yield(value)
     value
   end
