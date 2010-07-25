@@ -47,21 +47,11 @@ module ActiveSupport
       attr_writer :notifier
       delegate :publish, :unsubscribe, :to => :notifier
 
-      def instrument(name, payload = {}, info = nil)
+      def instrument(name, payload = {})
         if @instrumenters[name]
-          instrumenter.instrument(name, payload, info) {
-            yield payload if block_given?
-          }
+          instrumenter.instrument(name, payload) { yield payload if block_given? }
         else
-          value = nil
-          if block_given?
-            if info
-              info[:elapsed] = Benchmark.ms { value = yield payload }
-            else
-              value = yield payload
-            end
-          end
-          value
+          yield payload if block_given?
         end
       end
 
