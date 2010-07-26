@@ -48,6 +48,10 @@ module Rails
 
     attr_reader :name, :path
 
+    def railtie_name
+      name.to_s
+    end
+
     def load_tasks
       super
       load_deprecated_tasks

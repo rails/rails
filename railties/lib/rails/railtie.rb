@@ -164,7 +164,14 @@ module Rails
       def abstract_railtie?
         ABSTRACT_RAILTIES.include?(name)
       end
+
+      def railtie_name(name = nil)
+        @railtie_name = name if name
+        @railtie_name ||= ActiveSupport::Inflector.underscore(self.name).gsub("/", "_")
+      end
     end
+
+    delegate :railtie_name, :to => "self.class"
 
     def config
       @config ||= Railtie::Configuration.new

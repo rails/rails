@@ -28,6 +28,7 @@ module RailtiesTest
         plugin.write "lib/bukkits.rb", <<-RUBY
           class Bukkits
             class Engine < ::Rails::Engine
+              railtie_name "bukkits"
             end
           end
         RUBY
