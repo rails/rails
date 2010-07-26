@@ -166,7 +166,7 @@ module Rails
       end
 
       def railtie_name(name = nil)
-        @railtie_name = name if name
+        @railtie_name = name.to_s if name
         @railtie_name ||= ActiveSupport::Inflector.underscore(self.name).gsub("/", "_")
       end
     end
