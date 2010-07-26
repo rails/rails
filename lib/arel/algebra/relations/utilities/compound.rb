@@ -9,6 +9,7 @@ module Arel
 
     def initialize relation
       @relation = relation
+      @attributes = nil
     end
 
     [:wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
