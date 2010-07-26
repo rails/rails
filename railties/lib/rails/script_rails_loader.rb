@@ -7,6 +7,7 @@ module Rails
 
     def self.exec_script_rails!
       cwd = Dir.pwd
+      return unless in_rails_application? || in_rails_application_subdirectory?
       exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
       Dir.chdir("..") do
         # Recurse in a chdir block: if the search fails we want to be sure
@@ -18,7 +19,7 @@ module Rails
     end
     
     def self.in_rails_application?
-      File.exists?(SCRIPT_RAILS) || in_rails_application_subdirectory?
+      File.exists?(SCRIPT_RAILS)
     end
     
     def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
