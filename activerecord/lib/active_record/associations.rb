@@ -1815,6 +1815,10 @@ module ActiveRecord
               when Hash
                 associations.keys.each do |name|
                   reflection = base.reflections[name]
+                  
+                  if records.any? && reflection.options && reflection.options[:uniq]
+                    records.each { |record| record.send(reflection.name).target.uniq! }
+                  end
 
                   parent_records = []
                   records.each do |record|

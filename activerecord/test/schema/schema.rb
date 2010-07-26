@@ -618,6 +618,19 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
   end
 
+  create_table :liquid, :force => true do |t|
+    t.string :name
+  end
+  create_table :molecules, :force => true do |t|
+    t.integer :liquid_id
+    t.string :name
+  end
+  create_table :electrons, :force => true do |t|
+    t.integer :molecule_id
+    t.string :name
+  end
+
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|
