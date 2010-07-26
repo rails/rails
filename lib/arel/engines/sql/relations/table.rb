@@ -2,7 +2,16 @@ module Arel
   class Table
     include Relation, Recursion::BaseCase
 
-    cattr_accessor :engine, :tables
+    @@engine = nil
+    @@tables = nil
+    class << self # FIXME: Do we really need these?
+      def engine; @@engine; end
+      def engine= e; @@engine = e; end
+
+      def tables; @@tables; end
+      def tables= e; @@tables = e; end
+    end
+
     attr_reader :name, :engine, :table_alias, :options
 
     def initialize(name, options = {})
