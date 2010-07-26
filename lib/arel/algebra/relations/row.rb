@@ -1,7 +1,18 @@
 module Arel
   class Row
-    attributes :relation, :tuple
-    deriving :==, :initialize
+    attr_reader :tuple, :relation
+
+    def initialize relation, tuple
+      @relation = relation
+      @tuple = tuple
+    end
+
+    def == other
+      super ||
+        Row === other &&
+        relation == other.relation &&
+        tuple == other.tuple
+    end
 
     def [](attribute)
       attribute.type_cast(tuple[relation.position_of(attribute)])
