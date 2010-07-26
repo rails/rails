@@ -28,5 +28,9 @@ module Arel
     def externalizable?
       true
     end
+
+    def eval
+      unoperated_rows[0, taken]
+    end
   end
 end

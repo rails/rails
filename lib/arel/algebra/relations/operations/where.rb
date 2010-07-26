@@ -30,5 +30,9 @@ module Arel
         engine
       end
     end
+
+    def eval
+      unoperated_rows.select { |row| predicates.all? { |p| p.eval(row) } }
+    end
   end
 end

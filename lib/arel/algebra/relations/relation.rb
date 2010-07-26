@@ -6,6 +6,10 @@ module Arel
       Session.instance
     end
 
+    def join?
+      false
+    end
+
     def call
       engine.read(self)
     end

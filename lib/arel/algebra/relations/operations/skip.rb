@@ -24,5 +24,9 @@ module Arel
         engine
       end
     end
+
+    def eval
+      unoperated_rows[skipped..-1]
+    end
   end
 end

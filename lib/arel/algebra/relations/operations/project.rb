@@ -22,5 +22,9 @@ module Arel
         relation == other.relation &&
         projections == other.projections
     end
+
+    def eval
+      unoperated_rows.collect { |r| r.slice(*projections) }
+    end
   end
 end

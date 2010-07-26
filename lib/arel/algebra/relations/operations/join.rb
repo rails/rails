@@ -70,10 +70,4 @@ module Arel
       relation1.engine
     end
   end
-
-  module Relation
-    def join?
-      false
-    end
-  end
 end

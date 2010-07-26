@@ -31,5 +31,12 @@ module Arel
         engine
       end
     end
+
+    def eval
+      unoperated_rows.sort do |row1, row2|
+        ordering = orders.detect { |o| o.eval(row1, row2) != 0 } || orders.last
+        ordering.eval(row1, row2)
+      end
+    end
   end
 end
