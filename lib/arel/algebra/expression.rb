@@ -16,6 +16,10 @@ module Arel
       true
     end
 
+    def to_sql(formatter = Sql::SelectClause.new(relation))
+      formatter.expression self
+    end
+
     module Transformations
       def as(aliaz)
         self.class.new(attribute, aliaz, self)
@@ -32,11 +36,28 @@ module Arel
     include Transformations
   end
 
-  class Count    < Expression; end
-  class Distinct < Expression; end
-  class Sum      < Expression; end
-  class Maximum  < Expression; end
-  class Minimum  < Expression; end
-  class Average  < Expression; end
+  class Count < Expression
+    def function_sql; 'COUNT' end
+  end
+
+  class Distinct < Expression
+    def function_sql; 'DISTINCT' end
+  end
+
+  class Sum < Expression
+    def function_sql; 'SUM' end
+  end
+
+  class Maximum < Expression
+    def function_sql; 'MAX' end
+  end
+
+  class Minimum < Expression
+    def function_sql; 'MIN' end
+  end
+
+  class Average < Expression
+    def function_sql; 'AVG' end
+  end
 end
 

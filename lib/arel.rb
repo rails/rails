@@ -5,6 +5,7 @@ require 'active_support/core_ext/object/blank'
 
 module Arel
   require 'arel/algebra'
+  require 'arel/sql_literal'
   require 'arel/engines'
   require 'arel/version'
 
