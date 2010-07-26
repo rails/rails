@@ -14,5 +14,9 @@ module Arel
         @relation == other.relation &&
         @groupings == other.groupings
     end
+
+    def eval
+      raise NotImplementedError
+    end
   end
 end

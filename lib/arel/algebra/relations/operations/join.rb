@@ -53,6 +53,19 @@ module Arel
 
     # FIXME remove this.  :'(
     alias :eql? :==
+
+    def eval
+      result = []
+      relation1.call.each do |row1|
+        relation2.call.each do |row2|
+          combined_row = row1.combine(row2, self)
+          if predicates.all? { |p| p.eval(combined_row) }
+            result << combined_row
+          end
+        end
+      end
+      result
+    end
   end
 
   class InnerJoin  < Join; end
