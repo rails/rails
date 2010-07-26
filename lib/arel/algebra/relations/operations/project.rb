@@ -1,10 +1,9 @@
 module Arel
   class Project < Compound
-    attributes :relation, :projections
-    deriving :==
+    attr_reader :projections
 
     def initialize(relation, *projections, &block)
-      @relation = relation
+      super(relation)
       @projections = (projections + arguments_from_block(relation, &block)) \
         .collect { |p| p.bind(relation) }
     end
@@ -15,6 +14,13 @@ module Arel
 
     def externalizable?
       attributes.any? { |a| a.respond_to?(:aggregation?) && a.aggregation? } || relation.externalizable?
+    end
+
+    def == other
+      super ||
+        Project === other &&
+        relation == other.relation &&
+        projections == other.projections
     end
   end
 end
