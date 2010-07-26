@@ -213,6 +213,50 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
+  def test_doesnt_break_normal_require
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_autoloading_fixtures do
+      # The _ = assignments are to prevent warnings
+      _ = RequiresConstant
+      assert defined?(RequiresConstant)
+      assert defined?(LoadedConstant)
+      ActiveSupport::Dependencies.clear
+      _ = RequiresConstant
+      assert defined?(RequiresConstant)
+      assert defined?(LoadedConstant)
+    end
+  ensure
+    remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_doesnt_break_normal_require_nested
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_autoloading_fixtures do
+      # The _ = assignments are to prevent warnings
+      _ = LoadsConstant
+      assert defined?(LoadsConstant)
+      assert defined?(LoadedConstant)
+      ActiveSupport::Dependencies.clear
+      _ = LoadsConstant
+      assert defined?(LoadsConstant)
+      assert defined?(LoadedConstant)
+    end
+  ensure
+    remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
   def failing_test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
       assert ! defined?(ModuleFolder)
@@ -796,5 +840,12 @@ class DependenciesTest < Test::Unit::TestCase
     assert !Module.new.respond_to?(:load_without_new_constant_marking)
   ensure
     ActiveSupport::Dependencies.hook!
+  end
+
+private
+  def remove_constants(*constants)
+    constants.each do |constant|
+      Object.send(:remove_const, constant) if Object.const_defined?(constant)
+    end
   end
 end

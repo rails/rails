@@ -1,0 +1,3 @@
+module LoadedConstant
+end
+
