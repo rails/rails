@@ -172,7 +172,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match /It works!/, silence(:stdout){ generator.invoke }
+    assert_match /It works!/, silence(:stdout){ generator.invoke_all }
   end
 
   def test_usage_read_from_file
@@ -196,14 +196,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_dev_option
     generator([destination_root], :dev => true).expects(:run).with("#{@bundle_command} install")
-    silence(:stdout){ generator.invoke }
+    silence(:stdout){ generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], :edge => true).expects(:run).with("#{@bundle_command} install")
-    silence(:stdout){ generator.invoke }
+    silence(:stdout){ generator.invoke_all }
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
   end
 
@@ -267,7 +267,7 @@ class CustomAppGeneratorTest < Rails::Generators::TestCase
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    capture(:stdout) { generator.invoke }
+    capture(:stdout) { generator.invoke_all }
 
     DEFAULT_APP_FILES.each{ |path| assert_no_file path }
   end
