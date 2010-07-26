@@ -13,6 +13,8 @@ require 'models/post'
 require 'models/reader'
 require 'models/ship'
 require 'models/ship_part'
+require 'models/tag'
+require 'models/tagging'
 require 'models/treasure'
 require 'models/company'
 
