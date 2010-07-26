@@ -12,27 +12,30 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
-      # Defines mimes that are rendered by default when invoking respond_with.
+      # Defines mime types that are rendered by default when invoking
+      # <tt>respond_with</tt>.
       #
       # Examples:
       #
       #   respond_to :html, :xml, :json
       #
-      # All actions on your controller will respond to :html, :xml and :json.
+      # Specifies that all actions in the controller respond to requests
+      # for <tt>:html</tt>, <tt>:xml</tt> and <tt>:json</tt>.
       #
-      # But if you want to specify it based on your actions, you can use only and
-      # except:
+      # To specify on per-action basis, use <tt>:only</tt> and
+      # <tt>:except</tt> with an array of actions or a single action:
       #
       #   respond_to :html
       #   respond_to :xml, :json, :except => [ :edit ]
       #
-      # The definition above explicits that all actions respond to :html. And all
-      # actions except :edit respond to :xml and :json.
-      #
-      # You can specify also only parameters:
+      # This specifies that all actions respond to <tt>:html</tt>
+      # and all actions except <tt>:edit</tt> respond to <tt>:xml</tt> and
+      # <tt>:json</tt>.
       #
       #   respond_to :rjs, :only => :create
       #
+      # This specifies that the <tt>:create</tt> action and no other responds
+      # to <tt>:rjs</tt>.
       def respond_to(*mimes)
         options = mimes.extract_options!
 
@@ -49,7 +52,7 @@ module ActionController #:nodoc:
         self.mimes_for_respond_to = new.freeze
       end
 
-      # Clear all mimes in respond_to.
+      # Clear all mime types in <tt>respond_to</tt>.
       #
       def clear_respond_to
         self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
