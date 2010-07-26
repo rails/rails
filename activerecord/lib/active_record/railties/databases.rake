@@ -5,6 +5,28 @@ namespace :db do
     ActiveRecord::Migrator.migrations_path = Rails.application.config.paths.db.migrate.to_a.first
   end
 
+  desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
+  task :copy_migrations => :load_config do
+    to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
+    railties = {}
+    Rails.application.railties.all do |railtie|
+      next unless to_load == :all || to_load.include?(railtie.railtie_name)
+
+      if railtie.config.respond_to?(:paths) && railtie.config.paths.db
+        railties[railtie.railtie_name] = railtie.config.paths.db.migrate.to_a.first
+      end
+    end
+
+    copied = ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_path, railties)
+
+    if copied.blank?
+      puts "No migrations were copied, project is up to date."
+    else
+      puts "The following migrations were copied:"
+      puts copied.map{ |path| File.basename(path) }.join("\n")
+    end
+  end
+
   namespace :create do
     # desc 'Create all the local databases defined in config/database.yml'
     task :all => :load_config do
