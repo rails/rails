@@ -1,17 +1,6 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class MockLogger
-    def method_missing(*args)
-      @logged ||= []
-      @logged << args.last
-    end
-
-    def logged
-      @logged.compact.map { |l| l.to_s.strip }
-    end
-  end
-
   class NotificationsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
@@ -34,15 +23,17 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
+      require "active_support/log_subscriber/test_helper"
 
-      ActiveRecord::Base.logger = logger = MockLogger.new
+      logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+      ActiveRecord::Base.logger = logger
 
       # Mimic Active Record notifications
       instrument "sql.active_record", :name => "SQL", :sql => "SHOW tables"
       wait
 
-      assert_equal 1, logger.logged.size
-      assert_match /SHOW tables/, logger.logged.last
+      assert_equal 1, logger.logged(:debug).size
+      assert_match /SHOW tables/, logger.logged(:debug).last
     end
   end
 end

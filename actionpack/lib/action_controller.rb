@@ -6,7 +6,6 @@ module ActionController
 
   autoload :Base
   autoload :Caching
-  autoload :PolymorphicRoutes
   autoload :Metal
   autoload :Middleware
 

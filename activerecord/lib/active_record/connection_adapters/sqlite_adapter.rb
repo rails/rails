@@ -190,16 +190,21 @@ module ActiveRecord
 
       def indexes(table_name, name = nil) #:nodoc:
         execute("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
-          index = IndexDefinition.new(table_name, row['name'])
-          index.unique = row['unique'].to_i != 0
-          index.columns = execute("PRAGMA index_info('#{index.name}')").map { |col| col['name'] }
-          index
+          IndexDefinition.new(
+            table_name,
+            row['name'],
+            row['unique'].to_i != 0,
+            execute("PRAGMA index_info('#{row['name']}')").map { |col|
+              col['name']
+            })
         end
       end
 
       def primary_key(table_name) #:nodoc:
-        column = table_structure(table_name).find {|field| field['pk'].to_i == 1}
-        column ? column['name'] : nil
+        column = table_structure(table_name).find { |field|
+          field['pk'].to_i == 1
+        }
+        column && column['name']
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
@@ -278,10 +283,8 @@ module ActiveRecord
         def select(sql, name = nil) #:nodoc:
           execute(sql, name).map do |row|
             record = {}
-            row.each_key do |key|
-              if key.is_a?(String)
-                record[key.sub(/^"?\w+"?\./, '')] = row[key]
-              end
+            row.each do |key, value|
+              record[key.sub(/^"?\w+"?\./, '')] = value if key.is_a?(String)
             end
             record
           end
@@ -378,9 +381,9 @@ module ActiveRecord
 
         def default_primary_key_type
           if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'.freeze
+            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
           else
-            'INTEGER PRIMARY KEY NOT NULL'.freeze
+            'INTEGER PRIMARY KEY NOT NULL'
           end
         end
 

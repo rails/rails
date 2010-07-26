@@ -83,17 +83,127 @@ module ActiveRecord
         assert_equal 0, @ctx.select_rows(count_sql).first.first
       end
 
+      def test_tables
+        assert_equal %w{ items }, @ctx.tables
+
+        @ctx.execute <<-eosql
+          CREATE TABLE people (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer
+          )
+        eosql
+        assert_equal %w{ items people }.sort, @ctx.tables.sort
+      end
+
+      def test_tables_logs_name
+        name = "hello"
+        assert_logged [[name]] do
+          @ctx.tables(name)
+          assert_not_nil @ctx.logged.first.shift
+        end
+      end
+
+      def test_columns
+        columns = @ctx.columns('items').sort_by { |x| x.name }
+        assert_equal 2, columns.length
+        assert_equal %w{ id number }.sort, columns.map { |x| x.name }
+        assert_equal [nil, nil], columns.map { |x| x.default }
+        assert_equal [true, true], columns.map { |x| x.null }
+      end
+
+      def test_columns_with_default
+        @ctx.execute <<-eosql
+          CREATE TABLE columns_with_default (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer default 10
+          )
+        eosql
+        column = @ctx.columns('columns_with_default').find { |x|
+          x.name == 'number'
+        }
+        assert_equal 10, column.default
+      end
+
+      def test_columns_with_not_null
+        @ctx.execute <<-eosql
+          CREATE TABLE columns_with_default (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer not null
+          )
+        eosql
+        column = @ctx.columns('columns_with_default').find { |x|
+          x.name == 'number'
+        }
+        assert !column.null, "column should not be null"
+      end
+
+      def test_indexes_logs
+        intercept_logs_on @ctx
+        assert_difference('@ctx.logged.length') do
+          @ctx.indexes('items')
+        end
+        assert_match(/items/, @ctx.logged.last.first)
+      end
+
+      def test_no_indexes
+        assert_equal [], @ctx.indexes('items')
+      end
+
+      def test_index
+        @ctx.add_index 'items', 'id', :unique => true, :name => 'fun'
+        index = @ctx.indexes('items').find { |idx| idx.name == 'fun' }
+
+        assert_equal 'items', index.table
+        assert index.unique, 'index is unique'
+        assert_equal ['id'], index.columns
+      end
+
+      def test_non_unique_index
+        @ctx.add_index 'items', 'id', :name => 'fun'
+        index = @ctx.indexes('items').find { |idx| idx.name == 'fun' }
+        assert !index.unique, 'index is not unique'
+      end
+
+      def test_compound_index
+        @ctx.add_index 'items', %w{ id number }, :name => 'fun'
+        index = @ctx.indexes('items').find { |idx| idx.name == 'fun' }
+        assert_equal %w{ id number }.sort, index.columns.sort
+      end
+
+      def test_primary_key
+        assert_equal 'id', @ctx.primary_key('items')
+
+        @ctx.execute <<-eosql
+          CREATE TABLE foos (
+            internet integer PRIMARY KEY AUTOINCREMENT,
+            number integer not null
+          )
+        eosql
+        assert_equal 'internet', @ctx.primary_key('foos')
+      end
+
+      def test_no_primary_key
+        @ctx.execute 'CREATE TABLE failboat (number integer not null)'
+        assert_nil @ctx.primary_key('failboat')
+      end
+
+      private
+
       def assert_logged logs
+        intercept_logs_on @ctx
+        yield
+        assert_equal logs, @ctx.logged
+      end
+
+      def intercept_logs_on ctx
         @ctx.extend(Module.new {
-          attr_reader :logged
+          attr_accessor :logged
           def log sql, name
-            @logged ||= []
             @logged << [sql, name]
             yield
           end
         })
-        yield
-        assert_equal logs, @ctx.logged
+        @ctx.logged = []
       end
     end
   end

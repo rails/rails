@@ -99,15 +99,15 @@ module ActiveSupport
           current = codepoints[pos]
           if (
               # CR X LF
-              one = ( previous == database.boundary[:cr] and current == database.boundary[:lf] ) or
+              ( previous == database.boundary[:cr] and current == database.boundary[:lf] ) or
               # L X (L|V|LV|LVT)
-              two = ( database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
+              ( database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
               # (LV|V) X (V|T)
-              three = ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
+              ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
               # (LVT|T) X (T)
-              four = ( in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current ) or
+              ( in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current ) or
               # X Extend
-              five = (database.boundary[:extend] === current)
+              (database.boundary[:extend] === current)
             )
           else
             unpacked << codepoints[marker..pos-1]
@@ -238,7 +238,6 @@ module ActiveSupport
         bytes.each_index do |i|
 
           byte          = bytes[i]
-          is_ascii      = byte < 128
           is_cont       = byte > 127 && byte < 192
           is_lead       = byte > 191 && byte < 245
           is_unused     = byte > 240

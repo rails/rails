@@ -19,7 +19,7 @@ module ActiveModel
   # 
   #   define_model_callbacks :create, :update
   # 
-  # This will provide all three standard callbacks (before, around and after) around
+  # This will provide all three standard callbacks (before, around and after) for
   # both the :create and :update methods. To implement, you need to wrap the methods 
   # you want callbacks on in a block so that the callbacks get a chance to fire:
   # 

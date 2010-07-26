@@ -24,9 +24,9 @@ module ActionDispatch
 
         def [](key)
           if key == :id
-            load_session_id! unless super(:id) || has_session_id?
+            load_session_id! unless key?(:id) || has_session_id?
           end
-          super(key)
+          super
         end
 
       private
@@ -191,8 +191,11 @@ module ActionDispatch
 
         def load_session(env)
           stale_session_check! do
-            sid = current_session_id(env)
-            sid, session = get_session(env, sid)
+            if sid = current_session_id(env)
+              sid, session = get_session(env, sid)
+            else
+              sid, session = generate_sid, {}
+            end
             [sid, session]
           end
         end

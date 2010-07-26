@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/misc'
+require 'active_support/core_ext/object/with_options'
 
 module MyApplication
   module Business

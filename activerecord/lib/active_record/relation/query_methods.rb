@@ -11,84 +11,84 @@ module ActiveRecord
 
     def includes(*args)
       args.reject! { |a| a.blank? }
-      clone.tap { |r| r.includes_values += args if args.present? }
+      clone.tap {|r| r.includes_values += args if args.present? }
     end
 
     def eager_load(*args)
-      clone.tap { |r| r.eager_load_values += args if args.present? }
+      clone.tap {|r| r.eager_load_values += args if args.present? }
     end
 
     def preload(*args)
-      clone.tap { |r| r.preload_values += args if args.present? }
+      clone.tap {|r| r.preload_values += args if args.present? }
     end
 
     def select(*args)
       if block_given?
-        to_a.select { |*block_args| yield(*block_args) }
+        to_a.select {|*block_args| yield(*block_args) }
       else
-        clone.tap { |r| r.select_values += args if args.present? }
+        clone.tap {|r| r.select_values += args if args.present? }
       end
     end
 
     def group(*args)
-      clone.tap { |r| r.group_values += args if args.present? }
+      clone.tap {|r| r.group_values += args if args.present? }
     end
 
     def order(*args)
-      clone.tap { |r| r.order_values += args if args.present? }
+      clone.tap {|r| r.order_values += args if args.present? }
     end
 
     def reorder(*args)
-      clone.tap { |r| r.order_values = args if args.present? }
+      clone.tap {|r| r.order_values = args if args.present? }
     end
 
     def joins(*args)
       args.flatten!
-      clone.tap { |r| r.joins_values += args if args.present? }
+      clone.tap {|r| r.joins_values += args if args.present? }
     end
 
     def where(*args)
       value = build_where(*args)
-      clone.tap { |r| r.where_values += Array.wrap(value) if value.present? }
+      clone.tap {|r| r.where_values += Array.wrap(value) if value.present? }
     end
 
     def having(*args)
       value = build_where(*args)
-      clone.tap { |r| r.having_values += Array.wrap(value) if value.present? }
+      clone.tap {|r| r.having_values += Array.wrap(value) if value.present? }
     end
 
     def limit(value = true)
-      clone.tap { |r| r.limit_value = value }
+      clone.tap {|r| r.limit_value = value }
     end
 
     def offset(value = true)
-      clone.tap { |r| r.offset_value = value }
+      clone.tap {|r| r.offset_value = value }
     end
 
     def lock(locks = true)
       case locks
       when String, TrueClass, NilClass
-        clone.tap { |r| r.lock_value = locks || true }
+        clone.tap {|r| r.lock_value = locks || true }
       else
-        clone.tap { |r| r.lock_value = false }
+        clone.tap {|r| r.lock_value = false }
       end
     end
 
     def readonly(value = true)
-      clone.tap { |r| r.readonly_value = value }
+      clone.tap {|r| r.readonly_value = value }
     end
 
     def create_with(value = true)
-      clone.tap { |r| r.create_with_value = value }
+      clone.tap {|r| r.create_with_value = value }
     end
 
     def from(value = true)
-      clone.tap { |r| r.from_value = value }
+      clone.tap {|r| r.from_value = value }
     end
 
     def extending(*modules, &block)
       modules << Module.new(&block) if block_given?
-      clone.tap { |r| r.send(:apply_modules, *modules) }
+      clone.tap {|r| r.send(:apply_modules, *modules) }
     end
 
     def reverse_order
@@ -230,7 +230,7 @@ module ActiveRecord
         @implicit_readonly = false
         # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
         # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
-        if selects.all? { |s| s.is_a?(String) || !s.is_a?(Arel::Expression) } && !(selects.last =~ /^COUNT\(/)
+        if selects.all? {|s| s.is_a?(String) || !s.is_a?(Arel::Expression) } && !(selects.last =~ /^COUNT\(/)
           arel.project(*selects)
         else
           arel.project(selects.last)

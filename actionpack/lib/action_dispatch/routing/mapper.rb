@@ -35,11 +35,12 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
 
         def initialize(set, scope, args)
           @set, @scope    = set, scope
           @path, @options = extract_path_and_options(args)
+          normalize_options!
         end
 
         def to_route
@@ -57,14 +58,6 @@ module ActionDispatch
               path = args.first
             end
 
-            if @scope[:module] && options[:to] && !options[:to].is_a?(Proc)
-              if options[:to].to_s.include?("#")
-                options[:to] = "#{@scope[:module]}/#{options[:to]}"
-              elsif @scope[:controller].nil?
-                options[:to] = "#{@scope[:module]}##{options[:to]}"
-              end
-            end
-
             if path.match(':controller')
               raise ArgumentError, ":controller segment is not allowed within a namespace block" if @scope[:module]
 
@@ -75,15 +68,19 @@ module ActionDispatch
               options.reverse_merge!(:controller => /.+?/)
             end
 
-            path = normalize_path(path)
-            path_without_format = path.sub(/\(\.:format\)$/, '')
+            [ normalize_path(path), options ]
+          end
 
-            if using_match_shorthand?(path_without_format, options)
-              options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
-              options[:as] ||= path_without_format[1..-1].gsub("/", "_")
+          def normalize_options!
+            path_without_format = @path.sub(/\(\.:format\)$/, '')
+
+            if using_match_shorthand?(path_without_format, @options)
+              to_shorthand    = @options[:to].blank?
+              @options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              @options[:as] ||= path_without_format[1..-1].gsub("/", "_")
             end
 
-            [ path, options ]
+            @options.merge!(default_controller_and_action(to_shorthand))
           end
 
           # match "account" => "account#index"
@@ -122,44 +119,43 @@ module ActionDispatch
 
           def defaults
             @defaults ||= (@options[:defaults] || {}).tap do |defaults|
-              defaults.merge!(default_controller_and_action)
               defaults.reverse_merge!(@scope[:defaults]) if @scope[:defaults]
               @options.each { |k, v| defaults[k] = v unless v.is_a?(Regexp) || IGNORE_OPTIONS.include?(k.to_sym) }
             end
           end
 
-          def default_controller_and_action
+          def default_controller_and_action(to_shorthand=nil)
             if to.respond_to?(:call)
               { }
             else
-              defaults = case to
-              when String
+              if to.is_a?(String)
                 controller, action = to.split('#')
-                { :controller => controller, :action => action }
-              when Symbol
-                { :action => to.to_s }
-              else
-                {}
+              elsif to.is_a?(Symbol)
+                action = to.to_s
               end
 
-              defaults[:controller] ||= default_controller
-              defaults[:action]     ||= default_action
+              controller ||= default_controller
+              action     ||= default_action
 
-              defaults.delete(:controller) if defaults[:controller].blank? || defaults[:controller].is_a?(Regexp)
-              defaults.delete(:action)     if defaults[:action].blank? || defaults[:action].is_a?(Regexp)
+              unless controller.is_a?(Regexp) || to_shorthand
+                controller = [@scope[:module], controller].compact.join("/").presence
+              end
 
-              defaults[:controller] = defaults[:controller].to_s if defaults.key?(:controller)
-              defaults[:action] = defaults[:action].to_s if defaults.key?(:action)
+              controller = controller.to_s unless controller.is_a?(Regexp)
+              action     = action.to_s     unless action.is_a?(Regexp)
 
-              if defaults[:controller].blank? && segment_keys.exclude?("controller")
+              if controller.blank? && segment_keys.exclude?("controller")
                 raise ArgumentError, "missing :controller"
               end
 
-              if defaults[:action].blank? && segment_keys.exclude?("action")
+              if action.blank? && segment_keys.exclude?("action")
                 raise ArgumentError, "missing :action"
               end
 
-              defaults
+              { :controller => controller, :action => action }.tap do |hash|
+                hash.delete(:controller) if hash[:controller].blank?
+                hash.delete(:action)     if hash[:action].blank?
+              end
             end
           end
 
@@ -207,6 +203,8 @@ module ActionDispatch
           def default_action
             if @options[:action]
               @options[:action]
+            elsif @scope[:action]
+              @scope[:action]
             end
           end
       end
@@ -424,7 +422,7 @@ module ActionDispatch
           end
 
           def merge_controller_scope(parent, child)
-            @scope[:module] ? "#{@scope[:module]}/#{child}" : child
+            child
           end
 
           def merge_path_names_scope(parent, child)

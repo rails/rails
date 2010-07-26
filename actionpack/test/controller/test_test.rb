@@ -461,6 +461,13 @@ XML
   def test_assert_routing_in_module
     assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
   end
+  
+  def test_assert_routing_with_glob
+    with_routing do |set|
+      set.draw { |map| match('*path' => "pages#show") }
+      assert_routing('/company/about', { :controller => 'pages', :action => 'show', :path => 'company/about' })
+    end
+  end
 
   def test_params_passing
     get :test_params, :page => {:name => "Page name", :month => '4', :year => '2004', :day => '6'}

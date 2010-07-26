@@ -1,0 +1,147 @@
+= Action Mailer -- Easy email delivery and testing
+
+Action Mailer is a framework for designing email-service layers. These layers
+are used to consolidate code for sending out forgotten passwords, welcome
+wishes on signup, invoices for billing, and any other use case that requires
+a written notification to either a person or another system.
+
+Action Mailer is in essence a wrapper around Action Controller and the 
+Mail gem.  It provides a way to make emails using templates in the same
+way that Action Controller renders views using templates.
+
+Additionally, an Action Mailer class can be used to process incoming email,
+such as allowing a weblog to accept new posts from an email (which could even
+have been sent from a phone).
+
+== Sending emails
+
+The framework works by initializing any instance variables you want to be
+available in the email template, followed by a call to +mail+ to deliver
+the email.
+
+This can be as simple as:
+
+  class Notifier < ActionMailer::Base
+    delivers_from 'system@loudthinking.com'
+  
+    def welcome(recipient)
+      @recipient = recipient
+      mail(:to => recipient,
+           :subject => "[Signed up] Welcome #{recipient}")
+    end
+  end
+
+The body of the email is created by using an Action View template (regular
+ERb) that has the instance variables that are declared in the mailer action.
+
+So the corresponding body template for the method above could look like this:
+
+  Hello there, 
+
+  Mr. <%= @recipient %>
+
+  Thank you for signing up!
+  
+And if the recipient was given as "david@loudthinking.com", the email 
+generated would look like this:
+
+  Date: Mon, 25 Jan 2010 22:48:09 +1100
+  From: system@loudthinking.com
+  To: david@loudthinking.com
+  Message-ID: <4b5d84f9dd6a5_7380800b81ac29578@void.loudthinking.com.mail>
+  Subject: [Signed up] Welcome david@loudthinking.com
+  Mime-Version: 1.0
+  Content-Type: text/plain;
+  	charset="US-ASCII";
+  Content-Transfer-Encoding: 7bit
+
+  Hello there, 
+
+  Mr. david@loudthinking.com
+
+In previous version of rails you would call <tt>create_method_name</tt> and
+<tt>deliver_method_name</tt>.  Rails 3.0 has a much simpler interface, you
+simply call the method and optionally call +deliver+ on the return value.
+
+Calling the method returns a Mail Message object:
+
+  message = Notifier.welcome  #=> Returns a Mail::Message object
+  message.deliver             #=> delivers the email
+
+Or you can just chain the methods together like:
+
+  Notifier.welcome.deliver    # Creates the email and sends it immediately
+
+== Receiving emails
+
+To receive emails, you need to implement a public instance method called receive that takes a
+tmail object as its single parameter. The Action Mailer framework has a corresponding class method, 
+which is also called receive, that accepts a raw, unprocessed email as a string, which it then turns
+into the tmail object and calls the receive instance method.
+
+Example:
+
+  class Mailman < ActionMailer::Base
+    def receive(email)
+      page = Page.find_by_address(email.to.first)
+      page.emails.create(
+        :subject => email.subject, :body => email.body
+      )
+
+      if email.has_attachments?
+        for attachment in email.attachments
+          page.attachments.create({ 
+            :file => attachment, :description => email.subject
+          })
+        end
+      end
+    end
+  end
+
+This Mailman can be the target for Postfix or other MTAs. In Rails, you would use the runner in the 
+trivial case like this:
+
+  rails runner 'Mailman.receive(STDIN.read)'
+
+However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single 
+instance of Rails should be run within a daemon if it is going to be utilized to process more than just 
+a limited number of email.
+
+== Configuration
+
+The Base class has the full list of configuration options. Here's an example:
+
+  ActionMailer::Base.smtp_settings = {
+    :address        => 'smtp.yourserver.com', # default: localhost
+    :port           => '25',                  # default: 25
+    :user_name      => 'user',
+    :password       => 'pass',
+    :authentication => :plain                 # :plain, :login or :cram_md5
+  }
+
+
+== Download and installation
+
+The latest version of Action Mailer can be installed with Rubygems:
+
+  % [sudo] gem install actionmailer
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* http://github.com/rails/rails/tree/master/actionmailer/
+
+
+== License
+
+Action Mailer is released under the MIT license.
+
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.com
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets

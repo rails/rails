@@ -2,7 +2,6 @@ require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
-require 'models/category'
 require 'models/categorization'
 require 'models/company'
 require 'models/topic'
@@ -44,6 +43,13 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
       Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('people.id').all
     end
     assert_equal people(:michael), Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('people.id').first
+  end
+
+  def test_eager_association_loading_with_join_for_count
+    authors = Author.joins(:special_posts).includes([:posts, :categorizations])
+
+    assert_nothing_raised { authors.count }
+    assert_queries(3) { authors.all }
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations

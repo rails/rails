@@ -322,16 +322,15 @@ $ rm public/index.html
 
 We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic contact we generate from the controllers.
 
-Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. There are only comments in this file, so we need to add at the top the following:
+Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +:root to+, uncomment it and change it like the following:
 
 <ruby>
-Blog::Application.routes.draw do |map|
+Blog::Application.routes.draw do
 
-  root :to => "home#index"
-
-  # The priority is based upon order of creation:
-  # first created -> highest priority.
   #...
+  # You can have the root of your site routed with "root"
+  # just remember to delete public/index.html.
+  root :to => "home#index"
 </ruby>
 
 The +root :to => "home#index"+ tells Rails to map the root action to the home controller's index action.
@@ -475,7 +474,7 @@ $ rails console
 After the console loads, you can use it to work with your application's models:
 
 <shell>
->> p = Post.create(:content => "A new post")
+>> p = Post.new(:content => "A new post")
 => #<Post id: nil, name: nil, title: nil, 
      content: "A new post", created_at: nil,
      updated_at: nil>
@@ -1194,7 +1193,7 @@ The +destroy+ action will find the post we are looking at, locate the comment wi
 
 h4. Deleting Associated Objects
 
-If you delete a post then it's associated comments will also need to be deleted. Otherwise they would simply occupy space in the database. Rails allows you to use the +dependent+ option of an association to achieve this. Modify the Post model, +app/models/post.rb+, as follows:
+If you delete a post then its associated comments will also need to be deleted. Otherwise they would simply occupy space in the database. Rails allows you to use the +dependent+ option of an association to achieve this. Modify the Post model, +app/models/post.rb+, as follows:
 
 <ruby>
 class Post < ActiveRecord::Base
@@ -1486,6 +1485,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
+* July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
 * May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
 * April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits.html#raasdnil

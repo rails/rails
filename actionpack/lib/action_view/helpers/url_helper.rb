@@ -95,7 +95,7 @@ module ActionView
         when String
           options
         when Hash
-          options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
+          options = options.symbolize_keys.reverse_merge!(:only_path => options[:host].nil?)
           super
         when :back
           controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
@@ -398,7 +398,7 @@ module ActionView
       def link_to_unless(condition, name, options = {}, html_options = {}, &block)
         if condition
           if block_given?
-            block.arity <= 1 ? yield(name) : yield(name, options, html_options)
+            block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
           else
             name
           end

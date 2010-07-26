@@ -23,10 +23,7 @@ module Rails
         opt.parse!(ARGV)
       end
 
-      @app.initialize!
-      require "rails/console/app"
-      require "rails/console/sandbox" if options[:sandbox]
-      require "rails/console/helpers"
+      @app.load_console(options[:sandbox])
 
       if options[:debugger]
         begin

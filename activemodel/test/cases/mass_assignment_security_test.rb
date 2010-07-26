@@ -35,10 +35,10 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name']), LooseDescendantSecond.protected_attributes,
       'Running attr_protected twice in one class should merge the protections'
 
-    assert (TightPerson.protected_attributes - TightPerson.attributes_protected_by_default).blank?
+    assert_blank TightPerson.protected_attributes - TightPerson.attributes_protected_by_default
     assert_equal Set.new([ 'name', 'address' ]), TightPerson.accessible_attributes
 
-    assert (TightDescendant.protected_attributes - TightDescendant.attributes_protected_by_default).blank?
+    assert_blank TightDescendant.protected_attributes - TightDescendant.attributes_protected_by_default
     assert_equal Set.new([ 'name', 'address', 'phone_number' ]), TightDescendant.accessible_attributes
   end
 

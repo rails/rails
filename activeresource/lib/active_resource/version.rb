@@ -3,7 +3,7 @@ module ActiveResource
     MAJOR = 3
     MINOR = 0
     TINY  = 0
-    BUILD = "beta4"
+    BUILD = "rc"
 
     STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
   end

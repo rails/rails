@@ -79,6 +79,14 @@ class RescueController < ActionController::Base
     render :text => 'no way'
   end
 
+  rescue_from ActionView::TemplateError do
+    render :text => 'action_view templater error'
+  end
+
+  rescue_from IOError do
+    render :text => 'io error'
+  end
+
   before_filter(:only => :before_filter_raises) { raise 'umm nice' }
 
   def before_filter_raises
@@ -140,6 +148,14 @@ class RescueController < ActionController::Base
   end
 
   def missing_template
+  end
+  
+  def io_error_in_view
+    raise ActionView::TemplateError.new(nil, {}, IOError.new('this is io error'))
+  end
+
+  def zero_division_error_in_view
+    raise ActionView::TemplateError.new(nil, {}, ZeroDivisionError.new('this is zero division error'))
   end
 
   protected
@@ -228,6 +244,17 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
 end
 
 class RescueControllerTest < ActionController::TestCase
+
+  def test_io_error_in_view
+    get :io_error_in_view
+    assert_equal 'io error', @response.body
+  end
+
+  def test_zero_division_error_in_view
+    get :zero_division_error_in_view
+    assert_equal 'action_view templater error', @response.body
+  end
+
   def test_rescue_handler
     get :not_authorized
     assert_response :forbidden

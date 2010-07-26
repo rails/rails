@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/to_query'
 
 class ToQueryTest < Test::Unit::TestCase
@@ -18,12 +19,12 @@ class ToQueryTest < Test::Unit::TestCase
 
   def test_nested_conversion
     assert_query_equal 'person[login]=seckar&person[name]=Nicholas',
-      :person => {:name => 'Nicholas', :login => 'seckar'}
+      :person => ActiveSupport::OrderedHash[:login, 'seckar', :name, 'Nicholas']
   end
 
   def test_multiple_nested
     assert_query_equal 'account[person][id]=20&person[id]=10',
-      :person => {:id => 10}, :account => {:person => {:id => 20}}
+      ActiveSupport::OrderedHash[:account, {:person => {:id => 20}}, :person, {:id => 10}]
   end
 
   def test_array_values

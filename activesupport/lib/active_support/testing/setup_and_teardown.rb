@@ -96,7 +96,7 @@ module ActiveSupport
         protected
 
         def retrieve_mocha_counter(result) #:nodoc:
-          if using_mocha = respond_to?(:mocha_verify)
+          if respond_to?(:mocha_verify) # using mocha
             if defined?(Mocha::TestCaseAdapter::AssertionCounter)
               Mocha::TestCaseAdapter::AssertionCounter.new(result)
             else

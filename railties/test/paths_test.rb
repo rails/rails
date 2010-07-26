@@ -118,11 +118,21 @@ class PathsTest < ActiveSupport::TestCase
     assert_raise(RuntimeError) { @root << "/biz"      }
   end
 
-  test "it is possible to add a path that should be loaded only once" do
+  test "it is possible to add a path that should be autoloaded only once" do
     @root.app = "/app"
     @root.app.autoload_once!
     assert @root.app.autoload_once?
     assert @root.autoload_once.include?(@root.app.paths.first)
+  end
+
+  test "it is possible to remove a path that should be autoloaded only once" do
+    @root.app = "/app"
+    @root.app.autoload_once!
+    assert @root.app.autoload_once?
+
+    @root.app.skip_autoload_once!
+    assert !@root.app.autoload_once?
+    assert !@root.autoload_once.include?(@root.app.paths.first)
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
@@ -152,11 +162,21 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal 2, @root.autoload_once.size
   end
 
-  test "it is possible to mark a path as eager" do
+  test "it is possible to mark a path as eager loaded" do
     @root.app = "/app"
     @root.app.eager_load!
     assert @root.app.eager_load?
     assert @root.eager_load.include?(@root.app.paths.first)
+  end
+
+  test "it is possible to skip a path from eager loading" do
+    @root.app = "/app"
+    @root.app.eager_load!
+    assert @root.app.eager_load?
+
+    @root.app.skip_eager_load!
+    assert !@root.app.eager_load?
+    assert !@root.eager_load.include?(@root.app.paths.first)
   end
 
   test "it is possible to add a path without assignment and mark it as eager" do

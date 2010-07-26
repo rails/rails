@@ -3,6 +3,7 @@ require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/conversions'
+require 'active_support/core_ext/module/remove_method'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -1354,7 +1355,7 @@ module ActiveRecord
         end
 
         def association_accessor_methods(reflection, association_proxy_class)
-          define_method(reflection.name) do |*params|
+          redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
             association = association_instance_get(reflection.name)
 
@@ -1371,12 +1372,12 @@ module ActiveRecord
             association.target.nil? ? nil : association
           end
 
-          define_method("loaded_#{reflection.name}?") do
+          redefine_method("loaded_#{reflection.name}?") do
             association = association_instance_get(reflection.name)
             association && association.loaded?
           end
-
-          define_method("#{reflection.name}=") do |new_value|
+          
+          redefine_method("#{reflection.name}=") do |new_value|
             association = association_instance_get(reflection.name)
 
             if association.nil? || association.target != new_value
@@ -1386,8 +1387,8 @@ module ActiveRecord
             association.replace(new_value)
             association_instance_set(reflection.name, new_value.nil? ? nil : association)
           end
-
-          define_method("set_#{reflection.name}_target") do |target|
+          
+          redefine_method("set_#{reflection.name}_target") do |target|
             return if target.nil? and association_proxy_class == BelongsToAssociation
             association = association_proxy_class.new(self, reflection)
             association.target = target
@@ -1396,7 +1397,7 @@ module ActiveRecord
         end
 
         def collection_reader_method(reflection, association_proxy_class)
-          define_method(reflection.name) do |*params|
+          redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
             association = association_instance_get(reflection.name)
 
@@ -1409,8 +1410,8 @@ module ActiveRecord
 
             association
           end
-
-          define_method("#{reflection.name.to_s.singularize}_ids") do
+          
+          redefine_method("#{reflection.name.to_s.singularize}_ids") do
             if send(reflection.name).loaded? || reflection.options[:finder_sql]
               send(reflection.name).map(&:id)
             else
@@ -1430,14 +1431,14 @@ module ActiveRecord
           collection_reader_method(reflection, association_proxy_class)
 
           if writer
-            define_method("#{reflection.name}=") do |new_value|
+            redefine_method("#{reflection.name}=") do |new_value|
               # Loads proxy class instance (defined in collection_reader_method) if not already loaded
               association = send(reflection.name)
               association.replace(new_value)
               association
             end
-
-            define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
+            
+            redefine_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
               ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
               send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
@@ -1445,7 +1446,7 @@ module ActiveRecord
         end
 
         def association_constructor_method(constructor, reflection, association_proxy_class)
-          define_method("#{constructor}_#{reflection.name}") do |*params|
+          redefine_method("#{constructor}_#{reflection.name}") do |*params|
             attributees      = params.first unless params.empty?
             replace_existing = params[1].nil? ? true : params[1]
             association      = association_instance_get(reflection.name)
@@ -1486,8 +1487,8 @@ module ActiveRecord
         end
 
         def add_touch_callbacks(reflection, touch_attribute)
-          method_name = "belongs_to_touch_after_save_or_destroy_for_#{reflection.name}".to_sym
-          define_method(method_name) do
+          method_name = :"belongs_to_touch_after_save_or_destroy_for_#{reflection.name}"
+          redefine_method(method_name) do
             association = send(reflection.name)
 
             if touch_attribute == true
@@ -1761,7 +1762,7 @@ module ActiveRecord
           def graft(*associations)
             associations.each do |association|
               join_associations.detect {|a| association == a} ||
-              build(association.reflection.name, association.find_parent_in(self), association.join_class)
+              build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class)
             end
             self
           end
@@ -1965,7 +1966,7 @@ module ActiveRecord
           end
 
           class JoinAssociation < JoinBase # :nodoc:
-            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name
+            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name, :join_class
             delegate    :options, :klass, :through_reflection, :source_reflection, :to => :reflection
 
             def initialize(reflection, join_dependency, parent = nil)
@@ -1982,6 +1983,7 @@ module ActiveRecord
               @parent_table_name  = parent.active_record.table_name
               @aliased_table_name = aliased_table_name_for(table_name)
               @join               = nil
+              @join_class         = Arel::InnerJoin
 
               if reflection.macro == :has_and_belongs_to_many
                 @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
@@ -2002,10 +2004,6 @@ module ActiveRecord
               other_join_dependency.joins.detect do |join|
                 self.parent == join
               end
-            end
-
-            def join_class
-              @join_class ||= Arel::InnerJoin
             end
 
             def with_join_class(join_class)

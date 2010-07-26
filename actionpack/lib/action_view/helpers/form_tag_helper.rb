@@ -1,6 +1,5 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/object/returning'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
@@ -527,7 +526,7 @@ module ActionView
 
       private
         def html_options_for_form(url_for_options, options, *parameters_for_url)
-          returning options.stringify_keys do |html_options|
+          options.stringify_keys.tap do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsability of the caller to escape all the values.

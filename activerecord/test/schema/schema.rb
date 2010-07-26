@@ -164,6 +164,11 @@ ActiveRecord::Schema.define do
     t.string  :address_country
     t.string  :gps_location
   end
+  
+  create_table :dashboards, :force => true, :id => false do |t|
+    t.string :dashboard_id
+    t.string :name
+  end
 
   create_table :developers, :force => true do |t|
     t.string   :name
@@ -289,6 +294,13 @@ ActiveRecord::Schema.define do
     t.integer :job_id
     t.boolean :favourite
     t.integer :lock_version, :default => 0
+  end
+  
+  create_table :minivans, :force => true, :id => false do |t|
+    t.string :minivan_id
+    t.string :name
+    t.string :speedometer_id
+    t.string :color
   end
 
   create_table :minimalistics, :force => true do |t|
@@ -452,6 +464,12 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :ship_id
   end
+  
+  create_table :speedometers, :force => true, :id => false do |t|
+    t.string :speedometer_id
+    t.string :name
+    t.string :dashboard_id
+  end
 
   create_table :sponsors, :force => true do |t|
     t.integer :club_id
@@ -581,6 +599,21 @@ ActiveRecord::Schema.define do
 
   create_table :zines, :force => true do |t|
     t.string :title
+  end
+
+  create_table :countries, :force => true, :id => false, :primary_key => 'country_id' do |t|
+    t.string :country_id
+    t.string :name
+  end
+  create_table :treaties, :force => true, :id => false, :primary_key => 'treaty_id' do |t|
+    t.string :treaty_id
+    t.string :name
+  end
+  create_table :countries_treaties, :force => true, :id => false do |t|
+    t.string :country_id, :null => false
+    t.string :treaty_id, :null => false
+    t.datetime :created_at
+    t.datetime :updated_at
   end
 
   except 'SQLite' do

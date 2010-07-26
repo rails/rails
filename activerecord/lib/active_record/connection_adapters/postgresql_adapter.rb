@@ -218,6 +218,9 @@ module ActiveRecord
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
+        @table_alias_length = nil
+        @postgresql_version = nil
+
         connect
         @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
       end
@@ -308,14 +311,16 @@ module ActiveRecord
 
       # Quotes PostgreSQL-specific data types for SQL input.
       def quote(value, column = nil) #:nodoc:
-        if value.kind_of?(String) && column && column.type == :binary
+        return super unless column
+
+        if value.kind_of?(String) && column.type == :binary
           "'#{escape_bytea(value)}'"
-        elsif value.kind_of?(String) && column && column.sql_type == 'xml'
+        elsif value.kind_of?(String) && column.sql_type == 'xml'
           "xml '#{quote_string(value)}'"
-        elsif value.kind_of?(Numeric) && column && column.sql_type == 'money'
+        elsif value.kind_of?(Numeric) && column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
-          "'#{value.to_s}'"
-        elsif value.kind_of?(String) && column && column.sql_type =~ /^bit/
+          "'#{value}'"
+        elsif value.kind_of?(String) && column.sql_type =~ /^bit/
           case value
             when /^[01]*$/
               "B'#{value}'" # Bit-string notation
@@ -370,7 +375,7 @@ module ActiveRecord
 
       def supports_disable_referential_integrity?() #:nodoc:
         version = query("SHOW server_version")[0][0].split('.')
-        (version[0].to_i >= 8 && version[1].to_i >= 1) ? true : false
+        version[0].to_i >= 8 && version[1].to_i >= 1
       rescue
         return false
       end
@@ -431,17 +436,37 @@ module ActiveRecord
       def result_as_array(res) #:nodoc:
         # check if we have any binary column and if they need escaping
         unescape_col = []
-        for j in 0...res.nfields do
-          # unescape string passed BYTEA field (OID == 17)
-          unescape_col << ( res.ftype(j)==17 )
+        res.nfields.times do |j|
+          unescape_col << res.ftype(j)
         end
 
         ary = []
-        for i in 0...res.ntuples do
+        res.ntuples.times do |i|
           ary << []
-          for j in 0...res.nfields do
+          res.nfields.times do |j|
             data = res.getvalue(i,j)
-            data = unescape_bytea(data) if unescape_col[j] and data.is_a?(String)
+            case unescape_col[j]
+
+            # unescape string passed BYTEA field (OID == 17)
+            when BYTEA_COLUMN_TYPE_OID
+              data = unescape_bytea(data) if String === data
+
+            # If this is a money type column and there are any currency symbols,
+            # then strip them off. Indeed it would be prettier to do this in
+            # PostgreSQLColumn.string_to_decimal but would break form input
+            # fields that call value_before_type_cast.
+            when MONEY_COLUMN_TYPE_OID
+              # Because money output is formatted according to the locale, there are two
+              # cases to consider (note the decimal separators):
+              #  (1) $12,345,678.12
+              #  (2) $12.345.678,12
+              case data
+              when /^-?\D+[\d,]+\.\d{2}$/  # (1)
+                data.gsub!(/[^-\d\.]/, '')
+              when /^-?\D+[\d\.]+,\d{2}$/  # (2)
+                data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
+              end
+            end
             ary[i] << data
           end
         end
@@ -828,11 +853,12 @@ module ActiveRecord
       # Maps logical Rails types to PostgreSQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         return super unless type.to_s == 'integer'
+        return 'integer' unless limit
 
         case limit
-          when 1..2;      'smallint'
-          when 3..4, nil; 'integer'
-          when 5..8;      'bigint'
+          when 1, 2; 'smallint'
+          when 3, 4; 'integer'
+          when 5..8; 'bigint'
           else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
         end
       end
@@ -889,6 +915,8 @@ module ActiveRecord
       private
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
+        # The internal PostgreSQL identifier of the BYTEA data type.
+        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
@@ -941,51 +969,17 @@ module ActiveRecord
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil)
           fields, rows = select_raw(sql, name)
-          result = []
-          for row in rows
-            row_hash = {}
-            fields.each_with_index do |f, i|
-              row_hash[f] = row[i]
-            end
-            result << row_hash
+          rows.map do |row|
+            Hash[*fields.zip(row).flatten]
           end
-          result
         end
 
         def select_raw(sql, name = nil)
           res = execute(sql, name)
           results = result_as_array(res)
-          fields = []
-          rows = []
-          if res.ntuples > 0
-            fields = res.fields
-            results.each do |row|
-              hashed_row = {}
-              row.each_index do |cell_index|
-                # If this is a money type column and there are any currency symbols,
-                # then strip them off. Indeed it would be prettier to do this in
-                # PostgreSQLColumn.string_to_decimal but would break form input
-                # fields that call value_before_type_cast.
-                if res.ftype(cell_index) == MONEY_COLUMN_TYPE_OID
-                  # Because money output is formatted according to the locale, there are two
-                  # cases to consider (note the decimal separators):
-                  #  (1) $12,345,678.12
-                  #  (2) $12.345.678,12
-                  case column = row[cell_index]
-                    when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                      row[cell_index] = column.gsub(/[^-\d\.]/, '')
-                    when /^-?\D+[\d\.]+,\d{2}$/  # (2)
-                      row[cell_index] = column.gsub(/[^-\d,]/, '').sub(/,/, '.')
-                  end
-                end
-
-                hashed_row[fields[cell_index]] = column
-              end
-              rows << row
-            end
-          end
+          fields = res.fields
           res.clear
-          return fields, rows
+          return fields, results
         end
 
         # Returns the list of a table's column names, data types, and default values.

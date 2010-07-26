@@ -26,7 +26,7 @@ module ActiveRecord
       # You can define a \scope that applies to all finders using 
       # ActiveRecord::Base.default_scope.
       def scoped(options = nil)
-        if options.present?
+        if options
           scoped.apply_finder_options(options)
         else
           current_scoped_methods ? relation.merge(current_scoped_methods) : relation.clone
@@ -105,7 +105,7 @@ module ActiveRecord
           extension ? relation.extending(extension) : relation
         end
 
-        singleton_class.send :define_method, name, &scopes[name]
+        singleton_class.send(:redefine_method, name, &scopes[name])
       end
 
       def named_scope(*args, &block)

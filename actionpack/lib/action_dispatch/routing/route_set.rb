@@ -1,9 +1,7 @@
+require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
 require 'action_dispatch/routing/deprecated_mapper'
-
-$: << File.expand_path('../../vendor/rack-mount-0.6.6.pre', __FILE__)
-require 'rack/mount'
 
 module ActionDispatch
   module Routing
@@ -416,7 +414,8 @@ module ActionDispatch
             elsif value.is_a?(Array)
               value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
             else
-              Rack::Mount::Utils.escape_uri(value.to_param)
+              return nil unless param = value.to_param
+              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
             end
           end
           {:parameterize => parameterize}
@@ -455,7 +454,7 @@ module ActionDispatch
 
       def url_for(options)
         finalize!
-        options = default_url_options.merge(options || {})
+        options = (options || {}).reverse_merge!(default_url_options)
 
         handle_positional_args(options)
 

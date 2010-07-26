@@ -28,7 +28,6 @@ module ActionController
       SessionManagement,
       Caching,
       MimeResponds,
-      PolymorphicRoutes,
       ImplicitRender,
 
       Cookies,
@@ -64,7 +63,6 @@ module ActionController
       klass.helper :all
     end
 
-    config_accessor :asset_host, :asset_path
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

@@ -1,0 +1,187 @@
+h2. API Documentation Guidelines
+
+This guide documents the Ruby on Rails API documentation guidelines.
+
+endprologue.
+
+h3. RDoc
+
+The Rails API documentation is generated with RDoc 2.5. Please consult the "RDoc documentation":http://rdoc.rubyforge.org/RDoc.htmlFor for help with its markup.
+
+h3. Wording
+
+Write simple, declarative sentences. Brevity is a plus: get to the point.
+
+Write in present tense: "Returns a hash that...", rather than "Returned a hash that..." or "Will return a hash that...".
+
+Start comments in upper case, follow regular punctuation rules:
+
+<ruby>
+# Declares an attribute reader backed by an internally-named instance variable.
+def attr_internal_reader(*attrs)
+  ...
+end
+</ruby>
+
+Communicate to the reader the current way of doing things, both explicitly and implicitly. Use the recommended idioms in edge, reorder sections to emphasize favored approaches if needed, etc. The documentation should be a model for best practices and canonical, modern Rails usage.
+
+Documentation has to be concise but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil? 
+
+The proper names of Rails components have a space in between the words, like "Active Support". +ActiveRecord+ is a Ruby module, whereas Active Record is an ORM. Historically there has been lack of consistency regarding this, but we checked with David when docrails started. All Rails documentation consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be fenomenal :).
+
+Spell names correctly: HTML, MySQL, JavaScript, ERb.
+
+h3. Example Code
+
+Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
+
+Use two spaces to indent chunks of code.—that is two spaces with respect to the left margin; the examples
+themselves should use "Rails code conventions":http://rails.lighthouseapp.com/projects/8994/source-style.
+
+Short docs do not need an explicit "Examples" label to introduce snippets, they just follow paragraphs:
+
+<ruby>
+# Converts a collection of elements into a formatted string by calling
+# <tt>to_s</tt> on all elements and joining them.
+#
+#   Blog.find(:all).to_formatted_s # => "First PostSecond PostThird Post"
+</ruby>
+
+On the other hand big chunks of structured documentation may have a separate "Examples" section:
+
+<ruby>
+# ==== Examples
+#
+#   Person.exists?(5)
+#   Person.exists?('5')
+#   Person.exists?(:name => "David")
+#   Person.exists?(['name LIKE ?', "%#{query}%"])
+</ruby>
+
+The result of expressions follow them and are introduced by "# => ", vertically aligned:
+
+<ruby>
+# For checking if a fixnum is even or odd.
+#
+#   1.even? # => false
+#   1.odd?  # => true
+#   2.even? # => true
+#   2.odd?  # => false
+</ruby>
+
+If a line is too long, the comment may be placed on the next line:
+
+<ruby>
+  #   label(:post, :title)
+  #   # => <label for="post_title">Title</label>
+  #
+  #   label(:post, :title, "A short title")
+  #   # => <label for="post_title">A short title</label>
+  #
+  #   label(:post, :title, "A short title", :class => "title_label")
+  #   # => <label for="post_title" class="title_label">A short title</label>
+</ruby>
+
+Avoid using any printing methods like +puts+ or +p+ for that purpose.
+
+On the other hand, regular comments do not use an arrow:
+
+<ruby>
+#   polymorphic_url(record)  # same as comment_url(record)
+</ruby>
+
+h3. Filenames
+
+As a rule of thumb use filenames relative to the application root:
+
+<plain>
+config/routes.rb            # YES
+routes.rb                   # NO
+RAILS_ROOT/config/routes.rb # NO
+</plain>
+
+
+h3. Fonts
+
+h4. Fixed-width Font
+
+Use fixed-width fonts for:
+* constants, in particular class and module names
+* method names
+* literals like +nil+, +false+, +true+, +self+
+* symbols
+* method parameters
+* file names
+
+<ruby>
+# Copies the instance variables of +object+ into +self+.
+#
+# Instance variable names in the +exclude+ array are ignored. If +object+
+# responds to <tt>protected_instance_variables</tt> the ones returned are
+# also ignored. For example, Rails controllers implement that method.
+# ...
+def copy_instance_variables_from(object, exclude = [])
+  ...
+end
+</ruby>
+
+WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching <tt>\A\w&#43;\z</tt>. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc: 
+
+h4. Regular Font
+
+When "true" and "false" are English words rather than Ruby keywords use a regular font:
+
+<ruby>
+# If <tt>reload_plugins?</tt> is false, add this to your plugin's <tt>init.rb</tt>
+# to make it reloadable:
+#
+#   Dependencies.load_once_paths.delete lib_path
+</ruby>
+
+h3. Description Lists
+
+In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):
+
+<ruby>
+# * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+</ruby>
+
+The description starts in upper case and ends with a full stop—it's standard English.
+
+h3. Dynamically Generated Methods
+
+Methods created with +(module|class)_eval(STRING)+ have a comment by their side with an instance of the generated code. That comment is 2 spaces apart from the template:
+
+<ruby>
+for severity in Severity.constants
+  class_eval <<-EOT, __FILE__, __LINE__
+    def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
+      add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
+    end                                                              # end
+                                                                     #
+    def #{severity.downcase}?                                        # def debug?
+      #{severity} >= @level                                          #   DEBUG >= @level
+    end                                                              # end
+  EOT
+end
+</ruby>
+
+If the resulting lines are too wide, say 200 columns or more, we put the comment above the call:
+
+<ruby>
+# def self.find_by_login_and_activated(*args)
+#   options = args.extract_options!
+#   ...
+# end
+self.class_eval %{
+  def self.#{method_id}(*args)
+    options = args.extract_options!
+    ...
+  end
+}
+</ruby>
+
+h3. Changelog
+
+* July 17, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn
+

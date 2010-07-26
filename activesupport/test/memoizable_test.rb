@@ -134,7 +134,6 @@ class MemoizableTest < ActiveSupport::TestCase
   end
 
   def test_reloadable
-    counter = @calculator.counter
     assert_equal 1, @calculator.counter
     assert_equal 2, @calculator.counter(:reload)
     assert_equal 2, @calculator.counter

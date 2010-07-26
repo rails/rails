@@ -287,7 +287,7 @@ You most probably have something like this in one of your applications:
 
 <ruby>
 # config/routes.rb
-Yourapp::Application.routes.draw do |map|
+Yourapp::Application.routes.draw do
   root :to => "home#index"
 end
 

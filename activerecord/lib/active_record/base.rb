@@ -398,7 +398,7 @@ module ActiveRecord #:nodoc:
 
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
+      delegate :select, :group, :order, :reorder, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -1030,7 +1030,7 @@ module ActiveRecord #:nodoc:
         #   class Article < ActiveRecord::Base
         #     def self.find_with_exclusive_scope
         #       with_scope(:find => where(:blog_id => 1).limit(1)) do
-        #         with_exclusive_scope(:find => limit(10))
+        #         with_exclusive_scope(:find => limit(10)) do
         #           all # => SELECT * from articles LIMIT 10
         #         end
         #       end
@@ -1255,6 +1255,8 @@ MSG
             replace_named_bind_variables(statement, values.first)
           elsif statement.include?('?')
             replace_bind_variables(statement, values)
+          elsif statement.blank?
+            statement
           else
             statement % values.collect { |value| connection.quote_string(value.to_s) }
           end
@@ -1471,7 +1473,7 @@ MSG
       #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
       #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
-        return unless new_attributes.is_a? Hash
+        return unless new_attributes.is_a?(Hash)
         attributes = new_attributes.stringify_keys
 
         multi_parameter_attributes = []

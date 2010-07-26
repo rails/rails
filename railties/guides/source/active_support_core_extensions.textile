@@ -157,21 +157,6 @@ WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded l
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
-h4. +returning+
-
-The method +returning+ yields its argument to a block and returns it. You typically use it with a mutable object that gets modified in the block:
-
-<ruby>
-def html_options_for_form(url_for_options, options, *parameters_for_url)
-  returning options.stringify_keys do |html_options|
-    html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
-    html_options["action"]  = url_for(url_for_options, *parameters_for_url)
-  end
-end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/object/returning.rb+.
-
 h4. +try+
 
 Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
@@ -781,6 +766,28 @@ end
 
 This may come in handy if you need to define a method that may already exist, since redefining a method issues a warning "method redefined; discarding old redefined_method_name".
 
+h5. +redefine_method(method_name, &block)+
+
+The method first removes method with given name (using +remove_possible_method+) and then defines new one.
+
+<ruby>
+class A; end
+
+A.class_eval do
+  redefine_method(:foobar) do |foo|
+    #do something here
+  end
+  
+  #Code above does the same as this:
+  
+  method_name = :foobar
+  remove_possible_method(method_name)
+  define_method(method_name) do |foo|
+    #do something here
+  end
+end
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/module/remove_method.rb+.
 
 h4. Parents
@@ -981,7 +988,9 @@ h3. Extensions to +Class+
 
 h4. Class Attributes
 
-The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
+h5. +class_attribute+
+
+The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
 
 <ruby>
 class A
@@ -1005,16 +1014,49 @@ A.x # => :a
 B.x # => :b
 </ruby>
 
-For example that's the way the +allow_forgery_protection+ flag is implemented for controllers:
+For example +ActionMailer::Base+ defines:
 
 <ruby>
-class_attribute :allow_forgery_protection
-self.allow_forgery_protection = true
+class_attribute :default_params
+self.default_params = {
+  :mime_version => "1.0",
+  :charset      => "UTF-8",
+  :content_type => "text/plain",
+  :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+}.freeze
 </ruby>
 
-For convenience +class_attribute+ defines also a predicate, so that declaration also generates +allow_forgery_protection?+. Such predicate returns the double boolean negation of the value.
+They can be also accessed and overridden at the instance level:
+
+<ruby>
+A.x = 1
+
+a1 = A.new
+a2 = A.new
+a2.x = 2
+
+a1.x # => 1, comes from A
+a2.x # => 2, overridden in a2
+</ruby>
+
+The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to false, as in
+
+<ruby>
+module AcitveRecord
+  class Base
+    class_attribute :table_name_prefix, :instance_writer => false
+    self.table_name_prefix = ""
+  end
+end
+</ruby>
+
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
+
+For convenience +class_attribute+ defines also an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
+
+h5. +cattr_reader+, +cattr_writer+, and +cattr_accessor+
 
 The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
 
@@ -1026,17 +1068,18 @@ class MysqlAdapter < AbstractAdapter
 end
 </ruby>
 
-Instance methods are created as well for convenience. For example given
+Instance methods are created as well for convenience, they are just proxies to the class attribute. So, instances can change the class attribute, but cannot override it as it happens with +class_attribute+ (see above). For example given
 
 <ruby>
-module ActionController
+module ActionView
   class Base
-    cattr_accessor :logger
+    cattr_accessor :field_error_proc
+    @@field_error_proc = Proc.new{ ... }
   end
 end
 </ruby>
 
-we can access +logger+ in actions. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+we can access +field_error_proc+ in views. The generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
 
 <ruby>
 module ActiveRecord
@@ -1047,7 +1090,7 @@ module ActiveRecord
 end
 </ruby>
 
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute. 
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
@@ -1107,47 +1150,51 @@ If for whatever reason an application loads the definition of a mailer class and
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
-h4. Descendants & Subclasses
-
-h5. +descendants+
-
-The +descendants+ method returns all classes, including its children, that inherits from self.
-
-<ruby>
-class C; end
-C.descendants #=> []
-
-class B < C; end
-C.descendants #=> [B]
-
-class A < B; end
-C.descendants #=> [B, A]
-
-class D < C; end
-C.descendants #=> [B, A, D]
-</ruby>
+h4. Subclasses & Descendants
 
 h5. +subclasses+
 
-The +subclasses+ method returns all direct classes that inherits from self.
+The +subclasses+ method returns the subclasses of the receiver:
 
 <ruby>
 class C; end
-C.subclasses #=> []
+C.subclasses # => []
 
 class B < C; end
-C.subclasses #=> [B]
+C.subclasses # => [B]
 
 class A < B; end
-C.subclasses #=> [B]
+C.subclasses # => [B]
 
 class D < C; end
-C.subclasses #=> [B, D]
+C.subclasses # => [B, D]
 </ruby>
 
-The order in which these class are returned is unspecified.
+The order in which these classes are returned is unspecified.
 
 WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
+
+NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
+
+h5. +descendants+
+
+The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver: 
+
+<ruby>
+class C; end
+C.descendants # => []
+
+class B < C; end
+C.descendants # => [B]
+
+class A < B; end
+C.descendants # => [B, A]
+
+class D < C; end
+C.descendants # => [B, A, D]
+</ruby>
+
+The order in which these classes are returned is unspecified.
 
 NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
@@ -1429,13 +1476,15 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
+INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
+
 +camelize+ is aliased to +camelcase+.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h5. +underscore+
 
-The method +underscore+ is the inverse of +camelize+, explained above:
+The method +underscore+ goes the other way around, from camel case to paths:
 
 <ruby>
 "Product".underscore   # => "product"
@@ -1467,6 +1516,8 @@ def load_missing_constant(from_mod, const_name)
   ...
 end
 </ruby>
+
+INFO: As a rule of thumb you can think of +underscore+ as the inverse of +camelize+, though there are cases where that does not hold. For example, <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
@@ -1836,9 +1887,7 @@ h3. Extensions to +Enumerable+
 
 h4. +group_by+
 
-Ruby 1.8.7 and up define +group_by+, and Active Support does it for previous versions.
-
-This iterator takes a block and builds an ordered hash with its return values as keys. Each key is mapped to the array of elements for which the block returned that value:
+Active Support redefines +group_by+ in Ruby 1.8.7 so that it returns an ordered hash as in 1.9:
 
 <ruby>
 entries_by_surname_initial = address_book.group_by do |entry|
@@ -1846,7 +1895,7 @@ entries_by_surname_initial = address_book.group_by do |entry|
 end
 </ruby>
 
-WARNING. Active Support redefines +group_by+ in Ruby 1.8.7 so that it still returns an ordered hash.
+Distinct block return values are added to the hash as they come, so that's the resulting order.
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 

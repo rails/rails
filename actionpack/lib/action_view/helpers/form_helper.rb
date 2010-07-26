@@ -150,10 +150,6 @@ module ActionView
       #   here a named route directly as well. Defaults to the current action.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
-      # Worth noting is that the +form_for+ tag is called in a ERb evaluation
-      # block, not an ERb output block. So that's <tt><% %></tt>, not
-      # <tt><%= %></tt>.
-      #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
@@ -302,12 +298,12 @@ module ActionView
           object_name = record_or_name_or_array
         when Array
           object = record_or_name_or_array.last
-          object_name = options[:as] || ActionController::RecordIdentifier.singular_class_name(object)
+          object_name = options[:as] || ActiveModel::Naming.singular(object)
           apply_form_for_options!(record_or_name_or_array, options)
           args.unshift object
         else
           object = record_or_name_or_array
-          object_name = options[:as] || ActionController::RecordIdentifier.singular_class_name(object)
+          object_name = options[:as] || ActiveModel::Naming.singular(object)
           apply_form_for_options!([object], options)
           args.unshift object
         end
@@ -533,7 +529,7 @@ module ActionView
           object = args.first
         else
           object = record_or_name_or_array
-          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          object_name = ActiveModel::Naming.singular(object)
         end
 
         builder = options[:builder] || ActionView::Base.default_form_builder
@@ -676,7 +672,7 @@ module ActionView
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       #
       def file_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("file", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("file", options.update({:size => nil}))
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -1156,11 +1152,11 @@ module ActionView
           end
         when Array
           object = record_or_name_or_array.last
-          name = "#{object_name}#{index}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
+          name = "#{object_name}#{index}[#{ActiveModel::Naming.singular(object)}]"
           args.unshift(object)
         else
           object = record_or_name_or_array
-          name = "#{object_name}#{index}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
+          name = "#{object_name}#{index}[#{ActiveModel::Naming.singular(object)}]"
           args.unshift(object)
         end
 

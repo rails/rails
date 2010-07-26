@@ -124,6 +124,7 @@ module ActiveRecord
             end
           end
 
+          @destroyed = true
           freeze
         end
 

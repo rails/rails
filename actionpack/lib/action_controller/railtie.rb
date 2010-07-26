@@ -5,8 +5,6 @@ require "action_view/railtie"
 require "active_support/deprecation/proxy_wrappers"
 require "active_support/deprecation"
 
-require "action_controller/railties/url_helpers"
-
 module ActionController
   class Railtie < Rails::Railtie
     config.action_controller = ActiveSupport::OrderedOptions.new
@@ -33,21 +31,6 @@ module ActionController
       end
     end
 
-    initializer "action_controller.set_configs" do |app|
-      paths = app.config.paths
-      ac = app.config.action_controller
-
-      ac.assets_dir           ||= paths.public.to_a.first
-      ac.javascripts_dir      ||= paths.public.javascripts.to_a.first
-      ac.stylesheets_dir      ||= paths.public.stylesheets.to_a.first
-      ac.page_cache_directory ||= paths.public.to_a.first
-      ac.helpers_path         ||= paths.app.helpers.to_a
-
-      ActiveSupport.on_load(:action_controller) do
-        self.config.merge!(ac)
-      end
-    end
-
     initializer "action_controller.logger" do
       ActiveSupport.on_load(:action_controller) { self.logger ||= Rails.logger }
     end
@@ -56,11 +39,23 @@ module ActionController
       ActiveSupport.on_load(:action_controller) { self.cache_store ||= RAILS_CACHE }
     end
 
-    initializer "action_controller.url_helpers" do |app|
-      ActiveSupport.on_load(:action_controller) do
-        extend ::ActionController::Railties::UrlHelpers.with(app.routes)
-      end
+    initializer "action_controller.set_configs" do |app|
+      paths   = app.config.paths
+      options = app.config.action_controller
 
+      options.assets_dir           ||= paths.public.to_a.first
+      options.javascripts_dir      ||= paths.public.javascripts.to_a.first
+      options.stylesheets_dir      ||= paths.public.stylesheets.to_a.first
+      options.page_cache_directory ||= paths.public.to_a.first
+      options.helpers_path         ||= paths.app.helpers.to_a
+
+      ActiveSupport.on_load(:action_controller) do
+        include app.routes.url_helpers
+        options.each { |k,v| send("#{k}=", v) }
+      end
+    end
+
+    initializer "action_controller.deprecated_routes" do |app|
       message = "ActionController::Routing::Routes is deprecated. " \
                 "Instead, use Rails.application.routes"
 

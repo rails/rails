@@ -3,10 +3,12 @@ require 'models/topic'
 require 'models/reply'
 require 'models/developer'
 require 'models/book'
+require 'models/author'
+require 'models/post'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
-  fixtures :topics, :developers
+  fixtures :topics, :developers, :authors, :posts
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
@@ -101,6 +103,25 @@ class TransactionTest < ActiveRecord::TestCase
     ensure
       remove_exception_raising_after_save_callback_to_topic
     end
+  end
+
+  def test_update_attributes_should_rollback_on_failure
+    author = Author.find(1)
+    posts_count = author.posts.size
+    assert posts_count > 0
+    status = author.update_attributes(:name => nil, :post_ids => [])
+    assert !status
+    assert_equal posts_count, author.posts(true).size
+  end
+
+  def test_update_attributes_should_rollback_on_failure!
+    author = Author.find(1)
+    posts_count = author.posts.size
+    assert posts_count > 0
+    assert_raise(ActiveRecord::RecordInvalid) do
+      author.update_attributes!(:name => nil, :post_ids => [])
+    end
+    assert_equal posts_count, author.posts(true).size
   end
 
   def test_cancellation_from_before_destroy_rollbacks_in_destroy

@@ -13,7 +13,7 @@ module ActiveSupport
             json = json.read
           end
           YAML.load(convert_json_to_yaml(json))
-        rescue ArgumentError => e
+        rescue ArgumentError
           raise ParseError, "Invalid JSON string"
         end
 

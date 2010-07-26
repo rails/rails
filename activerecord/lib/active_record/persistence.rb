@@ -102,35 +102,52 @@ module ActiveRecord
       became
     end
 
-    # Updates a single attribute and saves the record without going through the normal validation procedure
-    # or callbacks. This is especially useful for boolean flags on existing records.
+    # Updates a single attribute and saves the record.  
+    # This is especially useful for boolean flags on existing records. Also note that
+    #
+    # * validation is skipped
+    # * No callbacks are invoked 
+    # * updated_at/updated_on column is updated if that column is available
+    # * does not work on associations
+    # * does not work on attr_accessor attributes. The attribute that is being updated must be column name.
+    #
     def update_attribute(name, value)
-      send("#{name}=", value)
-      hash = { name => read_attribute(name) }
+      raise ActiveRecordError, "#{name.to_s} is marked as readonly" if self.class.readonly_attributes.include? name.to_s
 
-      if record_update_timestamps
-        timestamp_attributes_for_update_in_model.each do |column|
-          hash[column] = read_attribute(column)
-        end
+      changes = record_update_timestamps || {}
+
+      if name
+        name = name.to_s
+        send("#{name}=", value)
+        changes[name] = read_attribute(name)
       end
 
-      @changed_attributes.delete(name.to_s)
+      @changed_attributes.except!(*changes.keys)
       primary_key = self.class.primary_key
-      self.class.update_all(hash, { primary_key => self[primary_key] }) == 1
+      self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
     end
 
-    # Updates all the attributes from the passed-in Hash and saves the record. 
-    # If the object is invalid, the saving will fail and false will be returned.
+    # Updates the attributes of the model from the passed-in hash and saves the
+    # record, all wrapped in a transaction. If the object is invalid, the saving
+    # will fail and false will be returned.
     def update_attributes(attributes)
-      self.attributes = attributes
-      save
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
+      with_transaction_returning_status do
+        self.attributes = attributes
+        save
+      end
     end
 
-    # Updates an object just like Base.update_attributes but calls save! instead
-    # of save so an exception is raised if the record is invalid.
+    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    # of +save+, so an exception is raised if the record is invalid.
     def update_attributes!(attributes)
-      self.attributes = attributes
-      save!
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
+      with_transaction_returning_status do
+        self.attributes = attributes
+        save!
+      end
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).

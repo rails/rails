@@ -1,0 +1,342 @@
+= Action Pack -- From request to response
+
+Action Pack is a framework for handling and responding to web requests. It it
+provides mechanisms for *routing* (mapping request URLs to actions), defining
+*controllers* that implement actions, and generating responses by rendering
+*views*, which are templates of various formats. In short, Action Pack
+provides the view and controller layers in the MVC paradigm.
+
+It consists of several modules:
+
+* Action Dispatch, which parses information about the web request, handles
+  routing as defined by the user, and does advanced processing related to HTTP
+  such as MIME-type negotiation, decoding parameters in POST/PUT bodies,
+  handling HTTP caching logic, cookies and sessions.
+
+* Action Controller, which provides a base controller class that can be
+  subclassed to implement filters and actions to handle requests. The result
+  of an action is typically content generated from views.
+
+* Action View, which handles view template lookup and rendering, and provides
+  view helpers that assist when building HTML forms, Atom feeds and more.
+  Template formats that Action View handles are ERb (embedded Ruby, typically
+  used to inline short Ruby snippets inside HTML), XML Builder and RJS
+  (dynamically generated JavaScript from Ruby code).
+
+With the Ruby on Rails framework, users only directly interface with the
+Action Controller module. Necessary Action Dispatch functionality is activated
+by default and Action View rendering is implicitly triggered by Action
+Controller. However, these modules are designed to function on their own and
+can be used outside of Rails.
+
+A short rundown of some of the major features:
+
+* Actions grouped in controller as methods instead of separate command objects
+  and can therefore share helper methods
+
+    CustomersController < ActionController::Base
+      def show
+        @customer = find_customer
+      end
+
+      def update
+        @customer = find_customer
+        if @customer.update_attributes(params[:customer])
+          redirect_to :action => "show"
+        else
+          render :action => "edit"
+        end
+      end
+
+      private
+        def find_customer
+          Customer.find params[:id]
+        end
+    end
+
+  {Learn more}[link:classes/ActionController/Base.html]
+
+
+* ERb templates (static content mixed with dynamic output from ruby)
+
+    <% for post in @posts %>
+      Title: <%= post.title %>
+    <% end %>
+
+    All post titles: <%= @posts.collect{ |p| p.title }.join(", ") %>
+
+    <% unless @person.is_client? %>
+      Not for clients to see...
+    <% end %>
+
+  {Learn more}[link:classes/ActionView.html]
+
+
+* "Builder" templates (great for XML content, like RSS)
+
+    xml.rss("version" => "2.0") do
+      xml.channel do
+        xml.title(@feed_title)
+        xml.link(@url)
+        xml.description "Basecamp: Recent items"
+        xml.language "en-us"
+        xml.ttl "40"
+
+        for item in @recent_items
+          xml.item do
+            xml.title(item_title(item))
+            xml.description(item_description(item))
+            xml.pubDate(item_pubDate(item))
+            xml.guid(@recent_items.url(item))
+            xml.link(@recent_items.url(item))
+          end
+        end
+      end
+    end
+
+  {Learn more}[link:classes/ActionView/Base.html]
+
+
+* Filters for pre- and post-processing of the response
+
+    class WeblogController < ActionController::Base
+      # filters as methods
+      before_filter :authenticate, :cache, :audit
+      
+      # filter as a proc
+      after_filter { |c| c.response.body = Gzip::compress(c.response.body) }
+      
+      # class filter
+      after_filter LocalizeFilter
+
+      def index
+        # Before this action is run, the user will be authenticated, the cache
+        # will be examined to see if a valid copy of the results already
+        # exists, and the action will be logged for auditing.
+
+        # After this action has run, the output will first be localized then
+        # compressed to minimize bandwidth usage
+      end
+
+      private
+        def authenticate
+          # Implement the filter with full access to both request and response
+        end
+    end
+
+  {Learn more}[link:classes/ActionController/Filters/ClassMethods.html]
+
+
+* Helpers for forms, dates, action links, and text
+
+    <%= text_field_tag "post", "title", "size" => 30 %>
+    <%= link_to "New post", :controller => "post", :action => "new" %>
+    <%= truncate(post.title, :length => 25) %>
+
+  {Learn more}[link:classes/ActionView/Helpers.html]
+
+
+* Layout sharing for template reuse
+
+    class WeblogController < ActionController::Base
+      layout "weblog_layout"
+
+      def hello_world
+      end
+    end
+
+    Layout file (called weblog_layout):
+      <html><body><%= yield %></body></html>
+
+    Template for hello_world action:
+      <h1>Hello world</h1>
+
+    Result of running hello_world action:
+      <html><body><h1>Hello world</h1></body></html>
+
+  {Learn more}[link:classes/ActionController/Layout/ClassMethods.html]
+
+
+* Routing makes pretty URLs incredibly easy
+
+    match 'clients/:client_name/:project_name/:controller/:action'
+
+    Accessing "/clients/37signals/basecamp/project/index" calls ProjectController#index with
+    { "client_name" => "37signals", "project_name" => "basecamp" } in `params`
+
+    From that action, you can write the redirect in a number of ways:
+
+    redirect_to(:action => "edit") =>
+      /clients/37signals/basecamp/project/edit
+
+    redirect_to(:client_name => "nextangle", :project_name => "rails") =>
+      /clients/nextangle/rails/project/index
+
+  {Learn more}[link:classes/ActionDispatch/Routing.html]
+
+
+* Easy testing of both controller and rendered template through ActionController::TestCase
+
+    class LoginControllerTest < ActionController::TestCase
+      def test_failing_authenticate
+        process :authenticate, :user_name => "nop", :password => ""
+        assert flash.has_key?(:alert)
+        assert_redirected_to :action => "index"
+      end
+    end
+
+  {Learn more}[link:classes/ActionController/TestCase.html]
+
+
+* Automated benchmarking and integrated logging
+
+    Started GET "/weblog" for 127.0.0.1 at Fri May 28 00:41:55
+      Processing by WeblogController#index as HTML
+    Rendered weblog/index.html.erb within layouts/application (25.7ms)
+    Completed 200 OK in 29.3ms
+
+    If Active Record is used as the model, you'll have the database debugging
+    as well:
+
+    Started POST "/posts" for 127.0.0.1 at Sat Jun 19 14:04:23
+      Processing by PostsController#create as HTML
+      Parameters: {"post"=>{"title"=>"this is good"}}
+    SQL (0.6ms) INSERT INTO posts (title) VALUES('this is good')
+    Redirected to http://example.com/posts/5
+    Completed 302 Found in 221ms (Views: 215ms | ActiveRecord: 0.6ms)
+
+    You specify a logger through a class method, such as:
+
+    ActionController::Base.logger = Logger.new("Application Log")
+    ActionController::Base.logger = Log4r::Logger.new("Application Log")
+
+
+* Caching at three levels of granularity (page, action, fragment)
+
+    class WeblogController < ActionController::Base
+      caches_page :show
+      caches_action :account
+
+      def show
+        # the output of the method will be cached as
+        # ActionController::Base.page_cache_directory + "/weblog/show/n.html"
+        # and the web server will pick it up without even hitting Rails
+      end
+
+      def account
+        # the output of the method will be cached in the fragment store
+        # but Rails is hit to retrieve it, so filters are run
+      end
+
+      def update
+        List.update(params[:list][:id], params[:list])
+        expire_page   :action => "show", :id => params[:list][:id]
+        expire_action :action => "account"
+        redirect_to   :action => "show", :id => params[:list][:id]
+      end
+    end
+
+  {Learn more}[link:classes/ActionController/Caching.html]
+
+
+* Powerful debugging mechanism for local requests
+
+    All exceptions raised on actions performed on the request of a local user
+    will be presented with a tailored debugging screen that includes exception
+    message, stack trace, request parameters, session contents, and the
+    half-finished response.
+
+  {Learn more}[link:classes/ActionController/Rescue.html]
+
+
+== Simple example (from outside of Rails)
+
+This example will implement a simple weblog system using inline templates and
+an Active Record model. So let's build that WeblogController with just a few
+methods:
+
+  require 'action_controller'
+  require 'post'
+
+  class WeblogController < ActionController::Base
+    layout "weblog/layout"
+
+    def index
+      @posts = Post.find(:all)
+    end
+
+    def show
+      @post = Post.find(params[:id])
+    end
+
+    def new
+      @post = Post.new
+    end
+
+    def create
+      @post = Post.create(params[:post])
+      redirect_to :action => "show", :id => @post.id
+    end
+  end
+
+  WeblogController::Base.view_paths = [ File.dirname(__FILE__) ]
+  WeblogController.process_cgi if $0 == __FILE__
+
+The last two lines are responsible for telling ActionController where the
+template files are located and actually running the controller on a new
+request from the web-server (like to be Apache).
+
+And the templates look like this:
+
+  weblog/layout.html.erb:
+    <html><body>
+    <%= yield %>
+    </body></html>
+
+  weblog/index.html.erb:
+    <% for post in @posts %>
+      <p><%= link_to(post.title, :action => "show", :id => post.id) %></p>
+    <% end %>
+
+  weblog/show.html.erb:
+    <p>
+      <b><%= @post.title %></b><br/>
+      <b><%= @post.content %></b>
+    </p>
+
+  weblog/new.html.erb:
+    <%= form "post" %>
+
+This simple setup will list all the posts in the system on the index page,
+which is called by accessing /weblog/. It uses the form builder for the Active
+Record model to make the new screen, which in turn hands everything over to
+the create action (that's the default target for the form builder when given a
+new model). After creating the post, it'll redirect to the show page using
+an URL such as /weblog/5 (where 5 is the id of the post).
+
+
+== Download and installation
+
+The latest version of Action Pack can be installed with Rubygems:
+
+  % [sudo] gem install actionpack
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* http://github.com/rails/rails/tree/master/actionpack/
+
+
+== License
+
+Action Pack is released under the MIT license.
+
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.com
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets

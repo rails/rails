@@ -101,7 +101,11 @@ module ActiveSupport
       @guard.synchronize do
         unless buffer.empty?
           old_buffer = buffer
-          @log.write(old_buffer.join)
+          all_content = StringIO.new
+          old_buffer.each do |content|
+            all_content << content
+          end
+          @log.write(all_content.string)
         end
 
         # Important to do this even if buffer was empty or else @buffer will

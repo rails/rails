@@ -337,7 +337,7 @@ Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash C
 
 h4. Hash Conditions
 
-Active Record also allows you to pass in a hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
 
 NOTE: Only equality, range and subset checking are possible with Hash conditions.
 
@@ -347,7 +347,7 @@ h5. Equality Conditions
 Client.where({ :locked => true })
 </ruby>
 
-The field name does not have to be a symbol it can also be a string:
+The field name can also be a string:
 
 <ruby>
 Client.where({ 'locked' => true })
@@ -447,33 +447,33 @@ h4. Limit and Offset
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +limit+ and +offset+ methods on the relation.
 
-If you want to limit the amount of records to a certain subset of all the records retrieved you usually use +limit+ for this, sometimes coupled with +offset+. Limit is the maximum number of records that will be retrieved from a query, and offset is the number of records it will start reading from from the first record of the set. For example:
+You can use +limit+ to specify the number of records to be retrieved, and use +offset+ to specify the number of records to skip before starting to return the records. For example
 
 <ruby>
 Client.limit(5)
 </ruby>
 
-This code will return a maximum of 5 clients and because it specifies no offset it will return the first 5 clients in the table. The SQL it executes will look like this:
+will return a maximum of 5 clients and because it specifies no offset it will return the first 5 in the table. The SQL it executes looks like this:
 
 <sql>
 SELECT * FROM clients LIMIT 5
 </sql>
 
-Or chaining both +limit+ and +offset+:
+Adding +offset+ to that
 
 <ruby>
-Client.limit(5).offset(5)
+Client.limit(5).offset(30)
 </ruby>
 
-This code will return a maximum of 5 clients and because it specifies an offset this time, it will return these records starting from the 5th client in the clients table. The SQL looks like:
+will return instead a maximum of 5 clients beginning with the 31st. The SQL looks like:
 
 <sql>
-SELECT * FROM clients LIMIT 5, 5
+SELECT * FROM clients LIMIT 5, 30
 </sql>
 
 h4. Group
 
-To apply +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
+To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
 
 For example, if you want to find a collection of the dates orders were created on:
 
@@ -491,7 +491,7 @@ SELECT * FROM orders GROUP BY date(created_at)
 
 h4. Having
 
-SQL uses +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can specify the +HAVING+ clause to the SQL fired by the +Model.find+ using +:having+ option on the find.
+SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can add the +HAVING+ clause to the SQL fired by the +Model.find+ by adding the +:having+ option to the find.
 
 For example:
 
@@ -517,7 +517,7 @@ Any attempt to alter or destroy the readonly records will not succeed, raising a
 Client.first.readonly(true)
 </ruby>
 
-If you assign this record to a variable client, calling the following code will raise an +ActiveRecord::ReadOnlyRecord+ exception:
+For example, calling the following code will raise an +ActiveRecord::ReadOnlyRecord+ exception:
 
 <ruby>
 client = Client.first.readonly(true)
@@ -527,7 +527,9 @@ client.save
 
 h4. Locking Records for Update
 
-Locking is helpful for preventing the race conditions when updating records in the database and ensuring atomic updated. Active Record provides two locking mechanism:
+Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
+
+Active Record provides two locking mechanisms:
 
 * Optimistic Locking
 * Pessimistic Locking
@@ -538,7 +540,7 @@ Optimistic locking allows multiple users to access the same record for edits, an
 
 <strong>Optimistic locking column</strong>
 
-In order to use optimistic locking, the table needs to have a column called +lock_version+. Each time the record is updated, Active Record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice will let the last one saved raise an +ActiveRecord::StaleObjectError+ exception if the first was also updated. Example:
+In order to use optimistic locking, the table needs to have a column called +lock_version+. Each time the record is updated, Active Record increments the +lock_version+ column. If an update request is made with a lower value in the +lock_version+ field than is currently in the +lock_version+ column in the database, the update request will fail with an +ActiveRecord::StaleObjectError+. Example:
 
 <ruby>
 c1 = Client.find(1)
@@ -569,7 +571,7 @@ end
 
 h5. Pessimistic Locking
 
-Pessimistic locking uses locking mechanism provided by the underlying database. Passing +:lock => true+ to +Model.find+ obtains an exclusive lock on the selected rows. +Model.find+ using +:lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
+Pessimistic locking uses a locking mechanism provided by the underlying database. Passing +:lock => true+ to +Model.find+ obtains an exclusive lock on the selected rows. +Model.find+ using +:lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
 For example:
 
@@ -601,7 +603,7 @@ end
 
 h3. Joining Tables
 
-<tt>Model.find</tt> provides a +:joins+ option for specifying +JOIN+ clauses on the resulting SQL. There multiple different ways to specify the +:joins+ option:
+<tt>Model.find</tt> provides a +:joins+ option for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to specify the +:joins+ option:
 
 h4. Using a String SQL Fragment
 
@@ -698,7 +700,7 @@ time_range = (Time.now.midnight - 1.day)..Time.now.midnight
 Client.joins(:orders).where('orders.created_at' => time_range)
 </ruby>
 
-An alternative and cleaner syntax to this is to nest the hash conditions:
+An alternative and cleaner syntax is to nest the hash conditions:
 
 <ruby>
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -727,7 +729,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 <strong>Solution to N <plus> 1 queries problem</strong>
 
-Active Record lets you specify all the associations in advanced that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all the specified associations are loaded using minimum possible number of queries.
+Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
 Revisiting the above case, we could rewrite +Client.all+ to use eager load addresses:
 
@@ -749,7 +751,7 @@ SELECT addresses.* FROM addresses
 
 h4. Eager Loading Multiple Associations
 
-Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
+Active Record lets you eager load any number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
 
 h5. Array of Multiple Associations 
 
@@ -765,7 +767,7 @@ h5. Nested Associations Hash
 Category.find(1).includes(:posts => [{:comments => :guest}, :tags])
 </ruby>
 
-The above code finds the category with id 1 and eager loads all the posts associated with the found category. Additionally, it will also eager load every posts' tags and comments. Every comment's guest association will get eager loaded as well.
+This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
 
 h4. Specifying Conditions on Eager Loaded Associations
 
@@ -782,7 +784,7 @@ You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic find
 If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_first_name_and_locked("Ryan", true)+.
 
 
-There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will firstly perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:
+There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will first perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:
 
 <sql>
 SELECT * FROM clients WHERE (clients.first_name = 'Ryan') LIMIT 1
@@ -792,7 +794,7 @@ INSERT INTO clients (first_name, updated_at, created_at, orders_count, locked)
 COMMIT
 </sql>
 
-+find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similar to calling +new+ with the arguments you passed in. For example:
++find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similarly to calling +new+ with the arguments you passed in. For example:
 
 <ruby>
 client = Client.find_or_initialize_by_first_name('Ryan')
@@ -836,7 +838,7 @@ Client.exists?(1,2,3)
 Client.exists?([1,2,3])
 </ruby>
 
-Further more, +exists+ takes a +conditions+ option much like find:
+The +exists+ method may also take a +conditions+ option much like find:
 
 <ruby>
 Client.exists?(:conditions => "first_name = 'Ryan'")

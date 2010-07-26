@@ -1,3 +1,4 @@
+require 'set'
 require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel

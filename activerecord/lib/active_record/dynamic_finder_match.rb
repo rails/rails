@@ -42,6 +42,10 @@ module ActiveRecord
       @finder == :first && !@instantiator.nil?
     end
 
+    def creator?
+      @finder == :first && @instantiator == :create
+    end
+
     def bang?
       @bang
     end

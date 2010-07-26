@@ -1,0 +1,222 @@
+= Active Record -- Object-relational mapping put on rails
+
+Active Record connects classes to relational database tables to establish an
+almost zero-configuration persistence layer for applications. The library
+provides a base class that, when subclassed, sets up a mapping between the new
+class and an existing table in the database. In context of an application,
+these classes are commonly referred to as *models*. Models can also be
+connected to other models; this is done by defining *associations*.
+
+Active Record relies heavily on naming in that it uses class and association
+names to establish mappings between respective database tables and foreign key
+columns. Although these mappings can be defined explicitly, it's recommended
+to follow naming conventions, especially when getting started with the
+library.
+
+A short rundown of some of the major features:
+
+* Automated mapping between classes and tables, attributes and columns.
+
+   class Product < ActiveRecord::Base
+   end
+   
+   The Product class is automatically mapped to the table named "products",
+   which might look like this:
+   
+   CREATE TABLE products (
+     id int(11) NOT NULL auto_increment,
+     name varchar(255),
+     PRIMARY KEY  (id)
+   );
+   
+   This would also define the following accessors: `Product#name` and
+   `Product#name=(new_name)`
+   
+  {Learn more}[link:classes/ActiveRecord/Base.html]
+
+
+* Associations between objects defined by simple class methods.
+
+   class Firm < ActiveRecord::Base
+     has_many   :clients
+     has_one    :account
+     belongs_to :conglomerate
+   end
+
+  {Learn more}[link:classes/ActiveRecord/Associations/ClassMethods.html]
+
+
+* Aggregations of value objects.
+
+   class Account < ActiveRecord::Base
+     composed_of :balance, :class_name => "Money",
+                 :mapping => %w(balance amount)
+     composed_of :address, 
+                 :mapping => [%w(address_street street), %w(address_city city)]
+   end
+
+  {Learn more}[link:classes/ActiveRecord/Aggregations/ClassMethods.html]
+
+
+* Validation rules that can differ for new or existing objects.
+
+    class Account < ActiveRecord::Base
+      validates_presence_of     :subdomain, :name, :email_address, :password
+      validates_uniqueness_of   :subdomain
+      validates_acceptance_of   :terms_of_service, :on => :create
+      validates_confirmation_of :password, :email_address, :on => :create
+    end
+
+  {Learn more}[link:classes/ActiveRecord/Validations.html]
+
+
+* Callbacks available for the entire lifecycle (instantiation, saving, destroying, validating, etc.)
+
+   class Person < ActiveRecord::Base
+     before_destroy :invalidate_payment_plan
+     # the `invalidate_payment_plan` method gets called just before Person#destroy
+   end
+
+  {Learn more}[link:classes/ActiveRecord/Callbacks.html]
+
+
+* Observers that react to changes in a model
+
+   class CommentObserver < ActiveRecord::Observer
+     def after_create(comment) # is called just after Comment#save
+       Notifications.deliver_new_comment("david@loudthinking.com", comment)
+     end
+   end
+
+  {Learn more}[link:classes/ActiveRecord/Observer.html]
+
+
+* Inheritance hierarchies 
+
+   class Company < ActiveRecord::Base; end
+   class Firm < Company; end
+   class Client < Company; end
+   class PriorityClient < Client; end
+
+  {Learn more}[link:classes/ActiveRecord/Base.html]
+
+
+* Transactions
+
+    # Database transaction
+    Account.transaction do
+      david.withdrawal(100)
+      mary.deposit(100)
+    end
+
+  {Learn more}[link:classes/ActiveRecord/Transactions/ClassMethods.html]
+
+
+* Reflections on columns, associations, and aggregations
+
+    reflection = Firm.reflect_on_association(:clients)
+    reflection.klass # => Client (class)
+    Firm.columns # Returns an array of column descriptors for the firms table
+
+  {Learn more}[link:classes/ActiveRecord/Reflection/ClassMethods.html]
+
+
+* Database abstraction through simple adapters
+
+    # connect to SQLite3
+    ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => "dbfile.sqlite3")
+
+    # connect to MySQL with authentication
+    ActiveRecord::Base.establish_connection(
+      :adapter  => "mysql",
+      :host     => "localhost",
+      :username => "me",
+      :password => "secret",
+      :database => "activerecord"
+    )
+
+  {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
+  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html],
+  PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
+  SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
+
+
+* Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc]
+
+    ActiveRecord::Base.logger = Logger.new(STDOUT)
+    ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
+
+
+* Database agnostic schema management with Migrations
+
+    class AddSystemSettings < ActiveRecord::Migration
+      def self.up
+        create_table :system_settings do |t|
+          t.string  :name
+          t.string  :label
+          t.text    :value
+          t.string  :type
+          t.integer :position
+        end
+
+        SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
+      end
+
+      def self.down
+        drop_table :system_settings
+      end
+    end
+
+  {Learn more}[link:classes/ActiveRecord/Migration.html]
+
+
+== Philosophy 
+
+Active Record is an implementation of the object-relational mapping (ORM)
+pattern[http://www.martinfowler.com/eaaCatalog/activeRecord.html] by the same
+name described by Martin Fowler:
+
+  "An object that wraps a row in a database table or view,
+  encapsulates the database access, and adds domain logic on that data."
+
+Active Record attempts to provide a coherent wrapper as a solution for the inconvenience that is 
+object-relational mapping. The prime directive for this mapping has been to minimize
+the amount of code needed to build a real-world domain model. This is made possible
+by relying on a number of conventions that make it easy for Active Record to infer
+complex relations and structures from a minimal amount of explicit direction.
+
+Convention over Configuration:
+* No XML-files!
+* Lots of reflection and run-time extension
+* Magic is not inherently a bad word 
+
+Admit the Database:
+* Lets you drop down to SQL for odd cases and performance
+* Doesn't attempt to duplicate or replace data definitions
+
+
+== Download and installation
+
+The latest version of Active Record can be installed with Rubygems:
+
+  % [sudo] gem install activerecord
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* http://github.com/rails/rails/tree/master/activerecord/
+
+
+== License
+
+Active Record is released under the MIT license.
+
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.com
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets

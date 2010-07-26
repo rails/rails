@@ -16,7 +16,7 @@ module ActiveRecord
   # ActionController::SessionOverflowError will be raised.
   #
   # You may configure the table name, primary key, and data column.
-  # For example, at the end of <tt>config/environment.rb</tt>:
+  # For example, at the end of <tt>config/application.rb</tt>:
   #
   #   ActiveRecord::SessionStore::Session.table_name = 'legacy_session_table'
   #   ActiveRecord::SessionStore::Session.primary_key = 'session_id'
@@ -49,8 +49,34 @@ module ActiveRecord
   # The example SqlBypass class is a generic SQL session store.  You may
   # use it as a basis for high-performance database-specific stores.
   class SessionStore < ActionDispatch::Session::AbstractStore
+    module ClassMethods # :nodoc:
+      def marshal(data)
+        ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
+      end
+
+      def unmarshal(data)
+        Marshal.load(ActiveSupport::Base64.decode64(data)) if data
+      end
+
+      def drop_table!
+        connection.execute "DROP TABLE #{table_name}"
+      end
+
+      def create_table!
+        connection.execute <<-end_sql
+          CREATE TABLE #{table_name} (
+            id #{connection.type_to_sql(:primary_key)},
+            #{connection.quote_column_name(session_id_column)} VARCHAR(255) UNIQUE,
+            #{connection.quote_column_name(data_column_name)} TEXT
+          )
+        end_sql
+      end
+    end
+
     # The default Active Record class.
     class Session < ActiveRecord::Base
+      extend ClassMethods
+
       ##
       # :singleton-method:
       # Customizable data column name.  Defaults to 'data'.
@@ -62,7 +88,7 @@ module ActiveRecord
 
       class << self
         def data_column_size_limit
-          @data_column_size_limit ||= columns_hash[@@data_column_name].limit
+          @data_column_size_limit ||= columns_hash[data_column_name].limit
         end
 
         # Hook to set up sessid compatibility.
@@ -71,29 +97,11 @@ module ActiveRecord
           find_by_session_id(session_id)
         end
 
-        def marshal(data)
-          ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
-        end
-
-        def unmarshal(data)
-          Marshal.load(ActiveSupport::Base64.decode64(data)) if data
-        end
-
-        def create_table!
-          connection.execute <<-end_sql
-            CREATE TABLE #{table_name} (
-              id INTEGER PRIMARY KEY,
-              #{connection.quote_column_name('session_id')} TEXT UNIQUE,
-              #{connection.quote_column_name(@@data_column_name)} TEXT(255)
-            )
-          end_sql
-        end
-
-        def drop_table!
-          connection.execute "DROP TABLE #{table_name}"
-        end
-
         private
+          def session_id_column
+            'session_id'
+          end
+
           # Compatibility with tables using sessid instead of session_id.
           def setup_sessid_compatibility!
             # Reset column info since it may be stale.
@@ -106,11 +114,18 @@ module ActiveRecord
               define_method(:session_id)  { sessid }
               define_method(:session_id=) { |session_id| self.sessid = session_id }
             else
+              class << self; remove_method :find_by_session_id; end
+
               def self.find_by_session_id(session_id)
                 find :first, :conditions => {:session_id=>session_id}
               end
             end
           end
+      end
+
+      def initialize(attributes = nil)
+        @data = nil
+        super
       end
 
       # Lazy-unmarshal session state.
@@ -122,22 +137,22 @@ module ActiveRecord
 
       # Has the session been loaded yet?
       def loaded?
-        !!@data
+        @data
       end
 
       private
         def marshal_data!
-          return false if !loaded?
-          write_attribute(@@data_column_name, self.class.marshal(self.data))
+          return false unless loaded?
+          write_attribute(@@data_column_name, self.class.marshal(data))
         end
 
         # Ensures that the data about to be stored in the database is not
         # larger than the data storage column. Raises
         # ActionController::SessionOverflowError.
         def raise_on_session_data_overflow!
-          return false if !loaded?
+          return false unless loaded?
           limit = self.class.data_column_size_limit
-          if loaded? and limit and read_attribute(@@data_column_name).size > limit
+          if limit and read_attribute(@@data_column_name).size > limit
             raise ActionController::SessionOverflowError
           end
         end
@@ -162,6 +177,8 @@ module ActiveRecord
     # binary session data in a +text+ column.  For higher performance,
     # store in a +blob+ column instead and forgo the Base64 encoding.
     class SqlBypass
+      extend ClassMethods
+
       ##
       # :singleton-method:
       # Use the ActiveRecord::Base.connection by default.
@@ -186,6 +203,8 @@ module ActiveRecord
       @@data_column = 'data'
 
       class << self
+        alias :data_column_name :data_column
+
         def connection
           @@connection ||= ActiveRecord::Base.connection
         end
@@ -196,43 +215,21 @@ module ActiveRecord
             new(:session_id => session_id, :marshaled_data => record['data'])
           end
         end
-
-        def marshal(data)
-          ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
-        end
-
-        def unmarshal(data)
-          Marshal.load(ActiveSupport::Base64.decode64(data)) if data
-        end
-
-        def create_table!
-          @@connection.execute <<-end_sql
-            CREATE TABLE #{table_name} (
-              id INTEGER PRIMARY KEY,
-              #{@@connection.quote_column_name(session_id_column)} TEXT UNIQUE,
-              #{@@connection.quote_column_name(data_column)} TEXT
-            )
-          end_sql
-        end
-
-        def drop_table!
-          @@connection.execute "DROP TABLE #{table_name}"
-        end
       end
 
-      attr_reader :session_id
+      attr_reader :session_id, :new_record
+      alias :new_record? :new_record
+
       attr_writer :data
 
       # Look for normal and marshaled data, self.find_by_session_id's way of
       # telling us to postpone unmarshaling until the data is requested.
       # We need to handle a normal data attribute in case of a new record.
       def initialize(attributes)
-        @session_id, @data, @marshaled_data = attributes[:session_id], attributes[:data], attributes[:marshaled_data]
-        @new_record = @marshaled_data.nil?
-      end
-
-      def new_record?
-        @new_record
+        @session_id     = attributes[:session_id]
+        @data           = attributes[:data]
+        @marshaled_data = attributes[:marshaled_data]
+        @new_record     = @marshaled_data.nil?
       end
 
       # Lazy-unmarshal session state.
@@ -248,39 +245,41 @@ module ActiveRecord
       end
 
       def loaded?
-        !!@data
+        @data
       end
 
       def save
-        return false if !loaded?
+        return false unless loaded?
         marshaled_data = self.class.marshal(data)
+        connect        = connection
 
         if @new_record
           @new_record = false
-          @@connection.update <<-end_sql, 'Create session'
-            INSERT INTO #{@@table_name} (
-              #{@@connection.quote_column_name(@@session_id_column)},
-              #{@@connection.quote_column_name(@@data_column)} )
+          connect.update <<-end_sql, 'Create session'
+            INSERT INTO #{table_name} (
+              #{connect.quote_column_name(session_id_column)},
+              #{connect.quote_column_name(data_column)} )
             VALUES (
-              #{@@connection.quote(session_id)},
-              #{@@connection.quote(marshaled_data)} )
+              #{connect.quote(session_id)},
+              #{connect.quote(marshaled_data)} )
           end_sql
         else
-          @@connection.update <<-end_sql, 'Update session'
-            UPDATE #{@@table_name}
-            SET #{@@connection.quote_column_name(@@data_column)}=#{@@connection.quote(marshaled_data)}
-            WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
+          connect.update <<-end_sql, 'Update session'
+            UPDATE #{table_name}
+            SET #{connect.quote_column_name(data_column)}=#{connect.quote(marshaled_data)}
+            WHERE #{connect.quote_column_name(session_id_column)}=#{connect.quote(session_id)}
           end_sql
         end
       end
 
       def destroy
-        unless @new_record
-          @@connection.delete <<-end_sql, 'Destroy session'
-            DELETE FROM #{@@table_name}
-            WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
-          end_sql
-        end
+        return if @new_record
+
+        connect = connection
+        connect.delete <<-end_sql, 'Destroy session'
+          DELETE FROM #{table_name}
+          WHERE #{connect.quote_column_name(session_id_column)}=#{connect.quote(session_id)}
+        end_sql
       end
     end
 
@@ -289,12 +288,11 @@ module ActiveRecord
     cattr_accessor :session_class
     self.session_class = Session
 
-    SESSION_RECORD_KEY = 'rack.session.record'.freeze
+    SESSION_RECORD_KEY = 'rack.session.record'
 
     private
       def get_session(env, sid)
         Base.silence do
-          sid ||= generate_sid
           session = find_session(sid)
           env[SESSION_RECORD_KEY] = session
           [sid, session.data]
@@ -317,7 +315,7 @@ module ActiveRecord
 
         sid
       end
-      
+
       def destroy(env)
         if sid = current_session_id(env)
           Base.silence do

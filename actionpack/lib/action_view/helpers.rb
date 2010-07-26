@@ -20,7 +20,6 @@ module ActionView #:nodoc:
     autoload :NumberHelper
     autoload :PrototypeHelper
     autoload :RawOutputHelper
-    autoload :RecordIdentificationHelper
     autoload :RecordTagHelper
     autoload :SanitizeHelper
     autoload :ScriptaculousHelper
@@ -51,7 +50,6 @@ module ActionView #:nodoc:
     include NumberHelper
     include PrototypeHelper
     include RawOutputHelper
-    include RecordIdentificationHelper
     include RecordTagHelper
     include SanitizeHelper
     include ScriptaculousHelper

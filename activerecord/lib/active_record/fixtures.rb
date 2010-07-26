@@ -664,14 +664,13 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def has_primary_key_column?
-      @has_primary_key_column ||= model_class && primary_key_name &&
-        model_class.columns.find { |c| c.name == primary_key_name }
+      @has_primary_key_column ||= primary_key_name &&
+        model_class.columns.any? { |c| c.name == primary_key_name }
     end
 
     def timestamp_column_names
-      @timestamp_column_names ||= %w(created_at created_on updated_at updated_on).select do |name|
-        column_names.include?(name)
-      end
+      @timestamp_column_names ||=
+        %w(created_at created_on updated_at updated_on) & column_names
     end
 
     def inheritance_column_name
@@ -872,7 +871,7 @@ module ActiveRecord
         table_names.each do |table_name|
           table_name = table_name.to_s.tr('./', '_')
 
-          define_method(table_name) do |*fixtures|
+          redefine_method(table_name) do |*fixtures|
             force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
 
             @fixture_cache[table_name] ||= {}

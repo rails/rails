@@ -10,17 +10,18 @@ module ActiveRecord
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
-    delegate :to_xml, :to_json, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
+    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
     delegate :insert, :to => :arel
 
-    attr_reader :table, :klass
+    attr_reader :table, :klass, :loaded
     attr_accessor :extensions
+    alias :loaded? :loaded
 
     def initialize(klass, table)
       @klass, @table = klass, table
 
       @implicit_readonly = nil
-      @loaded            = nil
+      @loaded            = false
 
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
@@ -73,6 +74,8 @@ module ActiveRecord
       @loaded = true
       @records
     end
+
+    def as_json(options = nil) to_a end #:nodoc:
 
     # Returns size of the records.
     def size
@@ -288,10 +291,6 @@ module ActiveRecord
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
       where(@klass.primary_key => id_or_array).delete_all
-    end
-
-    def loaded?
-      @loaded
     end
 
     def reload

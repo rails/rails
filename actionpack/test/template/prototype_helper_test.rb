@@ -104,6 +104,12 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
     assert_equal javascript_tag(create_generator(&block).to_s, {:defer => 'true'}), update_page_tag({:defer => 'true'}, &block)
   end
 
+  def test_remote_function
+    res = remote_function(:url => authors_path, :with => "'author[name]='+$F('author_name')+'&author[dob]='+$F('author_dob')")
+    assert_equal "new Ajax.Request('/authors', {asynchronous:true, evalScripts:true, parameters:'author[name]='+$F('author_name')+'&author[dob]='+$F('author_dob')})", res
+    assert res.html_safe?
+  end
+
   protected
     def author_path(record)
       "/authors/#{record.id}"

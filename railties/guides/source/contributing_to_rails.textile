@@ -62,26 +62,39 @@ git clone git://github.com/rails/rails.git
 cd rails
 </shell>
 
-h4. Pick a Branch
-
-Currently, there is active work being done on both the 2-3-stable branch of Rails and on the master branch (which will become Rails 3.0). If you want to work with the master branch, you're all set. To work with 2.3, you'll need to set up and switch to your own local tracking branch:
-
-<shell>
-git branch --track 2-3-stable origin/2-3-stable
-git checkout 2-3-stable
-</shell>
-
-TIP: You may want to "put your git branch name in your shell prompt":http://github.com/guides/put-your-git-branch-name-in-your-shell-prompt to make it easier to remember which version of the code you're working with.
-
 h4. Set up and Run the Tests
 
-All of the Rails tests must pass with any code you submit, otherwise you have no chance of getting code accepted. This means you need to be able to run the tests. Rails needs the +mocha+ gem for running some tests, so install it with:
+All of the Rails tests must pass with any code you submit, otherwise you have no chance of getting code accepted. This means you need to be able to run the tests. First, you need to install all Rails dependencies with bundler:
 
 <shell>
-gem install mocha
+gem install bundler
+bundle install --without db
 </shell>
 
-For the tests that touch the database, this means creating test databases. If you're using MySQL, create a user named +rails+ with privileges on the test databases.
+The second command will install all dependencies, except MySQL and PostgreSQL. We will come back at these soon. With dependencies installed, you can run the whole Rails test suite with:
+
+<shell>
+rake test
+</shell>
+
+You can also run tests for an specific framework, like Action Pack, by going into its directory and executing the same command:
+
+<shell>
+cd actionpack
+rake test
+</shell>
+
+h4. Testing Active Record
+
+By default, when you run Active Record tests, it will execute the test suite three times, one for each of the main databases: SQLite3, MySQL and PostgreSQL. If you are adding a feature that is not specific to the database, you can run the test suite (or just one file) for just one of them. Here is an example for SQLite3:
+
+<shell>
+cd activerecord
+rake test_sqlite3 
+rake test_sqlite3 TEST=test/cases/validations_test.rb
+</shell>
+
+If you want to use another database, as MySQL, you need to create a user named +rails+ with privileges on the test databases.
 
 <shell>
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
@@ -90,7 +103,13 @@ mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
        to 'rails'@'localhost';
 </shell>
 
-Enter this from the +activerecord+ directory to create the test databases:
+Then ensure you run bundle install without the +--without db+ option:
+
+<shell>
+bundle install
+</shell>
+
+Finally, enter this from the +activerecord+ directory to create the test databases:
 
 <shell>
 rake mysql:build_databases
@@ -100,18 +119,26 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 
 If you’re using another database, check the files under +activerecord/test/connections+ in the Rails source code for default connection information. You can edit these files if you _must_ on your machine to provide different credentials, but obviously you should not push any such changes back to Rails.
 
-Now if you go back to the root of the Rails source on your machine and run +rake+ with no parameters, you should see every test in all of the Rails components pass. If you want to run the all ActiveRecord tests (or just a single one) with another database adapter, enter this from the +activerecord+ directory:
+You can now run tests as you did for +sqlite3+:
 
 <shell>
-rake test_sqlite3 
-rake test_sqlite3 TEST=test/cases/validations_test.rb
+rake test_mysql
 </shell>
 
-You can replace +sqlite3+ with +jdbcmysql+, +jdbcsqlite3+, +jdbcpostgresql+, +mysql+ or +postgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
-
-
+You can also +myqsl+ with +postgresql+, +jdbcmysql+, +jdbcsqlite3+ or +jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
 
 NOTE: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite 3. Subtle differences between the various Active Record database adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
+
+h4. Older versions of Rails
+
+If you want to work add a fix to older versions of Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to Rails 2.3 branch:
+
+<shell>
+git branch --track 2-3-stable origin/2-3-stable
+git checkout 2-3-stable
+</shell>
+
+TIP: You may want to "put your git branch name in your shell prompt":http://github.com/guides/put-your-git-branch-name-in-your-shell-prompt to make it easier to remember which version of the code you're working with.
 
 h3. Helping to Resolve Existing Issues
 

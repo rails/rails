@@ -482,21 +482,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_redirected_to :controller => 'admin/user'
   end
 
-  def test_assert_valid
-    get :get_valid_record
-    assert_deprecated { assert_valid assigns('record') }
-  end
-
-  def test_assert_valid_failing
-    get :get_invalid_record
-
-    begin
-      assert_deprecated { assert_valid assigns('record') }
-      assert false
-    rescue ActiveSupport::TestCase::Assertion => e
-    end
-  end
-
   def test_assert_response_uses_exception_message
     @controller = AssertResponseWithUnexpectedErrorController.new
     get :index

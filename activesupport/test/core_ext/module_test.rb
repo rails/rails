@@ -147,7 +147,7 @@ class ModuleTest < Test::Unit::TestCase
     end
 
     assert_nothing_raised do
-      child = Class.new(parent) do
+      Class.new(parent) do
         class << self
           delegate :parent_method, :to => :superclass
         end

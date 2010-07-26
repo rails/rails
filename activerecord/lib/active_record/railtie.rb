@@ -16,14 +16,16 @@ module ActiveRecord
     config.generators.orm :active_record, :migration => true,
                                           :timestamps => true
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::QueryCache"
-
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::ConnectionAdapters::ConnectionManagement"
+    config.app_middleware.insert_after "::ActionDispatch::Callbacks", "ActiveRecord::QueryCache"
 
     rake_tasks do
       load "active_record/railties/databases.rake"
+    end
+
+    # When loading console, force ActiveRecord to be loaded to avoid cross
+    # references when loading a constant for the first time.
+    console do
+      ActiveRecord::Base
     end
 
     initializer "active_record.initialize_timezone" do
@@ -69,6 +71,13 @@ module ActiveRecord
             ActiveRecord::Base.clear_reloadable_connections!
           end
         end
+      end
+    end
+
+    initializer "active_record.add_concurrency_middleware" do |app|
+      if app.config.allow_concurrency
+        app.config.middleware.insert_after "::ActionDispatch::Callbacks",
+          "ActiveRecord::ConnectionAdapters::ConnectionManagement"
       end
     end
 

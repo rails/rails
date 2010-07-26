@@ -1,8 +1,6 @@
 require "cases/helper"
 require 'models/topic'
-require 'models/reply'
 require 'models/task'
-require 'models/course'
 require 'models/category'
 require 'models/post'
 

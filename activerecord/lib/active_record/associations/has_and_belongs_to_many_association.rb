@@ -45,17 +45,23 @@ module ActiveRecord
           if @reflection.options[:insert_sql]
             @owner.connection.insert(interpolate_sql(@reflection.options[:insert_sql], record))
           else
-            relation = Arel::Table.new(@reflection.options[:join_table])
+            relation   = Arel::Table.new(@reflection.options[:join_table])
+            timestamps = record_timestamp_columns(record)
+            timezone   = record.send(:current_time_from_proper_timezone) if timestamps.any?
+
             attributes = columns.inject({}) do |attrs, column|
-              case column.name.to_s
+              name = column.name
+              case name.to_s
                 when @reflection.primary_key_name.to_s
-                  attrs[relation[column.name]] = owner_quoted_id
+                  attrs[relation[name]] = @owner.id
                 when @reflection.association_foreign_key.to_s
-                  attrs[relation[column.name]] = record.quoted_id
+                  attrs[relation[name]] = record.id
+                when *timestamps
+                  attrs[relation[name]] = timezone
                 else
-                  if record.has_attribute?(column.name)
-                    value = @owner.send(:quote_value, record[column.name], column)
-                    attrs[relation[column.name]] = value unless value.nil?
+                  if record.has_attribute?(name)
+                    value = @owner.send(:quote_value, record[name], column)
+                    attrs[relation[name]] = value unless value.nil?
                   end
               end
               attrs
@@ -115,6 +121,14 @@ module ActiveRecord
             attributes.collect { |attr| create(attr) }
           else
             build_record(attributes, &block)
+          end
+        end
+
+        def record_timestamp_columns(record)
+          if record.record_timestamps
+            record.send(:all_timestamp_attributes).map(&:to_s)
+          else
+            []
           end
         end
     end

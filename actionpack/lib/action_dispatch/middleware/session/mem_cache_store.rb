@@ -25,7 +25,6 @@ module ActionDispatch
 
       private
         def get_session(env, sid)
-          sid ||= generate_sid
           begin
             session = @pool.get(sid) || {}
           rescue MemCache::MemCacheError, Errno::ECONNREFUSED

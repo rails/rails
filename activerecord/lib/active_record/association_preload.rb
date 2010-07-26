@@ -112,13 +112,13 @@ module ActiveRecord
         # Not all records have the same class, so group then preload
         # group on the reflection itself so that if various subclass share the same association then we do not split them
         # unnecessarily
-        records.group_by {|record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, records|
+        records.group_by { |record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, _records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
 
           # 'reflection.macro' can return 'belongs_to', 'has_many', etc. Thus,
           # the following could call 'preload_belongs_to_association',
           # 'preload_has_many_association', etc.
-          send("preload_#{reflection.macro}_association", records, reflection, preload_options)
+          send("preload_#{reflection.macro}_association", _records, reflection, preload_options)
         end
       end
 
@@ -378,7 +378,7 @@ module ActiveRecord
           :order => preload_options[:order] || options[:order]
         }
 
-        reflection.klass.unscoped.apply_finder_options(find_options).to_a
+        reflection.klass.scoped.apply_finder_options(find_options).to_a
       end
 
 

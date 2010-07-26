@@ -13,12 +13,12 @@ Gem::Specification.new do |s|
   s.homepage          = 'http://www.rubyonrails.org'
   s.rubyforge_project = 'actionmailer'
 
-  s.files        = Dir['CHANGELOG', 'README', 'MIT-LICENSE', 'lib/**/*']
+  s.files        = Dir['CHANGELOG', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
   s.require_path = 'lib'
   s.requirements << 'none'
 
   s.has_rdoc = true
 
   s.add_dependency('actionpack',  version)
-  s.add_dependency('mail',        '~> 2.2.3')
+  s.add_dependency('mail',        '~> 2.2.5')
 end
