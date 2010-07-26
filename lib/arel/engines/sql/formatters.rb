@@ -1,13 +1,14 @@
 module Arel
   module Sql
     class Formatter
-      attr_reader :environment
-      delegate :christener, :engine, :to => :environment
+      attr_reader :environment, :christener
+      delegate :engine, :to => :environment
       delegate :name_for, :to => :christener
       delegate :quote_table_name, :quote_column_name, :quote, :to => :engine
 
       def initialize(environment)
         @environment = environment
+        @christener  = environment.christener
       end
     end
 

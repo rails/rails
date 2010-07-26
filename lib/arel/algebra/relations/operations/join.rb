@@ -8,6 +8,7 @@ module Arel
       @relation1  = relation1
       @relation2  = relation2
       @predicates = predicates
+      @attributes = nil
     end
 
     def name
