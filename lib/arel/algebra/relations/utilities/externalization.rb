@@ -1,7 +1,8 @@
 module Arel
   class Externalization < Compound
-    attributes :relation
-    deriving :initialize, :==
+    def == other
+      super || Externalization === other && relation == other.relation
+    end
 
     def wheres
       []
