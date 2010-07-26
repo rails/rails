@@ -1,13 +1,19 @@
 module Arel
   class Order < Compound
-    attributes :relation, :orderings
-    deriving   :==
+    attr_reader :orderings
     requires   :ordering
 
     def initialize(relation, *orderings, &block)
-      @relation = relation
+      super(relation)
       @orderings = (orderings + arguments_from_block(relation, &block)) \
         .collect { |o| o.bind(relation) }
+    end
+
+    def == other
+      super ||
+        Order === other &&
+        relation == other.relation &&
+        orderings == other.orderings
     end
 
     # TESTME
