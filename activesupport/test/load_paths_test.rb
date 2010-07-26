@@ -10,6 +10,6 @@ class LoadPathsTest < Test::Unit::TestCase
     }
     load_paths_count[File.expand_path('../../lib', __FILE__)] -= 1
 
-    assert_equal [], load_paths_count.select { |k, v| v > 1 }, $LOAD_PATH.inspect
+    assert load_paths_count.select { |k, v| v > 1 }.empty?, $LOAD_PATH.inspect
   end
 end
