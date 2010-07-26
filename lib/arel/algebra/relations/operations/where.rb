@@ -8,6 +8,7 @@ module Arel
       predicates = [yield(relation)] + predicates if block_given?
       @predicates = predicates.map { |p| p.bind(relation) }
       @relation   = relation
+      @wheres = nil
     end
 
     def wheres
