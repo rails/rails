@@ -33,6 +33,7 @@
 
 * Removed textilize, textilize_without_paragraph and markdown helpers. [Santiago Pastorino]
 
+
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Remove middleware laziness [José Valim]
