@@ -171,7 +171,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 end
 
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
-  fixtures :companies
+  fixtures :companies, :posts, :tags, :taggings
 
   def test_should_save_parent_but_not_invalid_child
     client = Client.new(:name => 'Joe (the Plumber)')
@@ -311,6 +311,12 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
 
     assert_equal num_orders +1, Order.count
     assert_equal num_customers +2, Customer.count
+  end
+
+  def test_store_association_with_a_polymorphic_relationship
+    num_tagging = Tagging.count
+    tags(:misc).create_tagging(:taggable => posts(:thinking))
+    assert_equal num_tagging +1, Tagging.count
   end
 end
 
