@@ -1,12 +1,16 @@
 module Arel
   class Lock < Compound
-    attributes :relation, :locked
-    deriving :==
+    attr_reader :locked
 
     def initialize(relation, locked)
-      @relation = relation
+      super(relation)
       @locked   = locked.blank? ? " FOR UPDATE" : locked
+    end
+
+    def == other
+      super || Lock === other &&
+               relation == other.relation &&
+               locked == other.locked
     end
   end
 end
-
