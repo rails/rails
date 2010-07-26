@@ -47,18 +47,28 @@ module Arel
           *predicates.map {|p| p.find_correlate_in(relation)}
         )
       end
+
+      def eval(row)
+        predicates.send(compounder) do |operation|
+          operation.eval(row)
+        end
+      end
     end
 
     class Any < Polyadic
       def complement
         All.new(*predicates.map {|p| p.complement})
       end
+
+      def compounder; :any? end
     end
 
     class All < Polyadic
       def complement
         Any.new(*predicates.map {|p| p.complement})
       end
+
+      def compounder; :all? end
     end
 
     class Unary < Predicate
@@ -75,11 +85,19 @@ module Arel
       def == other
         super || self.class === other && operand == other.operand
       end
+
+      def eval(row)
+        operand.eval(row).send(operator)
+      end
     end
 
     class Not < Unary
       def complement
         operand
+      end
+
+      def eval(row)
+        !operand.eval(row)
       end
     end
 
@@ -99,20 +117,31 @@ module Arel
       def bind(relation)
         self.class.new(operand1.find_correlate_in(relation), operand2.find_correlate_in(relation))
       end
+
+      def eval(row)
+        operand1.eval(row).send(operator, operand2.eval(row))
+      end
     end
 
-    class CompoundPredicate < Binary; end
+    class CompoundPredicate < Binary
+      def eval(row)
+        eval "operand1.eval(row) #{operator} operand2.eval(row)"
+      end
+    end
 
     class And < CompoundPredicate
       def complement
         Or.new(operand1.complement, operand2.complement)
       end
+
+      def operator; :and end
     end
 
     class Or < CompoundPredicate
       def complement
         And.new(operand1.complement, operand2.complement)
       end
+      def operator; :or end
     end
 
     class Equality < Binary
@@ -125,11 +154,17 @@ module Arel
       def complement
         Inequality.new(operand1, operand2)
       end
+
+      def operator; :== end
     end
 
     class Inequality < Equality
       def complement
         Equality.new(operand1, operand2)
+      end
+
+      def eval(row)
+        operand1.eval(row) != operand2.eval(row)
       end
     end
 
@@ -137,35 +172,49 @@ module Arel
       def complement
         LessThan.new(operand1, operand2)
       end
+
+      def operator; :>= end
     end
 
     class GreaterThan < Binary
       def complement
         LessThanOrEqualTo.new(operand1, operand2)
       end
+
+      def operator; :> end
     end
 
     class LessThanOrEqualTo < Binary
       def complement
         GreaterThan.new(operand1, operand2)
       end
+
+      def operator; :<= end
     end
 
     class LessThan < Binary
       def complement
         GreaterThanOrEqualTo.new(operand1, operand2)
       end
+
+      def operator; :< end
     end
 
     class Match < Binary
       def complement
         NotMatch.new(operand1, operand2)
       end
+
+      def operator; :=~ end
     end
 
     class NotMatch < Binary
       def complement
         Match.new(operand1, operand2)
+      end
+
+      def eval(row)
+        operand1.eval(row) !~ operand2.eval(row)
       end
     end
 
@@ -173,11 +222,19 @@ module Arel
       def complement
         NotIn.new(operand1, operand2)
       end
+
+      def eval(row)
+        operand2.eval(row).include?(operand1.eval(row))
+      end
     end
 
     class NotIn < Binary
       def complement
         In.new(operand1, operand2)
+      end
+
+      def eval(row)
+        !(operand2.eval(row).include?(operand1.eval(row)))
       end
     end
   end
