@@ -1272,7 +1272,7 @@ class YaffleMigrationGenerator < Rails::Generator::NamedBase
     end
 
     def yaffle_local_assigns
-      returning(assigns = {}) do
+      {}.tap do |assigns|
         assigns[:migration_action] = "add"
         assigns[:class_name] = "add_yaffle_fields_to_#{custom_file_name}"
         assigns[:table_name] = custom_file_name
