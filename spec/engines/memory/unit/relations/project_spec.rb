@@ -14,7 +14,7 @@ module Arel
       it 'retains only the attributes that are provided' do
         @relation                   \
           .project(@relation[:id])  \
-        .let do |relation|
+        .tap do |relation|
           relation.call.should == [
             Row.new(relation, [1]),
             Row.new(relation, [2]),

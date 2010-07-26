@@ -17,7 +17,7 @@ module Arel
           @relation1                                    \
             .join(@relation2)                           \
               .on(@relation1[:id].eq(@relation2[:id]))  \
-          .let do |relation|
+          .tap do |relation|
             relation.call.should == [
               Row.new(relation, [1, 'duck',  1, 'duck' ]),
               Row.new(relation, [2, 'duck',  2, 'duck' ]),

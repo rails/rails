@@ -14,7 +14,7 @@ module Arel
       it 'removes the rows after the first n' do
         @relation   \
           .take(2)  \
-        .let do |relation|
+        .tap do |relation|
           relation.call.should == [
             Row.new(relation, [1, 'duck']),
             Row.new(relation, [2, 'duck']),

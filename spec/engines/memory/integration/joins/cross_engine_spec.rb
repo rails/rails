@@ -24,7 +24,7 @@ module Arel
           .join(@photos)                               \
             .on(@users[:id].eq(@photos[:user_id]))     \
           .project(@users[:name], @photos[:camera_id]) \
-        .let do |relation|
+        .tap do |relation|
           relation.call.should == [
             Row.new(relation, ['bryan', @adapter_returns_integer ? 6 : '6']),
             Row.new(relation, ['emilio', @adapter_returns_integer ? 42 : '42'])
@@ -39,7 +39,7 @@ module Arel
           .join(@users)                                \
             .on(@users[:id].eq(@photos[:user_id]))     \
           .project(@users[:name], @photos[:camera_id]) \
-        .let do |relation|
+        .tap do |relation|
           relation.call.should == [
             Row.new(relation, ['bryan', @adapter_returns_integer ? 6 : '6']),
             Row.new(relation, ['emilio', @adapter_returns_integer ? 42 : '42'])

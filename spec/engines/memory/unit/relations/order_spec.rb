@@ -14,7 +14,7 @@ module Arel
       it 'sorts the relation with the provided ordering' do
         @relation                     \
           .order(@relation[:id].desc) \
-        .let do |relation|
+        .tap do |relation|
           relation.call.should == [
             Row.new(relation, [3, 'goose']),
             Row.new(relation, [2, 'duck' ]),

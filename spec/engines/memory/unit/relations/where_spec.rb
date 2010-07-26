@@ -14,7 +14,7 @@ module Arel
       it 'filters the relation with the provided predicate' do
         @relation                       \
           .where(@relation[:id].lt(3))  \
-        .let do |relation|
+        .tap do |relation|
           relation.call.should == [
             Row.new(relation, [1, 'duck']),
             Row.new(relation, [2, 'duck']),
@@ -27,7 +27,7 @@ module Arel
           @relation                       \
             .where(@relation[:id].gt(1))  \
             .where(@relation[:id].lt(3))  \
-          .let do |relation|
+          .tap do |relation|
             relation.call.should == [
               Row.new(relation, [2, 'duck'])
             ]

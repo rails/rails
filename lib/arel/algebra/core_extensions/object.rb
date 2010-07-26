@@ -8,10 +8,6 @@ module Arel
       bind(relation)
     end
 
-    def let
-      yield(self)
-    end
-
     Object.send(:include, self)
   end
 end
