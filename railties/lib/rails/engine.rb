@@ -166,6 +166,7 @@ module Rails
 
     class << self
       attr_accessor :called_from
+      alias :engine_name :railtie_name
 
       def inherited(base)
         unless base.abstract_railtie?
@@ -201,6 +202,7 @@ module Rails
     end
 
     delegate :middleware, :root, :paths, :to => :config
+    delegate :engine_name, :to => "self.class"
 
     def load_tasks
       super
