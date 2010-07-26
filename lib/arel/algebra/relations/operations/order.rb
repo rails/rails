@@ -1,7 +1,6 @@
 module Arel
   class Order < Compound
     attr_reader :orderings
-    requires   :ordering
 
     def initialize(relation, *orderings, &block)
       super(relation)
@@ -20,6 +19,17 @@ module Arel
     def orders
       # QUESTION - do we still need relation.orders ?
       (orderings + relation.orders).collect { |o| o.bind(self) }.collect { |o| o.to_ordering }
+    end
+
+    def engine
+      engine   = relation.engine
+
+      # Temporary check of whether or not the engine supports where.
+      if engine.respond_to?(:supports) && !engine.supports(:ordering)
+        Memory::Engine.new
+      else
+        engine
+      end
     end
   end
 end
