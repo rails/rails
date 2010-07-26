@@ -2,20 +2,20 @@ module Arel
   class Join
     include Relation
 
-    attributes :relation1, :relation2, :predicates
-    deriving :==
-    delegate :name, :to => :relation1
+    attr_reader :relation1, :relation2, :predicates
 
     def initialize(relation1, relation2 = Nil.instance, *predicates)
-      @relation1, @relation2, @predicates = relation1, relation2, predicates
+      @relation1  = relation1
+      @relation2  = relation2
+      @predicates = predicates
+    end
+
+    def name
+      relation1.name
     end
 
     def hash
       @hash ||= :relation1.hash
-    end
-
-    def eql?(other)
-      self == other
     end
 
     def attributes
@@ -43,6 +43,16 @@ module Arel
     def engine
       relation1.engine != relation2.engine ? Memory::Engine.new : relation1.engine
     end
+
+    def == other
+      super || Join === other &&
+        relation1  == other.relation1 &&
+        relation2  == other.relation2 &&
+        predicates == other.predicates
+    end
+
+    # FIXME remove this.  :'(
+    alias :eql? :==
   end
 
   class InnerJoin  < Join; end

@@ -1,16 +1,21 @@
 module Arel
   class Having < Compound
-    attributes :relation, :predicates
-    deriving   :==
+    attr_reader :predicates
 
     def initialize(relation, *predicates)
+      super(relation)
       predicates = [yield(relation)] + predicates if block_given?
       @predicates = predicates.map { |p| p.bind(relation) }
-      @relation   = relation
     end
 
     def havings
       @havings ||= relation.havings + predicates
+    end
+
+    def == other
+      super || Having === other &&
+               relation == other.relation &&
+               predicates == other.predicates
     end
   end
 end
