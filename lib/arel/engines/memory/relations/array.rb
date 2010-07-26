@@ -2,12 +2,21 @@ module Arel
   class Array
     include Relation
 
-    attributes :array,  :attribute_names_and_types
+    attr_reader :array, :attribute_names_and_types
     include Recursion::BaseCase
-    deriving :==
 
     def initialize(array, attribute_names_and_types)
-      @array, @attribute_names_and_types = array, attribute_names_and_types
+      @array                     = array
+      @attribute_names_and_types = attribute_names_and_types
+      @engine                    = nil
+      @attributes                = nil
+    end
+
+    def == other
+      super ||
+        Array === other &&
+        array == other.array &&
+        attribute_names_and_types == other.attribute_names_and_types
     end
 
     def engine
