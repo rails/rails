@@ -220,11 +220,12 @@ class DependenciesTest < Test::Unit::TestCase
     $:.push(path)
 
     with_autoloading_fixtures do
-      RequiresConstant
+      # The _ = assignments are to prevent warnings
+      _ = RequiresConstant
       assert defined?(RequiresConstant)
       assert defined?(LoadedConstant)
       ActiveSupport::Dependencies.clear
-      RequiresConstant
+      _ = RequiresConstant
       assert defined?(RequiresConstant)
       assert defined?(LoadedConstant)
     end
@@ -241,11 +242,12 @@ class DependenciesTest < Test::Unit::TestCase
     $:.push(path)
 
     with_autoloading_fixtures do
-      LoadsConstant
+      # The _ = assignments are to prevent warnings
+      _ = LoadsConstant
       assert defined?(LoadsConstant)
       assert defined?(LoadedConstant)
       ActiveSupport::Dependencies.clear
-      LoadsConstant
+      _ = LoadsConstant
       assert defined?(LoadsConstant)
       assert defined?(LoadedConstant)
     end
