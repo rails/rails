@@ -39,7 +39,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem "system_timer"
   gem "ruby-debug", ">= 0.10.3"
 
   gem "activerecord-jdbcsqlite3-adapter"
