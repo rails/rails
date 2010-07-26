@@ -4,7 +4,7 @@ module Arel
 
     attr_reader :relation
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
-             :column_for, :sources, :locked, :table_alias,
+             :column_for, :sources, :locked, :table_alias, :array,
              :to => :relation
 
     def initialize relation
@@ -22,6 +22,10 @@ module Arel
 
     def attributes
       @attributes ||= relation.attributes.bind(self)
+    end
+
+    def unoperated_rows
+      relation.call.collect { |row| row.bind(self) }
     end
 
     def hash
