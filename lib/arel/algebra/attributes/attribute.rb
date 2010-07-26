@@ -27,6 +27,10 @@ module Arel
       false
     end
 
+    def eval(row)
+      row[self]
+    end
+
     module Transformations
       def self.included(klass)
         klass.send :alias_method, :eql?, :==

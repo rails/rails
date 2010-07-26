@@ -14,6 +14,10 @@ module Arel
         relation == other.relation
     end
 
+    def eval(row)
+      value
+    end
+
     def bind(relation)
       Value.new(value, relation)
     end
