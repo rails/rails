@@ -7,12 +7,6 @@ module Arel
              :column_for, :sources, :locked, :table_alias,
              :to => :relation
 
-    def self.requires(feature = nil)
-      @requires ||= nil
-      @requires = feature if feature
-      @requires
-    end
-
     def initialize relation
       @relation = relation
     end
@@ -38,15 +32,7 @@ module Arel
     end
 
     def engine
-      requires = self.class.requires
-      engine   = relation.engine
-
-      # Temporary check of whether or not the engine supports where.
-      if requires && engine.respond_to?(:supports) && !engine.supports(requires)
-        Memory::Engine.new
-      else
-        engine
-      end
+      relation.engine
     end
 
   private
