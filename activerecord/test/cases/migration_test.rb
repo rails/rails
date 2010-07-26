@@ -1875,5 +1875,116 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
   end
+
+  class CopyMigrationsTest < ActiveRecord::TestCase
+    def setup
+    end
+
+    def clear
+      ActiveRecord::Base.timestamped_migrations = true
+      to_delete = Dir[@migrations_path + "/*.rb"] - @existing_migrations
+      File.delete(*to_delete)
+    end
+
+    def test_copying_migrations_without_timestamps
+      ActiveRecord::Base.timestamped_migrations = false
+      @migrations_path = MIGRATIONS_ROOT + "/valid"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+      assert File.exists?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
+      assert File.exists?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
+      assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied
+
+      files_count = Dir[@migrations_path + "/*.rb"].length
+      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+      assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+      assert copied.empty?
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_without_timestamps_from_2_sources
+      ActiveRecord::Base.timestamped_migrations = false
+      @migrations_path = MIGRATIONS_ROOT + "/valid"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = sources[:omg] = MIGRATIONS_ROOT + "/to_copy"
+      ActiveRecord::Migration.copy(@migrations_path, sources)
+      assert File.exists?(@migrations_path + "/4_people_have_hobbies.omg.rb")
+      assert File.exists?(@migrations_path + "/5_people_have_descriptions.omg.rb")
+      assert File.exists?(@migrations_path + "/6_people_have_hobbies.bukkits.rb")
+      assert File.exists?(@migrations_path + "/7_people_have_descriptions.bukkits.rb")
+
+      files_count = Dir[@migrations_path + "/*.rb"].length
+      ActiveRecord::Migration.copy(@migrations_path, sources)
+      assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_with_timestamps
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      Time.travel_to(created_at = Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        expected = [@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb",
+                    @migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb"]
+        assert_equal expected, copied
+
+        files_count = Dir[@migrations_path + "/*.rb"].length
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+        assert copied.empty?
+      end
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_with_timestamps_from_2_sources
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = sources[:omg] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+
+      Time.travel_to(created_at = Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, sources)
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.omg.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.omg.rb")
+        assert File.exists?(@migrations_path + "/20100726101012_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101013_people_have_descriptions.bukkits.rb")
+        assert_equal 4, copied.length
+
+        files_count = Dir[@migrations_path + "/*.rb"].length
+        ActiveRecord::Migration.copy(@migrations_path, sources)
+        assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+      end
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_with_timestamps_to_destination_with_timestamps_in_future
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      Time.travel_to(created_at = Time.utc(2010, 2, 20, 10, 10, 10)) do
+        ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
+
+        files_count = Dir[@migrations_path + "/*.rb"].length
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+        assert copied.empty?
+      end
+    ensure
+      clear
+    end
+  end
 end
 
