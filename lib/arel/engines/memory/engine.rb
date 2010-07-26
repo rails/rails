@@ -1,16 +1,10 @@
 module Arel
   module Memory
     class Engine
-      module CRUD
-        def read(relation)
-          relation.eval
-        end
-
-        def create(relation)
-          relation.eval
-        end
+      def read(relation)
+        relation.eval
       end
-      include CRUD
+      alias :create :read
     end
   end
 end
