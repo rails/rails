@@ -1,7 +1,7 @@
 class Hash
   def bind(relation)
-    inject({}) do |bound, (key, value)|
-      bound.merge(key.bind(relation) => value.bind(relation))
-    end
+    Hash[map { |key, value|
+      [key.bind(relation), value.bind(relation)]
+    }]
   end
 end
