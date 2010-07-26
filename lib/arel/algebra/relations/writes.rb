@@ -9,6 +9,10 @@ module Arel
     def call
       engine.delete(self)
     end
+
+    def to_sql
+      compiler.delete_sql
+    end
   end
 
   class Insert < Action
@@ -26,6 +30,14 @@ module Arel
     def == other
       super && @record == other.record
     end
+
+    def eval
+      unoperated_rows + [Row.new(self, record.values.collect(&:value))]
+    end
+
+    def to_sql(include_returning = true)
+      compiler.insert_sql(include_returning)
+    end
   end
 
   class Update < Insert
@@ -33,6 +45,10 @@ module Arel
 
     def call
       engine.update(self)
+    end
+
+    def to_sql
+      compiler.update_sql
     end
   end
 end
