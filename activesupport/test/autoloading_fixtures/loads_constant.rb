@@ -1,0 +1,4 @@
+module LoadsConstant
+end
+
+RequiresConstant
