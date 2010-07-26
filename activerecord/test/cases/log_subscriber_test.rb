@@ -57,4 +57,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
     wait
     assert_equal 0, @logger.logged(:debug).size
   end
+
+  def test_initializes_runtime
+    Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
+  end
 end
