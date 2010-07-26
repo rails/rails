@@ -6,5 +6,9 @@ module Arel
       super(relation)
       @sources = sources
     end
+
+    def eval
+      unoperated_rows[sources..-1]
+    end
   end
 end
