@@ -28,6 +28,7 @@ module Arel
       relation.call.collect { |row| row.bind(self) }
     end
 
+    # FIXME: remove this.  :'(
     def hash
       @hash ||= :relation.hash
     end

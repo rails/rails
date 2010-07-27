@@ -119,9 +119,9 @@ module Arel
         where project order take skip group from having
       }.each do |operation_name|
         class_eval <<-OPERATION, __FILE__, __LINE__
-          def #{operation_name}(*arguments, &block)
-            arguments.all? { |x| x.blank? } && !block_given? ?
-              self : #{operation_name.capitalize}.new(self, *arguments, &block)
+          def #{operation_name}(*arguments)
+            arguments.all? { |x| x.blank? } ?
+              self : #{operation_name.capitalize}.new(self, *arguments)
           end
         OPERATION
       end
