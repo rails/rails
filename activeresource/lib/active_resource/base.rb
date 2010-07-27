@@ -1222,10 +1222,10 @@ module ActiveResource
             when Array
               resource = find_or_create_resource_for_collection(key)
               value.map do |attrs|
-                if attrs.is_a?(String) || attrs.is_a?(Numeric)
-                  attrs.duplicable? ? attrs.dup : attrs
-                else
+                if attrs.is_a?(Hash)
                   resource.new(attrs)
+                else
+                  attrs.duplicable? ? attrs.dup : attrs
                 end
               end
             when Hash
