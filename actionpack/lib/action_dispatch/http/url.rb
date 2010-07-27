@@ -1,7 +1,9 @@
 module ActionDispatch
   module Http
     module URL
-      # Returns the complete \URL used for this request.
+      mattr_accessor :tld_length
+
+      # Returns the complete URL used for this request.
       def url
         protocol + host_with_port + fullpath
       end
@@ -85,13 +87,13 @@ module ActionDispatch
       # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
       # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
       # in "www.rubyonrails.co.uk".
-      def subdomains(tld_length = 1)
+      def subdomains(tld_length = @@tld_length)
         return [] unless named_host?(host)
         parts = host.split('.')
         parts[0..-(tld_length+2)]
       end
 
-      def subdomain(tld_length = 1)
+      def subdomain(tld_length = @@tld_length)
         subdomains(tld_length).join('.')
       end
 
