@@ -175,7 +175,7 @@ module ActiveSupport
         @silence = previous_silence
       end
 
-      # Set to true if cache stores should be instrumented. By default is false.
+      # Set to true if cache stores should be instrumented. Default is false.
       def self.instrument=(boolean)
         Thread.current[:instrument_cache_store] = boolean
       end
@@ -187,7 +187,7 @@ module ActiveSupport
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned.
       #
-      # If there is no such data in the cache (a cache miss occurred), then
+      # If there is no such data in the cache (a cache miss occurred),
       # then nil will be returned. However, if a block has been passed, then
       # that block will be run in the event of a cache miss. The return value
       # of the block will be written to the cache under the given cache key,
@@ -353,11 +353,9 @@ module ActiveSupport
         results
       end
 
-      # Writes the given value to the cache, with the given key.
+      # Writes the value to the cache, with the key.
       #
-      # You may also specify additional options via the +options+ argument.
-      # The specific cache store implementation will decide what to do with
-      # +options+.
+      # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
         instrument(:write, name, options) do |payload|
@@ -366,7 +364,7 @@ module ActiveSupport
         end
       end
 
-      # Delete an entry in the cache. Returns +true+ if there was an entry to delete.
+      # Deletes an entry in the cache. Returns +true+ if an entry is deleted.
       #
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
@@ -376,7 +374,7 @@ module ActiveSupport
         end
       end
 
-      # Return true if the cache contains an entry with this name.
+      # Return true if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
@@ -391,11 +389,11 @@ module ActiveSupport
         end
       end
 
-      # Delete all entries whose keys match a pattern.
+      # Delete all entries with keys matching the pattern.
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def delete_matched(matcher, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support delete_matched")
       end
@@ -404,7 +402,7 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def increment(name, amount = 1, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
@@ -413,28 +411,26 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def decrement(name, amount = 1, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
-      # Cleanup the cache by removing expired entries. Not all cache implementations may
-      # support this method.
+      # Cleanup the cache by removing expired entries. 
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def cleanup(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support cleanup")
       end
 
-      # Clear the entire cache. Not all cache implementations may support this method.
-      # You should be careful with this method since it could affect other processes
-      # if you are using a shared cache.
+      # Clear the entire cache. Be careful with this method since it could 
+      # affect other processes if shared cache is being used.
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def clear(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
@@ -483,9 +479,9 @@ module ActiveSupport
           end
         end
 
-        # Expand a key to be a consistent string value. If the object responds to +cache_key+,
-        # it will be called. Otherwise, the to_param method will be called. If the key is a
-        # Hash, the keys will be sorted alphabetically.
+        # Expand key to be a consistent string value. Invoke +cache_key+ if 
+        # object responds to +cache_key+. Otherwise, to_param method will be 
+        # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
           if key.respond_to?(:cache_key)
             key = key.cache_key.to_s
@@ -502,7 +498,7 @@ module ActiveSupport
           end
         end
 
-        # Prefix a key with the namespace. The two values will be delimited with a colon.
+        # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
         def namespaced_key(key, options)
           key = expanded_key(key)
           namespace = options[:namespace] if options
@@ -599,7 +595,7 @@ module ActiveSupport
         end
       end
 
-      # Set a new time to live on the entry so it expires at the given time.
+      # Set a new time when the entry will expire.
       def expires_at=(time)
         if time
           @expires_in = time.to_f - @created_at
@@ -608,12 +604,12 @@ module ActiveSupport
         end
       end
 
-      # Seconds since the epoch when the cache entry will expire.
+      # Seconds since the epoch when the entry will expire.
       def expires_at
         @expires_in ? @created_at + @expires_in : nil
       end
 
-      # Get the size of the cached value. This could be less than value.size
+      # Returns the size of the cached value. This could be less than value.size
       # if the data is compressed.
       def size
         if @value.nil?
