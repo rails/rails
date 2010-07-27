@@ -1,14 +1,14 @@
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/array/extract_options'
 
-# Retain for backward compatibility.  Methods are now included in Class.
+# Retained for backward compatibility.  Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
 end
 
-# Allows attributes to be shared within an inheritance hierarchy, but where each descendant gets a copy of
+# Allows attributes to be shared within an inheritance hierarchy. Each descendant gets a copy of
 # their parents' attributes, instead of just a pointer to the same. This means that the child can add elements
 # to, for example, an array without those additions being shared with either their parent, siblings, or
-# children, which is unlike the regular class-level attributes that are shared across the entire hierarchy.
+# children. This is unlike the regular class-level attributes that are shared across the entire hierarchy.
 #
 # The copies of inheritable parent attributes are added to subclasses when they are created, via the
 # +inherited+ hook.
