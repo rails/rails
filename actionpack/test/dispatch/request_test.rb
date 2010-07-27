@@ -116,6 +116,9 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk"
     assert_equal %w( dev www ), request.subdomains(2)
 
+    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", :tld_length => 2
+    assert_equal %w( dev www ), request.subdomains
+
     request = stub_request 'HTTP_HOST' => "foobar.foobar.com"
     assert_equal %w( foobar ), request.subdomains
 
@@ -472,7 +475,9 @@ protected
   def stub_request(env = {})
     ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
     ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+    tld_length = env.key?(:tld_length) ? env.delete(:tld_length) : 1
     ip_app.call(env)
+    ActionDispatch::Http::URL.tld_length = tld_length
     ActionDispatch::Request.new(env)
   end
 
