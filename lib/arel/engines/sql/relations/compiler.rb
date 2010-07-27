@@ -40,7 +40,7 @@ module Arel
 
         offset = relation.skipped
         limit = relation.taken
-        @engine.add_limit_offset!(clauses, :limit => limit,
+        @engine.connection.add_limit_offset!(clauses, :limit => limit,
                                   :offset => offset) if offset || limit
 
         clauses << " #{locked}" unless locked.blank?
