@@ -19,8 +19,6 @@ module ActiveSupport
     autoload :SynchronizedMemoryStore, 'active_support/cache/synchronized_memory_store'
     autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
 
-    EMPTY_OPTIONS = {}.freeze
-
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
