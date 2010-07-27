@@ -5,6 +5,7 @@ module Arel
 
       def initialize(relation)
         @relation = relation
+        @engine = relation.engine
       end
 
       def select_sql
@@ -37,7 +38,11 @@ module Arel
           ("ORDER BY  #{orders.join(', ')}" unless orders.empty?)
         ].compact.join ' '
 
-        engine.add_limit_offset!(clauses,{ :limit => taken, :offset => skipped }) if taken || skipped
+        offset = relation.skipped
+        limit = relation.taken
+        @engine.add_limit_offset!(clauses, :limit => limit,
+                                  :offset => offset) if offset || limit
+
         clauses << " #{locked}" unless locked.blank?
         clauses unless clauses.blank?
       end
