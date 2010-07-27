@@ -16,8 +16,7 @@ module ActiveSupport
     # Special features:
     # - Clustering and load balancing. One can specify multiple memcached servers,
     #   and MemCacheStore will load balance between all available servers. If a
-    #   server goes down, then MemCacheStore will ignore it until it goes back
-    #   online.
+    #   server goes down, then MemCacheStore will ignore it until it comes back up.
     #
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in memory cache inside of a block.
@@ -69,7 +68,7 @@ module ActiveSupport
         extend LocalCacheWithRaw
       end
 
-      # Reads multiple keys from the cache using a single call to the
+      # Reads multiple values from the cache using a single call to the
       # servers for all keys. Options can be passed in the last argument.
       def read_multi(*names)
         options = names.extract_options!
@@ -113,7 +112,7 @@ module ActiveSupport
       end
 
       # Clear the entire cache on all memcached servers. This method should
-      # be used with care when using a shared cache.
+      # be used with care when shared cache is being used.
       def clear(options = nil)
         @data.flush_all
       end

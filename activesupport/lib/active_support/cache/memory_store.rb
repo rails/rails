@@ -5,9 +5,9 @@ module ActiveSupport
     # A cache store implementation which stores everything into memory in the
     # same process. If you're running multiple Ruby on Rails server processes
     # (which is the case if you're using mongrel_cluster or Phusion Passenger),
-    # then this means that your Rails server process instances won't be able
+    # then this means that Rails server process instances won't be able
     # to share cache data with each other and this may not be the most
-    # appropriate cache for you.
+    # appropriate cache in that scenario.
     #
     # This cache has a bounded size specified by the :size options to the
     # initializer (default is 32Mb). When the cache exceeds the allotted size,
@@ -47,8 +47,8 @@ module ActiveSupport
         end
       end
 
-      # Prune the cache down so the entries fit within the specified memory size by removing
-      # the least recently accessed entries.
+      # To ensure entries fit within the specified memory prune the cache by removing the least
+      # recently accessed entries.
       def prune(target_size, max_time = nil)
         return if pruning?
         @pruning = true
@@ -67,7 +67,7 @@ module ActiveSupport
         end
       end
 
-      # Return true if the cache is currently be pruned to remove older entries.
+      # Returns true if the cache is currently being pruned.
       def pruning?
         @pruning
       end
