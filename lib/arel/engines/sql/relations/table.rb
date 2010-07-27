@@ -42,7 +42,7 @@ module Arel
           end
         end
 
-        @@tables ||= engine.tables
+        @@tables ||= engine.connection.tables
       end
     end
 
@@ -85,7 +85,7 @@ module Arel
     end
 
     def columns
-      @columns ||= engine.columns(name, "#{name} Columns")
+      @columns ||= engine.connection.columns(name, "#{name} Columns")
     end
 
     def reset

@@ -19,14 +19,6 @@ module Arel
         end
       end
 
-      def method_missing(method, *args)
-        if block_given?
-          connection.send(method, *args)  { |*block_args| yield(*block_args) }
-        else
-          connection.send(method, *args)
-        end
-      end
-
       def create(relation)
         primary_key_value = if relation.primary_key.blank?
           nil

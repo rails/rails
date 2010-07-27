@@ -68,7 +68,7 @@ module Arel
           end
 
           first = attributes.collect do |key|
-            engine.quote_column_name(key.name)
+            engine.connection.quote_column_name(key.name)
           end.join(', ')
 
           second = attributes.collect do |key|
@@ -82,7 +82,7 @@ module Arel
           "INSERT",
           "INTO #{table_sql}",
           insertion_attributes_values_sql,
-          ("RETURNING #{engine.quote_column_name(primary_key)}" if include_returning && compiler.supports_insert_with_returning?)
+          ("RETURNING #{engine.connection.quote_column_name(primary_key)}" if include_returning && compiler.supports_insert_with_returning?)
       end
 
       def supports_insert_with_returning?
@@ -117,7 +117,7 @@ module Arel
 
           attributes.map do |attribute|
             value = assignments[attribute]
-            "#{engine.quote_column_name(attribute.name)} = #{attribute.format(value)}"
+            "#{engine.connection.quote_column_name(attribute.name)} = #{attribute.format(value)}"
           end.join(", ")
         else
           assignments.value
@@ -138,7 +138,7 @@ module Arel
 
       def limited_update_conditions(conditions, taken)
         conditions << " LIMIT #{taken}"
-        quoted_primary_key = engine.quote_column_name(primary_key)
+        quoted_primary_key = engine.connection.quote_column_name(primary_key)
         "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions})"
       end
 

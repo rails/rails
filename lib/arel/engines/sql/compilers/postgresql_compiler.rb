@@ -35,7 +35,7 @@ module Arel
       end
 
       def supports_insert_with_returning?
-        engine.postgresql_version >= 80200
+        engine.connection.send(:postgresql_version) >= 80200
       end
     end
   end

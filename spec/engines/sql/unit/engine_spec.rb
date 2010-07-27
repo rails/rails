@@ -17,13 +17,6 @@ module Arel
     end
 
     describe "method missing" do
-      it "should pass through" do
-        conn = FakeConnection.new
-        engine = Arel::Sql::Engine.new FakeAR.new conn
-        engine.foo
-        conn.called.should == [[:foo, [], nil]]
-      end
-
       it "should ask for a connection" do
         conn   = FakeConnection.new
         ar     = FakeAR.new conn

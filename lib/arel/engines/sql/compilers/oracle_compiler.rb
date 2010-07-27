@@ -16,7 +16,7 @@ module Arel
         # when limit or offset subquery is used then cannot use FOR UPDATE directly
         # and need to construct separate subquery for primary key
         if use_subquery_for_lock = limit_or_offset && !locked.blank?
-          quoted_primary_key = engine.quote_column_name(primary_key)
+          quoted_primary_key = engine.connection.quote_column_name(primary_key)
         end
         select_attributes_string = use_subquery_for_lock ? quoted_primary_key : select_clauses.join(', ')
 
@@ -39,7 +39,7 @@ module Arel
           ("ORDER BY  #{order_clauses_array.join(', ')}" unless order_clauses_array.blank? )
 
         # Use existing method from oracle_enhanced adapter to implement limit and offset using subqueries
-        engine.add_limit_offset!(query, :limit => taken, :offset => skipped) if limit_or_offset
+        engine.connection.add_limit_offset!(query, :limit => taken, :offset => skipped) if limit_or_offset
 
         if use_subquery_for_lock
           build_query \
@@ -83,10 +83,10 @@ module Arel
       def limited_update_conditions(conditions, taken)
         # need to add ORDER BY only if just taken ones should be updated
         conditions << " ORDER BY #{order_clauses.join(', ')}" unless orders.blank?
-        quoted_primary_key = engine.quote_column_name(primary_key)
-        subquery = "SELECT #{quoted_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions}"
+        quoted_primary_key = engine.connection.quote_column_name(primary_key)
+        subquery = "SELECT #{quoted_primary_key} FROM #{engine.connection.connection.quote_table_name table.name} #{conditions}"
         # Use existing method from oracle_enhanced adapter to get taken records when ORDER BY is used
-        engine.add_limit_offset!(subquery, :limit => taken) unless orders.blank?
+        engine.connection.add_limit_offset!(subquery, :limit => taken) unless orders.blank?
         "WHERE #{quoted_primary_key} IN (#{subquery})"
       end
 
