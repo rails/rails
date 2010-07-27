@@ -13,21 +13,30 @@ module Arel
           subquery = build_query("SELECT 1 FROM #{from_clauses}", build_clauses)
           query = "SELECT COUNT(*) AS count_id FROM (#{subquery}) AS subquery"
         else
-          query = build_query \
-            "SELECT     #{select_clauses.join(', ')}",
-            "FROM       #{from_clauses}",
+          query = [
+            "SELECT     #{relation.select_clauses.join(', ')}",
+            "FROM       #{relation.from_clauses}",
             build_clauses
+          ].compact.join ' '
         end
         query
       end
 
       def build_clauses
-        clauses = build_query "",
-          (joins(self)                                   unless joins(self).blank? ),
-          ("WHERE     #{where_clauses.join(' AND ')}"    unless wheres.blank?      ),
-          ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
-          ("HAVING    #{having_clauses.join(' AND ')}"      unless havings.blank?     ),
-          ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      )
+        joins   = joins(self)
+        wheres  = relation.where_clauses
+        groups  = relation.group_clauses
+        havings = relation.having_clauses
+        orders  = relation.order_clauses
+
+        clauses = [ "",
+          joins,
+          ("WHERE     #{wheres.join(' AND ')}" unless wheres.empty?),
+          ("GROUP BY  #{groups.join(', ')}" unless groups.empty?),
+          ("HAVING    #{havings.join(' AND ')}" unless havings.empty?),
+          ("ORDER BY  #{orders.join(', ')}" unless orders.empty?)
+        ].compact.join ' '
+
         engine.add_limit_offset!(clauses,{ :limit => taken, :offset => skipped }) if taken || skipped
         clauses << " #{locked}" unless locked.blank?
         clauses unless clauses.blank?
