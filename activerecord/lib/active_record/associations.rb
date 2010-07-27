@@ -1439,7 +1439,9 @@ module ActiveRecord
             end
             
             redefine_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-              ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
+              pk_column = reflection.klass.columns.find{|c| c.name == reflection.klass.primary_key }
+              ids = (new_value || []).reject { |nid| nid.blank? }
+              ids.map!{|i| pk_column.type_cast(i)}
               send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
           end
