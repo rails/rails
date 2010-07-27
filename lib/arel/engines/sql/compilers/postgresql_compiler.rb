@@ -3,7 +3,7 @@ module Arel
     class PostgreSQLCompiler < GenericCompiler
 
       def select_sql
-        if !orders.blank? && using_distinct_on?
+        if !relation.orders.blank? && using_distinct_on?
           subquery = build_query \
             "SELECT #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
             "FROM #{from_clauses}",
@@ -24,7 +24,7 @@ module Arel
       end
 
       def using_distinct_on?
-        select_clauses.any? { |x| x =~ /DISTINCT ON/ }
+        relation.select_clauses.any? { |x| x =~ /DISTINCT ON/ }
       end
 
       def aliased_orders(orders)
