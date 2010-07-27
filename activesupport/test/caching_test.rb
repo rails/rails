@@ -7,6 +7,16 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal '1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
     assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
   end
+
+  def test_expand_cache_key_with_rails_cache_id
+    ENV['RAILS_CACHE_ID'] = 'c99'
+    assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
+    assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
+    assert_equal 'c99/c99/foo/c99/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
+    assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key(:foo, :nm)
+    assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
+    assert_equal 'nm/c99/c99/foo/c99/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
+  end
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase
