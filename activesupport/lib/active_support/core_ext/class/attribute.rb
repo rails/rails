@@ -2,8 +2,8 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
 
 class Class
-  # Declare a class-level attribute whose value is inheritable and
-  # overwritable by subclasses:
+  # Declare a class-level attribute whose value is inheritable by subclasses.
+  # Subclasses can change their own value and it will not impact parent class.
   #
   #   class Base
   #     class_attribute :setting
