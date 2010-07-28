@@ -131,7 +131,7 @@ module ActiveSupport
     #
     # All caches support auto expiring content after a specified number of seconds.
     # To set the cache entry time to live, you can either specify +:expires_in+ as
-    # an option to the constructor to have it affect all entries or to the +fetch+
+    # an option to the constructor to affect all entries or to the +fetch+
     # or +write+ methods for just one entry.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new(:expire_in => 5.minutes)
