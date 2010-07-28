@@ -73,14 +73,6 @@ module Arel
       end
     end
 
-    def eql?(other)
-      self == other
-    end
-
-    def hash
-      @hash ||= :name.hash
-    end
-
     def column_for(attribute)
       has_attribute?(attribute) and columns.detect { |c| c.name == attribute.name.to_s }
     end

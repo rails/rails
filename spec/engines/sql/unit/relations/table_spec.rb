@@ -108,13 +108,6 @@ module Arel
       end
     end
 
-    describe 'hashing' do
-      it "implements hash equality" do
-        Table.new(:users).should     hash_the_same_as(Table.new(:users))
-        Table.new(:users).should_not hash_the_same_as(Table.new(:photos))
-      end
-    end
-
     describe '#engine' do
       it "defaults to global engine" do
         Table.engine = engine = Sql::Engine.new
