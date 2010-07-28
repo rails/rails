@@ -123,7 +123,7 @@ module Arel
       end
 
       %w{
-        where project order take skip group from having
+        where project order skip group having
       }.each do |operation_name|
         class_eval <<-OPERATION, __FILE__, __LINE__
           def #{operation_name}(*arguments)
@@ -131,6 +131,14 @@ module Arel
               self : #{operation_name.capitalize}.new(self, *arguments)
           end
         OPERATION
+      end
+
+      def take thing
+        Take.new self, thing
+      end
+
+      def from thing
+        From.new self, thing
       end
 
       def lock(locking = nil)

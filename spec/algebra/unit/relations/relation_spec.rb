@@ -115,8 +115,8 @@ module Arel
         end
 
         describe 'when given a blank number of items' do
-          it 'returns self' do
-            @relation.take.should == @relation
+          it 'raises error' do
+            lambda { @relation.take }.should raise_exception
           end
         end
       end
