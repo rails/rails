@@ -41,6 +41,10 @@ module Arel
     end
 
     def christener
+      puts "#" * 50
+      puts self.class.name
+      puts caller
+      puts "#" * 50
       @christener ||= Sql::Christener.new
     end
 

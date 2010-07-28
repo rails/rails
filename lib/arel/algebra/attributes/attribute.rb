@@ -4,10 +4,17 @@ module Arel
   class TypecastError < StandardError ; end
   class Attribute
     attr_reader :relation, :name, :alias, :ancestor
-    delegate :engine, :christener, :to => :relation
 
     def initialize(relation, name, options = {})
       @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
+    end
+
+    def engine
+      @relation.engine
+    end
+
+    def christener
+      @relation.christener
     end
 
     def == other
