@@ -7,7 +7,7 @@ module Arel
       @attribute = @relation[:id]
     end
 
-    describe Attribute::Transformations do
+    describe 'Attribute::Transformations' do
       describe '#as' do
         it "manufactures an aliased attributed" do
           @attribute.as(:alias).should == Attribute.new(@relation, @attribute.name, :alias => :alias, :ancestor => @attribute)

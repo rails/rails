@@ -43,24 +43,21 @@ module Arel
 
     alias :eql? :==
 
-    module Transformations
-      def hash
-        @hash ||= name.hash + root.relation.hash
-      end
-
-      def as(aliaz = nil)
-        Attribute.new(relation, name, :alias => aliaz, :ancestor => self)
-      end
-
-      def bind(new_relation)
-        relation == new_relation ? self : Attribute.new(new_relation, name, :alias => @alias, :ancestor => self)
-      end
-
-      def to_attribute(relation)
-        bind(relation)
-      end
+    def hash
+      @hash ||= name.hash + root.relation.hash
     end
-    include Transformations
+
+    def as(aliaz = nil)
+      Attribute.new(relation, name, :alias => aliaz, :ancestor => self)
+    end
+
+    def bind(new_relation)
+      relation == new_relation ? self : Attribute.new(new_relation, name, :alias => @alias, :ancestor => self)
+    end
+
+    def to_attribute(relation)
+      bind(relation)
+    end
 
     module Congruence
       def history
