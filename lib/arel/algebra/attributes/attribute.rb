@@ -3,13 +3,16 @@ require 'set'
 module Arel
   class TypecastError < StandardError ; end
   class Attribute
-    attr_reader :relation, :name, :alias, :ancestor
+    attr_reader :relation, :name, :alias, :ancestor, :hash
 
     def initialize(relation, name, options = {})
       @relation = relation # this is actually a table (I think)
       @name     = name
       @alias    = options[:alias]
       @ancestor = options[:ancestor]
+
+      # FIXME: I think we can remove this eventually
+      @hash     = name.hash + root.relation.class.hash
     end
 
     def engine
@@ -23,10 +26,10 @@ module Arel
     def == other
       super ||
         Attribute === other &&
-        @relation  == other.relation &&
         @name      == other.name &&
         @alias     == other.alias &&
-        @ancestor  == other.ancestor
+        @ancestor  == other.ancestor &&
+        @relation  == other.relation
     end
 
     alias :eql? :==
@@ -41,10 +44,6 @@ module Arel
 
     def eval(row)
       row[self]
-    end
-
-    def hash
-      @hash ||= name.hash + root.relation.hash
     end
 
     def as(aliaz = nil)
