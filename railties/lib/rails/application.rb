@@ -205,6 +205,7 @@ module Rails
         middleware.use ::ActionDispatch::ParamsParser
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::Head
+        middleware.use ::ActionDispatch::BestStandardsSupport if config.action_dispatch.best_standards_support
       end
     end
 
