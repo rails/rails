@@ -107,8 +107,8 @@ module Arel
       :not_in_any, :not_in_all
     ]
 
-    Predicate = Class.new do
-      def instance_methods *args
+    Predications = Class.new do
+      def self.instance_methods *args
         warn "this module is deprecated, please use the PREDICATES constant"
         PREDICATES
       end
