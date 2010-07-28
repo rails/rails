@@ -1,15 +1,11 @@
 module Arel
   class Project < Compound
-    attr_reader :projections
+    attr_reader :projections, :attributes
 
     def initialize(relation, *projections)
       super(relation)
       @projections = projections.collect { |p| p.bind(relation) }
-      @attributes = nil
-    end
-
-    def attributes
-      @attributes ||= Header.new(projections).bind(self)
+      @attributes = Header.new(projections.map { |x| x.bind(self) })
     end
 
     def externalizable?
