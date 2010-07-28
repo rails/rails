@@ -827,12 +827,12 @@ module ActiveRecord
       setup :setup_fixtures
       teardown :teardown_fixtures
 
-      superclass_delegating_accessor :fixture_path
-      superclass_delegating_accessor :fixture_table_names
-      superclass_delegating_accessor :fixture_class_names
-      superclass_delegating_accessor :use_transactional_fixtures
-      superclass_delegating_accessor :use_instantiated_fixtures   # true, false, or :no_instances
-      superclass_delegating_accessor :pre_loaded_fixtures
+      class_attribute :fixture_path
+      class_attribute :fixture_table_names
+      class_attribute :fixture_class_names
+      class_attribute :use_transactional_fixtures
+      class_attribute :use_instantiated_fixtures   # true, false, or :no_instances
+      class_attribute :pre_loaded_fixtures
 
       self.fixture_table_names = []
       self.use_transactional_fixtures = true
