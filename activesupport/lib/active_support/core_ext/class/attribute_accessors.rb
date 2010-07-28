@@ -14,6 +14,16 @@ require 'active_support/core_ext/array/extract_options'
 #  Person.hair_colors = [:brown, :black, :blonde, :red]
 #  Person.hair_colors     #=> [:brown, :black, :blonde, :red]
 #  Person.new.hair_colors #=> [:brown, :black, :blonde, :red]
+#
+# To opt out of the instance writer method, pass :instance_writer => false.
+# To opt out of the instance reader method, pass :instance_reader => false.
+#
+#   class Person
+#     cattr_accessor :hair_colors, :instance_writer => false, :instance_reader => false
+#   end
+#
+#   Person.new.hair_colors = [:brown]  # => NoMethodError
+#   Person.new.hair_colors             # => NoMethodError
 class Class
   def cattr_reader(*syms)
     options = syms.extract_options!
