@@ -6,7 +6,10 @@ module Arel
     attr_reader :relation, :name, :alias, :ancestor
 
     def initialize(relation, name, options = {})
-      @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
+      @relation = relation # this is actually a table (I think)
+      @name     = name
+      @alias    = options[:alias]
+      @ancestor = options[:ancestor]
     end
 
     def engine
