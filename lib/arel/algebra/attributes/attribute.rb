@@ -99,6 +99,21 @@ module Arel
     end
     include Congruence
 
+    PREDICATES = [
+      :eq, :eq_any, :eq_all, :not_eq, :not_eq_any, :not_eq_all, :lt, :lt_any,
+      :lt_all, :lteq, :lteq_any, :lteq_all, :gt, :gt_any, :gt_all, :gteq,
+      :gteq_any, :gteq_all, :matches, :matches_any, :matches_all, :not_matches,
+      :not_matches_any, :not_matches_all, :in, :in_any, :in_all, :not_in,
+      :not_in_any, :not_in_all
+    ]
+
+    Predicate = Class.new do
+      def instance_methods *args
+        warn "this module is deprecated, please use the PREDICATES constant"
+        PREDICATES
+      end
+    end
+
     def eq(other)
       Predicates::Equality.new(self, other)
     end
