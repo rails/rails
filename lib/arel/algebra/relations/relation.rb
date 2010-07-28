@@ -30,7 +30,7 @@ module Arel
 
     def compiler
       @compiler ||=  begin
-        "Arel::SqlCompiler::#{engine.adapter_name}Compiler".constantize.new(self)
+        Arel::SqlCompiler.const_get("#{engine.adapter_name}Compiler").new(self)
       rescue
         Arel::SqlCompiler::GenericCompiler.new(self)
       end
