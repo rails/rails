@@ -256,7 +256,11 @@ module Rails
     end
 
     def config
-      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
+      @config ||= begin
+        config = Engine::Configuration.new(find_root_with_flag("lib"))
+        config.asset_path = "/#{engine_name}%s" if File.exists?(config.paths.public.to_a.first)
+        config
+      end
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.

@@ -84,11 +84,13 @@ module RailtiesTest
         end
       RUBY
 
-      boot_rails
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          mount(Bukkits::Engine => "/bukkits")
+        end
+      RUBY
 
-      Rails.application.routes.draw do |map|
-        mount(Bukkits::Engine => "/bukkits")
-      end
+      boot_rails
 
       env = Rack::MockRequest.env_for("/bukkits")
       response = Rails.application.call(env)
@@ -104,15 +106,19 @@ module RailtiesTest
         end
       RUBY
 
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, 'foo'] }
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount(Bukkits::Engine => "/bukkits")
+        end
+      RUBY
+
       boot_rails
-
-      Bukkits::Engine.routes.draw do |map|
-        match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, 'foo'] }
-      end
-
-      Rails.application.routes.draw do |map|
-        mount(Bukkits::Engine => "/bukkits")
-      end
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = Rails.application.call(env)
@@ -205,7 +211,6 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
-            config.asset_path = "/bukkits%s"
           end
         end
       RUBY
@@ -247,7 +252,16 @@ module RailtiesTest
 
       add_to_config 'config.asset_path = "/omg%s"'
 
+      @plugin.write 'public/touch.txt', <<-RUBY
+        touch
+      RUBY
+
       boot_rails
+
+      # should set asset_path with engine name by default
+      assert_equal "/bukkits_engine%s", ::Bukkits::Engine.config.asset_path
+
+      ::Bukkits::Engine.config.asset_path = "/bukkits%s"
 
       env = Rack::MockRequest.env_for("/foo")
       response = Bukkits::Engine.call(env)
@@ -258,7 +272,6 @@ module RailtiesTest
                   "<script src=\"/omg/bukkits/javascripts/foo.js\" type=\"text/javascript\"></script>\n" +
                   "<link href=\"/omg/bukkits/stylesheets/foo.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"
       assert_equal expected, stripped_body
-
     end
   end
 end
