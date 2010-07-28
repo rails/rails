@@ -2,10 +2,9 @@ module Arel
   class Project < Compound
     attr_reader :projections
 
-    def initialize(relation, *projections, &block)
+    def initialize(relation, *projections)
       super(relation)
-      @projections = (projections + arguments_from_block(relation, &block)) \
-        .collect { |p| p.bind(relation) }
+      @projections = projections.collect { |p| p.bind(relation) }
     end
 
     def attributes
