@@ -29,6 +29,8 @@ module Arel
         @ancestor  == other.ancestor
     end
 
+    alias :eql? :==
+
     def named?(hypothetical_name)
       (@alias || name).to_s == hypothetical_name.to_s
     end
@@ -40,8 +42,6 @@ module Arel
     def eval(row)
       row[self]
     end
-
-    alias :eql? :==
 
     def hash
       @hash ||= name.hash + root.relation.hash

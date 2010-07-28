@@ -187,9 +187,11 @@ module Arel
     end
 
     def position_of(attribute)
-      (@position_of ||= Hash.new do |h, attribute|
-        h[attribute] = attributes.index(self[attribute])
-      end)[attribute]
+      @position_of ||= {}
+
+      return @position_of[attribute] if @position_of.key? attribute
+
+      @position_of[attribute] = attributes.index(attributes[attribute])
     end
 
     private
