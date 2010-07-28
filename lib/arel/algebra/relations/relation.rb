@@ -172,40 +172,37 @@ module Arel
     end
     include Operable
 
-    module AttributeAccessable
-      def [](index)
-        attributes[index]
-      end
+    def [](index)
+      attributes[index]
+    end
 
-      def find_attribute_matching_name(name)
-        attributes.detect { |a| a.named?(name) } || Attribute.new(self, name)
-      end
+    def find_attribute_matching_name(name)
+      attributes.detect { |a| a.named?(name) } || Attribute.new(self, name)
+    end
 
-      def find_attribute_matching_attribute(attribute)
-        matching_attributes(attribute).max do |a1, a2|
-          (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
-        end
-      end
-
-      def position_of(attribute)
-        (@position_of ||= Hash.new do |h, attribute|
-          h[attribute] = attributes.index(self[attribute])
-        end)[attribute]
-      end
-
-      private
-      def matching_attributes(attribute)
-        (@matching_attributes ||= attributes.inject({}) do |hash, a|
-          (hash[a.is_a?(Value) ? a.value : a.root] ||= []) << a
-          hash
-        end)[attribute.root] || []
-      end
-
-      def has_attribute?(attribute)
-        !matching_attributes(attribute).empty?
+    def find_attribute_matching_attribute(attribute)
+      matching_attributes(attribute).max do |a1, a2|
+        (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
       end
     end
-    include AttributeAccessable
+
+    def position_of(attribute)
+      (@position_of ||= Hash.new do |h, attribute|
+        h[attribute] = attributes.index(self[attribute])
+      end)[attribute]
+    end
+
+    private
+    def matching_attributes(attribute)
+      (@matching_attributes ||= attributes.inject({}) do |hash, a|
+        (hash[a.is_a?(Value) ? a.value : a.root] ||= []) << a
+        hash
+      end)[attribute.root] || []
+    end
+
+    def has_attribute?(attribute)
+      !matching_attributes(attribute).empty?
+    end
 
     module DefaultOperations
       def attributes;             Header.new  end
