@@ -1,5 +1,7 @@
 module Arel
   module Relation
+    include Enumerable
+
     @@connection_tables_primary_keys = {}
 
     attr_reader :count
@@ -93,18 +95,9 @@ module Arel
       orders.collect { |o| o.to_sql(Sql::OrderClause.new(self)) }
     end
 
-    module Enumerable
-      include ::Enumerable
-
-      def each
-        session.read(self).each { |e| yield e }
-      end
-
-      def first
-        session.read(self).first
-      end
+    def each
+      session.read(self).each { |e| yield e }
     end
-    include Enumerable
 
     module Operable
       def join(other_relation = nil, join_class = InnerJoin)

@@ -189,7 +189,7 @@ module Arel
       end
     end
 
-    describe Relation::Enumerable do
+    describe 'is enumerable' do
       it "implements enumerable" do
         @relation.map { |value| value }.should ==
         @relation.session.read(@relation).map { |value| value }
