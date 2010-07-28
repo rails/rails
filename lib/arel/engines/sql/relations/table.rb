@@ -54,7 +54,7 @@ module Arel
       if @table_exists
         true
       else
-        @table_exists = @@tables.include?(name) || engine.table_exists?(name)
+        @table_exists = @@tables.include?(name) || engine.connection.table_exists?(name)
       end
     end
 
