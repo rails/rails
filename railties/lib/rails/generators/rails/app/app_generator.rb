@@ -356,8 +356,12 @@ module Rails
         @app_name ||= File.basename(destination_root)
       end
 
+      def defined_app_const_base
+        Rails.application.class.name.sub(/::Application$/, "") if Rails.application.instance_of?(Rails::Application)
+      end
+
       def app_const_base
-        @app_const_base ||= app_name.gsub(/\W/, '_').squeeze('_').camelize
+        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
       def app_const
