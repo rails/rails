@@ -4,7 +4,6 @@ module Arel
       attr_reader :environment, :christener
 
       def initialize(environment)
-        p :formatter => environment.class
         @environment = environment
         @christener  = environment.christener
       end
