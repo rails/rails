@@ -159,7 +159,7 @@ module Arel
         end
       end
 
-      describe Relation::Operable::Writable do
+      describe 'relation is writable' do
         describe '#delete' do
           it 'manufactures a deletion relation' do
             Session.start do |s|

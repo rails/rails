@@ -116,7 +116,7 @@ module Arel
       end
 
       %w{
-        where project order skip group having
+        where order skip group having
       }.each do |operation_name|
         class_eval <<-OPERATION, __FILE__, __LINE__
           def #{operation_name}(*arguments)
@@ -124,6 +124,11 @@ module Arel
               self : #{operation_name.capitalize}.new(self, *arguments)
           end
         OPERATION
+      end
+
+      def project *args
+        return self if args.all? { |x| x.blank? }
+        Project.new self, *args
       end
 
       def take thing
@@ -142,20 +147,17 @@ module Arel
         Alias.new(self)
       end
 
-      module Writable
-        def insert(record)
-          session.create Insert.new(self, record)
-        end
-
-        def update(assignments)
-          session.update Update.new(self, assignments)
-        end
-
-        def delete
-          session.delete Deletion.new(self)
-        end
+      def insert(record)
+        session.create Insert.new(self, record)
       end
-      include Writable
+
+      def update(assignments)
+        session.update Update.new(self, assignments)
+      end
+
+      def delete
+        session.delete Deletion.new(self)
+      end
 
       JoinOperation = Struct.new(:join_class, :relation1, :relation2) do
         def on(*predicates)
