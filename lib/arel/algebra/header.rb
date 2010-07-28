@@ -4,9 +4,7 @@ module Arel
 
     def initialize(attrs = [])
       @attributes = attrs.to_ary
-      @names = Hash.new do |h,k|
-        h[k] = @attributes.detect { |a| a.named?(k) }
-      end
+      @names      = {}
     end
 
     def each
@@ -55,7 +53,8 @@ module Arel
     end
 
     def find_by_name(name)
-      @names[name.to_sym]
+      k = name.to_sym
+      @names[k] ||= @attributes.detect { |a| a.named?(k) }
     end
 
     def find_by_attribute(attr)
