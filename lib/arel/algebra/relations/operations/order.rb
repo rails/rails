@@ -4,8 +4,7 @@ module Arel
 
     def initialize(relation, *orderings, &block)
       super(relation)
-      @orderings = (orderings + arguments_from_block(relation, &block)) \
-        .collect { |o| o.bind(relation) }
+      @orderings = orderings.collect { |o| o.bind(relation) }
     end
 
     def == other
