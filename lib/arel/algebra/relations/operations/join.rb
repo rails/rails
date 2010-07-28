@@ -15,10 +15,6 @@ module Arel
       relation1.name
     end
 
-    def hash
-      @hash ||= :relation1.hash
-    end
-
     def attributes
       @attributes ||= (relation1.externalize.attributes | relation2.externalize.attributes).bind(self)
     end
@@ -60,16 +56,6 @@ module Arel
         [relation1.joins(environment), this_join, relation2.joins(environment)].compact.join(" ")
       end
     end
-
-    def == other
-      super || Join === other &&
-        relation1  == other.relation1 &&
-        relation2  == other.relation2 &&
-        predicates == other.predicates
-    end
-
-    # FIXME remove this.  :'(
-    alias :eql? :==
 
     def eval
       result = []

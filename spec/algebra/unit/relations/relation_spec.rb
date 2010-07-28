@@ -32,14 +32,23 @@ module Arel
         describe '#join' do
           describe 'when given a relation' do
             it "manufactures an inner join operation between those two relations" do
-              @relation.join(@relation).on(@predicate). \
-                should == InnerJoin.new(@relation, @relation, @predicate)
+              join = @relation.join(@relation).on(@predicate)
+              join.relation1.should == @relation
+              join.relation2.should == @relation
+              join.predicates.should == [@predicate]
+              join.should be_kind_of(InnerJoin)
             end
           end
 
           describe "when given a string" do
             it "manufactures a join operation with the string passed through" do
-              @relation.join(arbitrary_string = "ASDF").should == StringJoin.new(@relation, arbitrary_string)
+              arbitrary_string = "ASDF"
+
+              join = @relation.join(arbitrary_string)
+              join.relation1.should == @relation
+              join.relation2.should == arbitrary_string
+              join.predicates.should == []
+              join.should be_kind_of StringJoin
             end
           end
 
@@ -52,8 +61,11 @@ module Arel
 
         describe '#outer_join' do
           it "manufactures a left outer join operation between those two relations" do
-            @relation.outer_join(@relation).on(@predicate). \
-              should == OuterJoin.new(@relation, @relation, @predicate)
+            join = @relation.outer_join(@relation).on(@predicate)
+            join.relation1.should == @relation
+            join.relation2.should == @relation
+            join.predicates.should == [@predicate]
+            join.should be_kind_of OuterJoin
           end
         end
       end
