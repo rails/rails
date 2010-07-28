@@ -40,11 +40,5 @@ module Arel
     def engine
       relation.engine
     end
-
-  private
-
-    def arguments_from_block(relation)
-      block_given?? [yield(relation)] : []
-    end
   end
 end
