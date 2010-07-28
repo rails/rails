@@ -17,6 +17,7 @@ module Arel
     def initialize(name, options = {})
       @name = name.to_s
       @table_exists = nil
+      @table_alias = nil
 
       if options.is_a?(Hash)
         @options = options

@@ -2,17 +2,18 @@ module Arel
   module Sql
     class Christener
       def initialize
-        # FIXME: this exists because all objects hash the same. :'(
-        @used_names = Hash.new(0)
-        @relation_names = Hash.new do |hash, relation|
-          name =  relation.table_alias || relation.name
-          @used_names[name] += 1
-          hash[relation] = name + (@used_names[name] > 1 ? "_#{@used_names[name]}" : '')
-        end
+        @names = {}
       end
 
       def name_for(relation)
-        @relation_names[relation.table]
+        table = relation.table
+        name = table.table_alias || table.name
+        @names[name] ||= []
+
+        @names[name] << table unless @names[name].include? table
+
+        idx = @names[name].index table
+        name + (idx == 0 ? '' : "_#{idx + 1}")
       end
     end
   end

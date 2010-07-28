@@ -41,11 +41,9 @@ module Arel
       row[self]
     end
 
-    module Transformations
-      def self.included(klass)
-        klass.send :alias_method, :eql?, :==
-      end
+    alias :eql? :==
 
+    module Transformations
       def hash
         @hash ||= name.hash + root.relation.hash
       end
