@@ -398,6 +398,18 @@ class ArrayWrapperTests < Test::Unit::TestCase
     def method_missing(*a) @target.send(*a) end
   end
 
+  class DoubtfulToAry
+    def to_ary
+      :not_an_array
+    end
+  end
+
+  class NilToAry
+    def to_ary
+      nil
+    end
+  end
+
   def test_array
     ary = %w(foo bar)
     assert_same ary, Array.wrap(ary)
@@ -437,5 +449,13 @@ class ArrayWrapperTests < Test::Unit::TestCase
   def test_struct
     o = Struct.new(:foo).new(123)
     assert_equal [o], Array.wrap(o)
+  end
+
+  def test_wrap_returns_nil_if_to_ary_returns_nil
+    assert_nil Array.wrap(NilToAry.new)
+  end
+
+  def test_wrap_does_not_complain_if_to_ary_does_not_return_an_array
+    assert_equal DoubtfulToAry.new.to_ary, Array.wrap(DoubtfulToAry.new)
   end
 end
