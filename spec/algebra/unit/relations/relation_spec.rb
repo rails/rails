@@ -72,8 +72,10 @@ module Arel
 
       describe '#project' do
         it "manufactures a projection relation" do
-          @relation.project(@attribute1, @attribute2). \
-            should == Project.new(@relation, @attribute1, @attribute2)
+          project = @relation.project(@attribute1, @attribute2)
+          project.relation.should == @relation
+          project.projections.should == [@attribute1, @attribute2]
+          project.should be_kind_of Project
         end
 
         describe "when given blank attributes" do

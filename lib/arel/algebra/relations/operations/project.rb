@@ -5,6 +5,7 @@ module Arel
     def initialize(relation, *projections)
       super(relation)
       @projections = projections.collect { |p| p.bind(relation) }
+      @attributes = nil
     end
 
     def attributes
@@ -13,13 +14,6 @@ module Arel
 
     def externalizable?
       attributes.any? { |a| a.respond_to?(:aggregation?) && a.aggregation? } || relation.externalizable?
-    end
-
-    def == other
-      super ||
-        Project === other &&
-        relation == other.relation &&
-        projections == other.projections
     end
 
     def eval
