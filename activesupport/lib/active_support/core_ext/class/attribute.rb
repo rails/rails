@@ -41,7 +41,11 @@ class Class
   #
   # To opt out of the instance writer method, pass :instance_writer => false.
   #
-  #   object.setting = false  # => NoMethodError
+  #   class Base
+  #     class_attribute :setting, :instance_write => false
+  #   end
+  #
+  #   Base.new.setting = false  # => NoMethodError
   def class_attribute(*attrs)
     instance_writer = !attrs.last.is_a?(Hash) || attrs.pop[:instance_writer]
 
