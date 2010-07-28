@@ -4,20 +4,28 @@ module Arel
 
       def select_sql
         if !relation.orders.blank? && using_distinct_on?
-          subquery = build_query \
-            "SELECT #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
-            "FROM #{from_clauses}",
-            (joins(self) unless joins(self).blank? ),
-            ("WHERE #{where_clauses.join(" AND ")}" unless wheres.blank? ),
-            ("GROUP BY #{group_clauses.join(', ')}" unless groupings.blank? ),
-            ("HAVING #{having_clauses.join(', ')}" unless havings.blank? ),
-            ("#{locked}" unless locked.blank? )
+          selects = relation.select_clauses
+          joins   = relation.joins(self)
+          wheres  = relation.where_clauses
+          groups  = relation.group_clauses
+          havings = relation.having_clauses
+          orders  = relation.order_clauses
+
+          subquery_clauses = [ "",
+            "SELECT     #{selects.kind_of?(::Array) ? selects.join("") : selects.to_s}",
+            "FROM       #{relation.from_clauses}",
+            joins,
+            ("WHERE     #{wheres.join(' AND ')}" unless wheres.empty?),
+            ("GROUP BY  #{groups.join(', ')}" unless groups.empty?),
+            ("HAVING    #{havings.join(' AND ')}" unless havings.empty?)
+          ].compact.join ' '
+          subquery_clauses << " #{locked}" unless locked.blank?
 
           build_query \
-            "SELECT * FROM (#{subquery}) AS id_list",
-            "ORDER BY #{aliased_orders(order_clauses)}",
-            ("LIMIT #{taken}" unless taken.blank? ),
-            ("OFFSET #{skipped}" unless skipped.blank? )
+            "SELECT * FROM (#{build_query subquery_clauses}) AS id_list",
+            "ORDER BY #{aliased_orders(orders)}",
+            ("LIMIT #{relation.taken}" unless relation.taken.blank? ),
+            ("OFFSET #{relation.skipped}" unless relation.skipped.blank? )
         else
           super
         end
