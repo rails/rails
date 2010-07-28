@@ -74,7 +74,7 @@ module Arel
       end
     end
 
-    describe Attribute::Predications do
+    describe 'Attribute::Predications' do
       before do
         @attribute = Attribute.new(@relation, :name)
       end
