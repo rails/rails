@@ -4,7 +4,6 @@ module Arel
 
     def initialize(relation, *predicates)
       super(relation)
-      predicates = [yield(relation)] + predicates if block_given?
       @predicates = predicates.map { |p| p.bind(relation) }
       @wheres = nil
     end
