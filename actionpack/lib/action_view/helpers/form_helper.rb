@@ -202,6 +202,12 @@ module ActionView
       #     ...
       #   <% end %>
       #
+      # You can also set the answer format, like this:
+      #
+      #   <%= form_for(@post, :format => :json) do |f| %>
+      #     ...
+      #   <% end %>
+      #
       # If you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
@@ -332,7 +338,9 @@ module ActionView
 
         options[:html] ||= {}
         options[:html].reverse_merge!(html_options)
-        options[:url] ||= polymorphic_path(object_or_array)
+        options[:url] ||= options[:format] ? \
+          polymorphic_path(object_or_array, :format => options.delete(:format)) : \
+          polymorphic_path(object_or_array)
       end
 
       # Creates a scope around a specific model object like form_for, but
