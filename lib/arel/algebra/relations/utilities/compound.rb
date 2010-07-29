@@ -8,8 +8,13 @@ module Arel
              :to => :relation
 
     def initialize relation
-      @relation = relation
-      @attributes = nil
+      @relation    = relation
+      @attributes  = nil
+      @wheres      = nil
+      @groupings   = nil
+      @orders      = nil
+      @havings     = nil
+      @projections = nil
     end
 
     [:wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
