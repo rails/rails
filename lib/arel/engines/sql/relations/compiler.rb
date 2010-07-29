@@ -15,7 +15,9 @@ module Arel
       def select_sql
         if relation.projections.first.is_a?(Count) && relation.projections.size == 1 &&
           (relation.taken.present? || relation.wheres.present?) && relation.joins(self).blank?
-          subquery = build_query("SELECT 1 FROM #{relation.from_clauses}", build_clauses)
+          subquery = [
+            "SELECT 1 FROM #{relation.from_clauses}", build_clauses
+          ].join ' '
           query = "SELECT COUNT(*) AS count_id FROM (#{subquery}) AS subquery"
         else
           query = [
