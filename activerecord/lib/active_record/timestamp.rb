@@ -12,6 +12,18 @@ module ActiveRecord
   # Timestamps are in the local timezone by default but you can use UTC by setting:
   #
   #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
+  #
+  # == Time Zone aware attributes
+  #
+  # By default, ActiveRecord::Base keeps all the datetime columns time zone aware by executing following code.
+  #
+  #   ActiveRecord::Base.time_zone_aware_attributes = true
+  #
+  # This feature can easily be turned off by assigning value <tt>false</tt> .
+  #
+  # If your attributes are time zone aware and you desire to skip time zone conversion for certain attributes then you can do following:
+  #
+  #   Topic.skip_time_zone_conversion_for_attributes = [:written_on]
   module Timestamp
     extend ActiveSupport::Concern
 
