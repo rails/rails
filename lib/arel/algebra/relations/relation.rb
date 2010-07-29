@@ -65,7 +65,14 @@ module Arel
     end
 
     def select_clauses
-      attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }
+      attributes.map { |a|
+        case a
+        when Value
+          a.value
+        else
+          a.to_sql(Sql::SelectClause.new(self))
+        end
+      }
     end
 
     def from_clauses
