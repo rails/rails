@@ -2,7 +2,7 @@ module Arel
   class Where < Compound
     attr_reader :predicates
 
-    def initialize(relation, *predicates)
+    def initialize(relation, predicates)
       super(relation)
       @predicates = predicates.map { |p| p.bind(relation) }
       @wheres = nil

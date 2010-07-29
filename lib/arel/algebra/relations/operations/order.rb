@@ -2,7 +2,7 @@ module Arel
   class Order < Compound
     attr_reader :orderings
 
-    def initialize(relation, *orderings)
+    def initialize(relation, orderings)
       super(relation)
       @orderings = orderings.collect { |o| o.bind(relation) }
     end

@@ -10,7 +10,7 @@ module Arel
     describe '#to_sql' do
       describe "when given an attribute" do
         it "manufactures sql with an order clause populated by the attribute" do
-          sql = Order.new(@relation, @attribute).to_sql
+          sql = Order.new(@relation, [@attribute]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
@@ -60,7 +60,7 @@ module Arel
         end
 
         it "manufactures sql with an order clause populated by comma-separated attributes" do
-          sql = Order.new(@relation, @attribute, @another_attribute).to_sql
+          sql = Order.new(@relation, [@attribute, @another_attribute]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
@@ -94,7 +94,7 @@ module Arel
         end
 
         it "passes the string through to the order clause" do
-          sql = Order.new(@relation, @string).to_sql
+          sql = Order.new(@relation, [@string]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
@@ -124,12 +124,12 @@ module Arel
 
       describe "when ordering an ordered relation" do
         before do
-          @ordered_relation = Order.new(@relation, @attribute)
+          @ordered_relation = Order.new(@relation, [@attribute])
           @another_attribute = @relation[:name]
         end
 
         it "manufactures sql with the order clause of the last ordering preceding the first ordering" do
-          sql = Order.new(@ordered_relation, @another_attribute).to_sql
+          sql = Order.new(@ordered_relation, [@another_attribute]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{

@@ -116,19 +116,17 @@ module Arel
       end
 
       %w{
-        where order skip group having
-      }.each do |operation_name|
+        having group order where project
+      }.each do |op|
         class_eval <<-OPERATION, __FILE__, __LINE__
-          def #{operation_name}(*arguments)
-            arguments.all? { |x| x.blank? } ?
-              self : #{operation_name.capitalize}.new(self, *arguments)
+          def #{op}(*args)
+            args.all? { |x| x.blank? } ? self : #{op.capitalize}.new(self, args)
           end
         OPERATION
       end
 
-      def project *args
-        return self if args.all? { |x| x.blank? }
-        Project.new self, *args
+      def skip thing = nil
+        thing ? Skip.new(self, thing) : self
       end
 
       def take thing

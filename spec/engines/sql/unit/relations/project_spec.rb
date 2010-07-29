@@ -10,7 +10,7 @@ module Arel
     describe '#to_sql' do
       describe 'when given an attribute' do
         it "manufactures sql with a limited select clause" do
-          sql = Project.new(@relation, @attribute).to_sql
+          sql = Project.new(@relation, [@attribute]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
@@ -37,11 +37,11 @@ module Arel
 
       describe 'when given a relation' do
         before do
-          @scalar_relation = Project.new(@relation, @relation[:name])
+          @scalar_relation = Project.new(@relation, [@relation[:name]])
         end
 
         it "manufactures sql with scalar selects" do
-          sql = Project.new(@relation, @scalar_relation).to_sql
+          sql = Project.new(@relation, [@scalar_relation]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
@@ -65,7 +65,7 @@ module Arel
 
       describe 'when given a string' do
         it "passes the string through to the select clause" do
-          sql = Project.new(@relation, 'asdf').to_sql
+          sql = Project.new(@relation, ['asdf']).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{

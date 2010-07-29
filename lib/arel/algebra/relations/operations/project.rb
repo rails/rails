@@ -2,7 +2,7 @@ module Arel
   class Project < Compound
     attr_reader :projections, :attributes
 
-    def initialize(relation, *projections)
+    def initialize(relation, projections)
       super(relation)
       @projections = projections.map { |p| p.bind(relation) }
       @attributes = Header.new(projections.map { |x| x.bind(self) })

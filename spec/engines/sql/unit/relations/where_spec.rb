@@ -10,7 +10,7 @@ module Arel
     describe '#to_sql' do
       describe 'when given a predicate' do
         it "manufactures sql with where clause conditions" do
-          sql = Where.new(@relation, @predicate).to_sql
+          sql = Where.new(@relation, [@predicate]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{

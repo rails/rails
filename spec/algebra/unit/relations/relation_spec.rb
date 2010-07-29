@@ -97,11 +97,11 @@ module Arel
         end
 
         it "manufactures a where relation" do
-          @relation.where(@predicate).should == Where.new(@relation, @predicate)
+          @relation.where(@predicate).should == Where.new(@relation, [@predicate])
         end
 
         it "accepts arbitrary strings" do
-          @relation.where("arbitrary").should == Where.new(@relation, "arbitrary")
+          @relation.where("arbitrary").should == Where.new(@relation, ["arbitrary"])
         end
 
         describe 'when given a blank predicate' do
@@ -113,7 +113,7 @@ module Arel
 
       describe '#order' do
         it "manufactures an order relation" do
-          @relation.order(@attribute1, @attribute2).should == Order.new(@relation, @attribute1, @attribute2)
+          @relation.order(@attribute1, @attribute2).should == Order.new(@relation, [@attribute1, @attribute2])
         end
 
         describe 'when given a blank ordering' do
@@ -149,7 +149,7 @@ module Arel
 
       describe '#group' do
         it 'manufactures a group relation' do
-          @relation.group(@attribute1, @attribute2).should == Group.new(@relation, @attribute1, @attribute2)
+          @relation.group(@attribute1, @attribute2).should == Group.new(@relation, [@attribute1, @attribute2])
         end
 
         describe 'when given blank groupings' do

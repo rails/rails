@@ -10,7 +10,7 @@ module Arel
     describe '#to_sql' do
       describe 'when given a predicate' do
         it "manufactures sql with where clause conditions" do
-          sql = Group.new(@relation, @attribute).to_sql
+          sql = Group.new(@relation, [@attribute]).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
@@ -40,7 +40,7 @@ module Arel
 
       describe 'when given a string' do
         it "passes the string through to the where clause" do
-          sql = Group.new(@relation, 'asdf').to_sql
+          sql = Group.new(@relation, ['asdf']).to_sql
 
           adapter_is :mysql do
             sql.should be_like(%Q{
