@@ -1,10 +1,11 @@
 module Arel
   class Project < Compound
-    attr_reader :projections, :attributes
+    attr_reader :projections, :attributes, :christener
 
     def initialize(relation, projections)
       super(relation)
       @projections = projections.map { |p| p.bind(relation) }
+      @christener = Sql::Christener.new
       @attributes = Header.new(projections.map { |x| x.bind(self) })
     end
 

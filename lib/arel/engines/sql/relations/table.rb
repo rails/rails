@@ -12,12 +12,13 @@ module Arel
       def tables= e; @@tables = e; end
     end
 
-    attr_reader :name, :engine, :table_alias, :options
+    attr_reader :name, :engine, :table_alias, :options, :christener
 
     def initialize(name, options = {})
       @name = name.to_s
       @table_exists = nil
       @table_alias = nil
+      @christener = Sql::Christener.new
 
       if options.is_a?(Hash)
         @options = options
