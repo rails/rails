@@ -49,7 +49,7 @@ module ActiveRecord
 
     def where(opts, other = nil)
       value = build_where(opts, other)
-      value ? clone : clone.tap {|r| r.where_values += Array.wrap(value) }
+      value ? clone.tap {|r| r.where_values += Array.wrap(value) } : clone
     end
 
     def having(*args)
