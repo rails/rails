@@ -24,7 +24,7 @@ module Rails
         if mod > @last_checked
           contents = @file.read
           @last_checked = mod
-          @cursor += contents.size
+          @cursor = @file.tell
           $stdout.print contents
         end
       end
