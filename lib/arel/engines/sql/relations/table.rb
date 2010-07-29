@@ -52,11 +52,7 @@ module Arel
     end
 
     def table_exists?
-      if @table_exists
-        true
-      else
-        @table_exists = @@tables.include?(name) || engine.connection.table_exists?(name)
-      end
+      @table_exists ||= @@tables.include?(name) || engine.connection.table_exists?(name)
     end
 
     def attributes
