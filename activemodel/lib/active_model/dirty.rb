@@ -83,7 +83,10 @@ module ActiveModel
   #   person.name_changed?  # => false
   #   person.name           # => 'Bill'
   #
-  # Before modifying an attribute in-place:
+  # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
+  # to mark that the attribute is changing. Otherwise ActiveModel can't track changes to 
+  # in-place attributes.
+  #
   #   person.name_will_change!
   #   person.name << 'y'
   #   person.name_change    # => ['Bill', 'Billy']
