@@ -105,11 +105,16 @@ module ActiveRecord
     # Updates a single attribute and saves the record.  
     # This is especially useful for boolean flags on existing records. Also note that
     #
-    # * validation is skipped
-    # * No callbacks are invoked 
-    # * updated_at/updated_on column is updated if that column is available
-    # * does not work on associations
-    # * does not work on attr_accessor attributes. The attribute that is being updated must be column name.
+    # * The attribute being updated must be a column name.
+    # * Validation is skipped.
+    # * No callbacks are invoked.
+    # * updated_at/updated_on column is updated if that column is available.
+    # * Does not work on associations.
+    # * Does not work on attr_accessor attributes. 
+    # * Does not work on new record. <tt>record.new_record?</tt> should return false for this method to work.
+    # * Updates only the attribute that is input to the method. If there are other changed attributes then
+    #   those attributes are left alone. In that case even after this method has done its work <tt>record.changed?</tt>
+    #   will return true.
     #
     def update_attribute(name, value)
       raise ActiveRecordError, "#{name.to_s} is marked as readonly" if self.class.readonly_attributes.include? name.to_s

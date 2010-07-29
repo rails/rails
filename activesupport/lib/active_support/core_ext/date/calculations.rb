@@ -40,23 +40,23 @@ class Date
     end
   end
 
-  # Tells whether the Date object's date lies in the past
+  # Returns true if the Date object's date lies in the past. Otherwise returns false.
   def past?
     self < ::Date.current
   end
 
-  # Tells whether the Date object's date is today
+  # Returns true if the Date object's date is today.
   def today?
     self.to_date == ::Date.current # we need the to_date because of DateTime
   end
 
-  # Tells whether the Date object's date lies in the future
+  # Returns true if the Date object's date lies in the future.
   def future?
     self > ::Date.current
   end
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
-  # and then subtracts the specified number of seconds
+  # and then subtracts the specified number of seconds.
   def ago(seconds)
     to_time_in_current_zone.since(-seconds)
   end
@@ -127,22 +127,22 @@ class Date
     )
   end
 
-  # Returns a new Date/DateTime representing the time a number of specified months ago
+  # Returns a new Date/DateTime representing the time a number of specified months ago.
   def months_ago(months)
     advance(:months => -months)
   end
 
-  # Returns a new Date/DateTime representing the time a number of specified months in the future
+  # Returns a new Date/DateTime representing the time a number of specified months in the future.
   def months_since(months)
     advance(:months => months)
   end
 
-  # Returns a new Date/DateTime representing the time a number of specified years ago
+  # Returns a new Date/DateTime representing the time a number of specified years ago.
   def years_ago(years)
     advance(:years => -years)
   end
 
-  # Returns a new Date/DateTime representing the time a number of specified years in the future
+  # Returns a new Date/DateTime representing the time a number of specified years in the future.
   def years_since(years)
     advance(:years => years)
   end
@@ -152,22 +152,22 @@ class Date
     years_ago(1)
   end unless method_defined?(:prev_year)
 
-  # Short-hand for years_since(1)
+  # Shorthand for years_since(1)
   def next_year
     years_since(1)
   end unless method_defined?(:next_year)
   
-  # Short-hand for months_ago(1)
+  # Shorthand for months_ago(1)
   def prev_month
     months_ago(1)
   end unless method_defined?(:prev_month)
 
-  # Short-hand for months_since(1)
+  # Shorthand for months_since(1)
   def next_month
     months_since(1)
   end unless method_defined?(:next_month)
 
-  # Returns a new Date/DateTime representing the "start" of this week (i.e, Monday; DateTime objects will have time set to 0:00)
+  # Returns a new Date/DateTime representing the "start" of this week (i.e, Monday; DateTime objects will have time set to 0:00).
   def beginning_of_week
     days_to_monday = self.wday!=0 ? self.wday-1 : 6
     result = self - days_to_monday
@@ -176,7 +176,7 @@ class Date
   alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
 
-  # Returns a new Date/DateTime representing the end of this week (Sunday, DateTime objects will have time set to 23:59:59)
+  # Returns a new Date/DateTime representing the end of this week (Sunday, DateTime objects will have time set to 23:59:59).
   def end_of_week
     days_to_sunday = self.wday!=0 ? 7-self.wday : 0
     result = self + days_to_sunday.days

@@ -1135,21 +1135,6 @@ Since values are copied when a subclass is defined, if the base class changes th
 
 NOTE: Defined in +active_support/core_ext/class/inheritable_attributes.rb+.
 
-There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defines +delivery_method+ this way:
-
-<ruby>
-module ActionMailer
-  class Base
-    superclass_delegating_accessor :delivery_method
-    self.delivery_method = :smtp
-  end
-end
-</ruby>
-
-If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
-
-NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
-
 h4. Subclasses & Descendants
 
 h5. +subclasses+

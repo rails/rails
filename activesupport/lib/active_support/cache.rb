@@ -129,13 +129,6 @@ module ActiveSupport
     #   cache.namespace = lambda { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
-    # All caches support auto expiring content after a specified number of seconds.
-    # To set the cache entry time to live, you can either specify +:expires_in+ as
-    # an option to the constructor to have it affect all entries or to the +fetch+
-    # or +write+ methods for just one entry.
-    #
-    #   cache = ActiveSupport::Cache::MemoryStore.new(:expire_in => 5.minutes)
-    #   cache.write(key, value, :expire_in => 1.minute)  # Set a lower value for one entry
     #
     # Caches can also store values in a compressed format to save space and reduce
     # time spent sending data. Since there is some overhead, values must be large
@@ -211,23 +204,30 @@ module ActiveSupport
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
       #
-      # Setting <tt>:expires_in</tt> will set an expiration time on the cache
-      # entry if it is set by call.
       #
-      # Setting <tt>:race_condition_ttl</tt> will invoke logic on entries set with
-      # an <tt>:expires_in</tt> option. If an entry is found in the cache that is
-      # expired and it has been expired for less than the number of seconds specified
-      # by this option and a block was passed to the method call, then the expiration
-      # future time of the entry in the cache will be updated to that many seconds
-      # in the and the block will be evaluated and written to the cache.
+      # Setting <tt>:expires_in</tt> will set an expiration time on the cache. All caches
+      # support auto expiring content after a specified number of seconds. This value can
+      # be specified as an option to the construction in which call all entries will be 
+      # affected. Or it can be supplied to the +fetch+ or +write+ method for just one entry.
       #
-      # This is very useful in situations where a cache entry is used very frequently
-      # under heavy load. The first process to find an expired cache entry will then
-      # become responsible for regenerating that entry while other processes continue
-      # to use the slightly out of date entry. This can prevent race conditions where
-      # too many processes are trying to regenerate the entry all at once. If the
-      # process regenerating the entry errors out, the entry will be regenerated
-      # after the specified number of seconds.
+      #   cache = ActiveSupport::Cache::MemoryStore.new(:expire_in => 5.minutes)
+      #   cache.write(key, value, :expire_in => 1.minute)  # Set a lower value for one entry
+      #
+      # Setting <tt>:race_condition_ttl</tt> is very useful in situations where a cache entry
+      # is used very frequently unver heavy load. If a cache expires and due to heavy load 
+      # seven different processes will try to read data natively and then they all will try to 
+      # write to cache. To avoid that case the first process to find an expired cache entry will 
+      # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>. Yes
+      # this process is extending the time for a stale value by another few seconds. Because 
+      # of extended life of the previous cache, other processes will continue to use slightly
+      # stale data for a just a big longer. In the meantime that first process will go ahead
+      # and will write into cache the new value. After that all the processes will start
+      # getting new value. The key is to keep <tt>:race_condition_ttl</tt> small.
+      #
+      # If the process regenerating the entry errors out, the entry will be regenerated
+      # after the specified number of seconds. Also note that the life of stale cache is 
+      # extended only if it expired recently. Otherwise a new value is generated and 
+      # <tt>:race_condition_ttl</tt> does not play any role.
       #
       #   # Set all values to expire after one minute.
       #   cache = ActiveSupport::Cache::MemoryCache.new(:expires_in => 1.minute)
@@ -252,6 +252,7 @@ module ActiveSupport
       #
       #   # val_1 => "new value 1"
       #   # val_2 => "original value"
+      #   # sleep 10 # First thread extend the life of cache by another 10 seconds
       #   # cache.fetch("foo") => "new value 1"
       #
       # Other options will be handled by the specific cache store implementation.

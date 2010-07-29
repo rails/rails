@@ -220,6 +220,19 @@ module ActiveRecord #:nodoc:
   #   user = User.create(:preferences => %w( one two three ))
   #   User.find(user.id).preferences    # raises SerializationTypeMismatch
   #
+  # == Time Zone aware attributes
+  #
+  # By default, ActiveRecord::Base keeps all the datetime columns time zone aware by executing following code.
+  #
+  #   ActiveRecord::Base.time_zone_aware_attributes = true
+  #
+  # This feature can easily be turned off by assigning value <tt>false</tt> .
+  #
+  # If your attributes are time zone aware and you desire to skip time zone conversion for certain attributes then you can do following:
+  #
+  #   Topic.skip_time_zone_conversion_for_attributes = [:written_on]
+  #   
+  #
   # == Single table inheritance
   #
   # Active Record allows inheritance by storing the name of the class in a column that by default is named "type" (can be changed
