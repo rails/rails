@@ -4,7 +4,7 @@ module Arel
 
     def initialize(relation, *projections)
       super(relation)
-      @projections = projections.collect { |p| p.bind(relation) }
+      @projections = projections.map { |p| p.bind(relation) }
       @attributes = Header.new(projections.map { |x| x.bind(self) })
     end
 
