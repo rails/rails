@@ -273,5 +273,30 @@ module RailtiesTest
                   "<link href=\"/omg/bukkits/stylesheets/foo.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"
       assert_equal expected, stripped_body
     end
+
+    test "engine's files are served via ActionDispatch::Static" do
+      add_to_config "config.serve_static_assets = true"
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            engine_name :bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "public/bukkits.html", "/bukkits/bukkits.html"
+      app_file "public/app.html", "/app.html"
+
+      boot_rails
+
+      env = Rack::MockRequest.env_for("/app.html")
+      response = Rails.application.call(env)
+      assert_equal response[2].path, File.join(app_path, "public/app.html")
+
+      env = Rack::MockRequest.env_for("/bukkits/bukkits.html")
+      response = Rails.application.call(env)
+      assert_equal response[2].path, File.join(@plugin.path, "public/bukkits.html")
+    end
   end
 end

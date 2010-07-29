@@ -256,11 +256,7 @@ module Rails
     end
 
     def config
-      @config ||= begin
-        config = Engine::Configuration.new(find_root_with_flag("lib"))
-        config.asset_path = "/#{engine_name}%s" if File.exists?(config.paths.public.to_a.first)
-        config
-      end
+      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
@@ -335,6 +331,9 @@ module Rails
       require environment if environment
     end
 
+    initializer :default_asset_path do
+      config.asset_path = "/#{engine_name}%s" unless config.asset_path
+    end
   protected
     def find_root_with_flag(flag, default=nil)
       root_path = self.class.called_from

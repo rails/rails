@@ -145,9 +145,25 @@ module Rails
 
   protected
 
+    def static_paths
+      @static_paths ||= begin
+        static_paths = ActiveSupport::OrderedHash.new
+        static_paths["/"] = paths.public.to_a.first
+
+        railties.all do |railtie|
+          if railtie.config.respond_to?(:asset_path) && railtie.config.asset_path
+            public_path = railtie.config.paths.public.to_a.first
+            static_paths[railtie.config.asset_path % ""] = public_path if File.exists?(public_path)
+          end
+        end
+
+        static_paths
+      end
+    end
+
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        middleware.use ::ActionDispatch::Static, paths.public.to_a.first if config.serve_static_assets
+        middleware.use ::ActionDispatch::Static, static_paths if config.serve_static_assets
         middleware.use ::Rack::Lock if !config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rails::Rack::Logger
