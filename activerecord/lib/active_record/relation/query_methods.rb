@@ -135,11 +135,14 @@ module ActiveRecord
         next if where.blank?
 
         case where
-        when Arel::SqlLiteral
-          arel = arel.where(where)
+        when Arel::Predicates::In
+          # FIXME: this needs to go away
+          # when an IN is part of a larger query, the SQL seems to be different
+          arel = arel.where(Arel::SqlLiteral.new("(#{where.to_sql})"))
+        when String
+          arel = arel.where(Arel::SqlLiteral.new("(#{where})"))
         else
-          sql = where.is_a?(String) ? where : where.to_sql
-          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
+          arel = arel.where where
         end
       end
 
