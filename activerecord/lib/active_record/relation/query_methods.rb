@@ -129,7 +129,7 @@ module ActiveRecord
     def build_arel
       arel = table
 
-      arel = build_joins(arel, @joins_values) if @joins_values.present?
+      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
       @where_values.uniq.each do |where|
         next if where.blank?
@@ -145,7 +145,7 @@ module ActiveRecord
 
       arel = arel.having(*@having_values.uniq.select{|h| h.present?}) if @having_values.present?
 
-      arel = arel.take(@limit_value) if @limit_value.present?
+      arel = arel.take(@limit_value) if @limit_value
       arel = arel.skip(@offset_value) if @offset_value.present?
 
       arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
@@ -155,13 +155,7 @@ module ActiveRecord
       arel = build_select(arel, @select_values.uniq)
 
       arel = arel.from(@from_value) if @from_value.present?
-
-      case @lock_value
-      when TrueClass
-        arel = arel.lock
-      when String
-        arel = arel.lock(@lock_value)
-      end if @lock_value.present?
+      arel = arel.lock(@lock_value) if @lock_value
 
       arel
     end
