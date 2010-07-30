@@ -2,13 +2,14 @@ module Arel
   class Compound
     include Relation
 
-    attr_reader :relation
+    attr_reader :relation, :engine
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
              :column_for, :sources, :locked, :table_alias, :array,
              :to => :relation
 
     def initialize relation
       @relation    = relation
+      @engine      = relation.engine
       @attributes  = nil
       @wheres      = nil
       @groupings   = nil
@@ -31,10 +32,6 @@ module Arel
 
     def unoperated_rows
       relation.call.collect { |row| row.bind(self) }
-    end
-
-    def engine
-      relation.engine
     end
   end
 end
