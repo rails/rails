@@ -23,18 +23,18 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * <tt>rake</tt>
 * <tt>rails generate</tt>
 * <tt>rails dbconsole</tt>
-* <tt>rails app_name</tt>
+* <tt>rails new app_name</tt>
 
 Let's create a simple Rails application to step through each of these commands in context.
 
-h4. +rails+
+h4. +rails new+
 
-The first thing we'll want to do is create a new Rails application by running the +rails+ command after installing Rails.
+The first thing we'll want to do is create a new Rails application by running the +rails new+ command after installing Rails.
 
 WARNING: You know you need the rails gem installed by typing +gem install rails+ first, if you don't have this installed, follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.html
 
 <shell>
-$ rails commandsapp
+$ rails new commandsapp
      create  
      create  README
      create  .gitignore
@@ -352,7 +352,7 @@ $ mkdir gitapp
 $ cd gitapp
 $ git init
 Initialized empty Git repository in .git/
-$ rails . --git --database=postgresql
+$ rails new . --git --database=postgresql
       exists
       create  app/controllers
       create  app/helpers
@@ -397,7 +397,7 @@ development:
 ...
 </shell>
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails+ command to generate the basis of your app.
+It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
 
 h4. +server+ with Different Backends
 
