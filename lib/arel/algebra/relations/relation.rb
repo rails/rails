@@ -38,8 +38,11 @@ module Arel
       end
     end
 
-    def to_sql(formatter = Sql::SelectStatement.new(self))
-      formatter.select compiler.select_sql, self
+    def to_sql(formatter = nil)
+      sql = compiler.select_sql
+
+      return sql unless formatter
+      formatter.select sql, self
     end
 
     def christener
@@ -76,7 +79,7 @@ module Arel
     end
 
     def from_clauses
-      sources.blank? ? table_sql(Sql::TableReference.new(self)) : sources
+      sources.empty? ? table_sql : sources
     end
 
     def where_clauses
