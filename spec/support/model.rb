@@ -1,6 +1,6 @@
 module Arel
   module Testing
-    class Engine
+    class Engine < Arel::Memory::Engine
       attr_reader :rows
 
       def initialize
@@ -12,7 +12,12 @@ module Arel
       end
 
       def read(relation)
-        @rows.dup.map { |r| Row.new(relation, r) }
+        case relation
+        when Arel::Take
+          relation.eval
+        else
+          @rows.dup.map { |r| Row.new(relation, r) }
+        end
       end
 
       def create(insert)
