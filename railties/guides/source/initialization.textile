@@ -147,7 +147,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * mail-2.2.5.gem
 * memcache-client-1.8.5.gem
 * mime-types-1.16.gem
-* nokogiri-1.4.2.gem
+* nokogiri-1.4.3.1.gem
 * polyglot-0.3.1.gem
 * rack-1.2.1.gem
 * rack-mount-0.6.9.gem
