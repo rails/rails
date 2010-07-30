@@ -143,8 +143,8 @@ module Arel
         thing ? Skip.new(self, thing) : self
       end
 
-      def take thing
-        Take.new self, thing
+      def take count
+        Take.new self, count
       end
 
       def from thing
