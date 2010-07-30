@@ -4,13 +4,7 @@ module Arel
 
     def initialize(relation, locked)
       super(relation)
-      @locked   = locked.blank? ? " FOR UPDATE" : locked
-    end
-
-    def == other
-      super || Lock === other &&
-               relation == other.relation &&
-               locked == other.locked
+      @locked = true == locked ? " FOR UPDATE" : locked
     end
   end
 end

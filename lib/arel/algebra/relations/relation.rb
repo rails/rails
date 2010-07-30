@@ -144,7 +144,7 @@ module Arel
         From.new self, thing
       end
 
-      def lock(locking = nil)
+      def lock(locking = true)
         Lock.new(self, locking)
       end
 
