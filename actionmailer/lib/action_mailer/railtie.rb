@@ -1,5 +1,6 @@
 require "action_mailer"
 require "rails"
+require "action_mailer/railties/routes_helpers"
 
 module ActionMailer
   class Railtie < Rails::Railtie
@@ -20,6 +21,7 @@ module ActionMailer
       ActiveSupport.on_load(:action_mailer) do
         include app.routes.url_helpers
         include app.routes.mounted_helpers(:app)
+        extend ::ActionMailer::Railties::RoutesHelpers
         options.each { |k,v| send("#{k}=", v) }
       end
     end

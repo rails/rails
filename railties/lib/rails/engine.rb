@@ -199,6 +199,15 @@ module Rails
         @endpoint = endpoint if endpoint
         @endpoint
       end
+
+      def isolated_engine_for(mod)
+        _engine = self
+        mod.singleton_class.instance_eval do
+          define_method(:_railtie) do
+            _engine
+          end
+        end
+      end
     end
 
     delegate :middleware, :root, :paths, :to => :config

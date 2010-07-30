@@ -298,5 +298,134 @@ module RailtiesTest
       response = Rails.application.call(env)
       assert_equal response[2].path, File.join(@plugin.path, "public/bukkits.html")
     end
+
+    test "shared engine should include application's helpers" do
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match "/foo" => "bukkits/foo#index", :as => "foo"
+          match "/foo/show" => "bukkits/foo#show"
+        end
+      RUBY
+
+      app_file "app/helpers/some_helper.rb", <<-RUBY
+        module SomeHelper
+          def something
+            "Something... Something... Something..."
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
+        class Bukkits::FooController < ActionController::Base
+          def index
+            render :inline => "<%= something %>"
+          end
+
+          def show
+            render :text => foo_path
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      env = Rack::MockRequest.env_for("/foo")
+      response = Rails.application.call(env)
+      assert_equal "Something... Something... Something...", response[2].body
+
+      env = Rack::MockRequest.env_for("/foo/show")
+      response = Rails.application.call(env)
+      assert_equal "/foo", response[2].body
+    end
+
+    test "isolated engine should include only its own routes and helpers" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolated_engine_for Bukkits
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match "/bar" => "bar#index", :as => "bar"
+          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          match "/foo" => "bukkits/foo#index", :as => "foo"
+          match "/foo/show" => "bukkits/foo#show"
+          match "/from_app" => "bukkits/foo#from_app"
+          match "/routes_helpers_in_view" => "bukkits/foo#routes_helpers_in_view"
+        end
+      RUBY
+
+      app_file "app/helpers/some_helper.rb", <<-RUBY
+        module SomeHelper
+          def something
+            "Something... Something... Something..."
+          end
+        end
+      RUBY
+
+      @plugin.write "app/helpers/engine_helper.rb", <<-RUBY
+        module EngineHelper
+          def help_the_engine
+            "Helped."
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
+        class Bukkits::FooController < ActionController::Base
+          def index
+            render :inline => "<%= help_the_engine %>"
+          end
+
+          def show
+            render :text => foo_path
+          end
+
+          def from_app
+            render :inline => "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
+          end
+
+          def routes_helpers_in_view
+            render :inline => "<%= foo_path %>, <%= app.bar_path %>"
+          end
+        end
+      RUBY
+
+      @plugin.write "app/mailers/bukkits/my_mailer.rb", <<-RUBY
+        module Bukkits
+          class MyMailer < ActionMailer::Base
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      assert_equal Bukkits._railtie, Bukkits::Engine
+      assert ::Bukkits::MyMailer.method_defined?(:foo_path)
+
+      env = Rack::MockRequest.env_for("/bukkits/from_app")
+      response = AppTemplate::Application.call(env)
+      assert_equal "false", response[2].body
+
+      env = Rack::MockRequest.env_for("/bukkits/foo/show")
+      response = AppTemplate::Application.call(env)
+      assert_equal "/bukkits/foo", response[2].body
+
+      env = Rack::MockRequest.env_for("/bukkits/foo")
+      response = AppTemplate::Application.call(env)
+      assert_equal "Helped.", response[2].body
+
+      env = Rack::MockRequest.env_for("/bukkits/routes_helpers_in_view")
+      response = AppTemplate::Application.call(env)
+      assert_equal "/bukkits/foo, /bar", response[2].body
+    end
   end
 end

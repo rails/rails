@@ -101,8 +101,12 @@ module ActionController
 
         # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
         def all_application_helpers
+          all_helpers_from_path(helpers_path)
+        end
+
+        def all_helpers_from_path(path)
           helpers = []
-          Array.wrap(helpers_path).each do |path|
+          Array.wrap(path).each do |path|
             extract  = /^#{Regexp.quote(path.to_s)}\/?(.*)_helper.rb$/
             helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
           end
