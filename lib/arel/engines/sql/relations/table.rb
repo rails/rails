@@ -82,13 +82,6 @@ module Arel
       @columns = nil
       @attributes = Header.new([])
     end
-
-    def ==(other)
-      super ||
-      Table       === other &&
-      name        ==  other.name &&
-      table_alias ==  other.table_alias
-    end
   end
 end
 

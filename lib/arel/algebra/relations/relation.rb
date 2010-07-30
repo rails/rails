@@ -129,7 +129,7 @@ module Arel
       end
 
       def where clause = nil
-        clause ? Where.new(self, [clause]) : self
+        clause ? Where.new(self, Array(clause)) : self
       end
 
       def skip thing = nil

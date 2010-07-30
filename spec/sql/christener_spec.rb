@@ -3,14 +3,6 @@ require 'spec_helper'
 module Arel
   module Sql
     describe "Christener" do
-      it "returns the same name with two table objects" do
-        christener = Christener.new
-        table = Table.new 'users'
-        table2 = Table.new 'users'
-        christener.name_for(table).should == 'users'
-        christener.name_for(table2).should == 'users'
-      end
-
       it "returns the first name" do
         christener = Christener.new
         table = Table.new 'users'
