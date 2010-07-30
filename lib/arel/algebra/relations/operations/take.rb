@@ -7,13 +7,6 @@ module Arel
       @taken = taken
     end
 
-    def == other
-      super ||
-        Take === other &&
-        relation == other.relation &&
-        taken == other.taken
-    end
-
     def engine
       engine   = relation.engine
 

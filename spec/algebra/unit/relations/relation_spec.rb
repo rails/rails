@@ -134,7 +134,9 @@ module Arel
 
       describe '#take' do
         it "manufactures a take relation" do
-          @relation.take(5).should == Take.new(@relation, 5)
+          take = @relation.take(5)
+          take.relation.should == @relation
+          take.taken.should == 5
         end
 
         describe 'when given a blank number of items' do
