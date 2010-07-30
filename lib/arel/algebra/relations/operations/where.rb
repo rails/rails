@@ -12,13 +12,6 @@ module Arel
       @wheres ||= relation.wheres + predicates
     end
 
-    def == other
-      super ||
-        Where === other &&
-        relation == other.relation &&
-        predicates == other.predicates
-    end
-
     def engine
       engine   = relation.engine
 

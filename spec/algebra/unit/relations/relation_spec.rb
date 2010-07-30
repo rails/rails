@@ -97,11 +97,20 @@ module Arel
         end
 
         it "manufactures a where relation" do
-          @relation.where(@predicate).should == Where.new(@relation, [@predicate])
+          where = @relation.where(@predicate)
+          where.relation.should == @relation
+          where.predicates.should == [@predicate]
+          where.should be_kind_of Where
         end
 
         it "accepts arbitrary strings" do
-          @relation.where("arbitrary").should == Where.new(@relation, ["arbitrary"])
+          where = @relation.where("arbitrary")
+          where.relation.should == @relation
+
+          where.predicates.length.should == 1
+          where.predicates.first.value.should == "arbitrary"
+
+          where.should be_kind_of Where
         end
 
         describe 'when given a blank predicate' do
