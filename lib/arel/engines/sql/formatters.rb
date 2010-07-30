@@ -115,12 +115,13 @@ module Arel
       end
 
       def table(table)
-        if table.name =~ /\s/
-          table.name
-        else
-          quote_table_name(table.name) +
-            (table.name != name_for(table) ? " #{quote_table_name(name_for(table))}" : '')
-        end
+        table_name = table.name
+        return table_name if table_name =~ /\s/
+
+        unique_name = name_for(table)
+
+        quote_table_name(table_name) +
+          (table_name != unique_name ? " #{quote_table_name(unique_name)}" : '')
       end
     end
 
