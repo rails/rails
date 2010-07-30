@@ -61,6 +61,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
+      assert Foo.method_defined?(:app)
       assert_equal ["notify"], Foo.action_methods
     end
 
