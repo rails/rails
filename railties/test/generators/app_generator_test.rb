@@ -58,6 +58,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     DEFAULT_APP_FILES.each{ |path| assert_file path }
   end
 
+  def test_application_generate_pretend
+    run_generator ["testapp", "--pretend"]
+
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
   def test_application_controller_and_layout_files
     run_generator
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag :all/
