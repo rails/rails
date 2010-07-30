@@ -141,6 +141,7 @@ module Arel
       def to_sql(formatter = nil)
         "#{operand1.to_sql} #{predicate_sql} #{operand1.format(operand2)}"
       end
+      alias :value :to_sql
     end
 
     class CompoundPredicate < Binary

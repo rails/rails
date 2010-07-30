@@ -83,14 +83,7 @@ module Arel
     end
 
     def where_clauses
-      wheres.collect { |w|
-        case w
-        when Value
-          w.value
-        else # FIXME: why do we have to pass in a whereclause?
-          w.to_sql(Sql::WhereClause.new(self))
-        end
-      }
+      wheres.map { |w| w.value }
     end
 
     def group_clauses
