@@ -64,7 +64,7 @@ module ActiveSupport
       # valid UTF-8.
       #
       # Example:
-      #   Unicode.u_unpack('Café') #=> [67, 97, 102, 233]
+      #   Unicode.u_unpack('Café') # => [67, 97, 102, 233]
       def u_unpack(string)
         begin
           string.unpack 'U*'
@@ -85,8 +85,8 @@ module ActiveSupport
       # Unpack the string at grapheme boundaries. Returns a list of character lists.
       #
       # Example:
-      #   Unicode.g_unpack('क्षि') #=> [[2325, 2381], [2359], [2367]]
-      #   Unicode.g_unpack('Café') #=> [[67], [97], [102], [233]]
+      #   Unicode.g_unpack('क्षि') # => [[2325, 2381], [2359], [2367]]
+      #   Unicode.g_unpack('Café') # => [[67], [97], [102], [233]]
       def g_unpack(string)
         codepoints = u_unpack(string)
         unpacked = []
@@ -120,7 +120,7 @@ module ActiveSupport
       # Reverse operation of g_unpack.
       #
       # Example:
-      #   Unicode.g_pack(Unicode.g_unpack('क्षि')) #=> 'क्षि'
+      #   Unicode.g_pack(Unicode.g_unpack('क्षि')) # => 'क्षि'
       def g_pack(unpacked)
         (unpacked.flatten).pack('U*')
       end

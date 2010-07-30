@@ -108,7 +108,7 @@ module ActiveRecord
     # ==== Example
     #
     #   Comment.where(:post_id => 1).scoping do
-    #     Comment.first #=> SELECT * FROM comments WHERE post_id = 1
+    #     Comment.first # SELECT * FROM comments WHERE post_id = 1
     #   end
     #
     # Please check unscoped if you want to remove all previous scopes (including

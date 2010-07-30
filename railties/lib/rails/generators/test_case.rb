@@ -68,7 +68,7 @@ module Rails
       # Captures the given stream and returns it:
       #
       #   stream = capture(:stdout){ puts "Cool" }
-      #   stream #=> "Cool\n"
+      #   stream # => "Cool\n"
       #
       def capture(stream)
         begin
