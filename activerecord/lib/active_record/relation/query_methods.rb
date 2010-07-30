@@ -143,18 +143,18 @@ module ActiveRecord
         end
       end
 
-      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) if @having_values.present?
+      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) unless @having_values.empty?
 
       arel = arel.take(@limit_value) if @limit_value
-      arel = arel.skip(@offset_value) if @offset_value.present?
+      arel = arel.skip(@offset_value) if @offset_value
 
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) unless @group_values.empty?
 
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}) if @order_values.present?
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?}) unless @order_values.empty?
 
       arel = build_select(arel, @select_values.uniq)
 
-      arel = arel.from(@from_value) if @from_value.present?
+      arel = arel.from(@from_value) if @from_value
       arel = arel.lock(@lock_value) if @lock_value
 
       arel
