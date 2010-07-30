@@ -422,7 +422,7 @@ module ActiveRecord
           match = DynamicFinderMatch.match(method)
           if match && match.creator?
             attributes = match.attribute_names
-            return send(:"find_by_#{attributes.join('and')}", *args) || create(Hash[attributes.zip(args)])
+            return send(:"find_by_#{attributes.join('_and_')}", *args) || create(Hash[attributes.zip(args)])
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))

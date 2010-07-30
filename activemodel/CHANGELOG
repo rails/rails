@@ -1,4 +1,4 @@
-*Rails 3.0.0 [Release Candidate] (unreleased)*
+*Rails 3.0.0 [release candidate] (July 26th, 2010)*
 
 * Added ActiveModel::MassAssignmentSecurity [Eric Chapweske, Josh Kalderimis]
 

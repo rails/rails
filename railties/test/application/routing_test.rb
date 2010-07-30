@@ -40,6 +40,7 @@ module ApplicationTests
 
       get '/foo'
       assert_equal 'foo', last_response.body
+      assert_equal "IE=Edge,chrome=1", last_response.headers["X-UA-Compatible"]
     end
 
     test "simple controller with helper" do

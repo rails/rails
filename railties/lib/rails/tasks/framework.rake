@@ -54,7 +54,7 @@ namespace :rails do
 
   namespace :update do
     def invoke_from_app_generator(method)
-      app_generator.invoke(method)
+      app_generator.send(method)
     end
 
     def app_generator

@@ -47,9 +47,9 @@ module ActiveRecord
       clone.tap {|r| r.joins_values += args if args.present? }
     end
 
-    def where(*args)
-      value = build_where(*args)
-      clone.tap {|r| r.where_values += Array.wrap(value) if value.present? }
+    def where(opts, other = nil)
+      value = build_where(opts, other)
+      value ? clone.tap {|r| r.where_values += Array.wrap(value) } : clone
     end
 
     def having(*args)
@@ -166,13 +166,10 @@ module ActiveRecord
       arel
     end
 
-    def build_where(*args)
-      return if args.blank?
-
-      opts = args.first
+    def build_where(opts, other = nil)
       case opts
       when String, Array
-        @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
+        @klass.send(:sanitize_sql, other ? [opts, other] : opts)
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
         PredicateBuilder.new(table.engine).build_from_hash(attributes, table)

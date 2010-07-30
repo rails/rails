@@ -1,4 +1,4 @@
-*Rails 3.0.0 [Release Candidate] (unreleased)*
+*Rails 3.0.0 [release candidate] (July 26th, 2010)*
 
 * Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit
   and --skip-active-record respectively. [fxn]

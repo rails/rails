@@ -493,10 +493,10 @@ module ActionMailer #:nodoc:
     # You can also search for specific attachments:
     #
     #  # By Filename
-    #  mail.attachments['filename.jpg']   #=> Mail::Part object or nil
+    #  mail.attachments['filename.jpg']   # => Mail::Part object or nil
     #
     #  # or by index
-    #  mail.attachments[0]                #=> Mail::Part (first attachment)
+    #  mail.attachments[0]                # => Mail::Part (first attachment)
     #
     def attachments
       @_message.attachments

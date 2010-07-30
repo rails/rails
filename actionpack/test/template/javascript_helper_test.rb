@@ -90,11 +90,12 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_link_to_function_with_inner_block_does_not_raise_exception
-    html = link_to_function("Greet me!") do |page|
-      content_tag(:h1) { 'Hi' }
+    html = link_to_function( "Greet me!" ) do |page|
+      page.replace_html 'header', (content_tag :h1 do
+        'Greetings'
+      end)
     end
-
-    assert_dom_equal %(<a href='#' onclick="; return false;">Greet me!</a>), html
+    assert_dom_equal %(<a href="#" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C/h1\\u003E&quot;);; return false;">Greet me!</a>), html
   end
 
   def test_javascript_tag

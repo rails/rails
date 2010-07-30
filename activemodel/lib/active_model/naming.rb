@@ -17,7 +17,10 @@ module ActiveModel
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
-    # it will underscore then humanize the class name (BlogPost.model_name.human #=> "Blog post").
+    # it will underscore then humanize the class name
+    #
+    #   BlogPost.model_name.human # => "Blog post"
+    #
     # Specify +options+ with additional translating options.
     def human(options={})
       return @human unless @klass.respond_to?(:lookup_ancestors) &&
@@ -45,8 +48,8 @@ module ActiveModel
   #     extend ActiveModel::Naming
   #   end
   # 
-  #   BookCover.model_name        #=> "BookCover"
-  #   BookCover.model_name.human  #=> "Book cover"
+  #   BookCover.model_name        # => "BookCover"
+  #   BookCover.model_name.human  # => "Book cover"
   # 
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test.  So either extending the provided

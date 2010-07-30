@@ -167,6 +167,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).readonly_clients.find(:all).each { |c| assert c.readonly? }
   end
 
+  def test_dynamic_find_or_create_from_two_attributes_using_an_association
+    author = authors(:david)
+    number_of_posts = Post.count
+    another = author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
+    assert_equal number_of_posts + 1, Post.count
+    assert_equal another, author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
+    assert !another.new_record?
+  end
+
   def test_cant_save_has_many_readonly_association
     authors(:david).readonly_comments.each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save! } }
     authors(:david).readonly_comments.each { |c| assert c.readonly? }

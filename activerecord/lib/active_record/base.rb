@@ -803,7 +803,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        @arel_table ||= Arel::Table.new(table_name, :engine => arel_engine)
+        @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
       def arel_engine

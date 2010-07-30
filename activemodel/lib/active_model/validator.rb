@@ -102,8 +102,8 @@ module ActiveModel #:nodoc:
     #
     # == Examples
     #
-    #   PresenceValidator.kind    #=> :presence
-    #   UniquenessValidator.kind  #=> :uniqueness
+    #   PresenceValidator.kind   # => :presence
+    #   UniquenessValidator.kind # => :uniqueness
     #
     def self.kind
       @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?

@@ -7,6 +7,49 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal '1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
     assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
   end
+
+  def test_expand_cache_key_with_rails_cache_id
+    begin
+      ENV['RAILS_CACHE_ID'] = 'c99'
+      assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
+      assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
+      assert_equal 'c99/c99/foo/c99/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
+      assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key(:foo, :nm)
+      assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
+      assert_equal 'nm/c99/c99/foo/c99/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
+    ensure
+      ENV['RAILS_CACHE_ID'] = nil
+    end
+  end
+
+  def test_expand_cache_key_with_rails_app_version
+    begin
+      ENV['RAILS_APP_VERSION'] = 'rails3'
+      assert_equal 'rails3/foo', ActiveSupport::Cache.expand_cache_key(:foo)
+    ensure
+      ENV['RAILS_APP_VERSION'] = nil
+    end
+  end
+
+  def test_expand_cache_key_rails_cache_id_should_win_over_rails_app_version
+    begin
+      ENV['RAILS_CACHE_ID'] = 'c99'
+      ENV['RAILS_APP_VERSION'] = 'rails3'
+      assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
+    ensure
+      ENV['RAILS_CACHE_ID'] = nil
+      ENV['RAILS_APP_VERSION'] = nil
+    end
+  end
+
+  def test_respond_to_cache_key
+    key = 'foo'
+    def key.cache_key
+      :foo_key
+    end
+    assert_equal 'foo_key', ActiveSupport::Cache.expand_cache_key(key)
+  end
+
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase

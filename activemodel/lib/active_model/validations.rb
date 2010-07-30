@@ -24,20 +24,16 @@ module ActiveModel
   #   end
   # 
   # Which provides you with the full standard validation stack that you
-  # know from ActiveRecord.
+  # know from Active Record:
   # 
   #   person = Person.new
-  #   person.valid?
-  #   #=> true
-  #   person.invalid?
-  #   #=> false
+  #   person.valid?                   # => true
+  #   person.invalid?                 # => false
+  #
   #   person.first_name = 'zoolander'
-  #   person.valid?
-  #   #=> false
-  #   person.invalid?
-  #   #=> true
-  #   person.errors
-  #   #=> #<OrderedHash {:first_name=>["starts with z."]}>
+  #   person.valid?                   # => false
+  #   person.invalid?                 # => true
+  #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
   # 
   # Note that ActiveModel::Validations automatically adds an +errors+ method
   # to your instances initialized with a new ActiveModel::Errors object, so
