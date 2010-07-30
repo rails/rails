@@ -18,6 +18,14 @@ module Arel
       @projections = nil
     end
 
+    def table
+      @relation.table
+    end
+
+    def table_sql(formatter = Sql::TableReference.new(self))
+      @relation.table_sql formatter
+    end
+
     [:wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
       class_eval <<-OPERATION, __FILE__, __LINE__
         def #{operation_name}
