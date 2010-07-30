@@ -13,7 +13,7 @@ module Arel
 
       def read(relation)
         case relation
-        when Arel::Take
+        when Arel::Take, Arel::Order
           relation.eval
         else
           @rows.dup.map { |r| Row.new(relation, r) }
