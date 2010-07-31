@@ -301,11 +301,13 @@ module ActionDispatch
         MountedHelpers
       end
 
-      def define_mounted_helper(name, helpers = nil)
+      def define_mounted_helper(name)
+        return if MountedHelpers.method_defined?(name)
+
         routes = self
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, self)
+            RoutesProxy.new(routes, (self.respond_to?(:controller) ? controller : self))
           end
         end
 
