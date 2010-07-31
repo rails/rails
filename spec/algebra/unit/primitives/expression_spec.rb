@@ -7,7 +7,7 @@ module Arel
       @attribute = @relation[:id]
     end
 
-    describe Expression::Transformations do
+    describe 'Expression::Transformations' do
       before do
         @expression = Count.new(@attribute)
       end

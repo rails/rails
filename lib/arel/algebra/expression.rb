@@ -20,20 +20,17 @@ module Arel
       formatter.expression self
     end
 
-    module Transformations
-      def as(aliaz)
-        self.class.new(attribute, aliaz, self)
-      end
-
-      def bind(new_relation)
-        new_relation == relation ? self : self.class.new(attribute.bind(new_relation), @alias, self)
-      end
-
-      def to_attribute(relation)
-        Attribute.new(relation, @alias, :ancestor => self)
-      end
+    def as(aliaz)
+      self.class.new(attribute, aliaz, self)
     end
-    include Transformations
+
+    def bind(new_relation)
+      new_relation == relation ? self : self.class.new(attribute.bind(new_relation), @alias, self)
+    end
+
+    def to_attribute(relation)
+      Attribute.new(relation, @alias, :ancestor => self)
+    end
   end
 
   class Count < Expression
