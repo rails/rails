@@ -22,6 +22,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 5, Post.where(:id => post_authors).size
   end
 
+  def test_multivalue_where
+    posts = Post.where('author_id = ? AND id = ?', 1, 1)
+    assert_equal 1, posts.to_a.size
+  end
+
   def test_scoped
     topics = Topic.scoped
     assert_kind_of ActiveRecord::Relation, topics

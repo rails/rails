@@ -99,7 +99,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        @limit_value.present? ? to_a.many? : size > 1
+        @limit_value ? to_a.many? : size > 1
       end
     end
 
@@ -316,12 +316,12 @@ module ActiveRecord
 
     def scope_for_create
       @scope_for_create ||= begin
-        @create_with_value || @where_values.inject({}) do |hash, where|
-          if where.is_a?(Arel::Predicates::Equality)
-            hash[where.operand1.name] = where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2
-          end
-          hash
-        end
+        @create_with_value || Hash[
+          @where_values.grep(Arel::Predicates::Equality).map { |where|
+            [where.operand1.name,
+             where.operand2.respond_to?(:value) ?
+             where.operand2.value : where.operand2]
+        }]
       end
     end
 

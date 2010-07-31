@@ -1,4 +1,9 @@
-require 'nokogiri'
+begin
+  require 'nokogiri'
+rescue LoadError => e
+  $stderr.puts "You don't have nokogiri installed in your application. Please add it to your Gemfile and run bundle install"
+  raise e
+end
 require 'active_support/core_ext/object/blank'
 
 # = XmlMini Nokogiri implementation using a SAX-based parser

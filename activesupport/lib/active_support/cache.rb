@@ -138,18 +138,13 @@ module ActiveSupport
 
       cattr_accessor :logger, :instance_writer => true
 
-      attr_reader :silence
+      attr_reader :silence, :options
       alias :silence? :silence
 
       # Create a new cache. The options will be passed to any write method calls except
       # for :namespace which can be used to set the global namespace for the cache.
       def initialize (options = nil)
         @options = options ? options.dup : {}
-      end
-
-      # Get the default options set when the cache was created.
-      def options
-        @options ||= {}
       end
 
       # Silence the logger.

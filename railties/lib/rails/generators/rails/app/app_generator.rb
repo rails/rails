@@ -216,7 +216,7 @@ module Rails
 
         empty_directory '.'
         set_default_accessors!
-        FileUtils.cd(destination_root)
+        FileUtils.cd(destination_root) unless options[:pretend]
       end
 
       def create_root_files
