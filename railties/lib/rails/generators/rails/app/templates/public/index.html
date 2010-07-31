@@ -151,19 +151,6 @@
       }
 
 
-      #search {
-        margin: 0;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        font-size: 11px;
-      }
-      #search input {
-        font-size: 11px;
-        margin: 2px;
-      }
-      #search-text {width: 170px}
-
-
       #sidebar ul {
         margin-left: 0;
         padding-left: 0;
@@ -193,16 +180,6 @@
         xhr.send("");
         info.innerHTML = xhr.responseText;
         info.style.display = 'block'
-      }
-
-      function prepend() {
-        search = document.getElementById('search-text');
-        text = search.value;
-        search.value = 'site:rubyonrails.org ' + text;
-      }
-
-      window.onload = function() {
-        document.getElementById('search-text').value = '';
       }
     </script>
   </head>
