@@ -395,7 +395,7 @@ module ActiveRecord
           source_migrations.each do |migration|
             next if destination_migrations.any? { |m| m.name == migration.name && m.scope == scope.to_s }
 
-            migration.version = next_migration_number(last.version + 1).to_i
+            migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
             last = migration
 
             new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
