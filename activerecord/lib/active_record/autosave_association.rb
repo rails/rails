@@ -195,7 +195,7 @@ module ActiveRecord
       end
     end
 
-    # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction/tt> flag.
+    # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
     def reload(options = nil)
       @marked_for_destruction = false
       super
