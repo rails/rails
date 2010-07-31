@@ -114,7 +114,7 @@ module ActiveRecord
     autoload :HasOneAssociation, 'active_record/associations/has_one_association'
     autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
 
-    # Clears out the association cache
+    # Clears out the association cache.
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
@@ -122,7 +122,7 @@ module ActiveRecord
     end
 
     private
-      # Gets the specified association instance if it responds to :loaded?, nil otherwise.
+      # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
         ivar = "@#{name}"
         if instance_variable_defined?(ivar)
