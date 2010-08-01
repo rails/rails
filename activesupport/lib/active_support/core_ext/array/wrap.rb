@@ -1,5 +1,17 @@
 class Array
-  # <tt>Array.wrap</tt> is like <tt>Kernel#Array</tt> except:
+  # Wraps its argument in an array unless it is already an array (or array-like).
+  #
+  # Specifically:
+  #
+  # * If the argument is +nil+ an empty list is returned.
+  # * Otherwise, if the argument responds to +to_ary+ it is invoked, and its result returned.
+  # * Otherwise, returns an array with the argument as its single element.
+  #
+  #   Array.wrap(nil)       # => []
+  #   Array.wrap([1, 2, 3]) # => [1, 2, 3]
+  #   Array.wrap(0)         # => [0]
+  # 
+  # This method is similar in purpose to <tt>Kernel#Array</tt>, but there are some differences:
   #
   # * If the argument responds to +to_ary+ the method is invoked. <tt>Kernel#Array</tt>
   # moves on to try +to_a+ if the returned value is +nil+, but <tt>Arraw.wrap</tt> returns
@@ -15,6 +27,15 @@ class Array
   #
   #   Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
   #   Array.wrap("foo\nbar")   # => ["foo\nbar"]
+  #
+  # There's also a related idiom that uses the splat operator:
+  #
+  #   [*object]
+  #
+  # which returns <tt>[nil]</tt> for +nil+, and calls to <tt>Array(object)</tt> otherwise.
+  #
+  # Thus, in this case the behavior is different for +nil+, and the differences with
+  # <tt>Kernel#Array</tt> explained above apply to the rest of +object+s.
   def self.wrap(object)
     if object.nil?
       []
