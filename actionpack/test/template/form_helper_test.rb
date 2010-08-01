@@ -4,6 +4,16 @@ require 'controller/fake_models'
 class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
 
+  class Developer
+    def name_before_type_cast
+      "David"
+    end
+
+    def name
+      "Santiago"
+    end
+  end
+
   def form_for(*)
     @output_buffer = super
   end
@@ -231,6 +241,13 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field_with_custom_type
     assert_dom_equal '<input id="user_email" size="30" name="user[email]" type="email" />',
       text_field("user", "email", :type => "email")
+  end
+
+  def test_text_field_from_a_user_defined_method
+    @developer = Developer.new
+    assert_dom_equal(
+      '<input id="developer_name" name="developer[name]" size="30" type="text" value="Santiago" />', text_field("developer", "name")
+    )
   end
 
   def test_check_box
