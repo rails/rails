@@ -618,8 +618,8 @@ module ActiveRecord
           result = execute(sql, name)
           rows = []
           result.each_hash { |row| rows << row }
-          @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped 
           result.free
+          @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped 
           rows
         end
 
