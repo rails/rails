@@ -357,7 +357,8 @@ module Rails
       end
 
       def defined_app_const_base
-        Rails.application.class.name.sub(/::Application$/, "") if Rails.application.instance_of?(Rails::Application)
+        Rails.respond_to?(:application) && defined?(Rails::Application) &&
+          Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
       end
 
       def app_const_base
