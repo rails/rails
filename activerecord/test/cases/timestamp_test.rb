@@ -2,9 +2,10 @@ require 'cases/helper'
 require 'models/developer'
 require 'models/owner'
 require 'models/pet'
+require 'models/toy'
 
 class TimestampTest < ActiveRecord::TestCase
-  fixtures :developers, :owners, :pets
+  fixtures :developers, :owners, :pets, :toys
 
   def setup
     @developer = Developer.first
@@ -91,11 +92,10 @@ class TimestampTest < ActiveRecord::TestCase
     pet = toy.pet
     owner = pet.owner
 
-    previously_owner_updated_at = owner.updated_at
-
+    owner.update_attribute(:updated_at, (time = 3.days.ago))
     toy.touch
 
-    assert_not_equal previously_owner_updated_at, owner.updated_at
+    assert_not_equal time, owner.updated_at
   ensure
     Toy.belongs_to :pet
   end

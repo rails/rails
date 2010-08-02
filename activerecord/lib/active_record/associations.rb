@@ -1498,6 +1498,7 @@ module ActiveRecord
             end
           end
           after_save(method_name)
+          after_touch(method_name)
           after_destroy(method_name)
         end
 

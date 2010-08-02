@@ -31,19 +31,6 @@ module ActiveRecord
       class_inheritable_accessor :record_timestamps, :instance_writer => false
       self.record_timestamps = true
     end
-    
-    # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and no callbacks are executed.
-    # If an attribute name is passed, that attribute is updated along with 
-    # updated_at/on attributes.
-    #
-    # Examples:
-    #
-    #   product.touch               # updates updated_at/on
-    #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
-    def touch(attribute = nil)
-      update_attribute(attribute, current_time_from_proper_timezone)
-    end
 
   private
 
