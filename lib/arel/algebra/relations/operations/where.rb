@@ -15,5 +15,9 @@ module Arel
     def eval
       unoperated_rows.select { |row| predicates.all? { |p| p.eval(row) } }
     end
+
+    def to_sql(formatter = nil)
+      compiler.select_sql
+    end
   end
 end
