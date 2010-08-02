@@ -1805,9 +1805,7 @@ module ActiveRecord
             case associations
               when Symbol, String
                 reflection = base.reflections[associations]
-                if reflection && reflection.collection?
-                  records.each { |record| record.send(reflection.name).target.uniq! }
-                end
+                remove_uniq_by_reflection(reflection, records)
               when Array
                 associations.each do |association|
                   remove_duplicate_results!(base, records, association)
@@ -1815,10 +1813,7 @@ module ActiveRecord
               when Hash
                 associations.keys.each do |name|
                   reflection = base.reflections[name]
-                  
-                  if records.any? && reflection.options && reflection.options[:uniq]
-                    records.each { |record| record.send(reflection.name).target.uniq! }
-                  end
+                  remove_uniq_by_reflection(reflection, records)
 
                   parent_records = []
                   records.each do |record|
@@ -1837,6 +1832,7 @@ module ActiveRecord
           end
 
           protected
+
             def build(associations, parent = nil, join_class = Arel::InnerJoin)
               parent ||= @joins.last
               case associations
@@ -1856,6 +1852,12 @@ module ActiveRecord
                   end
                 else
                   raise ConfigurationError, associations.inspect
+              end
+            end
+
+            def remove_uniq_by_reflection(reflection, records)
+              if reflection && reflection.collection?
+                records.each { |record| record.send(reflection.name).target.uniq! }
               end
             end
 
