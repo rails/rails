@@ -21,7 +21,8 @@ module ActiveRecord
   #
   # This feature can easily be turned off by assigning value <tt>false</tt> .
   #
-  # If your attributes are time zone aware and you desire to skip time zone conversion for certain attributes then you can do following:
+  # If your attributes are time zone aware and you desire to skip time zone conversion for certain 
+  # attributes then you can do following:
   #
   #   Topic.skip_time_zone_conversion_for_attributes = [:written_on]
   module Timestamp

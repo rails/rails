@@ -39,9 +39,10 @@ end
 # This type of fixture is in YAML format and the preferred default. YAML is a file format which describes data structures
 # in a non-verbose, human-readable format. It ships with Ruby 1.8.1+.
 #
-# Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which are placed in the directory appointed
-# by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
-# put your files in <tt><your-rails-app>/test/fixtures/</tt>). The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
+# Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which are placed 
+# in the directory appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is 
+# automatically configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>). 
+# The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
 # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a YAML fixture file looks like this:
 #
 #   rubyonrails:
@@ -58,7 +59,8 @@ end
 # indented list of key/value pairs in the "key: value" format.  Records are separated by a blank line for your viewing
 # pleasure.
 #
-# Note that YAML fixtures are unordered. If you want ordered fixtures, use the omap YAML type.  See http://yaml.org/type/omap.html
+# Note that YAML fixtures are unordered. If you want ordered fixtures, use the omap YAML type.  
+# See http://yaml.org/type/omap.html
 # for the specification.  You will need ordered fixtures when you have foreign key constraints on keys in the same table.
 # This is commonly needed for tree structures.  Example:
 #
@@ -79,7 +81,8 @@ end
 # (Rails example: <tt><your-rails-app>/test/fixtures/web_sites.csv</tt>).
 #
 # The format of this type of fixture file is much more compact than the others, but also a little harder to read by us
-# humans.  The first line of the CSV file is a comma-separated list of field names.  The rest of the file is then comprised
+# humans.  The first line of the CSV file is a comma-separated list of field names.  The rest of the 
+# file is then comprised
 # of the actual data (1 per line).  Here's an example:
 #
 #   id, name, url
@@ -99,15 +102,16 @@ end
 #
 # == Single-file fixtures
 #
-# This type of fixture was the original format for Active Record that has since been deprecated in favor of the YAML and CSV formats.
-# Fixtures for this format are created by placing text files in a sub-directory (with the name of the model) to the directory
-# appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
-# put your files in <tt><your-rails-app>/test/fixtures/<your-model-name>/</tt> --
+# This type of fixture was the original format for Active Record that has since been deprecated in 
+# favor of the YAML and CSV formats.
+# Fixtures for this format are created by placing text files in a sub-directory (with the name of the model) 
+# to the directory appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically 
+# configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/<your-model-name>/</tt> --
 # like <tt><your-rails-app>/test/fixtures/web_sites/</tt> for the WebSite model).
 #
 # Each text file placed in this directory represents a "record".  Usually these types of fixtures are named without
-# extensions, but if you are on a Windows machine, you might consider adding <tt>.txt</tt> as the extension.  Here's what the
-# above example might look like:
+# extensions, but if you are on a Windows machine, you might consider adding <tt>.txt</tt> as the extension.  
+# Here's what the above example might look like:
 #
 #   web_sites/google
 #   web_sites/yahoo.txt
@@ -133,7 +137,8 @@ end
 #     end
 #   end
 #
-# By default, the <tt>test_helper module</tt> will load all of your fixtures into your test database, so this test will succeed.
+# By default, the <tt>test_helper module</tt> will load all of your fixtures into your test database, 
+# so this test will succeed.
 # The testing environment will automatically load the all fixtures into the database before each test.
 # To ensure consistent data, the environment deletes the fixtures before running the load.
 #
@@ -182,13 +187,15 @@ end
 # This will create 1000 very simple YAML fixtures.
 #
 # Using ERb, you can also inject dynamic values into your fixtures with inserts like <tt><%= Date.today.strftime("%Y-%m-%d") %></tt>.
-# This is however a feature to be used with some caution. The point of fixtures are that they're stable units of predictable
-# sample data. If you feel that you need to inject dynamic values, then perhaps you should reexamine whether your application
-# is properly testable. Hence, dynamic values in fixtures are to be considered a code smell.
+# This is however a feature to be used with some caution. The point of fixtures are that they're 
+# stable units of predictable sample data. If you feel that you need to inject dynamic values, then 
+# perhaps you should reexamine whether your application is properly testable. Hence, dynamic values 
+# in fixtures are to be considered a code smell.
 #
 # = Transactional fixtures
 #
-# TestCases can use begin+rollback to isolate their changes to the database instead of having to delete+insert for every test case.
+# TestCases can use begin+rollback to isolate their changes to the database instead of having to 
+# delete+insert for every test case.
 #
 #   class FooTest < ActiveSupport::TestCase
 #     self.use_transactional_fixtures = true
@@ -205,15 +212,18 @@ end
 #   end
 #
 # If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures,
-# then you may omit all fixtures declarations in your test cases since all the data's already there and every case rolls back its changes.
+# then you may omit all fixtures declarations in your test cases since all the data's already there 
+# and every case rolls back its changes.
 #
 # In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide
-# access to fixture data for every table that has been loaded through fixtures (depending on the value of +use_instantiated_fixtures+)
+# access to fixture data for every table that has been loaded through fixtures (depending on the 
+# value of +use_instantiated_fixtures+)
 #
 # When *not* to use transactional fixtures:
 #
-# 1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit,
-#    particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify
+# 1. You're testing whether a transaction works correctly. Nested transactions don't commit until 
+#    all parent transactions commit, particularly, the fixtures transaction which is begun in setup 
+#    and rolled back in teardown. Thus, you won't be able to verify
 #    the results of your transaction until Active Record supports nested transactions or savepoints (in progress).
 # 2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
 #    Use InnoDB, MaxDB, or NDB instead.
