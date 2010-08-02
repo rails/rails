@@ -576,14 +576,14 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_new_contants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
-    assert ActiveSupport::Dependencies.constant_watch_stack.empty?
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   end
 
   def test_new_constants_in_with_a_single_constant
     assert_equal ["Hello"], ActiveSupport::Dependencies.new_constants_in(Object) {
                               Object.const_set :Hello, 10
                             }.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.empty?
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     Object.class_eval { remove_const :Hello }
   end
@@ -600,7 +600,7 @@ class DependenciesTest < Test::Unit::TestCase
     end
 
     assert_equal ["OuterAfter", "OuterBefore"], outer.sort.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.empty?
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     %w(OuterBefore Inner OuterAfter).each do |name|
       Object.class_eval { remove_const name if const_defined?(name) }
@@ -621,7 +621,7 @@ class DependenciesTest < Test::Unit::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.empty?
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     Object.class_eval { remove_const :M }
   end
@@ -639,7 +639,7 @@ class DependenciesTest < Test::Unit::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.empty?
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     Object.class_eval { remove_const :M }
   end
