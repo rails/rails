@@ -82,4 +82,21 @@ class TimestampTest < ActiveRecord::TestCase
   ensure
     Pet.belongs_to :owner, :touch => true
   end
+
+  def test_touching_a_record_touches_parent_record_and_grandparent_record
+    Toy.belongs_to :pet, :touch => true
+    Pet.belongs_to :owner, :touch => true
+
+    toy = Toy.first
+    pet = toy.pet
+    owner = pet.owner
+
+    previously_owner_updated_at = owner.updated_at
+
+    toy.touch
+
+    assert_not_equal previously_owner_updated_at, owner.updated_at
+  ensure
+    Toy.belongs_to :pet
+  end
 end
