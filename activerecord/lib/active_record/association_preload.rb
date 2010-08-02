@@ -9,8 +9,8 @@ module ActiveRecord
     # Implements the details of eager loading of Active Record associations.
     # Application developers should not use this module directly.
     #
-    # ActiveRecord::Base is extended with this module. The source code in
-    # ActiveRecord::Base references methods defined in this module.
+    # <tt>ActiveRecord::Base</tt> is extended with this module. The source code in
+    # <tt>ActiveRecord::Base</tt> references methods defined in this module.
     #
     # Note that 'eager loading' and 'preloading' are actually the same thing.
     # However, there are two different eager loading strategies.
@@ -55,7 +55,7 @@ module ActiveRecord
       # == Parameters
       # +records+ is an array of ActiveRecord::Base. This array needs not be flat,
       # i.e. +records+ itself may also contain arrays of records. In any case,
-      # +preload_associations+ will preload the associations all records by
+      # +preload_associations+ will preload the all associations records by
       # flattening +records+.
       #
       # +associations+ specifies one or more associations that you want to
@@ -110,8 +110,8 @@ module ActiveRecord
       def preload_one_association(records, association, preload_options={})
         class_to_reflection = {}
         # Not all records have the same class, so group then preload
-        # group on the reflection itself so that if various subclass share the same association then we do not split them
-        # unnecessarily
+        # group on the reflection itself so that if various subclass share the same association then 
+        # we do not split them unnecessarily
         records.group_by { |record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, _records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
 
@@ -149,7 +149,8 @@ module ActiveRecord
         seen_keys = {}
         associated_records.each do |associated_record|
           #this is a has_one or belongs_to: there should only be one record.
-          #Unfortunately we can't (in portable way) ask the database for 'all records where foo_id in (x,y,z), but please
+          #Unfortunately we can't (in portable way) ask the database for 
+          #'all records where foo_id in (x,y,z), but please
           # only one row per distinct foo_id' so this where we enforce that
           next if seen_keys[associated_record[key].to_s]
           seen_keys[associated_record[key].to_s] = true
@@ -304,7 +305,8 @@ module ActiveRecord
           polymorph_type = options[:foreign_type]
           klasses_and_ids = {}
 
-          # Construct a mapping from klass to a list of ids to load and a mapping of those ids back to their parent_records
+          # Construct a mapping from klass to a list of ids to load and a mapping of those ids back 
+          # to their parent_records
           records.each do |record|
             if klass = record.send(polymorph_type)
               klass_id = record.send(primary_key_name)
