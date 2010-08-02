@@ -32,6 +32,28 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal 1, liquids[0].molecules.length
   end
 
+  def test_clear_association_cache_stored
+    firm = Firm.find(1)
+    assert_kind_of Firm, firm
+
+    firm.clear_association_cache
+    assert_equal Firm.find(1).clients.collect{ |x| x.name }.sort, firm.clients.collect{ |x| x.name }.sort
+  end
+
+  def test_clear_association_cache_new_record
+     firm            = Firm.new
+     client_stored   = Client.find(3)
+     client_new      = Client.new
+     client_new.name = "The Joneses"
+     clients         = [ client_stored, client_new ]
+
+     firm.clients    << clients
+     assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
+
+     firm.clear_association_cache
+     assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
+  end
+
   def test_loading_the_association_target_should_keep_child_records_marked_for_destruction
     ship = Ship.create!(:name => "The good ship Dollypop")
     part = ship.parts.create!(:name => "Mast")
