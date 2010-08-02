@@ -14,10 +14,23 @@ require 'models/reader'
 require 'models/parrot'
 require 'models/ship_part'
 require 'models/ship'
+require 'models/liquid'
+require 'models/molecule'
+require 'models/electron'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers
+
+  def test_eager_loading_should_not_change_count_of_children
+    liquid = Liquid.create(:name => 'salty')
+    molecule = liquid.molecules.create(:name => 'molecule_1')
+    molecule.electrons.create(:name => 'electron_1')
+    molecule.electrons.create(:name => 'electron_2')
+
+    liquids = Liquid.includes(:molecules => :electrons).where('molecules.id is not null')
+    assert_equal 1, liquids[0].molecules.length
+  end
 
   def test_loading_the_association_target_should_keep_child_records_marked_for_destruction
     ship = Ship.create!(:name => "The good ship Dollypop")

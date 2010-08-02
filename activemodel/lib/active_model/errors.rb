@@ -169,9 +169,9 @@ module ActiveModel
       to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
     end
 
-    # Returns an array as JSON representation for this object.
+    # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
     def as_json(options=nil)
-      to_a
+      self 
     end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to

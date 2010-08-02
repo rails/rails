@@ -91,25 +91,19 @@ module ActiveRecord
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt> 
       # <tt>has_many :clients</tt> returns <tt>:clients</tt>
-      def name
-        @name
-      end
+      attr_reader :name
 
       # Returns the macro type. 
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:composed_of</tt>
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
-      def macro
-        @macro
-      end
+      attr_reader :macro
 
       # Returns the hash of options used for the macro.  
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
-      def options
-        @options
-      end
+      attr_reader :options
 
       # Returns the class for the macro.  
       #
@@ -135,11 +129,6 @@ module ActiveRecord
 
       def sanitized_conditions #:nodoc:
         @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
-      end
-
-      # Returns +true+ if +self+ is a +belongs_to+ reflection.
-      def belongs_to?
-        macro == :belongs_to
       end
 
       private
@@ -211,6 +200,10 @@ module ActiveRecord
 
       def primary_key_name
         @primary_key_name ||= options[:foreign_key] || derive_primary_key_name
+      end
+
+      def primary_key_column
+        @primary_key_column ||= klass.columns.find { |c| c.name == klass.primary_key }
       end
 
       def association_foreign_key
@@ -305,6 +298,11 @@ module ActiveRecord
         dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
         dependent_conditions = dependent_conditions.gsub('@', '\@')
         dependent_conditions
+      end
+
+      # Returns +true+ if +self+ is a +belongs_to+ reflection.
+      def belongs_to?
+        macro == :belongs_to
       end
 
       private

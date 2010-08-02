@@ -1437,9 +1437,11 @@ module ActiveRecord
               association.replace(new_value)
               association
             end
-            
+
             redefine_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-              ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
+              pk_column = reflection.primary_key_column
+              ids = (new_value || []).reject { |nid| nid.blank? }
+              ids.map!{ |i| pk_column.type_cast(i) }
               send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
           end
@@ -1498,6 +1500,7 @@ module ActiveRecord
             end
           end
           after_save(method_name)
+          after_touch(method_name)
           after_destroy(method_name)
         end
 
@@ -1802,9 +1805,7 @@ module ActiveRecord
             case associations
               when Symbol, String
                 reflection = base.reflections[associations]
-                if reflection && reflection.collection?
-                  records.each { |record| record.send(reflection.name).target.uniq! }
-                end
+                remove_uniq_by_reflection(reflection, records)
               when Array
                 associations.each do |association|
                   remove_duplicate_results!(base, records, association)
@@ -1812,6 +1813,7 @@ module ActiveRecord
               when Hash
                 associations.keys.each do |name|
                   reflection = base.reflections[name]
+                  remove_uniq_by_reflection(reflection, records)
 
                   parent_records = []
                   records.each do |record|
@@ -1830,6 +1832,7 @@ module ActiveRecord
           end
 
           protected
+
             def build(associations, parent = nil, join_class = Arel::InnerJoin)
               parent ||= @joins.last
               case associations
@@ -1849,6 +1852,12 @@ module ActiveRecord
                   end
                 else
                   raise ConfigurationError, associations.inspect
+              end
+            end
+
+            def remove_uniq_by_reflection(reflection, records)
+              if reflection && reflection.collection?
+                records.each { |record| record.send(reflection.name).target.uniq! }
               end
             end
 

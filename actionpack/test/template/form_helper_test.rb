@@ -120,6 +120,13 @@ class FormHelperTest < ActionView::TestCase
     I18n.locale = old_locale
   end
 
+  def test_label_with_locales_and_options
+    old_locale, I18n.locale = I18n.locale, :label
+    assert_dom_equal('<label for="post_body" class="post_body">Write entire text here</label>', label(:post, :body, :class => 'post_body'))
+  ensure
+    I18n.locale = old_locale
+  end
+
   def test_label_with_for_attribute_as_symbol
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, :for => "my_for"))
   end
@@ -620,7 +627,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_symbol_object_name
     form_for(@post, :as => "other_name", :html => { :id => 'create-post' }) do |f|
-      concat f.label(:title)
+      concat f.label(:title, :class => 'post_title')
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -628,7 +635,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected =  whole_form("/posts/123", "create-post", "other_name_edit", :method => "put") do
-      "<label for='other_name_title'>Title</label>" +
+      "<label for='other_name_title' class='post_title'>Title</label>" +
       "<input name='other_name[title]' size='30' id='other_name_title' value='Hello World' type='text' />" +
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='other_name[secret]' value='0' type='hidden' />" +

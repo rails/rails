@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/keys'
 
 # This class has dubious semantics and we only have it so that
