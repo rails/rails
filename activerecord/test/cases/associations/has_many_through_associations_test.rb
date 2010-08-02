@@ -21,7 +21,7 @@ require 'models/subscription'
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, 
            :owners, :pets, :toys, :jobs, :references, :companies, 
-           :subscribers, :books, :subscriptions
+           :subscribers, :books, :subscriptions, :developers
 
   # Dummies to force column loads so query counts are clean.
   def setup
