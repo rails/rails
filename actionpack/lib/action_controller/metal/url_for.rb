@@ -7,7 +7,7 @@ module ActionController
     def url_options
       options = {}
       if _routes.equal?(env["action_dispatch.routes"])
-        options[:script_name] = request.script_name
+        options[:script_name] = request.script_name.dup
       end
 
       super.merge(options).reverse_merge(

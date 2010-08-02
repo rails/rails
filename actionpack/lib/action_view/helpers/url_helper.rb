@@ -29,7 +29,9 @@ module ActionView
       #
       def url_options
         return super unless controller.respond_to?(:url_options)
-        controller.url_options
+        controller.send(:_with_routes, _routes) do
+          controller.url_options
+        end
       end
 
       # Returns the URL for the set of +options+ provided. This takes the
