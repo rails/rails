@@ -19,9 +19,8 @@ module ActionMailer
       options.stylesheets_dir ||= paths.public.stylesheets.to_a.first
 
       ActiveSupport.on_load(:action_mailer) do
-        include app.routes.url_helpers
+        extend ::ActionMailer::Railties::RoutesHelpers.with(app.routes)
         include app.routes.mounted_helpers(:app)
-        extend ::ActionMailer::Railties::RoutesHelpers
         options.each { |k,v| send("#{k}=", v) }
       end
     end

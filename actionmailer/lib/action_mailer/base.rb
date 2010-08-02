@@ -5,6 +5,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
 require 'action_mailer/log_subscriber'
+require 'action_mailer/hide_actions'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -346,6 +347,7 @@ module ActionMailer #:nodoc:
 
     helper  ActionMailer::MailHelper
     include ActionMailer::OldApi
+    include ActionMailer::HideActions
 
     delegate :register_observer, :to => Mail
     delegate :register_interceptor, :to => Mail
@@ -361,6 +363,11 @@ module ActionMailer #:nodoc:
     }.freeze
 
     class << self
+      def inherited(klass)
+        klass.with_hiding_actions do
+          super(klass)
+        end
+      end
 
       def mailer_name
         @mailer_name ||= name.underscore
@@ -725,27 +732,8 @@ module ActionMailer #:nodoc:
       container.add_part(part)
     end
 
-    module DeprecatedUrlOptions
-      def default_url_options
-        deprecated_url_options
-      end
-
-      def default_url_options=(val)
-        deprecated_url_options
-      end
-
-      def deprecated_url_options
-        raise "You can no longer call ActionMailer::Base.default_url_options " \
-              "directly. You need to set config.action_mailer.default_url_options. " \
-              "If you are using ActionMailer standalone, you need to include the " \
-              "routing url_helpers directly."
-      end
-    end
-
-    # This module will complain if the user tries to set default_url_options
-    # directly instead of through the config object. In Action Mailer's Railtie,
-    # we include the router's url_helpers, which will override this module.
-    extend DeprecatedUrlOptions
+    class_attribute :default_url_options
+    self.default_url_options = {}
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end

@@ -410,6 +410,7 @@ module RailtiesTest
 
       assert_equal Bukkits._railtie, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_path)
+      assert !::Bukkits::MyMailer.method_defined?(:bar_path)
 
       env = Rack::MockRequest.env_for("/bukkits/from_app")
       response = AppTemplate::Application.call(env)
