@@ -114,7 +114,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     Rails.application.config.root = app_moved_root
     Rails.application.class.stubs(:name).returns("Myapp")
-    Rails.application.stubs(:instance_of?).returns(Rails::Application)
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
 
     FileUtils.mv(app_root, app_moved_root)
 
