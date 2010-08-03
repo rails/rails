@@ -229,6 +229,20 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_equal ["hoo 5"], t.errors["title"]
   end
 
+  def test_validates_length_of_custom_errors_for_both_too_short_and_too_long
+    Topic.validates_length_of :title, :minimum => 3, :maximum => 5, :too_short => 'too short', :too_long => 'too long'
+
+    t = Topic.new(:title => 'a')
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ['too short'], t.errors['title']
+
+    t = Topic.new(:title => 'aaaaaa')
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ['too long'], t.errors['title']
+  end
+
   def test_validates_length_of_custom_errors_for_is_with_message
     Topic.validates_length_of( :title, :is=>5, :message=>"boo %{count}" )
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
