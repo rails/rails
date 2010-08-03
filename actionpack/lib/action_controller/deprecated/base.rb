@@ -81,6 +81,11 @@ module ActionController
       def session=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.session= is deprecated. " <<
           "Please configure it on your application with config.session_store :cookie_store, :key => '....'", caller
+
+        if secret = value.delete(:secret)
+          Rails.application.config.secret_token = secret
+        end
+
         if value.delete(:disabled)
           Rails.application.config.session_store :disabled
         else
