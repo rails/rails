@@ -135,7 +135,7 @@ module ActiveModel
             ActiveSupport::Deprecation.warn(msg, caller)
             options = args.extract_options!
             options[:on] = :#{type}
-            validate(args.push(options), &block)
+            validate(*args.push(options), &block)
           end
         RUBY
       end

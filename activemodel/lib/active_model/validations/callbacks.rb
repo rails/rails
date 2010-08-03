@@ -28,7 +28,7 @@ module ActiveModel
 
       module ClassMethods
         def before_validation(*args, &block)
-          options = args.last
+          options = args.extract_options!
           if options.is_a?(Hash) && options[:on]
             options[:if] = Array.wrap(options[:if])
             options[:if] << "self.validation_context == :#{options[:on]}"
@@ -53,7 +53,7 @@ module ActiveModel
                 ActiveSupport::Deprecation.warn(msg, caller)
                 options = args.extract_options!
                 options[:on] = :#{on}
-                before_validation(args.push(options), &block)
+                before_validation(*args.push(options), &block)
               end
             RUBY
           end
