@@ -153,12 +153,44 @@ module Rails
   # to application's public directory. To simplify generating paths for assets, you can set asset_path
   # for an Engine:
   #
-  # class MyEngine::Engine < Rails::Engine
-  #   config.asset_path = "/my_engine/%s"
+  # module MyEngine
+  #   class Engine < Rails::Engine
+  #     config.asset_path = "/my_engine/%s"
+  #   end
   # end
   #
   # With such config, asset paths will be automatically modified inside Engine:
   # image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
+  #
+  # == Namespaced Engine
+  #
+  # Normally, when you create controllers, helpers and models inside engine, they are treated
+  # as they would be created inside application. One of the cosequences of that is including
+  # application's helpers and url_helpers inside controller. Sometimes, especially when your
+  # engine provides its own routes, you don't want that. To isolate engine's stuff from application
+  # you can use namespace method:
+  #
+  # module MyEngine
+  #   class Engine < Rails::Engine
+  #     namespace MyEngine
+  #   end
+  # end
+  #
+  # With such Engine, everything that is inside MyEngine module, will be isolated from application.
+  #
+  # Consider such controller:
+  #
+  # module MyEngine
+  #   class FooController < ActionController::Base
+  #   end
+  # end
+  #
+  # If engine is marked as namespaced, FooController has access only to helpers from engine and
+  # url_helpers from MyEngine::Engine.routes.
+  #
+  # Additionaly namespaced engine will set its name according to namespace, so in that case:
+  # MyEngine::Engine.engine_name #=> "my_engine"
+  # and it will set MyEngine.table_name_prefix to "my_engine_"
   #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
