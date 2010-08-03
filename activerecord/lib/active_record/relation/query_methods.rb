@@ -95,7 +95,7 @@ module ActiveRecord
       order_clause = arel.send(:order_clauses).join(', ')
       relation = except(:order)
 
-      if order_clause.present?
+      unless order_clauses.blank?
         relation.order(reverse_sql_order(order_clause))
       else
         relation.order("#{@klass.table_name}.#{@klass.primary_key} DESC")
@@ -238,7 +238,7 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query.to_s.split(/,/).each { |s|
+      order_query.split(',').each { |s|
         if s.match(/\s(asc|ASC)$/)
           s.gsub!(/\s(asc|ASC)$/, ' DESC')
         elsif s.match(/\s(desc|DESC)$/)
