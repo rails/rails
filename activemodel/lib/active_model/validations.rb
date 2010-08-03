@@ -133,7 +133,7 @@ module ActiveModel
           def validate_on_#{type}(*args, &block)
             msg = "validate_on_#{type} is deprecated. Please use validate(args, :on => :#{type})"
             ActiveSupport::Deprecation.warn(msg, caller)
-            options = args.last || {}
+            options = args.extract_options!
             options[:on] = :#{type}
             validate(args.push(options), &block)
           end
