@@ -90,10 +90,13 @@ module ActiveModel
     #     
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
-      options = { :terminator => "result == false", :scope => [:kind, :name] }.merge(options)
+      options = { 
+         :terminator => "result == false", 
+         :scope => [:kind, :name], 
+         :only => [:before, :around, :after] 
+      }.merge(options)
 
-      types = Array.wrap(options.delete(:only))
-      types = [:before, :around, :after] if types.empty?
+      types   = Array.wrap(options.delete(:only))
 
       callbacks.each do |callback|
         define_callbacks(callback, options)
