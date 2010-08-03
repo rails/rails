@@ -44,6 +44,20 @@ module ActiveModel
           options[:if] << "self.validation_context == :#{options[:on]}" if options[:on]
           set_callback(:validation, :after, *(args << options), &block)
         end
+
+        [:before, :after].each do |type|
+          [:create, :update].each do |on|
+            class_eval <<-RUBY
+              def #{type}_validation_on_#{on}(*args, &block)
+                msg = "#{type}_validation_on_#{on} is deprecated. Please use #{type}_validation(arguments, :on => :#{on}"
+                ActiveSupport::Deprecation.warn(msg, caller)
+                options = args.extract_options!
+                options[:on] = :#{on}
+                before_validation(args.push(options), &block)
+              end
+            RUBY
+          end
+        end
       end
 
     protected
