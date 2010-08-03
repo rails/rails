@@ -30,7 +30,7 @@ module ActiveRecord
             if value.acts_like?(:date) || value.acts_like?(:time)
               "'#{quoted_date(value)}'"
             else
-              "'#{quote_string(value.to_yaml)}'"
+              "'#{quote_string(value.to_s)}'"
             end
         end
       end

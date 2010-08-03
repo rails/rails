@@ -693,6 +693,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
   end
 
+  def test_find_all_by_one_attribute_which_is_a_symbol
+    topics = Topic.find_all_by_content("Have a nice day".to_sym)
+    assert_equal 2, topics.size
+    assert topics.include?(topics(:first))
+
+    assert_equal [], Topic.find_all_by_title("The First Topic!!")
+  end
+
   def test_find_all_by_one_attribute_that_is_an_aggregate
     balance = customers(:david).balance
     assert_kind_of Money, balance
