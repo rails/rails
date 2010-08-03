@@ -118,11 +118,13 @@ module ActiveModel
       #   end
       #
       def validate(*args, &block)
-        options = args.last
-        if options.is_a?(Hash) && options.key?(:on)
+        options = args.extract_options!
+        if options.key?(:on)
+          options = options.dup
           options[:if] = Array.wrap(options[:if])
           options[:if] << "validation_context == :#{options[:on]}"
         end
+        args << options
         set_callback(:validate, *args, &block)
       end
 
