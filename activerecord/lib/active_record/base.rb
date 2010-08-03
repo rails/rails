@@ -26,17 +26,19 @@ require 'active_record/log_subscriber'
 module ActiveRecord #:nodoc:
   # = Active Record
   #
-  # Active Record objects don't specify their attributes directly, but rather infer them from the table definition with
-  # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
-  # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain
+  # Active Record objects don't specify their attributes directly, but rather infer them from 
+  # the table definition with which they're linked. Adding, removing, and changing attributes 
+  # and their type is done directly in the database. Any change is instantly reflected in the 
+  # Active Record objects. The mapping that binds a given Active Record class to a certain
   # database table will happen automatically in most common cases, but can be overwritten for the uncommon ones.
   #
   # See the mapping rules in table_name and the full example in link:files/README.html for more insight.
   #
   # == Creation
   #
-  # Active Records accept constructor parameters either in a hash or as a block. The hash method is especially useful when
-  # you're receiving the data from somewhere else, like an HTTP request. It works like this:
+  # Active Records accept constructor parameters either in a hash or as a block. The hash 
+  # method is especially useful when you're receiving the data from somewhere else, like an 
+  # HTTP request. It works like this:
   #
   #   user = User.new(:name => "David", :occupation => "Code Artist")
   #   user.name # => "David"
@@ -75,14 +77,17 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # The <tt>authenticate_unsafely</tt> method inserts the parameters directly into the query and is thus susceptible to SQL-injection
-  # attacks if the <tt>user_name</tt> and +password+ parameters come directly from an HTTP request. The <tt>authenticate_safely</tt>  and
-  # <tt>authenticate_safely_simply</tt> both will sanitize the <tt>user_name</tt> and +password+ before inserting them in the query,
-  # which will ensure that an attacker can't escape the query and fake the login (or worse).
+  # The <tt>authenticate_unsafely</tt> method inserts the parameters directly into the query 
+  # and is thus susceptible to SQL-injection attacks if the <tt>user_name</tt> and +password+ 
+  # parameters come directly from an HTTP request. The <tt>authenticate_safely</tt>  and
+  # <tt>authenticate_safely_simply</tt> both will sanitize the <tt>user_name</tt> and +password+ 
+  # before inserting them in the query, which will ensure that an attacker can't escape the 
+  # query and fake the login (or worse).
   #
-  # When using multiple parameters in the conditions, it can easily become hard to read exactly what the fourth or fifth
-  # question mark is supposed to represent. In those cases, you can resort to named bind variables instead. That's done by replacing
-  # the question marks with symbols and supplying a hash with values for the matching symbol keys:
+  # When using multiple parameters in the conditions, it can easily become hard to read exactly 
+  # what the fourth or fifth question mark is supposed to represent. In those cases, you can 
+  # resort to named bind variables instead. That's done by replacing the question marks with 
+  # symbols and supplying a hash with values for the matching symbol keys:
   #
   #   Company.where(
   #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date",
@@ -103,18 +108,19 @@ module ActiveRecord #:nodoc:
   #
   #   Student.where(:grade => [9,11,12])
   #
-  # When joining tables, nested hashes or keys written in the form 'table_name.column_name' can be used to qualify the table name of a
-  # particular condition. For instance:
+  # When joining tables, nested hashes or keys written in the form 'table_name.column_name' 
+  # can be used to qualify the table name of a particular condition. For instance:
   #
   #   Student.joins(:schools).where(:schools => { :type => 'public' })
   #   Student.joins(:schools).where('schools.type' => 'public' )
   #
   # == Overwriting default accessors
   #
-  # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
-  # want to specialize this behavior. This can be done by overwriting the default accessors (using the same
-  # name as the attribute) and calling <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually change things.
-  # Example:
+  # All column values are automatically available through basic accessors on the Active Record 
+  # object, but sometimes you want to specialize this behavior. This can be done by overwriting 
+  # the default accessors (using the same name as the attribute) and calling 
+  # <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually 
+  # change things.
   #
   #   class Song < ActiveRecord::Base
   #     # Uses an integer of seconds to hold the length of the song
@@ -128,8 +134,8 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt> instead of <tt>write_attribute(:attribute, value)</tt> and
-  # <tt>read_attribute(:attribute)</tt> as a shorter form.
+  # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt> 
+  # instead of <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
   #
   # == Attribute query methods
   #
@@ -147,34 +153,43 @@ module ActiveRecord #:nodoc:
   #
   # == Accessing attributes before they have been typecasted
   #
-  # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
-  # That can be done by using the <tt><attribute>_before_type_cast</tt> accessors that all attributes have. For example, if your Account model
-  # has a <tt>balance</tt> attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
+  # Sometimes you want to be able to read the raw attribute data without having the column-determined 
+  # typecast run its course first. That can be done by using the <tt><attribute>_before_type_cast</tt> 
+  # accessors that all attributes have. For example, if your Account model has a <tt>balance</tt> attribute, 
+  # you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
-  # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
-  # the original string back in an error message. Accessing the attribute normally would typecast the string to 0, which isn't what you
-  # want.
+  # This is especially useful in validation situations where the user might supply a string for an 
+  # integer field and you want to display the original string back in an error message. Accessing the 
+  # attribute normally would typecast the string to 0, which isn't what you want.
   #
   # == Dynamic attribute-based finders
   #
-  # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
-  # appending the name of an attribute to <tt>find_by_</tt>, <tt>find_last_by_</tt>, or <tt>find_all_by_</tt>, so you get finders like <tt>Person.find_by_user_name</tt>,
-  # <tt>Person.find_all_by_last_name</tt>, and <tt>Payment.find_by_transaction_id</tt>. So instead of writing
+  # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects 
+  # by simple queries without turning to SQL. They work by appending the name of an attribute 
+  # to <tt>find_by_</tt>, <tt>find_last_by_</tt>, or <tt>find_all_by_</tt> and thus produces finders 
+  # like <tt>Person.find_by_user_name</tt>, <tt>Person.find_all_by_last_name</tt>, and 
+  # <tt>Payment.find_by_transaction_id</tt>. Instead of writing 
   # <tt>Person.where(:user_name => user_name).first</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
-  # And instead of writing <tt>Person.where(:last_name => last_name).all</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
+  # And instead of writing <tt>Person.where(:last_name => last_name).all</tt>, you just do 
+  # <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
-  # It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
-  # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
-  # <tt>Person.where(:user_name => user_name, :password => password).first</tt>, you just do
-  # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
+  # It's also possible to use multiple attributes in the same find by separating them with "_and_".
+  #  
+  #  Person.where(:user_name => user_name, :password => password).first
+  #  Person.find_by_user_name_and_password #with dynamic finder
+  #  
+  #  Person.where(:user_name => user_name, :password => password, :gender => 'male').first
+  #  Payment.find_by_user_name_and_password_and_gender
   #
-  # It's even possible to call these dynamic finder methods on relations and named scopes. For example :
+  # It's even possible to call these dynamic finder methods on relations and named scopes.
   #
   #   Payment.order("created_on").find_all_by_amount(50)
   #   Payment.pending.find_last_by_amount(100)
   #
-  # The same dynamic finder style can be used to create the object if it doesn't already exist. This dynamic finder is called with
-  # <tt>find_or_create_by_</tt> and will return the object if it already exists and otherwise creates it, then returns it. Protected attributes won't be set unless they are given in a block. For example:
+  # The same dynamic finder style can be used to create the object if it doesn't already exist. 
+  # This dynamic finder is called with <tt>find_or_create_by_</tt> and will return the object if 
+  # it already exists and otherwise creates it, then returns it. Protected attributes won't be set 
+  # unless they are given in a block. 
   #
   #   # No 'Summer' tag exists
   #   Tag.find_or_create_by_name("Summer") # equal to Tag.create(:name => "Summer")
@@ -185,23 +200,33 @@ module ActiveRecord #:nodoc:
   #   # Now 'Bob' exist and is an 'admin'
   #   User.find_or_create_by_name('Bob', :age => 40) { |u| u.admin = true }
   #
-  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without saving it first. Protected attributes won't be set unless they are given in a block. For example:
+  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without 
+  # saving it first. Protected attributes won't be set unless they are given in a block.
   #
   #   # No 'Winter' tag exists
   #   winter = Tag.find_or_initialize_by_name("Winter")
   #   winter.new_record? # true
   #
   # To find by a subset of the attributes to be used for instantiating a new object, pass a hash instead of
-  # a list of parameters. For example:
+  # a list of parameters.
   #
   #   Tag.find_or_create_by_name(:name => "rails", :creator => current_user)
   #
-  # That will either find an existing tag named "rails", or create a new one while setting the user that created it.
+  # That will either find an existing tag named "rails", or create a new one while setting the 
+  # user that created it.
+  #
+  # Just like <tt>find_by_*</tt>, you can also use <tt>scoped_by_*</tt> to retrieve data. The good thing about
+  # using this feature is that the very first time result is returned using <tt>method_missing</tt> technique
+  # but after that the method is declared on the class. Henceforth <tt>method_missing</tt> will not be hit.
+  #
+  #  User.scoped_by_user_name('David')  
   #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
-  # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+.
-  # This makes it possible to store arrays, hashes, and other non-mappable objects without doing any additional work. Example:
+  # Active Record can serialize any object in text columns using YAML. To do so, you must 
+  # specify this with a call to the class method +serialize+.
+  # This makes it possible to store arrays, hashes, and other non-mappable objects without doing 
+  # any additional work. 
   #
   #   class User < ActiveRecord::Base
   #     serialize :preferences
@@ -210,8 +235,8 @@ module ActiveRecord #:nodoc:
   #   user = User.create(:preferences => { "background" => "black", "display" => large })
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   #
-  # You can also specify a class option as the second parameter that'll raise an exception if a serialized object is retrieved as a
-  # descendant of a class not in the hierarchy. Example:
+  # You can also specify a class option as the second parameter that'll raise an exception 
+  # if a serialized object is retrieved as a descendant of a class not in the hierarchy.
   #
   #   class User < ActiveRecord::Base
   #     serialize :preferences, Hash
@@ -222,52 +247,63 @@ module ActiveRecord #:nodoc:
   #
   # == Single table inheritance
   #
-  # Active Record allows inheritance by storing the name of the class in a column that by default is named "type" (can be changed
-  # by overwriting <tt>Base.inheritance_column</tt>). This means that an inheritance looking like this:
+  # Active Record allows inheritance by storing the name of the class in a column that by 
+  # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>). 
+  # This means that an inheritance looking like this:
   #
   #   class Company < ActiveRecord::Base; end
   #   class Firm < Company; end
   #   class Client < Company; end
   #   class PriorityClient < Client; end
   #
-  # When you do <tt>Firm.create(:name => "37signals")</tt>, this record will be saved in the companies table with type = "Firm". You can then
-  # fetch this row again using <tt>Company.where(:name => '37signals').first</tt> and it will return a Firm object.
+  # When you do <tt>Firm.create(:name => "37signals")</tt>, this record will be saved in 
+  # the companies table with type = "Firm". You can then fetch this row again using 
+  # <tt>Company.where(:name => '37signals').first</tt> and it will return a Firm object.
   #
-  # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
-  # like normal subclasses with no special magic for differentiating between them or reloading the right type with find.
+  # If you don't have a type column defined in your table, single-table inheritance won't 
+  # be triggered. In that case, it'll work just like normal subclasses with no special magic 
+  # for differentiating between them or reloading the right type with find.
   #
   # Note, all the attributes for all the cases are kept in the same table. Read more:
   # http://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
   #
   # == Connection to multiple databases in different models
   #
-  # Connections are usually created through ActiveRecord::Base.establish_connection and retrieved by ActiveRecord::Base.connection.
-  # All classes inheriting from ActiveRecord::Base will use this connection. But you can also set a class-specific connection.
-  # For example, if Course is an ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
+  # Connections are usually created through ActiveRecord::Base.establish_connection and retrieved 
+  # by ActiveRecord::Base.connection. All classes inheriting from ActiveRecord::Base will use this 
+  # connection. But you can also set a class-specific connection. For example, if Course is an 
+  # ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
   # and Course and all of its subclasses will use this connection instead.
   #
-  # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is a Hash indexed by the class. If a connection is
-  # requested, the retrieve_connection method will go up the class-hierarchy until a connection is found in the connection pool.
+  # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is 
+  # a Hash indexed by the class. If a connection is requested, the retrieve_connection method 
+  # will go up the class-hierarchy until a connection is found in the connection pool.
   #
   # == Exceptions
   #
   # * ActiveRecordError - Generic error class and superclass of all other errors raised by Active Record.
   # * AdapterNotSpecified - The configuration hash used in <tt>establish_connection</tt> didn't include an
   #   <tt>:adapter</tt> key.
-  # * AdapterNotFound - The <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a non-existent adapter
+  # * AdapterNotFound - The <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a 
+  #   non-existent adapter
   #   (or a bad spelling of an existing one).
-  # * AssociationTypeMismatch - The object assigned to the association wasn't of the type specified in the association definition.
+  # * AssociationTypeMismatch - The object assigned to the association wasn't of the type 
+  #   specified in the association definition.
   # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
-  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt> before querying.
+  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt> 
+  #   before querying.
   # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
   #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
   #   nothing was found, please check its documentation for further details.
   # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
   # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
-  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of AttributeAssignmentError
+  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of 
+  #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * AttributeAssignmentError - An error occurred while doing a mass assignment through the <tt>attributes=</tt> method.
-  #   You can inspect the +attribute+ property of the exception object to determine which attribute triggered the error.
+  # * AttributeAssignmentError - An error occurred while doing a mass assignment through the 
+  #   <tt>attributes=</tt> method.
+  #   You can inspect the +attribute+ property of the exception object to determine which attribute 
+  #   triggered the error.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
@@ -275,8 +311,9 @@ module ActiveRecord #:nodoc:
   class Base
     ##
     # :singleton-method:
-    # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
-    # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
+    # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, 
+    # which is then passed on to any new database connections made and which can be retrieved on both 
+    # a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
 
     class << self
@@ -323,21 +360,24 @@ module ActiveRecord #:nodoc:
 
     ##
     # :singleton-method:
-    # Accessor for the prefix type that will be prepended to every primary key column name. The options are :table_name and
-    # :table_name_with_underscore. If the first is specified, the Product class will look for "productid" instead of "id" as
-    # the primary column. If the latter is specified, the Product class will look for "product_id" instead of "id". Remember
+    # Accessor for the prefix type that will be prepended to every primary key column name. 
+    # The options are :table_name and :table_name_with_underscore. If the first is specified, 
+    # the Product class will look for "productid" instead of "id" as the primary column. If the 
+    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
     # that this is a global setting for all Active Records.
     cattr_accessor :primary_key_prefix_type, :instance_writer => false
     @@primary_key_prefix_type = nil
 
     ##
     # :singleton-method:
-    # Accessor for the name of the prefix string to prepend to every table name. So if set to "basecamp_", all
-    # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient way of creating a namespace
-    # for tables in a shared database. By default, the prefix is the empty string.
+    # Accessor for the name of the prefix string to prepend to every table name. So if set 
+    # to "basecamp_", all table names will be named like "basecamp_projects", "basecamp_people", 
+    # etc. This is a convenient way of creating a namespace for tables in a shared database. 
+    # By default, the prefix is the empty string.
     #
-    # If you are organising your models within modules you can add a prefix to the models within a namespace by defining
-    # a singleton method in the parent module called table_name_prefix which returns your chosen prefix.
+    # If you are organising your models within modules you can add a prefix to the models within 
+    # a namespace by defining a singleton method in the parent module called table_name_prefix which 
+    # returns your chosen prefix.
     class_attribute :table_name_prefix, :instance_writer => false
     self.table_name_prefix = ""
 
@@ -358,8 +398,8 @@ module ActiveRecord #:nodoc:
 
     ##
     # :singleton-method:
-    # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates and times from the database.
-    # This is set to :local by default.
+    # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling 
+    # dates and times from the database. This is set to :local by default.
     cattr_accessor :default_timezone, :instance_writer => false
     @@default_timezone = :local
 
@@ -505,15 +545,18 @@ module ActiveRecord #:nodoc:
         serialized_attributes[attr_name.to_s] = class_name
       end
 
-      # Returns a hash of all the attributes that have been specified for serialization as keys and their class restriction as values.
+      # Returns a hash of all the attributes that have been specified for serialization as 
+      # keys and their class restriction as values.
       def serialized_attributes
         read_inheritable_attribute(:attr_serialized) or write_inheritable_attribute(:attr_serialized, {})
       end
 
-      # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
-      # directly from ActiveRecord::Base. So if the hierarchy looks like: Reply < Message < ActiveRecord::Base, then Message is used
-      # to guess the table name even when called on Reply. The rules used to do the guess are handled by the Inflector class
-      # in Active Support, which knows almost all common English inflections. You can add new inflections in config/initializers/inflections.rb.
+      # Guesses the table name (in forced lower-case) based on the name of the class in the 
+      # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy 
+      # looks like: Reply < Message < ActiveRecord::Base, then Message is used
+      # to guess the table name even when called on Reply. The rules used to do the guess 
+      # are handled by the Inflector class in Active Support, which knows almost all common 
+      # English inflections. You can add new inflections in config/initializers/inflections.rb.
       #
       # Nested classes are given table names prefixed by the singular form of
       # the parent's table name. Enclosing modules are not considered.
@@ -923,15 +966,15 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
-        # that are turned into <tt>where(:user_name => user_name).first</tt> and <tt>where(:user_name => user_name, :password => :password).first</tt>
-        # respectively. Also works for <tt>all</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>where(:amount => 50).all</tt>.
+        # Enables dynamic finders like <tt>User.find_by_user_name(user_name)</tt> and 
+        # <tt>User.scoped_by_user_name(user_name). Refer to Dynamic attribute-based finders
+        # section at the top of this file for more detailed information.
         #
-        # It's even possible to use all the additional parameters to +find+. For example, the full interface for +find_all_by_amount+
-        # is actually <tt>find_all_by_amount(amount, options)</tt>.
+        # It's even possible to use all the additional parameters to +find+. For example, the 
+        # full interface for +find_all_by_amount+ is actually <tt>find_all_by_amount(amount, options)</tt>.
         #
-        # Each dynamic finder, scope or initializer/creator is also defined in the class after it is first invoked, so that future
-        # attempts to use it do not run through method_missing.
+        # Each dynamic finder using <tt>scoped_by_*</tt> is also defined in the class after it 
+        # is first invoked, so that future attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments, &block)
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
@@ -1607,10 +1650,11 @@ MSG
 
     private
 
-      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendant.
-      # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to do Reply.new without having to
-      # set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself. No such attribute would be set for objects of the
-      # Message class in that example.
+      # Sets the attribute used for single table inheritance to this class name if this is not the 
+      # ActiveRecord::Base descendant.
+      # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to 
+      # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself. 
+      # No such attribute would be set for objects of the Message class in that example.
       def ensure_proper_type
         unless self.class.descends_from_active_record?
           write_attribute(self.class.inheritance_column, self.class.sti_name)
@@ -1659,8 +1703,9 @@ MSG
       # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
       # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
       # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
-      # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
-      # s for String, and a for Array. If all the values for a given attribute are empty, the attribute will be set to nil.
+      # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, 
+      # f for Float, s for String, and a for Array. If all the values for a given attribute are empty, the 
+      # attribute will be set to nil.
       def assign_multiparameter_attributes(pairs)
         execute_callstack_for_multiparameter_attributes(
           extract_callstack_for_multiparameter_attributes(pairs)

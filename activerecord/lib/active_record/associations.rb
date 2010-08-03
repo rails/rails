@@ -114,7 +114,7 @@ module ActiveRecord
     autoload :HasOneAssociation, 'active_record/associations/has_one_association'
     autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
 
-    # Clears out the association cache
+    # Clears out the association cache.
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
@@ -122,7 +122,7 @@ module ActiveRecord
     end
 
     private
-      # Gets the specified association instance if it responds to :loaded?, nil otherwise.
+      # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
         ivar = "@#{name}"
         if instance_variable_defined?(ivar)
@@ -136,10 +136,12 @@ module ActiveRecord
         instance_variable_set("@#{name}", association)
       end
 
-    # Associations are a set of macro-like class methods for tying objects together through foreign keys. They express relationships like
-    # "Project has one Project Manager" or "Project belongs to a Portfolio". Each macro adds a number of methods to the class which are
-    # specialized according to the collection or association symbol and the options hash. It works much the same way as Ruby's own <tt>attr*</tt>
-    # methods. Example:
+    # Associations are a set of macro-like class methods for tying objects together through 
+    # foreign keys. They express relationships like "Project has one Project Manager" 
+    # or "Project belongs to a Portfolio". Each macro adds a number of methods to the 
+    # class which are specialized according to the collection or association symbol and the 
+    # options hash. It works much the same way as Ruby's own <tt>attr*</tt>
+    # methods. 
     #
     #   class Project < ActiveRecord::Base
     #     belongs_to              :portfolio
@@ -148,7 +150,8 @@ module ActiveRecord
     #     has_and_belongs_to_many :categories
     #   end
     #
-    # The project class now has the following methods (and more) to ease the traversal and manipulation of its relationships:
+    # The project class now has the following methods (and more) to ease the traversal and 
+    # manipulation of its relationships:
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
@@ -159,8 +162,9 @@ module ActiveRecord
     #
     # === A word of warning
     #
-    # Don't create associations that have the same name as instance methods of ActiveRecord::Base. Since the association
-    # adds a method with that name to its model, it will override the inherited method and break things.
+    # Don't create associations that have the same name as instance methods of 
+    # <tt>ActiveRecord::Base</tt>. Since the association adds a method with that name to 
+    # its model, it will override the inherited method and break things.
     # For instance, +attributes+ and +connection+ would be bad choices for association names.
     #
     # == Auto-generated methods
@@ -270,8 +274,8 @@ module ActiveRecord
     #
     # == Is it a +belongs_to+ or +has_one+ association?
     #
-    # Both express a 1-1 relationship. The difference is mostly where to place the foreign key, which goes on the table for the class
-    # declaring the +belongs_to+ relationship. Example:
+    # Both express a 1-1 relationship. The difference is mostly where to place the foreign 
+    # key, which goes on the table for the class declaring the +belongs_to+ relationship.
     #
     #   class User < ActiveRecord::Base
     #     # I reference an account.
@@ -300,8 +304,9 @@ module ActiveRecord
     #
     # == Unsaved objects and associations
     #
-    # You can manipulate objects and associations before they are saved to the database, but there is some special behavior you should be
-    # aware of, mostly involving the saving of associated objects.
+    # You can manipulate objects and associations before they are saved to the database, but 
+    # there is some special behavior you should be aware of, mostly involving the saving of 
+    # associated objects.
     #
     # You can set the :autosave option on a <tt>has_one</tt>, <tt>belongs_to</tt>,
     # <tt>has_many</tt>, or <tt>has_and_belongs_to_many</tt> association. Setting it
@@ -310,26 +315,33 @@ module ActiveRecord
     #
     # === One-to-one associations
     #
-    # * Assigning an object to a +has_one+ association automatically saves that object and the object being replaced (if there is one), in
-    #   order to update their primary keys - except if the parent object is unsaved (<tt>new_record? == true</tt>).
-    # * If either of these saves fail (due to one of the objects being invalid) the assignment statement returns +false+ and the assignment
-    #   is cancelled.
-    # * If you wish to assign an object to a +has_one+ association without saving it, use the <tt>association.build</tt> method (documented below).
-    # * Assigning an object to a +belongs_to+ association does not save the object, since the foreign key field belongs on the parent. It
-    #   does not save the parent either.
+    # * Assigning an object to a +has_one+ association automatically saves that object and 
+    # the object being replaced (if there is one), in order to update their primary 
+    # keys - except if the parent object is unsaved (<tt>new_record? == true</tt>).
+    # * If either of these saves fail (due to one of the objects being invalid) the assignment 
+    # statement returns +false+ and the assignment is cancelled.
+    # * If you wish to assign an object to a +has_one+ association without saving it, 
+    # use the <tt>association.build</tt> method (documented below).
+    # * Assigning an object to a +belongs_to+ association does not save the object, since 
+    # the foreign key field belongs on the parent. It does not save the parent either.
     #
     # === Collections
     #
-    # * Adding an object to a collection (+has_many+ or +has_and_belongs_to_many+) automatically saves that object, except if the parent object
-    #   (the owner of the collection) is not yet stored in the database.
-    # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar) fails, then <tt>push</tt> returns +false+.
-    # * You can add an object to a collection without automatically saving it by using the <tt>collection.build</tt> method (documented below).
-    # * All unsaved (<tt>new_record? == true</tt>) members of the collection are automatically saved when the parent is saved.
+    # * Adding an object to a collection (+has_many+ or +has_and_belongs_to_many+) automatically 
+    # saves that object, except if the parent object (the owner of the collection) is not yet 
+    # stored in the database.
+    # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar) 
+    # fails, then <tt>push</tt> returns +false+.
+    # * You can add an object to a collection without automatically saving it by using the 
+    # <tt>collection.build</tt> method (documented below).
+    # * All unsaved (<tt>new_record? == true</tt>) members of the collection are automatically 
+    # saved when the parent is saved.
     #
     # === Association callbacks
     #
-    # Similar to the normal callbacks that hook into the lifecycle of an Active Record object, you can also define callbacks that get
-    # triggered when you add an object to or remove an object from an association collection. Example:
+    # Similar to the normal callbacks that hook into the lifecycle of an Active Record object, 
+    # you can also define callbacks that get triggered when you add an object to or remove an 
+    # object from an association collection.
     #
     #   class Project
     #     has_and_belongs_to_many :developers, :after_add => :evaluate_velocity
@@ -342,19 +354,21 @@ module ActiveRecord
     # It's possible to stack callbacks by passing them as an array. Example:
     #
     #   class Project
-    #     has_and_belongs_to_many :developers, :after_add => [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
+    #     has_and_belongs_to_many :developers, 
+    #                             :after_add => [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
     #   end
     #
     # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
     #
-    # Should any of the +before_add+ callbacks throw an exception, the object does not get added to the collection. Same with
-    # the +before_remove+ callbacks; if an exception is thrown the object doesn't get removed.
+    # Should any of the +before_add+ callbacks throw an exception, the object does not get 
+    # added to the collection. Same with the +before_remove+ callbacks; if an exception is 
+    # thrown the object doesn't get removed.
     #
     # === Association extensions
     #
-    # The proxy objects that control the access to associations can be extended through anonymous modules. This is especially
-    # beneficial for adding new finders, creators, and other factory-type methods that are only used as part of this association.
-    # Example:
+    # The proxy objects that control the access to associations can be extended through anonymous 
+    # modules. This is especially beneficial for adding new finders, creators, and other 
+    # factory-type methods that are only used as part of this association.
     #
     #   class Account < ActiveRecord::Base
     #     has_many :people do
@@ -369,7 +383,8 @@ module ActiveRecord
     #   person.first_name # => "David"
     #   person.last_name  # => "Heinemeier Hansson"
     #
-    # If you need to share the same extensions between many associations, you can use a named extension module. Example:
+    # If you need to share the same extensions between many associations, you can use a named 
+    # extension module. 
     #
     #   module FindOrCreateByNameExtension
     #     def find_or_create_by_name(name)
@@ -386,9 +401,10 @@ module ActiveRecord
     #     has_many :people, :extend => FindOrCreateByNameExtension
     #   end
     #
-    # If you need to use multiple named extension modules, you can specify an array of modules with the <tt>:extend</tt> option.
-    # In the case of name conflicts between methods in the modules, methods in modules later in the array supercede
-    # those earlier in the array. Example:
+    # If you need to use multiple named extension modules, you can specify an array of modules 
+    # with the <tt>:extend</tt> option.
+    # In the case of name conflicts between methods in the modules, methods in modules later 
+    # in the array supercede those earlier in the array. 
     #
     #   class Account < ActiveRecord::Base
     #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
@@ -399,12 +415,14 @@ module ActiveRecord
     #
     # * +proxy_owner+ - Returns the object the association is part of.
     # * +proxy_reflection+ - Returns the reflection object that describes the association.
-    # * +proxy_target+ - Returns the associated object for +belongs_to+ and +has_one+, or the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
+    # * +proxy_target+ - Returns the associated object for +belongs_to+ and +has_one+, or 
+    #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
     #
     # === Association Join Models
     #
-    # Has Many associations can be configured with the <tt>:through</tt> option to use an explicit join model to retrieve the data.  This
-    # operates similarly to a +has_and_belongs_to_many+ association.  The advantage is that you're able to add validations,
+    # Has Many associations can be configured with the <tt>:through</tt> option to use an 
+    # explicit join model to retrieve the data.  This operates similarly to a 
+    # +has_and_belongs_to_many+ association.  The advantage is that you're able to add validations,
     # callbacks, and extra attributes on the join model.  Consider the following schema:
     #
     #   class Author < ActiveRecord::Base
@@ -418,7 +436,7 @@ module ActiveRecord
     #   end
     #
     #   @author = Author.find :first
-    #   @author.authorships.collect { |a| a.book } # selects all books that the author's authorships belong to.
+    #   @author.authorships.collect { |a| a.book } # selects all books that the author's authorships belong to
     #   @author.books                              # selects all books by using the Authorship join model
     #
     # You can also go through a +has_many+ association on the join model:
@@ -439,7 +457,7 @@ module ActiveRecord
     #
     #   @firm = Firm.find :first
     #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
-    #   @firm.invoices                                   # selects all invoices by going through the Client join model.
+    #   @firm.invoices                                   # selects all invoices by going through the Client join model
     #
     # Similarly you can go through a +has_one+ association on the join model:
     #
@@ -461,16 +479,18 @@ module ActiveRecord
     #   @group.users.collect { |u| u.avatar }.flatten # select all avatars for all users in the group
     #   @group.avatars                                # selects all avatars by going through the User join model.
     #
-    # An important caveat with going through +has_one+ or +has_many+ associations on the join model is that these associations are
-    # *read-only*.  For example, the following would not work following the previous example:
+    # An important caveat with going through +has_one+ or +has_many+ associations on the 
+    # join model is that these associations are *read-only*.  For example, the following 
+    # would not work following the previous example:
     #
-    #   @group.avatars << Avatar.new                # this would work if User belonged_to Avatar rather than the other way around.
+    #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
     #   @group.avatars.delete(@group.avatars.last)  # so would this
     #
     # === Polymorphic Associations
     #
-    # Polymorphic associations on models are not restricted on what types of models they can be associated with.  Rather, they
-    # specify an interface that a +has_many+ association must adhere to.
+    # Polymorphic associations on models are not restricted on what types of models they 
+    # can be associated with.  Rather, they specify an interface that a +has_many+ association 
+    # must adhere to.
     #
     #   class Asset < ActiveRecord::Base
     #     belongs_to :attachable, :polymorphic => true
@@ -482,13 +502,16 @@ module ActiveRecord
     #
     #   @asset.attachable = @post
     #
-    # This works by using a type column in addition to a foreign key to specify the associated record.  In the Asset example, you'd need
-    # an +attachable_id+ integer column and an +attachable_type+ string column.
+    # This works by using a type column in addition to a foreign key to specify the associated 
+    # record.  In the Asset example, you'd need an +attachable_id+ integer column and an 
+    # +attachable_type+ string column.
     #
-    # Using polymorphic associations in combination with single table inheritance (STI) is a little tricky. In order
-    # for the associations to work as expected, ensure that you store the base model for the STI models in the
-    # type column of the polymorphic association. To continue with the asset example above, suppose there are guest posts
-    # and member posts that use the posts table for STI. In this case, there must be a +type+ column in the posts table.
+    # Using polymorphic associations in combination with single table inheritance (STI) is 
+    # a little tricky. In order for the associations to work as expected, ensure that you 
+    # store the base model for the STI models in the type column of the polymorphic 
+    # association. To continue with the asset example above, suppose there are guest posts
+    # and member posts that use the posts table for STI. In this case, there must be a +type+ 
+    # column in the posts table.
     #
     #   class Asset < ActiveRecord::Base
     #     belongs_to :attachable, :polymorphic => true
@@ -511,9 +534,10 @@ module ActiveRecord
     #
     # == Caching
     #
-    # All of the methods are built on a simple caching principle that will keep the result of the last query around unless specifically
-    # instructed not to. The cache is even shared across methods to make it even cheaper to use the macro-added methods without
-    # worrying too much about performance at the first go. Example:
+    # All of the methods are built on a simple caching principle that will keep the result 
+    # of the last query around unless specifically instructed not to. The cache is even 
+    # shared across methods to make it even cheaper to use the macro-added methods without
+    # worrying too much about performance at the first go.
     #
     #   project.milestones             # fetches milestones from the database
     #   project.milestones.size        # uses the milestone cache
@@ -523,9 +547,10 @@ module ActiveRecord
     #
     # == Eager loading of associations
     #
-    # Eager loading is a way to find objects of a certain class and a number of named associations. This is
-    # one of the easiest ways of to prevent the dreaded 1+N problem in which fetching 100 posts that each need to display their author
-    # triggers 101 database queries. Through the use of eager loading, the 101 queries can be reduced to 2. Example:
+    # Eager loading is a way to find objects of a certain class and a number of named associations. 
+    # This is one of the easiest ways of to prevent the dreaded 1+N problem in which fetching 100 
+    # posts that each need to display their author triggers 101 database queries. Through the 
+    # use of eager loading, the 101 queries can be reduced to 2.
     #
     #   class Post < ActiveRecord::Base
     #     belongs_to :author
@@ -540,44 +565,55 @@ module ActiveRecord
     #     puts "Last comment on: " + post.comments.first.created_on
     #   end
     #
-    # To iterate over these one hundred posts, we'll generate 201 database queries. Let's first just optimize it for retrieving the author:
+    # To iterate over these one hundred posts, we'll generate 201 database queries. Let's 
+    # first just optimize it for retrieving the author:
     #
     #   for post in Post.find(:all, :include => :author)
     #
-    # This references the name of the +belongs_to+ association that also used the <tt>:author</tt> symbol. After loading the posts, find
-    # will collect the +author_id+ from each one and load all the referenced authors with one query. Doing so will cut down the number of queries from 201 to 102.
+    # This references the name of the +belongs_to+ association that also used the <tt>:author</tt> 
+    # symbol. After loading the posts, find will collect the +author_id+ from each one and load 
+    # all the referenced authors with one query. Doing so will cut down the number of queries 
+    # from 201 to 102.
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
     #
     #   for post in Post.find(:all, :include => [ :author, :comments ])
     #
-    # This will load all comments with a single query. This reduces the total number of queries to 3. More generally the number of queries
-    # will be 1 plus the number of associations named (except if some of the associations are polymorphic +belongs_to+ - see below).
+    # This will load all comments with a single query. This reduces the total number of queries 
+    # to 3. More generally the number of queries will be 1 plus the number of associations 
+    # named (except if some of the associations are polymorphic +belongs_to+ - see below).
     #
     # To include a deep hierarchy of associations, use a hash:
     #
     #   for post in Post.find(:all, :include => [ :author, { :comments => { :author => :gravatar } } ])
     #
-    # That'll grab not only all the comments but all their authors and gravatar pictures.  You can mix and match
-    # symbols, arrays and hashes in any combination to describe the associations you want to load.
+    # That'll grab not only all the comments but all their authors and gravatar pictures.  
+    # You can mix and match symbols, arrays and hashes in any combination to describe the 
+    # associations you want to load.
     #
-    # All of this power shouldn't fool you into thinking that you can pull out huge amounts of data with no performance penalty just because you've reduced
-    # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So it's no
-    # catch-all for performance problems, but it's a great way to cut down on the number of queries in a situation as the one described above.
+    # All of this power shouldn't fool you into thinking that you can pull out huge amounts 
+    # of data with no performance penalty just because you've reduced the number of queries. 
+    # The database still needs to send all the data to Active Record and it still needs to 
+    # be processed. So it's no catch-all for performance problems, but it's a great way to 
+    # cut down on the number of queries in a situation as the one described above.
     #
-    # Since only one table is loaded at a time, conditions or orders cannot reference tables other than the main one. If this is the case
-    # Active Record falls back to the previously used LEFT OUTER JOIN based strategy. For example
+    # Since only one table is loaded at a time, conditions or orders cannot reference tables 
+    # other than the main one. If this is the case Active Record falls back to the previously 
+    # used LEFT OUTER JOIN based strategy. For example
     #
     #   Post.find(:all, :include => [ :author, :comments ], :conditions => ['comments.approved = ?', true])
     #
-    # This will result in a single SQL query with joins along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
-    # <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Note that using conditions like this can have unintended consequences.
-    # In the above example posts with no approved comments are not returned at all, because the conditions apply to the SQL statement as a whole
-    # and not just to the association. You must disambiguate column references for this fallback to happen, for example
+    # This will result in a single SQL query with joins along the lines of: 
+    # <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
+    # <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Note that using conditions 
+    # like this can have unintended consequences.
+    # In the above example posts with no approved comments are not returned at all, because 
+    # the conditions apply to the SQL statement as a whole and not just to the association. 
+    # You must disambiguate column references for this fallback to happen, for example
     # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not.
     #
-    # If you do want eager load only some members of an association it is usually more natural to <tt>:include</tt> an association
-    # which has conditions defined on it:
+    # If you do want eager load only some members of an association it is usually more natural 
+    # to <tt>:include</tt> an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
     #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
@@ -585,9 +621,11 @@ module ActiveRecord
     #
     #   Post.find(:all, :include => :approved_comments)
     #
-    # This will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
+    # This will load posts and eager load the +approved_comments+ association, which contains 
+    # only those comments that have been approved.
     #
-    # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored, returning all the associated objects:
+    # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored, 
+    # returning all the associated objects:
     #
     #   class Picture < ActiveRecord::Base
     #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
@@ -595,8 +633,8 @@ module ActiveRecord
     #
     #   Picture.find(:first, :include => :most_recent_comments).most_recent_comments # => returns all associated comments.
     #
-    # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
-    # before the actual model exists.
+    # When eager loaded, conditions are interpolated in the context of the model class, not 
+    # the model instance.  Conditions are lazily interpolated before the actual model exists.
     #
     # Eager loading is supported with polymorphic associations.
     #
@@ -608,17 +646,21 @@ module ActiveRecord
     #
     #   Address.find(:all, :include => :addressable)
     #
-    # This will execute one query to load the addresses and load the addressables with one query per addressable type.
-    # For example if all the addressables are either of class Person or Company then a total of 3 queries will be executed. The list of
-    # addressable types to load is determined on the back of the addresses loaded. This is not supported if Active Record has to fallback
-    # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError. The reason is that the parent
-    # model's type is a column value so its corresponding table name cannot be put in the +FROM+/+JOIN+ clauses of that query.
+    # This will execute one query to load the addresses and load the addressables with one 
+    # query per addressable type.
+    # For example if all the addressables are either of class Person or Company then a total 
+    # of 3 queries will be executed. The list of addressable types to load is determined on 
+    # the back of the addresses loaded. This is not supported if Active Record has to fallback
+    # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError. 
+    # The reason is that the parent model's type is a column value so its corresponding table 
+    # name cannot be put in the +FROM+/+JOIN+ clauses of that query.
     #
     # == Table Aliasing
     #
-    # Active Record uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
-    # the standard table name is used.  The second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.  Indexes are appended
-    # for any more successive uses of the table name.
+    # Active Record uses table aliasing in the case that a table is referenced multiple times 
+    # in a join.  If a table is referenced only once, the standard table name is used.  The 
+    # second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.  
+    # Indexes are appended for any more successive uses of the table name.
     #
     #   Post.find :all, :joins => :comments
     #   # => SELECT ... FROM posts INNER JOIN comments ON ...
@@ -651,7 +693,8 @@ module ActiveRecord
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
     #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
     #
-    # If you wish to specify your own custom joins using a <tt>:joins</tt> option, those table names will take precedence over the eager associations:
+    # If you wish to specify your own custom joins using a <tt>:joins</tt> option, those table 
+    # names will take precedence over the eager associations:
     #
     #   Post.find :all, :joins => :comments, :joins => "inner join comments ..."
     #   # => SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
@@ -660,7 +703,8 @@ module ActiveRecord
     #                              INNER JOIN comments special_comments_posts ...
     #                              INNER JOIN comments ...
     #
-    # Table aliases are automatically truncated according to the maximum length of table identifiers according to the specific database.
+    # Table aliases are automatically truncated according to the maximum length of table identifiers 
+    # according to the specific database.
     #
     # == Modules
     #
@@ -676,9 +720,10 @@ module ActiveRecord
     #     end
     #   end
     #
-    # When <tt>Firm#clients</tt> is called, it will in turn call <tt>MyApplication::Business::Client.find_all_by_firm_id(firm.id)</tt>.
-    # If you want to associate with a class in another module scope, this can be done by specifying the complete class name.
-    # Example:
+    # When <tt>Firm#clients</tt> is called, it will in turn call 
+    # <tt>MyApplication::Business::Client.find_all_by_firm_id(firm.id)</tt>.
+    # If you want to associate with a class in another module scope, this can be done by 
+    # specifying the complete class name.
     #
     #   module MyApplication
     #     module Business
@@ -694,8 +739,8 @@ module ActiveRecord
     #
     # == Bi-directional associations
     #
-    # When you specify an association there is usually an association on the associated model that specifies the same
-    # relationship in reverse.  For example, with the following models:
+    # When you specify an association there is usually an association on the associated model 
+    # that specifies the same relationship in reverse.  For example, with the following models:
     #
     #    class Dungeon < ActiveRecord::Base
     #      has_many :traps
@@ -710,9 +755,11 @@ module ActiveRecord
     #      belongs_to :dungeon
     #    end
     #
-    # The +traps+ association on +Dungeon+ and the the +dungeon+ association on +Trap+ are the inverse of each other and the
-    # inverse of the +dungeon+ association on +EvilWizard+ is the +evil_wizard+ association on +Dungeon+ (and vice-versa).  By default,
-    # Active Record doesn't know anything about these inverse relationships and so no object loading optimisation is possible.  For example:
+    # The +traps+ association on +Dungeon+ and the the +dungeon+ association on +Trap+ are 
+    # the inverse of each other and the inverse of the +dungeon+ association on +EvilWizard+ 
+    # is the +evil_wizard+ association on +Dungeon+ (and vice-versa).  By default,
+    # Active Record doesn't know anything about these inverse relationships and so no object 
+    # loading optimisation is possible.  For example:
     #
     #    d = Dungeon.first
     #    t = d.traps.first
@@ -720,9 +767,11 @@ module ActiveRecord
     #    d.level = 10
     #    d.level == t.dungeon.level # => false
     #
-    # The +Dungeon+ instances +d+ and <tt>t.dungeon</tt> in the above example refer to the same object data from the database, but are
-    # actually different in-memory copies of that data.  Specifying the <tt>:inverse_of</tt> option on associations lets you tell
-    # Active Record about inverse relationships and it will optimise object loading.  For example, if we changed our model definitions to:
+    # The +Dungeon+ instances +d+ and <tt>t.dungeon</tt> in the above example refer to 
+    # the same object data from the database, but are actually different in-memory copies 
+    # of that data.  Specifying the <tt>:inverse_of</tt> option on associations lets you tell
+    # Active Record about inverse relationships and it will optimise object loading.  For 
+    # example, if we changed our model definitions to:
     #
     #    class Dungeon < ActiveRecord::Base
     #      has_many :traps, :inverse_of => :dungeon
@@ -737,8 +786,8 @@ module ActiveRecord
     #      belongs_to :dungeon, :inverse_of => :evil_wizard
     #    end
     #
-    # Then, from our code snippet above, +d+ and <tt>t.dungeon</tt> are actually the same in-memory instance and our final <tt>d.level == t.dungeon.level</tt>
-    # will return +true+.
+    # Then, from our code snippet above, +d+ and <tt>t.dungeon</tt> are actually the same 
+    # in-memory instance and our final <tt>d.level == t.dungeon.level</tt> will return +true+.
     #
     # There are limitations to <tt>:inverse_of</tt> support:
     #
@@ -748,13 +797,13 @@ module ActiveRecord
     #
     # == Type safety with <tt>ActiveRecord::AssociationTypeMismatch</tt>
     #
-    # If you attempt to assign an object to an association that doesn't match the inferred or specified <tt>:class_name</tt>, you'll
-    # get an <tt>ActiveRecord::AssociationTypeMismatch</tt>.
+    # If you attempt to assign an object to an association that doesn't match the inferred 
+    # or specified <tt>:class_name</tt>, you'll get an <tt>ActiveRecord::AssociationTypeMismatch</tt>.
     #
     # == Options
     #
-    # All of the association macros can be specialized through options. This makes cases more complex than the simple and guessable ones
-    # possible.
+    # All of the association macros can be specialized through options. This makes cases 
+    # more complex than the simple and guessable ones possible.
     module ClassMethods
       # Specifies a one-to-many association. The following methods for retrieval and query of
       # collections of associated objects will be added:
@@ -828,20 +877,22 @@ module ActiveRecord
       # === Supported options
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
-      #   from the association name. So <tt>has_many :products</tt> will by default be linked to the Product class, but
-      #   if the real class name is SpecialProduct, you'll have to specify it with this option.
+      #   from the association name. So <tt>has_many :products</tt> will by default be linked 
+      #   to the Product class, but if the real class name is SpecialProduct, you'll have to 
+      #   specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated objects must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>.  Record creations from the association are scoped if a hash
-      #   is used.  <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
-      #   or <tt>@blog.posts.build</tt>.
+      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>.  Record creations from 
+      #   the association are scoped if a hash is used.  
+      #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published 
+      #   posts with <tt>@blog.posts.create</tt> or <tt>@blog.posts.build</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
-      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+ association will use "person_id"
-      #   as the default <tt>:foreign_key</tt>.
+      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+ 
+      #   association will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:dependent]
@@ -855,10 +906,12 @@ module ActiveRecord
       #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
-      #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
+      #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ 
+      #   is _not_ added.
       # [:counter_sql]
       #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
-      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
+      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by 
+      #   replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
       # [:extend]
       #   Specify a named module for extending the proxy. See "Association extensions".
       # [:include]
@@ -866,25 +919,31 @@ module ActiveRecord
       # [:group]
       #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
       # [:having]
-      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
+      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> 
+      #   returns. Uses the <tt>HAVING</tt> SQL-clause.
       # [:limit]
       #   An integer determining the limit on the number of rows that should be returned.
       # [:offset]
-      #   An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
+      #   An integer determining the offset from where the rows should be fetched. So at 5, 
+      #   it would skip the first 4 rows.
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if you, for example, want to do a join
-      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if 
+      #   you, for example, want to do a join but not include the joined columns. Do not forget 
+      #   to include the primary and foreign keys, otherwise it will raise an error.
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
-      #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
-      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model. The collection of join models can be managed via the collection
-      #   API. For example, new join models are created for newly associated objects, and if some are gone their rows are deleted (directly,
+      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt> 
+      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You 
+      #   can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>, <tt>has_one</tt> 
+      #   or <tt>has_many</tt> association on the join model. The collection of join models 
+      #   can be managed via the collection API. For example, new join models are created for 
+      #   newly associated objects, and if some are gone their rows are deleted (directly,
       #   no destroy callbacks are triggered).
       # [:source]
-      #   Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be
-      #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either <tt>:subscribers</tt> or
+      #   Specifies the source association name used by <tt>has_many :through</tt> queries.  
+      #   Only use it if the name cannot be inferred from the association.  
+      #   <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either <tt>:subscribers</tt> or
       #   <tt>:subscriber</tt> on Subscription, unless a <tt>:source</tt> is given.
       # [:source_type]
       #   Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
@@ -896,12 +955,14 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
-      #   If true, always save the associated objects or destroy them if marked for destruction, when saving the parent object.
+      #   If true, always save the associated objects or destroy them if marked for destruction, 
+      #   when saving the parent object.
       #   If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
       # [:inverse_of]
-      #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_many</tt>
-      #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.
+      #   Specifies the name of the <tt>belongs_to</tt> association on the associated object 
+      #   that is the inverse of this <tt>has_many</tt> association. Does not work in combination 
+      #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
@@ -975,19 +1036,20 @@ module ActiveRecord
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>rank = 5</tt>. Record creation from the association is scoped if a hash
-      #   is used. <tt>has_one :account, :conditions => {:enabled => true}</tt> will create an enabled account with <tt>@company.create_account</tt>
-      #   or <tt>@company.build_account</tt>.
+      #   is used. <tt>has_one :account, :conditions => {:enabled => true}</tt> will create 
+      #   an enabled account with <tt>@company.create_account</tt> or <tt>@company.build_account</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>.
       # [:dependent]
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to <tt>:nullify</tt>, the associated
-      #   object's foreign key is set to +NULL+. Also, association is assigned.
+      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. 
+      #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+. 
+      #   Also, association is assigned.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
-      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association will use "person_id"
-      #   as the default <tt>:foreign_key</tt>.
+      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association 
+      #   will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:include]
@@ -995,15 +1057,18 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
-      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, 
+      #   you want to do a join but not include the joined columns. Do not forget to include the 
+      #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
-      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
-      #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a
-      #   <tt>has_one</tt> or <tt>belongs_to</tt> association on the join model.
+      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> 
+      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You 
+      #   can only use a <tt>:through</tt> query through a <tt>has_one</tt> or <tt>belongs_to</tt> 
+      #   association on the join model.
       # [:source]
-      #   Specifies the source association name used by <tt>has_one :through</tt> queries.  Only use it if the name cannot be
-      #   inferred from the association.  <tt>has_one :favorite, :through => :favorites</tt> will look for a
+      #   Specifies the source association name used by <tt>has_one :through</tt> queries.  
+      #   Only use it if the name cannot be inferred from the association.  
+      #   <tt>has_one :favorite, :through => :favorites</tt> will look for a
       #   <tt>:favorite</tt> on Favorite, unless a <tt>:source</tt> is given.
       # [:source_type]
       #   Specifies type of the source association used by <tt>has_one :through</tt> queries where the source
@@ -1013,17 +1078,19 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated object when saving the parent object. +false+ by default.
       # [:autosave]
-      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object.
-      #   If false, never save or destroy the associated object.
+      #   If true, always save the associated object or destroy it if marked for destruction, 
+      #   when saving the parent object. If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
       # [:inverse_of]
-      #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_one</tt>
-      #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.
+      #   Specifies the name of the <tt>belongs_to</tt> association on the associated object 
+      #   that is the inverse of this <tt>has_one</tt> association.  Does not work in combination 
+      #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
-      #   has_one :credit_card, :dependent => :nullify  # updates the associated records foreign key value to NULL rather than destroying it
+      #   has_one :credit_card, :dependent => :nullify  # updates the associated records foreign 
+      #                                                 # key value to NULL rather than destroying it
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       #   has_one :attachment, :as => :attachable
@@ -1085,27 +1152,34 @@ module ActiveRecord
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>authorized = 1</tt>.
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
-      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed 
+      #   if, for example, you want to do a join but not include the joined columns. Do not 
+      #   forget to include the primary and foreign keys, otherwise it will raise an error.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
-      #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt> association will use
-      #   "person_id" as the default <tt>:foreign_key</tt>. Similarly, <tt>belongs_to :favorite_person, :class_name => "Person"</tt>
-      #   will use a foreign key of "favorite_person_id".
+      #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt> 
+      #   association will use "person_id" as the default <tt>:foreign_key</tt>. Similarly, 
+      #   <tt>belongs_to :favorite_person, :class_name => "Person"</tt> will use a foreign key 
+      #   of "favorite_person_id".
       # [:primary_key]
-      #   Specify the method that returns the primary key of associated object used for the association. By default this is id.
+      #   Specify the method that returns the primary key of associated object used for the association. 
+      #   By default this is id.
       # [:dependent]
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. This option should not be specified when
-      #   <tt>belongs_to</tt> is used in conjunction with a <tt>has_many</tt> relationship on another class because of the potential to leave
+      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. 
+      #   This option should not be specified when <tt>belongs_to</tt> is used in conjunction with 
+      #   a <tt>has_many</tt> relationship on another class because of the potential to leave
       #   orphaned records behind.
       # [:counter_cache]
       #   Caches the number of belonging objects on the associate class through the use of +increment_counter+
-      #   and +decrement_counter+. The counter cache is incremented when an object of this class is created and decremented when it's
-      #   destroyed. This requires that a column named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
-      #   is used on the associate class (such as a Post class). You can also specify a custom counter cache column by providing
-      #   a column name instead of a +true+/+false+ value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
-      #   Note: Specifying a counter cache will add it to that model's list of readonly attributes using +attr_readonly+.
+      #   and +decrement_counter+. The counter cache is incremented when an object of this 
+      #   class is created and decremented when it's destroyed. This requires that a column 
+      #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
+      #   is used on the associate class (such as a Post class). You can also specify a custom counter 
+      #   cache column by providing a column name instead of a +true+/+false+ value to this 
+      #   option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
+      #   Note: Specifying a counter cache will add it to that model's list of readonly attributes 
+      #   using +attr_readonly+.
       # [:include]
       #   Specify second-order associations that should be eager loaded when this object is loaded.
       # [:polymorphic]
@@ -1117,15 +1191,18 @@ module ActiveRecord
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
       # [:autosave]
-      #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object.
+      #   If true, always save the associated object or destroy it if marked for destruction, when 
+      #   saving the parent object.
       #   If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
       # [:touch]
-      #   If true, the associated object will be touched (the updated_at/on attributes set to now) when this record is either saved or
-      #   destroyed. If you specify a symbol, that attribute will be updated with the current time instead of the updated_at/on attribute.
+      #   If true, the associated object will be touched (the updated_at/on attributes set to now) 
+      #   when this record is either saved or destroyed. If you specify a symbol, that attribute 
+      #   will be updated with the current time instead of the updated_at/on attribute.
       # [:inverse_of]
-      #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated object that is the inverse of this <tt>belongs_to</tt>
-      #   association.  Does not work in combination with the <tt>:polymorphic</tt> options.
+      #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated 
+      #   object that is the inverse of this <tt>belongs_to</tt> association.  Does not work in 
+      #   combination with the <tt>:polymorphic</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
@@ -1159,9 +1236,10 @@ module ActiveRecord
       # Specifies a many-to-many relationship with another class. This associates two classes via an
       # intermediate join table.  Unless the join table is explicitly specified as an option, it is
       # guessed using the lexical order of the class names. So a join between Developer and Project
-      # will give the default join table name of "developers_projects" because "D" outranks "P".  Note that this precedence
-      # is calculated using the <tt><</tt> operator for String.  This means that if the strings are of different lengths,
-      # and the strings are equal when compared up to the shortest length, then the longer string is considered of higher
+      # will give the default join table name of "developers_projects" because "D" outranks "P".  
+      # Note that this precedence is calculated using the <tt><</tt> operator for String.  This 
+      # means that if the strings are of different lengths, and the strings are equal when compared 
+      # up to the shortest length, then the longer string is considered of higher
       # lexical precedence than the shorter one.  For example, one would expect the tables "paper_boxes" and "papers"
       # to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes",
       # but it in fact generates a join table name of "paper_boxes_papers".  Be aware of this caveat, and use the
@@ -1183,9 +1261,10 @@ module ActiveRecord
       #     end
       #   end
       #
-      # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
-      # +has_and_belongs_to_many+ associations. Records returned from join tables with additional attributes will be marked as
-      # readonly (because we can't save changes to the additional attributes). It's strongly recommended that you upgrade any
+      # Deprecated: Any additional fields added to the join table will be placed as attributes when 
+      # pulling records out through +has_and_belongs_to_many+ associations. Records returned from join 
+      # tables with additional attributes will be marked as readonly (because we can't save changes 
+      # to the additional attributes). It's strongly recommended that you upgrade any
       # associations with attributes to a real join model (see introduction).
       #
       # Adds the following methods for retrieval and query:
@@ -1225,7 +1304,8 @@ module ActiveRecord
       #   with +attributes+ and linked to this object through the join table, but has not yet been saved.
       # [collection.create(attributes = {})]
       #   Returns a new object of the collection type that has been instantiated
-      #   with +attributes+, linked to this object through the join table, and that has already been saved (if it passed the validation).
+      #   with +attributes+, linked to this object through the join table, and that has already been 
+      #   saved (if it passed the validation).
       #
       # (+collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.)
@@ -1260,8 +1340,9 @@ module ActiveRecord
       #   MUST be declared underneath any +has_and_belongs_to_many+ declaration in order to work.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
-      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_and_belongs_to_many+ association
-      #   to Project will use "person_id" as the default <tt>:foreign_key</tt>.
+      #   of this class in lower-case and "_id" suffixed. So a Person class that makes 
+      #   a +has_and_belongs_to_many+ association to Project will use "person_id" as the 
+      #   default <tt>:foreign_key</tt>.
       # [:association_foreign_key]
       #   Specify the foreign key used for the association on the receiving side of the association.
       #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
@@ -1269,7 +1350,8 @@ module ActiveRecord
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>authorized = 1</tt>.  Record creations from the association are scoped if a hash is used.
+      #   SQL fragment, such as <tt>authorized = 1</tt>.  Record creations from the association are 
+      #   scoped if a hash is used.
       #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
       #   or <tt>@blog.posts.build</tt>.
       # [:order]
@@ -1281,7 +1363,8 @@ module ActiveRecord
       #   Overwrite the default generated SQL statement used to fetch the association with a manual statement
       # [:counter_sql]
       #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
-      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
+      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by 
+      #   replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
       # [:delete_sql]
       #   Overwrite the default generated SQL statement used to remove links between the associated
       #   classes with a manual statement.
@@ -1295,20 +1378,24 @@ module ActiveRecord
       # [:group]
       #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
       # [:having]
-      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
+      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. 
+      #   Uses the <tt>HAVING</tt> SQL-clause.
       # [:limit]
       #   An integer determining the limit on the number of rows that should be returned.
       # [:offset]
-      #   An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
+      #   An integer determining the offset from where the rows should be fetched. So at 5, 
+      #   it would skip the first 4 rows.
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
-      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, 
+      #   you want to do a join but not include the joined columns. Do not forget to include the primary 
+      #   and foreign keys, otherwise it will raise an error.
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +true+ by default.
       # [:autosave]
-      #   If true, always save the associated objects or destroy them if marked for destruction, when saving the parent object.
+      #   If true, always save the associated objects or destroy them if marked for destruction, when 
+      #   saving the parent object.
       #   If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
       #

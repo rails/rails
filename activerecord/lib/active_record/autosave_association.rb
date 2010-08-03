@@ -4,14 +4,13 @@ module ActiveRecord
   # = Active Record Autosave Association
   # 
   # AutosaveAssociation is a module that takes care of automatically saving
-  # your associations when the parent is saved. In addition to saving, it
-  # also destroys any associations that were marked for destruction.
+  # associacted records when parent is saved. In addition to saving, it
+  # also destroys any associated records that were marked for destruction.
   # (See mark_for_destruction and marked_for_destruction?)
   #
   # Saving of the parent, its associations, and the destruction of marked
   # associations, all happen inside 1 transaction. This should never leave the
-  # database in an inconsistent state after, for instance, mass assigning
-  # attributes and saving them.
+  # database in an inconsistent state.
   #
   # If validations for any of the associations fail, their error messages will
   # be applied to the parent.
@@ -20,8 +19,6 @@ module ActiveRecord
   # be destroyed directly. They will however still be marked for destruction.
   #
   # === One-to-one Example
-  #
-  # Consider a Post model with one Author:
   #
   #   class Post
   #     has_one :author, :autosave => true
@@ -155,11 +152,12 @@ module ActiveRecord
         CODE
       end
 
-      # Adds a validate and save callback for the association as specified by
+      # Adds validation and save callbacks for the association as specified by
       # the +reflection+.
       #
-      # For performance reasons, we don't check whether to validate at runtime,
-      # but instead only define the method and callback when needed. However,
+      # For performance reasons, we don't check whether to validate at runtime.
+      # However the validation and callback methods are lazy and those methods
+      # get created when they are invoked for the very first time.  However,
       # this can change, for instance, when using nested attributes, which is
       # called _after_ the association has been defined. Since we don't want
       # the callbacks to get defined multiple times, there are guards that
@@ -197,14 +195,15 @@ module ActiveRecord
       end
     end
 
-    # Reloads the attributes of the object as usual and removes a mark for destruction.
+    # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
     def reload(options = nil)
       @marked_for_destruction = false
       super
     end
 
     # Marks this record to be destroyed as part of the parents save transaction.
-    # This does _not_ actually destroy the record yet, rather it will be destroyed when <tt>parent.save</tt> is called.
+    # This does _not_ actually destroy the record instantly, rather child record will be destroyed 
+    # when <tt>parent.save</tt> is called.
     #
     # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
     def mark_for_destruction
@@ -249,7 +248,7 @@ module ActiveRecord
     end
     
     # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
-    # turned on for the association specified by +reflection+.
+    # turned on for the association.
     def validate_single_association(reflection)
       if (association = association_instance_get(reflection.name)) && !association.target.nil?
         association_valid?(reflection, association)
@@ -357,14 +356,9 @@ module ActiveRecord
       end
     end
 
-    # Saves the associated record if it's new or <tt>:autosave</tt> is enabled
-    # on the association.
+    # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.
     #
-    # In addition, it will destroy the association if it was marked for
-    # destruction with mark_for_destruction.
-    #
-    # This all happens inside a transaction, _if_ the Transactions module is included into
-    # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
+    # In addition, it will destroy the association if it was marked for destruction.
     def save_belongs_to_association(reflection)
       if (association = association_instance_get(reflection.name)) && !association.destroyed?
         autosave = reflection.options[:autosave]

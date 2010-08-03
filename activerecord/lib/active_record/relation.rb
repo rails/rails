@@ -67,7 +67,8 @@ module ActiveRecord
       preload +=  @includes_values unless eager_loading?
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
 
-      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there are JOINS and no explicit SELECT.
+      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there 
+      # are JOINS and no explicit SELECT.
       readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
       @records.each { |record| record.readonly! } if readonly
 
@@ -130,7 +131,8 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
-    # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. See conditions in the intro.
+    # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. 
+    #   See conditions in the intro.
     # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
     #
     # ==== Examples
@@ -144,7 +146,7 @@ module ActiveRecord
     #   # Update all avatars migrated more than a week ago
     #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
     #
-    #   # Update all books that match our conditions, but limit it to 5 ordered by date
+    #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
     def update_all(updates, conditions = nil, options = {})
       if conditions || options.present?
@@ -165,14 +167,14 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +id+ - This should be the id or an array of ids to be updated.
-    # * +attributes+ - This should be a hash of attributes to be set on the object, or an array of hashes.
+    # * +attributes+ - This should be a hash of attributes or an array of hashes.
     #
     # ==== Examples
     #
-    #   # Updating one record:
+    #   # Updates one record
     #   Person.update(15, :user_name => 'Samuel', :group => 'expert')
     #
-    #   # Updating multiple records:
+    #   # Updates multiple records
     #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
     #   Person.update(people.keys, people.values)
     def update(id, attributes)

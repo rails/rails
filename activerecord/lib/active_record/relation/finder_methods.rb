@@ -21,23 +21,28 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
+    # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, 
+    #   or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
     # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
     # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
-    # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
+    # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a 
+    #   <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
     # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
-    # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
+    # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, 
+    #   it would skip rows 0 through 4.
     # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed),
-    #   named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s),
+    #   named associations in the same form used for the <tt>:include</tt> option, which will perform an 
+    #   <tt>INNER JOIN</tt> on the associated table(s),
     #   or an array containing a mixture of both strings and named associations.
-    #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+    #   If the value is a string, then the records will be returned read-only since they will 
+    #   have attributes that do not correspond to the table's columns.
     #   Pass <tt>:readonly => false</tt> to override.
     # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
     #   to already defined associations. See eager loading under Associations.
-    # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
-    #   include the joined columns. Takes a string with the SELECT SQL fragment (e.g. "id, name").
-    # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
-    #   of a database view).
+    # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, 
+    #   for example, want to do a join but not include the joined columns. Takes a string with the SELECT SQL fragment (e.g. "id, name").
+    # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed 
+    #   to an alternate table name (or even the name of a database view).
     # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
     # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
     #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
