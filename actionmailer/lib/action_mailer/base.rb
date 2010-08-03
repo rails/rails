@@ -5,7 +5,6 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
 require 'action_mailer/log_subscriber'
-require 'action_mailer/hide_actions'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -341,13 +340,13 @@ module ActionMailer #:nodoc:
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
+    include AbstractController::UrlFor
 
     cattr_reader :protected_instance_variables
     @@protected_instance_variables = []
 
     helper  ActionMailer::MailHelper
     include ActionMailer::OldApi
-    include ActionMailer::HideActions
 
     delegate :register_observer, :to => Mail
     delegate :register_interceptor, :to => Mail
@@ -364,9 +363,8 @@ module ActionMailer #:nodoc:
 
     class << self
       def inherited(klass)
-        klass.with_hiding_actions do
-          super(klass)
-        end
+        super(klass)
+        klass.class_eval { @action_methods = nil }
       end
 
       def mailer_name
@@ -731,9 +729,6 @@ module ActionMailer #:nodoc:
       part = Mail::Part.new(response)
       container.add_part(part)
     end
-
-    class_attribute :default_url_options
-    self.default_url_options = {}
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
