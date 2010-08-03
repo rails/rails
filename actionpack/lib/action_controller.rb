@@ -35,10 +35,10 @@ module ActionController
   end
 
   autoload :Dispatcher,      'action_controller/deprecated/dispatcher'
+  autoload :UrlWriter,       'action_controller/deprecated/url_writer'
   autoload :Integration,     'action_controller/deprecated/integration_test'
   autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
   autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
-  autoload :UrlWriter,       'action_controller/deprecated'
   autoload :Routing,         'action_controller/deprecated'
   autoload :TestCase,        'action_controller/test_case'
 
