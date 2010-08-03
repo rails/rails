@@ -37,12 +37,13 @@ module ActiveModel
   #     end
   #   
   #     def name=(val)
-  #       name_will_change!
+  #       name_will_change! unless val == @name
   #       @name = val
   #     end
   #   
   #     def save
   #       @previously_changed = changes
+  #       @changed_attributes.clear
   #     end
   #   
   #   end
@@ -76,12 +77,6 @@ module ActiveModel
   #   person.name = 'Bob'
   #   person.changed        # => ['name']
   #   person.changes        # => { 'name' => ['Bill', 'Bob'] }
-  #
-  # Resetting an attribute returns it to its original state:
-  #   person.reset_name!    # => 'Bill'
-  #   person.changed?       # => false
-  #   person.name_changed?  # => false
-  #   person.name           # => 'Bill'
   #
   # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
   # to mark that the attribute is changing. Otherwise ActiveModel can't track changes to 
