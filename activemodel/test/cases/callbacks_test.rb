@@ -16,6 +16,8 @@ class CallbacksTest < ActiveModel::TestCase
 
     define_model_callbacks :create
     define_model_callbacks :initialize, :only => :after
+    define_model_callbacks :multiple,   :only => [:before, :around]
+    define_model_callbacks :empty,      :only => []
 
     before_create :before_create
     around_create CallbackValidator.new
@@ -66,5 +68,17 @@ class CallbacksTest < ActiveModel::TestCase
     assert !ModelCallbacks.respond_to?(:before_initialize)
     assert !ModelCallbacks.respond_to?(:around_initialize)
     assert_respond_to ModelCallbacks, :after_initialize
+  end
+
+  test "only selects which types of callbacks should be created from an array list" do
+    assert_respond_to ModelCallbacks, :before_multiple
+    assert_respond_to ModelCallbacks, :around_multiple
+    assert !ModelCallbacks.respond_to?(:after_multiple)
+  end
+
+  test "no callbacks should be created" do
+    assert !ModelCallbacks.respond_to?(:before_empty)
+    assert !ModelCallbacks.respond_to?(:around_empty)
+    assert !ModelCallbacks.respond_to?(:after_empty)
   end
 end
