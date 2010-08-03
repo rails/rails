@@ -227,6 +227,7 @@ module ActionView #:nodoc:
       @lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
         lookup_context : ActionView::LookupContext.new(lookup_context)
       @lookup_context.formats = formats if formats
+      @controller = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :controller)
     end
 
     def controller_path
