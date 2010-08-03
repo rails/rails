@@ -1,62 +1,27 @@
 require "active_support/string_inquirer"
-require "active_support/deprecation"
+require "active_support/basic_object"
 
-RAILS_ROOT = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) do
-  cattr_accessor :warned
-  self.warned = false
+module Rails
+  class DeprecatedConstant < ActiveSupport::BasicObject
+    def self.deprecate(old, new)
+      constant = self.new(old, new)
+      eval "::#{old} = constant"
+    end
 
-  def target
-    Rails.root
-  end
+    def initialize(old, new)
+      @old, @new = old, new
+      @target = eval "proc { #{new} }"
+      @warned = false
+    end
 
-  def replace(*args)
-    warn(caller, :replace, *args)
-  end
-
-  def warn(callstack, called, args)
-    unless warned
-      ActiveSupport::Deprecation.warn("RAILS_ROOT is deprecated! Use Rails.root instead", callstack)
-      self.warned = true
+    def method_missing(meth, *args, &block)
+      ActiveSupport::Deprecation.warn("#{@old} is deprecated. Please use #{@new}") unless @warned
+      @warned = true
+      @target.call.send(meth, *args, &block)
     end
   end
-end).new
 
-RAILS_ENV = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) do
-  cattr_accessor :warned
-  self.warned = false
-
-  def target
-    Rails.env
-  end
-
-  def replace(*args)
-    warn(caller, :replace, *args)
-  end
-
-  def warn(callstack, called, args)
-    unless warned
-      ActiveSupport::Deprecation.warn("RAILS_ENV is deprecated! Use Rails.env instead", callstack)
-      self.warned = true
-    end
-  end
-end).new
-
-RAILS_DEFAULT_LOGGER = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) do
-  cattr_accessor :warned
-  self.warned = false
-
-  def target
-    Rails.logger
-  end
-
-  def replace(*args)
-    warn(caller, :replace, *args)
-  end
-
-  def warn(callstack, called, args)
-    unless warned
-      ActiveSupport::Deprecation.warn("RAILS_DEFAULT_LOGGER is deprecated! Use Rails.logger instead", callstack)
-      self.warned = true
-    end
-  end
-end).new
+  DeprecatedConstant.deprecate("RAILS_ROOT",           "Rails.root")
+  DeprecatedConstant.deprecate("RAILS_ENV",            "Rails.env")
+  DeprecatedConstant.deprecate("RAILS_DEFAULT_LOGGER", "Rails.logger")
+end
