@@ -200,11 +200,11 @@ module Rails
         @endpoint
       end
 
-      def isolated_engine_for(mod)
-        _engine = self
+      def namespace(mod)
+        _railtie = self
         mod.singleton_class.instance_eval do
           define_method(:_railtie) do
-            _engine
+            _railtie
           end
         end
       end

@@ -338,11 +338,11 @@ module RailtiesTest
       assert_equal "/foo", response[2].body
     end
 
-    test "isolated engine should include only its own routes and helpers" do
+    test "namespaced engine should include only its own routes and helpers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            isolated_engine_for Bukkits
+            namespace Bukkits
           end
         end
       RUBY
