@@ -162,6 +162,22 @@ module Rails
   # With such config, asset paths will be automatically modified inside Engine:
   # image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
   #
+  # == Engine name
+  #
+  # There are some places where engine's name is used.
+  # * routes: when you mount engine with mount(MyEngine::Engine => '/my_engine'), it's used as default :as option
+  # * migrations: when you copy engine's migrations, they will be decorated with suffix based on engine_name, for example:
+  #   2010010203121314_create_users.my_engine.rb
+  #
+  # Engine name is set by default based on class name. For MyEngine::Engine it will be my_engine_engine.
+  # You can change it manually it manually using engine_name method:
+  #
+  # module MyEngine
+  #   class Engine < Rails::Engine
+  #     engine_name "my_engine"
+  #   end
+  # end
+  #
   # == Namespaced Engine
   #
   # Normally, when you create controllers, helpers and models inside engine, they are treated
