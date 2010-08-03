@@ -128,6 +128,18 @@ module ActiveModel
         set_callback(:validate, *args, &block)
       end
 
+      [:create, :update].each do |type|
+        class_eval <<-RUBY
+          def validate_on_#{type}(*args, &block)
+            msg = "validate_on_#{type} is deprecated. Please use validate(args, :on => :#{type})"
+            ActiveSupport::Deprecation.warn(msg, caller)
+            options = args.last || {}
+            options[:on] = :#{type}
+            validate(args.push(options), &block)
+          end
+        RUBY
+      end
+
       # List all validators that are being used to validate the model using 
       # +validates_with+ method.
       def validators
