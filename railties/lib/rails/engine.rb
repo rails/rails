@@ -208,6 +208,35 @@ module Rails
   # MyEngine::Engine.engine_name #=> "my_engine"
   # and it will set MyEngine.table_name_prefix to "my_engine_"
   #
+  # == Using Engine's routes outside Engine
+  #
+  # Since you can mount engine inside application's routes now, you do not have direct access to engine's
+  # url_helpers inside application. When you mount Engine in application's routes special helper is
+  # created to allow doing that. Consider such scenario:
+  #
+  # # APP/config/routes.rb
+  # MyApplication::Application.routes.draw do
+  #   mount MyEngine::Engine => "/my_engine", :as => "my_engine"
+  #   match "/foo" => "foo#index"
+  # end
+  #
+  # Now, you can use my_engine helper:
+  #
+  # class FooController < ApplicationController
+  #   def index
+  #     my_engine.root_url #=> /my_engine/
+  #   end
+  # end
+  #
+  # There is also 'app' helper that gives you access to application's routes inside Engine:
+  #
+  # module MyEngine
+  #   class BarController
+  #     app.foo_path #=> /foo
+  #   end
+  # end
+  #
+  # Note that :as option takes engine_name as default, so most of the time you can ommit it.
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
