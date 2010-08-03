@@ -408,6 +408,8 @@ module RailtiesTest
 
       boot_rails
 
+      assert_equal "bukkits_", Bukkits.table_name_prefix
+      assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits._railtie, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_path)
       assert !::Bukkits::MyMailer.method_defined?(:bar_path)

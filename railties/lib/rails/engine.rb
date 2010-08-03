@@ -201,10 +201,18 @@ module Rails
       end
 
       def namespace(mod)
+        # TODO: extract that into a module
+        engine_name(generate_railtie_name(mod))
+
         _railtie = self
+        name = engine_name
         mod.singleton_class.instance_eval do
           define_method(:_railtie) do
             _railtie
+          end
+
+          define_method(:table_name_prefix) do
+            "#{name}_"
           end
         end
       end

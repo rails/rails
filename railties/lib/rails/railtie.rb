@@ -167,8 +167,13 @@ module Rails
 
       def railtie_name(name = nil)
         @railtie_name = name.to_s if name
-        @railtie_name ||= ActiveSupport::Inflector.underscore(self.name).gsub("/", "_")
+        @railtie_name ||= generate_railtie_name(self.name)
       end
+
+      protected
+        def generate_railtie_name(class_or_module)
+          ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
+        end
     end
 
     delegate :railtie_name, :to => "self.class"
