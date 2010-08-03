@@ -20,7 +20,7 @@ module Rails
           paths.app.models          "app/models",          :eager_load => true
           paths.app.mailers         "app/mailers",         :eager_load => true
           paths.app.views           "app/views"
-          paths.lib                 "lib",                 :load_path => true
+          paths.lib                 "lib",                 :eager_load => true
           paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
           paths.config              "config"
           paths.config.initializers "config/initializers", :glob => "**/*.rb"
