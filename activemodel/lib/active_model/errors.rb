@@ -86,11 +86,7 @@ module ActiveModel
     #   p.errors[:name]   # => ["can not be nil"]
     #   p.errors['name']  # => ["can not be nil"]
     def [](attribute)
-      if errors = get(attribute.to_sym)
-        errors
-      else
-        set(attribute.to_sym, [])
-      end
+      get(attribute.to_sym) || set(attribute.to_sym, [])
     end
 
     # Adds to the supplied attribute the supplied error message.
