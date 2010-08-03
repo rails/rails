@@ -194,6 +194,10 @@ ActiveRecord::Schema.define do
     t.integer :car_id
   end
 
+  create_table :tyres, :force => true do |t|
+    t.integer :car_id
+  end
+
   create_table :entrants, :force => true do |t|
     t.string  :name, :null => false
     t.integer :course_id, :null => false

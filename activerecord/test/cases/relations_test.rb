@@ -10,10 +10,20 @@ require 'models/entrant'
 require 'models/developer'
 require 'models/company'
 require 'models/bird'
+require 'models/car'
+require 'models/engine'
+require 'models/tyre'
+
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :taggings
+    :taggings, :cars
+
+  def test_two_named_scopes_with_includes_should_not_drop_any_include
+    car = Car.incl_engines.incl_tyres.first
+    assert_no_queries { car.tyres.length } 
+    assert_no_queries { car.engines.length } 
+  end
 
   def test_apply_relation_as_where_id
     posts = Post.arel_table

@@ -11,7 +11,7 @@ module ActiveRecord
 
     def includes(*args)
       args.reject! { |a| a.blank? }
-      clone.tap {|r| r.includes_values += args if args.present? }
+      clone.tap {|r| r.includes_values = (r.includes_values + args).flatten.uniq if args.present? }
     end
 
     def eager_load(*args)
