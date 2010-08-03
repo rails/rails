@@ -37,11 +37,11 @@ module ActiveModel
   #       send(attr)
   #     end
   #   
-  #     def ErrorsPerson.human_attribute_name(attr, options = {})
+  #     def Person.human_attribute_name(attr, options = {})
   #       attr
   #     end
   #   
-  #     def ErrorsPerson.lookup_ancestors
+  #     def Person.lookup_ancestors
   #       [self]
   #     end
   #   
