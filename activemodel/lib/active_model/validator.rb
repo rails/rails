@@ -111,7 +111,7 @@ module ActiveModel #:nodoc:
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options)
-      @options = options
+      @options = options.freeze
     end
 
     # Return the kind for this validator.
