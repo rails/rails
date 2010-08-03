@@ -478,4 +478,10 @@ class DynamicScopeTest < ActiveRecord::TestCase
     assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
     assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
   end
+
+  def test_dynamic_scope_should_create_methods_after_hitting_method_missing
+    assert Developer.methods.grep(/scoped_by_created_at/).blank?
+    Developer.scoped_by_created_at(nil)
+    assert Developer.methods.grep(/scoped_by_created_at/).present?
+  end
 end
