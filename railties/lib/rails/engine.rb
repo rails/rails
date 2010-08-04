@@ -428,6 +428,13 @@ module Rails
     initializer :default_asset_path do
       config.asset_path = "/#{engine_name}%s" unless config.asset_path
     end
+
+    initializer :append_asset_paths do
+      public_path = config.paths.public.to_a.first
+      if config.compiled_asset_path && File.exist?(public_path)
+        config.static_asset_paths[config.compiled_asset_path] = public_path
+      end
+    end
   protected
     def find_root_with_flag(flag, default=nil)
       root_path = self.class.called_from

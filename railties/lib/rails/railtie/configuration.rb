@@ -5,6 +5,7 @@ module Rails
     class Configuration
       def initialize
         @@options ||= {}
+        @@static_asset_paths = ActiveSupport::OrderedHash.new
       end
 
       # This allows you to modify the application's middlewares from Engines.
@@ -63,6 +64,13 @@ module Rails
 
       def respond_to?(name)
         super || @@options.key?(name.to_sym)
+      end
+
+      # static_asset_paths is a Hash containing asset_paths
+      # with associated public folders, like:
+      # { "/" => "/app/public", "/my_engine" => "app/engines/my_engine/public" }
+      def static_asset_paths
+        @@static_asset_paths
       end
 
     private

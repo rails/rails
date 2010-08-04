@@ -37,6 +37,10 @@ module Rails
         super(value)
       end
 
+      def compiled_asset_path
+        "/"
+      end
+
       def encoding=(value)
         @encoding = value
         if "ruby".encoding_aware?

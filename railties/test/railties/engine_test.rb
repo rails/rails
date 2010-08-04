@@ -287,6 +287,7 @@ module RailtiesTest
 
       @plugin.write "public/bukkits.html", "/bukkits/bukkits.html"
       app_file "public/app.html", "/app.html"
+      app_file "public/bukkits/file_from_app.html", "/bukkits/file_from_app.html"
 
       boot_rails
 
@@ -297,6 +298,10 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits/bukkits.html")
       response = Rails.application.call(env)
       assert_equal response[2].path, File.join(@plugin.path, "public/bukkits.html")
+
+      env = Rack::MockRequest.env_for("/bukkits/file_from_app.html")
+      response = Rails.application.call(env)
+      assert_equal response[2].path, File.join(app_path, "public/bukkits/file_from_app.html")
     end
 
     test "shared engine should include application's helpers" do

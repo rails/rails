@@ -55,6 +55,10 @@ module Rails
       def autoload_paths
         @autoload_paths ||= paths.autoload_paths
       end
+
+      def compiled_asset_path
+        asset_path % "" if asset_path
+      end
     end
   end
 end
