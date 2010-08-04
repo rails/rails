@@ -2,6 +2,14 @@ require "active_support/string_inquirer"
 require "active_support/basic_object"
 
 module Rails
+  module Initializer
+    def self.run(&block)
+      klass = Class.new(Rails::Application)
+      klass.instance_exec(klass.config, &block)
+      klass.initialize!
+    end
+  end
+
   class DeprecatedConstant < ActiveSupport::BasicObject
     def self.deprecate(old, new)
       constant = self.new(old, new)
