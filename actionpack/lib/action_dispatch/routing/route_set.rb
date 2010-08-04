@@ -307,7 +307,7 @@ module ActionDispatch
         routes = self
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, self)
+            RoutesProxy.new(routes, self._routes_context)
           end
         end
 

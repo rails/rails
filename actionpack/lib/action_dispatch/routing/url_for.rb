@@ -141,6 +141,10 @@ module ActionDispatch
         ensure
           @_routes = old_routes
         end
+
+        def _routes_context
+          self
+        end
     end
   end
 end
