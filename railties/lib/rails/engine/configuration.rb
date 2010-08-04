@@ -65,7 +65,7 @@ module Rails
         super name, options[:version] || ">= 0"
         require options[:lib] || name
       rescue Gem::LoadError
-        msg = "config.gem is deprecated, and you tried to activate the '#{name}' gem using it.\n"
+        msg = "config.gem is deprecated, and you tried to activate the '#{name}' gem (#{options.inspect}) using it.\n"
 
         if File.exist?("#{Rails.root}/Gemfile")
           msg << "Please add '#{name}' to your Gemfile."
