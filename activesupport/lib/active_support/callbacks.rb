@@ -419,7 +419,10 @@ module ActiveSupport
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[name] ||= begin
           str = send("_#{kind}_callbacks").compile(name, object)
-          class_eval "def #{name}() #{str} end", __FILE__, __LINE__
+          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{name}() #{str} end
+            protected :#{name}
+          RUBY_EVAL
           true
         end
       end

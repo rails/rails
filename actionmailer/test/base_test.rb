@@ -507,6 +507,18 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
+  test "action methods should be refreshed after defining new method" do
+    class FooMailer < ActionMailer::Base
+      # this triggers action_methods
+      self.respond_to?(:foo)
+
+      def notify
+      end
+    end
+
+    assert_equal ["notify"], FooMailer.action_methods
+  end
+
   protected
 
     # Execute the block setting the given values and restoring old values after

@@ -72,6 +72,13 @@ module AbstractController
         end
       end
 
+      # action_methods are cached and there is sometimes need to refresh
+      # them. clear_action_methods! allows you to do that, so next time
+      # you run action_methods, they will be recalculated
+      def clear_action_methods!
+        @action_methods = nil
+      end
+
       # Returns the full controller name, underscored, without the ending Controller.
       # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
       # controller_name.
@@ -80,6 +87,11 @@ module AbstractController
       # String
       def controller_path
         @controller_path ||= name.sub(/Controller$/, '').underscore unless anonymous?
+      end
+
+      def method_added(name)
+        super
+        clear_action_methods!
       end
     end
 
