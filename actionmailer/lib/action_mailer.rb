@@ -26,7 +26,6 @@ $:.unshift(actionpack_path) if File.directory?(actionpack_path) && !$:.include?(
 
 require 'abstract_controller'
 require 'action_view'
-require 'action_dispatch'
 
 # Common Active Support usage in Action Mailer
 require 'active_support/core_ext/class'
