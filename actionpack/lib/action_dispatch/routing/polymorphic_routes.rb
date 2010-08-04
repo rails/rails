@@ -111,6 +111,10 @@ module ActionDispatch
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
 
+        if namespace = record.class.parents.detect { |n| n.respond_to?(:_railtie) }
+          named_route.sub!(/#{namespace._railtie.railtie_name}_/, '')
+        end
+
         url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
       end
 

@@ -352,6 +352,18 @@ module RailtiesTest
         end
       RUBY
 
+      @plugin.write "app/models/bukkits/post.rb", <<-RUBY
+        module Bukkits
+          class Post
+            extend ActiveModel::Naming
+
+            def to_param
+              "1"
+            end
+          end
+        end
+      RUBY
+
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
           match "/bar" => "bar#index", :as => "bar"
@@ -361,10 +373,14 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          match "/foo" => "bukkits/foo#index", :as => "foo"
-          match "/foo/show" => "bukkits/foo#show"
-          match "/from_app" => "bukkits/foo#from_app"
-          match "/routes_helpers_in_view" => "bukkits/foo#routes_helpers_in_view"
+          namespace(:bukkits, :path => nil, :shallow_path => nil, :as => nil) do
+            match "/foo" => "foo#index", :as => "foo"
+            match "/foo/show" => "foo#show"
+            match "/from_app" => "foo#from_app"
+            match "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
+            match "/polymorphic_path_without_namespace" => "foo#polymorphic_path_without_namespace"
+            resources :posts
+          end
         end
       RUBY
 
@@ -401,6 +417,10 @@ module RailtiesTest
           def routes_helpers_in_view
             render :inline => "<%= foo_path %>, <%= app.bar_path %>"
           end
+
+          def polymorphic_path_without_namespace
+            render :text => polymorphic_path(Post.new)
+          end
         end
       RUBY
 
@@ -410,6 +430,8 @@ module RailtiesTest
           end
         end
       RUBY
+
+      add_to_config("config.action_dispatch.show_exceptions = false")
 
       boot_rails
 
@@ -434,6 +456,10 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits/routes_helpers_in_view")
       response = AppTemplate::Application.call(env)
       assert_equal "/bukkits/foo, /bar", response[2].body
+
+      env = Rack::MockRequest.env_for("/bukkits/polymorphic_path_without_namespace")
+      response = AppTemplate::Application.call(env)
+      assert_equal "/bukkits/posts/1", response[2].body
     end
   end
 end
