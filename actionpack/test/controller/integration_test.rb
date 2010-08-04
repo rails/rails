@@ -227,6 +227,24 @@ class IntegrationTestTest < Test::Unit::TestCase
   end
 end
 
+require 'active_record_unit'
+# Tests that fixtures are accessible in the integration test sessions
+class IntegrationTestWithFixtures < ActiveRecordTestCase
+  include ActionController::Integration::Runner
+
+  fixtures :companies
+
+  def test_fixtures_in_new_session
+    sym = :thirty_seven_signals
+    # fixtures are accessible in main session
+    assert_not_nil companies(sym)
+
+    # create a new session and the fixtures should be accessible in it as well
+    session1 = open_session { |sess| }
+    assert_not_nil session1.companies(sym)
+  end
+end
+
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest

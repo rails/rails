@@ -536,7 +536,7 @@ EOF
         if self.class.respond_to?(:fixture_table_names)
           self.class.fixture_table_names.each do |table_name|
             name = table_name.tr(".", "_")
-            next unless respond_to?(name)
+            next unless respond_to?(name, true)
             extras.__send__(:define_method, name) { |*args|
               delegate.send(name, *args)
             }
