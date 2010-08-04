@@ -17,11 +17,17 @@ module Rails
     def method_missing(meth, *args, &block)
       ActiveSupport::Deprecation.warn("#{@old} is deprecated. Please use #{@new}") unless @warned
       @warned = true
-      @target.call.send(meth, *args, &block)
+
+      target = @target.call
+      if target.respond_to?(meth)
+        target.send(meth, *args, &block)
+      else
+        super
+      end
     end
   end
 
-  DeprecatedConstant.deprecate("RAILS_ROOT",           "Rails.root")
+  DeprecatedConstant.deprecate("RAILS_ROOT",           "Rails.root.to_s")
   DeprecatedConstant.deprecate("RAILS_ENV",            "Rails.env")
   DeprecatedConstant.deprecate("RAILS_DEFAULT_LOGGER", "Rails.logger")
 end
