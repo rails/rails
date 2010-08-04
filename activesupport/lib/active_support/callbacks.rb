@@ -571,7 +571,9 @@ module ActiveSupport
       #
       # would trigger <tt>Audit#before_save</tt> instead. That's constructed by calling
       # <tt>"#{kind}_#{name}"</tt> on the given instance. In this case "kind" is "before" and
-      # "name" is "save".
+      # "name" is "save". In this context treat ":kind" and ":name" as special thing where
+      # ":kind" refers to "callback type(before/after)" and ":name" refers to the method on 
+      # which callbacks are being defined.
       #
       # A declaration like
       #

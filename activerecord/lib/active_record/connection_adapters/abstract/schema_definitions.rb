@@ -537,7 +537,7 @@ module ActiveRecord
         end
     end
 
-    # Represents a SQL table in an abstract way for updating a table.
+    # Represents an SQL table in an abstract way for updating a table.
     # Also see TableDefinition and SchemaStatements#create_table
     #
     # Available transformations are:

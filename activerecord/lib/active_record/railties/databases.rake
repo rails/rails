@@ -339,7 +339,7 @@ namespace :db do
   end
 
   namespace :structure do
-    desc "Dump the database structure to a SQL file"
+    desc "Dump the database structure to an SQL file"
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs[Rails.env]["adapter"]
