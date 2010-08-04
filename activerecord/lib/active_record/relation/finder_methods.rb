@@ -286,6 +286,8 @@ module ActiveRecord
     end
 
     def find_one(id)
+      id = id.id if ActiveRecord::Base === id
+
       record = where(primary_key.eq(id)).first
 
       unless record
