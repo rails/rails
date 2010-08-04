@@ -41,13 +41,9 @@ module ActiveModel
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
 
-          valid_value = if key == :maximum
-            value.nil? || value.size.send(validity_check, check_value)
-          else
-            value && value.size.send(validity_check, check_value)
-          end
+          value ||= [] if key == :maximum
 
-          next if valid_value
+          next if value && value.size.send(validity_check, check_value)
 
           errors_options = options.except(*RESERVED_OPTIONS)
           errors_options[:count] = check_value
