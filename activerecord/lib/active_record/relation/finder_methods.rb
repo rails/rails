@@ -169,6 +169,8 @@ module ActiveRecord
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
     #   Person.exists?
     def exists?(id = nil)
+      id = id.id if ActiveRecord::Base === id
+
       case id
       when Array, Hash
         where(id).exists?
