@@ -164,6 +164,8 @@ module Arel
           group.relation.should == @relation
           group.groupings.should == [@attribute1, @attribute2]
           group.should be_kind_of Group
+          sql = group.to_sql
+          sql.should =~ /GROUP BY/
         end
 
         describe 'when given blank groupings' do
