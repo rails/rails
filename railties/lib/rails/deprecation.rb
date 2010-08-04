@@ -10,12 +10,12 @@ module Rails
 
     def initialize(old, new)
       @old, @new = old, new
-      @target = eval "proc { #{new} }"
+      @target = ::Kernel.eval "proc { #{@new} }"
       @warned = false
     end
 
     def method_missing(meth, *args, &block)
-      ActiveSupport::Deprecation.warn("#{@old} is deprecated. Please use #{@new}") unless @warned
+      ::ActiveSupport::Deprecation.warn("#{@old} is deprecated. Please use #{@new}") unless @warned
       @warned = true
 
       target = @target.call
