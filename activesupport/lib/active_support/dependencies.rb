@@ -388,13 +388,8 @@ module ActiveSupport #:nodoc:
     end
 
     # Search for a file in autoload_paths matching the provided suffix.
-    def search_for_file(file)
-      path_suffix = file.sub(/(\.rb)?$/, ".rb")
-
-      $:.each do |root|
-        path = File.join(root, path_suffix)
-        return file if File.file?(path)
-      end
+    def search_for_file(path_suffix)
+      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb")
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
