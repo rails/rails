@@ -36,7 +36,7 @@ module ActionController
 
   autoload :Dispatcher,      'action_controller/deprecated/dispatcher'
   autoload :UrlWriter,       'action_controller/deprecated/url_writer'
-  autoload :UrlReriter,      'action_controller/deprecated/url_writer'
+  autoload :UrlRewriter,     'action_controller/deprecated/url_writer'
   autoload :Integration,     'action_controller/deprecated/integration_test'
   autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
   autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
