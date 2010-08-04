@@ -194,6 +194,19 @@ module Arel
       @position_of[attribute] = attributes.index(attributes[attribute])
     end
 
+    def attributes;             Header.new  end
+    def projections;            []          end
+    def wheres;                 []          end
+    def orders;                 []          end
+    def inserts;                []          end
+    def groupings;              []          end
+    def havings;                []          end
+    def joins(formatter = nil); nil         end # FIXME
+    def taken;                  nil         end
+    def skipped;                nil         end
+    def sources;                []          end
+    def locked;                 []          end
+
     private
     def matching_attributes(attribute)
       (@matching_attributes ||= attributes.inject({}) do |hash, a|
@@ -205,21 +218,5 @@ module Arel
     def has_attribute?(attribute)
       !matching_attributes(attribute).empty?
     end
-
-    module DefaultOperations
-      def attributes;             Header.new  end
-      def projections;            []          end
-      def wheres;                 []          end
-      def orders;                 []          end
-      def inserts;                []          end
-      def groupings;              []          end
-      def havings;                []          end
-      def joins(formatter = nil); nil         end # FIXME
-      def taken;                  nil         end
-      def skipped;                nil         end
-      def sources;                []          end
-      def locked;                 []          end
-    end
-    include DefaultOperations
   end
 end
