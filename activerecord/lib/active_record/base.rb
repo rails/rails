@@ -1400,7 +1400,7 @@ MSG
       # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
       # application specific and is therefore left to the application to implement according to its need.
       def initialize_copy(other)
-        callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
+        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
 
