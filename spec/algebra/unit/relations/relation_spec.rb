@@ -160,7 +160,10 @@ module Arel
 
       describe '#group' do
         it 'manufactures a group relation' do
-          @relation.group(@attribute1, @attribute2).should == Group.new(@relation, [@attribute1, @attribute2])
+          group = @relation.group(@attribute1, @attribute2)
+          group.relation.should == @relation
+          group.groupings.should == [@attribute1, @attribute2]
+          group.should be_kind_of Group
         end
 
         describe 'when given blank groupings' do

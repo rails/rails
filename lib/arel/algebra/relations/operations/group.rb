@@ -7,13 +7,6 @@ module Arel
       @groupings = groupings.collect { |g| g.bind(relation) }
     end
 
-    def == other
-      super ||
-        self.class === other &&
-        @relation == other.relation &&
-        @groupings == other.groupings
-    end
-
     def eval
       raise NotImplementedError
     end
