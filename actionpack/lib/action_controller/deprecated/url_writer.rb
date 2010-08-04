@@ -6,4 +6,9 @@ module ActionController
       klass.class_eval { include Rails.application.routes.url_helpers }
     end
   end
+
+  class UrlRewriter
+    def initialize(*)
+    end
+  end
 end
