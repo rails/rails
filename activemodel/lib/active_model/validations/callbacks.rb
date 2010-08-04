@@ -33,7 +33,7 @@ module ActiveModel
             options[:if] = Array.wrap(options[:if])
             options[:if] << "self.validation_context == :#{options[:on]}"
           end
-          set_callback(:validation, :before, *args, &block)
+          set_callback(:validation, :before, *(args << options), &block)
         end
 
         def after_validation(*args, &block)
