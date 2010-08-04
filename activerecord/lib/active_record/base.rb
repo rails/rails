@@ -516,7 +516,8 @@ module ActiveRecord #:nodoc:
         connection.select_value(sql, "#{name} Count").to_i
       end
 
-      # Attributes listed as readonly can be set for a new record, but will be ignored in database updates afterwards.
+      # Attributes listed as readonly will be used to create a new record but update operations will
+      # ignore these fields.
       def attr_readonly(*attributes)
         write_inheritable_attribute(:attr_readonly, Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
       end
@@ -604,8 +605,8 @@ module ActiveRecord #:nodoc:
         (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      # Defines the column name for use with single table inheritance
-      # -- can be set in subclasses like so: self.inheritance_column = "type_id"
+      # Defines the column name for use with single table inheritance. Use 
+      # <tt>set_inheritance_column</tt> to set a different value.
       def inheritance_column
         @inheritance_column ||= "type".freeze
       end
@@ -622,8 +623,8 @@ module ActiveRecord #:nodoc:
         default
       end
 
-      # Sets the table name to use to the given value, or (if the value
-      # is nil or false) to the value returned by the given block.
+      # Sets the table name. If the value is nil or false  then the value returned by the given 
+      # block is used.
       #
       #   class Project < ActiveRecord::Base
       #     set_table_name "project"
@@ -1034,8 +1035,8 @@ module ActiveRecord #:nodoc:
         end
 
       protected
-        # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
-        # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameter is <tt>Relation</tt> while
+        # with_scope lets you apply options to inner block incrementally. It takes a hash and the keys must be
+        # <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameter is <tt>Relation</tt> while
         # <tt>:create</tt> parameters are an attributes hash.
         #
         #   class Article < ActiveRecord::Base
@@ -1080,8 +1081,7 @@ module ActiveRecord #:nodoc:
         #     end
         #   end
         #
-        # *Note*: the +:find+ scope also has effect on update and deletion methods,
-        # like +update_all+ and +delete_all+.
+        # *Note*: the +:find+ scope also has effect on update and deletion methods, like +update_all+ and +delete_all+.
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 

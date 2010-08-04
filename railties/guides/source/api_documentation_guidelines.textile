@@ -29,7 +29,7 @@ Documentation has to be concise but comprehensive. Explore and document edge cas
 
 The proper names of Rails components have a space in between the words, like "Active Support". +ActiveRecord+ is a Ruby module, whereas Active Record is an ORM. Historically there has been lack of consistency regarding this, but we checked with David when docrails started. All Rails documentation consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be fenomenal :).
 
-Spell names correctly: HTML, MySQL, JavaScript, ERb.
+Spell names correctly: HTML, MySQL, JavaScript, ERb. Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
 h3. Example Code
 

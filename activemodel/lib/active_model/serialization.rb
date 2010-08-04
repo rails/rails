@@ -61,6 +61,8 @@ module ActiveModel
   #   person.serializable_hash   # => {"name"=>"Bob"}
   #   person.to_json             # => "{\"name\":\"Bob\"}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
+  #
+  # Valid options are <tt>:only</tt>, <tt>:except</tt> and <tt>:methods</tt> .  
   module Serialization
     def serializable_hash(options = nil)
       options ||= {}
