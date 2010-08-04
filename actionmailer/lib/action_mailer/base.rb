@@ -361,11 +361,6 @@ module ActionMailer #:nodoc:
     }.freeze
 
     class << self
-      def inherited(klass)
-        super(klass)
-        klass.clear_action_methods!
-      end
-
       def mailer_name
         @mailer_name ||= name.underscore
       end
