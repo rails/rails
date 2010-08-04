@@ -31,7 +31,7 @@ module ActiveRecord
     end
 
     def group(*args)
-      clone.tap {|r| r.group_values += args if args.present? }
+      clone.tap {|r| r.group_values += args.flatten if args.present? }
     end
 
     def order(*args)
