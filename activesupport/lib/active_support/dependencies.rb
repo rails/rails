@@ -26,13 +26,13 @@ module ActiveSupport #:nodoc:
     
     # Deprecated, use autoload_paths.
     def self.load_paths
-      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths is deprecated and removed in Rails 3, please use autoload_paths instead", caller)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths is deprecated, please use autoload_paths instead", caller)
       autoload_paths
     end
 
     # Deprecated, use autoload_paths=.
     def self.load_paths=(paths)
-      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths= is deprecated and removed in Rails 3, please use autoload_paths= instead", caller)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths= is deprecated, please use autoload_paths= instead", caller)
       self.autoload_paths = paths
     end
 
