@@ -6,7 +6,7 @@ module ClassInheritableAttributes # :nodoc:
 end
 
 # It is recommend to use <tt>class_attribute</tt> over methods defined in this file. Please
-# refer to documentation for <tt>class_attribute</tt> for more infor. Officially it is not
+# refer to documentation for <tt>class_attribute</tt> for more information. Officially it is not
 # deprected but <tt>class_attribute</tt> is faster.
 #
 # Allows attributes to be shared within an inheritance hierarchy. Each descendant gets a copy of
