@@ -486,7 +486,11 @@ module ActiveSupport
         end
       end
 
-      # Skip a previously defined callback for a given type.
+      # Skip a previously defined callback.
+      #
+      #   class Writer < Person
+      #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
+      #   end
       #
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
