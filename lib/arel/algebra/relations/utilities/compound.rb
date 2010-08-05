@@ -3,9 +3,6 @@ module Arel
     include Relation
 
     attr_reader :relation, :engine
-    delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
-             :column_for, :locked, :table_alias, :array,
-             :to => :relation
 
     def initialize relation
       @relation    = relation
@@ -17,6 +14,15 @@ module Arel
       @havings     = nil
       @projections = nil
     end
+
+    def join?;           @relation.join?           end
+    def name;            @relation.name            end
+    def table_alias;     @relation.table_alias     end
+    def skipped;         @relation.skipped         end
+    def taken;           @relation.taken           end
+    def joins env;       @relation.joins env       end
+    def column_for attr; @relation.column_for attr end
+    def externalizable?; @relation.externalizable? end
 
     def sources
       @relation.sources
