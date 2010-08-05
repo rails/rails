@@ -5,7 +5,7 @@ module AbstractController
 
     class UrlForTests < ActionController::TestCase
       class W
-        include SharedTestRoutes.url_helpers
+        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { match ':controller(/:action(/:id(.:format)))' } }.url_helpers
       end
 
       def teardown
