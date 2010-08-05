@@ -718,7 +718,7 @@ class ResourcesTest < ActionController::TestCase
         set.draw do
           resources :messages do
             member do
-              match :something, :via => :invalid
+              match :something, :via => [:invalid, :get]
             end
           end
         end

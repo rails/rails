@@ -898,6 +898,15 @@ module ActionDispatch
             return self
           end
 
+          via = Array.wrap(options[:via]).map(&:to_sym)
+          if via.include?(:head)
+            raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
+          end
+
+          unless (invalid = via - HTTP_METHODS).empty?
+            raise ArgumentError, "Invalid HTTP method (#{invalid.join(', ')}) specified in :via"
+          end
+
           on = options.delete(:on)
           if VALID_ON_OPTIONS.include?(on)
             args.push(options)
