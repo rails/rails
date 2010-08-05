@@ -4,33 +4,33 @@
 #     def self.included(base)
 #       base.send(:extend, ClassMethods)
 #       base.send(:include, InstanceMethods)
-#       scope :foo, :conditions => {:created_at => nil}
+#       scope :foo, :conditions => { :created_at => nil }
 #     end
 #
 #     module ClassMethods
-#       def cm; puts 'I am class method'; end
+#       def cm; puts 'I am a class method'; end
 #     end
 #
 #     module InstanceMethods
-#       def im; puts 'I am instance method'; end
+#       def im; puts 'I am an instance method'; end
 #     end
 #   end
 #
-# By using <tt>ActiveSupport::Concern</tt> above module could be written as:
+# By using <tt>ActiveSupport::Concern</tt> the above module could instead be written as:
 #
 #   module M
 #     extend ActiveSupport::Concern
 #
-#    included do 
-#       scope :foo, :conditions => {:created_at => nil}
+#     included do
+#       scope :foo, :conditions => { :created_at => nil }
 #     end
 #
 #     module ClassMethods
-#       def cm; puts 'I am class method'; end
+#       def cm; puts 'I am a class method'; end
 #     end
 #
 #     module InstanceMethods
-#       def im; puts 'I am instance method'; end
+#       def im; puts 'I am an instance method'; end
 #     end
 #   end
 module ActiveSupport
