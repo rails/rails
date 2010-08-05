@@ -7,13 +7,6 @@ module Arel
       @orderings = orderings.collect { |o| o.bind(relation) }
     end
 
-    def == other
-      super ||
-        Order === other &&
-        relation == other.relation &&
-        orderings == other.orderings
-    end
-
     # TESTME
     def orders
       # QUESTION - do we still need relation.orders ?

@@ -122,7 +122,10 @@ module Arel
 
       describe '#order' do
         it "manufactures an order relation" do
-          @relation.order(@attribute1, @attribute2).should == Order.new(@relation, [@attribute1, @attribute2])
+          order = @relation.order(@attribute1, @attribute2)
+          order.relation.should == @relation
+          order.orderings.should == [@attribute1, @attribute2]
+          order.should be_kind_of Order
         end
 
         describe 'when given a blank ordering' do
