@@ -526,7 +526,8 @@ module ActiveSupport
       # This macro accepts the following options:
       #
       # * <tt>:terminator</tt> - Indicates when a before filter is considered
-      # to be halted.
+      # to halted. This is a string to be eval'ed and has the result of the
+      # very filter available in the <tt>result</tt> variable:
       #
       #   define_callbacks :validate, :terminator => "result == false"
       #
