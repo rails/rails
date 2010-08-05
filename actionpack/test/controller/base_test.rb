@@ -294,7 +294,7 @@ class EmptyUrlOptionsTest < ActionController::TestCase
     @controller.request = @request
 
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :things
       end
 

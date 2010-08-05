@@ -198,7 +198,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
     def with_test_route_set(options = {})
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => 'active_record_store_test/test'
         end
 

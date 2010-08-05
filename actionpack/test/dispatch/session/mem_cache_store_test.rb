@@ -174,7 +174,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
   private
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::MemCacheStoreTest::TestController
         end
 

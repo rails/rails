@@ -451,18 +451,18 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def with_test_routes(options = {})
     with_routing do |set|
-      set.draw do |map|
-        map.resources :projects do |projects|
-          projects.resources :tasks
-          projects.resource :bid do |bid|
-            bid.resources :tasks
+      set.draw do
+        resources :projects do
+          resources :tasks
+          resource :bid do
+            resources :tasks
           end
         end
-        map.resources :taxes do |taxes|
-          taxes.resources :faxes
-          taxes.resource :bid
+        resources :taxes do
+          resources :faxes
+          resource :bid
         end
-        map.resources :series
+        resources :series
       end
 
       self.class.send(:include, @routes.url_helpers)

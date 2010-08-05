@@ -70,10 +70,9 @@ class RenderXmlTest < ActionController::TestCase
 
   def test_rendering_with_object_location_should_set_header_with_url_for
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :customers
-        # match ':controller/:action'
-        map.connect ':controller/:action/:id'
+        match ':controller/:action'
       end
 
       get :render_with_object_location

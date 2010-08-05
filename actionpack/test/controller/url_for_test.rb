@@ -130,7 +130,7 @@ module AbstractController
 
       def test_named_routes
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match 'this/is/verbose', :to => 'home#index', :as => :no_args
             match 'home/sweet/home/:user', :to => 'home#index', :as => :home
           end
@@ -151,7 +151,7 @@ module AbstractController
 
       def test_relative_url_root_is_respected_for_named_routes
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match '/home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
@@ -165,7 +165,7 @@ module AbstractController
 
       def test_only_path
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match 'home/sweet/home/:user', :to => 'home#index', :as => :home
             match ':controller/:action/:id'
           end
@@ -233,7 +233,7 @@ module AbstractController
 
       def test_named_routes_with_nil_keys
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match 'posts.:format', :to => 'posts#index', :as => :posts
             match '/', :to => 'posts#index', :as => :main
           end

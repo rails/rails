@@ -394,7 +394,7 @@ end
 
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
-    test_routes do |map|
+    test_routes do
       match 'url_helper_controller_test/url_helper/show/:id',
         :to => 'url_helper_controller_test/url_helper#show',
         :as => :show
@@ -407,8 +407,7 @@ class UrlHelperControllerTest < ActionController::TestCase
         :to => 'url_helper_controller_test/url_helper#show_named_route',
         :as => :show_named_route
 
-      map.connect ":controller/:action/:id"
-      # match "/:controller(/:action(/:id))"
+      match "/:controller(/:action(/:id))"
 
       match 'url_helper_controller_test/url_helper/normalize_recall_params',
         :to => UrlHelperController.action(:normalize_recall),

@@ -443,11 +443,6 @@ module ActionDispatch
           options = args.extract_options!
           options = options.dup
 
-          if name_prefix = options.delete(:name_prefix)
-            options[:as] ||= name_prefix
-            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
-          end
-
           options[:path] = args.first if args.first.is_a?(String)
           recover = {}
 
@@ -770,7 +765,7 @@ module ActionDispatch
           end
 
           resource_scope(Resource.new(resources.pop, options)) do
-            yield if block_given?
+            instance_eval(&block) if block_given?
 
             collection_scope do
               get  :index if parent_resource.actions.include?(:index)

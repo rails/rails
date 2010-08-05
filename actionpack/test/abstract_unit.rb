@@ -49,14 +49,6 @@ require 'pp' # require 'pp' early to prevent hidden_methods from not picking up 
 module Rails
 end
 
-# Monkey patch the old routes initialization to be silenced.
-class ActionDispatch::Routing::DeprecatedMapper
-  def initialize_with_silencer(*args)
-    ActiveSupport::Deprecation.silence { initialize_without_silencer(*args) }
-  end
-  alias_method_chain :initialize, :silencer
-end
-
 ActiveSupport::Dependencies.hook!
 
 # Show backtraces for deprecated behavior for quicker cleanup.
@@ -128,14 +120,12 @@ module ActiveSupport
     # Hold off drawing routes until all the possible controller classes
     # have been loaded.
     setup_once do
-      SharedTestRoutes.draw do |map|
-        # FIXME: match ':controller(/:action(/:id))'
-        map.connect ':controller/:action/:id'
+      SharedTestRoutes.draw do
+        match ':controller(/:action)'
       end
 
-      ActionController::IntegrationTest.app.routes.draw do |map|
-        # FIXME: match ':controller(/:action(/:id))'
-        map.connect ':controller/:action/:id'
+      ActionController::IntegrationTest.app.routes.draw do
+        match ':controller(/:action)'
       end
     end
   end

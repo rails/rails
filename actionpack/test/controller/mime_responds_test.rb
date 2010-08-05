@@ -876,7 +876,7 @@ class RespondWithControllerTest < ActionController::TestCase
   private
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           resources :customers
           resources :quiz_stores do
             resources :customers
