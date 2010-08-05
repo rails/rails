@@ -611,9 +611,18 @@ module ActionDispatch
           end
 
           def actions
-            if only = @options[:only]
+            only, except = @options.values_at(:only, :except)
+            if only == :all || except == :none
+              only = nil
+              except = []
+            elsif only == :none || except == :all
+              only = []
+              except = nil
+            end
+
+            if only
               Array(only).map(&:to_sym)
-            elsif except = @options[:except]
+            elsif except
               default_actions - Array(except).map(&:to_sym)
             else
               default_actions
