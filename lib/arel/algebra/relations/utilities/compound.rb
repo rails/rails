@@ -4,7 +4,7 @@ module Arel
 
     attr_reader :relation, :engine
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
-             :column_for, :sources, :locked, :table_alias, :array,
+             :column_for, :locked, :table_alias, :array,
              :to => :relation
 
     def initialize relation
@@ -16,6 +16,10 @@ module Arel
       @orders      = nil
       @havings     = nil
       @projections = nil
+    end
+
+    def sources
+      @relation.sources
     end
 
     def table
