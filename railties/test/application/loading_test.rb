@@ -70,7 +70,7 @@ class LoadingTest < Test::Unit::TestCase
     MODEL
 
     app_file 'config/routes.rb', <<-RUBY
-      AppTemplate::Application.routes.draw do |map|
+      AppTemplate::Application.routes.draw do
         match '/load',   :to => lambda { |env| [200, {}, Post.all] }
         match '/unload', :to => lambda { |env| [200, {}, []] }
       end

@@ -178,7 +178,7 @@ module RailtiesTest
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match 'foo', :to => 'foo#index'
         end
       RUBY
@@ -192,7 +192,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do |map|
+        Rails.application.routes.draw do
           match 'foo', :to => 'bar#index'
           match 'bar', :to => 'bar#index'
         end
