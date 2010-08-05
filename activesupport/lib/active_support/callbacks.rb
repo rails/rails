@@ -522,13 +522,14 @@ module ActiveSupport
       #
       # This macro accepts the following options:
       #
-      # * <tt>:terminator</tt> - Indicates when a before filter is considered to be halted.
+      # * <tt>:terminator</tt> - Indicates when a before filter is considered
+      # to be halted.
       #
       #   define_callbacks :validate, :terminator => "result == false"
       #
-      # In the example above, if any before validate callback returns +false+,
-      # other callbacks are not executed. Note that in this case if the callback
-      # returns +nil+ then other callbacks are still executed. 
+      # In the example above, if any before validate callbacks returns +false+,
+      # other callbacks are not executed. Defaults to "false", meaning no value
+      # halts the chain.
       #
       # * <tt>:rescuable</tt> - By default, after filters are not executed if
       # the given block or a before filter raises an error. Set this option to
