@@ -121,11 +121,11 @@ module ActiveSupport
     # have been loaded.
     setup_once do
       SharedTestRoutes.draw do
-        match ':controller(/:action(/:id(.:format)))'
+        match ':controller(/:action)'
       end
 
       ActionController::IntegrationTest.app.routes.draw do
-        match ':controller(/:action(/:id(.:format)))'
+        match ':controller(/:action)'
       end
     end
   end
