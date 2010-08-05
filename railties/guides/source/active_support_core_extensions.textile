@@ -2979,11 +2979,11 @@ Note in the previous example that increments may be negative.
 
 To perform the computation the method first increments years, then months, then weeks, and finally days. This order is important towards the end of months. Say for example we are at the end of February of 2010, and we want to move one month and one day forward.
 
-The method +advance+ advances first one month, and the one day, the result is:
+The method +advance+ advances first one month, and then one day, the result is:
 
 <ruby>
-Date.new(2010, 2, 28).advance(:months => 1, :day => 1)
-# => Sun, 28 Mar 2010
+Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
+# => Sun, 29 Mar 2010
 </ruby>
 
 While if it did it the other way around the result would be different:
@@ -3131,6 +3131,37 @@ now = DateTime.now # => Mon, 07 Jun 2010 19:30:47 -0400
 now.utc?           # => false
 now.utc.utc?       # => true
 </ruby>
+
+h6(#datetime-advance). +advance+
+
+The most generic way to jump to another datetime is +advance+. This method receives a hash with keys +:years+, +:months+, +:weeks+, +:days+, +:hours+, +:minutes+, and +:seconds+, and returns a datetime advanced as much as the present keys indicate.
+
+<ruby>
+d = DateTime.current
+# => Thu, 05 Aug 2010 11:33:31 +0000
+d.advance(:years => 1, :months => 1, :days => 1, :hours => 1, :minutes => 1, :seconds => 1)
+# => Tue, 06 Sep 2011 12:34:32 +0000
+</ruby>
+
+This method first computes the destination date passing +:years+, +:months+, +:weeks+, and +:days+ to +Date#advance+ documented above. After that, it adjusts the time calling +since+ with the number of seconds to advance. This order is relevant, a different ordering would give different datetimes in some edge-cases. The example in +Date#advance+ applies, and we can extend it to show order relevance related to the time bits.
+
+If we first move the date bits (that have also a relative order of processing, as documented before), and then the time bits we get for example the following computation:
+
+<ruby>
+d = DateTime.new(2010, 2, 28, 23, 59, 59)
+# => Sun, 28 Feb 2010 23:59:59 +0000
+d.advance(:months => 1, :seconds => 1)
+# => Mon, 29 Mar 2010 00:00:00 +0000
+</ruby>
+
+but if we computed them the other way around, the result would be different:
+
+<ruby>
+d.advance(:seconds => 1).advance(:months => 1)
+# => Thu, 01 Apr 2010 00:00:00 +0000
+</ruby>
+
+WARNING: Since +DateTime+ is not DST-aware you can end up in a non-existing point in time with no warning or error telling you so.
 
 h5(#datetime-changing-components). Changing Components
 
