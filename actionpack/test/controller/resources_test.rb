@@ -143,7 +143,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_name_prefix
-    with_restful_routing :messages, :name_prefix => 'post_' do
+    with_restful_routing :messages, :as => 'post_messages' do
       assert_simply_restful_for :messages, :name_prefix => 'post_'
     end
   end
@@ -151,7 +151,16 @@ class ResourcesTest < ActionController::TestCase
   def test_with_collection_actions
     actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
 
-    with_restful_routing :messages, :collection => actions do
+    with_routing do |set|
+      set.draw do
+        resources :messages do
+          get    :a, :on => :collection
+          put    :b, :on => :collection
+          post   :c, :on => :collection
+          delete :d, :on => :collection
+        end
+      end
+
       assert_restful_routes_for :messages do |options|
         actions.each do |action, method|
           assert_recognizes(options.merge(:action => action), :path => "/messages/#{action}", :method => method)
@@ -169,7 +178,18 @@ class ResourcesTest < ActionController::TestCase
   def test_with_collection_actions_and_name_prefix
     actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
 
-    with_restful_routing :messages, :path_prefix => '/threads/:thread_id', :name_prefix => "thread_", :collection => actions do
+    with_routing do |set|
+      set.draw do
+        scope '/threads/:thread_id' do
+          resources :messages, :as => 'thread_messages' do
+            get    :a, :on => :collection
+            put    :b, :on => :collection
+            post   :c, :on => :collection
+            delete :d, :on => :collection
+          end
+        end
+      end
+
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
         actions.each do |action, method|
           assert_recognizes(options.merge(:action => action), :path => "/threads/1/messages/#{action}", :method => method)
@@ -187,7 +207,16 @@ class ResourcesTest < ActionController::TestCase
   def test_with_collection_actions_and_name_prefix_and_member_action_with_same_name
     actions = { 'a' => :get }
 
-    with_restful_routing :messages, :path_prefix => '/threads/:thread_id', :name_prefix => "thread_", :collection => actions, :member => actions do
+    with_routing do |set|
+      set.draw do
+        scope '/threads/:thread_id' do
+          resources :messages, :as => 'thread_messages' do
+            get :a, :on => :collection
+            get :a, :on => :member
+          end
+        end
+      end
+
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
         actions.each do |action, method|
           assert_recognizes(options.merge(:action => action), :path => "/threads/1/messages/#{action}", :method => method)
@@ -205,7 +234,18 @@ class ResourcesTest < ActionController::TestCase
   def test_with_collection_action_and_name_prefix_and_formatted
     actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
 
-    with_restful_routing :messages, :path_prefix => '/threads/:thread_id', :name_prefix => "thread_", :collection => actions do
+    with_routing do |set|
+      set.draw do
+        scope '/threads/:thread_id' do
+          resources :messages, :as => 'thread_messages' do
+            get    :a, :on => :collection
+            put    :b, :on => :collection
+            post   :c, :on => :collection
+            delete :d, :on => :collection
+          end
+        end
+      end
+
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
         actions.each do |action, method|
           assert_recognizes(options.merge(:action => action, :format => 'xml'), :path => "/threads/1/messages/#{action}.xml", :method => method)
@@ -285,7 +325,16 @@ class ResourcesTest < ActionController::TestCase
 
   def test_with_two_member_actions_with_same_method
     [:put, :post].each do |method|
-      with_restful_routing :messages, :member => { :mark => method, :unmark => method } do
+      with_routing do |set|
+        set.draw do
+          resources :messages do
+            member do
+              match :mark  , :via => method
+              match :unmark, :via => method
+            end
+          end
+        end
+
         %w(mark unmark).each do |action|
           action_options = {:action => action, :id => '1'}
           action_path    = "/messages/1/#{action}"
@@ -302,7 +351,19 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_array_as_collection_or_member_method_value
-    with_restful_routing :messages, :collection => { :search => [:get, :post] }, :member => { :toggle => [:get, :post] } do
+    with_routing do |set|
+      set.draw do
+        resources :messages do
+          collection do
+            match :search, :via => [:post, :get]
+          end
+
+          member do
+            match :toggle, :via => [:post, :get]
+          end
+        end
+      end
+
       assert_restful_routes_for :messages do |options|
         [:get, :post].each do |method|
           assert_recognizes(options.merge(:action => 'search'), :path => "/messages/search", :method => method)
@@ -315,7 +376,13 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_new_action
-    with_restful_routing :messages, :new => { :preview => :post } do
+    with_routing do |set|
+      set.draw do
+        resources :messages do
+          post :preview, :on => :new
+        end
+      end
+
       preview_options = {:action => 'preview'}
       preview_path    = "/messages/new/preview"
       assert_restful_routes_for :messages do |options|
@@ -329,7 +396,15 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_new_action_with_name_prefix
-    with_restful_routing :messages, :new => { :preview => :post }, :path_prefix => '/threads/:thread_id', :name_prefix => 'thread_' do
+    with_routing do |set|
+      set.draw do
+        scope('/threads/:thread_id') do
+          resources :messages, :as => "thread_messages" do
+            post :preview, :on => :new
+          end
+        end
+      end
+
       preview_options = {:action => 'preview', :thread_id => '1'}
       preview_path    = "/threads/1/messages/new/preview"
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
@@ -343,7 +418,15 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_formatted_new_action_with_name_prefix
-    with_restful_routing :messages, :new => { :preview => :post }, :path_prefix => '/threads/:thread_id', :name_prefix => 'thread_' do
+    with_routing do |set|
+      set.draw do
+        scope('/threads/:thread_id') do
+          resources :messages, :as => "thread_messages" do
+            post :preview, :on => :new
+          end
+        end
+      end
+
       preview_options = {:action => 'preview', :thread_id => '1', :format => 'xml'}
       preview_path    = "/threads/1/messages/new/preview.xml"
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
@@ -366,7 +449,13 @@ class ResourcesTest < ActionController::TestCase
       end
     end
 
-    with_restful_routing :messages, :new => { :new => :any } do
+    with_routing do |set|
+      set.draw do
+        resources :messages do
+          match :new, :via => [:post, :get], :on => :new
+        end
+      end
+
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :post)
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
@@ -377,9 +466,9 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_restful_routes
     with_routing do |set|
       set.draw do
-       resources :threads do
-         resources :messages do
-           resources :comments
+        resources :threads do
+          resources :messages do
+            resources :comments
           end
         end
       end
@@ -399,9 +488,9 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_restful_routes_with_overwritten_defaults
     with_routing do |set|
       set.draw do
-       resources :threads do
-         resources :messages, :name_prefix => nil do
-           resources :comments, :name_prefix => nil
+        resources :threads do
+          resources :messages, :name_prefix => nil do
+            resources :comments, :name_prefix => nil
           end
         end
       end
@@ -419,9 +508,9 @@ class ResourcesTest < ActionController::TestCase
   def test_shallow_nested_restful_routes
     with_routing do |set|
       set.draw do
-       resources :threads, :shallow => true do
-         resources :messages do
-           resources :comments
+        resources :threads, :shallow => true do
+          resources :messages do
+            resources :comments
           end
         end
       end
@@ -444,10 +533,10 @@ class ResourcesTest < ActionController::TestCase
   def test_shallow_nested_restful_routes_with_namespaces
     with_routing do |set|
       set.draw do
-       namespace :backoffice do
-         namespace :admin do
-           resources :products, :shallow => true do
-             resources :images
+        namespace :backoffice do
+          namespace :admin do
+            resources :products, :shallow => true do
+              resources :images
             end
           end
         end
@@ -497,7 +586,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_create_nested_singleton_resource_routes
     with_routing do |set|
       set.draw do
-       resource :admin, :controller => 'admin' do
+        resource :admin, :controller => 'admin' do
           resource :account
         end
       end
@@ -507,69 +596,15 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_resource_has_many_should_become_nested_resources
-    with_routing do |set|
-      set.draw do
-       resources :messages, :has_many => [ :comments, :authors ]
-      end
-
-      assert_simply_restful_for :messages
-      assert_simply_restful_for :comments, :name_prefix => "message_", :path_prefix => 'messages/1/', :options => { :message_id => '1' }
-      assert_simply_restful_for :authors,  :name_prefix => "message_", :path_prefix => 'messages/1/', :options => { :message_id => '1' }
-    end
-  end
-
-  def test_resources_has_many_hash_should_become_nested_resources
-    with_routing do |set|
-      set.draw do
-       resources :threads, :has_many => { :messages => [ :comments, { :authors => :threads } ] }
-      end
-
-      assert_simply_restful_for :threads
-      assert_simply_restful_for :messages, :name_prefix => "thread_", :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
-      assert_simply_restful_for :comments, :name_prefix => "thread_message_", :path_prefix => 'threads/1/messages/1/', :options => { :thread_id => '1', :message_id => '1' }
-      assert_simply_restful_for :authors,  :name_prefix => "thread_message_", :path_prefix => 'threads/1/messages/1/', :options => { :thread_id => '1', :message_id => '1' }
-      assert_simply_restful_for :threads,  :name_prefix => "thread_message_author_", :path_prefix => 'threads/1/messages/1/authors/1/', :options => { :thread_id => '1', :message_id => '1', :author_id => '1' }
-    end
-  end
-
-  def test_shallow_resource_has_many_should_become_shallow_nested_resources
-    with_routing do |set|
-      set.draw do
-       resources :messages, :has_many => [ :comments, :authors ], :shallow => true
-      end
-
-      assert_simply_restful_for :messages, :shallow => true
-      assert_simply_restful_for :comments, :name_prefix => "message_", :path_prefix => 'messages/1/', :shallow => true, :options => { :message_id => '1' }
-      assert_simply_restful_for :authors,  :name_prefix => "message_", :path_prefix => 'messages/1/', :shallow => true, :options => { :message_id => '1' }
-    end
-  end
-
-  def test_resource_has_one_should_become_nested_resources
-    with_routing do |set|
-      set.draw do
-       resources :messages, :has_one => :logo
-      end
-
-      assert_simply_restful_for :messages
-      assert_singleton_restful_for :logo, :name_prefix => 'message_', :path_prefix => 'messages/1/', :options => { :message_id => '1' }
-    end
-  end
-
-  def test_shallow_resource_has_one_should_become_shallow_nested_resources
-    with_routing do |set|
-      set.draw do
-       resources :messages, :has_one => :logo, :shallow => true
-      end
-
-      assert_simply_restful_for :messages, :shallow => true
-      assert_singleton_restful_for :logo, :name_prefix => 'message_', :path_prefix => 'messages/1/', :shallow => true, :options => { :message_id => '1' }
-    end
-  end
-
   def test_singleton_resource_with_member_action
     [:put, :post].each do |method|
-      with_singleton_resources :account, :member => { :reset => method } do
+      with_routing do |set|
+        set.draw do
+          resource :account do
+            match :reset, :on => :member, :via => method
+          end
+        end
+
         reset_options = {:action => 'reset'}
         reset_path    = "/account/reset"
         assert_singleton_routes_for :account do |options|
@@ -585,7 +620,14 @@ class ResourcesTest < ActionController::TestCase
 
   def test_singleton_resource_with_two_member_actions_with_same_method
     [:put, :post].each do |method|
-      with_singleton_resources :account, :member => { :reset => method, :disable => method } do
+      with_routing do |set|
+        set.draw do
+          resource :account do
+            match :reset, :on => :member, :via => method
+            match :disable, :on => :member, :via => method
+          end
+        end
+
         %w(reset disable).each do |action|
           action_options = {:action => action}
           action_path    = "/account/#{action}"
@@ -604,7 +646,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_nest_resources_in_singleton_resource
     with_routing do |set|
       set.draw do
-       resource :account do
+        resource :account do
           resources :messages
         end
       end
@@ -614,11 +656,13 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_should_nest_resources_in_singleton_resource_with_path_prefix
+  def test_should_nest_resources_in_singleton_resource_with_path_scope
     with_routing do |set|
       set.draw do
-       resource(:account, :path_prefix => ':site_id') do
-          resources :messages
+        scope ':site_id' do
+          resource(:account) do
+            resources :messages
+          end
         end
       end
 
@@ -630,7 +674,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_nest_singleton_resource_in_resources
     with_routing do |set|
       set.draw do
-       resources :threads do
+        resources :threads do
           resource :admin, :controller => 'admin'
         end
       end
@@ -660,7 +704,9 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       assert_raise(ArgumentError) do
         set.draw do
-         resources :messages, :member => {:something => :head}
+          resources :messages do
+            match :something, :on => :member, :via => :head
+          end
         end
       end
     end
@@ -670,7 +716,11 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       assert_raise(ArgumentError) do
         set.draw do
-         resources :messages, :member => {:something => :invalid}
+          resources :messages do
+            member do
+              match :something, :via => :invalid
+            end
+          end
         end
       end
     end
@@ -679,8 +729,18 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_action_separator
     with_routing do |set|
       set.draw do
-       resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
-       resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
+        scope '/threads/:thread_id' do
+          resources :messages, :as => :thread_messages do
+            get :search, :on => :collection
+            match :preview, :on => :new
+          end
+        end
+        scope '/admin' do
+          resource :account, :as => :admin_account do
+            get :login, :on => :member
+            match :preview, :on => :new
+          end
+        end
       end
 
       action_separator = ActionController::Base.resource_action_separator
@@ -699,8 +759,14 @@ class ResourcesTest < ActionController::TestCase
   def test_new_style_named_routes_for_resource
     with_routing do |set|
       set.draw do
-       resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
+        scope '/threads/:thread_id' do
+          resources :messages, :as => 'thread_messages' do
+            get :search, :on => :collection
+            match :preview, :on => :new
+          end
+        end
       end
+
       assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
       assert_named_route "/threads/1/messages/search", "search_thread_messages_path", {}
       assert_named_route "/threads/1/messages/new", "new_thread_message_path", {}
@@ -711,7 +777,12 @@ class ResourcesTest < ActionController::TestCase
   def test_new_style_named_routes_for_singleton_resource
     with_routing do |set|
       set.draw do
-       resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
+        scope '/admin' do
+          resource :account, :as => :admin_account do
+            get :login, :on => :member
+            match :preview, :on => :new
+          end
+        end
       end
       assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
       assert_named_route "/admin/account/login", "login_admin_account_path", {}
@@ -723,7 +794,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resources_in_namespace
     with_routing do |set|
       set.draw do
-       namespace :backoffice do
+        namespace :backoffice do
           resources :products
         end
       end
@@ -732,37 +803,11 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_resource_has_many_in_namespace
-    with_routing do |set|
-      set.draw do
-       namespace :backoffice do
-          resources :products, :has_many => :tags
-        end
-      end
-
-      assert_simply_restful_for :products,  :controller => "backoffice/products", :name_prefix => 'backoffice_',          :path_prefix => 'backoffice/'
-      assert_simply_restful_for :tags,      :controller => "backoffice/tags",     :name_prefix => "backoffice_product_",  :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
-    end
-  end
-
-  def test_resource_has_one_in_namespace
-    with_routing do |set|
-      set.draw do
-       namespace :backoffice do
-          resources :products, :has_one => :manufacturer
-        end
-      end
-
-      assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
-      assert_singleton_restful_for :manufacturer, :controller => "backoffice/manufacturers", :name_prefix => 'backoffice_product_', :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
-    end
-  end
-
   def test_resources_in_nested_namespace
     with_routing do |set|
       set.draw do
-       namespace :backoffice do
-          backoffice.namespace :admin do
+        namespace :backoffice do
+          namespace :admin do
             resources :products
           end
         end
@@ -775,7 +820,9 @@ class ResourcesTest < ActionController::TestCase
   def test_resources_using_namespace
     with_routing do |set|
       set.draw do
-       resources :products, :namespace => "backoffice/"
+        namespace :backoffice, :path => nil, :as => nil do
+          resources :products
+        end
       end
 
       assert_simply_restful_for :products, :controller => "backoffice/products"
@@ -785,9 +832,9 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resources_using_namespace
     with_routing do |set|
       set.draw do
-       namespace :backoffice do
+        namespace :backoffice do
           resources :products do
-            products.resources :images
+            resources :images
           end
         end
       end
@@ -799,10 +846,10 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resources_in_nested_namespace
     with_routing do |set|
       set.draw do
-       namespace :backoffice do
-          backoffice.namespace :admin do
+        namespace :backoffice do
+          namespace :admin do
             resources :products do
-              products.resources :images
+              resources :images
             end
           end
         end
@@ -819,10 +866,13 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes({:controller => "messages", :action => "index"}, "/messages/")
     end
 
-     with_restful_routing :messages, :as => 'reviews' do
-       assert_simply_restful_for :messages, :as => 'reviews'
-      assert_recognizes({:controller => "messages", :action => "index"}, "/reviews")
-      assert_recognizes({:controller => "messages", :action => "index"}, "/reviews/")
+     with_routing do |set|
+        set.draw do
+          resources :messages, :path => 'reviews'
+        end
+        assert_simply_restful_for :messages, :as => 'reviews'
+        assert_recognizes({:controller => "messages", :action => "index"}, "/reviews")
+        assert_recognizes({:controller => "messages", :action => "index"}, "/reviews/")
      end
   end
 
@@ -830,10 +880,10 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
        resources :products do
-          products.resources :product_reviews, :as => 'reviews', :controller => 'messages'
+          resources :product_reviews, :path => 'reviews', :controller => 'messages'
         end
        resources :tutors do
-          resources :tutor_reviews, :as => 'reviews', :controller => 'comments'
+          resources :tutor_reviews, :path => 'reviews', :controller => 'comments'
         end
       end
 
@@ -847,7 +897,7 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         scope '/thread/:thread_id', :constraints => { :thread_id => /[0-9]\.[0-9]\.[0-9]/ } do
-          resources :messages, :as => 'comments'
+          resources :messages, :path => 'comments'
         end
       end
       assert_recognizes(expected_options, :path => 'thread/1.1.1/comments/1', :method => :get)
@@ -857,7 +907,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_show_action
     with_routing do |set|
       set.draw do
-       resources :products, :only => :show
+        resources :products, :only => :show
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, :show, [:index, :new, :create, :edit, :update, :destroy])
@@ -868,7 +918,7 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_show_action
     with_routing do |set|
       set.draw do
-       resource :account, :only => :show
+        resource :account, :only => :show
       end
 
       assert_singleton_resource_allowed_routes('accounts', {},                    :show, [:index, :new, :create, :edit, :update, :destroy])
@@ -879,7 +929,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_does_not_have_destroy_action
     with_routing do |set|
       set.draw do
-       resources :products, :except => :destroy
+        resources :products, :except => :destroy
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, [:index, :new, :create, :show, :edit, :update], :destroy)
@@ -890,7 +940,7 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_does_not_have_destroy_action
     with_routing do |set|
       set.draw do
-       resource :account, :except => :destroy
+        resource :account, :except => :destroy
       end
 
       assert_singleton_resource_allowed_routes('accounts', {},                    [:new, :create, :show, :edit, :update], :destroy)
@@ -901,7 +951,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_create_action_and_named_route
     with_routing do |set|
       set.draw do
-       resources :products, :only => :create
+        resources :products, :only => :create
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, :create, [:index, :new, :show, :edit, :update, :destroy])
@@ -914,7 +964,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_update_action_and_named_route
     with_routing do |set|
       set.draw do
-       resources :products, :only => :update
+        resources :products, :only => :update
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, :update, [:index, :new, :create, :show, :edit, :destroy])
@@ -927,7 +977,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_destroy_action_and_named_route
     with_routing do |set|
       set.draw do
-       resources :products, :only => :destroy
+        resources :products, :only => :destroy
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, :destroy, [:index, :new, :create, :show, :edit, :update])
@@ -940,7 +990,7 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_create_action_and_named_route
     with_routing do |set|
       set.draw do
-       resource :account, :only => :create
+        resource :account, :only => :create
       end
 
       assert_singleton_resource_allowed_routes('accounts', {},                    :create, [:new, :show, :edit, :update, :destroy])
@@ -953,7 +1003,7 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_update_action_and_named_route
     with_routing do |set|
       set.draw do
-       resource :account, :only => :update
+        resource :account, :only => :update
       end
 
       assert_singleton_resource_allowed_routes('accounts', {},                    :update, [:new, :create, :show, :edit, :destroy])
@@ -966,7 +1016,7 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_destroy_action_and_named_route
     with_routing do |set|
       set.draw do
-       resource :account, :only => :destroy
+        resource :account, :only => :destroy
       end
 
       assert_singleton_resource_allowed_routes('accounts', {},                    :destroy, [:new, :create, :show, :edit, :update])
@@ -979,7 +1029,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_collection_action
     with_routing do |set|
       set.draw do
-       resources :products, :except => :all, :collection => { :sale => :get }
+        resources :products, :except => :all, :collection => { :sale => :get }
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
@@ -993,7 +1043,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_member_action
     with_routing do |set|
       set.draw do
-       resources :products, :except => :all, :member => { :preview => :get }
+        resources :products, :except => :all, :member => { :preview => :get }
       end
 
       assert_resource_allowed_routes('products', {},                    { :id => '1' }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
@@ -1007,7 +1057,11 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_member_action
     with_routing do |set|
       set.draw do
-       resource :account, :except => :all, :member => { :signup => :get }
+        resource :account, :except => :all do
+          member do
+            get :signup
+          end
+        end
       end
 
       assert_singleton_resource_allowed_routes('accounts', {},                    [], [:new, :create, :show, :edit, :update, :destroy])
@@ -1021,7 +1075,7 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resource_has_only_show_and_member_action
     with_routing do |set|
       set.draw do
-       resources :products, :only => [:index, :show] do
+        resources :products, :only => [:index, :show] do
           resources :images, :member => { :thumbnail => :get }, :only => :show
         end
       end
@@ -1037,7 +1091,7 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resource_does_not_inherit_only_option
     with_routing do |set|
       set.draw do
-       resources :products, :only => :show do
+        resources :products, :only => :show do
           resources :images, :except => :destroy
         end
       end
@@ -1050,7 +1104,7 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resource_does_not_inherit_only_option_by_default
     with_routing do |set|
       set.draw do
-       resources :products, :only => :show do
+        resources :products, :only => :show do
           resources :images
         end
       end
@@ -1063,7 +1117,7 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resource_does_not_inherit_except_option
     with_routing do |set|
       set.draw do
-       resources :products, :except => :show do
+        resources :products, :except => :show do
           resources :images, :only => :destroy
         end
       end
@@ -1076,7 +1130,7 @@ class ResourcesTest < ActionController::TestCase
   def test_nested_resource_does_not_inherit_except_option_by_default
     with_routing do |set|
       set.draw do
-       resources :products, :except => :show do
+        resources :products, :except => :show do
           resources :images
         end
       end
@@ -1089,7 +1143,7 @@ class ResourcesTest < ActionController::TestCase
   def test_default_singleton_restful_route_uses_get
     with_routing do |set|
       set.draw do
-       resource :product
+        resource :product
       end
 
       assert_routing '/product', :controller => 'products', :action => 'show'
