@@ -13,7 +13,7 @@ gem 'rails', '<%= Rails::VERSION::STRING %>'
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 <%- end -%>
 
-<% unless options[:skip_activerecord] -%>
+<% unless options[:skip_active_record] -%>
 gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= require_for_database %>'<% end %>
 <% end -%>
 
