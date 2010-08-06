@@ -10,10 +10,6 @@ module Arel
       self
     end
 
-    def == other
-      super || (self.class === other && attribute == other.attribute)
-    end
-
     def eval(row1, row2)
       (attribute.eval(row1) <=> attribute.eval(row2)) * direction
     end
