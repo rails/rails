@@ -15,11 +15,11 @@ module Arel
         @relation                   \
           .project(@relation[:id])  \
         .tap do |relation|
-          relation.call.should == [
-            Row.new(relation, [1]),
-            Row.new(relation, [2]),
-            Row.new(relation, [3])
-          ]
+          rows = relation.call
+          @relation.array.zip(rows) do |tuple, row|
+            row.relation.should == relation
+            row.tuple.should == [tuple.first]
+          end
         end
       end
     end

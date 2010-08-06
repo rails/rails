@@ -7,13 +7,6 @@ module Arel
       @tuple = tuple
     end
 
-    def == other
-      super ||
-        Row === other &&
-        relation == other.relation &&
-        tuple == other.tuple
-    end
-
     def [](attribute)
       attribute.type_cast(tuple[relation.position_of(attribute)])
     end

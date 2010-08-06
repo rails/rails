@@ -21,11 +21,12 @@ module Arel
 
     describe '#call' do
       it "manufactures an array of hashes of attributes to values" do
-        @relation.call.should == [
-          Row.new(@relation, [1, 'duck']),
-          Row.new(@relation, [2, 'duck']),
-          Row.new(@relation, [3, 'goose'])
-        ]
+        rows = @relation.call
+        rows.length.should == 3
+        @relation.array.zip(rows).each do |tuple, row|
+          row.relation.should == @relation
+          row.tuple.should == tuple
+        end
       end
     end
   end

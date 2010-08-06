@@ -15,10 +15,12 @@ module Arel
         @relation   \
           .take(2)  \
         .tap do |relation|
-          relation.call.should == [
-            Row.new(relation, [1, 'duck']),
-            Row.new(relation, [2, 'duck']),
-          ]
+          rows = relation.call
+          rows.length.should == 2
+          rows.each_with_index do |row, i|
+            row.relation.should == relation
+            row.tuple.should == [i + 1, 'duck']
+          end
         end
       end
     end

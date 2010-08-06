@@ -15,10 +15,15 @@ module Arel
         @relation   \
           .skip(1)  \
         .tap do |relation|
-          relation.call.should == [
-            Row.new(relation, [2, 'duck']),
-            Row.new(relation, [3, 'goose']),
-          ]
+          rows = relation.call
+          rows.length.should == 2
+          one, two = *rows
+
+          one.relation.should == relation
+          one.tuple.should == [2, 'duck']
+
+          two.relation.should == relation
+          two.tuple.should == [3, 'goose']
         end
       end
     end

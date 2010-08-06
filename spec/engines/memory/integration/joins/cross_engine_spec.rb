@@ -25,10 +25,15 @@ module Arel
             .on(@users[:id].eq(@photos[:user_id]))     \
           .project(@users[:name], @photos[:camera_id]) \
         .tap do |relation|
-          relation.call.should == [
-            Row.new(relation, ['bryan', @adapter_returns_integer ? 6 : '6']),
-            Row.new(relation, ['emilio', @adapter_returns_integer ? 42 : '42'])
-          ]
+          rows = relation.call
+          rows.length.should == 2
+          [
+            ['bryan', @adapter_returns_integer ? 6 : '6'],
+            ['emilio', @adapter_returns_integer ? 42 : '42']
+          ].zip(rows).each do |tuple, row|
+            row.relation.should == relation
+            row.tuple.should == tuple
+          end
         end
       end
     end
@@ -40,10 +45,15 @@ module Arel
             .on(@users[:id].eq(@photos[:user_id]))     \
           .project(@users[:name], @photos[:camera_id]) \
         .tap do |relation|
-          relation.call.should == [
-            Row.new(relation, ['bryan', @adapter_returns_integer ? 6 : '6']),
-            Row.new(relation, ['emilio', @adapter_returns_integer ? 42 : '42'])
-          ]
+          rows = relation.call
+          rows.length.should == 2
+          [
+            ['bryan', @adapter_returns_integer ? 6 : '6'],
+            ['emilio', @adapter_returns_integer ? 42 : '42']
+          ].zip(rows).each do |tuple, row|
+            row.relation.should == relation
+            row.tuple.should == tuple
+          end
         end
       end
     end

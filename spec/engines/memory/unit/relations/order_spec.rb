@@ -15,11 +15,12 @@ module Arel
         @relation                     \
           .order(@relation[:id].desc) \
         .tap do |relation|
-          relation.call.should == [
-            Row.new(relation, [3, 'goose']),
-            Row.new(relation, [2, 'duck' ]),
-            Row.new(relation, [1, 'duck' ])
-          ]
+          rows = relation.call
+          rows.length.should == 3
+          @relation.array.reverse.zip(rows) do |tuple, row|
+            row.relation.should == relation
+            row.tuple.should == tuple
+          end
         end
       end
     end
