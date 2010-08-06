@@ -319,7 +319,9 @@ module ActiveRecord
     def scope_for_create
       @scope_for_create ||= begin
         @create_with_value || Hash[
-          @where_values.grep(Arel::Predicates::Equality).map { |where|
+          @where_values.find_all { |w|
+            w.respond_to?(:operator) && w.operator == :==
+          }.map { |where|
             [where.operand1.name,
              where.operand2.respond_to?(:value) ?
              where.operand2.value : where.operand2]
