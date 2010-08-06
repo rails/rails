@@ -1,6 +1,7 @@
 require "action_mailer"
 require "rails"
 require "abstract_controller/railties/routes_helpers"
+require "action_mailer/railties/paths"
 
 module ActionMailer
   class Railtie < Rails::Railtie
@@ -11,17 +12,13 @@ module ActionMailer
     end
 
     initializer "action_mailer.set_configs" do |app|
-      paths   = app.config.paths
       options = app.config.action_mailer
-
-      options.assets_dir      ||= paths.public.to_a.first
-      options.javascripts_dir ||= paths.public.javascripts.to_a.first
-      options.stylesheets_dir ||= paths.public.stylesheets.to_a.first
 
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor
-        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         include app.routes.mounted_helpers(:app)
+        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
+        extend ::ActionMailer::Railties::Paths.with(app)
         options.each { |k,v| send("#{k}=", v) }
       end
     end

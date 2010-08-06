@@ -5,6 +5,7 @@ require "action_view/railtie"
 require "active_support/deprecation/proxy_wrappers"
 require "active_support/deprecation"
 require "abstract_controller/railties/routes_helpers"
+require "action_controller/railties/paths"
 
 module ActionController
   class Railtie < Rails::Railtie
@@ -41,19 +42,10 @@ module ActionController
     end
 
     initializer "action_controller.set_configs" do |app|
-      paths   = app.config.paths
-      options = app.config.action_controller
-
-      options.assets_dir           ||= paths.public.to_a.first
-      options.javascripts_dir      ||= paths.public.javascripts.to_a.first
-      options.stylesheets_dir      ||= paths.public.stylesheets.to_a.first
-      options.page_cache_directory ||= paths.public.to_a.first
-      options.helpers_path         ||= paths.app.helpers.to_a
-
       ActiveSupport.on_load(:action_controller) do
-        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         include app.routes.mounted_helpers(:app)
-        options.each { |k,v| send("#{k}=", v) }
+        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
+        extend ::ActionController::Railties::Paths.with(app)
       end
     end
 
