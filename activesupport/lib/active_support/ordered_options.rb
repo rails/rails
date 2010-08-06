@@ -5,16 +5,16 @@ require 'active_support/ordered_hash'
 #   h = ActiveSupport::OrderedOptions.new
 #   h[:boy] = 'John'
 #   h[:girl] = 'Mary'
-#   h[:boy]  #=> 'John'
-#   h[:girl] #=> 'Mary'
+#   h[:boy]  # => 'John'
+#   h[:girl] # => 'Mary'
 # 
 # Using <tt>OrderedOptions</tt> above code could be reduced to:
 #
 #   h = ActiveSupport::OrderedOptions.new
 #   h.boy = 'John'
 #   h.girl = 'Mary'
-#   h.boy  #=> 'John'
-#   h.girl #=> 'Mary'
+#   h.boy  # => 'John'
+#   h.girl # => 'Mary'
 # 
 module ActiveSupport #:nodoc:
   class OrderedOptions < OrderedHash
