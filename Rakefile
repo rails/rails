@@ -90,6 +90,7 @@ RDoc::Task.new do |rdoc|
 
   rdoc.rdoc_files.include('actionpack/README.rdoc')
   rdoc.rdoc_files.include('actionpack/CHANGELOG')
+  rdoc.rdoc_files.include('actionpack/lib/abstract_controller/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_controller/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_dispatch/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_view/**/*.rb')
