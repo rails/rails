@@ -8,10 +8,6 @@ module Arel
       @attribute = attribute
     end
 
-    def == other
-      super && Expression === other && attribute == other.attribute
-    end
-
     def aggregation?
       true
     end
