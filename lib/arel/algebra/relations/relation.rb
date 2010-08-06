@@ -206,10 +206,12 @@ module Arel
 
     private
     def matching_attributes(attribute)
-      (@matching_attributes ||= attributes.inject({}) do |hash, a|
-        (hash[a.is_a?(Value) ? a.value : a.root] ||= []) << a
-        hash
-      end)[attribute.root] || []
+      unless @matching_attributes
+        @matching_attributes = Hash[attributes.map do |a|
+          [a.root, a]
+        end]
+      end
+      [@matching_attributes[attribute.root]] || []
     end
 
     def has_attribute?(attribute)
