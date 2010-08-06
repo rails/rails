@@ -197,6 +197,7 @@ module Arel
         Equality.new(operand1, operand2)
       end
 
+      def operator; :"!=" end
       def eval(row)
         operand1.eval(row) != operand2.eval(row)
       end

@@ -12,6 +12,12 @@ module Arel
         @b        = Inequality.new(right, left)
       end
 
+      describe 'operator' do
+        it "should have one" do
+          @a.operator.should == :"!="
+        end
+      end
+
       describe '==' do
         it "is equal to itself" do
           @a.should == @a
