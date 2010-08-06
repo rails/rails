@@ -58,40 +58,37 @@ module Arel
       bind(relation)
     end
 
-    module Congruence
-      def history
-        @history ||= [self] + (ancestor ? ancestor.history : [])
-      end
-
-      def join?
-        relation.join?
-      end
-
-      def root
-        history.last
-      end
-
-      def original_relation
-        @original_relation ||= original_attribute.relation
-      end
-
-      def original_attribute
-        @original_attribute ||= history.detect { |a| !a.join? }
-      end
-
-      def find_correlate_in(relation)
-        relation[self] || self
-      end
-
-      def descends_from?(other)
-        history.include?(other)
-      end
-
-      def /(other)
-        other ? (history & other.history).size : 0
-      end
+    def history
+      @history ||= [self] + (ancestor ? ancestor.history : [])
     end
-    include Congruence
+
+    def join?
+      relation.join?
+    end
+
+    def root
+      history.last
+    end
+
+    def original_relation
+      @original_relation ||= original_attribute.relation
+    end
+
+    def original_attribute
+      @original_attribute ||= history.detect { |a| !a.join? }
+    end
+
+    def find_correlate_in(relation)
+      relation[self] || self
+    end
+
+    def descends_from?(other)
+      history.include?(other)
+    end
+
+    def /(other)
+      other ? (history & other.history).size : 0
+    end
 
     PREDICATES = [
       :eq, :eq_any, :eq_all, :not_eq, :not_eq_any, :not_eq_all, :lt, :lt_any,

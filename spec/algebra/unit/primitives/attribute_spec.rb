@@ -52,7 +52,7 @@ module Arel
       end
     end
 
-    describe Attribute::Congruence do
+    describe 'Attribute::Congruence' do
       describe '/' do
         before do
           @aliased_relation = @relation.alias
