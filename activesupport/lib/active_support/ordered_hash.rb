@@ -4,7 +4,14 @@ YAML.add_builtin_type("omap") do |type, val|
   ActiveSupport::OrderedHash[val.map(&:to_a).map(&:first)]
 end
 
-# OrderedHash is namespaced to prevent conflicts with other implementations
+# Hash is not ordered in ruby 1.8.x. What it means is there is no guarantee of order of keys when 
+# method Hash#keys in invoked. Similarly Hash#values and Hash#each can't guarantee that each time
+# the output will contain exactly same value in the same order. <tt>OrderedHash</tt> solves that
+# problem. 
+#   
+#   ActiveSupport::OrderedHash[:boy, 'John', :girl, 'Mary']
+#   
+# OrderedHash is namespaced to prevent conflicts with other implementations.
 module ActiveSupport
   class OrderedHash < ::Hash #:nodoc:
     def to_yaml_type
