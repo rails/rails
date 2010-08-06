@@ -3201,7 +3201,7 @@ h3. Extensions to +Time+
 
 h4(#time-calculations). Calculations
 
-NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
+NOTE: All the following methods are defined in +active_support/core_ext/time/calculations.rb+.
 
 Active Support adds to +Time+ many of the methods available for +DateTime+:
 
