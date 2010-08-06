@@ -72,6 +72,7 @@ class Class
             remove_possible_method(:#{name})
             define_method(:#{name}) { val }
           end
+          val
         end
 
         def #{name}
