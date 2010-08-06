@@ -10,11 +10,5 @@ module Arel
     def havings
       @havings ||= relation.havings + predicates
     end
-
-    def == other
-      super || Having === other &&
-               relation == other.relation &&
-               predicates == other.predicates
-    end
   end
 end

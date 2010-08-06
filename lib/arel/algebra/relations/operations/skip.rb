@@ -7,13 +7,6 @@ module Arel
       @skipped = skipped
     end
 
-    def == other
-      super ||
-        Skip === other &&
-        relation == other.relation &&
-        skipped == other.skipped
-    end
-
     def eval
       unoperated_rows[skipped..-1]
     end

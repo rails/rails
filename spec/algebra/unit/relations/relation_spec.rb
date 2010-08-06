@@ -151,7 +151,10 @@ module Arel
 
       describe '#skip' do
         it "manufactures a skip relation" do
-          @relation.skip(4).should == Skip.new(@relation, 4)
+          skip = @relation.skip(4)
+          skip.relation.should == @relation
+          skip.skipped.should == 4
+          skip.should be_kind_of Skip
         end
 
         describe 'when given a blank number of items' do
