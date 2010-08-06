@@ -82,6 +82,15 @@ module Arel
       @columns = nil
       @attributes = Header.new([])
     end
+
+    private
+    def matching_attributes
+      @matching_attributes ||= Hash[attributes.map { |a| [a.root, true] }]
+    end
+
+    def has_attribute?(attribute)
+      matching_attributes.key? attribute.root
+    end
   end
 end
 

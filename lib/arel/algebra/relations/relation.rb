@@ -197,19 +197,5 @@ module Arel
     def skipped;                nil         end
     def sources;                []          end
     def locked;                 []          end
-
-    private
-    def matching_attributes(attribute)
-      unless @matching_attributes
-        @matching_attributes = Hash[attributes.map do |a|
-          [a.root, a]
-        end]
-      end
-      [@matching_attributes[attribute.root]] || []
-    end
-
-    def has_attribute?(attribute)
-      !matching_attributes(attribute).empty?
-    end
   end
 end
