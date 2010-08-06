@@ -29,7 +29,7 @@ end
 # To opt out of the instance reader method, pass :instance_reader => false.
 #
 #   class Person
-#     cattr_accessor :hair_colors :instance_writer => false, :instance_reader => false
+#     class_inheritable_accessor :hair_colors :instance_writer => false, :instance_reader => false
 #   end
 #
 #   Person.new.hair_colors = [:brown]  # => NoMethodError
