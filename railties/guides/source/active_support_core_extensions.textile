@@ -3053,30 +3053,30 @@ h4(#date-conversions). Conversions
 
 h3. Extensions to +DateTime+
 
-NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
-
 WARNING: +DateTime+ is not aware of DST rules and so some of these methods have edge cases when a DST change is going on. For example +seconds_since_midnight+ might not return the real amount in such a day.
 
 h4(#calculations-datetime). Calculations
+
+NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
 
 The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_ext/date/calculations.rb+ you inherit these methods and their aliases, except that they will always return datetimes:
 
 <ruby>
 yesterday
 tomorrow
-beginning_of_week
-end_on_week
+beginning_of_week (monday, at_beginning_of_week)
+end_on_week (at_end_of_week)
 next_week
 months_ago
 months_since
-beginning_of_month
-end_of_month
+beginning_of_month (at_beginning_of_month)
+end_of_month (at_end_of_month)
 prev_month
 next_month
-beginning_of_quarter
-end_of_quarter
-beginning_of_year
-end_of_year
+beginning_of_quarter (at_beginning_of_quarter)
+end_of_quarter (at_end_of_quarter)
+beginning_of_year (at_beginning_of_year)
+end_of_year (at_end_of_year)
 years_ago
 years_since
 prev_year
@@ -3086,10 +3086,10 @@ next_year
 The following methods are reimplemented so you do *not* need to load +active_support/core_ext/date/calculations.rb+ for these ones:
 
 <ruby>
-beginning_of_day
+beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
 ago
-since
+since (in)
 </ruby>
 
 On the other hand, +advance+ and +change+ are also defined and support more options, they are documented below.
@@ -3199,7 +3199,93 @@ h4(#datetime-conversions). Conversions
 
 h3. Extensions to +Time+
 
-...
+h4(#time-calculations). Calculations
+
+NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
+
+Active Support adds to +Time+ many of the methods available for +DateTime+:
+
+<ruby>
+past?
+today?
+future?
+yesterday
+tomorrow
+seconds_since_midnight
+change
+advance
+ago
+since (in)
+beginning_of_day (midnight, at_midnight, at_beginning_of_day)
+end_of_day
+beginning_of_week (monday, at_beginning_of_week)
+end_on_week (at_end_of_week)
+next_week
+months_ago
+months_since
+beginning_of_month (at_beginning_of_month)
+end_of_month (at_end_of_month)
+prev_month
+next_month
+beginning_of_quarter (at_beginning_of_quarter)
+end_of_quarter (at_end_of_quarter)
+beginning_of_year (at_beginning_of_year)
+end_of_year (at_end_of_year)
+years_ago
+years_since
+prev_year
+next_year
+</ruby>
+
+They are analogous. Please refer to their documentation above and take into account the following differences:
+
+* +change+ accepts an additional +:usec+ option.
+* +Time+ understands DST, so you get correct DST calculations as in
+
+<ruby>
+# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
+t = Time.local_time(2010, 3, 28, 1, 59, 59)
+# => Sun Mar 28 01:59:59 +0100 2010
+t.advance(:seconds => 1)
+# => Sun Mar 28 03:00:00 +0200 2010
+</ruby>
+
+* If +since+ or +ago+ jump to a time that can't be expressed with +Time+ a +DateTime+ object is returned instead.
+
+h4. Time Constructors
+
+Active Support defines +Time.current+ to be +Time.zone.now+ if there's a user time zone defined, with fallback to +Time.now+:
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+Time.current
+# => Fri, 06 Aug 2010 17:11:58 CEST +02:00
+</ruby>
+
+Analogously to +DateTime+, the predicates +past?+, and +future?+ are relative to +Time.current+.
+
+Use the +local_time+ class method to create time objects honoring the user time zone:
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+Time.local_time(2010, 8, 15)
+# => Sun Aug 15 00:00:00 +0200 2010
+</ruby>
+
+The +utc_time+ class method returns a time in UTC:
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+Time.utc_time(2010, 8, 15)
+# => Sun Aug 15 00:00:00 UTC 2010
+</ruby>
+
+Both +local_time+ and +utc_time+ accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
+
+If the time to be constructed lies beyond the range supported by +Time+ in the runtime platform, usecs are discarded and a +DateTime+ object is returned instead.
 
 h3. Extensions to +Process+
 
