@@ -921,6 +921,45 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({:controller => 'pages', :action => 'show', :id => 'hello+world'}, set.recognize_path('/page/hello+world'))
   end
 
+  def test_recognize_with_http_methods
+    set.draw do
+      get    "/people"     => "people#index", :as => "people"
+      post   "/people"     => "people#create"
+      get    "/people/:id" => "people#show",  :as => "person"
+      put    "/people/:id" => "people#update"
+      delete "/people/:id" => "people#destroy"
+    end
+
+    params = set.recognize_path("/people", :method => :get)
+    assert_equal("index", params[:action])
+
+    params = set.recognize_path("/people", :method => :post)
+    assert_equal("create", params[:action])
+
+    params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+
+    assert_raise(ActionController::RoutingError) {
+      set.recognize_path("/people", :method => :bacon)
+    }
+
+    params = set.recognize_path("/people/5", :method => :get)
+    assert_equal("show", params[:action])
+    assert_equal("5", params[:id])
+
+    params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+    assert_equal("5", params[:id])
+
+    params = set.recognize_path("/people/5", :method => :delete)
+    assert_equal("destroy", params[:action])
+    assert_equal("5", params[:id])
+
+    assert_raise(ActionController::RoutingError) {
+      set.recognize_path("/people/5", :method => :post)
+    }
+  end
+
   def test_recognize_with_alias_in_conditions
     set.draw do
       match "/people" => 'people#index', :as => 'people',
@@ -1585,7 +1624,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
 
     match '', :controller => 'news', :format => nil
     match 'news(.:format)', :controller => 'news'
-    match
+
     match 'comment/:id/:action', :controller => 'comments', :action => 'show'
     match 'ws/:controller/:action/:id', :ws => true
     match 'account/:action', :controller => :account, :action => :subscription
