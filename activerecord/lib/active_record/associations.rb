@@ -1593,15 +1593,12 @@ module ActiveRecord
 
         # Creates before_destroy callback methods that nullify, delete or destroy
         # has_many associated objects, according to the defined :dependent rule.
-        # If the association is marked as :dependent => :restrict, create a callback
-        # that prevents deleting entirely.
         #
-        # See HasManyAssociation#delete_records.  Dependent associations
-        # delete children, otherwise foreign key is set to NULL.
-        # See HasManyAssociation#delete_records. Dependent associations
-        # delete children if the option is set to :destroy or :delete_all, set the
-        # foreign key to NULL if the option is set to :nullify, and do not touch the
-        # child records if the option is set to :restrict.
+        # See HasManyAssociation#delete_records for more information. In general
+        #  - delete children if the option is set to :destroy or :delete_all
+        #  - set the foreign key to NULL if the option is set to :nullify
+        #  - do not delete the parent record if there is any child record if the 
+        #    option is set to :restrict
         #
         # The +extra_conditions+ parameter, which is not used within the main
         # Active Record codebase, is meant to allow plugins to define extra
