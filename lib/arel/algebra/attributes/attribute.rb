@@ -4,12 +4,17 @@ module Arel
   class TypecastError < StandardError ; end
   class Attribute
     attr_reader :relation, :name, :alias, :ancestor, :hash
+    attr_reader :history, :root
 
     def initialize(relation, name, options = {})
       @relation = relation # this is actually a table (I think)
       @name     = name
       @alias    = options[:alias]
       @ancestor = options[:ancestor]
+      @history  = [self] + (@ancestor ? @ancestor.history : [])
+      @root = @history.last
+      @original_relation = nil
+      @original_attribute = nil
 
       # FIXME: I think we can remove this eventually
       @hash     = name.hash + root.relation.class.hash
@@ -56,10 +61,6 @@ module Arel
 
     def to_attribute(relation)
       bind(relation)
-    end
-
-    def history
-      @history ||= [self] + (ancestor ? ancestor.history : [])
     end
 
     def join?
