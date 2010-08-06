@@ -208,6 +208,13 @@ class MethodScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scope_for_create_only_uses_equal
+    table = VerySpecialComment.arel_table
+    relation = VerySpecialComment.scoped
+    relation.where_values << table[:id].not_eq(1)
+    assert_equal({:type => "VerySpecialComment"}, relation.send(:scope_for_create))
+  end
+
   def test_scoped_create
     new_comment = nil
 
