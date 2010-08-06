@@ -32,8 +32,8 @@ module Arel
       # * <tt>additional_operands</tt> - All possible right-hand operands
       def self.build(operator, operand1, *additional_operands)
         new(
-          *additional_operands.uniq.inject([]) do |predicates, operand|
-            predicates << operator.new(operand1, operand)
+          *additional_operands.uniq.map do |operand|
+            operator.new(operand1, operand)
           end
         )
       end
