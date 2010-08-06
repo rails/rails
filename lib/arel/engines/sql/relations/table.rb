@@ -21,6 +21,8 @@ module Arel
       @table_exists = nil
       @table_alias = nil
       @christener = Sql::Christener.new
+      @attributes = nil
+      @matching_attributes = nil
 
       if options.is_a?(Hash)
         @options = options
@@ -57,14 +59,12 @@ module Arel
     end
 
     def attributes
-      return @attributes if defined?(@attributes)
+      return @attributes if @attributes
       if table_exists?
-        @attributes ||= begin
-          attrs = columns.collect do |column|
-            Sql::Attributes.for(column).new(column, self, column.name.to_sym)
-          end
-          Header.new(attrs)
+        attrs = columns.collect do |column|
+          Sql::Attributes.for(column).new(column, self, column.name.to_sym)
         end
+        @attributes = Header.new(attrs)
       else
         Header.new
       end
