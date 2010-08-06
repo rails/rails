@@ -465,7 +465,15 @@ XML
   end
 
   def test_assert_routing_in_module
-    assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
+    with_routing do |set|
+      set.draw do
+        namespace :admin do
+          match 'user' => 'user#index'
+        end
+      end
+
+      assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
+    end
   end
 
   def test_assert_routing_with_glob
