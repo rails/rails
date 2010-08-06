@@ -23,7 +23,7 @@ module Arel
       end
     end
 
-    describe Relation::Operable do
+    describe 'Relation::Operable' do
       describe 'joins' do
         before do
           @predicate = @relation[:id].eq(@relation[:id])

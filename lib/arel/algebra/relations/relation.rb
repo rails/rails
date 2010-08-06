@@ -102,75 +102,72 @@ module Arel
       session.read(self).each { |e| yield e }
     end
 
-    module Operable
-      def join(other_relation = nil, join_class = InnerJoin)
-        case other_relation
-        when String
-          StringJoin.new(self, other_relation)
-        when Relation
-          JoinOperation.new(join_class, self, other_relation)
-        else
-          self
-        end
+    def join(other_relation = nil, join_class = InnerJoin)
+      case other_relation
+      when String
+        StringJoin.new(self, other_relation)
+      when Relation
+        JoinOperation.new(join_class, self, other_relation)
+      else
+        self
       end
+    end
 
-      def outer_join(other_relation = nil)
-        join(other_relation, OuterJoin)
-      end
+    def outer_join(other_relation = nil)
+      join(other_relation, OuterJoin)
+    end
 
-      %w{
+    %w{
         having group order project
-      }.each do |op|
-        class_eval <<-OPERATION, __FILE__, __LINE__
+    }.each do |op|
+      class_eval <<-OPERATION, __FILE__, __LINE__
           def #{op}(*args)
             args.all? { |x| x.blank? } ? self : #{op.capitalize}.new(self, args)
           end
-        OPERATION
-      end
+      OPERATION
+    end
 
-      def where clause = nil
-        clause ? Where.new(self, Array(clause)) : self
-      end
+    def where clause = nil
+      clause ? Where.new(self, Array(clause)) : self
+    end
 
-      def skip thing = nil
-        thing ? Skip.new(self, thing) : self
-      end
+    def skip thing = nil
+      thing ? Skip.new(self, thing) : self
+    end
 
-      def take count
-        Take.new self, count
-      end
+    def take count
+      Take.new self, count
+    end
 
-      def from thing
-        From.new self, thing
-      end
+    def from thing
+      From.new self, thing
+    end
 
-      def lock(locking = true)
-        Lock.new(self, locking)
-      end
+    def lock(locking = true)
+      Lock.new(self, locking)
+    end
 
-      def alias
-        Alias.new(self)
-      end
+    def alias
+      Alias.new(self)
+    end
 
-      def insert(record)
-        session.create Insert.new(self, record)
-      end
+    def insert(record)
+      session.create Insert.new(self, record)
+    end
 
-      def update(assignments)
-        session.update Update.new(self, assignments)
-      end
+    def update(assignments)
+      session.update Update.new(self, assignments)
+    end
 
-      def delete
-        session.delete Deletion.new(self)
-      end
+    def delete
+      session.delete Deletion.new(self)
+    end
 
-      JoinOperation = Struct.new(:join_class, :relation1, :relation2) do
-        def on(*predicates)
-          join_class.new(relation1, relation2, *predicates)
-        end
+    JoinOperation = Struct.new(:join_class, :relation1, :relation2) do
+      def on(*predicates)
+        join_class.new(relation1, relation2, *predicates)
       end
     end
-    include Operable
 
     def [](index)
       attributes[index]
