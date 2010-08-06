@@ -12,13 +12,6 @@ module Arel
       @attributes                = nil
     end
 
-    def == other
-      super ||
-        Array === other &&
-        array == other.array &&
-        attribute_names_and_types == other.attribute_names_and_types
-    end
-
     def engine
       @engine ||= Memory::Engine.new
     end
