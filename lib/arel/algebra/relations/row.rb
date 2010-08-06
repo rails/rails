@@ -12,10 +12,9 @@ module Arel
     end
 
     def slice(*attributes)
-      Row.new(relation, attributes.inject([]) do |cheese, attribute|
+      Row.new(relation, attributes.map do |attribute|
         # FIXME TESTME method chaining
-        cheese << tuple[relation.relation.position_of(attribute)]
-        cheese
+        tuple[relation.relation.position_of(attribute)]
       end)
     end
 
