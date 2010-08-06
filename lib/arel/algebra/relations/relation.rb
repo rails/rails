@@ -177,12 +177,6 @@ module Arel
       attributes.detect { |a| a.named?(name) } || Attribute.new(self, name)
     end
 
-    def find_attribute_matching_attribute(attribute)
-      matching_attributes(attribute).max do |a1, a2|
-        (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
-      end
-    end
-
     def position_of(attribute)
       @position_of ||= {}
 
