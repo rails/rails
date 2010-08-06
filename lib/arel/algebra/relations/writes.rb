@@ -1,8 +1,5 @@
 module Arel
   class Action < Compound
-    def == other
-      super || self.class === other && @relation == other.relation
-    end
   end
 
   class Deletion < Action
@@ -25,10 +22,6 @@ module Arel
 
     def call
       engine.create(self)
-    end
-
-    def == other
-      super && @record == other.record
     end
 
     def eval

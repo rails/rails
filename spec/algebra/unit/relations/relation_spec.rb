@@ -182,7 +182,10 @@ module Arel
         describe '#delete' do
           it 'manufactures a deletion relation' do
             Session.start do |s|
-              s.should_receive(:delete).with(Deletion.new(@relation))
+              s.should_receive(:delete) do |delete|
+                delete.relation.should == @relation
+                delete.should be_kind_of Deletion
+              end
               @relation.delete
             end
           end
@@ -191,8 +194,13 @@ module Arel
         describe '#insert' do
           it 'manufactures an insertion relation' do
             Session.start do |s|
-              record = { @relation[:name] => 'carl' }
-              s.should_receive(:create).with(Insert.new(@relation, record))
+              record = { @relation[:name] => Value.new('carl', @relation) }
+              s.should_receive(:create) do |insert|
+                insert.relation.should == @relation
+                insert.record.should == record
+                insert.should be_kind_of Insert
+                insert
+              end
               @relation.insert(record)
             end
           end
@@ -202,7 +210,12 @@ module Arel
           it 'manufactures an update relation' do
             Session.start do |s|
               assignments = { @relation[:name] => Value.new('bob', @relation) }
-              s.should_receive(:update).with(Update.new(@relation, assignments))
+              s.should_receive(:update) do |update|
+                update.relation.should == @relation
+                update.assignments.should == assignments
+                update.should be_kind_of Update
+                update
+              end
               @relation.update(assignments)
             end
           end
