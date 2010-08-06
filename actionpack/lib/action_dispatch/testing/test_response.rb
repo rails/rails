@@ -15,29 +15,15 @@ module ActionDispatch
     end
 
     # Was the response successful?
-    def success?
-      (200..299).include?(response_code)
-    end
+    alias_method :success?, :successful?
 
     # Was the URL not found?
-    def missing?
-      response_code == 404
-    end
+    alias_method :missing?, :not_found?
 
     # Were we redirected?
-    def redirect?
-      (300..399).include?(response_code)
-    end
+    alias_method :redirect?, :redirection?
 
     # Was there a server-side error?
-    def error?
-      (500..599).include?(response_code)
-    end
-    alias_method :server_error?, :error?
-
-    # Was there a client client?
-    def client_error?
-      (400..499).include?(response_code)
-    end
+    alias_method :error?, :server_error?
   end
 end
