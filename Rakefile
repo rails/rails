@@ -17,7 +17,7 @@ def hijack_rdoc!
 
       if s[0, 2] == Marshal.dump('')[0, 2] then
         true
-      elsif file =~ /\.erb\.rb$/ then # ORIGINAL is file =~ /erb\.rb$/
+      elsif file =~ /erb\.rb$/ then
         false
       elsif s.index("\x00") then # ORIGINAL is s.scan(/<%|%>/).length >= 4 || s.index("\x00")
         true
