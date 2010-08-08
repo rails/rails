@@ -11,7 +11,7 @@ gem "rails", :path => File.dirname(__FILE__)
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 gem "rdoc",  ">= 2.5.9"
-gem "horo"
+gem "horo",  ">= 1.0.1"
 
 # AS
 gem "memcache-client", ">= 1.8.5"
