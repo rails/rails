@@ -1083,17 +1083,6 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal "/foo/bar/baz/7", url
   end
 
-  # def test_id_is_not_impossibly_sticky
-  #   set.draw do
-  #     match 'foo/:number' => 'people#index'
-  #     match ':controller/:action/:id'
-  #   end
-  #
-  #   url = set.generate({:controller => "people", :action => "index", :number => 3},
-  #     {:controller => "people", :action => "index", :id => "21"})
-  #   assert_equal "/foo/3", url
-  # end
-
   def test_id_is_sticky_when_it_ought_to_be
     set.draw do
       match ':controller/:id/:action'
