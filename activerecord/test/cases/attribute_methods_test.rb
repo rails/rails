@@ -106,21 +106,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_read_attributes_before_type_cast_on_datetime
-    developer = Developer.find(:first)
-    # Oracle adapter returns Time before type cast
-    unless current_adapter?(:OracleAdapter)
-      assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"]
-    else
-      assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"].to_s(:db)
+  unless current_adapter?(:Mysql2Adapter)
+    def test_read_attributes_before_type_cast_on_datetime
+      developer = Developer.find(:first)
+      # Oracle adapter returns Time before type cast
+      unless current_adapter?(:OracleAdapter)
+        assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"]
+      else
+        assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"].to_s(:db)
 
-      developer.created_at = "345643456"
-      assert_equal developer.created_at_before_type_cast, "345643456"
-      assert_equal developer.created_at, nil
+        developer.created_at = "345643456"
+        assert_equal developer.created_at_before_type_cast, "345643456"
+        assert_equal developer.created_at, nil
 
-      developer.created_at = "2010-03-21T21:23:32+01:00"
-      assert_equal developer.created_at_before_type_cast, "2010-03-21T21:23:32+01:00"
-      assert_equal developer.created_at, Time.parse("2010-03-21T21:23:32+01:00")
+        developer.created_at = "2010-03-21T21:23:32+01:00"
+        assert_equal developer.created_at_before_type_cast, "2010-03-21T21:23:32+01:00"
+        assert_equal developer.created_at, Time.parse("2010-03-21T21:23:32+01:00")
+      end
     end
   end
 
