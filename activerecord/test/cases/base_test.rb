@@ -284,7 +284,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
 
-  if current_adapter?(:MysqlAdapter)
+  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.update_all("content = 'bulk updated!'", nil, :limit => 1, :order => 'id DESC')
     end

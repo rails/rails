@@ -94,6 +94,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     owner.update_attribute(:updated_at, (time = 3.days.ago))
     toy.touch
+    owner.reload
 
     assert_not_equal time, owner.updated_at
   ensure
