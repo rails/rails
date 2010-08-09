@@ -311,7 +311,8 @@ module ActiveRecord
     # You can set the :autosave option on a <tt>has_one</tt>, <tt>belongs_to</tt>,
     # <tt>has_many</tt>, or <tt>has_and_belongs_to_many</tt> association. Setting it
     # to +true+ will _always_ save the members, whereas setting it to +false+ will
-    # _never_ save the members.
+    # _never_ save the members. More details about :autosave option is available at
+    # autosave_association.rb . 
     #
     # === One-to-one associations
     #
