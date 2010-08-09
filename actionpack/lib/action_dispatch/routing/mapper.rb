@@ -1,3 +1,4 @@
+require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 
@@ -277,7 +278,6 @@ module ActionDispatch
           path      = args.shift || block
           path_proc = path.is_a?(Proc) ? path : proc { |params| path % params }
           status    = options[:status] || 301
-          body      = 'Moved Permanently'
 
           lambda do |env|
             req = Request.new(env)
@@ -290,11 +290,14 @@ module ActionDispatch
             uri.host   ||= req.host
             uri.port   ||= req.port unless req.port == 80
 
+            body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
+
             headers = {
               'Location' => uri.to_s,
               'Content-Type' => 'text/html',
               'Content-Length' => body.length.to_s
             }
+
             [ status, headers, [body] ]
           end
         end
