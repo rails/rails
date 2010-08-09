@@ -109,8 +109,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     record = con.select_rows(sql).last
     assert_not_nil record[2]
     assert_not_nil record[3]
-    assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2]
-    assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3]
+    if current_adapter?(:Mysql2Adapter)
+      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2].to_s(:db)
+      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3].to_s(:db)
+    else
+      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2]
+      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3]
+    end
   end
 
   def test_should_record_timestamp_for_join_table_only_if_timestamp_should_be_recorded
