@@ -330,20 +330,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_raise(ActionController::RoutingError) { rs.recognize_path("/not_a/show/10") }
   end
 
-  def test_paths_do_not_accept_defaults
-    assert_raise(ActionController::RoutingError) do
-      rs.draw do
-        match 'file/*path' => 'content#show_file', :path => %w(fake default), :as => 'path'
-        match ':controller/:action/:id'
-      end
-    end
-
-    rs.draw do
-      match 'file/*path', :to => 'content#show_file', :path => [], :as => 'path'
-      match ':controller/:action/:id'
-    end
-  end
-
   def test_should_list_options_diff_when_routing_constraints_dont_match
     rs.draw do
       match 'post/:id' => 'post#show', :constraints => { :id => /\d+/ }, :as => 'post'
@@ -1612,17 +1598,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   def setup
     @routes = ActionController::Routing::RouteSet.new
     @routes.draw(&Mapping)
-  end
-
-  def test_add_route
-    @routes.clear!
-
-    assert_raise(ActionController::RoutingError) do
-      @routes.draw do
-        match 'file/*path' => 'content#show_file', :path => %w(fake default), :as => :path
-        match ':controller(/:action(/:id))'
-      end
-    end
   end
 
   def test_recognize_path
