@@ -647,7 +647,7 @@ the +params+ hash will contain
 {'person' => {'name' => 'Henry'}}
 </erb>
 
-and +params["name"]+ will retrieve the submitted value in the controller.
+and +params[:person][:name]+ will retrieve the submitted value in the controller.
 
 Hashes can be nested as many levels as required, for example
 
