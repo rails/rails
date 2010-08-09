@@ -278,6 +278,20 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_raise(ArgumentError) { javascript_include_tag(:defaults) }
   end
 
+  def test_deprecated_reset_javascript_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_deprecated { ActionView::Helpers::AssetTagHelper.reset_javascript_include_default }
+    assert_equal JavascriptIncludeToTag["javascript_include_tag(:defaults)"], javascript_include_tag(:defaults)
+  end
+
+  def test_deprecated_register_javascript_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_deprecated { ActionView::Helpers::AssetTagHelper.reset_javascript_include_default }
+    assert_deprecated { ActionView::Helpers::AssetTagHelper.register_javascript_include_default("foo") }
+    result = %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/foo.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>)
+    assert_equal result, javascript_include_tag(:defaults)
+  end
+
   def test_stylesheet_path
     ENV["RAILS_ASSET_ID"] = ""
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }

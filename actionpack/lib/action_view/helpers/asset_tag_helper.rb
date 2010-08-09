@@ -393,6 +393,18 @@ module ActionView
         @@stylesheet_expansions.merge!(expansions)
       end
 
+      def self.reset_javascript_include_default
+        ActiveSupport::Deprecation.warn "reset_javascript_include_default is deprecated. Please manipulate " \
+          "config.action_view.javascript_expansions[:defaults] directly", caller
+        self.javascript_expansions[:defaults] = ['prototype', 'effects', 'dragdrop', 'controls', 'rails']
+      end
+
+      def self.register_javascript_include_default(*args)
+        ActiveSupport::Deprecation.warn "register_javascript_include_default is deprecated. Please " \
+          "manipulate config.action_view.javascript_expansions[:defaults] directly", caller
+        self.javascript_expansions[:defaults].concat args
+      end
+
       # Computes the path to a stylesheet asset in the public stylesheets directory.
       # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
       # Full paths from the document root will be passed through.
