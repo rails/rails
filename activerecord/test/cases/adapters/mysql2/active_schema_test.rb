@@ -2,7 +2,7 @@ require "cases/helper"
 
 class ActiveSchemaTest < ActiveRecord::TestCase
   def setup
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
+    ActiveRecord::ConnectionAdapters::Mysql2Adapter.class_eval do
       alias_method :execute_without_stub, :execute
       remove_method :execute
       def execute(sql, name = nil) return sql end
@@ -10,7 +10,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   end
 
   def teardown
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
+    ActiveRecord::ConnectionAdapters::Mysql2Adapter.class_eval do
       remove_method :execute
       alias_method :execute, :execute_without_stub
     end
@@ -18,7 +18,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
 
   def test_add_index
     # add_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:define_method, :index_name_exists?) do |*|
+    ActiveRecord::ConnectionAdapters::Mysql2Adapter.send(:define_method, :index_name_exists?) do |*|
       false
     end
     expected = "CREATE  INDEX `index_people_on_last_name` ON `people` (`last_name`)"
@@ -35,14 +35,14 @@ class ActiveSchemaTest < ActiveRecord::TestCase
 
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(10))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15, :first_name => 10})
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:remove_method, :index_name_exists?)
+    ActiveRecord::ConnectionAdapters::Mysql2Adapter.send(:remove_method, :index_name_exists?)
   end
 
   def test_drop_table
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_create_mysql_database_with_encoding
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
       assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})
@@ -99,7 +99,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   private
     def with_real_execute
       #we need to actually modify some data, so we make execute point to the original method
-      ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
+      ActiveRecord::ConnectionAdapters::Mysql2Adapter.class_eval do
         alias_method :execute_with_stub, :execute
         remove_method :execute
         alias_method :execute, :execute_without_stub
@@ -107,7 +107,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
       yield
     ensure
       #before finishing, we restore the alias to the mock-up method
-      ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
+      ActiveRecord::ConnectionAdapters::Mysql2Adapter.class_eval do
         remove_method :execute
         alias_method :execute, :execute_with_stub
       end
