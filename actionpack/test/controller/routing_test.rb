@@ -1600,7 +1600,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
 
     match 'news(.:format)' => "news#index"
 
-    match 'comment/:id/:action' => "comments#show"
+    match 'comment/:id(/:action)' => "comments#show"
     match 'ws/:controller(/:action(/:id))', :ws => true
     match 'account(/:action)' => "account#subscription"
     match 'pages/:page_id/:controller(/:action(/:id))'
@@ -1719,11 +1719,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal '/archive', @routes.generate(:controller => 'archive', :action => 'index')
     assert_equal '/archive?year=january', @routes.generate(:controller => 'archive', :action => 'index', :year => 'january')
 
-    assert_equal '/people', @routes.generate(:use_route => 'people')
-    assert_equal '/people', @routes.generate(:use_route => 'people', :controller => 'people', :action => 'index')
-    assert_equal '/people.xml', @routes.generate(:use_route => 'people', :controller => 'people', :action => 'index', :format => 'xml')
-    assert_equal '/people', @routes.generate({:use_route => 'people', :controller => 'people', :action => 'index'}, {:controller => 'people', :action => 'index'})
-    assert_equal '/people', @routes.generate(:controller => 'people')
     assert_equal '/people', @routes.generate(:controller => 'people', :action => 'index')
     assert_equal '/people', @routes.generate({:action => 'index'}, {:controller => 'people'})
     assert_equal '/people', @routes.generate({:action => 'index'}, {:controller => 'people', :action => 'show', :id => '1'})
@@ -1739,7 +1734,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal '/people/1', @routes.generate(:controller => 'people', :action => 'show', :id => Model.new('1'))
     assert_equal '/people/1', @routes.generate({:action => 'show', :id => '1'}, {:controller => 'people', :action => 'index'})
     assert_equal '/people/1', @routes.generate({:action => 'show', :id => 1}, {:controller => 'people', :action => 'show', :id => '1'})
-    # assert_equal '/people', @routes.generate({:controller => 'people', :action => 'index'}, {:controller => 'people', :action => 'index', :id => '1'})
     assert_equal '/people', @routes.generate({:controller => 'people', :action => 'index'}, {:controller => 'people', :action => 'show', :id => '1'})
     assert_equal '/people/1', @routes.generate({}, {:controller => 'people', :action => 'show', :id => '1'})
     assert_equal '/people/1', @routes.generate({:controller => 'people', :action => 'show'}, {:controller => 'people', :action => 'index', :id => '1'})
@@ -1808,8 +1802,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal '/posts?page=2', @routes.generate(:controller => 'posts', :page => 2)
     assert_equal '/posts?q[foo][a]=b', @routes.generate(:controller => 'posts', :q => { :foo => { :a => 'b'}})
 
-    assert_equal '/', @routes.generate(:controller => 'news', :action => 'index')
-    assert_equal '/', @routes.generate(:controller => 'news', :action => 'index', :format => nil)
     assert_equal '/news.rss', @routes.generate(:controller => 'news', :action => 'index', :format => 'rss')
 
 
