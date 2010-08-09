@@ -19,6 +19,119 @@ class PersistencesTest < ActiveRecord::TestCase
 
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
 
+  # Oracle UPDATE does not support ORDER BY
+  unless current_adapter?(:OracleAdapter)
+    def test_update_all_ignores_order_without_limit_from_association
+      author = authors(:david)
+      assert_nothing_raised do
+        assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
+      end
+    end
+
+    def test_update_all_with_order_and_limit_updates_subset_only
+      author = authors(:david)
+      assert_nothing_raised do
+        assert_equal 1, author.posts_sorted_by_id_limited.size
+        assert_equal 2, author.posts_sorted_by_id_limited.find(:all, :limit => 2).size
+        assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
+        assert_equal "bulk update!", posts(:welcome).body
+        assert_not_equal "bulk update!", posts(:thinking).body
+      end
+    end
+  end
+
+  def test_update_many
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+    updated = Topic.update(topic_data.keys, topic_data.values)
+
+    assert_equal 2, updated.size
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_delete_all
+    assert Topic.count > 0
+
+    assert_equal Topic.count, Topic.delete_all
+  end
+
+  def test_update_by_condition
+    Topic.update_all "content = 'bulk updated!'", ["approved = ?", true]
+    assert_equal "Have a nice day", Topic.find(1).content
+    assert_equal "bulk updated!", Topic.find(2).content
+  end
+
+  def test_increment_attribute
+    assert_equal 50, accounts(:signals37).credit_limit
+    accounts(:signals37).increment! :credit_limit
+    assert_equal 51, accounts(:signals37, :reload).credit_limit
+
+    accounts(:signals37).increment(:credit_limit).increment!(:credit_limit)
+    assert_equal 53, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_increment_nil_attribute
+    assert_nil topics(:first).parent_id
+    topics(:first).increment! :parent_id
+    assert_equal 1, topics(:first).parent_id
+  end
+
+  def test_increment_attribute_by
+    assert_equal 50, accounts(:signals37).credit_limit
+    accounts(:signals37).increment! :credit_limit, 5
+    assert_equal 55, accounts(:signals37, :reload).credit_limit
+
+    accounts(:signals37).increment(:credit_limit, 1).increment!(:credit_limit, 3)
+    assert_equal 59, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_destroy_all
+    conditions = "author_name = 'Mary'"
+    topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
+    assert ! topics_by_mary.empty?
+
+    assert_difference('Topic.count', -topics_by_mary.size) do
+      destroyed = Topic.destroy_all(conditions).sort_by(&:id)
+      assert_equal topics_by_mary, destroyed
+      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+    end
+  end
+
+  def test_destroy_many
+    clients = Client.find([2, 3], :order => 'id')
+
+    assert_difference('Client.count', -2) do
+      destroyed = Client.destroy([2, 3]).sort_by(&:id)
+      assert_equal clients, destroyed
+      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+    end
+  end
+
+  def test_delete_many
+    original_count = Topic.count
+    Topic.delete(deleting = [1, 2])
+    assert_equal original_count - deleting.size, Topic.count
+  end
+
+  def test_decrement_attribute
+    assert_equal 50, accounts(:signals37).credit_limit
+
+    accounts(:signals37).decrement!(:credit_limit)
+    assert_equal 49, accounts(:signals37, :reload).credit_limit
+
+    accounts(:signals37).decrement(:credit_limit).decrement!(:credit_limit)
+    assert_equal 47, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_decrement_attribute_by
+    assert_equal 50, accounts(:signals37).credit_limit
+    accounts(:signals37).decrement! :credit_limit, 5
+    assert_equal 45, accounts(:signals37, :reload).credit_limit
+
+    accounts(:signals37).decrement(:credit_limit, 1).decrement!(:credit_limit, 3)
+    assert_equal 41, accounts(:signals37, :reload).credit_limit
+  end
+
   def test_create
     topic = Topic.new
     topic.title = "New Topic"

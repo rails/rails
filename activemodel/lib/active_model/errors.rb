@@ -37,11 +37,11 @@ module ActiveModel
   #       send(attr)
   #     end
   #   
-  #     def ErrorsPerson.human_attribute_name(attr, options = {})
+  #     def Person.human_attribute_name(attr, options = {})
   #       attr
   #     end
   #   
-  #     def ErrorsPerson.lookup_ancestors
+  #     def Person.lookup_ancestors
   #       [self]
   #     end
   #   
@@ -86,11 +86,7 @@ module ActiveModel
     #   p.errors[:name]   # => ["can not be nil"]
     #   p.errors['name']  # => ["can not be nil"]
     def [](attribute)
-      if errors = get(attribute.to_sym)
-        errors
-      else
-        set(attribute.to_sym, [])
-      end
+      get(attribute.to_sym) || set(attribute.to_sym, [])
     end
 
     # Adds to the supplied attribute the supplied error message.

@@ -764,7 +764,7 @@ This loads all the posts and the associated category and comments for each post.
 h5. Nested Associations Hash
 
 <ruby>
-Category.find(1).includes(:posts => [{:comments => :guest}, :tags])
+Category.includes(:posts => [{:comments => :guest}, :tags]).find(1)
 </ruby>
 
 This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.

@@ -40,8 +40,6 @@ module ActiveModel
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
-          default_message = options[MESSAGES[key]]
-          options[:message] ||= default_message if default_message
 
           valid_value = if key == :maximum
             value.nil? || value.size.send(validity_check, check_value)
@@ -51,8 +49,13 @@ module ActiveModel
 
           next if valid_value
 
-          record.errors.add(attribute, MESSAGES[key],
-                            options.except(*RESERVED_OPTIONS).merge!(:count => check_value))
+          errors_options = options.except(*RESERVED_OPTIONS)
+          errors_options[:count] = check_value
+
+          default_message = options[MESSAGES[key]]
+          errors_options[:message] ||= default_message if default_message
+
+          record.errors.add(attribute, MESSAGES[key], errors_options)
         end
       end
     end

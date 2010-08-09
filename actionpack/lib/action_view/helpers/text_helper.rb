@@ -10,6 +10,9 @@ module ActionView
     # your views. These helper methods extend Action View making them callable
     # within your template files.
     module TextHelper
+      extend ActiveSupport::Concern
+
+      include SanitizeHelper
       # The preferred method of outputting text in your views is to use the
       # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
       # do not operate as expected in an eRuby code block. If you absolutely must

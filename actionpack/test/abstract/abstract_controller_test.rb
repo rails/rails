@@ -250,5 +250,19 @@ module AbstractController
       end
     end
 
+    class Me6 < AbstractController::Base
+      self.action_methods
+
+      def index
+      end
+    end
+
+    class TestActionMethodsReloading < ActiveSupport::TestCase
+
+      test "action_methods should be reloaded after defining a new method" do
+        assert_equal ["index"], Me6.action_methods
+      end
+    end
+
   end
 end

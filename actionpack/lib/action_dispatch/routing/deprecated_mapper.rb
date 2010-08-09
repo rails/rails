@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/object/try'
 
 module ActionDispatch
   module Routing

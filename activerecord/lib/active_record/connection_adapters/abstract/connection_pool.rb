@@ -103,8 +103,8 @@ module ActiveRecord
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
-      def release_connection
-        conn = @reserved_connections.delete(current_connection_id)
+      def release_connection(with_id = current_connection_id)
+        conn = @reserved_connections.delete(with_id)
         checkin conn if conn
       end
 
@@ -112,10 +112,11 @@ module ActiveRecord
       # exists checkout a connection, yield it to the block, and checkin the 
       # connection when finished.
       def with_connection
-        fresh_connection = true unless @reserved_connections[current_connection_id]
+        connection_id = current_connection_id
+        fresh_connection = true unless @reserved_connections[connection_id]
         yield connection
       ensure
-        release_connection if fresh_connection
+        release_connection(connection_id) if fresh_connection
       end
 
       # Returns true if a connection has already been opened.

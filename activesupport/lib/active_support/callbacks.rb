@@ -419,7 +419,10 @@ module ActiveSupport
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[name] ||= begin
           str = send("_#{kind}_callbacks").compile(name, object)
-          class_eval "def #{name}() #{str} end", __FILE__, __LINE__
+          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{name}() #{str} end
+            protected :#{name}
+          RUBY_EVAL
           true
         end
       end
@@ -483,7 +486,11 @@ module ActiveSupport
         end
       end
 
-      # Skip a previously defined callback for a given type.
+      # Skip a previously defined callback.
+      #
+      #   class Writer < Person
+      #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
+      #   end
       #
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
@@ -523,7 +530,8 @@ module ActiveSupport
       # This macro accepts the following options:
       #
       # * <tt>:terminator</tt> - Indicates when a before filter is considered
-      # to be halted.
+      # to halted. This is a string to be eval'ed and has the result of the
+      # very filter available in the <tt>result</tt> variable:
       #
       #   define_callbacks :validate, :terminator => "result == false"
       #
@@ -568,7 +576,9 @@ module ActiveSupport
       #
       # would trigger <tt>Audit#before_save</tt> instead. That's constructed by calling
       # <tt>"#{kind}_#{name}"</tt> on the given instance. In this case "kind" is "before" and
-      # "name" is "save".
+      # "name" is "save". In this context ":kind" and ":name" have special meanings: ":kind"
+      # refers to the kind of callback (before/after/around) and ":name" refers to the
+      # method on which callbacks are being defined.
       #
       # A declaration like
       #

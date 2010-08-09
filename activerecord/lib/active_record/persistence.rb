@@ -60,7 +60,7 @@ module ActiveRecord
     # reflect that no changes should be made (since they can't be
     # persisted). Returns the frozen instance.
     #
-    # The row is simply removed with a SQL +DELETE+ statement on the
+    # The row is simply removed with an SQL +DELETE+ statement on the
     # record's primary key, and no callbacks are executed.
     #
     # To enforce the object's +before_destroy+ and +after_destroy+
@@ -91,8 +91,8 @@ module ActiveRecord
     # like render <tt>:partial => @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
-    # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
-    # instance will affect the other.
+    # Note: The new instance will share a link to the same attributes as the original class. 
+    # So any change to the attributes in either instance will affect the other.
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)

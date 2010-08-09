@@ -30,7 +30,8 @@ module ActiveRecord
   class SerializationTypeMismatch < ActiveRecordError
   end
 
-  # Raised when adapter not specified on connection (or configuration file <tt>config/database.yml</tt> misses adapter field).
+  # Raised when adapter not specified on connection (or configuration file <tt>config/database.yml</tt> 
+  # misses adapter field).
   class AdapterNotSpecified < ActiveRecordError
   end
 
@@ -38,7 +39,8 @@ module ActiveRecord
   class AdapterNotFound < ActiveRecordError
   end
 
-  # Raised when connection to the database could not been established (for example when <tt>connection=</tt> is given a nil object).
+  # Raised when connection to the database could not been established (for example when <tt>connection=</tt> 
+  # is given a nil object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 
@@ -51,7 +53,8 @@ module ActiveRecord
   class RecordNotSaved < ActiveRecordError
   end
 
-  # Raised when SQL statement cannot be executed by the database (for example, it's often the case for MySQL when Ruby driver used is too old).
+  # Raised when SQL statement cannot be executed by the database (for example, it's often the case for 
+  # MySQL when Ruby driver used is too old).
   class StatementInvalid < ActiveRecordError
   end
 
@@ -78,7 +81,8 @@ module ActiveRecord
   class InvalidForeignKey < WrappedDatabaseException
   end
 
-  # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
+  # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, 
+  # when using +find+ method)
   # does not match number of expected variables.
   #
   # For example, in
