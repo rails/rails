@@ -550,7 +550,7 @@ build_customer
 create_customer
 </ruby>
 
-h6. _association_(force_reload = false)
+h6. <em>association</em>(force_reload = false)
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
 
