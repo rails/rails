@@ -18,6 +18,10 @@ module ActiveRecord
   # Note that it also means that associations marked for destruction won't
   # be destroyed directly. They will however still be marked for destruction.
   #
+  # Do note that <tt>:autosave => false</tt> is not same as not declaring <tt>:autosave</tt>
+  # option. When <tt>:autosave</tt> option is not declared then it works in 
+  # theoreticall <tt>:new_only</tt> mode. Look at has_many example discused below for details.
+  #
   # === One-to-one Example
   #
   #   class Post
@@ -57,27 +61,45 @@ module ActiveRecord
   #
   # === One-to-many Example
   #
+  # When <tt>autosave</tt> is not declared then also children will get saved when parent is saved
+  # in certain conditions.
+  #
   # Consider a Post model with many Comments:
+  #
+  #   class Post
+  #     has_many :comments # :autosave option is no declared
+  #   end
+  #
+  #   post = Post.new(:title => 'ruby rocks')
+  #   post.comments.build(:body => 'hello world')
+  #   post.save #=> will save both post and comment
+  #
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.build(:body => 'hello world')
+  #   post.save #=> will save both post and comment
+  #
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.create(:body => 'hello world')
+  #   post.save #=> will save both post and comment
+  #
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.build(:body => 'hello world')
+  #   post.comments[0].body = 'hi everyone'
+  #   post.save #=> will save both post and comment and comment will have 'hi everyone'
+  #  
+  #  In the above cases even without <tt>autosave</tt> option children got updated. 
   #
   #   class Post
   #     has_many :comments, :autosave => true
   #   end
   #
-  # Saving changes to the parent and its associated model can now be performed
-  # automatically _and_ atomically:
+  #   <tt>:autosave</tt> declaration is required if an attempt is made to change an existing
+  #   associatin in memory.
   #
-  #   post = Post.find(1)
-  #   post.title # => "The current global position of migrating ducks"
-  #   post.comments.first.body # => "Wow, awesome info thanks!"
-  #   post.comments.last.body # => "Actually, your article should be named differently."
-  #
-  #   post.title = "On the migration of ducks"
-  #   post.comments.last.body = "Actually, your article should be named differently. [UPDATED]: You are right, thanks."
-  #
-  #   post.save
-  #   post.reload
-  #   post.title # => "On the migration of ducks"
-  #   post.comments.last.body # => "Actually, your article should be named differently. [UPDATED]: You are right, thanks."
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.create(:body => 'hello world')
+  #   post.comments[0].body = 'hi everyone'
+  #   post.save #=> will save both post and comment and comment will have 'hi everyone'
   #
   # Destroying one of the associated models members, as part of the parent's
   # save action, is as simple as marking it for destruction:
@@ -125,6 +147,8 @@ module ActiveRecord
   #   post = Post.find(1)
   #   post.author.name = ''
   #   post.save(:validate => false) # => true
+  #
+  # Note that validation will be perfomend even if <tt>autosave</tt> option is not declared.  
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
