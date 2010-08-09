@@ -3009,6 +3009,26 @@ Date.new(2010, 1, 31).change(:month => 2)
 # => ArgumentError: invalid date
 </ruby>
 
+h5. Durations
+
+Durations can be added and substracted to dates:
+
+<ruby>
+d = Date.current
+# => Mon, 09 Aug 2010
+d + 1.year
+# => Tue, 09 Aug 2011
+d - 3.hours
+# => Sun, 08 Aug 2010 21:00:00 UTC +00:00
+</ruby>
+
+They translate to calls to +since+ or +advance+. For example here we get the correct jump in the calendar reform:
+
+<ruby>
+Date.new(1582, 10, 4) + 1.day
+# => Fri, 15 Oct 1582
+</ruby>
+
 h5. Timestamps
 
 INFO: The following methods return a +Time+ object if possible, otherwise a +DateTime+. If set, they honor the user time zone.
@@ -3195,7 +3215,25 @@ DateTime.current.change(:month => 2, :day => 30)
 # => ArgumentError: invalid date
 </ruby>
 
-h4(#datetime-conversions). Conversions
+h5. Durations
+
+Durations can be added and substracted to datetimes:
+
+<ruby>
+now = DateTime.current
+# => Mon, 09 Aug 2010 23:15:17 +0000
+now + 1.year
+# => Tue, 09 Aug 2011 23:15:17 +0000
+now - 1.week
+# => Mon, 02 Aug 2010 23:15:17 +0000
+</ruby>
+
+They translate to calls to +since+ or +advance+. For example here we get the correct jump in the calendar reform:
+
+<ruby>
+DateTime.new(1582, 10, 4, 23) + 1.hour
+# => Fri, 15 Oct 1582 00:00:00 +0000
+</ruby>
 
 h3. Extensions to +Time+
 
@@ -3243,6 +3281,9 @@ They are analogous. Please refer to their documentation above and take into acco
 * +Time+ understands DST, so you get correct DST calculations as in
 
 <ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+
 # In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
 t = Time.local_time(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
@@ -3286,6 +3327,26 @@ Time.utc_time(2010, 8, 15)
 Both +local_time+ and +utc_time+ accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
 
 If the time to be constructed lies beyond the range supported by +Time+ in the runtime platform, usecs are discarded and a +DateTime+ object is returned instead.
+
+h5. Durations
+
+Durations can be added and substracted to time objects:
+
+<ruby>
+now = Time.current
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now + 1.year
+#  => Tue, 09 Aug 2011 23:21:11 UTC +00:00
+now - 1.week
+# => Mon, 02 Aug 2010 23:21:11 UTC +00:00
+</ruby>
+
+They translate to calls to +since+ or +advance+. For example here we get the correct jump in the calendar reform:
+
+<ruby>
+Time.utc_time(1582, 10, 3) + 5.days
+# => Mon Oct 18 00:00:00 UTC 1582
+</ruby>
 
 h3. Extensions to +Process+
 
