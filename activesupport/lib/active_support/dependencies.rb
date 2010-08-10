@@ -276,22 +276,14 @@ module ActiveSupport #:nodoc:
     end
 
     def depend_on(file_name, swallow_load_errors = false, message = "No such file to load -- %s.rb")
-      #path = search_for_file(file_name)
-      require_or_load(file_name)
-    rescue LoadError
-      begin
-        if path = search_for_file(file_name)
-          require_or_load(path)
-        else
-          raise
+      path = search_for_file(file_name)
+      require_or_load(path || file_name)
+    rescue LoadError => load_error
+      unless swallow_load_errors
+        if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
+          raise LoadError.new(message % file_name).copy_blame!(load_error)
         end
-      rescue LoadError => load_error
-        unless swallow_load_errors
-          if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-            raise LoadError.new(message % file_name).copy_blame!(load_error)
-          end
-          raise
-        end
+        raise
       end
     end
 
