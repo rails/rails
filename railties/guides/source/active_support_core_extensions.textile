@@ -3543,4 +3543,5 @@ h3. Changelog
 
 "Lighthouse ticket":https://rails.lighthouseapp.com/projects/16213/tickets/67
 
+* August 10, 2010: Starts to take shape, added to the index.
 * April 18, 2009: Initial version by "Xavier Noria":credits.html#fxn
