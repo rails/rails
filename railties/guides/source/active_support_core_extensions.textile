@@ -984,6 +984,88 @@ though an anonymous module is unreachable by definition.
 
 NOTE: Defined in +active_support/core_ext/module/anonymous.rb+.
 
+h4. Delegation
+
+The +delegate+ macro declares that some instance method has to be forwarded to some object.
+
+Let's imagine that users in some application have login information in the +User+ model but name and other data in a separate +Profile+ model:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+end
+</ruby>
+
+With that configuration you get a user's name via his profile, +user.profile.name+, but you could write a shortcut so that client code can read it directly:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+
+  def name
+    profile.name
+  end
+end
+</ruby>
+
+That is what +delegate+ does for you:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+
+  delegate :name, :to => :profile
+end
+</ruby>
+
+When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to:
+
+<ruby>
+delegate :logger, :to => :Rails
+delegate :table_name, :to => 'self.class'
+</ruby>
+
+WARNING: If the +:prefix+ option is +true+ this is less generic, see below.
+
+By default, if the delegation raises +NoMethodError+ and the target is +nil+ the exception is propagated. You can ask that +nil+ is returned instead with the +:allow_nil+ option:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+
+  delegate :name, :to => :profile, :allow_nil => true
+end
+</ruby>
+
+With +:allow_nil+ the call +user.name+ returns +nil+ if the user has no profile instead of raising an exception.
+
+The option +:prefix+ adds a prefix to the name of the generated method. This may be handy for example to get a better name:
+
+<ruby>
+class Account < ActiveRecord::Base
+  has_one :address
+
+  delegate :street, :to => :address, :prefix => true
+end
+</ruby>
+
+The previous example generates +Account#address_street+ rather than +Account#street+.
+
+WARNING: Since in this case the name of the generated method is composed of the target object and target method names, the +:to+ option must be a method name.
+
+A custom prefix may also be configured:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :attachment
+  
+  delegate :size, :to => :attachment, :prefix => :avatar
+</ruby>
+
+In the previous example the macro generates +User#avatar_size+ rather than +User#size+.
+
+NOTE: Defined in +active_support/core_ext/module/delegation.rb+
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
