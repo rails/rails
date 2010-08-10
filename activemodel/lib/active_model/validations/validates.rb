@@ -40,7 +40,7 @@ module ActiveModel
       #     validates :email, :presence => true, :email => true
       #   end
       # 
-      # Validator classes my also exist within the class being validated
+      # Validator classes may also exist within the class being validated
       # allowing custom modules of validators to be included as needed e.g.
       #
       #   class Film
