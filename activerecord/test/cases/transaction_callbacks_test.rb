@@ -245,3 +245,44 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_rollback], @second.history
   end
 end
+
+
+class TransactionObserverCallbacksTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+  fixtures :topics
+
+  class TopicWithObserverAttached < ActiveRecord::Base
+    set_table_name :topics
+    def history
+      @history ||= []
+    end
+  end
+
+  class TopicWithObserverAttachedObserver < ActiveRecord::Observer
+    def after_commit(record)
+      record.history.push :"TopicWithObserverAttachedObserver#after_commit"
+    end
+
+    def after_rollback(record)
+      record.history.push :"TopicWithObserverAttachedObserver#after_rollback"
+    end
+  end
+
+  def test_after_commit_called
+    topic = TopicWithObserverAttached.new
+    topic.save!
+
+    assert topic.history, [:"TopicWithObserverAttachedObserver#after_commit"]
+  end
+
+  def test_after_rollback_called
+    topic = TopicWithObserverAttached.new
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert topic.history, [:"TopicWithObserverObserver#after_rollback"]
+  end
+end
