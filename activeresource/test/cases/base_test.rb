@@ -6,6 +6,7 @@ require "fixtures/sound"
 require "fixtures/beast"
 require "fixtures/proxy"
 require 'active_support/json'
+require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
 require 'mocha'
 
@@ -555,13 +556,14 @@ class BaseTest < Test::Unit::TestCase
 
     assert_equal '/people.xml?name[]=bob&name[]=your+uncle%2Bme&name[]=&name[]=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
 
-    assert_equal '/people.xml?struct[a][]=2&struct[a][]=1&struct[b]=fred', Person.collection_path(:struct => {:a => [2,1], 'b' => 'fred'})
+    assert_equal '/people.xml?struct[a][]=2&struct[a][]=1&struct[b]=fred', Person.collection_path(:struct => ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
   end
 
   def test_custom_element_path
     assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1, :person_id => 1)
     assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1, 'person_id' => 1)
     assert_equal '/people/Greg/addresses/1.xml', StreetAddress.element_path(1, 'person_id' => 'Greg')
+    assert_equal '/people/ann%20mary/addresses/ann%20mary.xml', StreetAddress.element_path(:'ann mary', 'person_id' => 'ann mary')
   end
 
   def test_module_element_path

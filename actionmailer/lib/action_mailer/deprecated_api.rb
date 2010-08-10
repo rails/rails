@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/try'
+
 module ActionMailer
   # This is the API which is deprecated and is going to be removed on Rails 3.1 release.
   # Part of the old API will be deprecated after 3.1, for a smoother deprecation process.

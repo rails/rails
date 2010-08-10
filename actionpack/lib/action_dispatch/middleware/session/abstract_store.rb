@@ -24,9 +24,9 @@ module ActionDispatch
 
         def [](key)
           if key == :id
-            load_session_id! unless super(:id) || has_session_id?
+            load_session_id! unless key?(:id) || has_session_id?
           end
-          super(key)
+          super
         end
 
       private

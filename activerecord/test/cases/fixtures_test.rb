@@ -36,7 +36,7 @@ class FixturesTest < ActiveRecord::TestCase
       fixtures = nil
       assert_nothing_raised { fixtures = create_fixtures(name) }
       assert_kind_of(Fixtures, fixtures)
-      fixtures.each { |name, fixture|
+      fixtures.each { |_name, fixture|
         fixture.each { |key, value|
           assert_match(MATCH_ATTRIBUTE_NAME, key)
         }
@@ -229,9 +229,9 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
 
     def test_create_fixtures_resets_sequences_when_not_cached
       @instances.each do |instance|
-        max_id = create_fixtures(instance.class.table_name).inject(0) do |max_id, (name, fixture)|
+        max_id = create_fixtures(instance.class.table_name).inject(0) do |_max_id, (name, fixture)|
           fixture_id = fixture['id'].to_i
-          fixture_id > max_id ? fixture_id : max_id
+          fixture_id > _max_id ? fixture_id : _max_id
         end
 
         # Clone the last fixture to check that it gets the next greatest id.

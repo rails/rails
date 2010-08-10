@@ -1,3 +1,8 @@
+*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+
+* No material changes
+
+
 *Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * subject is automatically looked up on I18n using mailer_name and action_name as scope as in t(".subject") [JK]

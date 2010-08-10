@@ -83,7 +83,7 @@ class Hash
         case value.class.to_s
           when 'Hash'
             if value['type'] == 'array'
-              child_key, entries = Array.wrap(value.detect { |k,v| k != 'type' })   # child_key is throwaway
+              _, entries = Array.wrap(value.detect { |k,v| k != 'type' })
               if entries.nil? || (c = value['__content__'] && c.blank?)
                 []
               else

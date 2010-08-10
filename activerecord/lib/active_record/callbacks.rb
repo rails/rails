@@ -26,8 +26,8 @@ module ActiveRecord
   # <tt>after_rollback</tt>.
   #
   # That's a total of ten callbacks, which gives you immense power to react and prepare for each state in the
-  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, except that each
-  # <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
+  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, 
+  # except that each <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
@@ -55,9 +55,9 @@ module ActiveRecord
   #
   # == Inheritable callback queues
   #
-  # Besides the overwritable callback methods, it's also possible to register callbacks through the use of the callback macros.
-  # Their main advantage is that the macros add behavior into a callback queue that is kept intact down through an inheritance
-  # hierarchy. Example:
+  # Besides the overwritable callback methods, it's also possible to register callbacks through the 
+  # use of the callback macros. Their main advantage is that the macros add behavior into a callback 
+  # queue that is kept intact down through an inheritance hierarchy.
   #
   #   class Topic < ActiveRecord::Base
   #     before_destroy :destroy_author
@@ -67,9 +67,9 @@ module ActiveRecord
   #     before_destroy :destroy_readers
   #   end
   #
-  # Now, when <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is run, both +destroy_author+ and
-  # +destroy_readers+ are called. Contrast this to the situation where we've implemented the save behavior through overwriteable
-  # methods:
+  # Now, when <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is 
+  # run, both +destroy_author+ and +destroy_readers+ are called. Contrast this to the following situation 
+  # where the +before_destroy+ methis is overriden:
   #
   #   class Topic < ActiveRecord::Base
   #     def before_destroy() destroy_author end
@@ -79,20 +79,21 @@ module ActiveRecord
   #     def before_destroy() destroy_readers end
   #   end
   #
-  # In that case, <tt>Reply#destroy</tt> would only run +destroy_readers+ and _not_ +destroy_author+. So, use the callback macros when
-  # you want to ensure that a certain callback is called for the entire hierarchy, and use the regular overwriteable methods
-  # when you want to leave it up to each descendant to decide whether they want to call +super+ and trigger the inherited callbacks.
+  # In that case, <tt>Reply#destroy</tt> would only run +destroy_readers+ and _not_ +destroy_author+. 
+  # So, use the callback macros when you want to ensure that a certain callback is called for the entire 
+  # hierarchy, and use the regular overwriteable methods when you want to leave it up to each descendant 
+  # to decide whether they want to call +super+ and trigger the inherited callbacks.
   #
-  # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the callbacks before specifying the
-  # associations. Otherwise, you might trigger the loading of a child before the parent has registered the callbacks and they won't
-  # be inherited.
+  # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the 
+  # callbacks before specifying the associations. Otherwise, you might trigger the loading of a 
+  # child before the parent has registered the callbacks and they won't be inherited.
   #
   # == Types of callbacks
   #
   # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
-  # inline methods (using a proc), and inline eval methods (using a string). Method references and callback objects are the
-  # recommended approaches, inline methods using a proc are sometimes appropriate (such as for creating mix-ins), and inline
-  # eval methods are deprecated.
+  # inline methods (using a proc), and inline eval methods (using a string). Method references and callback objects 
+  # are the recommended approaches, inline methods using a proc are sometimes appropriate (such as for 
+  # creating mix-ins), and inline eval methods are deprecated.
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
   #
@@ -169,15 +170,15 @@ module ActiveRecord
   #       end
   #   end
   #
-  # The callback macros usually accept a symbol for the method they're supposed to run, but you can also pass a "method string",
-  # which will then be evaluated within the binding of the callback. Example:
+  # The callback macros usually accept a symbol for the method they're supposed to run, but you can also 
+  # pass a "method string", which will then be evaluated within the binding of the callback. Example:
   #
   #   class Topic < ActiveRecord::Base
   #     before_destroy 'self.class.delete_all "parent_id = #{id}"'
   #   end
   #
-  # Notice that single quotes (') are used so the <tt>#{id}</tt> part isn't evaluated until the callback is triggered. Also note that these
-  # inline callbacks can be stacked just like the regular ones:
+  # Notice that single quotes (') are used so the <tt>#{id}</tt> part isn't evaluated until the callback 
+  # is triggered. Also note that these inline callbacks can be stacked just like the regular ones:
   #
   #   class Topic < ActiveRecord::Base
   #     before_destroy 'self.class.delete_all "parent_id = #{id}"',
@@ -186,22 +187,24 @@ module ActiveRecord
   #
   # == The +after_find+ and +after_initialize+ exceptions
   #
-  # Because +after_find+ and +after_initialize+ are called for each object found and instantiated by a finder, such as <tt>Base.find(:all)</tt>, we've had
-  # to implement a simple performance constraint (50% more speed on a simple test case). Unlike all the other callbacks, +after_find+ and
-  # +after_initialize+ will only be run if an explicit implementation is defined (<tt>def after_find</tt>). In that case, all of the
+  # Because +after_find+ and +after_initialize+ are called for each object found and instantiated by a finder, 
+  # such as <tt>Base.find(:all)</tt>, we've had to implement a simple performance constraint (50% more speed 
+  # on a simple test case). Unlike all the other callbacks, +after_find+ and +after_initialize+ will only be 
+  # run if an explicit implementation is defined (<tt>def after_find</tt>). In that case, all of the
   # callback types will be called.
   #
   # == <tt>before_validation*</tt> returning statements
   #
-  # If the returning value of a +before_validation+ callback can be evaluated to +false+, the process will be aborted and <tt>Base#save</tt> will return +false+.
-  # If Base#save! is called it will raise a ActiveRecord::RecordInvalid exception.
-  # Nothing will be appended to the errors object.
+  # If the returning value of a +before_validation+ callback can be evaluated to +false+, the process will be 
+  # aborted and <tt>Base#save</tt> will return +false+. If Base#save! is called it will raise a 
+  # ActiveRecord::RecordInvalid exception. Nothing will be appended to the errors object.
   #
   # == Canceling callbacks
   #
-  # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are cancelled. If an <tt>after_*</tt> callback returns
-  # +false+, all the later callbacks are cancelled. Callbacks are generally run in the order they are defined, with the exception of callbacks
-  # defined as methods on the model, which are called last.
+  # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are 
+  # cancelled. If an <tt>after_*</tt> callback returns +false+, all the later callbacks are cancelled. 
+  # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as 
+  # methods on the model, which are called last.
   #
   # == Transactions
   #
@@ -217,7 +220,8 @@ module ActiveRecord
   #
   # == Debugging callbacks
   #
-  # To list the methods and procs registered with a particular callback, append <tt>_callback_chain</tt> to the callback name that you wish to list and send that to your class from the Rails console:
+  # To list the methods and procs registered with a particular callback, append <tt>_callback_chain</tt> to 
+  # the callback name that you wish to list and send that to your class from the Rails console:
   #
   #   >> Topic.after_save_callback_chain
   #   => [#<ActiveSupport::Callbacks::Callback:0x3f6a448
@@ -228,7 +232,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     CALLBACKS = [
-      :after_initialize, :after_find, :before_validation, :after_validation,
+      :after_initialize, :after_find, :after_touch, :before_validation, :after_validation,
       :before_save, :around_save, :after_save, :before_create, :around_create,
       :after_create, :before_update, :around_update, :after_update,
       :before_destroy, :around_destroy, :after_destroy
@@ -238,7 +242,7 @@ module ActiveRecord
       extend ActiveModel::Callbacks
       include ActiveModel::Validations::Callbacks
 
-      define_model_callbacks :initialize, :find, :only => :after
+      define_model_callbacks :initialize, :find, :touch, :only => :after
       define_model_callbacks :save, :create, :update, :destroy
     end
 
@@ -254,6 +258,10 @@ module ActiveRecord
 
     def destroy #:nodoc:
       _run_destroy_callbacks { super }
+    end
+
+    def touch(*) #:nodoc:
+      _run_touch_callbacks { super }
     end
 
     def deprecated_callback_method(symbol) #:nodoc:

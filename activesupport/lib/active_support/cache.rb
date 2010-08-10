@@ -19,8 +19,6 @@ module ActiveSupport
     autoload :SynchronizedMemoryStore, 'active_support/cache/synchronized_memory_store'
     autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
 
-    EMPTY_OPTIONS = {}.freeze
-
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
@@ -129,13 +127,6 @@ module ActiveSupport
     #   cache.namespace = lambda { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
-    # All caches support auto expiring content after a specified number of seconds.
-    # To set the cache entry time to live, you can either specify +:expires_in+ as
-    # an option to the constructor to have it affect all entries or to the +fetch+
-    # or +write+ methods for just one entry.
-    #
-    #   cache = ActiveSupport::Cache::MemoryStore.new(:expire_in => 5.minutes)
-    #   cache.write(key, value, :expire_in => 1.minute)  # Set a lower value for one entry
     #
     # Caches can also store values in a compressed format to save space and reduce
     # time spent sending data. Since there is some overhead, values must be large
@@ -147,18 +138,13 @@ module ActiveSupport
 
       cattr_accessor :logger, :instance_writer => true
 
-      attr_reader :silence
+      attr_reader :silence, :options
       alias :silence? :silence
 
       # Create a new cache. The options will be passed to any write method calls except
       # for :namespace which can be used to set the global namespace for the cache.
       def initialize (options = nil)
         @options = options ? options.dup : {}
-      end
-
-      # Get the default options set when the cache was created.
-      def options
-        @options ||= {}
       end
 
       # Silence the logger.
@@ -175,7 +161,7 @@ module ActiveSupport
         @silence = previous_silence
       end
 
-      # Set to true if cache stores should be instrumented. By default is false.
+      # Set to true if cache stores should be instrumented. Default is false.
       def self.instrument=(boolean)
         Thread.current[:instrument_cache_store] = boolean
       end
@@ -187,7 +173,7 @@ module ActiveSupport
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned.
       #
-      # If there is no such data in the cache (a cache miss occurred), then
+      # If there is no such data in the cache (a cache miss occurred),
       # then nil will be returned. However, if a block has been passed, then
       # that block will be run in the event of a cache miss. The return value
       # of the block will be written to the cache under the given cache key,
@@ -211,23 +197,30 @@ module ActiveSupport
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
       #
-      # Setting <tt>:expires_in</tt> will set an expiration time on the cache
-      # entry if it is set by call.
       #
-      # Setting <tt>:race_condition_ttl</tt> will invoke logic on entries set with
-      # an <tt>:expires_in</tt> option. If an entry is found in the cache that is
-      # expired and it has been expired for less than the number of seconds specified
-      # by this option and a block was passed to the method call, then the expiration
-      # future time of the entry in the cache will be updated to that many seconds
-      # in the and the block will be evaluated and written to the cache.
+      # Setting <tt>:expires_in</tt> will set an expiration time on the cache. All caches
+      # support auto expiring content after a specified number of seconds. This value can
+      # be specified as an option to the construction in which call all entries will be 
+      # affected. Or it can be supplied to the +fetch+ or +write+ method for just one entry.
       #
-      # This is very useful in situations where a cache entry is used very frequently
-      # under heavy load. The first process to find an expired cache entry will then
-      # become responsible for regenerating that entry while other processes continue
-      # to use the slightly out of date entry. This can prevent race conditions where
-      # too many processes are trying to regenerate the entry all at once. If the
-      # process regenerating the entry errors out, the entry will be regenerated
-      # after the specified number of seconds.
+      #   cache = ActiveSupport::Cache::MemoryStore.new(:expire_in => 5.minutes)
+      #   cache.write(key, value, :expire_in => 1.minute)  # Set a lower value for one entry
+      #
+      # Setting <tt>:race_condition_ttl</tt> is very useful in situations where a cache entry
+      # is used very frequently unver heavy load. If a cache expires and due to heavy load 
+      # seven different processes will try to read data natively and then they all will try to 
+      # write to cache. To avoid that case the first process to find an expired cache entry will 
+      # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>. Yes
+      # this process is extending the time for a stale value by another few seconds. Because 
+      # of extended life of the previous cache, other processes will continue to use slightly
+      # stale data for a just a big longer. In the meantime that first process will go ahead
+      # and will write into cache the new value. After that all the processes will start
+      # getting new value. The key is to keep <tt>:race_condition_ttl</tt> small.
+      #
+      # If the process regenerating the entry errors out, the entry will be regenerated
+      # after the specified number of seconds. Also note that the life of stale cache is 
+      # extended only if it expired recently. Otherwise a new value is generated and 
+      # <tt>:race_condition_ttl</tt> does not play any role.
       #
       #   # Set all values to expire after one minute.
       #   cache = ActiveSupport::Cache::MemoryCache.new(:expires_in => 1.minute)
@@ -252,6 +245,7 @@ module ActiveSupport
       #
       #   # val_1 => "new value 1"
       #   # val_2 => "original value"
+      #   # sleep 10 # First thread extend the life of cache by another 10 seconds
       #   # cache.fetch("foo") => "new value 1"
       #
       # Other options will be handled by the specific cache store implementation.
@@ -353,11 +347,9 @@ module ActiveSupport
         results
       end
 
-      # Writes the given value to the cache, with the given key.
+      # Writes the value to the cache, with the key.
       #
-      # You may also specify additional options via the +options+ argument.
-      # The specific cache store implementation will decide what to do with
-      # +options+.
+      # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
         instrument(:write, name, options) do |payload|
@@ -366,7 +358,7 @@ module ActiveSupport
         end
       end
 
-      # Delete an entry in the cache. Returns +true+ if there was an entry to delete.
+      # Deletes an entry in the cache. Returns +true+ if an entry is deleted.
       #
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
@@ -376,7 +368,7 @@ module ActiveSupport
         end
       end
 
-      # Return true if the cache contains an entry with this name.
+      # Return true if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
@@ -391,11 +383,11 @@ module ActiveSupport
         end
       end
 
-      # Delete all entries whose keys match a pattern.
+      # Delete all entries with keys matching the pattern.
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def delete_matched(matcher, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support delete_matched")
       end
@@ -404,7 +396,7 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def increment(name, amount = 1, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
@@ -413,28 +405,26 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def decrement(name, amount = 1, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
-      # Cleanup the cache by removing expired entries. Not all cache implementations may
-      # support this method.
+      # Cleanup the cache by removing expired entries. 
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def cleanup(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support cleanup")
       end
 
-      # Clear the entire cache. Not all cache implementations may support this method.
-      # You should be careful with this method since it could affect other processes
-      # if you are using a shared cache.
+      # Clear the entire cache. Be careful with this method since it could 
+      # affect other processes if shared cache is being used.
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Not all implementations may support +delete_matched+.
+      # All implementations may not support this method.
       def clear(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
@@ -483,9 +473,9 @@ module ActiveSupport
           end
         end
 
-        # Expand a key to be a consistent string value. If the object responds to +cache_key+,
-        # it will be called. Otherwise, the to_param method will be called. If the key is a
-        # Hash, the keys will be sorted alphabetically.
+        # Expand key to be a consistent string value. Invoke +cache_key+ if 
+        # object responds to +cache_key+. Otherwise, to_param method will be 
+        # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
           if key.respond_to?(:cache_key)
             key = key.cache_key.to_s
@@ -502,7 +492,7 @@ module ActiveSupport
           end
         end
 
-        # Prefix a key with the namespace. The two values will be delimited with a colon.
+        # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
         def namespaced_key(key, options)
           key = expanded_key(key)
           namespace = options[:namespace] if options
@@ -599,7 +589,7 @@ module ActiveSupport
         end
       end
 
-      # Set a new time to live on the entry so it expires at the given time.
+      # Set a new time when the entry will expire.
       def expires_at=(time)
         if time
           @expires_in = time.to_f - @created_at
@@ -608,12 +598,12 @@ module ActiveSupport
         end
       end
 
-      # Seconds since the epoch when the cache entry will expire.
+      # Seconds since the epoch when the entry will expire.
       def expires_at
         @expires_in ? @created_at + @expires_in : nil
       end
 
-      # Get the size of the cached value. This could be less than value.size
+      # Returns the size of the cached value. This could be less than value.size
       # if the data is compressed.
       def size
         if @value.nil?

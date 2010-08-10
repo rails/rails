@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/object/try'
 
 module ActionDispatch
   module Routing
@@ -500,7 +501,7 @@ module ActionDispatch
         end
 
         def add_conditions_for(conditions, method)
-          returning({:conditions => conditions.dup}) do |options|
+          {:conditions => conditions.dup}.tap do |options|
             options[:conditions][:method] = method unless method == :any
           end
         end

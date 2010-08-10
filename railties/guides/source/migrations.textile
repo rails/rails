@@ -1,6 +1,6 @@
 h2. Migrations
 
-Migrations are a convenient way for you to alter your database in a structured and organized manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run it. You'd also have to keep track of which changes need to be run against the production machines next time you deploy.
+Migrations are a convenient way for you to alter your database in a structured and organized manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run them. You'd also have to keep track of which changes need to be run against the production machines next time you deploy.
 
 Active Record tracks which migrations have already been run so all you have to do is update your source and run +rake db:migrate+. Active Record will work out which migrations should be run. It will also update your +db/schema.rb+ file to match the structure of your database.
 
@@ -234,7 +234,7 @@ end
 
 which creates a +products+ table with a column called +name+ (and as discussed below, an implicit +id+ column).
 
-The object yielded to the block allows you create columns on the table. There are two ways of doing this: The first (traditional) form looks like
+The object yielded to the block allows you to create columns on the table. There are two ways of doing this: The first (traditional) form looks like
 
 <ruby>
 create_table :products do |t|
@@ -250,7 +250,7 @@ create_table :products do |t|
 end
 </ruby>
 
-By default +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or if you don't want a primary key at all (for example for a HABTM join table) you can pass +:id => false+. If you need to pass database specific options you can place an SQL fragment in the +:options+ option. For example
+By default +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or if you don't want a primary key at all (for example for a HABTM join table) you can pass +:id => false+. If you need to pass database specific options you can place a SQL fragment in the +:options+ option. For example
 
 <ruby>
 create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
@@ -592,4 +592,5 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/6
 
+* July 15, 2010: minor typos corrected by "Jaime Iniesta":http://jaimeiniesta.com
 * September 14, 2008: initial version by "Frederick Cheung":credits.html#fcheung

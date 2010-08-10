@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/try'
 require 'action_controller/vendor/html-scanner'
 require 'action_view/helpers/tag_helper'
 
@@ -7,6 +8,7 @@ module ActionView
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
+      extend ActiveSupport::Concern
       # This +sanitize+ helper will html encode all tags and strip all attributes that 
       # aren't specifically allowed.
       #
@@ -32,13 +34,13 @@ module ActionView
       #
       # Add table tags to the default allowed tags
       #
-      #   Rails::Initializer.run do |config|
+      #   class Application < Rails::Application
       #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
       #   end
       #
       # Remove tags to the default allowed tags
       #
-      #   Rails::Initializer.run do |config|
+      #   class Application < Rails::Application
       #     config.after_initialize do
       #       ActionView::Base.sanitized_allowed_tags.delete 'div'
       #     end
@@ -46,7 +48,7 @@ module ActionView
       #
       # Change allowed default attributes
       #
-      #   Rails::Initializer.run do |config|
+      #   class Application < Rails::Application
       #     config.action_view.sanitized_allowed_attributes = 'id', 'class', 'style'
       #   end
       #
@@ -143,7 +145,7 @@ module ActionView
         # Gets the HTML::FullSanitizer instance used by +strip_tags+.  Replace with
         # any object that responds to +sanitize+.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.full_sanitizer = MySpecialSanitizer.new
         #   end
         #
@@ -154,7 +156,7 @@ module ActionView
         # Gets the HTML::LinkSanitizer instance used by +strip_links+.  Replace with
         # any object that responds to +sanitize+.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.link_sanitizer = MySpecialSanitizer.new
         #   end
         #
@@ -165,7 +167,7 @@ module ActionView
         # Gets the HTML::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.white_list_sanitizer = MySpecialSanitizer.new
         #   end
         #
@@ -175,7 +177,7 @@ module ActionView
 
         # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_uri_attributes = 'lowsrc', 'target'
         #   end
         #
@@ -185,7 +187,7 @@ module ActionView
 
         # Adds to the Set of 'bad' tags for the +sanitize+ helper.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_bad_tags = 'embed', 'object'
         #   end
         #
@@ -195,7 +197,7 @@ module ActionView
 
         # Adds to the Set of allowed tags for the +sanitize+ helper.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
         #   end
         #
@@ -205,7 +207,7 @@ module ActionView
 
         # Adds to the Set of allowed HTML attributes for the +sanitize+ helper.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_attributes = 'onclick', 'longdesc'
         #   end
         #
@@ -215,7 +217,7 @@ module ActionView
 
         # Adds to the Set of allowed CSS properties for the #sanitize and +sanitize_css+ helpers.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_css_properties = 'expression'
         #   end
         #
@@ -225,7 +227,7 @@ module ActionView
 
         # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_css_keywords = 'expression'
         #   end
         #
@@ -235,7 +237,7 @@ module ActionView
 
         # Adds to the Set of allowed shorthand CSS properties for the +sanitize+ and +sanitize_css+ helpers.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_shorthand_css_properties = 'expression'
         #   end
         #
@@ -245,7 +247,7 @@ module ActionView
 
         # Adds to the Set of allowed protocols for the +sanitize+ helper.
         #
-        #   Rails::Initializer.run do |config|
+        #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_protocols = 'ssh', 'feed'
         #   end
         #

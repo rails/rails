@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'active_support/ordered_hash'
 
 class TestTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -137,14 +138,14 @@ XML
   end
 
   def test_raw_post_handling
-    params = {:page => {:name => 'page name'}, 'some key' => 123}
+    params = ActiveSupport::OrderedHash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
 
     assert_equal params.to_query, @response.body
   end
 
   def test_body_stream
-    params = { :page => { :name => 'page name' }, 'some key' => 123 }
+    params = ActiveSupport::OrderedHash[:page, { :name => 'page name' }, 'some key', 123]
 
     post :render_body, params.dup
 
@@ -460,6 +461,13 @@ XML
 
   def test_assert_routing_in_module
     assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
+  end
+  
+  def test_assert_routing_with_glob
+    with_routing do |set|
+      set.draw { |map| match('*path' => "pages#show") }
+      assert_routing('/company/about', { :controller => 'pages', :action => 'show', :path => 'company/about' })
+    end
   end
 
   def test_params_passing

@@ -35,7 +35,7 @@ module ActiveRecord
               @owner.class.base_class.name.to_s,
               reflection.klass.columns_hash["#{as}_type"]) }
         elsif reflection.macro == :belongs_to
-          { reflection.klass.primary_key => @owner[reflection.primary_key_name] }
+          { reflection.klass.primary_key => @owner.class.quote_value(@owner[reflection.primary_key_name]) }
         else
           { reflection.primary_key_name => owner_quoted_id }
         end

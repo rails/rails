@@ -284,7 +284,7 @@ module ActiveRecord
   #
   #    config.active_record.timestamped_migrations = false
   #
-  # In environment.rb.
+  # In application.rb.
   #
   class Migration
     @@verbose = true

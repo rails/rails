@@ -20,7 +20,7 @@ module ActionDispatch
     #   <%= link_to('Click here', :controller => 'users',
     #           :action => 'new', :message => 'Welcome!') %>
     #
-    #   #=> Generates a link to: /users/new?message=Welcome%21
+    #   # Generates a link to /users/new?message=Welcome%21
     #
     # link_to, and all other functions that require URL generation functionality,
     # actually use ActionController::UrlFor under the hood. And in particular,
@@ -82,6 +82,7 @@ module ActionDispatch
     #
     module UrlFor
       extend ActiveSupport::Concern
+      include PolymorphicRoutes
 
       included do
         # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options
@@ -128,7 +129,7 @@ module ActionDispatch
         when String
           options
         when nil, Hash
-          _routes.url_for(url_options.merge((options || {}).symbolize_keys))
+          _routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)
         else
           polymorphic_url(options)
         end

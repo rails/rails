@@ -89,7 +89,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
-  test "methds are called on object" do
+  test "methods are called on object" do
     # Define methods on fixture.
     def @contact.label; "Has cheezburger"; end
     def @contact.favorite_quote; "Constraints are liberating"; end
@@ -102,4 +102,18 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"label":"Has cheezburger"}, methods_json
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
+
+  test "should return OrderedHash for errors" do
+    car = Automobile.new
+    
+    # run the validation
+    car.valid? 
+    
+    hash = ActiveSupport::OrderedHash.new
+    hash[:make]  = "can't be blank"
+    hash[:model] = "is too short (minimum is 2 characters)"
+    assert_equal hash.to_json, car.errors.to_json
+  end
+  
+  
 end

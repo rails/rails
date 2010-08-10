@@ -102,7 +102,7 @@ module ActionView
                        :form, :with, :update, :script, :type ]).merge(CALLBACKS)
 
       # Returns the JavaScript needed for a remote function.
-      # Takes the same arguments as link_to_remote.
+      # See the link_to_remote documentation at http://github.com/rails/prototype_legacy_helper as it takes the same arguments.
       #
       # Example:
       #   # Generates: <select id="options" onchange="new Ajax.Updater('options',
@@ -139,7 +139,7 @@ module ActionView
         function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
         function = "if (confirm('#{escape_javascript(options[:confirm])}')) { #{function}; }" if options[:confirm]
 
-        return function
+        return function.html_safe
       end
 
       # All the methods were moved to GeneratorMethods so that

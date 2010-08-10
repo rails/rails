@@ -2,11 +2,6 @@ require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
-require 'models/topic'
-require 'models/reply'
-require 'models/computer'
-require 'models/customer'
-require 'models/order'
 require 'models/categorization'
 require 'models/category'
 require 'models/post'
@@ -17,17 +12,65 @@ require 'models/tagging'
 require 'models/person'
 require 'models/reader'
 require 'models/parrot'
-require 'models/pirate'
-require 'models/treasure'
-require 'models/price_estimate'
-require 'models/club'
-require 'models/member'
-require 'models/membership'
-require 'models/sponsor'
+require 'models/ship_part'
+require 'models/ship'
+require 'models/liquid'
+require 'models/molecule'
+require 'models/electron'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers
+
+  def test_eager_loading_should_not_change_count_of_children
+    liquid = Liquid.create(:name => 'salty')
+    molecule = liquid.molecules.create(:name => 'molecule_1')
+    molecule.electrons.create(:name => 'electron_1')
+    molecule.electrons.create(:name => 'electron_2')
+
+    liquids = Liquid.includes(:molecules => :electrons).where('molecules.id is not null')
+    assert_equal 1, liquids[0].molecules.length
+  end
+
+  def test_clear_association_cache_stored
+    firm = Firm.find(1)
+    assert_kind_of Firm, firm
+
+    firm.clear_association_cache
+    assert_equal Firm.find(1).clients.collect{ |x| x.name }.sort, firm.clients.collect{ |x| x.name }.sort
+  end
+
+  def test_clear_association_cache_new_record
+     firm            = Firm.new
+     client_stored   = Client.find(3)
+     client_new      = Client.new
+     client_new.name = "The Joneses"
+     clients         = [ client_stored, client_new ]
+
+     firm.clients    << clients
+     assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
+
+     firm.clear_association_cache
+     assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
+  end
+
+  def test_loading_the_association_target_should_keep_child_records_marked_for_destruction
+    ship = Ship.create!(:name => "The good ship Dollypop")
+    part = ship.parts.create!(:name => "Mast")
+    part.mark_for_destruction
+    ship.parts.send(:load_target)
+    assert ship.parts[0].marked_for_destruction?
+  end
+
+  def test_loading_the_association_target_should_load_most_recent_attributes_for_child_records_marked_for_destruction
+    ship = Ship.create!(:name => "The good ship Dollypop")
+    part = ship.parts.create!(:name => "Mast")
+    part.mark_for_destruction
+    ShipPart.find(part.id).update_attribute(:name, 'Deck')
+    ship.parts.send(:load_target)
+    assert_equal 'Deck', ship.parts[0].name
+  end
+  
 
   def test_include_with_order_works
     assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}

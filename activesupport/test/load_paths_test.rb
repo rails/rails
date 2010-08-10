@@ -8,8 +8,8 @@ class LoadPathsTest < Test::Unit::TestCase
       paths[expanded_path] += 1
       paths
     }
+    load_paths_count[File.expand_path('../../lib', __FILE__)] -= 1
 
-    # CI has a bunch of duplicate load paths
-    # assert_equal [], load_paths_count.select { |k, v| v > 1 }, $LOAD_PATH.inspect
+    assert load_paths_count.select { |k, v| v > 1 }.empty?, $LOAD_PATH.inspect
   end
 end

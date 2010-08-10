@@ -27,8 +27,9 @@ module ActiveRecord
       #
       # this would specify a circular dependency and cause infinite recursion.
       #
-      # NOTE: This validation will not fail if the association hasn't been assigned. If you want to ensure that the association
-      # is both present and guaranteed to be valid, you also need to use +validates_presence_of+.
+      # NOTE: This validation will not fail if the association hasn't been assigned. If you want to 
+      # ensure that the association is both present and guaranteed to be valid, you also need to 
+      # use +validates_presence_of+.
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is invalid")

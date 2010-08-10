@@ -11,19 +11,19 @@ module ApplicationTests
       extend Rack::Test::Methods
     end
 
-    def app
+    def app(env = "production")
+      old_env = ENV["RAILS_ENV"]
+
       @app ||= begin
+        ENV["RAILS_ENV"] = env
         require "#{app_path}/config/environment"
         Rails.application
       end
+    ensure
+      ENV["RAILS_ENV"] = old_env
     end
 
-    test "rails/info/properties" do
-      get "/rails/info/properties"
-      assert_equal 200, last_response.status
-    end
-
-    test "simple controller" do
+    def simple_controller
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
@@ -37,9 +37,40 @@ module ApplicationTests
           match ':controller(/:action)'
         end
       RUBY
+    end
+
+    test "rails/info/properties in development" do
+      app("development")
+      get "/rails/info/properties"
+      assert_equal 200, last_response.status
+    end
+
+    test "rails/info/properties in production" do
+      app("production")
+      get "/rails/info/properties"
+      assert_equal 404, last_response.status
+    end
+
+    test "simple controller" do
+      simple_controller
 
       get '/foo'
       assert_equal 'foo', last_response.body
+    end
+
+    test "simple controller in production mode returns best standards" do
+      simple_controller
+
+      get '/foo'
+      assert_equal "IE=Edge,chrome=1", last_response.headers["X-UA-Compatible"]
+    end
+
+    test "simple controller in development mode leaves out Chrome" do
+      simple_controller
+      app("development")
+
+      get "/foo"
+      assert_equal "IE=Edge", last_response.headers["X-UA-Compatible"]
     end
 
     test "simple controller with helper" do
@@ -146,38 +177,42 @@ module ApplicationTests
       assert_equal 'admin::foo', last_response.body
     end
 
-    test "reloads routes when configuration is changed" do
-      controller :foo, <<-RUBY
-        class FooController < ApplicationController
-          def bar
-            render :text => "bar"
+    {"development" => "baz", "production" => "bar"}.each do |mode, expected|
+      test "reloads routes when configuration is changed in #{mode}" do
+        controller :foo, <<-RUBY
+          class FooController < ApplicationController
+            def bar
+              render :text => "bar"
+            end
+
+            def baz
+              render :text => "baz"
+            end
           end
+        RUBY
 
-          def baz
-            render :text => "baz"
+        app_file 'config/routes.rb', <<-RUBY
+          AppTemplate::Application.routes.draw do |map|
+            match 'foo', :to => 'foo#bar'
           end
-        end
-      RUBY
+        RUBY
 
-      app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
-          match 'foo', :to => 'foo#bar'
-        end
-      RUBY
+        app(mode)
 
-      get '/foo'
-      assert_equal 'bar', last_response.body
+        get '/foo'
+        assert_equal 'bar', last_response.body
 
-      app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
-          match 'foo', :to => 'foo#baz'
-        end
-      RUBY
+        app_file 'config/routes.rb', <<-RUBY
+          AppTemplate::Application.routes.draw do |map|
+            match 'foo', :to => 'foo#baz'
+          end
+        RUBY
 
-      sleep 0.1
+        sleep 0.1
 
-      get '/foo'
-      assert_equal 'baz', last_response.body
+        get '/foo'
+        assert_equal expected, last_response.body
+      end
     end
 
     test 'resource routing with irrigular inflection' do

@@ -392,19 +392,19 @@ class RequestTest < ActiveSupport::TestCase
     [{'baz'=>[{'foo'=>'baz'}, "1"]}, {'baz'=>[{'foo'=>'[FILTERED]'}, "1"]}, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
-      request = stub_request('action_dispatch.parameter_filter' => filter_words)
-      assert_equal after_filter, request.send(:process_parameter_filter, before_filter)
+      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
+      assert_equal after_filter, parameter_filter.filter(before_filter)
 
       filter_words << 'blah'
       filter_words << lambda { |key, value|
         value.reverse! if key =~ /bargain/
       }
 
-      request = stub_request('action_dispatch.parameter_filter' => filter_words)
+      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
       before_filter['barg'] = {'bargain'=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
       after_filter['barg']  = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
 
-      assert_equal after_filter, request.send(:process_parameter_filter, before_filter)
+      assert_equal after_filter, parameter_filter.filter(before_filter)
     end
   end
 

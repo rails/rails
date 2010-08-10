@@ -46,7 +46,7 @@ module ActionController
     #   dom_class(post, :edit)   # => "edit_post"
     #   dom_class(Person, :edit) # => "edit_person"
     def dom_class(record_or_class, prefix = nil)
-      singular = singular_class_name(record_or_class)
+      singular = ActiveModel::Naming.singular(record_or_class)
       prefix ? "#{prefix}#{JOIN}#{singular}" : singular
     end
 
@@ -67,6 +67,8 @@ module ActionController
       end
     end
 
+  protected
+
     # Returns a string representation of the key attribute(s) that is suitable for use in an HTML DOM id.
     # This can be overwritten to customize the default generated string representation if desired.
     # If you need to read back a key from a dom_id in order to query for the underlying database record,
@@ -85,34 +87,5 @@ module ActionController
     def sanitize_dom_id(candidate_id)
       candidate_id # TODO implement conversion to valid DOM id values
     end
-
-    # Returns the plural class name of a record or class. Examples:
-    #
-    #   plural_class_name(post)             # => "posts"
-    #   plural_class_name(Highrise::Person) # => "highrise_people"
-    def plural_class_name(record_or_class)
-      model_name_from_record_or_class(record_or_class).plural
-    end
-
-    # Returns the singular class name of a record or class. Examples:
-    #
-    #   singular_class_name(post)             # => "post"
-    #   singular_class_name(Highrise::Person) # => "highrise_person"
-    def singular_class_name(record_or_class)
-      model_name_from_record_or_class(record_or_class).singular
-    end
-
-    # Identifies whether the class name of a record or class is uncountable. Examples:
-    #
-    #   uncountable?(Sheep) # => true
-    #   uncountable?(Post) => false
-    def uncountable?(record_or_class)
-      plural_class_name(record_or_class) == singular_class_name(record_or_class)
-    end
-
-    private
-      def model_name_from_record_or_class(record_or_class)
-        (record_or_class.is_a?(Class) ? record_or_class : record_or_class.class).model_name
-      end
   end
 end

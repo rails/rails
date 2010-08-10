@@ -42,7 +42,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
-  if current_adapter?(:MysqlAdapter)
+  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     def test_create_mysql_database_with_encoding
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
       assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})
@@ -101,6 +101,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
       #we need to actually modify some data, so we make execute point to the original method
       ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
         alias_method :execute_with_stub, :execute
+        remove_method :execute
         alias_method :execute, :execute_without_stub
       end
       yield

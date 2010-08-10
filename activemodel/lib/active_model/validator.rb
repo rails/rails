@@ -102,8 +102,8 @@ module ActiveModel #:nodoc:
     #
     # == Examples
     #
-    #   PresenceValidator.kind    #=> :presence
-    #   UniquenessValidator.kind  #=> :uniqueness
+    #   PresenceValidator.kind   # => :presence
+    #   UniquenessValidator.kind # => :uniqueness
     #
     def self.kind
       @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
@@ -111,7 +111,7 @@ module ActiveModel #:nodoc:
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options)
-      @options = options
+      @options = options.freeze
     end
 
     # Return the kind for this validator.

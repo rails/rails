@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'models/tag'
 require 'models/tagging'
 require 'models/post'
 require 'models/topic'
@@ -21,6 +20,11 @@ class RelationTest < ActiveRecord::TestCase
     post_authors = posts.where(posts[:author_id].eq(1)).project(posts[:id])
     assert_equal 5, post_authors.to_a.size
     assert_equal 5, Post.where(:id => post_authors).size
+  end
+
+  def test_multivalue_where
+    posts = Post.where('author_id = ? AND id = ?', 1, 1)
+    assert_equal 1, posts.to_a.size
   end
 
   def test_scoped
@@ -188,11 +192,23 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_respond_to_private_arel_methods
+  def test_respond_to_delegates_to_relation
     relation = Topic.scoped
+    fake_arel = Struct.new(:responds) {
+      def respond_to? method, access = false
+        responds << [method, access]
+      end
+    }.new []
 
-    assert ! relation.respond_to?(:matching_attributes)
-    assert relation.respond_to?(:matching_attributes, true)
+    relation.extend(Module.new { attr_accessor :arel })
+    relation.arel = fake_arel
+
+    relation.respond_to?(:matching_attributes)
+    assert_equal [:matching_attributes, false], fake_arel.responds.first
+
+    fake_arel.responds = []
+    relation.respond_to?(:matching_attributes, true)
+    assert_equal [:matching_attributes, true], fake_arel.responds.first
   end
 
   def test_respond_to_dynamic_finders

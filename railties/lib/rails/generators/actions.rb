@@ -40,7 +40,7 @@ module Rails
         end
       end
 
-      # Adds an entry into config/environment.rb for the supplied gem. If env
+      # Adds an entry into Gemfile for the supplied gem. If env
       # is specified, add the gem to the given environment.
       #
       # ==== Example
@@ -100,7 +100,7 @@ module Rails
         end
       end
 
-      # Adds a line inside the Initializer block for config/environment.rb.
+      # Adds a line inside the Application class for config/application.rb.
       #
       # If options :env is specified, the line is appended to the corresponding
       # file in config/environments.
@@ -275,7 +275,7 @@ module Rails
       #
       def route(routing_code)
         log :route, routing_code
-        sentinel = /\.routes\.draw do(\s*\|map\|)?\s*$/
+        sentinel = /\.routes\.draw do(?:\s*\|map\|)?\s*$/
 
         in_root do
           inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel, :verbose => false }

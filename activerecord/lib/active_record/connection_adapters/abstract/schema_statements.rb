@@ -327,6 +327,8 @@ module ActiveRecord
       #
       # Note: SQLite doesn't support index length
       def add_index(table_name, column_name, options = {})
+        options[:name] = options[:name].to_s if options.key?(:name)
+
         column_names = Array.wrap(column_name)
         index_name   = index_name(table_name, :column => column_names)
 

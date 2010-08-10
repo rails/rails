@@ -157,21 +157,6 @@ WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded l
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
-h4. +returning+
-
-The method +returning+ yields its argument to a block and returns it. You typically use it with a mutable object that gets modified in the block:
-
-<ruby>
-def html_options_for_form(url_for_options, options, *parameters_for_url)
-  returning options.stringify_keys do |html_options|
-    html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
-    html_options["action"]  = url_for(url_for_options, *parameters_for_url)
-  end
-end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/object/returning.rb+.
-
 h4. +try+
 
 Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
@@ -682,107 +667,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/attribute_accessors.rb+.
 
-h4. Method Delegation
-
-The class method +delegate+ offers an easy way to forward methods.
-
-For example, if +User+ has some details like the age factored out to +Profile+, it could be handy to still be able to access such attributes directly, <tt>user.age</tt>, instead of having to explicit the chain <tt>user.profile.age</tt>.
-
-That can be accomplished by hand:
-
-<ruby>
-class User
-  has_one :profile
-
-  def age
-    profile.age
-  end
-end
-</ruby>
-
-But with +delegate+ you can make that shorter and the intention even more obvious:
-
-<ruby>
-class User
-  has_one :profile
-
-  delegate :age, to => :profile
-end
-</ruby>
-
-The macro accepts more than one method:
-
-<ruby>
-class User
-  has_one :profile
-
-  delegate :age, :avatar, :twitter_username, to => :profile
-end
-</ruby>
-
-Methods can be delegated to objects returned by methods, as in the examples above, but also to instance variables, class variables, and constants. Just pass their names as symbols or strings, including the at signs in the last cases.
-
-For example, +ActionView::Base+ delegates +erb_trim_mode=+:
-
-<ruby>
-module ActionView
-  class Base
-    delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
-  end
-end
-</ruby>
-
-In fact, you can delegate to any expression passed as a string. It will be evaluated in the context of the receiver. Controllers for example delegate alerts and notices to the current flash:
-
-<ruby>
-delegate :alert, :notice, :to => "request.flash"
-</ruby>
-
-If the target is +nil+ calling any delegated method will raise an exception even if +nil+ responds to such method. You can override this behavior setting the option +:allow_nil+ to true, in which case the forwarded call will simply return +nil+.
-
-If the target is a method, the name of delegated methods can also be prefixed. If the +:prefix+ option is set to (exactly) the +true+ object, the value of the +:to+ option is prefixed:
-
-<ruby>
-class Invoice
-  belongs_to :customer
-
-  # defines a method called customer_name
-  delegate :name, :to => :customer, :prefix => true
-end
-</ruby>
-
-And a custom prefix can be set as well, in that case it does not matter wheter the target is a method or not:
-
-<ruby>
-class Account
-  belongs_to :user
-
-  # defines a method called admin_email
-  delegate :email, :to => :user, :prefix => 'admin'
-end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/module/delegation.rb+.
-
-h4. Method Removal
-
-h5. +remove_possible_method+
-
-The method +remove_possible_method+ is like the standard +remove_method+, except it silently returns on failure:
-
-<ruby>
-class A; end
-
-A.class_eval do
-  remove_method(:nonexistent)          # raises NameError
-  remove_possible_method(:nonexistent) # no problem, continue
-end
-</ruby>
-
-This may come in handy if you need to define a method that may already exist, since redefining a method issues a warning "method redefined; discarding old redefined_method_name".
-
-NOTE: Defined in +active_support/core_ext/module/remove_method.rb+.
-
 h4. Parents
 
 h5. +parent+
@@ -977,11 +861,128 @@ though an anonymous module is unreachable by definition.
 
 NOTE: Defined in +active_support/core_ext/module/anonymous.rb+.
 
+h4. Method Delegation
+
+The macro +delegate+ offers an easy way to forward methods.
+
+Let's imagine that users in some application have login information in the +User+ model but name and other data in a separate +Profile+ model:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+end
+</ruby>
+
+With that configuration you get a user's name via his profile, +user.profile.name+, but it could be handy to still be able to access such attribute directly:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+
+  def name
+    profile.name
+  end
+end
+</ruby>
+
+That is what +delegate+ does for you:
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :profile
+
+  delegate :name, :to => :profile
+end
+</ruby>
+
+It is shorter, and the intention more obvious.
+
+The macro accepts several methods:
+
+<ruby>
+delegate :name, :age, :address, :twitter, :to => :profile
+</ruby>
+
+When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such a expression is evaluated in the context of the receiver:
+
+<ruby>
+# delegates to the Rails constant
+delegate :logger, :to => :Rails
+
+# delegates to the receiver's class
+delegate :table_name, :to => 'self.class'
+</ruby>
+
+WARNING: If the +:prefix+ option is +true+ this is less generic, see below.
+
+By default, if the delegation raises +NoMethodError+ and the target is +nil+ the exception is propagated. You can ask that +nil+ is returned instead with the +:allow_nil+ option:
+
+<ruby>
+delegate :name, :to => :profile, :allow_nil => true
+</ruby>
+
+With +:allow_nil+ the call +user.name+ returns +nil+ if the user has no profile.
+
+The option +:prefix+ adds a prefix to the name of the generated method. This may be handy for example to get a better name:
+
+<ruby>
+delegate :street, :to => :address, :prefix => true
+</ruby>
+
+The previous example generates +address_street+ rather than +street+.
+
+WARNING: Since in this case the name of the generated method is composed of the target object and target method names, the +:to+ option must be a method name.
+
+A custom prefix may also be configured:
+
+<ruby>
+delegate :size, :to => :attachment, :prefix => :avatar
+</ruby>
+
+In the previous example the macro generates +avatar_size+ rather than +size+.
+
+NOTE: Defined in +active_support/core_ext/module/delegation.rb+
+
+h4. Method Names
+
+The builtin methods +instance_methods+ and +methods+ return method names as strings or symbols depending on the Ruby version. Active Support defines +instance_method_names+ and +method_names+ to be equivalent to them, respectively, but always getting strings back.
+
+For example, +ActionView::Helpers::FormBuilder+ knows this array difference is going to work no matter the Ruby version:
+
+<ruby>
+self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/method_names.rb+
+
+h4. Redefining Methods
+
+There are cases where you need to define a method with +define_method+, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
+
+The method +redefine_method+ prevents such a potential warning, removing the existing method before if needed. Rails uses it in a few places, for instance when it generates an association's API:
+
+<ruby>
+redefine_method("#{reflection.name}=") do |new_value|
+  association = association_instance_get(reflection.name)
+
+  if association.nil? || association.target != new_value
+    association = association_proxy_class.new(self, reflection)
+  end
+
+  association.replace(new_value)
+  association_instance_set(reflection.name, new_value.nil? ? nil : association)
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/remove_method.rb+
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
 
-The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
+h5. +class_attribute+
+
+The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
 
 <ruby>
 class A
@@ -1005,16 +1006,49 @@ A.x # => :a
 B.x # => :b
 </ruby>
 
-For example that's the way the +allow_forgery_protection+ flag is implemented for controllers:
+For example +ActionMailer::Base+ defines:
 
 <ruby>
-class_attribute :allow_forgery_protection
-self.allow_forgery_protection = true
+class_attribute :default_params
+self.default_params = {
+  :mime_version => "1.0",
+  :charset      => "UTF-8",
+  :content_type => "text/plain",
+  :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+}.freeze
 </ruby>
 
-For convenience +class_attribute+ defines also a predicate, so that declaration also generates +allow_forgery_protection?+. Such predicate returns the double boolean negation of the value.
+They can be also accessed and overridden at the instance level:
+
+<ruby>
+A.x = 1
+
+a1 = A.new
+a2 = A.new
+a2.x = 2
+
+a1.x # => 1, comes from A
+a2.x # => 2, overridden in a2
+</ruby>
+
+The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to false, as in
+
+<ruby>
+module AcitveRecord
+  class Base
+    class_attribute :table_name_prefix, :instance_writer => false
+    self.table_name_prefix = ""
+  end
+end
+</ruby>
+
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
+
+For convenience +class_attribute+ defines also an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
+
+h5. +cattr_reader+, +cattr_writer+, and +cattr_accessor+
 
 The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
 
@@ -1026,17 +1060,18 @@ class MysqlAdapter < AbstractAdapter
 end
 </ruby>
 
-Instance methods are created as well for convenience. For example given
+Instance methods are created as well for convenience, they are just proxies to the class attribute. So, instances can change the class attribute, but cannot override it as it happens with +class_attribute+ (see above). For example given
 
 <ruby>
-module ActionController
+module ActionView
   class Base
-    cattr_accessor :logger
+    cattr_accessor :field_error_proc
+    @@field_error_proc = Proc.new{ ... }
   end
 end
 </ruby>
 
-we can access +logger+ in actions. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+we can access +field_error_proc+ in views. The generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
 
 <ruby>
 module ActiveRecord
@@ -1047,7 +1082,7 @@ module ActiveRecord
 end
 </ruby>
 
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute. 
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
@@ -1091,21 +1126,6 @@ end
 Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
 
 NOTE: Defined in +active_support/core_ext/class/inheritable_attributes.rb+.
-
-There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defines +delivery_method+ this way:
-
-<ruby>
-module ActionMailer
-  class Base
-    superclass_delegating_accessor :delivery_method
-    self.delivery_method = :smtp
-  end
-end
-</ruby>
-
-If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
-
-NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
 h4. Subclasses & Descendants
 
@@ -1433,13 +1453,15 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
+INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
+
 +camelize+ is aliased to +camelcase+.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h5. +underscore+
 
-The method +underscore+ is the inverse of +camelize+, explained above:
+The method +underscore+ goes the other way around, from camel case to paths:
 
 <ruby>
 "Product".underscore   # => "product"
@@ -1471,6 +1493,8 @@ def load_missing_constant(from_mod, const_name)
   ...
 end
 </ruby>
+
+INFO: As a rule of thumb you can think of +underscore+ as the inverse of +camelize+, though there are cases where that does not hold. For example, <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
@@ -1840,9 +1864,7 @@ h3. Extensions to +Enumerable+
 
 h4. +group_by+
 
-Ruby 1.8.7 and up define +group_by+, and Active Support does it for previous versions.
-
-This iterator takes a block and builds an ordered hash with its return values as keys. Each key is mapped to the array of elements for which the block returned that value:
+Active Support redefines +group_by+ in Ruby 1.8.7 so that it returns an ordered hash as in 1.9:
 
 <ruby>
 entries_by_surname_initial = address_book.group_by do |entry|
@@ -1850,7 +1872,7 @@ entries_by_surname_initial = address_book.group_by do |entry|
 end
 </ruby>
 
-WARNING. Active Support redefines +group_by+ in Ruby 1.8.7 so that it still returns an ordered hash.
+Distinct block return values are added to the hash as they come, so that's the resulting order.
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
@@ -2184,7 +2206,27 @@ NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
 h4. Wrapping
 
-The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behavior for enumerables:
+The method +Array.wrap+ wraps its argument in an array unless it is already an array (or array-like).
+
+Specifically:
+
+* If the argument is +nil+ an empty list is returned.
+* Otherwise, if the argument responds to +to_ary+ it is invoked, and its result returned.
+* Otherwise, returns an array with the argument as its single element.
+
+<ruby>
+Array.wrap(nil)       # => []
+Array.wrap([1, 2, 3]) # => [1, 2, 3]
+Array.wrap(0)         # => [0]
+</ruby>
+
+This method is similar in purpose to <tt>Kernel#Array</tt>, but there are some differences:
+
+* If the argument responds to +to_ary+ the method is invoked. <tt>Kernel#Array</tt> moves on to try +to_a+ if the returned value is +nil+, but <tt>Arraw.wrap</tt> returns such a +nil+ right away.
+* If the returned value from +to_ary+ is neither +nil+ nor an +Array+ object, <tt>Kernel#Array</tt> raises an exception, while <tt>Array.wrap</tt> does not, it just returns the value.
+* It does not call +to_a+ on the argument, though special-cases +nil+ to return an empty array.
+
+The last point is particularly worth comparing for some enumerables:
 
 <ruby>
 Array.wrap(:foo => :bar) # => [{:foo => :bar}]
@@ -2193,6 +2235,16 @@ Array(:foo => :bar)      # => [[:foo, :bar]]
 Array.wrap("foo\nbar")   # => ["foo\nbar"]
 Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
 </ruby>
+
+There's also a related idiom that uses the splat operator:
+
+<ruby>
+[*object]
+</ruby>
+
+which returns +[nil]+ for +nil+, and calls to <tt>Array(object)</tt> otherwise
+
+Thus, in this case the behavior is different for +nil+, and the differences with <tt>Kernel#Array</tt> explained above apply to the rest of +object+s.
 
 NOTE: Defined in +active_support/core_ext/array/wrap.rb+.
 
@@ -2919,11 +2971,11 @@ Note in the previous example that increments may be negative.
 
 To perform the computation the method first increments years, then months, then weeks, and finally days. This order is important towards the end of months. Say for example we are at the end of February of 2010, and we want to move one month and one day forward.
 
-The method +advance+ advances first one month, and the one day, the result is:
+The method +advance+ advances first one month, and then one day, the result is:
 
 <ruby>
-Date.new(2010, 2, 28).advance(:months => 1, :day => 1)
-# => Sun, 28 Mar 2010
+Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
+# => Sun, 29 Mar 2010
 </ruby>
 
 While if it did it the other way around the result would be different:
@@ -2947,6 +2999,26 @@ This method is not tolerant to non-existing dates, if the change is invalid +Arg
 <ruby>
 Date.new(2010, 1, 31).change(:month => 2)
 # => ArgumentError: invalid date
+</ruby>
+
+h5. Durations
+
+Durations can be added and substracted to dates:
+
+<ruby>
+d = Date.current
+# => Mon, 09 Aug 2010
+d + 1.year
+# => Tue, 09 Aug 2011
+d - 3.hours
+# => Sun, 08 Aug 2010 21:00:00 UTC +00:00
+</ruby>
+
+They translate to calls to +since+ or +advance+. For example here we get the correct jump in the calendar reform:
+
+<ruby>
+Date.new(1582, 10, 4) + 1.day
+# => Fri, 15 Oct 1582
 </ruby>
 
 h5. Timestamps
@@ -2993,30 +3065,30 @@ h4(#date-conversions). Conversions
 
 h3. Extensions to +DateTime+
 
-NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
-
 WARNING: +DateTime+ is not aware of DST rules and so some of these methods have edge cases when a DST change is going on. For example +seconds_since_midnight+ might not return the real amount in such a day.
 
 h4(#calculations-datetime). Calculations
+
+NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
 
 The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_ext/date/calculations.rb+ you inherit these methods and their aliases, except that they will always return datetimes:
 
 <ruby>
 yesterday
 tomorrow
-beginning_of_week
-end_on_week
+beginning_of_week (monday, at_beginning_of_week)
+end_on_week (at_end_of_week)
 next_week
 months_ago
 months_since
-beginning_of_month
-end_of_month
+beginning_of_month (at_beginning_of_month)
+end_of_month (at_end_of_month)
 prev_month
 next_month
-beginning_of_quarter
-end_of_quarter
-beginning_of_year
-end_of_year
+beginning_of_quarter (at_beginning_of_quarter)
+end_of_quarter (at_end_of_quarter)
+beginning_of_year (at_beginning_of_year)
+end_of_year (at_end_of_year)
 years_ago
 years_since
 prev_year
@@ -3026,10 +3098,10 @@ next_year
 The following methods are reimplemented so you do *not* need to load +active_support/core_ext/date/calculations.rb+ for these ones:
 
 <ruby>
-beginning_of_day
+beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
 ago
-since
+since (in)
 </ruby>
 
 On the other hand, +advance+ and +change+ are also defined and support more options, they are documented below.
@@ -3072,6 +3144,37 @@ now.utc?           # => false
 now.utc.utc?       # => true
 </ruby>
 
+h6(#datetime-advance). +advance+
+
+The most generic way to jump to another datetime is +advance+. This method receives a hash with keys +:years+, +:months+, +:weeks+, +:days+, +:hours+, +:minutes+, and +:seconds+, and returns a datetime advanced as much as the present keys indicate.
+
+<ruby>
+d = DateTime.current
+# => Thu, 05 Aug 2010 11:33:31 +0000
+d.advance(:years => 1, :months => 1, :days => 1, :hours => 1, :minutes => 1, :seconds => 1)
+# => Tue, 06 Sep 2011 12:34:32 +0000
+</ruby>
+
+This method first computes the destination date passing +:years+, +:months+, +:weeks+, and +:days+ to +Date#advance+ documented above. After that, it adjusts the time calling +since+ with the number of seconds to advance. This order is relevant, a different ordering would give different datetimes in some edge-cases. The example in +Date#advance+ applies, and we can extend it to show order relevance related to the time bits.
+
+If we first move the date bits (that have also a relative order of processing, as documented before), and then the time bits we get for example the following computation:
+
+<ruby>
+d = DateTime.new(2010, 2, 28, 23, 59, 59)
+# => Sun, 28 Feb 2010 23:59:59 +0000
+d.advance(:months => 1, :seconds => 1)
+# => Mon, 29 Mar 2010 00:00:00 +0000
+</ruby>
+
+but if we computed them the other way around, the result would be different:
+
+<ruby>
+d.advance(:seconds => 1).advance(:months => 1)
+# => Thu, 01 Apr 2010 00:00:00 +0000
+</ruby>
+
+WARNING: Since +DateTime+ is not DST-aware you can end up in a non-existing point in time with no warning or error telling you so.
+
 h5(#datetime-changing-components). Changing Components
 
 The method +change+ allows you to get a new datetime which is the same as the receiver except for the given options, which may include +:year+, +:month+, +:day+, +:hour+, +:min+, +:sec+, +:offset+, +:start+:
@@ -3104,15 +3207,144 @@ DateTime.current.change(:month => 2, :day => 30)
 # => ArgumentError: invalid date
 </ruby>
 
-h4(#datetime-conversions). Conversions
+h5. Durations
+
+Durations can be added and substracted to datetimes:
+
+<ruby>
+now = DateTime.current
+# => Mon, 09 Aug 2010 23:15:17 +0000
+now + 1.year
+# => Tue, 09 Aug 2011 23:15:17 +0000
+now - 1.week
+# => Mon, 02 Aug 2010 23:15:17 +0000
+</ruby>
+
+They translate to calls to +since+ or +advance+. For example here we get the correct jump in the calendar reform:
+
+<ruby>
+DateTime.new(1582, 10, 4, 23) + 1.hour
+# => Fri, 15 Oct 1582 00:00:00 +0000
+</ruby>
 
 h3. Extensions to +Time+
 
-...
+h4(#time-calculations). Calculations
+
+NOTE: All the following methods are defined in +active_support/core_ext/time/calculations.rb+.
+
+Active Support adds to +Time+ many of the methods available for +DateTime+:
+
+<ruby>
+past?
+today?
+future?
+yesterday
+tomorrow
+seconds_since_midnight
+change
+advance
+ago
+since (in)
+beginning_of_day (midnight, at_midnight, at_beginning_of_day)
+end_of_day
+beginning_of_week (monday, at_beginning_of_week)
+end_on_week (at_end_of_week)
+next_week
+months_ago
+months_since
+beginning_of_month (at_beginning_of_month)
+end_of_month (at_end_of_month)
+prev_month
+next_month
+beginning_of_quarter (at_beginning_of_quarter)
+end_of_quarter (at_end_of_quarter)
+beginning_of_year (at_beginning_of_year)
+end_of_year (at_end_of_year)
+years_ago
+years_since
+prev_year
+next_year
+</ruby>
+
+They are analogous. Please refer to their documentation above and take into account the following differences:
+
+* +change+ accepts an additional +:usec+ option.
+* +Time+ understands DST, so you get correct DST calculations as in
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+
+# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
+t = Time.local_time(2010, 3, 28, 1, 59, 59)
+# => Sun Mar 28 01:59:59 +0100 2010
+t.advance(:seconds => 1)
+# => Sun Mar 28 03:00:00 +0200 2010
+</ruby>
+
+* If +since+ or +ago+ jump to a time that can't be expressed with +Time+ a +DateTime+ object is returned instead.
+
+h4. Time Constructors
+
+Active Support defines +Time.current+ to be +Time.zone.now+ if there's a user time zone defined, with fallback to +Time.now+:
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+Time.current
+# => Fri, 06 Aug 2010 17:11:58 CEST +02:00
+</ruby>
+
+Analogously to +DateTime+, the predicates +past?+, and +future?+ are relative to +Time.current+.
+
+Use the +local_time+ class method to create time objects honoring the user time zone:
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+Time.local_time(2010, 8, 15)
+# => Sun Aug 15 00:00:00 +0200 2010
+</ruby>
+
+The +utc_time+ class method returns a time in UTC:
+
+<ruby>
+Time.zone_default
+# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+Time.utc_time(2010, 8, 15)
+# => Sun Aug 15 00:00:00 UTC 2010
+</ruby>
+
+Both +local_time+ and +utc_time+ accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
+
+If the time to be constructed lies beyond the range supported by +Time+ in the runtime platform, usecs are discarded and a +DateTime+ object is returned instead.
+
+h5. Durations
+
+Durations can be added and substracted to time objects:
+
+<ruby>
+now = Time.current
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now + 1.year
+#  => Tue, 09 Aug 2011 23:21:11 UTC +00:00
+now - 1.week
+# => Mon, 02 Aug 2010 23:21:11 UTC +00:00
+</ruby>
+
+They translate to calls to +since+ or +advance+. For example here we get the correct jump in the calendar reform:
+
+<ruby>
+Time.utc_time(1582, 10, 3) + 5.days
+# => Mon Oct 18 00:00:00 UTC 1582
+</ruby>
 
 h3. Extensions to +Process+
 
-...
+h4. +daemon+
+
+Ruby 1.9 provides +Process.daemon+, and Active Support defines it for previous versions. It accepts the same two arguments, whether it should chdir to the root directory (default, true), and whether it should inherit the standard file descriptors from the parent (default, false).
 
 h3. Extensions to +File+
 
@@ -3188,4 +3420,5 @@ h3. Changelog
 
 "Lighthouse ticket":https://rails.lighthouseapp.com/projects/16213/tickets/67
 
+* August 10, 2010: Starts to take shape, added to the index.
 * April 18, 2009: Initial version by "Xavier Noria":credits.html#fxn

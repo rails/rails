@@ -412,7 +412,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     i = interests(:trainspotting)
     m = i.man
     assert_not_nil m.interests
-    iz = m.interests.detect {|iz| iz.id == i.id}
+    iz = m.interests.detect { |_iz| _iz.id == i.id}
     assert_not_nil iz
     assert_equal i.topic, iz.topic, "Interest topics should be the same before changes to child"
     i.topic = 'Eating cheese with a spoon'
@@ -516,7 +516,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     i = interests(:llama_wrangling)
     m = i.polymorphic_man
     assert_not_nil m.polymorphic_interests
-    iz = m.polymorphic_interests.detect {|iz| iz.id == i.id}
+    iz = m.polymorphic_interests.detect { |_iz| _iz.id == i.id}
     assert_not_nil iz
     assert_equal i.topic, iz.topic, "Interest topics should be the same before changes to child"
     i.topic = 'Eating cheese with a spoon'

@@ -274,7 +274,7 @@ namespace :db do
   task :setup => [ 'db:create', 'db:schema:load', 'db:seed' ]
 
   desc 'Load the seed data from db/seeds.rb'
-  task :seed => :environment do
+  task :seed => 'db:abort_if_pending_migrations' do
     seed_file = File.join(Rails.root, 'db', 'seeds.rb')
     load(seed_file) if File.exist?(seed_file)
   end
@@ -339,7 +339,7 @@ namespace :db do
   end
 
   namespace :structure do
-    desc "Dump the database structure to a SQL file"
+    desc "Dump the database structure to an SQL file"
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs[Rails.env]["adapter"]

@@ -10,7 +10,6 @@ require 'models/entrant'
 require 'models/project'
 require 'models/developer'
 require 'models/customer'
-require 'models/job'
 
 class DynamicFinderMatchTest < ActiveRecord::TestCase
   def test_find_no_match
@@ -688,6 +687,14 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_all_by_one_attribute
     topics = Topic.find_all_by_content("Have a nice day")
+    assert_equal 2, topics.size
+    assert topics.include?(topics(:first))
+
+    assert_equal [], Topic.find_all_by_title("The First Topic!!")
+  end
+
+  def test_find_all_by_one_attribute_which_is_a_symbol
+    topics = Topic.find_all_by_content("Have a nice day".to_sym)
     assert_equal 2, topics.size
     assert topics.include?(topics(:first))
 

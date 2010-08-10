@@ -117,6 +117,7 @@ class DependenciesTest < Test::Unit::TestCase
       assert_equal true, $checked_verbose, 'After first load warnings should be left alone.'
 
       assert ActiveSupport::Dependencies.loaded.include?(expanded)
+      ActiveSupport::Dependencies.warnings_on_first_load = old_warnings
     end
   end
 
@@ -210,6 +211,50 @@ class DependenciesTest < Test::Unit::TestCase
       assert_equal ModuleFolder::NestedSibling, sibling
       Object.__send__ :remove_const, :ModuleFolder
     end
+  end
+
+  def test_doesnt_break_normal_require
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_autoloading_fixtures do
+      # The _ = assignments are to prevent warnings
+      _ = RequiresConstant
+      assert defined?(RequiresConstant)
+      assert defined?(LoadedConstant)
+      ActiveSupport::Dependencies.clear
+      _ = RequiresConstant
+      assert defined?(RequiresConstant)
+      assert defined?(LoadedConstant)
+    end
+  ensure
+    remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_doesnt_break_normal_require_nested
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_autoloading_fixtures do
+      # The _ = assignments are to prevent warnings
+      _ = LoadsConstant
+      assert defined?(LoadsConstant)
+      assert defined?(LoadedConstant)
+      ActiveSupport::Dependencies.clear
+      _ = LoadsConstant
+      assert defined?(LoadsConstant)
+      assert defined?(LoadedConstant)
+    end
+  ensure
+    remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
   end
 
   def failing_test_access_thru_and_upwards_fails
@@ -418,7 +463,6 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_removal_from_tree_should_be_detected
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.autoload_paths.first
       c = ServiceOne
       ActiveSupport::Dependencies.clear
       assert ! defined?(ServiceOne)
@@ -433,7 +477,6 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_references_should_work
     with_loading 'dependencies' do
-      root = ActiveSupport::Dependencies.autoload_paths.first
       c = ActiveSupport::Dependencies.ref("ServiceOne")
       service_one_first = ServiceOne
       assert_equal service_one_first, c.get
@@ -797,5 +840,12 @@ class DependenciesTest < Test::Unit::TestCase
     assert !Module.new.respond_to?(:load_without_new_constant_marking)
   ensure
     ActiveSupport::Dependencies.hook!
+  end
+
+private
+  def remove_constants(*constants)
+    constants.each do |constant|
+      Object.send(:remove_const, constant) if Object.const_defined?(constant)
+    end
   end
 end

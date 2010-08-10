@@ -37,7 +37,7 @@ module ActionView
       include ActionController::TemplateAssertions
       include ActionView::Context
 
-      include ActionController::PolymorphicRoutes
+      include ActionDispatch::Routing::PolymorphicRoutes
       include ActionController::RecordIdentifier
 
       include AbstractController::Helpers

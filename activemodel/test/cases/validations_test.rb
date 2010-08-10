@@ -170,9 +170,11 @@ class ValidationsTest < ActiveModel::TestCase
     assert_match %r{<errors>}, xml
     assert_match %r{<error>Title can't be blank</error>}, xml
     assert_match %r{<error>Content can't be blank</error>}, xml
-
-    json = t.errors.to_json
-    assert_equal t.errors.to_a.to_json, json
+    
+    hash = ActiveSupport::OrderedHash.new
+    hash[:title] = "can't be blank"
+    hash[:content] = "can't be blank"
+    assert_equal t.errors.to_json, hash.to_json
   end
 
   def test_validation_order

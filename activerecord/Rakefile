@@ -1,8 +1,8 @@
-gem 'rdoc', '= 2.2'
+gem 'rdoc', '>= 2.5.9'
 require 'rdoc'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
@@ -24,14 +24,14 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-desc 'Run mysql, sqlite, and postgresql tests by default'
+desc 'Run mysql, mysql2, sqlite, and postgresql tests by default'
 task :default => :test
 
-desc 'Run mysql, sqlite, and postgresql tests'
+desc 'Run mysql, mysql2, sqlite, and postgresql tests'
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
     %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql test_sqlite3 test_postgresql)
+    %w(test_mysql test_mysql2 test_sqlite3 test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -39,15 +39,15 @@ namespace :test do
   task :isolated do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-      %w(isolated_test_mysql isolated_test_sqlite3 isolated_test_postgresql)
+      %w(isolated_test_mysql isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
   end
 end
 
-%w( mysql postgresql sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql mysql2 postgresql sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|
     connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
-    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
+    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
     t.libs << "test" << connection_path
     t.test_files = (Dir.glob( "test/cases/**/*_test.rb" ).reject {
       |x| x =~ /\/adapters\//
@@ -59,7 +59,7 @@ end
 
   task "isolated_test_#{adapter}" do
     connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
-    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
+    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
     puts [adapter, adapter_short, connection_path].inspect
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     (Dir["test/cases/**/*_test.rb"].reject {
@@ -166,13 +166,13 @@ task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
 
 # Generate the RDoc documentation
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Record -- Object-relation mapping put on rails"
-  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+  rdoc.options << '-f' << 'horo'
+  rdoc.options << '--main' << 'README.rdoc'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
+  rdoc.rdoc_files.include('README.rdoc', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
   rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
   rdoc.rdoc_files.include('dev-utils/*.rb')
@@ -223,10 +223,4 @@ task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define
   Rake::Task['gem:push'].invoke
-end
-
-desc "Publish the API documentation"
-task :pdoc => [:rdoc] do
-  require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("rails@api.rubyonrails.org", "public_html/ar", "doc").upload
 end

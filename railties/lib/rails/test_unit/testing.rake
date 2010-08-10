@@ -70,7 +70,7 @@ module Kernel
   end
 end
 
-desc 'Runs test:unit, test:functional, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
+desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
 task :test do
   errors = %w(test:units test:functionals test:integration).collect do |task|
     begin

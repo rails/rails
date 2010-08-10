@@ -11,6 +11,32 @@ require 'models/comment'
 require 'models/person'
 require 'models/reader'
 require 'models/tagging'
+require 'models/invoice'
+require 'models/line_item'
+
+class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
+  class Invoice < ActiveRecord::Base
+    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
+  end
+  def test_should_fail
+    assert_raise(ArgumentError) do
+      Invoice.create.custom_line_items.count(:conditions => {:amount => 0})
+    end
+  end
+end
+
+class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
+  class Invoice < ActiveRecord::Base
+    has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
+  end
+  def test_should_fail
+    assert_raise(ArgumentError) do
+      Invoice.create.custom_line_items.count(:conditions => {:amount => 0})
+    end
+  end
+end
+
+
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
@@ -21,14 +47,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
-  def test_create_by
-    person = Person.create! :first_name => 'tenderlove'
-    post   = Post.find :first
+  def test_create_resets_cached_counters
+    person = Person.create!(:first_name => 'tenderlove')
+    post   = Post.first
 
     assert_equal [], person.readers
-    assert_nil person.readers.find_by_post_id post.id
+    assert_nil person.readers.find_by_post_id(post.id)
 
-    reader = person.readers.create_by_post_id post.id
+    reader = person.readers.create(:post_id => post.id)
 
     assert_equal 1, person.readers.count
     assert_equal 1, person.readers.length
@@ -36,52 +62,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal person, person.readers.first.person
   end
 
-  def test_create_by_multi
+  def test_find_or_create_by_resets_cached_counters
     person = Person.create! :first_name => 'tenderlove'
-    post   = Post.find :first
+    post   = Post.first
 
     assert_equal [], person.readers
+    assert_nil person.readers.find_by_post_id(post.id)
 
-    reader = person.readers.create_by_post_id_and_skimmer post.id, false
+    reader = person.readers.find_or_create_by_post_id(post.id)
 
     assert_equal 1, person.readers.count
     assert_equal 1, person.readers.length
     assert_equal post, person.readers.first.post
     assert_equal person, person.readers.first.person
   end
-
-  def test_find_or_create_by
-    person = Person.create! :first_name => 'tenderlove'
-    post   = Post.find :first
-
-    assert_equal [], person.readers
-    assert_nil person.readers.find_by_post_id post.id
-
-    reader = person.readers.find_or_create_by_post_id post.id
-
-    assert_equal 1, person.readers.count
-    assert_equal 1, person.readers.length
-    assert_equal post, person.readers.first.post
-    assert_equal person, person.readers.first.person
-  end
-
-  def test_find_or_create
-    person = Person.create! :first_name => 'tenderlove'
-    post   = Post.find :first
-
-    assert_equal [], person.readers
-    assert_nil person.readers.find(:first, :conditions => {
-      :post_id => post.id
-    })
-
-    reader = person.readers.find_or_create :post_id => post.id
-
-    assert_equal 1, person.readers.count
-    assert_equal 1, person.readers.length
-    assert_equal post, person.readers.first.post
-    assert_equal person, person.readers.first.person
-  end
-
 
   def force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.each {|f| }
@@ -171,6 +165,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_all_should_respect_readonly_access
     companies(:first_firm).readonly_clients.find(:all).each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save!  } }
     companies(:first_firm).readonly_clients.find(:all).each { |c| assert c.readonly? }
+  end
+
+  def test_dynamic_find_or_create_from_two_attributes_using_an_association
+    author = authors(:david)
+    number_of_posts = Post.count
+    another = author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
+    assert_equal number_of_posts + 1, Post.count
+    assert_equal another, author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
+    assert !another.new_record?
   end
 
   def test_cant_save_has_many_readonly_association
@@ -549,7 +552,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert the_client.new_record?
   end
 
-  def test_find_or_create
+  def test_find_or_create_updates_size
     number_of_clients = companies(:first_firm).clients.size
     the_client = companies(:first_firm).clients.find_or_create_by_name("Yet another client")
     assert_equal number_of_clients + 1, companies(:first_firm, :reload).clients.size

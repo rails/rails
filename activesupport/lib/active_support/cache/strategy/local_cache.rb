@@ -8,7 +8,7 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in memory cache for faster access.
       module LocalCache
-        # Simple memory backed cache. This cache is not thread safe but is intended only
+        # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
         class LocalStore < Store
           def initialize
@@ -16,7 +16,7 @@ module ActiveSupport
             @data = {}
           end
 
-          # Since it isn't thread safe, don't allow synchronizing.
+          # Don't allow synchronizing since it isn't thread safe, 
           def synchronize # :nodoc:
             yield
           end
@@ -39,7 +39,7 @@ module ActiveSupport
           end
         end
 
-        # Use a local cache to front for the cache for the duration of a block.
+        # Use a local cache for the duration of block.
         def with_local_cache
           save_val = Thread.current[thread_local_key]
           begin
@@ -50,8 +50,8 @@ module ActiveSupport
           end
         end
 
-        # Middleware class can be inserted as a Rack handler to use a local cache for the
-        # duration of a request.
+        # Middleware class can be inserted as a Rack handler to be local cache for the
+        # duration of request.
         def middleware
           @middleware ||= begin
             klass = Class.new

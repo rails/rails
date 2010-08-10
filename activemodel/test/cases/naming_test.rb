@@ -1,4 +1,6 @@
 require 'cases/helper'
+require 'models/contact'
+require 'models/sheep'
 require 'models/track_back'
 
 class NamingTest < ActiveModel::TestCase
@@ -26,3 +28,40 @@ class NamingTest < ActiveModel::TestCase
     assert_equal 'post/track_backs/track_back', @model_name.partial_path
   end
 end
+
+class NamingHelpersTest < Test::Unit::TestCase
+  def setup
+    @klass  = Contact
+    @record = @klass.new
+    @singular = 'contact'
+    @plural = 'contacts'
+    @uncountable = Sheep
+  end
+
+  def test_singular
+    assert_equal @singular, singular(@record)
+  end
+
+  def test_singular_for_class
+    assert_equal @singular, singular(@klass)
+  end
+
+  def test_plural
+    assert_equal @plural, plural(@record)
+  end
+
+  def test_plural_for_class
+    assert_equal @plural, plural(@klass)
+  end
+
+  def test_uncountable
+    assert uncountable?(@uncountable), "Expected 'sheep' to be uncoutable"
+    assert !uncountable?(@klass), "Expected 'contact' to be countable"
+  end
+
+  private
+    def method_missing(method, *args)
+      ActiveModel::Naming.send(method, *args)
+    end
+end
+

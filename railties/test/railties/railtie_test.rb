@@ -103,6 +103,22 @@ module RailtiesTest
       assert $ran_block
     end
 
+    test "console block is executed when MyApp.load_console is called" do
+      $ran_block = false
+
+      class MyTie < Rails::Railtie
+        console do
+          $ran_block = true
+        end
+      end
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      AppTemplate::Application.load_console
+      assert $ran_block
+    end
+
     test "railtie can add initializers" do
       $ran_block = false
 

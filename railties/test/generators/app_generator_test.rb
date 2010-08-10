@@ -58,6 +58,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     DEFAULT_APP_FILES.each{ |path| assert_file path }
   end
 
+  def test_application_generate_pretend
+    run_generator ["testapp", "--pretend"]
+
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
   def test_application_controller_and_layout_files
     run_generator
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag :all/
@@ -65,7 +71,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_options_before_application_name_raises_an_error
-    content = capture(:stderr){ run_generator(["--skip-activerecord", destination_root]) }
+    content = capture(:stderr){ run_generator(["--skip-active-record", destination_root]) }
     assert_equal "Options should be given after the application name. For details run: rails --help\n", content
   end
 
@@ -100,6 +106,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/config/application.rb", /^module Things43$/
   end
 
+  def test_application_name_is_detected_if_it_exists_and_app_folder_renamed
+    app_root       = File.join(destination_root, "myapp")
+    app_moved_root = File.join(destination_root, "myapp_moved")
+
+    run_generator [app_root]
+
+    Rails.application.config.root = app_moved_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    FileUtils.mv(app_root, app_moved_root)
+
+    # forces the shell to automatically overwrite all files
+    Thor::Base.shell.send(:attr_accessor, :always_force)
+    shell = Thor::Base.shell.new
+    shell.send(:always_force=, true)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
+                                                               :destination_root => app_moved_root, :shell => shell
+    generator.send(:app_const)
+    silence(:stdout){ generator.send(:create_config_files) }
+    assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Hats::Application\.initialize!/
@@ -117,26 +147,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql["']$/
   end
 
-  def test_config_database_is_not_added_if_skip_activerecord_is_given
-    run_generator [destination_root, "--skip-activerecord"]
+  def test_config_database_is_not_added_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
   end
 
-  def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
-    run_generator [destination_root, "--skip-activerecord"]
+  def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
   def test_prototype_and_test_unit_are_added_by_default
     run_generator
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "public/javascripts/application.js"
     assert_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts/rails.js"
     assert_file "test"
   end
 
   def test_prototype_and_test_unit_are_skipped_if_required
-    run_generator [destination_root, "--skip-prototype", "--skip-testunit"]
+    run_generator [destination_root, "--skip-prototype", "--skip-test-unit"]
+    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
+    assert_file "public/javascripts/application.js"
     assert_no_file "public/javascripts/prototype.js"
-    assert_file "public/javascripts"
+    assert_no_file "public/javascripts/rails.js"
     assert_no_file "test"
   end
 
@@ -167,7 +202,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match /It works!/, silence(:stdout){ generator.invoke }
+    assert_match /It works!/, silence(:stdout){ generator.invoke_all }
   end
 
   def test_usage_read_from_file
@@ -191,14 +226,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_dev_option
     generator([destination_root], :dev => true).expects(:run).with("#{@bundle_command} install")
-    silence(:stdout){ generator.invoke }
+    silence(:stdout){ generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], :edge => true).expects(:run).with("#{@bundle_command} install")
-    silence(:stdout){ generator.invoke }
+    silence(:stdout){ generator.invoke_all }
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
   end
 
@@ -262,7 +297,7 @@ class CustomAppGeneratorTest < Rails::Generators::TestCase
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    capture(:stdout) { generator.invoke }
+    capture(:stdout) { generator.invoke_all }
 
     DEFAULT_APP_FILES.each{ |path| assert_no_file path }
   end

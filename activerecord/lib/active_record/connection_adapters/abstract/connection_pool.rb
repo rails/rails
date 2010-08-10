@@ -103,8 +103,8 @@ module ActiveRecord
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
-      def release_connection
-        conn = @reserved_connections.delete(current_connection_id)
+      def release_connection(with_id = current_connection_id)
+        conn = @reserved_connections.delete(with_id)
         checkin conn if conn
       end
 
@@ -112,10 +112,11 @@ module ActiveRecord
       # exists checkout a connection, yield it to the block, and checkin the 
       # connection when finished.
       def with_connection
-        fresh_connection = true unless @reserved_connections[current_connection_id]
+        connection_id = current_connection_id
+        fresh_connection = true unless @reserved_connections[connection_id]
         yield connection
       ensure
-        release_connection if fresh_connection
+        release_connection(connection_id) if fresh_connection
       end
 
       # Returns true if a connection has already been opened.
@@ -161,8 +162,13 @@ module ActiveRecord
       # Return any checked-out connections back to the pool by threads that
       # are no longer alive.
       def clear_stale_cached_connections!
-        remove_stale_cached_threads!(@reserved_connections) do |name, conn|
-          checkin conn
+        keys = @reserved_connections.keys - Thread.list.find_all { |t|
+          t.alive?
+        }.map { |thread| thread.object_id }
+
+        keys.each do |key|
+          checkin @reserved_connections[key]
+          @reserved_connections.delete(key)
         end
       end
 
@@ -232,20 +238,6 @@ module ActiveRecord
         Thread.current.object_id
       end
 
-      # Remove stale threads from the cache.
-      def remove_stale_cached_threads!(cache, &block)
-        keys = Set.new(cache.keys)
-
-        Thread.list.each do |thread|
-          keys.delete(thread.object_id) if thread.alive?
-        end
-        keys.each do |key|
-          next unless cache.has_key?(key)
-          block.call(key, cache[key])
-          cache.delete(key)
-        end
-      end
-
       def checkout_new_connection
         c = new_connection
         @connections << c
@@ -290,12 +282,10 @@ module ActiveRecord
     # ActiveRecord::Base.connection_handler. Active Record models use this to
     # determine that connection pool that they should use.
     class ConnectionHandler
+      attr_reader :connection_pools
+
       def initialize(pools = {})
         @connection_pools = pools
-      end
-
-      def connection_pools
-        @connection_pools ||= {}
       end
 
       def establish_connection(name, spec)
@@ -345,9 +335,11 @@ module ActiveRecord
       # re-establishing the connection.
       def remove_connection(klass)
         pool = @connection_pools[klass.name]
+        return nil unless pool
+
         @connection_pools.delete_if { |key, value| value == pool }
-        pool.disconnect! if pool
-        pool.spec.config if pool
+        pool.disconnect!
+        pool.spec.config
       end
 
       def retrieve_connection_pool(klass)

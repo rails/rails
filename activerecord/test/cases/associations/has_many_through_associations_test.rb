@@ -14,9 +14,14 @@ require 'models/toy'
 require 'models/contract'
 require 'models/company'
 require 'models/developer'
+require 'models/subscriber'
+require 'models/book'
+require 'models/subscription'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys, :jobs, :references, :companies
+  fixtures :posts, :readers, :people, :comments, :authors, 
+           :owners, :pets, :toys, :jobs, :references, :companies, 
+           :subscribers, :books, :subscriptions, :developers
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -383,4 +388,37 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
+
+  def test_collection_singular_ids_getter_with_string_primary_keys
+    book = books(:awdr)
+    assert_equal 2, book.subscriber_ids.size
+    assert_equal [subscribers(:first).nick, subscribers(:second).nick].sort, book.subscriber_ids.sort
+  end
+
+  def test_collection_singular_ids_setter
+    company = companies(:rails_core)
+    dev = Developer.find(:first)
+
+    company.developer_ids = [dev.id]
+    assert_equal [dev], company.developers
+  end
+
+  def test_collection_singular_ids_setter_with_string_primary_keys
+    assert_nothing_raised do
+      book = books(:awdr)
+      book.subscriber_ids = [subscribers(:second).nick]
+      assert_equal [subscribers(:second)], book.subscribers(true)
+
+      book.subscriber_ids = []
+      assert_equal [], book.subscribers(true)
+    end
+
+  end
+
+  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
+    company = companies(:rails_core)
+    ids =  [Developer.find(:first).id, -9999]
+    assert_raises(ActiveRecord::RecordNotFound) {company.developer_ids= ids}
+  end
+
 end

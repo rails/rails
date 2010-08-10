@@ -4,6 +4,16 @@ require 'controller/fake_models'
 class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
 
+  class Developer
+    def name_before_type_cast
+      "David"
+    end
+
+    def name
+      "Santiago"
+    end
+  end
+
   def form_for(*)
     @output_buffer = super
   end
@@ -110,6 +120,13 @@ class FormHelperTest < ActionView::TestCase
     I18n.locale = old_locale
   end
 
+  def test_label_with_locales_and_options
+    old_locale, I18n.locale = I18n.locale, :label
+    assert_dom_equal('<label for="post_body" class="post_body">Write entire text here</label>', label(:post, :body, :class => 'post_body'))
+  ensure
+    I18n.locale = old_locale
+  end
+
   def test_label_with_for_attribute_as_symbol
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, :for => "my_for"))
   end
@@ -200,6 +217,11 @@ class FormHelperTest < ActionView::TestCase
     assert_equal object_name, "post[]"
   end
 
+  def test_file_field_has_no_size
+    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
+    assert_dom_equal expected, file_field("user", "avatar")
+  end
+
   def test_hidden_field
     assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
       hidden_field("post", "title")
@@ -226,6 +248,13 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field_with_custom_type
     assert_dom_equal '<input id="user_email" size="30" name="user[email]" type="email" />',
       text_field("user", "email", :type => "email")
+  end
+
+  def test_text_field_from_a_user_defined_method
+    @developer = Developer.new
+    assert_dom_equal(
+      '<input id="developer_name" name="developer[name]" size="30" type="text" value="Santiago" />', text_field("developer", "name")
+    )
   end
 
   def test_check_box
@@ -598,7 +627,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_symbol_object_name
     form_for(@post, :as => "other_name", :html => { :id => 'create-post' }) do |f|
-      concat f.label(:title)
+      concat f.label(:title, :class => 'post_title')
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -606,7 +635,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected =  whole_form("/posts/123", "create-post", "other_name_edit", :method => "put") do
-      "<label for='other_name_title'>Title</label>" +
+      "<label for='other_name_title' class='post_title'>Title</label>" +
       "<input name='other_name[title]' size='30' id='other_name_title' value='Hello World' type='text' />" +
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='other_name[secret]' value='0' type='hidden' />" +
@@ -1484,7 +1513,7 @@ class FormHelperTest < ActionView::TestCase
 
   def snowman(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
-    txt << %{<input name="_snowman" type="hidden" value="&#9731;" />}
+    txt << %{<input name="_e" type="hidden" value="&#9731;" />}
     txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
     txt << %{</div>}
   end

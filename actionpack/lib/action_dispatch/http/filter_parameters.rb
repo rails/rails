@@ -26,86 +26,30 @@ module ActionDispatch
     module FilterParameters
       extend ActiveSupport::Concern
 
-      @@compiled_parameter_filter_for = {}
+      @@parameter_filter_for  = {}
 
       # Return a hash of parameters with all sensitive data replaced.
       def filtered_parameters
-        @filtered_parameters ||= if filtering_parameters?
-          process_parameter_filter(parameters)
-        else
-          parameters.dup
-        end
+        @filtered_parameters ||= parameter_filter.filter(parameters)
       end
-      alias :fitered_params :filtered_parameters
 
       # Return a hash of request.env with all sensitive data replaced.
       def filtered_env
-        filtered_env = @env.dup
-        filtered_env.each do |key, value|
-          if (key =~ /RAW_POST_DATA/i)
-            filtered_env[key] = '[FILTERED]'
-          elsif value.is_a?(Hash)
-            filtered_env[key] = process_parameter_filter(value)
-          end
-        end
-        filtered_env
+        @filtered_env ||= env_filter.filter(@env)
       end
 
     protected
 
-      def filtering_parameters? #:nodoc:
-        @env["action_dispatch.parameter_filter"].present?
+      def parameter_filter
+        parameter_filter_for(@env["action_dispatch.parameter_filter"])
       end
 
-      def process_parameter_filter(params) #:nodoc:
-        compiled_parameter_filter_for(@env["action_dispatch.parameter_filter"]).call(params)
+      def env_filter
+        parameter_filter_for(Array.wrap(@env["action_dispatch.parameter_filter"]) << /RAW_POST_DATA/)
       end
 
-      def compile_parameter_filter(filters) #:nodoc:
-        strings, regexps, blocks = [], [], []
-
-        filters.each do |item|
-          case item
-          when NilClass
-          when Proc
-            blocks << item
-          when Regexp
-            regexps << item
-          else
-            strings << item.to_s
-          end
-        end
-
-        regexps << Regexp.new(strings.join('|'), true) unless strings.empty?
-        [regexps, blocks]
-      end
-
-      def compiled_parameter_filter_for(filters) #:nodoc:
-        @@compiled_parameter_filter_for[filters] ||= begin
-          regexps, blocks = compile_parameter_filter(filters)
-
-          lambda do |original_params|
-            filtered_params = {}
-
-            original_params.each do |key, value|
-              if regexps.find { |r| key =~ r }
-                value = '[FILTERED]'
-              elsif value.is_a?(Hash)
-                value = process_parameter_filter(value)
-              elsif value.is_a?(Array)
-                value = value.map { |v| v.is_a?(Hash) ? process_parameter_filter(v) : v }
-              elsif blocks.present?
-                key = key.dup
-                value = value.dup if value.duplicable?
-                blocks.each { |b| b.call(key, value) }
-              end
-
-              filtered_params[key] = value
-            end
-
-            filtered_params
-          end
-        end
+      def parameter_filter_for(filters)
+        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
       end
 
     end

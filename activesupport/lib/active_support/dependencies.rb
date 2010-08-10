@@ -72,10 +72,6 @@ module ActiveSupport #:nodoc:
         methods.each { |m| class_eval "def #{m}(*) lock { super } end", __FILE__, __LINE__ }
       end
 
-      def get(key)
-        (val = assoc(key)) ? val[1] : []
-      end
-
       locked :concat, :each, :delete_if, :<<
 
       def new_constants_for(frames)
@@ -85,7 +81,18 @@ module ActiveSupport #:nodoc:
           next unless mod.is_a?(Module)
 
           new_constants = mod.local_constant_names - prior_constants
-          get(mod_name).concat(new_constants)
+
+          # If we are checking for constants under, say, :Object, nested under something
+          # else that is checking for constants also under :Object, make sure the
+          # parent knows that we have found, and taken care of, the constant.
+          #
+          # In particular, this means that since Kernel.require discards the constants
+          # it finds, parents will be notified that about those constants, and not
+          # consider them "new". As a result, they will not be added to the
+          # autoloaded_constants list.
+          each do |key, value|
+            value.concat(new_constants) if key == mod_name
+          end
 
           new_constants.each do |suffix|
             constants << ([mod_name, suffix] - ["Object"]).join("::")
@@ -592,7 +599,7 @@ module ActiveSupport #:nodoc:
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
-      name = case desc
+      case desc
         when String then desc.sub(/^::/, '')
         when Symbol then desc.to_s
         when Module

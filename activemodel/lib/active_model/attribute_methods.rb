@@ -283,7 +283,7 @@ module ActiveModel
         @attribute_methods_generated = true
       end
 
-      # Removes all the preiously dynamically defined methods from the class
+      # Removes all the previously dynamically defined methods from the class
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
           instance_methods.each { |m| undef_method(m) }

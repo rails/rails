@@ -270,27 +270,27 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert Topic.base.many?
   end
 
-  def test_should_build_with_proxy_options
+  def test_should_build_on_top_of_named_scope
     topic = Topic.approved.build({})
     assert topic.approved
   end
 
-  def test_should_build_new_with_proxy_options
+  def test_should_build_new_on_top_of_named_scope
     topic = Topic.approved.new
     assert topic.approved
   end
 
-  def test_should_create_with_proxy_options
+  def test_should_create_on_top_of_named_scope
     topic = Topic.approved.create({})
     assert topic.approved
   end
 
-  def test_should_create_with_bang_with_proxy_options
+  def test_should_create_with_bang_on_top_of_named_scope
     topic = Topic.approved.create!({})
     assert topic.approved
   end
 
-  def test_should_build_with_proxy_options_chained
+  def test_should_build_on_top_of_chained_named_scopes
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
     assert_equal 'lifo', topic.author_name
@@ -477,5 +477,11 @@ class DynamicScopeTest < ActiveRecord::TestCase
   def test_dynamic_scope
     assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
     assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
+  end
+
+  def test_dynamic_scope_should_create_methods_after_hitting_method_missing
+    assert Developer.methods.grep(/scoped_by_created_at/).blank?
+    Developer.scoped_by_created_at(nil)
+    assert Developer.methods.grep(/scoped_by_created_at/).present?
   end
 end

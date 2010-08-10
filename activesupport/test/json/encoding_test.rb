@@ -148,7 +148,7 @@ class TestJSONEncoding < Test::Unit::TestCase
           :latitude => 123.234
         }
       }
-      result = ActiveSupport::JSON.encode(hash)
+      ActiveSupport::JSON.encode(hash)
     end
   end
 

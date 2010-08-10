@@ -325,7 +325,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_from_option_with_specified_index
-    if Edge.connection.adapter_name == 'MySQL'
+    if Edge.connection.adapter_name == 'MySQL' or Edge.connection.adapter_name == 'Mysql2'
       assert_equal Edge.count(:all), Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)')
       assert_equal Edge.count(:all, :conditions => 'sink_id < 5'),
           Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)', :conditions => 'sink_id < 5')

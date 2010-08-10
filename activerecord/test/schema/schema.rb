@@ -164,6 +164,11 @@ ActiveRecord::Schema.define do
     t.string  :address_country
     t.string  :gps_location
   end
+  
+  create_table :dashboards, :force => true, :id => false do |t|
+    t.string :dashboard_id
+    t.string :name
+  end
 
   create_table :developers, :force => true do |t|
     t.string   :name
@@ -290,6 +295,13 @@ ActiveRecord::Schema.define do
     t.boolean :favourite
     t.integer :lock_version, :default => 0
   end
+  
+  create_table :minivans, :force => true, :id => false do |t|
+    t.string :minivan_id
+    t.string :name
+    t.string :speedometer_id
+    t.string :color
+  end
 
   create_table :minimalistics, :force => true do |t|
   end
@@ -386,6 +398,7 @@ ActiveRecord::Schema.define do
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|
     t.string :name
     t.integer :owner_id, :integer
+    t.timestamps
   end
 
   create_table :pirates, :force => true do |t|
@@ -452,6 +465,12 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :ship_id
   end
+  
+  create_table :speedometers, :force => true, :id => false do |t|
+    t.string :speedometer_id
+    t.string :name
+    t.string :dashboard_id
+  end
 
   create_table :sponsors, :force => true do |t|
     t.integer :club_id
@@ -512,6 +531,7 @@ ActiveRecord::Schema.define do
   create_table :toys, :primary_key => :toy_id ,:force => true do |t|
     t.string :name
     t.integer :pet_id, :integer
+    t.timestamps
   end
 
   create_table :traffic_lights, :force => true do |t|
@@ -582,6 +602,34 @@ ActiveRecord::Schema.define do
   create_table :zines, :force => true do |t|
     t.string :title
   end
+
+  create_table :countries, :force => true, :id => false, :primary_key => 'country_id' do |t|
+    t.string :country_id
+    t.string :name
+  end
+  create_table :treaties, :force => true, :id => false, :primary_key => 'treaty_id' do |t|
+    t.string :treaty_id
+    t.string :name
+  end
+  create_table :countries_treaties, :force => true, :id => false do |t|
+    t.string :country_id, :null => false
+    t.string :treaty_id, :null => false
+    t.datetime :created_at
+    t.datetime :updated_at
+  end
+
+  create_table :liquid, :force => true do |t|
+    t.string :name
+  end
+  create_table :molecules, :force => true do |t|
+    t.integer :liquid_id
+    t.string :name
+  end
+  create_table :electrons, :force => true do |t|
+    t.integer :molecule_id
+    t.string :name
+  end
+
 
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk

@@ -17,9 +17,9 @@ module ActiveModel
   #   end
   #
   #   cm = ContactMessage.new
-  #   cm.to_model == self #=> true
-  #   cm.to_key           #=> nil
-  #   cm.to_param         #=> nil
+  #   cm.to_model == self # => true
+  #   cm.to_key           # => nil
+  #   cm.to_param         # => nil
   #
   module Conversion
     # If your object is already designed to implement all of the Active Model 

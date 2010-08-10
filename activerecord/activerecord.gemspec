@@ -14,15 +14,15 @@ Gem::Specification.new do |s|
   s.homepage          = 'http://www.rubyonrails.org'
   s.rubyforge_project = 'activerecord'
 
-  s.files        = Dir['CHANGELOG', 'README', 'examples/**/*', 'lib/**/*']
+  s.files        = Dir['CHANGELOG', 'README.rdoc', 'examples/**/*', 'lib/**/*']
   s.require_path = 'lib'
 
   s.has_rdoc         = true
-  s.extra_rdoc_files = %w( README )
-  s.rdoc_options.concat ['--main',  'README']
+  s.extra_rdoc_files = %w( README.rdoc )
+  s.rdoc_options.concat ['--main',  'README.rdoc']
 
   s.add_dependency('activesupport', version)
   s.add_dependency('activemodel',   version)
   s.add_dependency('arel',          '~> 0.4.0')
-  s.add_dependency('tzinfo',        '~> 0.3.16')
+  s.add_dependency('tzinfo',        '~> 0.3.22')
 end

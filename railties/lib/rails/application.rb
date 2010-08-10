@@ -149,6 +149,13 @@ module Rails
       self
     end
 
+    def load_console(sandbox=false)
+      initialize_console(sandbox)
+      railties.all { |r| r.load_console }
+      super()
+      self
+    end
+
     def app
       @app ||= begin
         config.middleware = config.middleware.merge_into(default_middleware_stack)
@@ -198,6 +205,7 @@ module Rails
         middleware.use ::ActionDispatch::ParamsParser
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::Head
+        middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support if config.action_dispatch.best_standards_support
       end
     end
 
@@ -211,6 +219,12 @@ module Rails
 
     def initialize_generators
       require "rails/generators"
+    end
+
+    def initialize_console(sandbox=false)
+      require "rails/console/app"
+      require "rails/console/sandbox" if sandbox
+      require "rails/console/helpers"
     end
   end
 end

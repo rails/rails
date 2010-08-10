@@ -36,14 +36,12 @@ module ActiveRecord
 
       define_callbacks :checkout, :checkin
 
-      @@row_even = true
-
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
         @connection, @logger = connection, logger
-        @runtime = 0
         @query_cache_enabled = false
         @query_cache = {}
+        @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
       # Returns the human-readable name of the adapter.  Use mixed case - one
@@ -90,11 +88,6 @@ module ActiveRecord
       # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
         false
-      end
-
-      def reset_runtime #:nodoc:
-        rt, @runtime = @runtime, 0
-        rt
       end
 
       # QUOTING ==================================================
@@ -199,12 +192,10 @@ module ActiveRecord
 
         def log(sql, name)
           name ||= "SQL"
-          result = nil
-          ActiveSupport::Notifications.instrument("sql.active_record",
-            :sql => sql, :name => name, :connection_id => self.object_id) do
-            @runtime += Benchmark.ms { result = yield }
+          @instrumenter.instrument("sql.active_record",
+            :sql => sql, :name => name, :connection_id => object_id) do
+            yield
           end
-          result
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger

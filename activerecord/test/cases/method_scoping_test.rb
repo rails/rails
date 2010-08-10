@@ -8,7 +8,6 @@ require 'models/author'
 require 'models/developer'
 require 'models/project'
 require 'models/comment'
-require 'models/category'
 
 class MethodScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
@@ -207,6 +206,13 @@ class MethodScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :include => :projects }) do
       assert_equal 1, Developer.count(:conditions => 'projects.id = 2')
     end
+  end
+
+  def test_scope_for_create_only_uses_equal
+    table = VerySpecialComment.arel_table
+    relation = VerySpecialComment.scoped
+    relation.where_values << table[:id].not_eq(1)
+    assert_equal({:type => "VerySpecialComment"}, relation.send(:scope_for_create))
   end
 
   def test_scoped_create

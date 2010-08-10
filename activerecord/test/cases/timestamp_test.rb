@@ -2,9 +2,10 @@ require 'cases/helper'
 require 'models/developer'
 require 'models/owner'
 require 'models/pet'
+require 'models/toy'
 
 class TimestampTest < ActiveRecord::TestCase
-  fixtures :developers, :owners, :pets
+  fixtures :developers, :owners, :pets, :toys
 
   def setup
     @developer = Developer.first
@@ -25,16 +26,26 @@ class TimestampTest < ActiveRecord::TestCase
   end
   
   def test_touching_a_record_updates_its_timestamp
+    previous_salary = @developer.salary
+    @developer.salary = previous_salary + 10000
     @developer.touch
     
     assert_not_equal @previously_updated_at, @developer.updated_at
+    assert_equal previous_salary + 10000, @developer.salary
+    assert @developer.salary_changed?, 'developer salary should have changed'
+    assert @developer.changed?, 'developer should be marked as changed'
+    @developer.reload
+    assert_equal previous_salary, @developer.salary
   end
   
   def test_touching_a_different_attribute
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)
 
+    assert !@developer.created_at_changed? , 'created_at should not be changed'
+    assert !@developer.changed?, 'record should not be changed'
     assert_not_equal previously_created_at, @developer.created_at
+    assert_not_equal @previously_updated_at, @developer.updated_at
   end
   
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
@@ -71,5 +82,22 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal previously_owner_happy_at, pet.owner.happy_at
   ensure
     Pet.belongs_to :owner, :touch => true
+  end
+
+  def test_touching_a_record_touches_parent_record_and_grandparent_record
+    Toy.belongs_to :pet, :touch => true
+    Pet.belongs_to :owner, :touch => true
+
+    toy = Toy.first
+    pet = toy.pet
+    owner = pet.owner
+
+    owner.update_attribute(:updated_at, (time = 3.days.ago))
+    toy.touch
+    owner.reload
+
+    assert_not_equal time, owner.updated_at
+  ensure
+    Toy.belongs_to :pet
   end
 end

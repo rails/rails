@@ -17,7 +17,10 @@ module ActiveModel
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
-    # it will underscore then humanize the class name (BlogPost.model_name.human #=> "Blog post").
+    # it will underscore then humanize the class name
+    #
+    #   BlogPost.model_name.human # => "Blog post"
+    #
     # Specify +options+ with additional translating options.
     def human(options={})
       return @human unless @klass.respond_to?(:lookup_ancestors) &&
@@ -45,8 +48,8 @@ module ActiveModel
   #     extend ActiveModel::Naming
   #   end
   # 
-  #   BookCover.model_name        #=> "BookCover"
-  #   BookCover.model_name.human  #=> "Book cover"
+  #   BookCover.model_name        # => "BookCover"
+  #   BookCover.model_name.human  # => "Book cover"
   # 
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test.  So either extending the provided
@@ -57,6 +60,35 @@ module ActiveModel
     def model_name
       @_model_name ||= ActiveModel::Name.new(self)
     end
+
+    # Returns the plural class name of a record or class. Examples:
+    #
+    #   ActiveModel::Naming.plural(post)             # => "posts"
+    #   ActiveModel::Naming.plural(Highrise::Person) # => "highrise_people"
+    def self.plural(record_or_class)
+      model_name_from_record_or_class(record_or_class).plural
+    end
+
+    # Returns the singular class name of a record or class. Examples:
+    #
+    #   ActiveModel::Naming.singular(post)             # => "post"
+    #   ActiveModel::Naming.singular(Highrise::Person) # => "highrise_person"
+    def self.singular(record_or_class)
+      model_name_from_record_or_class(record_or_class).singular
+    end
+
+    # Identifies whether the class name of a record or class is uncountable. Examples:
+    #
+    #   ActiveModel::Naming.uncountable?(Sheep) # => true
+    #   ActiveModel::Naming.uncountable?(Post) => false
+    def self.uncountable?(record_or_class)
+      plural(record_or_class) == singular(record_or_class)
+    end
+
+    private
+      def self.model_name_from_record_or_class(record_or_class)
+        (record_or_class.is_a?(Class) ? record_or_class : record_or_class.class).model_name
+      end
   end
   
 end

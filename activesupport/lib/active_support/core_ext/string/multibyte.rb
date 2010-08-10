@@ -12,11 +12,11 @@ class String
     # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsuled string.
     #
     #   name = 'Claus Müller'
-    #   name.reverse  #=> "rell??M sualC"
-    #   name.length   #=> 13
+    #   name.reverse # => "rell??M sualC"
+    #   name.length  # => 13
     #
-    #   name.mb_chars.reverse.to_s   #=> "rellüM sualC"
-    #   name.mb_chars.length         #=> 12
+    #   name.mb_chars.reverse.to_s # => "rellüM sualC"
+    #   name.mb_chars.length       # => 12
     #
     # In Ruby 1.9 and newer +mb_chars+ returns +self+ because String is (mostly) encoding aware. This means that
     # it becomes easy to run one version of your code on multiple Ruby versions.
@@ -26,7 +26,7 @@ class String
     # All the methods on the Chars proxy which normally return a string will return a Chars object. This allows
     # method chaining on the result of any of these methods.
     #
-    #   name.mb_chars.reverse.length #=> 12
+    #   name.mb_chars.reverse.length # => 12
     #
     # == Interoperability and configuration
     #

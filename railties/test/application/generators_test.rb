@@ -103,5 +103,20 @@ module ApplicationTests
         assert_equal({ :plugin => { :generator => "-g" } }, c.generators.aliases)
       end
     end
+
+    test "generators with string and hash for options should generate symbol keys" do
+      with_bare_config do |c|
+        c.generators do |g|
+          g.orm    'datamapper', :migration => false
+        end
+
+        expected = {
+          :rails => { :orm => :datamapper },
+          :datamapper => { :migration => false }
+        }
+
+        assert_equal expected, c.generators.options
+      end
+    end
   end
 end

@@ -116,36 +116,20 @@ module Rails
         @paths.concat paths
       end
 
-      def autoload_once!
-        @autoload_once = true
-      end
+      %w(autoload_once eager_load autoload load_path).each do |m|
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{m}!
+            @#{m} = true
+          end
 
-      def autoload_once?
-        @autoload_once
-      end
+          def skip_#{m}!
+            @#{m} = false
+          end
 
-      def eager_load!
-        @eager_load = true
-      end
-
-      def eager_load?
-        @eager_load
-      end
-
-      def autoload!
-        @autoload = true
-      end
-
-      def autoload?
-        @autoload
-      end
-
-      def load_path!
-        @load_path = true
-      end
-
-      def load_path?
-        @load_path
+          def #{m}?
+            @#{m}
+          end
+        RUBY
       end
 
       def paths

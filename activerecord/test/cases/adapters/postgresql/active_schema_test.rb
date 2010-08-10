@@ -1,6 +1,6 @@
 require 'cases/helper'
 
-class PostgresqlActiveSchemaTest < Test::Unit::TestCase
+class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
   def setup
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       alias_method :real_execute, :execute

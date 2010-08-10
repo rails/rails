@@ -1168,7 +1168,7 @@ Suppose you have the following +ApplicationController+ layout:
 <body>
   <div id="top_menu">Top menu items here</div>
   <div id="menu">Menu items here</div>
-  <div id="content"><%= yield(:content) or yield %></div>
+  <div id="content"><%= content_for?(:content) ? yield(:content) : yield %></div>
 </body>
 </html>
 </erb>
