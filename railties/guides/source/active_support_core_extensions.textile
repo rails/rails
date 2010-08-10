@@ -1066,6 +1066,18 @@ In the previous example the macro generates +User#avatar_size+ rather than +User
 
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+
 
+h4. Method Names
+
+The builtin methods +instance_methods+ and +methods+ return method names as strings or symbols depending on the Ruby version. Active Support defines +instance_method_names+ and +method_names+ to be equivalent to them, respectively, but always getting strings back.
+
+For example, +ActionView::Helpers::FormBuilder+ knows this array difference is going to work no matter the Ruby version:
+
+<ruby>
+self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/method_names.rb+
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
