@@ -1,6 +1,3 @@
-dir = File.dirname(__FILE__)
-$LOAD_PATH.unshift "#{dir}/../lib"
-
 require 'rubygems'
 require 'spec'
 require 'pp'
@@ -11,7 +8,7 @@ if adapter = ENV['ADAPTER']
   require "support/connections/#{adapter}_connection.rb"
 end
 
-Dir["#{dir}/{support,shared}/*.rb"].each do |file|
+Dir["spec/{support,shared}/*.rb"].each do |file|
   require file
 end
 
