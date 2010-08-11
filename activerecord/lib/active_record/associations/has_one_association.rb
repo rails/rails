@@ -79,13 +79,13 @@ module ActiveRecord
 
       private
         def find_target
-          the_target = @reflection.klass.find(:first,
-            :conditions => @finder_sql,
-            :select     => @reflection.options[:select],
-            :order      => @reflection.options[:order],
-            :include    => @reflection.options[:include],
-            :readonly   => @reflection.options[:readonly]
-          )
+          options = @reflection.options.dup
+          (options.keys - [:select, :order, :include, :readonly]).each do |key|
+            options.delete key
+          end
+          options[:conditions] = @finder_sql
+
+          the_target = @reflection.klass.find(:first, options)
           set_inverse_instance(the_target, @owner)
           the_target
         end
