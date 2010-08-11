@@ -49,7 +49,9 @@ module ActiveRecord
 
     def where(opts, *rest)
       value = build_where(opts, rest)
-      value ? clone.tap {|r| r.where_values += Array.wrap(value) } : clone
+      copy = clone
+      copy.where_values += Array.wrap(value) if value
+      copy
     end
 
     def having(*args)
@@ -58,7 +60,9 @@ module ActiveRecord
     end
 
     def limit(value = true)
-      clone.tap {|r| r.limit_value = value }
+      copy = clone
+      copy.limit_value = value
+      copy
     end
 
     def offset(value = true)
