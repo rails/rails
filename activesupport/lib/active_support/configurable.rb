@@ -9,7 +9,7 @@ module ActiveSupport
 
     module ClassMethods
       def config
-        @config ||= ActiveSupport::InheritableOptions.new(superclass.respond_to?(:config) ? superclass.config : {})
+        @_config ||= ActiveSupport::InheritableOptions.new(superclass.respond_to?(:config) ? superclass.config : {})
       end
 
       def configure
@@ -30,7 +30,7 @@ module ActiveSupport
     end
 
     def config
-      @config ||= ActiveSupport::InheritableOptions.new(self.class.config)
+      @_config ||= ActiveSupport::InheritableOptions.new(self.class.config)
     end
   end
 end
