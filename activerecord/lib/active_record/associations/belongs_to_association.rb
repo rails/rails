@@ -49,12 +49,16 @@ module ActiveRecord
                         else
                           "find"
                         end
+
+          options = @reflection.options.dup
+          (options.keys - [:select, :include, :readonly]).each do |key|
+            options.delete key
+          end
+          options[:conditions] = conditions
+
           the_target = @reflection.klass.send(find_method,
             @owner[@reflection.primary_key_name],
-            :select     => @reflection.options[:select],
-            :conditions => conditions,
-            :include    => @reflection.options[:include],
-            :readonly   => @reflection.options[:readonly]
+            options
           ) if @owner[@reflection.primary_key_name]
           set_inverse_instance(the_target, @owner)
           the_target
