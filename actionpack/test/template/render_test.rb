@@ -252,6 +252,11 @@ module RenderTestCases
     assert_equal %(\n<title>title</title>\n\n),
       @view.render(:file => "test/layout_render_file.erb")
   end
+
+  def test_render_layout_with_object
+    assert_equal %(<title>David</title>),
+      @view.render(:file => "test/layout_render_object.erb")
+  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase

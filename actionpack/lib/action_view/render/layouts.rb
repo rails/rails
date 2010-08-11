@@ -47,11 +47,15 @@ module ActionView
     #     Hello David
     #   </html>
     #
-    def _layout_for(name = nil, &block) #:nodoc:
-      if !block || name
-        @_content_for[name || :layout].html_safe
+    def _layout_for(*args, &block) #:nodoc:
+      name = args.first
+
+      if name.is_a?(Symbol)
+        @_content_for[name].html_safe
+      elsif block
+        capture(*args, &block)
       else
-        capture(&block)
+        @_content_for[:layout].html_safe
       end
     end
 
