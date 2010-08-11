@@ -135,9 +135,7 @@ module ActiveRecord
 
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
-      @where_values.uniq.each do |where|
-        next if where.blank?
-
+      (@where_values - ['']).uniq.each do |where|
         case where
         when Arel::SqlLiteral
           arel = arel.where(where)
