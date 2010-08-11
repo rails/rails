@@ -113,9 +113,9 @@ module ActionDispatch
         DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
         def set_conditional_cache_control!
-          control = @cache_control
-
           return if self["Cache-Control"].present?
+
+          control = @cache_control
 
           if control.empty?
             headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
