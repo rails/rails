@@ -80,9 +80,13 @@ module ActiveRecord
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)
 
-      [:joins, :select, :group, :having, :limit, :offset, :from, :lock, :readonly].each do |finder|
-        relation = relation.send(finder, options[finder]) if options.has_key?(finder)
+      [:joins, :select, :group, :having, :limit, :offset, :from, :lock].each do |finder|
+        if value = options[finder]
+          relation = relation.send(finder, value)
+        end
       end
+
+      relation = relation.readonly(options[:readonly]) if options.key? :readonly
 
       # Give precedence to newly-applied orders and groups to play nicely with with_scope
       [:group, :order].each do |finder|
