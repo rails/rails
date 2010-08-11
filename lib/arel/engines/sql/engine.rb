@@ -6,7 +6,7 @@ module Arel
       end
 
       def connection
-        @ar ? @ar.connection : nil
+        @ar && @ar.connection
       end
 
       def adapter_name
