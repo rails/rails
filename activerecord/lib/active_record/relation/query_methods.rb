@@ -217,7 +217,7 @@ module ActiveRecord
     end
 
     def build_select(arel, selects)
-      if selects.present?
+      unless selects.empty?
         @implicit_readonly = false
         # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
         # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
