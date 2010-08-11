@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/try'
+require 'action_controller/metal/exceptions'
 
 class ResourcesController < ActionController::Base
   def index() render :nothing => true end

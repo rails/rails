@@ -1,6 +1,7 @@
 require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'action_controller/metal/exceptions'
 
 class TestRoutingMapper < ActionDispatch::IntegrationTest
   SprocketsApp = lambda { |env|

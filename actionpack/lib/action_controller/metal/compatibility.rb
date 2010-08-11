@@ -1,3 +1,5 @@
+require 'action_controller/metal/exceptions'
+
 module ActionController
   module Compatibility
     extend ActiveSupport::Concern

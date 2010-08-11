@@ -9,6 +9,7 @@ require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/string/inflections'
+require 'action_controller/metal/exceptions'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.

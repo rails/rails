@@ -2,6 +2,7 @@ require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
 require 'action_dispatch/routing/deprecated_mapper'
+require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   module Routing

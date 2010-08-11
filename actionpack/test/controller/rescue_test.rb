@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   class ShowExceptions
