@@ -14,15 +14,15 @@ module Arel
       end
 
       def quote_column_name name
-        engine.connection.quote_column_name name
+        @engine.connection.quote_column_name name
       end
 
       def quote_table_name name
-        engine.connection.quote_table_name name
+        @engine.connection.quote_table_name name
       end
 
       def quote value, column = nil
-        engine.connection.quote value, column
+        @engine.connection.quote value, column
       end
     end
 
