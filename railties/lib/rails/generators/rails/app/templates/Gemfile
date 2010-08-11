@@ -13,7 +13,7 @@ gem 'rails', '<%= Rails::VERSION::STRING %>'
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 <%- end -%>
 
-<% unless options[:skip_activerecord] -%>
+<% unless options[:skip_active_record] -%>
 gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= require_for_database %>'<% end %>
 <% end -%>
 
@@ -28,7 +28,7 @@ gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= req
 
 # Bundle the extra gems:
 # gem 'bj'
-# gem 'nokogiri', '1.4.1'
+# gem 'nokogiri'
 # gem 'sqlite3-ruby', :require => 'sqlite3'
 # gem 'aws-s3', :require => 'aws/s3'
 

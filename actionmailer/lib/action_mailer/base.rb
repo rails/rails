@@ -41,16 +41,16 @@ module ActionMailer #:nodoc:
   #   in the same manner as <tt>attachments[]=</tt>
   #
   # * <tt>headers[]=</tt> - Allows you to specify any header field in your email such
-  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note, while most fields (like <tt>To:</tt>
+  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note, while most fields like <tt>To:</tt>
   #   <tt>From:</tt> can only appear once in an email header, other fields like <tt>X-Anything</tt>
   #   can appear multiple times. If you want to change a field that can appear multiple times,
-  #   you need to set it to nil first so that Mail knows you are replacing it, not adding
-  #   another field of the same name.)
+  #   you need to set it to nil first so that Mail knows you are replacing it and not adding
+  #   another field of the same name.
   #
   # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
   #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
   #
-  # * <tt>mail</tt> - Allows you to specify your email to send.
+  # * <tt>mail</tt> - Allows you to specify email to be sent.
   #
   # The hash passed to the mail method allows you to specify any header that a Mail::Message
   # will accept (any valid Email header including optional fields).
@@ -66,7 +66,7 @@ module ActionMailer #:nodoc:
   #     format.html
   #   end
   #
-  # The block syntax is useful if also need to specify information specific to a part:
+  # The block syntax is also useful in providing information specific to a part:
   #
   #   mail(:to => user.email) do |format|
   #     format.text(:content_transfer_encoding => "base64")
@@ -121,7 +121,7 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You will want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't
+  # You want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't
   # make sense to generate relative URLs in email messages.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
@@ -132,7 +132,7 @@ module ActionMailer #:nodoc:
   # Setting <tt>ActionMailer::Base.default_url_options</tt> directly is now deprecated, use the configuration
   # option mentioned above to set the default host.
   #
-  # If you do decide to set a default <tt>:host</tt> for your mailers you will want to use the
+  # If you do decide to set a default <tt>:host</tt> for your mailers you want to use the
   # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are
   # generated because the <tt>url_for</tt> view helper will, by default, generate relative URLs when a
   # <tt>:host</tt> option isn't explicitly provided.
@@ -154,7 +154,7 @@ module ActionMailer #:nodoc:
   # detect and use multipart templates, where each template is named after the name of the action, followed
   # by the content type. Each such detected template will be added as separate part to the message.
   #
-  # For example, if the following templates existed:
+  # For example, if the following templates exist:
   # * signup_notification.text.plain.erb
   # * signup_notification.text.html.erb
   # * signup_notification.text.xml.builder
@@ -171,8 +171,7 @@ module ActionMailer #:nodoc:
   #
   # = Attachments
   #
-  # You can see above how to make a multipart HTML / Text email, to send attachments is just
-  # as easy:
+  # Sending attachment in emails is easy:
   #
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
@@ -189,10 +188,8 @@ module ActionMailer #:nodoc:
   #
   # = Inline Attachments
   # 
-  # You can also specify that a file should be displayed inline with other HTML.  For example a 
-  # corporate logo or a photo or the like.
-  # 
-  # To do this is simple, in the Mailer:
+  # You can also specify that a file should be displayed inline with other HTML. This is useful 
+  # if you want to display a corporate logo or a photo.
   # 
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
@@ -496,10 +493,10 @@ module ActionMailer #:nodoc:
     # You can also search for specific attachments:
     #
     #  # By Filename
-    #  mail.attachments['filename.jpg']   #=> Mail::Part object or nil
+    #  mail.attachments['filename.jpg']   # => Mail::Part object or nil
     #
     #  # or by index
-    #  mail.attachments[0]                #=> Mail::Part (first attachment)
+    #  mail.attachments[0]                # => Mail::Part (first attachment)
     #
     def attachments
       @_message.attachments

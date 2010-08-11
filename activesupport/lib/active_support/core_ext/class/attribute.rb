@@ -2,8 +2,8 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
 
 class Class
-  # Declare a class-level attribute whose value is inheritable and
-  # overwritable by subclasses:
+  # Declare a class-level attribute whose value is inheritable by subclasses.
+  # Subclasses can change their own value and it will not impact parent class.
   #
   #   class Base
   #     class_attribute :setting
@@ -18,12 +18,34 @@ class Class
   #   Subclass.setting            # => false
   #   Base.setting                # => true
   #
+  # In the above case as long as Subclass does not assign a value to setting
+  # by performing <tt>Subclass.setting = _something_ </tt>, <tt>Subclass.setting</tt>
+  # would read value assigned to parent class. Once Subclass assigns a value then
+  # the value assigned by Subclass would be returned.
+  #
   # This matches normal Ruby method inheritance: think of writing an attribute
-  # on a subclass as overriding the reader method.
+  # on a subclass as overriding the reader method. However, you need to be aware
+  # when using +class_attribute+ with mutable structures as +Array+ or +Hash+.
+  # In such cases, you don't want to do changes in places but use setters:
+  #
+  #   Base.setting = []
+  #   Base.setting                #=> []
+  #   Subclass.setting            #=> []
+  #
+  #   # Appending in child changes both parent and child because it is the same object:
+  #   Subclass.setting << :foo
+  #   Base.setting               #=> [:foo]
+  #   Subclass.setting           #=> [:foo]
+  #
+  #   # Use setters to not propagate changes:
+  #   Base.setting = []
+  #   Subclass.setting += [:foo]
+  #   Base.setting               #=> []
+  #   Subclass.setting           #=> [:foo]
   #
   # For convenience, a query method is defined as well:
   #
-  #   Subclass.setting?           # => false
+  #   Subclass.setting?       # => false
   #
   # Instances may overwrite the class value in the same way:
   #

@@ -66,7 +66,8 @@ module Enumerable
   # +memo+ to the block. Handy for building up hashes or
   # reducing collections down to one object. Examples:
   #
-  #   %w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase } #=> {'foo' => 'FOO', 'bar' => 'BAR'}
+  #   %w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase }
+  #   # => {'foo' => 'FOO', 'bar' => 'BAR'}
   #
   # *Note* that you can't use immutable objects like numbers, true or false as
   # the memo. You would think the following returns 120, but since the memo is

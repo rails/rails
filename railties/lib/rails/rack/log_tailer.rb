@@ -6,7 +6,6 @@ module Rails
 
         path = Pathname.new(log || "#{File.expand_path(Rails.root)}/log/#{Rails.env}.log").cleanpath
         @cursor = ::File.size(path)
-        @last_checked = Time.now.to_f
 
         @file = ::File.open(path, 'r')
       end
@@ -20,11 +19,9 @@ module Rails
       def tail!
         @file.seek @cursor
 
-        mod = @file.mtime.to_f
-        if mod > @last_checked
+        if !@file.eof?
           contents = @file.read
-          @last_checked = mod
-          @cursor += contents.size
+          @cursor = @file.tell
           $stdout.print contents
         end
       end

@@ -29,29 +29,38 @@ link:files/vendor/rails/actionpack/README.html.
 == Getting Started
 
 1. Install Rails at the command prompt if you haven't yet:
-       <tt>gem install rails</tt>
+
+    gem install rails
 
 2. At the command prompt, create a new Rails application:
-       <tt>rails new myapp</tt> (where <tt>myapp</tt> is the application name)
 
-3. Change directory to <tt>myapp</tt> and start the web server:
-       <tt>cd myapp; rails server</tt> (run with --help for options)
+    rails new myapp 
+
+   where "myapp" is the application name.
+
+3. Change directory to +myapp+ and start the web server:
+
+    cd myapp; rails server
+
+   Run with <tt>--help</tt> for options.
 
 4. Go to http://localhost:3000/ and you'll see:
-       "Welcome aboard: You're riding Ruby on Rails!"
+
+    "Welcome aboard: You're riding Ruby on Rails!"
 
 5. Follow the guidelines to start developing your application. You can find 
 the following resources handy:
 
-* The README file created within your application
-* The Getting Started Guide: http://guides.rubyonrails.org/getting_started.html
-* Ruby on Rails Tutorial Book: http://www.railstutorial.org/
+* The README file created within your application.
+* The {Getting Started Guide}[http://guides.rubyonrails.org/getting_started.html].
+* The {Ruby on Rails Tutorial Book}[http://railstutorial.org/book].
 
 
 == Contributing
 
-Check out the contributing guide at http://edgeguides.rubyonrails.org/contributing_to_rails.html
-
+We encourage you to contribute to Ruby on Rails! Please check out the {Contributing to Rails
+guide}[http://edgeguides.rubyonrails.org/contributing_to_rails.html] for guidelines about how
+to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 == License
 

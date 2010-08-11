@@ -216,7 +216,7 @@ module Rails
 
         empty_directory '.'
         set_default_accessors!
-        FileUtils.cd(destination_root)
+        FileUtils.cd(destination_root) unless options[:pretend]
       end
 
       def create_root_files
@@ -356,8 +356,13 @@ module Rails
         @app_name ||= File.basename(destination_root)
       end
 
+      def defined_app_const_base
+        Rails.respond_to?(:application) && defined?(Rails::Application) &&
+          Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
+      end
+
       def app_const_base
-        @app_const_base ||= app_name.gsub(/\W/, '_').squeeze('_').camelize
+        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
       def app_const

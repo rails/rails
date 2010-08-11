@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/try'
 require 'abstract_unit'
 
 class ResourcesController < ActionController::Base

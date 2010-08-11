@@ -58,12 +58,12 @@ class Array
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
 
-  # Returns a string that represents this array in XML by sending +to_xml+
-  # to each element. Active Record collections delegate their representation
+  # Returns a string that represents the array in XML by invoking +to_xml+
+  # on each element. Active Record collections delegate their representation
   # in XML to this method.
   #
   # All elements are expected to respond to +to_xml+, if any of them does
-  # not an exception is raised.
+  # not then an exception is raised.
   #
   # The root node reflects the class name of the first element in plural
   # if all elements belong to the same type and that's not Hash:
@@ -115,8 +115,8 @@ class Array
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
   #
-  # By default root children have as node name the one of the root
-  # singularized. You can change it with the <tt>:children</tt> option.
+  # By default name of the node for the children of root is <tt>root.singularize</tt>.
+  # You can change it with the <tt>:children</tt> option.
   #
   # The +options+ hash is passed downwards:
   #

@@ -58,6 +58,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     DEFAULT_APP_FILES.each{ |path| assert_file path }
   end
 
+  def test_application_generate_pretend
+    run_generator ["testapp", "--pretend"]
+
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
   def test_application_controller_and_layout_files
     run_generator
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag :all/
@@ -98,6 +104,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [File.join(destination_root, "things-43")]
     assert_file "things-43/config/environment.rb", /Things43::Application\.initialize!/
     assert_file "things-43/config/application.rb", /^module Things43$/
+  end
+
+  def test_application_name_is_detected_if_it_exists_and_app_folder_renamed
+    app_root       = File.join(destination_root, "myapp")
+    app_moved_root = File.join(destination_root, "myapp_moved")
+
+    run_generator [app_root]
+
+    Rails.application.config.root = app_moved_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    FileUtils.mv(app_root, app_moved_root)
+
+    # forces the shell to automatically overwrite all files
+    Thor::Base.shell.send(:attr_accessor, :always_force)
+    shell = Thor::Base.shell.new
+    shell.send(:always_force=, true)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
+                                                               :destination_root => app_moved_root, :shell => shell
+    generator.send(:app_const)
+    silence(:stdout){ generator.send(:create_config_files) }
+    assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
   end
 
   def test_application_names_are_not_singularized

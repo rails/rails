@@ -398,6 +398,7 @@ ActiveRecord::Schema.define do
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|
     t.string :name
     t.integer :owner_id, :integer
+    t.timestamps
   end
 
   create_table :pirates, :force => true do |t|
@@ -530,6 +531,7 @@ ActiveRecord::Schema.define do
   create_table :toys, :primary_key => :toy_id ,:force => true do |t|
     t.string :name
     t.integer :pet_id, :integer
+    t.timestamps
   end
 
   create_table :traffic_lights, :force => true do |t|
@@ -615,6 +617,19 @@ ActiveRecord::Schema.define do
     t.datetime :created_at
     t.datetime :updated_at
   end
+
+  create_table :liquid, :force => true do |t|
+    t.string :name
+  end
+  create_table :molecules, :force => true do |t|
+    t.integer :liquid_id
+    t.string :name
+  end
+  create_table :electrons, :force => true do |t|
+    t.integer :molecule_id
+    t.string :name
+  end
+
 
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk

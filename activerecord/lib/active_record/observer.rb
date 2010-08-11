@@ -67,8 +67,8 @@ module ActiveRecord
   #
   # == Configuration
   #
-  # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration setting in your
-  # <tt>config/application.rb</tt> file.
+  # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration 
+  # setting in your <tt>config/application.rb</tt> file.
   #
   #   config.active_record.observers = :comment_observer, :signup_observer
   #

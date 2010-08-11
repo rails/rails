@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/try'
 require 'action_controller/vendor/html-scanner'
 require 'action_view/helpers/tag_helper'
 
@@ -7,6 +8,7 @@ module ActionView
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
+      extend ActiveSupport::Concern
       # This +sanitize+ helper will html encode all tags and strip all attributes that 
       # aren't specifically allowed.
       #

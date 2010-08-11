@@ -1,3 +1,4 @@
+require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
@@ -56,7 +57,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
       match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
 
-      match 'account/google' => redirect('http://www.google.com/')
+      match 'account/google' => redirect('http://www.google.com/', :status => 302)
 
       match 'openid/login', :via => [:get, :post], :to => "openid#login"
 
@@ -501,9 +502,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_login_redirect
     with_test_routes do
       get '/account/login'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com/login', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com/login'
     end
   end
 
@@ -511,18 +510,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       assert_equal '/account/logout', logout_redirect_path
       get '/account/logout'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com/logout', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com/logout'
     end
   end
 
   def test_namespace_redirect
     with_test_routes do
       get '/private'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com/private/index', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com/private/index'
     end
   end
 
@@ -586,27 +581,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_redirect_modulo
     with_test_routes do
       get '/account/modulo/name'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com/names', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com/names'
     end
   end
 
   def test_redirect_proc
     with_test_routes do
       get '/account/proc/person'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com/people', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com/people'
     end
   end
 
   def test_redirect_proc_with_request
     with_test_routes do
       get '/account/proc_req'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com/GET', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com/GET'
     end
   end
 
@@ -1203,12 +1192,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_redirect_with_complete_url
+  def test_redirect_with_complete_url_and_status
     with_test_routes do
       get '/account/google'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.google.com/', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.google.com/', 302
     end
   end
 
@@ -1216,9 +1203,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     previous_host, self.host = self.host, 'www.example.com:3000'
     with_test_routes do
       get '/account/login'
-      assert_equal 301, @response.status
-      assert_equal 'http://www.example.com:3000/login', @response.headers['Location']
-      assert_equal 'Moved Permanently', @response.body
+      verify_redirect 'http://www.example.com:3000/login'
     end
   ensure
     self.host = previous_host
@@ -1899,8 +1884,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  private
-    def with_test_routes
-      yield
-    end
+private
+  def with_test_routes
+    yield
+  end
+
+  def verify_redirect(url, status=301)
+    assert_equal status, @response.status
+    assert_equal url, @response.headers['Location']
+    assert_equal expected_redirect_body(url), @response.body
+  end
+
+  def expected_redirect_body(url)
+    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+  end
 end

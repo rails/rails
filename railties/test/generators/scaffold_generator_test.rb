@@ -216,4 +216,19 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     # Stylesheets (should not be removed)
     assert_file "public/stylesheets/scaffold.css"
   end
+
+  def test_scaffold_generator_on_revoke_does_not_mutilate_legacy_map_parameter
+    run_generator
+
+    # Add a |map| parameter to the routes block manually
+    route_path = File.expand_path("config/routes.rb", destination_root)
+    content = File.read(route_path).gsub(/\.routes\.draw do/) do |match|
+      "#{match} |map|"
+    end
+    File.open(route_path, "wb") { |file| file.write(content) }
+
+    run_generator ["product_line"], :behavior => :revoke
+
+    assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
+  end
 end

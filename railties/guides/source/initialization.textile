@@ -118,7 +118,7 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
 
   # Bundle the extra gems:
   # gem 'bj'
-  # gem 'nokogiri', '1.4.1'
+  # gem 'nokogiri'
   # gem 'sqlite3-ruby', :require => 'sqlite3'
   # gem 'aws-s3', :require => 'aws/s3'
 
@@ -141,13 +141,13 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * activesupport-3.0.0.beta4.gem
 * arel-0.4.0.gem
 * builder-2.1.2.gem
-* bundler-1.0.0.beta.5.gem
+* bundler-1.0.0.rc.2.gem
 * erubis-2.6.6.gem
 * i18n-0.4.1.gem
 * mail-2.2.5.gem
 * memcache-client-1.8.5.gem
 * mime-types-1.16.gem
-* nokogiri-1.4.2.gem
+* nokogiri-1.4.3.1.gem
 * polyglot-0.3.1.gem
 * rack-1.2.1.gem
 * rack-mount-0.6.9.gem
@@ -258,28 +258,23 @@ This file goes on to define some classes that will be automatically loaded using
 
 h4. Lazy Hooks
 
-At the top if the +ActiveSupport::Autoload+ module is the +def self.extended+ method:
-
-<ruby>
-  def self.extended(base)
-     base.extend(LazyLoadHooks)
-   end
-</ruby>
-
-This is called when we extend this module into one of our classes or modules, such is the case later on when we call +extend ActiveSupport::LazyLoadHooks+ not only in the +ActiveSupport+ module, but in all of the Railtie modules (+ActiveRecord+ and so on), as well as in a couple of places.
-
 +ActiveSupport::LazyLoadHooks+ is responsible for defining methods used for running hooks that are defined during the initialization process, such as the one defined inside the +active_record.initialize_timezone+ initializer:
 
 <ruby>
   initializer "active_record.initialize_timezone" do
-    ActiveRecord.base_hook do
+    ActiveSupport.on_load(:active_record) do
       self.time_zone_aware_attributes = true
       self.default_timezone = :utc
     end
   end
 </ruby>
 
-When the initializer is ran it defines a +base_hook+ for +ActiveRecord+ and will only run it when +run_base_hooks+ is called, which in the case of Active Record, is ran after the entirety of +activerecord/lib/active_record/base.rb+ has been evaluated.
+When the initializer runs it invokes method +on_load+ for +ActiveRecord+ and the block passed to it would be called only when +run_load_hooks+ is called.
+When the entirety of +activerecord/lib/active_record/base.rb+ has been evaluated then +run_load_hooks+ is invoked. The very last line of +activerecord/lib/active_record/base.rb+ is:
+
+<ruby>
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+</ruby>
 
 h4. +require 'active_support'+ cont'd.
 

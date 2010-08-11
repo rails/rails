@@ -106,9 +106,10 @@ module ActiveRecord
                         :limit => @reflection.options[:limit] } }
         end
 
-        # Join tables with additional columns on top of the two foreign keys must be considered ambiguous unless a select
-        # clause has been explicitly defined. Otherwise you can get broken records back, if, for example, the join column also has
-        # an id column. This will then overwrite the id column of the records coming back.
+        # Join tables with additional columns on top of the two foreign keys must be considered 
+        # ambiguous unless a select clause has been explicitly defined. Otherwise you can get 
+        # broken records back, if, for example, the join column also has an id column. This will 
+        # then overwrite the id column of the records coming back.
         def finding_with_ambiguous_select?(select_clause)
           !select_clause && columns.size != 2
         end

@@ -3,14 +3,14 @@ module ActiveRecord
   module Reflection # :nodoc:
     extend ActiveSupport::Concern
 
-    # Reflection allows you to interrogate Active Record classes and objects
+    # Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can, 
-    # for example, be used in a form builder that took an Active Record object
-    # and created input fields for all of the attributes depending on their type
-    # and displayed the associations to other objects.
+    # for example, be used in a form builder that takes an Active Record object
+    # and creates input fields for all of the attributes depending on their type
+    # and displays the associations to other objects.
     #
-    # You can find the interface for the AggregateReflection and AssociationReflection
-    # classes in the abstract MacroReflection class.
+    # MacroReflection class has info for AggregateReflection and AssociationReflection
+    # classes.
     module ClassMethods
       def create_reflection(macro, name, options, active_record)
         case macro
@@ -24,7 +24,7 @@ module ActiveRecord
         reflection
       end
 
-      # Returns a hash containing all AssociationReflection objects for the current class
+      # Returns a hash containing all AssociationReflection objects for the current class.
       # Example:
       #
       #   Invoice.reflections
@@ -39,9 +39,9 @@ module ActiveRecord
         reflections.values.select { |reflection| reflection.is_a?(AggregateReflection) }
       end
 
-      # Returns the AggregateReflection object for the named +aggregation+ (use the symbol). Example:
+      # Returns the AggregateReflection object for the named +aggregation+ (use the symbol). 
       #
-      #   Account.reflect_on_aggregation(:balance) # returns the balance AggregateReflection
+      #   Account.reflect_on_aggregation(:balance) #=> the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
         reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil
@@ -78,8 +78,7 @@ module ActiveRecord
     end
 
 
-    # Abstract base class for AggregateReflection and AssociationReflection that
-    # describes the interface available for both of those classes. Objects of
+    # Abstract base class for AggregateReflection and AssociationReflection. Objects of 
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       attr_reader :active_record
@@ -89,36 +88,35 @@ module ActiveRecord
       end
 
       # Returns the name of the macro.
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>:balance</tt> 
-      # <tt>has_many :clients</tt> will return <tt>:clients</tt>
-      def name
-        @name
-      end
+      #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt> 
+      # <tt>has_many :clients</tt> returns <tt>:clients</tt>
+      attr_reader :name
 
       # Returns the macro type. 
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>:composed_of</tt>
-      # <tt>has_many :clients</tt> will return <tt>:has_many</tt>
-      def macro
-        @macro
-      end
+      #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:composed_of</tt>
+      # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
+      attr_reader :macro
 
       # Returns the hash of options used for the macro.  
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>{ :class_name => "Money" }</tt>
-      # <tt>has_many :clients</tt> will return +{}+
-      def options
-        @options
-      end
+      #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
+      # <tt>has_many :clients</tt> returns +{}+
+      attr_reader :options
 
       # Returns the class for the macro.  
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return the Money class
-      # <tt>has_many :clients</tt> will return the Client class
+      #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money class
+      # <tt>has_many :clients</tt> returns the Client class
       def klass
         @klass ||= class_name.constantize
       end
 
       # Returns the class name for the macro.  
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>'Money'</tt>
-      # <tt>has_many :clients</tt> will return <tt>'Client'</tt>
+      #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
+      # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
         @class_name ||= options[:class_name] || derive_class_name
       end
@@ -131,11 +129,6 @@ module ActiveRecord
 
       def sanitized_conditions #:nodoc:
         @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
-      end
-
-      # Returns +true+ if +self+ is a +belongs_to+ reflection.
-      def belongs_to?
-        macro == :belongs_to
       end
 
       private
@@ -153,7 +146,7 @@ module ActiveRecord
     # Holds all the meta-data about an association as it was specified in the 
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
-      # Returns the target association's class:
+      # Returns the target association's class.
       #
       #   class Author < ActiveRecord::Base
       #     has_many :books
@@ -162,7 +155,7 @@ module ActiveRecord
       #   Author.reflect_on_association(:books).klass
       #   # => Book
       #
-      # <b>Note:</b> do not call +klass.new+ or +klass.create+ to instantiate
+      # <b>Note:</b> Do not call +klass.new+ or +klass.create+ to instantiate
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
@@ -207,6 +200,10 @@ module ActiveRecord
 
       def primary_key_name
         @primary_key_name ||= options[:foreign_key] || derive_primary_key_name
+      end
+
+      def primary_key_column
+        @primary_key_column ||= klass.columns.find { |c| c.name == klass.primary_key }
       end
 
       def association_foreign_key
@@ -273,7 +270,7 @@ module ActiveRecord
       end
 
       # Returns whether or not this association reflection is for a collection
-      # association. Returns +true+ if the +macro+ is one of +has_many+ or
+      # association. Returns +true+ if the +macro+ is either +has_many+ or
       # +has_and_belongs_to_many+, +false+ otherwise.
       def collection?
         @collection
@@ -283,7 +280,7 @@ module ActiveRecord
       # the parent's validation.
       #
       # Unless you explicitly disable validation with
-      # <tt>:validate => false</tt>, it will take place when:
+      # <tt>:validate => false</tt>, validation will take place when:
       #
       # * you explicitly enable validation; <tt>:validate => true</tt>
       # * you use autosave; <tt>:autosave => true</tt>
@@ -301,6 +298,11 @@ module ActiveRecord
         dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
         dependent_conditions = dependent_conditions.gsub('@', '\@')
         dependent_conditions
+      end
+
+      # Returns +true+ if +self+ is a +belongs_to+ reflection.
+      def belongs_to?
+        macro == :belongs_to
       end
 
       private
@@ -327,8 +329,6 @@ module ActiveRecord
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
-      # (The <tt>:tags</tt> association on Tagging below.)
-      #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings
       #     has_many :tags, :through => :taggings
@@ -339,7 +339,7 @@ module ActiveRecord
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
-      # of a HasManyThrough or HasOneThrough association. Example:
+      # of a HasManyThrough or HasOneThrough association.
       #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings

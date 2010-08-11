@@ -14,7 +14,7 @@ module ActiveModel
   #   end
   # 
   #   TranslatedPerson.human_attribute_name('my_attribute')
-  #   #=> "My attribute"
+  #   # => "My attribute"
   # 
   # This also provides the required class methods for hooking into the
   # Rails internationalization API, including being able to define a

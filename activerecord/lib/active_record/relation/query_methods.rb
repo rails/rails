@@ -31,7 +31,7 @@ module ActiveRecord
     end
 
     def group(*args)
-      clone.tap {|r| r.group_values += args if args.present? }
+      clone.tap {|r| r.group_values += args.flatten if args.present? }
     end
 
     def order(*args)
@@ -47,9 +47,9 @@ module ActiveRecord
       clone.tap {|r| r.joins_values += args if args.present? }
     end
 
-    def where(*args)
-      value = build_where(*args)
-      clone.tap {|r| r.where_values += Array.wrap(value) if value.present? }
+    def where(opts, *rest)
+      value = build_where(opts, rest)
+      value ? clone.tap {|r| r.where_values += Array.wrap(value) } : clone
     end
 
     def having(*args)
@@ -95,7 +95,7 @@ module ActiveRecord
       order_clause = arel.send(:order_clauses).join(', ')
       relation = except(:order)
 
-      if order_clause.present?
+      unless order_clauses.blank?
         relation.order(reverse_sql_order(order_clause))
       else
         relation.order("#{@klass.table_name}.#{@klass.primary_key} DESC")
@@ -129,7 +129,7 @@ module ActiveRecord
     def build_arel
       arel = table
 
-      arel = build_joins(arel, @joins_values) if @joins_values.present?
+      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
       @where_values.uniq.each do |where|
         next if where.blank?
@@ -143,36 +143,27 @@ module ActiveRecord
         end
       end
 
-      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) if @having_values.present?
+      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) unless @having_values.empty?
 
-      arel = arel.take(@limit_value) if @limit_value.present?
-      arel = arel.skip(@offset_value) if @offset_value.present?
+      arel = arel.take(@limit_value) if @limit_value
+      arel = arel.skip(@offset_value) if @offset_value
 
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) unless @group_values.empty?
 
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}) if @order_values.present?
+      arel = arel.order(*@order_values.uniq.select{|o| o.present?}) unless @order_values.empty?
 
       arel = build_select(arel, @select_values.uniq)
 
-      arel = arel.from(@from_value) if @from_value.present?
-
-      case @lock_value
-      when TrueClass
-        arel = arel.lock
-      when String
-        arel = arel.lock(@lock_value)
-      end if @lock_value.present?
+      arel = arel.from(@from_value) if @from_value
+      arel = arel.lock(@lock_value) if @lock_value
 
       arel
     end
 
-    def build_where(*args)
-      return if args.blank?
-
-      opts = args.first
+    def build_where(opts, other = [])
       case opts
       when String, Array
-        @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
+        @klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
         PredicateBuilder.new(table.engine).build_from_hash(attributes, table)
@@ -247,7 +238,7 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query.to_s.split(/,/).each { |s|
+      order_query.split(',').each { |s|
         if s.match(/\s(asc|ASC)$/)
           s.gsub!(/\s(asc|ASC)$/, ' DESC')
         elsif s.match(/\s(desc|DESC)$/)

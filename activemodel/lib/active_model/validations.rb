@@ -24,20 +24,16 @@ module ActiveModel
   #   end
   # 
   # Which provides you with the full standard validation stack that you
-  # know from ActiveRecord.
+  # know from Active Record:
   # 
   #   person = Person.new
-  #   person.valid?
-  #   #=> true
-  #   person.invalid?
-  #   #=> false
+  #   person.valid?                   # => true
+  #   person.invalid?                 # => false
+  #
   #   person.first_name = 'zoolander'
-  #   person.valid?
-  #   #=> false
-  #   person.invalid?
-  #   #=> true
-  #   person.errors
-  #   #=> #<OrderedHash {:first_name=>["starts with z."]}>
+  #   person.valid?                   # => false
+  #   person.invalid?                 # => true
+  #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
   # 
   # Note that ActiveModel::Validations automatically adds an +errors+ method
   # to your instances initialized with a new ActiveModel::Errors object, so
@@ -122,11 +118,13 @@ module ActiveModel
       #   end
       #
       def validate(*args, &block)
-        options = args.last
-        if options.is_a?(Hash) && options.key?(:on)
+        options = args.extract_options!
+        if options.key?(:on)
+          options = options.dup
           options[:if] = Array.wrap(options[:if])
           options[:if] << "validation_context == :#{options[:on]}"
         end
+        args << options
         set_callback(:validate, *args, &block)
       end
 

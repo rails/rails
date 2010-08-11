@@ -256,7 +256,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_create_table_with_defaults
       # MySQL doesn't allow defaults on TEXT or BLOB columns.
-      mysql = current_adapter?(:MysqlAdapter)
+      mysql = current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
 
       Person.connection.create_table :testings do |t|
         t.column :one, :string, :default => "hello"
@@ -313,7 +313,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal 'integer', four.sql_type
         assert_equal 'bigint', eight.sql_type
         assert_equal 'integer', eleven.sql_type
-      elsif current_adapter?(:MysqlAdapter)
+      elsif current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
         assert_match 'int(11)', default.sql_type
         assert_match 'tinyint', one.sql_type
         assert_match 'int', four.sql_type
@@ -581,7 +581,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_kind_of BigDecimal, bob.wealth
     end
 
-    if current_adapter?(:MysqlAdapter)
+    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       def test_unabstracted_database_dependent_types
         Person.delete_all
 
@@ -621,7 +621,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.column_methods_hash.include?(:last_name)
     end
 
-    if current_adapter?(:MysqlAdapter)
+    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       def testing_table_for_positioning
         Person.connection.create_table :testings, :id => false do |t|
           t.column :first, :integer
@@ -1447,7 +1447,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       columns = Person.connection.columns(:binary_testings)
       data_column = columns.detect { |c| c.name == "data" }
 
-      if current_adapter?(:MysqlAdapter)
+      if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
         assert_equal '', data_column.default
       else
         assert_nil data_column.default
@@ -1748,7 +1748,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def integer_column
-      if current_adapter?(:MysqlAdapter)
+      if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
         'int(11)'
       elsif current_adapter?(:OracleAdapter)
         'NUMBER(38)'

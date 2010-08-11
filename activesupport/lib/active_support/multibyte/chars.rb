@@ -11,7 +11,7 @@ module ActiveSupport #:nodoc:
     # String methods are proxied through the Chars object, and can be accessed through the +mb_chars+ method. Methods
     # which would normally return a String object now return a Chars object so methods can be chained.
     #
-    #   "The Perfect String  ".mb_chars.downcase.strip.normalize #=> "the perfect string"
+    #   "The Perfect String  ".mb_chars.downcase.strip.normalize # => "the perfect string"
     #
     # Chars objects are perfectly interchangeable with String objects as long as no explicit class checks are made.
     # If certain methods do explicitly check the class, call +to_s+ before you pass chars objects to them.
@@ -83,12 +83,13 @@ module ActiveSupport #:nodoc:
 
       include Comparable
 
-      # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
-      # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
-      # See <tt>String#<=></tt> for more details.
+      # Returns -1, 0, or 1, depending on whether the Chars object is to be sorted before,
+      # equal or after the object on the right side of the operation. It accepts any object
+      # that implements +to_s+:
       #
-      # Example:
-      #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
+      #   'é'.mb_chars <=> 'ü'.mb_chars # => -1
+      #
+      # See <tt>String#<=></tt> for more details.
       def <=>(other)
         @wrapped_string <=> other.to_s
       end
@@ -103,7 +104,7 @@ module ActiveSupport #:nodoc:
         # Returns a new Chars object containing the _other_ object concatenated to the string.
         #
         # Example:
-        #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
+        #   ('Café'.mb_chars + ' périferôl').to_s # => "Café périferôl"
         def +(other)
           chars(@wrapped_string + other)
         end
@@ -111,7 +112,7 @@ module ActiveSupport #:nodoc:
         # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
         #
         # Example:
-        #   'Café périferôl'.mb_chars =~ /ô/ #=> 12
+        #   'Café périferôl'.mb_chars =~ /ô/ # => 12
         def =~(other)
           translate_offset(@wrapped_string =~ other)
         end
@@ -119,7 +120,7 @@ module ActiveSupport #:nodoc:
         # Inserts the passed string at specified codepoint offsets.
         #
         # Example:
-        #   'Café'.mb_chars.insert(4, ' périferôl').to_s #=> "Café périferôl"
+        #   'Café'.mb_chars.insert(4, ' périferôl').to_s # => "Café périferôl"
         def insert(offset, fragment)
           unpacked = Unicode.u_unpack(@wrapped_string)
           unless offset > unpacked.length
@@ -135,7 +136,7 @@ module ActiveSupport #:nodoc:
         # Returns +true+ if contained string contains _other_. Returns +false+ otherwise.
         #
         # Example:
-        #   'Café'.mb_chars.include?('é') #=> true
+        #   'Café'.mb_chars.include?('é') # => true
         def include?(other)
           # We have to redefine this method because Enumerable defines it.
           @wrapped_string.include?(other)
@@ -144,8 +145,8 @@ module ActiveSupport #:nodoc:
         # Returns the position _needle_ in the string, counting in codepoints. Returns +nil+ if _needle_ isn't found.
         #
         # Example:
-        #   'Café périferôl'.mb_chars.index('ô') #=> 12
-        #   'Café périferôl'.mb_chars.index(/\w/u) #=> 0
+        #   'Café périferôl'.mb_chars.index('ô')   # => 12
+        #   'Café périferôl'.mb_chars.index(/\w/u) # => 0
         def index(needle, offset=0)
           wrapped_offset = first(offset).wrapped_string.length
           index = @wrapped_string.index(needle, wrapped_offset)
@@ -157,8 +158,8 @@ module ActiveSupport #:nodoc:
         # string. Returns +nil+ if _needle_ isn't found.
         #
         # Example:
-        #   'Café périferôl'.mb_chars.rindex('é') #=> 6
-        #   'Café périferôl'.mb_chars.rindex(/\w/u) #=> 13
+        #   'Café périferôl'.mb_chars.rindex('é')   # => 6
+        #   'Café périferôl'.mb_chars.rindex(/\w/u) # => 13
         def rindex(needle, offset=nil)
           offset ||= length
           wrapped_offset = first(offset).wrapped_string.length
@@ -190,7 +191,7 @@ module ActiveSupport #:nodoc:
         # Returns the codepoint of the first character in the string.
         #
         # Example:
-        #   'こんにちは'.mb_chars.ord #=> 12371
+        #   'こんにちは'.mb_chars.ord # => 12371
         def ord
           Unicode.u_unpack(@wrapped_string)[0]
         end
@@ -200,10 +201,10 @@ module ActiveSupport #:nodoc:
         # Example:
         #
         #   "¾ cup".mb_chars.rjust(8).to_s
-        #   #=> "   ¾ cup"
+        #   # => "   ¾ cup"
         #
         #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-        #   #=> "   ¾ cup"
+        #   # => "   ¾ cup"
         def rjust(integer, padstr=' ')
           justify(integer, :right, padstr)
         end
@@ -213,10 +214,10 @@ module ActiveSupport #:nodoc:
         # Example:
         #
         #   "¾ cup".mb_chars.rjust(8).to_s
-        #   #=> "¾ cup   "
+        #   # => "¾ cup   "
         #
         #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-        #   #=> "¾ cup   "
+        #   # => "¾ cup   "
         def ljust(integer, padstr=' ')
           justify(integer, :left, padstr)
         end
@@ -226,10 +227,10 @@ module ActiveSupport #:nodoc:
         # Example:
         #
         #   "¾ cup".mb_chars.center(8).to_s
-        #   #=> " ¾ cup  "
+        #   # => " ¾ cup  "
         #
         #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
-        #   #=> " ¾ cup  "
+        #   # => " ¾ cup  "
         def center(integer, padstr=' ')
           justify(integer, :center, padstr)
         end
@@ -244,7 +245,7 @@ module ActiveSupport #:nodoc:
       # instances instead of String. This makes chaining methods easier.
       #
       # Example:
-      #   'Café périferôl'.mb_chars.split(/é/).map { |part| part.upcase.to_s } #=> ["CAF", " P", "RIFERÔL"]
+      #   'Café périferôl'.mb_chars.split(/é/).map { |part| part.upcase.to_s } # => ["CAF", " P", "RIFERÔL"]
       def split(*args)
         @wrapped_string.split(*args).map { |i| i.mb_chars }
       end
@@ -256,12 +257,12 @@ module ActiveSupport #:nodoc:
       #   s = "Müller"
       #   s.mb_chars[2] = "e" # Replace character with offset 2
       #   s
-      #   #=> "Müeler"
+      #   # => "Müeler"
       #
       #   s = "Müller"
       #   s.mb_chars[1, 2] = "ö" # Replace 2 characters at character offset 1
       #   s
-      #   #=> "Möler"
+      #   # => "Möler"
       def []=(*args)
         replace_by = args.pop
         # Indexed replace with regular expressions already works
@@ -292,7 +293,7 @@ module ActiveSupport #:nodoc:
       # Reverses all characters in the string.
       #
       # Example:
-      #   'Café'.mb_chars.reverse.to_s #=> 'éfaC'
+      #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
         chars(Unicode.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
       end
@@ -301,7 +302,7 @@ module ActiveSupport #:nodoc:
       # character.
       #
       # Example:
-      #   'こんにちは'.mb_chars.slice(2..3).to_s #=> "にち"
+      #   'こんにちは'.mb_chars.slice(2..3).to_s # => "にち"
       def slice(*args)
         if args.size > 2
           raise ArgumentError, "wrong number of arguments (#{args.size} for 1)" # Do as if we were native
@@ -330,7 +331,7 @@ module ActiveSupport #:nodoc:
       #
       # Example:
       #   s = 'こんにちは'
-      #   s.mb_chars.limit(7) #=> "こに"
+      #   s.mb_chars.limit(7) # => "こに"
       def limit(limit)
         slice(0...translate_offset(limit))
       end
@@ -338,7 +339,7 @@ module ActiveSupport #:nodoc:
       # Convert characters in the string to uppercase.
       #
       # Example:
-      #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s #=> "LAURENT, OÙ SONT LES TESTS ?"
+      #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
       def upcase
         chars(Unicode.apply_mapping @wrapped_string, :uppercase_mapping)
       end
@@ -346,7 +347,7 @@ module ActiveSupport #:nodoc:
       # Convert characters in the string to lowercase.
       #
       # Example:
-      #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s #=> "věda a výzkum"
+      #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
       def downcase
         chars(Unicode.apply_mapping @wrapped_string, :lowercase_mapping)
       end
@@ -354,7 +355,7 @@ module ActiveSupport #:nodoc:
       # Converts the first character to uppercase and the remainder to lowercase.
       #
       # Example:
-      #  'über'.mb_chars.capitalize.to_s #=> "Über"
+      #  'über'.mb_chars.capitalize.to_s # => "Über"
       def capitalize
         (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
       end
@@ -382,8 +383,8 @@ module ActiveSupport #:nodoc:
       # Performs canonical decomposition on all the characters.
       #
       # Example:
-      #   'é'.length #=> 2
-      #   'é'.mb_chars.decompose.to_s.length #=> 3
+      #   'é'.length                         # => 2
+      #   'é'.mb_chars.decompose.to_s.length # => 3
       def decompose
         chars(Unicode.decompose_codepoints(:canonical, Unicode.u_unpack(@wrapped_string)).pack('U*'))
       end
@@ -391,8 +392,8 @@ module ActiveSupport #:nodoc:
       # Performs composition on all the characters.
       #
       # Example:
-      #   'é'.length #=> 3
-      #   'é'.mb_chars.compose.to_s.length #=> 2
+      #   'é'.length                       # => 3
+      #   'é'.mb_chars.compose.to_s.length # => 2
       def compose
         chars(Unicode.compose_codepoints(Unicode.u_unpack(@wrapped_string)).pack('U*'))
       end
@@ -400,8 +401,8 @@ module ActiveSupport #:nodoc:
       # Returns the number of grapheme clusters in the string.
       #
       # Example:
-      #   'क्षि'.mb_chars.length #=> 4
-      #   'क्षि'.mb_chars.g_length #=> 3
+      #   'क्षि'.mb_chars.length   # => 4
+      #   'क्षि'.mb_chars.g_length # => 3
       def g_length
         Unicode.g_unpack(@wrapped_string).length
       end

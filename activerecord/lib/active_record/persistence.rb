@@ -60,7 +60,7 @@ module ActiveRecord
     # reflect that no changes should be made (since they can't be
     # persisted). Returns the frozen instance.
     #
-    # The row is simply removed with a SQL +DELETE+ statement on the
+    # The row is simply removed with an SQL +DELETE+ statement on the
     # record's primary key, and no callbacks are executed.
     #
     # To enforce the object's +before_destroy+ and +after_destroy+
@@ -91,8 +91,8 @@ module ActiveRecord
     # like render <tt>:partial => @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
-    # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
-    # instance will affect the other.
+    # Note: The new instance will share a link to the same attributes as the original class. 
+    # So any change to the attributes in either instance will affect the other.
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
@@ -105,11 +105,16 @@ module ActiveRecord
     # Updates a single attribute and saves the record.  
     # This is especially useful for boolean flags on existing records. Also note that
     #
-    # * validation is skipped
-    # * No callbacks are invoked 
-    # * updated_at/updated_on column is updated if that column is available
-    # * does not work on associations
-    # * does not work on attr_accessor attributes. The attribute that is being updated must be column name.
+    # * The attribute being updated must be a column name.
+    # * Validation is skipped.
+    # * No callbacks are invoked.
+    # * updated_at/updated_on column is updated if that column is available.
+    # * Does not work on associations.
+    # * Does not work on attr_accessor attributes. 
+    # * Does not work on new record. <tt>record.new_record?</tt> should return false for this method to work.
+    # * Updates only the attribute that is input to the method. If there are other changed attributes then
+    #   those attributes are left alone. In that case even after this method has done its work <tt>record.changed?</tt>
+    #   will return true.
     #
     def update_attribute(name, value)
       raise ActiveRecordError, "#{name.to_s} is marked as readonly" if self.class.readonly_attributes.include? name.to_s
@@ -211,6 +216,19 @@ module ActiveRecord
       @attributes.update(self.class.unscoped { self.class.find(self.id, options) }.instance_variable_get('@attributes'))
       @attributes_cache = {}
       self
+    end
+
+    # Saves the record with the updated_at/on attributes set to the current time.
+    # Please note that no validation is performed and no callbacks are executed.
+    # If an attribute name is passed, that attribute is updated along with 
+    # updated_at/on attributes.
+    #
+    # Examples:
+    #
+    #   product.touch               # updates updated_at/on
+    #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
+    def touch(attribute = nil)
+      update_attribute(attribute, current_time_from_proper_timezone)
     end
 
   private

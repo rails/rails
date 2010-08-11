@@ -42,7 +42,7 @@ module ActiveRecord
         65535
       end
 
-      # the maximum length of a SQL query
+      # the maximum length of an SQL query
       def sql_query_length
         1048575
       end

@@ -32,7 +32,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
     sql = Client.joins(:firm_with_primary_key).to_sql
-    if current_adapter?(:MysqlAdapter)
+    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
     elsif current_adapter?(:OracleAdapter)
@@ -214,6 +214,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, Topic.find(t2.id).replies.size
 
     r1.topic = Topic.find(t2.id)
+
+    assert_no_queries do
+      r1.topic = t2
+    end
 
     assert r1.save
     assert_equal 0, Topic.find(t1.id).replies.size

@@ -37,11 +37,11 @@ module ActiveModel
   #       send(attr)
   #     end
   #   
-  #     def ErrorsPerson.human_attribute_name(attr, options = {})
+  #     def Person.human_attribute_name(attr, options = {})
   #       attr
   #     end
   #   
-  #     def ErrorsPerson.lookup_ancestors
+  #     def Person.lookup_ancestors
   #       [self]
   #     end
   #   
@@ -83,20 +83,16 @@ module ActiveModel
     # When passed a symbol or a name of a method, returns an array of errors 
     # for the method.
     # 
-    #   p.errors[:name]   #=> ["can not be nil"]
-    #   p.errors['name']  #=> ["can not be nil"]
+    #   p.errors[:name]   # => ["can not be nil"]
+    #   p.errors['name']  # => ["can not be nil"]
     def [](attribute)
-      if errors = get(attribute.to_sym)
-        errors
-      else
-        set(attribute.to_sym, [])
-      end
+      get(attribute.to_sym) || set(attribute.to_sym, [])
     end
 
     # Adds to the supplied attribute the supplied error message.
     # 
     #   p.errors[:name] = "must be set"
-    #   p.errors[:name] #=> ['must be set']
+    #   p.errors[:name] # => ['must be set']
     def []=(attribute, error)
       self[attribute.to_sym] << error
     end
@@ -124,9 +120,9 @@ module ActiveModel
     # Returns the number of error messages.
     # 
     #   p.errors.add(:name, "can't be blank")
-    #   p.errors.size #=> 1
+    #   p.errors.size # => 1
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.size #=> 2
+    #   p.errors.size # => 2
     def size
       values.flatten.size
     end
@@ -135,16 +131,16 @@ module ActiveModel
     # 
     #   p.errors.add(:name, "can't be blank")
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.to_a   #=>   ["name can't be blank", "name must be specified"]
+    #   p.errors.to_a # => ["name can't be blank", "name must be specified"]
     def to_a
       full_messages
     end
 
     # Returns the number of error messages.
     #   p.errors.add(:name, "can't be blank")
-    #   p.errors.count #=> 1
+    #   p.errors.count # => 1
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.count #=> 2
+    #   p.errors.count # => 2
     def count
       to_a.size
     end
@@ -158,8 +154,8 @@ module ActiveModel
     # 
     #   p.errors.add(:name, "can't be blank")
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.to_xml   #=> Produces:
-    # 
+    #   p.errors.to_xml
+    #   # =>
     #   #  <?xml version=\"1.0\" encoding=\"UTF-8\"?>
     #   #  <errors>
     #   #    <error>name can't be blank</error>
@@ -169,9 +165,9 @@ module ActiveModel
       to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
     end
 
-    # Returns an array as JSON representation for this object.
+    # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
     def as_json(options=nil)
-      to_a
+      self 
     end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to

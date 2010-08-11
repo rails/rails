@@ -392,10 +392,9 @@ module ActionDispatch
         end
 
         def generate
-          error = ActionController::RoutingError.new("No route matches #{options.inspect}")
           path, params = @set.set.generate(:path_info, named_route, options, recall, opts)
 
-          raise error unless path
+          raise_routing_error unless path
 
           params.reject! {|k,v| !v }
 
@@ -404,7 +403,7 @@ module ActionDispatch
           path << "?#{params.to_query}" if params.any?
           "#{script_name}#{path}"
         rescue Rack::Mount::RoutingError
-          raise error
+          raise_routing_error
         end
 
         def opts
@@ -419,6 +418,10 @@ module ActionDispatch
             end
           end
           {:parameterize => parameterize}
+        end
+
+        def raise_routing_error
+          raise ActionController::RoutingError.new("No route matches #{options.inspect}")
         end
 
         def different_controller?

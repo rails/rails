@@ -191,11 +191,8 @@ module ActionDispatch
 
         def load_session(env)
           stale_session_check! do
-            if sid = current_session_id(env)
-              sid, session = get_session(env, sid)
-            else
-              sid, session = generate_sid, {}
-            end
+            sid = current_session_id(env)
+            sid, session = get_session(env, sid)
             [sid, session]
           end
         end

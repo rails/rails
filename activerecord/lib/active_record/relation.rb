@@ -67,7 +67,8 @@ module ActiveRecord
       preload +=  @includes_values unless eager_loading?
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
 
-      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there are JOINS and no explicit SELECT.
+      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there 
+      # are JOINS and no explicit SELECT.
       readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
       @records.each { |record| record.readonly! } if readonly
 
@@ -99,7 +100,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        @limit_value.present? ? to_a.many? : size > 1
+        @limit_value ? to_a.many? : size > 1
       end
     end
 
@@ -108,7 +109,7 @@ module ActiveRecord
     # ==== Example
     #
     #   Comment.where(:post_id => 1).scoping do
-    #     Comment.first #=> SELECT * FROM comments WHERE post_id = 1
+    #     Comment.first # SELECT * FROM comments WHERE post_id = 1
     #   end
     #
     # Please check unscoped if you want to remove all previous scopes (including
@@ -130,7 +131,8 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
-    # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. See conditions in the intro.
+    # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. 
+    #   See conditions in the intro.
     # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
     #
     # ==== Examples
@@ -144,7 +146,7 @@ module ActiveRecord
     #   # Update all avatars migrated more than a week ago
     #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
     #
-    #   # Update all books that match our conditions, but limit it to 5 ordered by date
+    #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
     def update_all(updates, conditions = nil, options = {})
       if conditions || options.present?
@@ -165,14 +167,14 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +id+ - This should be the id or an array of ids to be updated.
-    # * +attributes+ - This should be a hash of attributes to be set on the object, or an array of hashes.
+    # * +attributes+ - This should be a hash of attributes or an array of hashes.
     #
     # ==== Examples
     #
-    #   # Updating one record:
+    #   # Updates one record
     #   Person.update(15, :user_name => 'Samuel', :group => 'expert')
     #
-    #   # Updating multiple records:
+    #   # Updates multiple records
     #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
     #   Person.update(people.keys, people.values)
     def update(id, attributes)
@@ -316,12 +318,14 @@ module ActiveRecord
 
     def scope_for_create
       @scope_for_create ||= begin
-        @create_with_value || @where_values.inject({}) do |hash, where|
-          if where.is_a?(Arel::Predicates::Equality)
-            hash[where.operand1.name] = where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2
-          end
-          hash
-        end
+        @create_with_value || Hash[
+          @where_values.find_all { |w|
+            w.respond_to?(:operator) && w.operator == :==
+          }.map { |where|
+            [where.operand1.name,
+             where.operand2.respond_to?(:value) ?
+             where.operand2.value : where.operand2]
+        }]
       end
     end
 

@@ -215,7 +215,7 @@ module ActionView
       #    ...
       #   <% end %>
       #
-      # If your resource has associations defined, for example, you want to add comments 
+      # If your resource has associations defined, for example, you want to add comments
       # to the post given that the routes are set correctly:
       #
       #   <%= form_for([@document, @comment]) do |f| %>
@@ -583,8 +583,9 @@ module ActionView
       #     'Accept <a href="/terms">Terms</a>.'
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
-        if block_given?
-          options = content_or_options if content_or_options.is_a?(Hash)
+        content_is_options = content_or_options.is_a?(Hash)
+        if content_is_options || block_given?
+          options = content_or_options if content_is_options
           text = nil
         else
           text = content_or_options
@@ -1005,9 +1006,9 @@ module ActionView
 
         def value_before_type_cast(object, method_name)
           unless object.nil?
-            object.respond_to?(method_name + "_before_type_cast") ?
-            object.send(method_name + "_before_type_cast") :
-            object.send(method_name)
+            object.respond_to?(method_name) ?
+            object.send(method_name) :
+            object.send(method_name + "_before_type_cast")
           end
         end
 

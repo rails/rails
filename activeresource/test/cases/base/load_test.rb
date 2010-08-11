@@ -47,6 +47,8 @@ class BaseLoadTest < Test::Unit::TestCase
           { :id => 1, :name => 'Willamette' },
           { :id => 2, :name => 'Columbia', :rafted_by => @matz }],
         :postal_codes => [ 97018, 1234567890 ],
+        :dates => [ Time.now ],
+        :votes => [ true, false, true ],
         :places => [ "Columbia City", "Unknown" ]}}}
 
     @person = Person.new
@@ -149,6 +151,16 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_kind_of Array, places
     assert_kind_of String, places.first
     assert_equal @deep[:street][:state][:places].first, places.first
+
+    dates = state.dates
+    assert_kind_of Array, dates
+    assert_kind_of Time, dates.first
+    assert_equal @deep[:street][:state][:dates].first, dates.first
+
+    votes = state.votes
+    assert_kind_of Array, votes
+    assert_kind_of TrueClass, votes.first
+    assert_equal @deep[:street][:state][:votes].first, votes.first
   end
 
   def test_nested_collections_within_the_same_namespace

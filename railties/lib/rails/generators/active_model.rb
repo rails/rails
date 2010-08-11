@@ -9,16 +9,16 @@ module Rails
     # For example:
     #
     #   ActiveRecord::Generators::ActiveModel.find(Foo, "params[:id]")
-    #   #=> "Foo.find(params[:id])"
+    #   # => "Foo.find(params[:id])"
     #
     #   Datamapper::Generators::ActiveModel.find(Foo, "params[:id]")
-    #   #=> "Foo.get(params[:id])"
+    #   # => "Foo.get(params[:id])"
     #
     # On initialization, the ActiveModel accepts the instance name that will
     # receive the calls:
     #
     #   builder = ActiveRecord::Generators::ActiveModel.new "@foo"
-    #   builder.save #=> "@foo.save"
+    #   builder.save # => "@foo.save"
     #
     # The only exception in ActiveModel for ActiveRecord is the use of self.build
     # instead of self.new.

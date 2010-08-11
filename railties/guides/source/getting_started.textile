@@ -213,9 +213,9 @@ If you open this file in a new Rails application, you'll see a default database 
 * The +test+ environment is used to run automated tests
 * The +production+ environment is used when you deploy your application for the world to use.
 
-h5. Configuring a SQLite3 Database
+h5. Configuring an SQLite3 Database
 
-Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
 
 Here's the section of the default configuration file (<tt>config/database.yml</tt>) with connection information for the development environment:
 

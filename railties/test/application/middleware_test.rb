@@ -34,7 +34,8 @@ module ApplicationTests
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
-        "ActionDispatch::Head"
+        "ActionDispatch::Head",
+        "ActionDispatch::BestStandardsSupport"
       ], middleware
     end
 

@@ -48,7 +48,7 @@ h4. Install git
 
 Rails uses git for source code control. You won’t be able to do anything without the Rails source code, and this is a prerequisite. The "git homepage":http://git-scm.com/ has installation instructions. If you’re on OS X, use the "Git for OS X":http://code.google.com/p/git-osx-installer/ installer. If you're unfamiliar with git, there are a variety of resources on the net that will help you learn more:
 
-* "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by. 
+* "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by.
 * The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
 * "GitHub":http://github.com/guides/home offers links to a variety of git resources.
 * "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
@@ -58,7 +58,7 @@ h4. Get the Rails Source Code
 Don’t fork the main Rails repository. Instead, you want to clone it to your own computer. Navigate to the folder where you want the source code (it will create its own /rails subdirectory) and run:
 
 <shell>
-git clone git://github.com/rails/rails.git  
+git clone git://github.com/rails/rails.git
 cd rails
 </shell>
 
@@ -66,8 +66,10 @@ h4. Set up and Run the Tests
 
 All of the Rails tests must pass with any code you submit, otherwise you have no chance of getting code accepted. This means you need to be able to run the tests. First, you need to install all Rails dependencies with bundler:
 
+NOTE: Ensure you install bundler v1.0
+
 <shell>
-gem install bundler
+gem install -v=1.0.0.rc.2 bundler
 bundle install --without db
 </shell>
 
@@ -90,7 +92,7 @@ By default, when you run Active Record tests, it will execute the test suite thr
 
 <shell>
 cd activerecord
-rake test_sqlite3 
+rake test_sqlite3
 rake test_sqlite3 TEST=test/cases/validations_test.rb
 </shell>
 
@@ -258,15 +260,15 @@ h4. Update Rails
 Update your copy of Rails. It’s pretty likely that other changes to core Rails have happened while you were working. Go get them:
 
 <shell>
-git checkout master  
-git pull  
+git checkout master
+git pull
 </shell>
 
 Now reapply your patch on top of the latest changes:
 
 <shell>
-git checkout my_new_branch  
-git rebase master  
+git checkout my_new_branch
+git rebase master
 </shell>
 
 No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
@@ -276,8 +278,8 @@ h4. Create a Patch
 Now you can create a patch file to share with other developers (and with the Rails core team). Still in your branch, run
 
 <shell>
-git commit -a  
-git format-patch master --stdout > my_new_patch.diff  
+git commit -a
+git format-patch master --stdout > my_new_patch.diff
 </shell>
 
 Sanity check the results of this operation: open the diff file in your text editor of choice and make sure that no unintended changes crept in.
@@ -303,3 +305,4 @@ h3. Changelog
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
 * March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy
+

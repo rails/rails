@@ -2,9 +2,10 @@ require 'cases/helper'
 require 'models/developer'
 require 'models/owner'
 require 'models/pet'
+require 'models/toy'
 
 class TimestampTest < ActiveRecord::TestCase
-  fixtures :developers, :owners, :pets
+  fixtures :developers, :owners, :pets, :toys
 
   def setup
     @developer = Developer.first
@@ -81,5 +82,22 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal previously_owner_happy_at, pet.owner.happy_at
   ensure
     Pet.belongs_to :owner, :touch => true
+  end
+
+  def test_touching_a_record_touches_parent_record_and_grandparent_record
+    Toy.belongs_to :pet, :touch => true
+    Pet.belongs_to :owner, :touch => true
+
+    toy = Toy.first
+    pet = toy.pet
+    owner = pet.owner
+
+    owner.update_attribute(:updated_at, (time = 3.days.ago))
+    toy.touch
+    owner.reload
+
+    assert_not_equal time, owner.updated_at
+  ensure
+    Toy.belongs_to :pet
   end
 end
