@@ -24,6 +24,8 @@ else
   end
 end
 
+class FixturesFileNotFound < StandardError; end
+
 # Fixtures are a way of organizing data that you want to test against; in short, sample data.
 #
 # = Fixture formats
@@ -696,6 +698,8 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
         read_yaml_fixture_files
       elsif File.file?(csv_file_path)
         read_csv_fixture_files
+      else
+        raise FixturesFileNotFound, "Could not find #{yaml_file_path} or #{csv_file_path}"
       end
     end
 
