@@ -1,8 +1,10 @@
 h2. Active Support Core Extensions
 
-Active Support is the Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff. It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Rails itself.
+Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff.
 
-By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Rails.
+It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Ruby on Rails itself.
+
+By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Active Support.
 
 endprologue.
 
@@ -84,30 +86,23 @@ The following values are considered to be blank in a Rails application:
 
 WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
 
-For example, this method from +ActionDispatch::Response+ uses +blank?+ to easily be robust to +nil+ and whitespace strings in one shot:
+For example, this method from +ActionDispatch::Session::AbstractStore+ uses +blank?+ for checking whether a session key is present:
 
 <ruby>
-def charset
-  charset = String(headers["Content-Type"] || headers["type"]).split(";")[1]
-  charset.blank? ? nil : charset.strip.split("=")[1]
+def ensure_session_key!
+  if @key.blank?
+    raise ArgumentError, 'A key is required...'
+  end
 end
 </ruby>
 
-That's a typical use case for +blank?+.
-
-Here, the method Rails runs to instantiate observers upon initialization has nothing to do if there are none:
+The method +present?+ is equivalent to +!blank?+. This example is taken from +ActionDispatch::Http::Cache::Response+:
 
 <ruby>
-def instantiate_observers
-  return if @observers.blank?
-  # ...
+def set_conditional_cache_control!
+  return if self["Cache-Control"].present?
+  ...
 end
-</ruby>
-
-The method +present?+ is equivalent to +!blank?+:
-
-<ruby>
-assert @response.body.present? # same as !@response.body.blank?
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/blank.rb+.
@@ -151,28 +146,17 @@ Active Support provides +duplicable?+ to programmatically query an object about 
 false.duplicable?  # => false
 </ruby>
 
-By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, numbers, and class objects.
+By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, numbers, and class and module objects.
 
-WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
+WARNING. Any class can disallow duplication removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell whether a given arbitrary object is duplicable. +duplicable?+ depends on the hard-coded list above, but it is much faster than +rescue+. Use it only if you know the hard-coded list is enough in your use case.
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +try+
 
-Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
+Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
 
-For instance, note how this method of +ActiveRecord::ConnectionAdapters::AbstractAdapter+ checks if there's a +@logger+:
-
-<ruby>
-def log_info(sql, name, ms)
-  if @logger && @logger.debug?
-    name = '%s (%.1fms)' % [name || 'SQL', ms]
-    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
-  end
-end
-</ruby>
-
-You can shorten that using +Object#try+. This method is a synonym for +Object#send+ except that it returns +nil+ if sent to +nil+. The previous example could then be rewritten as:
+For instance, in this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you save the check and write in an optimistic style:
 
 <ruby>
 def log_info(sql, name, ms)
