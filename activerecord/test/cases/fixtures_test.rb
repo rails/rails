@@ -153,6 +153,17 @@ class FixturesTest < ActiveRecord::TestCase
     assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', FIXTURES_ROOT + "/naked/yml/companies")
   end
 
+  def test_nonexistent_fixture_file
+    nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
+
+    #sanity check to make sure that this file never exists
+    assert Dir[nonexistent_fixture_path+"*"].empty?
+
+    assert_raise(FixturesFileNotFound) do
+      Fixtures.new( Account.connection, "companies", 'Company', nonexistent_fixture_path)
+    end
+  end
+
   def test_dirty_dirty_yaml_file
     assert_raise(Fixture::FormatError) do
       Fixtures.new( Account.connection, "courses", 'Course', FIXTURES_ROOT + "/naked/yml/courses")
