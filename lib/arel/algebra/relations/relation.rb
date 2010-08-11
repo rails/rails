@@ -118,13 +118,17 @@ module Arel
     end
 
     %w{
-        having group order project
+        having group order
     }.each do |op|
       class_eval <<-OPERATION, __FILE__, __LINE__
           def #{op}(*args)
             args.all? { |x| x.blank? } ? self : #{op.capitalize}.new(self, args)
           end
       OPERATION
+    end
+
+    def project *args
+      args.empty? ? self : Project.new(self, args)
     end
 
     def where clause = nil
