@@ -957,8 +957,7 @@ module ActiveRecord
       #   If false, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction, 
-      #   when saving the parent object.
-      #   If false, never save or destroy the associated objects.
+      #   when saving the parent object. If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object 
