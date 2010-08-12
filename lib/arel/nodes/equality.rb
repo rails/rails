@@ -7,6 +7,11 @@ module Arel
         @left  = left
         @right = right
       end
+
+      def to_sql
+        viz = Visitors::ToSql.new left.relation.engine
+        viz.accept self
+      end
     end
   end
 end

@@ -14,6 +14,14 @@ module Arel
       end
     end
 
+    it "should have a name" do
+      @relation.name.should == :users
+    end
+
+    it "should have an engine" do
+      @relation.engine.should == Table.engine
+    end
+
     describe '[]' do
       describe 'when given a', Symbol do
         it "manufactures an attribute if the symbol names an attribute within the relation" do

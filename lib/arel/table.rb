@@ -3,6 +3,8 @@ module Arel
     @engine = nil
     class << self; attr_accessor :engine; end
 
+    attr_reader :name, :engine
+
     def initialize name, engine = Table.engine
       @name   = name
       @engine = engine

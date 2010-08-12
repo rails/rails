@@ -13,5 +13,15 @@ module Arel
         end
       end
     end
+
+    describe 'equality' do
+      describe '#to_sql' do
+        it 'should produce sql' do
+          table = Table.new :users
+          condition = table['id'].eq 1
+          condition.to_sql.should == '"users"."id" = 1'
+        end
+      end
+    end
   end
 end
