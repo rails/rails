@@ -954,7 +954,7 @@ module ActiveRecord
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
-      #   If false, don't validate the associated objects when saving the parent object. true by default.
+      #   If +false+, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction, 
       #   when saving the parent object. If false, never save or destroy the associated objects.
@@ -1076,7 +1076,7 @@ module ActiveRecord
       # [:readonly]
       #   If true, the associated object is readonly through the association.
       # [:validate]
-      #   If false, don't validate the associated object when saving the parent object. +false+ by default.
+      #   If +false+, don't validate the associated object when saving the parent object. +false+ by default.
       # [:autosave]
       #   If true, always save the associated object or destroy it if marked for destruction, 
       #   when saving the parent object. If false, never save or destroy the associated object.
@@ -1189,7 +1189,7 @@ module ActiveRecord
       # [:readonly]
       #   If true, the associated object is readonly through the association.
       # [:validate]
-      #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
+      #   If +false+, don't validate the associated objects when saving the parent object. +false+ by default.
       # [:autosave]
       #   If true, always save the associated object or destroy it if marked for destruction, when 
       #   saving the parent object.
@@ -1392,7 +1392,7 @@ module ActiveRecord
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
-      #   If false, don't validate the associated objects when saving the parent object. +true+ by default.
+      #   If +false+, don't validate the associated objects when saving the parent object. +true+ by default.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction, when 
       #   saving the parent object.
