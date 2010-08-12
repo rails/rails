@@ -5,3 +5,4 @@ require 'arel/nodes'
 
 # below is deprecated
 require 'arel/sql/engine'
+require 'arel/sql_literal'
