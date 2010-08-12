@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'spec'
-require 'pp'
 require 'fileutils'
 require 'arel'
 
@@ -8,15 +7,7 @@ if adapter = ENV['ADAPTER']
   require "support/connections/#{adapter}_connection.rb"
 end
 
-Dir["spec/{support,shared}/*.rb"].each do |file|
-  require file
-end
-
 Spec::Runner.configure do |config|
-  config.include Matchers
-  config.include AdapterGuards
-  config.include Check
-
   if defined?(ActiveRecord::Base)
     tmp = File.expand_path('../../tmp', __FILE__)
 
