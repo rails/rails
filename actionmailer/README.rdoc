@@ -65,8 +65,8 @@ simply call the method and optionally call +deliver+ on the return value.
 
 Calling the method returns a Mail Message object:
 
-  message = Notifier.welcome  #=> Returns a Mail::Message object
-  message.deliver             #=> delivers the email
+  message = Notifier.welcome  # => Returns a Mail::Message object
+  message.deliver             # => delivers the email
 
 Or you can just chain the methods together like:
 

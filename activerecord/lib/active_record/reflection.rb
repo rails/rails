@@ -41,7 +41,7 @@ module ActiveRecord
 
       # Returns the AggregateReflection object for the named +aggregation+ (use the symbol). 
       #
-      #   Account.reflect_on_aggregation(:balance) #=> the balance AggregateReflection
+      #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
         reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil

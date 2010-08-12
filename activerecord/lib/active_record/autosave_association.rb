@@ -72,20 +72,20 @@ module ActiveRecord
   #
   #   post = Post.new(:title => 'ruby rocks')
   #   post.comments.build(:body => 'hello world')
-  #   post.save #=> will save both post and comment
+  #   post.save # => will save both post and comment
   #
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.build(:body => 'hello world')
-  #   post.save #=> will save both post and comment
+  #   post.save # => will save both post and comment
   #
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.create(:body => 'hello world')
-  #   post.save #=> will save both post and comment
+  #   post.save # => will save both post and comment
   #
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.build(:body => 'hello world')
   #   post.comments[0].body = 'hi everyone'
-  #   post.save #=> will save both post and comment and comment will have 'hi everyone'
+  #   post.save # => will save both post and comment and comment will have 'hi everyone'
   #  
   #  In the above cases even without <tt>autosave</tt> option children got updated. 
   #
@@ -99,7 +99,7 @@ module ActiveRecord
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.create(:body => 'hello world')
   #   post.comments[0].body = 'hi everyone'
-  #   post.save #=> will save both post and comment and comment will have 'hi everyone'
+  #   post.save # => will save both post and comment and comment will have 'hi everyone'
   #
   # Destroying one of the associated models members, as part of the parent's
   # save action, is as simple as marking it for destruction:
