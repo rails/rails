@@ -1155,8 +1155,8 @@ MSG
         #     default_scope where(:published => true)
         #   end
         #
-        #   Article.new.published    #=> true  
-        #   Article.create.published #=> true  
+        #   Article.new.published    # => true  
+        #   Article.create.published # => true  
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
         end

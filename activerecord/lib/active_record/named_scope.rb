@@ -95,8 +95,8 @@ module ActiveRecord
       #     scope :published, where(:published => true)
       #   end
       #
-      #   Article.published.new.published    #=> true  
-      #   Article.published.create.published #=> true  
+      #   Article.published.new.published    # => true  
+      #   Article.published.create.published # => true  
       def scope(name, scope_options = {}, &block)
         name = name.to_sym
         valid_scope_name?(name)
