@@ -28,6 +28,10 @@ class NamingTest < ActiveModel::TestCase
   def test_partial_path
     assert_equal 'post/track_backs/track_back', @model_name.partial_path
   end
+
+  def test_human
+    assert_equal 'Track back', @model_name.human
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
