@@ -9,13 +9,15 @@ task :routes => :environment do
     key_method = Hash.method_defined?('key') ? 'key' : 'index'
     name = Rails.application.routes.named_routes.routes.send(key_method, route).to_s
     reqs = route.requirements.empty? ? "" : route.requirements.inspect
-    {:name => name, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
+    app = route.app.to_s =~ /ActionDispatch.*/ ? "" : route.app.to_s
+    {:name => name, :verb => route.verb.to_s, :path => route.path, :reqs => reqs, :app => app}
   end
   routes.reject!{ |r| r[:path] == "/rails/info/properties" } # skip the route if it's internal info route
   name_width = routes.collect {|r| r[:name]}.collect {|n| n.length}.max
   verb_width = routes.collect {|r| r[:verb]}.collect {|v| v.length}.max
   path_width = routes.collect {|r| r[:path]}.collect {|s| s.length}.max
+  app_width = routes.collect {|r| r[:app]}.collect {|a| a.length}.max
   routes.each do |r|
-    puts "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+    puts "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]} #{(r[:app].length > 0 ? '=> ' + r[:app] : '').ljust(app_width)}"
   end
 end
