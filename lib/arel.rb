@@ -1,6 +1,7 @@
 require 'arel/version'
 require 'arel/table'
 require 'arel/attributes'
+require 'arel/tree_manager'
 require 'arel/nodes'
 require 'arel/visitors/to_sql'
 

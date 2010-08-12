@@ -12,6 +12,18 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_Select o
+        [
+          "SELECT #{o.projections.map { |x| visit x }.join ', '}",
+          "FROM #{o.froms.map { |x| visit x }.join ', ' }",
+          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.blank?)
+        ].compact.join ' '
+      end
+
+      def visit_Arel_Table o
+        quote_table_name o.name
+      end
+
       def visit_Arel_Nodes_Equality o
         "#{visit o.left} = #{visit o.right}"
       end
