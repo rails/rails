@@ -18,9 +18,9 @@ module ActiveModel
       # Returns a JSON string representing the model. Some configuration can be
       # passed through +options+.
       #
-      # The option <tt>ActiveModel::Base.include_root_in_json</tt> controls the
-      # top-level behavior of +to_json+. If true (the default) +to_json+ will
-      # emit a single root node named after the object's type. For example:
+      # The option <tt>include_root_in_json</tt> controls the top-level behavior
+      # of +to_json+. If true (the default) +to_json+ will emit a single root
+      # node named after the object's type. For example:
       #
       #   konata = User.find(1)
       #   konata.to_json

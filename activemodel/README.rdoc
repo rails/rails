@@ -107,8 +107,8 @@ modules:
       extend ActiveModel::Naming
     end
     
-    NamedPerson.model_name        #=> "NamedPerson"
-    NamedPerson.model_name.human  #=> "Named person"
+    NamedPerson.model_name        # => "NamedPerson"
+    NamedPerson.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 
@@ -139,7 +139,7 @@ modules:
     end
     
     Person.human_attribute_name('my_attribute')
-    #=> "My attribute"
+    # => "My attribute"
   
   {Learn more}[link:classes/ActiveModel/Translation.html]
 
@@ -157,7 +157,7 @@ modules:
 
    person = Person.new
    person.first_name = 'zoolander'
-   person.valid?  #=> false
+   person.valid?  # => false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
   
@@ -176,9 +176,9 @@ modules:
    end
    
    p = ValidatorPerson.new
-   p.valid?                  #=>  false
-   p.errors.full_messages    #=> ["Name must exist"]
+   p.valid?                  # =>  false
+   p.errors.full_messages    # => ["Name must exist"]
    p.name = "Bob"
-   p.valid?                  #=>  true
+   p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]

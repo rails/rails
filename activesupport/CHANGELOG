@@ -245,8 +245,8 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
 * Add Array#in_groups which splits or iterates over the array in specified number of groups. #579. [Adrian Mugnolo] Example:
   
   a = (1..10).to_a
-  a.in_groups(3)        #=> [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
-  a.in_groups(3, false) #=> [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+  a.in_groups(3)        # => [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
+  a.in_groups(3, false) # => [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
 
 * Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
 
@@ -942,7 +942,7 @@ public for compatibility.  [Jeremy Kemper]
 * Enhance Symbol#to_proc so it works with list objects, such as multi-dimensional arrays. Closes #5295 [nov@yo.rim.or.jp].  Example:
 
     {1 => "one", 2 => "two", 3 => "three"}.sort_by(&:first).map(&:last)
-    #=> ["one", "two", "three"]
+    # => ["one", "two", "three"]
 
 * Added Hash.create_from_xml(string) which will create a hash from a XML string and even typecast if possible [David Heinemeier Hansson]. Example:
 

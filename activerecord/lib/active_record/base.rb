@@ -1147,6 +1147,16 @@ MSG
         #   class Person < ActiveRecord::Base
         #     default_scope order('last_name, first_name')
         #   end
+        #
+        # <tt>default_scope</tt> is also applied while creating/building a record. It is not
+        # applied while updating a record.
+        #
+        #   class Article < ActiveRecord::Base
+        #     default_scope where(:published => true)
+        #   end
+        #
+        #   Article.new.published    # => true  
+        #   Article.create.published # => true  
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
         end

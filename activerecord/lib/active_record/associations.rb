@@ -311,7 +311,8 @@ module ActiveRecord
     # You can set the :autosave option on a <tt>has_one</tt>, <tt>belongs_to</tt>,
     # <tt>has_many</tt>, or <tt>has_and_belongs_to_many</tt> association. Setting it
     # to +true+ will _always_ save the members, whereas setting it to +false+ will
-    # _never_ save the members.
+    # _never_ save the members. More details about :autosave option is available at
+    # autosave_association.rb . 
     #
     # === One-to-one associations
     #
@@ -956,8 +957,7 @@ module ActiveRecord
       #   If false, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction, 
-      #   when saving the parent object.
-      #   If false, never save or destroy the associated objects.
+      #   when saving the parent object. If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object 

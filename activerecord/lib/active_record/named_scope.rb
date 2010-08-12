@@ -88,6 +88,15 @@ module ActiveRecord
       #       end
       #     end
       #   end
+      #
+      # Scopes can also be used while creating/building a record.
+      #
+      #   class Article < ActiveRecord::Base
+      #     scope :published, where(:published => true)
+      #   end
+      #
+      #   Article.published.new.published    # => true  
+      #   Article.published.create.published # => true  
       def scope(name, scope_options = {}, &block)
         name = name.to_sym
         valid_scope_name?(name)

@@ -34,7 +34,7 @@ lifecycle methods that operate against a persistent store.
 
    # Find a person with id = 1
    ryan = Person.find(1)
-   Person.exists?(1)  #=> true
+   Person.exists?(1)  # => true
 
 As you can see, the methods are quite similar to Active Record's methods for dealing with database
 records.  But rather than dealing directly with a database record, you're dealing with HTTP resources (which may or may not be database records).
@@ -69,8 +69,8 @@ for a request for a single element, the XML of that item is expected in response
 The XML document that is received is used to build a new object of type Person, with each
 XML element becoming an attribute on the object.
 
-   ryan.is_a? Person  #=> true
-   ryan.attribute1  #=> 'value1'
+   ryan.is_a? Person  # => true
+   ryan.attribute1  # => 'value1'
 
 Any complex element (one that contains other elements) becomes its own object:
 
@@ -81,8 +81,8 @@ Any complex element (one that contains other elements) becomes its own object:
    # for GET http://api.people.com:3000/people/1.xml
    #
    ryan = Person.find(1)
-   ryan.complex  #=> <Person::Complex::xxxxx>
-   ryan.complex.attribute2  #=> 'value2'
+   ryan.complex  # => <Person::Complex::xxxxx>
+   ryan.complex.attribute2  # => 'value2'
 
 Collections can also be requested in a similar fashion
 
@@ -96,8 +96,8 @@ Collections can also be requested in a similar fashion
    # for GET http://api.people.com:3000/people.xml
    #
    people = Person.find(:all)
-   people.first  #=> <Person::xxx 'first' => 'Ryan' ...>
-   people.last  #=> <Person::xxx 'first' => 'Jim' ...>
+   people.first  # => <Person::xxx 'first' => 'Ryan' ...>
+   people.last  # => <Person::xxx 'first' => 'Jim' ...>
 
 ==== Create
 
@@ -118,10 +118,10 @@ as the id of the ARes object.
   # Response (201): Location: http://api.people.com:3000/people/2
   #
   ryan = Person.new(:first => 'Ryan')
-  ryan.new?  #=> true
-  ryan.save  #=> true
-  ryan.new?  #=> false
-  ryan.id    #=> 2
+  ryan.new?  # => true
+  ryan.save  # => true
+  ryan.new?  # => false
+  ryan.id    # => 2
 
 ==== Update
 
@@ -139,9 +139,9 @@ server side was successful.
   # is expected with code (204)
   #
   ryan = Person.find(1)
-  ryan.first #=> 'Ryan'
+  ryan.first # => 'Ryan'
   ryan.first = 'Rizzle'
-  ryan.save  #=> true
+  ryan.save  # => true
 
 ==== Delete
 
@@ -155,10 +155,10 @@ Destruction of a resource can be invoked as a class and instance method of the r
   # is expected with response code (200)
   #
   ryan = Person.find(1)
-  ryan.destroy  #=> true
-  ryan.exists?  #=> false
-  Person.delete(2)  #=> true
-  Person.exists?(2) #=> false
+  ryan.destroy  # => true
+  ryan.exists?  # => false
+  Person.delete(2)  # => true
+  Person.exists?(2) # => false
 
 
 You can find more usage information in the ActiveResource::Base documentation.
