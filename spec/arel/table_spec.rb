@@ -6,14 +6,24 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'columns' do
+      it 'returns a list of columns' do
+        columns = @relation.columns
+        columns.length.should == 2
+        columns.map { |x| x.name }.sort.should == %w{ name id }.sort
+      end
+    end
+
     describe '[]' do
       describe 'when given a', Symbol do
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           column = @relation[:id]
-          #.should == Attributes::Integer.new(@relation, :id)
+          column.name.should == 'id'
+          column.should be_kind_of Attributes::Integer
         end
       end
 
+      ### FIXME: this seems like a bad requirement.
       #describe 'when given an', Attribute do
       #  it "returns the attribute if the attribute is within the relation" do
       #    @relation[@relation[:id]].should == @relation[:id]
