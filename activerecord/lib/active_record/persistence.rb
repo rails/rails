@@ -1,7 +1,7 @@
 module ActiveRecord
   # = Active Record Persistence
   module Persistence
-    # Returns true if this object hasn't been saved yet -- that is, a record 
+    # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the data store yet; otherwise, returns false.
     def new_record?
       @new_record
@@ -72,7 +72,7 @@ module ActiveRecord
       freeze
     end
 
-    # Deletes the record in the database and freezes this instance to reflect 
+    # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
     def destroy
       if persisted?
@@ -83,15 +83,15 @@ module ActiveRecord
       freeze
     end
 
-    # Returns an instance of the specified +klass+ with the attributes of the 
-    # current record. This is mostly useful in relation to single-table 
-    # inheritance structures where you want a subclass to appear as the 
-    # superclass. This can be used along with record identification in 
-    # Action Pack to allow, say, <tt>Client < Company</tt> to do something 
+    # Returns an instance of the specified +klass+ with the attributes of the
+    # current record. This is mostly useful in relation to single-table
+    # inheritance structures where you want a subclass to appear as the
+    # superclass. This can be used along with record identification in
+    # Action Pack to allow, say, <tt>Client < Company</tt> to do something
     # like render <tt>:partial => @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
-    # Note: The new instance will share a link to the same attributes as the original class. 
+    # Note: The new instance will share a link to the same attributes as the original class.
     # So any change to the attributes in either instance will affect the other.
     def becomes(klass)
       became = klass.new
@@ -102,34 +102,19 @@ module ActiveRecord
       became
     end
 
-    # Updates a single attribute and saves the record.  
+    # Updates a single attribute and saves the record.
     # This is especially useful for boolean flags on existing records. Also note that
     #
-    # * The attribute being updated must be a column name.
     # * Validation is skipped.
-    # * No callbacks are invoked.
+    # * Callbacks are invoked.
     # * updated_at/updated_on column is updated if that column is available.
-    # * Does not work on associations.
-    # * Does not work on attr_accessor attributes. 
-    # * Does not work on new record. <tt>record.new_record?</tt> should return false for this method to work.
-    # * Updates only the attribute that is input to the method. If there are other changed attributes then
-    #   those attributes are left alone. In that case even after this method has done its work <tt>record.changed?</tt>
-    #   will return true.
+    # * Updates all the attributes that are dirty in this object.
     #
     def update_attribute(name, value)
-      raise ActiveRecordError, "#{name.to_s} is marked as readonly" if self.class.readonly_attributes.include? name.to_s
-
-      changes = record_update_timestamps || {}
-
-      if name
-        name = name.to_s
-        send("#{name}=", value)
-        changes[name] = read_attribute(name)
-      end
-
-      @changed_attributes.except!(*changes.keys)
-      primary_key = self.class.primary_key
-      self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
+      name = name.to_s
+      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      send("#{name}=", value)
+      save(:validate => false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -220,15 +205,27 @@ module ActiveRecord
 
     # Saves the record with the updated_at/on attributes set to the current time.
     # Please note that no validation is performed and no callbacks are executed.
-    # If an attribute name is passed, that attribute is updated along with 
+    # If an attribute name is passed, that attribute is updated along with
     # updated_at/on attributes.
     #
     # Examples:
     #
     #   product.touch               # updates updated_at/on
     #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
-    def touch(attribute = nil)
-      update_attribute(attribute, current_time_from_proper_timezone)
+    def touch(name = nil)
+      attributes = timestamp_attributes_for_update_in_model
+      attributes << name if name
+
+      current_time = current_time_from_proper_timezone
+      changes = {}
+
+      attributes.each do |column|
+        changes[column.to_s] = write_attribute(column.to_s, current_time)
+      end
+
+      @changed_attributes.except!(*changes.keys)
+      primary_key = self.class.primary_key
+      self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
     end
 
   private
