@@ -1,4 +1,5 @@
 require 'active_support/inflector'
+require 'active_support/core_ext/hash/except'
 
 module ActiveModel
   class Name < String
@@ -35,10 +36,10 @@ module ActiveModel
         klass.model_name.i18n_key
       end
 
-      defaults << options.delete(:default) if options[:default]
+      defaults << options[:default] if options[:default]
       defaults << @human
 
-      options.reverse_merge! :scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults
+      options = {:scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults}.merge(options.except(:default))
       I18n.translate(defaults.shift, options)
     end
 
