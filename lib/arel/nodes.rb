@@ -1,0 +1,1 @@
+require 'arel/nodes/equality'
