@@ -52,8 +52,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
 	  name = :association_name
 
 	  assert_equal 'DeveloperAssociationNameAssociationExtension', Developer.send(:create_extension_modules, name, extension, []).first.name
-	  assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension',
-MyApplication::Business::Developer.send(:create_extension_modules, name, extension, []).first.name
+	  assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', MyApplication::Business::Developer.send(:create_extension_modules, name, extension, []).first.name
     assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', MyApplication::Business::Developer.send(:create_extension_modules, name, extension, []).first.name
     assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', MyApplication::Business::Developer.send(:create_extension_modules, name, extension, []).first.name
   end

@@ -41,7 +41,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     sleep 2
     @connection.verify!
     assert @connection.active?
- end
+  end
 
   # Test that MySQL allows multiple results for stored procedures
   if Mysql.const_defined?(:CLIENT_MULTI_RESULTS)

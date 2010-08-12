@@ -356,7 +356,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     assert_equal @ship.name, 'Nights Dirty Lightning'
     assert_equal @pirate, @ship.pirate
-   end
+  end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
     @ship.reload.pirate_attributes = { 'id' => @pirate.id, 'catchphrase' => 'Arr' }
