@@ -112,8 +112,7 @@ module ActiveRecord
   #
   # === Validation
   #
-  # Validations on children records are run or not depending on the <tt>:validate</tt>
-  # option of the association.
+  # Children records are validated unless <tt>:validate</tt> is +false+.
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
