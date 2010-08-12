@@ -12,7 +12,7 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
 
     txt =  %{<div style="margin:0;padding:0;display:inline">}
-    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    txt << %{<input name="_utf8" type="hidden" value="&#9731;" />}
     txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
     txt << %{</div>}
   end
