@@ -538,7 +538,7 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           snowman_tag = tag(:input, :type => "hidden",
-                            :name => "_e", :value => "&#9731;".html_safe)
+                            :name => "utf8", :value => "&#x2713;".html_safe)
 
           method = html_options.delete("method").to_s
 
