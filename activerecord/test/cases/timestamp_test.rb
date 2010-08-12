@@ -84,6 +84,22 @@ class TimestampTest < ActiveRecord::TestCase
     Pet.belongs_to :owner, :touch => true
   end
 
+  def test_touching_a_record_with_a_belongs_to_that_uses_a_counter_cache_should_update_the_parent
+    Pet.belongs_to :owner, :counter_cache => :use_count, :touch => true
+
+    pet = Pet.first
+    owner = pet.owner
+    owner.update_attribute(:happy_at, (time = 3.days.ago))
+    previously_owner_updated_at = owner.updated_at
+
+    pet.name = "I'm a parrot"
+    pet.save
+
+    assert_not_equal previously_owner_updated_at, pet.owner.updated_at
+  ensure
+    Pet.belongs_to :owner, :counter_cache => :use_count, :touch => true
+  end
+
   def test_touching_a_record_touches_parent_record_and_grandparent_record
     Toy.belongs_to :pet, :touch => true
     Pet.belongs_to :owner, :touch => true
