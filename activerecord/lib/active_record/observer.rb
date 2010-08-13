@@ -122,7 +122,7 @@ module ActiveRecord
       end
 
       def define_callbacks(klass)
-        existing_methods = klass.instance_methods.map(&:to_sym)
+        existing_methods = klass.instance_methods.map { |m| m.to_sym }
         observer = self
         observer_name = observer.class.name.underscore.gsub('/', '__')
 
