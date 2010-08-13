@@ -6,6 +6,18 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'new' do
+      it 'should accept an engine' do
+        rel = Table.new :users, 'foo'
+        rel.engine.should == 'foo'
+      end
+
+      it 'should accept a hash' do
+        rel = Table.new :users, :engine => 'foo'
+        rel.engine.should == 'foo'
+      end
+    end
+
     describe 'where' do
       it "returns a tree manager" do
         manager = @relation.where @relation[:id].eq 1

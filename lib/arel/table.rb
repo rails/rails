@@ -6,9 +6,10 @@ module Arel
     attr_reader :name, :engine
 
     def initialize name, engine = Table.engine
-      @name        = name
-      @engine      = engine
-      @columns     = nil
+      @name    = name
+      @engine  = engine
+      @engine  = engine[:engine] if Hash === engine
+      @columns = nil
     end
 
     def tm
