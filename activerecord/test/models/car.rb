@@ -1,4 +1,5 @@
 class Car < ActiveRecord::Base
+  has_many :bulbs
   has_many :tyres
   has_many :engines
   has_many :wheels, :as => :wheelable
