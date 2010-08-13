@@ -1,5 +1,8 @@
 module Arel
   class TreeManager
+    # FIXME: Remove this.
+    include Arel::Relation
+
     def initialize engine
       @engine  = engine
       @selects = []
