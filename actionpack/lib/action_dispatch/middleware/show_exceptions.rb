@@ -6,8 +6,6 @@ module ActionDispatch
   # This middleware rescues any exception returned by the application and renders
   # nice exception pages if it's being rescued locally.
   class ShowExceptions
-    LOCALHOST = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
-
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
     cattr_accessor :rescue_responses
@@ -66,7 +64,7 @@ module ActionDispatch
         log_error(exception)
 
         request = Request.new(env)
-        if @consider_all_requests_local || local_request?(request)
+        if @consider_all_requests_local || request.local?
           rescue_action_locally(request, exception)
         else
           rescue_action_in_public(exception)
@@ -110,11 +108,6 @@ module ActionDispatch
         else
           render(status, '')
         end
-      end
-
-      # True if the request came from localhost, 127.0.0.1.
-      def local_request?(request)
-        LOCALHOST.any? { |local_ip| local_ip === request.remote_addr && local_ip === request.remote_ip }
       end
 
       def status_code(exception)
