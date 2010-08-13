@@ -6,16 +6,21 @@ module Arel
     attr_reader :name, :engine
 
     def initialize name, engine = Table.engine
-      @name   = name
-      @engine = engine
+      @name        = name
+      @engine      = engine
+      @columns     = nil
     end
 
     def tm
       TreeManager.new(@engine).from(self)
     end
 
+    def where condition
+      tm.where condition
+    end
+
     def columns
-      @engine.connection.columns(@name, "#{@name} Columns").map do |column|
+      @columns ||= @engine.connection.columns(@name, "#{@name} Columns").map do |column|
         Attributes.for(column).new self, column.name, column
       end
     end
