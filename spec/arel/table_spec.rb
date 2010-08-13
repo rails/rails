@@ -6,6 +6,19 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'where' do
+      it "returns a tree manager" do
+        manager = @relation.where @relation[:id].eq 1
+        manager.project @relation[:id]
+        manager.should be_kind_of TreeManager
+        manager.to_sql.should == %{
+          SELECT "users"."id"
+          FROM "users"
+          WHERE "users"."id" = 1
+        }.gsub("\n", '').gsub(/(^\s*|\s*$)/, '').squeeze(' ')
+      end
+    end
+
     describe 'columns' do
       it 'returns a list of columns' do
         columns = @relation.columns

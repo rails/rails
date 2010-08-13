@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class Select
+    class SelectCore
       attr_reader :froms, :projections, :wheres
 
       def initialize

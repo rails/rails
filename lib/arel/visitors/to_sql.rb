@@ -12,7 +12,14 @@ module Arel
       end
 
       private
-      def visit_Arel_Nodes_Select o
+      def visit_Arel_Nodes_SelectStatement o
+        [
+          o.cores.map { |x| visit x }.join,
+          ("LIMIT #{o.limit}" if o.limit)
+        ].compact.join ' '
+      end
+
+      def visit_Arel_Nodes_SelectCore o
         [
           "SELECT #{o.projections.map { |x| visit x }.join ', '}",
           "FROM #{o.froms.map { |x| visit x }.join ', ' }",

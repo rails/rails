@@ -1,31 +1,38 @@
 module Arel
   class TreeManager
     def initialize engine
-      @engine         = engine
-      @statement_list = []
+      @engine  = engine
+      @selects = []
 
       # default to Select
-      @statement_list << Nodes::Select.new
+      @stmt = Nodes::SelectStatement.new
+      @core = @stmt.cores.last
+      @selects << @stmt
     end
 
     def from table
-      @statement_list.last.froms << table
+      @core.froms << table
       self
     end
 
     def project projection
-      @statement_list.last.projections << projection
+      @core.projections << projection
       self
     end
 
     def where expr
-      @statement_list.last.wheres << expr
+      @core.wheres << expr
+      self
+    end
+
+    def take limit
+      @stmt.limit = limit
       self
     end
 
     def to_sql
       viz = Visitors::ToSql.new @engine
-      viz.accept @statement_list.last
+      viz.accept @stmt
     end
   end
 end

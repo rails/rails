@@ -10,6 +10,10 @@ module Arel
       @engine = engine
     end
 
+    def where expression
+      TreeManager.new(@engine).from(self).where expression
+    end
+
     def columns
       @engine.connection.columns(@name, "#{@name} Columns").map do |column|
         Attributes.for(column).new self, column.name, column
