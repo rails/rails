@@ -79,7 +79,7 @@ module ActiveRecord
           else
             relation = Arel::Table.new(@reflection.options[:join_table])
             relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
-              and(Arel::Predicates::In.new(relation[@reflection.association_foreign_key], records.map { |x| x.id }))
+              and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }))
             ).delete
           end
         end
