@@ -18,6 +18,16 @@ module Arel
       end
     end
 
+    describe 'project' do
+      it 'can project' do
+        manager = @relation.project '*'
+        manager.to_sql.should == %{
+          SELECT *
+          FROM "users"
+        }.gsub("\n", '').gsub(/(^\s*|\s*$)/, '').squeeze(' ')
+      end
+    end
+
     describe 'where' do
       it "returns a tree manager" do
         manager = @relation.where @relation[:id].eq 1

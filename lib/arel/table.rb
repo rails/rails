@@ -20,6 +20,10 @@ module Arel
       tm.where condition
     end
 
+    def project thing
+      tm.project thing
+    end
+
     def columns
       @columns ||= @engine.connection.columns(@name, "#{@name} Columns").map do |column|
         Attributes.for(column).new self, column.name, column
