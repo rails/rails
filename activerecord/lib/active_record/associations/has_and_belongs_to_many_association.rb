@@ -127,7 +127,7 @@ module ActiveRecord
 
         def record_timestamp_columns(record)
           if record.record_timestamps
-            record.send(:all_timestamp_attributes).map(&:to_s)
+            record.send(:all_timestamp_attributes).map { |x| x.to_s }
           else
             []
           end

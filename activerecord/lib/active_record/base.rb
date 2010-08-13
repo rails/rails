@@ -519,7 +519,7 @@ module ActiveRecord #:nodoc:
       # Attributes listed as readonly will be used to create a new record but update operations will
       # ignore these fields.
       def attr_readonly(*attributes)
-        write_inheritable_attribute(:attr_readonly, Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
+        write_inheritable_attribute(:attr_readonly, Set.new(attributes.map { |a| a.to_s }) + (readonly_attributes || []))
       end
 
       # Returns an array of all the attributes that have been specified as readonly.
@@ -1286,7 +1286,7 @@ MSG
 
           table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
           builder = PredicateBuilder.new(arel_engine)
-          builder.build_from_hash(attrs, table).map(&:to_sql).join(' AND ')
+          builder.build_from_hash(attrs, table).map{ |b| b.to_sql }.join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 
@@ -1737,7 +1737,7 @@ MSG
             klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
             # in order to allow a date to be set without a year, we must keep the empty values.
             # Otherwise, we wouldn't be able to distinguish it from a date with an empty day.
-            values = values_with_empty_parameters.reject(&:nil?)
+            values = values_with_empty_parameters.reject { |v| v.nil? }
 
             if values.empty?
               send(name + "=", nil)

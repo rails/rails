@@ -528,7 +528,7 @@ module ActiveRecord
       # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
-        @columns.map(&:to_sql) * ', '
+        @columns.map { |c| c.to_sql } * ', '
       end
 
       private
