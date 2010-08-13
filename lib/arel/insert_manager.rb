@@ -9,5 +9,8 @@ module Arel
       @head.relation = table
       self
     end
+
+    def columns; @head.columns end
+    def values; @head.values end
   end
 end

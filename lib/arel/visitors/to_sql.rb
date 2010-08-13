@@ -13,7 +13,11 @@ module Arel
 
       private
       def visit_Arel_Nodes_InsertStatement o
-        "INSERT INTO #{visit o.relation}"
+        [
+          "INSERT INTO #{visit o.relation}",
+          ("(#{o.columns.map { |x| visit x }.join ', '})" unless o.columns.empty?),
+          ("VALUES (#{o.values.map { |x| quote visit x }.join ', '})" unless o.values.empty?),
+        ].compact.join ' '
       end
 
       def visit_Arel_Nodes_SelectStatement o
@@ -42,6 +46,7 @@ module Arel
       def visit_Arel_Attributes_Integer o
         "#{quote_table_name o.relation.name}.#{quote_column_name o.name}"
       end
+      alias :visit_Arel_Attributes_String :visit_Arel_Attributes_Integer
 
       def visit_Fixnum o; o end
       alias :visit_String :visit_Fixnum
@@ -59,6 +64,10 @@ module Arel
         next unless method =~ /^visit_(.*)$/
         const = $1.split('_').inject(Object) { |m,s| m.const_get s }
         DISPATCH[const] = method
+      end
+
+      def quote value, column = nil
+        @connection.quote value, column
       end
 
       def quote_table_name name
