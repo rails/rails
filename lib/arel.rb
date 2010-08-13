@@ -3,8 +3,10 @@ require 'arel/table'
 require 'arel/attributes'
 require 'arel/tree_manager'
 require 'arel/nodes'
-require 'arel/visitors/to_sql'
 
-# below is deprecated
+#### these are deprecated
 require 'arel/sql/engine'
 require 'arel/sql_literal'
+####
+
+require 'arel/visitors/to_sql'

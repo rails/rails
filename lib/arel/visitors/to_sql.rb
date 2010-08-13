@@ -22,8 +22,8 @@ module Arel
       def visit_Arel_Nodes_SelectCore o
         [
           "SELECT #{o.projections.map { |x| visit x }.join ', '}",
-          "FROM #{o.froms.map { |x| visit x }.join ', ' }",
-          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.blank?)
+          ("FROM #{o.froms.map { |x| visit x }.join ', ' }" unless o.froms.empty?),
+          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?)
         ].compact.join ' '
       end
 
@@ -40,9 +40,20 @@ module Arel
       end
 
       def visit_Fixnum o; o end
+      alias :visit_String :visit_Fixnum
+      alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
+      alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
 
+      DISPATCH = {}
       def visit object
-        send :"visit_#{object.class.name.gsub('::', '_')}", object
+        send DISPATCH[object.class], object
+      end
+
+      private_instance_methods(false).each do |method|
+        method = method.to_s
+        next unless method =~ /^visit_(.*)$/
+        const = $1.split('_').inject(Object) { |m,s| m.const_get s }
+        DISPATCH[const] = method
       end
 
       def quote_table_name name

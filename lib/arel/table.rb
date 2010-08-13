@@ -10,8 +10,8 @@ module Arel
       @engine = engine
     end
 
-    def where expression
-      TreeManager.new(@engine).from(self).where expression
+    def tm
+      TreeManager.new(@engine).from(self)
     end
 
     def columns

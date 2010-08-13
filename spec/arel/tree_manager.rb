@@ -2,6 +2,26 @@ require 'spec_helper'
 
 module Arel
   describe 'tree manager' do
+    describe 'project' do
+      it 'takes strings' do
+        table   = Table.new :users
+        manager = Arel::TreeManager.new Table.engine
+        manager.project '*'
+        manager.to_sql.should == %{
+          SELECT *
+        }.gsub("\n", '').gsub(/(^\s*|\s*$)/, '').squeeze(' ')
+      end
+
+      it "takes sql literals" do
+        table   = Table.new :users
+        manager = Arel::TreeManager.new Table.engine
+        manager.project Nodes::SqlLiteral.new '*'
+        manager.to_sql.should == %{
+          SELECT *
+        }.gsub("\n", '').gsub(/(^\s*|\s*$)/, '').squeeze(' ')
+      end
+    end
+
     describe 'take' do
       it "knows take" do
         table   = Table.new :users

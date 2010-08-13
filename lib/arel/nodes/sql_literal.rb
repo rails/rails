@@ -1,11 +1,6 @@
 module Arel
   module Nodes
-    class SqlLiteral
-      attr_accessor :string
-
-      def initialize string
-        @string = string
-      end
+    class SqlLiteral < String
     end
   end
 end
