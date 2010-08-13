@@ -374,7 +374,7 @@ module ActiveRecord
       end
 
       def method_missing(method, *arguments, &block)
-        arg_list = arguments.map(&:inspect) * ', '
+        arg_list = arguments.map{ |a| a.inspect } * ', '
 
         say_with_time "#{method}(#{arg_list})" do
           unless arguments.empty? || method == :execute
@@ -451,7 +451,7 @@ module ActiveRecord
 
       def get_all_versions
         table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version']).to_sql).map(&:to_i).sort
+        Base.connection.select_values(table.project(table['version']).to_sql).map{ |v| v.to_i }.sort
       end
 
       def current_version
@@ -569,7 +569,7 @@ module ActiveRecord
           klasses << migration
         end
 
-        migrations = migrations.sort_by(&:version)
+        migrations = migrations.sort_by { |m| m.version }
         down? ? migrations.reverse : migrations
       end
     end

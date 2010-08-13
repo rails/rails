@@ -450,7 +450,7 @@ module ActiveRecord
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
-        migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
+        migrated = select_values("SELECT version FROM #{sm_table}").map { |v| v.to_i }
         versions = Dir["#{migrations_path}/[0-9]*_*.rb"].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end

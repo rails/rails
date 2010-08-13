@@ -690,7 +690,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def column_names
-      @column_names ||= @connection.columns(@table_name).collect(&:name)
+      @column_names ||= @connection.columns(@table_name).collect { |c| c.name }
     end
 
     def read_fixture_files
@@ -908,7 +908,7 @@ module ActiveRecord
 
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
-        @uses_transaction.concat methods.map(&:to_s)
+        @uses_transaction.concat methods.map { |m| m.to_s }
       end
 
       def uses_transaction?(method)
