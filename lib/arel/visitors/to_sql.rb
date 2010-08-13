@@ -12,6 +12,10 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_InsertStatement o
+        "INSERT INTO #{visit o.relation}"
+      end
+
       def visit_Arel_Nodes_SelectStatement o
         [
           o.cores.map { |x| visit x }.join,

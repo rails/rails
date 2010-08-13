@@ -21,10 +21,10 @@ module Arel
     describe 'project' do
       it 'can project' do
         manager = @relation.project '*'
-        manager.to_sql.should == %{
+        manager.to_sql.should be_like %{
           SELECT *
           FROM "users"
-        }.gsub("\n", '').gsub(/(^\s*|\s*$)/, '').squeeze(' ')
+        }
       end
     end
 
@@ -33,11 +33,11 @@ module Arel
         manager = @relation.where @relation[:id].eq 1
         manager.project @relation[:id]
         manager.should be_kind_of TreeManager
-        manager.to_sql.should == %{
+        manager.to_sql.should be_like %{
           SELECT "users"."id"
           FROM "users"
           WHERE "users"."id" = 1
-        }.gsub("\n", '').gsub(/(^\s*|\s*$)/, '').squeeze(' ')
+        }
       end
     end
 

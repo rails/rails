@@ -13,7 +13,7 @@ module Arel
     end
 
     def tm
-      TreeManager.new(@engine).from(self)
+      SelectManager.new(@engine).from(self)
     end
 
     def where condition
