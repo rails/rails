@@ -176,6 +176,68 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_preselected_value_as_string_and_option_value_is_integer
+    albums = [ Album.new(1, "first","rap"), Album.new(2, "second","pop")] 
+    assert_dom_equal(
+    %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
+    options_from_collection_for_select(albums, "id", "genre", :selected => "1")
+    )
+  end
+
+  def test_collection_options_with_preselected_value_as_integer_and_option_value_is_string
+    albums = [ Album.new("1", "first","rap"), Album.new("2", "second","pop")] 
+
+    assert_dom_equal(
+    %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
+    options_from_collection_for_select(albums, "id", "genre", :selected => 1)
+    )
+  end
+
+  def test_collection_options_with_preselected_value_as_string_and_option_value_is_float
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+
+    assert_dom_equal(
+    %(<option value="1.0">rap</option>\n<option value="2.0" selected="selected">pop</option>),
+    options_from_collection_for_select(albums, "id", "genre", :selected => "2.0")
+    )
+  end
+
+  def test_collection_options_with_preselected_value_as_nil
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+
+    assert_dom_equal(
+    %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
+    options_from_collection_for_select(albums, "id", "genre", :selected => nil)
+    )
+  end
+
+  def test_collection_options_with_disabled_value_as_nil
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+
+    assert_dom_equal(
+    %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
+    options_from_collection_for_select(albums, "id", "genre", :disabled => nil)
+    )
+  end
+
+  def test_collection_options_with_disabled_value_as_array
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+
+    assert_dom_equal(
+    %(<option disabled="disabled" value="1.0">rap</option>\n<option disabled="disabled" value="2.0">pop</option>),
+    options_from_collection_for_select(albums, "id", "genre", :disabled => ["1.0", 2.0])
+    )
+  end
+
+  def test_collection_options_with_preselected_values_as_string_array_and_option_value_is_float
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop"), Album.new(3.0, "third","country") ] 
+
+    assert_dom_equal(
+    %(<option value="1.0" selected="selected">rap</option>\n<option value="2.0">pop</option>\n<option value="3.0" selected="selected">country</option>),
+    options_from_collection_for_select(albums, "id", "genre", ["1.0","3.0"])
+    )
+  end
+
   def test_option_groups_from_collection_for_select
     assert_dom_equal(
       "<optgroup label=\"&lt;Africa&gt;\"><option value=\"&lt;sa&gt;\">&lt;South Africa&gt;</option>\n<option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"dk\" selected=\"selected\">Denmark</option>\n<option value=\"ie\">Ireland</option></optgroup>",

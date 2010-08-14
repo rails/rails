@@ -298,17 +298,18 @@ module ActionView
         return container if String === container
 
         container = container.to_a if Hash === container
-        selected, disabled = extract_selected_and_disabled(selected)
-
-        options_for_select = container.map do |element|
-          html_attributes = option_html_attributes(element)
-          text, value = option_text_and_value(element)
-          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
-          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          %(<option value="#{html_escape(value.to_s)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{html_escape(text.to_s)}</option>)
+        selected, disabled = extract_selected_and_disabled(selected).map do | r |
+           Array.wrap(r).map(&:to_s)
         end
 
-        options_for_select.join("\n").html_safe
+        container.map do |element|
+          html_attributes = option_html_attributes(element)
+          text, value = option_text_and_value(element).map(&:to_s)
+          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
+          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
+          %(<option value="#{html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{html_escape(text)}</option>)
+        end.join("\n").html_safe
+
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
@@ -528,10 +529,12 @@ module ActionView
         end
 
         def extract_selected_and_disabled(selected)
-          if selected.is_a?(Hash)
-            [selected[:selected], selected[:disabled]]
+          if selected.is_a?(Proc)
+            [ selected, nil ]
           else
-            [selected, nil]
+            selected = Array.wrap(selected)
+            options = selected.extract_options!.symbolize_keys
+            [ options[:selected] || selected , options[:disabled] ]
           end
         end
 
