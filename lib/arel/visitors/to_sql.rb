@@ -15,8 +15,15 @@ module Arel
       def visit_Arel_Nodes_InsertStatement o
         [
           "INSERT INTO #{visit o.relation}",
-          ("(#{o.columns.map { |x| visit x }.join ', '})" unless o.columns.empty?),
-          ("VALUES (#{o.values.map { |x| quote visit x }.join ', '})" unless o.values.empty?),
+
+          ("(#{o.columns.map { |x|
+                quote_column_name x.name
+            }.join ', '})" unless o.columns.empty?),
+
+          ("VALUES (#{o.values.map { |value|
+            value ? quote(visit(value)) : 'NULL'
+          }.join ', '})" unless o.values.empty?),
+
         ].compact.join ' '
       end
 
@@ -43,12 +50,15 @@ module Arel
         "#{visit o.left} = #{visit o.right}"
       end
 
-      def visit_Arel_Attributes_Integer o
+      def visit_Arel_Attributes_Attribute o
         "#{quote_table_name o.relation.name}.#{quote_column_name o.name}"
       end
-      alias :visit_Arel_Attributes_String :visit_Arel_Attributes_Integer
+      alias :visit_Arel_Attributes_Integer :visit_Arel_Attributes_Attribute
+      alias :visit_Arel_Attributes_String :visit_Arel_Attributes_Attribute
+      alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
 
       def visit_Fixnum o; o end
+      alias :visit_Time :visit_Fixnum
       alias :visit_String :visit_Fixnum
       alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
       alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated

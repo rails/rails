@@ -9,13 +9,33 @@ module Arel
     end
 
     describe 'insert' do
+      it "inserts null" do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new Table.engine
+        manager.insert [[table[:id], nil]]
+        manager.to_sql.should be_like %{
+          INSERT INTO "users" ("id") VALUES (NULL)
+        }
+      end
+
+      it "inserts time" do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new Table.engine
+
+        time = Time.now
+        manager.insert [[table[:id], time]]
+        manager.to_sql.should be_like %{
+          INSERT INTO "users" ("id") VALUES (#{Table.engine.connection.quote time})
+        }
+      end
+
       it 'takes a list of lists' do
         table = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine
         manager.into table
         manager.insert [[table[:id], 1], [table[:name], 'aaron']]
         manager.to_sql.should be_like %{
-          INSERT INTO "users" ("users"."id", "users"."name") VALUES (1, 'aaron')
+          INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
 
@@ -24,7 +44,7 @@ module Arel
         manager = Arel::InsertManager.new Table.engine
         manager.insert [[table[:id], 1], [table[:name], 'aaron']]
         manager.to_sql.should be_like %{
-          INSERT INTO "users" ("users"."id", "users"."name") VALUES (1, 'aaron')
+          INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
 
@@ -57,7 +77,7 @@ module Arel
         manager.into table
         manager.columns << table[:id]
         manager.to_sql.should be_like %{
-          INSERT INTO "users" ("users"."id")
+          INSERT INTO "users" ("id")
         }
       end
     end
@@ -86,7 +106,7 @@ module Arel
         manager.columns << table[:id]
         manager.columns << table[:name]
         manager.to_sql.should be_like %{
-          INSERT INTO "users" ("users"."id", "users"."name") VALUES (1, 'aaron')
+          INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
     end

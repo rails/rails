@@ -30,7 +30,7 @@ module Arel
     def insert values
       im = InsertManager.new @engine
       im.insert values
-      raise
+      @engine.connection.execute im.to_sql
     end
   end
 end
