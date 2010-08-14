@@ -7,7 +7,7 @@ end
 
 # It is recommend to use <tt>class_attribute</tt> over methods defined in this file. Please
 # refer to documentation for <tt>class_attribute</tt> for more information. Officially it is not
-# deprected but <tt>class_attribute</tt> is faster.
+# deprecated but <tt>class_attribute</tt> is faster.
 #
 # Allows attributes to be shared within an inheritance hierarchy. Each descendant gets a copy of
 # their parents' attributes, instead of just a pointer to the same. This means that the child can add elements
