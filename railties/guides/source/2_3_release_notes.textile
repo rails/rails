@@ -53,7 +53,7 @@ The "Ruby on Rails guides":http://guides.rubyonrails.org/ project has published 
 
 h3. Ruby 1.9.1 Support
 
-Rails 2.3 should pass all of its own tests whether you are running on Ruby 1.8 or the now-released Ruby 1.9.1. You should be aware, though, that moving to 1.9.1 entails checking all of the data adapters, plugins, and other code that you depend on for Ruby 1.9.1 compatibility, as well as Rails core. 
+Rails 2.3 should pass all of its own tests whether you are running on Ruby 1.8 or the now-released Ruby 1.9.1. You should be aware, though, that moving to 1.9.1 entails checking all of the data adapters, plugins, and other code that you depend on for Ruby 1.9.1 compatibility, as well as Rails core.
 
 h3. Active Record
 
@@ -77,7 +77,7 @@ Turning on nested attributes enables a number of things: automatic (and atomic) 
 You can also specify requirements for any new records that are added via nested attributes using the +:reject_if+ option:
 
 <ruby>
-accepts_nested_attributes_for :author, 
+accepts_nested_attributes_for :author,
   :reject_if => proc { |attributes| attributes['name'].blank? }
 </ruby>
 
@@ -149,7 +149,7 @@ end
 
 Note that you should only use this method for batch processing: for small numbers of records (less than 1000), you should just use the regular find methods with your own loop.
 
-* More Information (at that point the convenience method was called just +each+): 
+* More Information (at that point the convenience method was called just +each+):
 ** "Rails 2.3: Batch Finding":http://afreshcup.com/2009/02/23/rails-23-batch-finding/
 ** "What's New in Edge Rails: Batched Find":http://ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find
 
@@ -449,7 +449,7 @@ returns
 <option>joke</option>
 <option>poem</option>
 <option disabled=“disabled“>private</option>
-</select>	
+</select>
 </ruby>
 
 You can also use an anonymous function to determine at runtime which options from collections will be selected and/or disabled:
@@ -502,7 +502,7 @@ The support for XML parsing in ActiveSupport has been made more flexible by allo
 XmlMini.backend = 'LibXML'
 </ruby>
 
-* Lead Contributor: "Bart ten Brinke":http://www.movesonrails.com/ 
+* Lead Contributor: "Bart ten Brinke":http://www.movesonrails.com/
 * Lead Contributor: "Aaron Patterson":http://tenderlovemaking.com/
 
 h4. Fractional seconds for TimeWithZone

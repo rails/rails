@@ -31,5 +31,5 @@ class TmailCompatTest < ActiveSupport::TestCase
     end
     assert_equal mail.content_transfer_encoding, "base64"
   end
-  
+
 end

@@ -2,7 +2,7 @@ require 'cases/helper'
 
 class ModelWithAttributes
   include ActiveModel::AttributeMethods
-  
+
   attribute_method_suffix ''
 
   def attributes
@@ -17,7 +17,7 @@ end
 
 class ModelWithAttributes2
   include ActiveModel::AttributeMethods
-  
+
   attribute_method_suffix '_test'
 end
 

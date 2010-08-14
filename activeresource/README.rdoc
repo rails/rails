@@ -9,7 +9,7 @@ in ActionController::Resources).
 
 Active Resource attempts to provide a coherent wrapper object-relational mapping for REST
 web services. It follows the same philosophy as Active Record, in that one of its prime aims
-is to reduce the amount of code needed to map to these resources.  This is made possible 
+is to reduce the amount of code needed to map to these resources.  This is made possible
 by relying on a number of code- and protocol-based conventions that make it easy for Active Resource
 to infer complex relations and structures.  These conventions are outlined in detail in the documentation
 for ActiveResource::Base.
@@ -41,14 +41,14 @@ records.  But rather than dealing directly with a database record, you're dealin
 
 ==== Protocol
 
-Active Resource is built on a standard XML format for requesting and submitting resources over HTTP.  It mirrors the RESTful routing 
+Active Resource is built on a standard XML format for requesting and submitting resources over HTTP.  It mirrors the RESTful routing
 built into Action Controller but will also work with any other REST service that properly implements the protocol.
 REST uses HTTP, but unlike "typical" web applications, it makes use of all the verbs available in the HTTP specification:
 
 * GET requests are used for finding and retrieving resources.
 * POST requests are used to create new resources.
 * PUT requests are used to update existing resources.
-* DELETE requests are used to delete resources. 
+* DELETE requests are used to delete resources.
 
 For more information on how this protocol works with Active Resource, see the ActiveResource::Base documentation;
 for more general information on REST web services, see the article here[http://en.wikipedia.org/wiki/Representational_State_Transfer].
@@ -111,7 +111,7 @@ as the id of the ARes object.
   # is submitted as the body on
   #
   # POST http://api.people.com:3000/people.xml
-  # 
+  #
   # when save is called on a new Person object.  An empty response is
   # is expected with a 'Location' header value:
   #

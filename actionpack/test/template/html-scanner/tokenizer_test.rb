@@ -29,7 +29,7 @@ class TokenizerTest < Test::Unit::TestCase
     tokenize "</tag>"
     assert_next "</tag>"
   end
-  
+
   def test_tag_with_single_quoted_attribute
     tokenize %{<tag a='hello'>x}
     assert_next %{<tag a='hello'>}
@@ -49,7 +49,7 @@ class TokenizerTest < Test::Unit::TestCase
     tokenize %{<tag a="hello\\"">x}
     assert_next %{<tag a="hello\\"">}
   end
-  
+
   def test_tag_with_unquoted_attribute
     tokenize %{<tag a=hello>x}
     assert_next %{<tag a=hello>}
@@ -59,12 +59,12 @@ class TokenizerTest < Test::Unit::TestCase
     tokenize %{<tag a="x < y">x}
     assert_next %{<tag a="x < y">}
   end
-  
+
   def test_tag_with_gt_char_in_attribute
     tokenize %{<tag a="x > y">x}
     assert_next %{<tag a="x > y">}
   end
-  
+
   def test_doctype_tag
     tokenize %{<!DOCTYPE "blah" "blah" "blah">\n    <html>}
     assert_next %{<!DOCTYPE "blah" "blah" "blah">}
@@ -90,7 +90,7 @@ class TokenizerTest < Test::Unit::TestCase
     assert_next %{original }
     assert_next %{< hello > world}
   end
-  
+
   def test_less_than_without_matching_greater_than
     tokenize %{hello <span onmouseover="gotcha"\n<b>foo</b>\nbar</span>}
     assert_next %{hello }
@@ -109,22 +109,22 @@ class TokenizerTest < Test::Unit::TestCase
     assert_next %{<!-- neverending...}
     assert_end
   end
-  
+
   private
-  
+
     def tokenize(text)
       @tokenizer = HTML::Tokenizer.new(text)
     end
-    
+
     def assert_next(expected, message=nil)
       token = @tokenizer.next
       assert_equal expected, token, message
     end
-    
+
     def assert_sequence(*expected)
       assert_next expected.shift until expected.empty?
     end
-    
+
     def assert_end(message=nil)
       assert_nil @tokenizer.next, message
     end

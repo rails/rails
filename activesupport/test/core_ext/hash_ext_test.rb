@@ -640,12 +640,12 @@ class HashToXmlTest < Test::Unit::TestCase
     EOT
 
     expected_topic_hash = {
-      :title      => nil, 
+      :title      => nil,
       :id         => nil,
       :approved   => nil,
       :written_on => nil,
       :viewed_at  => nil,
-      :content    => nil, 
+      :content    => nil,
       :parent_id  => nil
     }.stringify_keys
 
@@ -723,7 +723,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["rsp"]["photos"]["photo"]
   end
-  
+
   def test_all_caps_key_from_xml
     test_xml = <<-EOT
       <ABC3XYZ>
@@ -839,13 +839,13 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_bacon_hash, Hash.from_xml(bacon_xml)["bacon"]
   end
-  
+
   def test_type_trickles_through_when_unknown
     product_xml = <<-EOT
     <product>
       <weight type="double">0.5</weight>
       <image type="ProductImage"><filename>image.gif</filename></image>
-      
+
     </product>
     EOT
 
@@ -854,7 +854,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :image => {'type' => 'ProductImage', 'filename' => 'image.gif' },
     }.stringify_keys
 
-    assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]    
+    assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
 
   def test_should_use_default_value_for_unknown_key
@@ -888,41 +888,41 @@ class HashToXmlTest < Test::Unit::TestCase
       assert_equal expected, hash.to_xml(@xml_options)
     end
   end
-  
-  def test_empty_string_works_for_typecast_xml_value    
+
+  def test_empty_string_works_for_typecast_xml_value
     assert_nothing_raised do
       Hash.__send__(:typecast_xml_value, "")
     end
   end
-  
+
   def test_escaping_to_xml
-    hash = { 
-      :bare_string        => 'First & Last Name', 
+    hash = {
+      :bare_string        => 'First & Last Name',
       :pre_escaped_string => 'First &amp; Last Name'
     }.stringify_keys
-    
+
     expected_xml = '<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>'
     assert_equal expected_xml, hash.to_xml(@xml_options)
   end
-  
+
   def test_unescaping_from_xml
     xml_string = '<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>'
-    expected_hash = { 
-      :bare_string        => 'First & Last Name', 
+    expected_hash = {
+      :bare_string        => 'First & Last Name',
       :pre_escaped_string => 'First &amp; Last Name'
     }.stringify_keys
     assert_equal expected_hash, Hash.from_xml(xml_string)['person']
   end
-  
+
   def test_roundtrip_to_xml_from_xml
-    hash = { 
-      :bare_string        => 'First & Last Name', 
+    hash = {
+      :bare_string        => 'First & Last Name',
       :pre_escaped_string => 'First &amp; Last Name'
     }.stringify_keys
 
     assert_equal hash, Hash.from_xml(hash.to_xml(@xml_options))['person']
   end
-  
+
   def test_datetime_xml_type_with_utc_time
     alert_xml = <<-XML
       <alert>
@@ -933,7 +933,7 @@ class HashToXmlTest < Test::Unit::TestCase
     assert alert_at.utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
-  
+
   def test_datetime_xml_type_with_non_utc_time
     alert_xml = <<-XML
       <alert>
@@ -944,7 +944,7 @@ class HashToXmlTest < Test::Unit::TestCase
     assert alert_at.utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
-  
+
   def test_datetime_xml_type_with_far_future_date
     alert_xml = <<-XML
       <alert>

@@ -9,12 +9,12 @@ class DateTime
   remove_method :to_time if instance_methods.include?(:to_time)
 
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
-  # 
+  #
   # This method is aliased to <tt>to_s</tt>.
-  # 
+  #
   # === Examples
   #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
-  # 
+  #
   #   datetime.to_formatted_s(:db)            # => "2007-12-04 00:00:00"
   #   datetime.to_s(:db)                      # => "2007-12-04 00:00:00"
   #   datetime.to_s(:number)                  # => "20071204000000"
@@ -50,7 +50,7 @@ class DateTime
   def formatted_offset(colon = true, alternate_utc_string = nil)
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
-  
+
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005 14:30:00 +0000"
   def readable_inspect
     to_s(:rfc822)
@@ -83,8 +83,8 @@ class DateTime
   def xmlschema
     strftime("%Y-%m-%dT%H:%M:%S%Z")
   end unless instance_methods(false).include?(:xmlschema)
-  
-  # Converts self to a floating-point number of seconds since the Unix epoch 
+
+  # Converts self to a floating-point number of seconds since the Unix epoch
   def to_f
     seconds_since_unix_epoch.to_f
   end

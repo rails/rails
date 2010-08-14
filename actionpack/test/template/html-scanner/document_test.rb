@@ -15,7 +15,7 @@ class DocumentTest < Test::Unit::TestCase
     assert_match %r{\s+}m, doc.root.children[1].content
     assert_equal "html", doc.root.children[2].name
   end
-  
+
   def test_find_img
     doc = HTML::Document.new <<-HTML.strip
       <html>

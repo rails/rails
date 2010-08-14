@@ -56,7 +56,7 @@ class Developer < ActiveRecord::Base
     audit_logs.build :message => message
   end
 
-  def self.all_johns 
+  def self.all_johns
     self.with_exclusive_scope :find => where(:name => 'John') do
       self.all
     end

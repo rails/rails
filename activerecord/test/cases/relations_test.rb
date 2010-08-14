@@ -21,8 +21,8 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_two_named_scopes_with_includes_should_not_drop_any_include
     car = Car.incl_engines.incl_tyres.first
-    assert_no_queries { car.tyres.length } 
-    assert_no_queries { car.engines.length } 
+    assert_no_queries { car.tyres.length }
+    assert_no_queries { car.engines.length }
   end
 
   def test_apply_relation_as_where_id

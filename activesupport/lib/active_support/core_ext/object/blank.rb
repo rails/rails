@@ -17,7 +17,7 @@ class Object
   def present?
     !blank?
   end
-  
+
   # Returns object if it's #present? otherwise returns nil.
   # object.presence is equivalent to object.present? ? object : nil.
   #

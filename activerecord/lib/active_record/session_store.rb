@@ -9,7 +9,7 @@ module ActiveRecord
   #   +id+ (numeric primary key),
   #   +session_id+ (text, or longtext if your session data exceeds 65K), and
   #   +data+ (text or longtext; careful if your session data exceeds 65KB).
-  # 
+  #
   # The +session_id+ column should always be indexed for speedy lookups.
   # Session data is marshaled to the +data+ column in Base64 format.
   # If the data you write is larger than the column's size limit,

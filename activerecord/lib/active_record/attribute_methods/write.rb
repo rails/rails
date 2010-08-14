@@ -14,7 +14,7 @@ module ActiveRecord
           end
       end
 
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings 
+      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings
       # for fixnum and float columns are turned into +nil+.
       def write_attribute(attr_name, value)
         attr_name = attr_name.to_s

@@ -287,7 +287,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal 946684800, result
     assert_kind_of Integer, result
   end
-  
+
   def test_to_i_with_wrapped_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
@@ -328,7 +328,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_kind_of Time, @twz
     assert_kind_of ActiveSupport::TimeWithZone, @twz
   end
-  
+
   def test_class_name
     assert_equal 'Time', ActiveSupport::TimeWithZone.name
   end
@@ -703,7 +703,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", twz.years_ago(1).inspect
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", (twz - 1.year).inspect
   end
-  
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

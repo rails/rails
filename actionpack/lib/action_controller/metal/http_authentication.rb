@@ -392,11 +392,11 @@ module ActionController
         end
       end
 
-      # If token Authorization header is present, call the login procedure with 
+      # If token Authorization header is present, call the login procedure with
       # the present token and options.
       #
       # controller      - ActionController::Base instance for the current request.
-      # login_procedure - Proc to call if a token is present.  The Proc should 
+      # login_procedure - Proc to call if a token is present.  The Proc should
       #                   take 2 arguments:
       #                     authenticate(controller) { |token, options| ... }
       #

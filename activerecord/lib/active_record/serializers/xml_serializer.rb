@@ -80,7 +80,7 @@ module ActiveRecord #:nodoc:
     # closure created by a Proc, to_xml can be used to add elements that normally fall
     # outside of the scope of the model -- for example, generating and appending URLs
     # associated with models.
-    # 
+    #
     #   proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
     #   firm.to_xml :procs => [ proc ]
     #

@@ -164,7 +164,7 @@ ActiveRecord::Schema.define do
     t.string  :address_country
     t.string  :gps_location
   end
-  
+
   create_table :dashboards, :force => true, :id => false do |t|
     t.string :dashboard_id
     t.string :name
@@ -299,7 +299,7 @@ ActiveRecord::Schema.define do
     t.boolean :favourite
     t.integer :lock_version, :default => 0
   end
-  
+
   create_table :minivans, :force => true, :id => false do |t|
     t.string :minivan_id
     t.string :name
@@ -469,7 +469,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :ship_id
   end
-  
+
   create_table :speedometers, :force => true, :id => false do |t|
     t.string :speedometer_id
     t.string :name

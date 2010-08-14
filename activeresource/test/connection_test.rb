@@ -140,12 +140,12 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal "Matz", people[0]["name"]
     assert_equal "David", people[1]["name"]
   end
-  
+
   def test_get_collection_single
     people = @conn.get("/people_single_elements.xml")
     assert_equal "Matz", people[0]["name"]
   end
-  
+
   def test_get_collection_empty
     people = @conn.get("/people_empty_elements.xml")
     assert_equal [], people

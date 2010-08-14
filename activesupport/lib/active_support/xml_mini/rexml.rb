@@ -19,7 +19,7 @@ module ActiveSupport
       if !data.respond_to?(:read)
         data = StringIO.new(data || '')
       end
-      
+
       char = data.getc
       if char.nil?
         {}

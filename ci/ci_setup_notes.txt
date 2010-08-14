@@ -26,7 +26,7 @@ $ sudo shutdown -r now
 * Update aptitude:
 $ sudo aptitude update
 
-* Use cinabox to perform rest of ruby/ccrb setup: 
+* Use cinabox to perform rest of ruby/ccrb setup:
 * http://github.com/thewoolleyman/cinabox/tree/master/README.txt
 
 # This is not yet properly supported by RubyGems...
@@ -41,7 +41,7 @@ $ sudo aptitude update
 # # add these lines:
 # ---
 # gemhome: /home/ci/.gem/ruby/1.8
-# gempath: 
+# gempath:
 # - /home/ci/.gem/ruby/1.8
 
 * If you did not configure no-root-gem installation via ~/.gemrc as shown above, then allow no-password sudo for gem installation:
@@ -89,7 +89,7 @@ Configuration.dashboard_url = 'http://ci.yourdomain.com/'
 Configuration.serialize_builds = true
 Configuration.serialized_build_timeout = 1.hours
 BuildReaper.number_of_builds_to_keep = 100
-  
+
 * Copy and configure cruise project config file
 $ cp ~/.cruise/projects/rails/work/ci/cruise_config.rb ~/.cruise/projects/rails
 $ vi ~/.cruise/projects/rails/cruise_config.rb:

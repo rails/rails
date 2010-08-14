@@ -4,13 +4,13 @@ class Time
   class << self
     attr_accessor :zone_default
 
-    # Returns the TimeZone for the current request, if this has been set (via Time.zone=). 
+    # Returns the TimeZone for the current request, if this has been set (via Time.zone=).
     # If <tt>Time.zone</tt> has not been set for the current request, returns the TimeZone specified in <tt>config.time_zone</tt>.
     def zone
       Thread.current[:time_zone] || zone_default
     end
 
-    # Sets <tt>Time.zone</tt> to a TimeZone object for the current request/thread. 
+    # Sets <tt>Time.zone</tt> to a TimeZone object for the current request/thread.
     #
     # This method accepts any of the following:
     #
@@ -63,7 +63,7 @@ class Time
   # This method is similar to Time#localtime, except that it uses <tt>Time.zone</tt> as the local zone
   # instead of the operating system's time zone.
   #
-  # You can also pass in a TimeZone instance or string that identifies a TimeZone as an argument, 
+  # You can also pass in a TimeZone instance or string that identifies a TimeZone as an argument,
   # and the conversion will be based on that zone instead of <tt>Time.zone</tt>.
   #
   #   Time.utc(2000).in_time_zone('Alaska')  # => Fri, 31 Dec 1999 15:00:00 AKST -09:00

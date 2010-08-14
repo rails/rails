@@ -98,7 +98,7 @@ You can also use +:if+ (or +:unless+) to pass a Proc that specifies when the act
 
 You can modify the default action cache path by passing a +:cache_path+ option. This will be passed directly to +ActionCachePath.path_for+. This is handy for actions with multiple possible routes that should be cached differently. If a block is given, it is called with the current controller instance.
 
-Finally, if you are using memcached, you can also pass +:expires_in+. In fact, all parameters not used by +caches_action+ are sent to the underlying cache store. 
+Finally, if you are using memcached, you can also pass +:expires_in+. In fact, all parameters not used by +caches_action+ are sent to the underlying cache store.
 
 INFO: Action caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
 
@@ -242,12 +242,12 @@ Rails 2.1 and above provide +ActiveSupport::Cache::Store+ which can be used to c
 
 The default cache stores provided with Rails include:
 
-1) +ActiveSupport::Cache::MemoryStore+: A cache store implementation which stores everything into memory in the same process. If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then this means that your Rails server process instances won't be able to share cache data with each other. If your application never performs manual cache item expiry (e.g. when you‘re using generational cache keys), then using +MemoryStore+ is ok. Otherwise, consider carefully whether you should be using this cache store.  
+1) +ActiveSupport::Cache::MemoryStore+: A cache store implementation which stores everything into memory in the same process. If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then this means that your Rails server process instances won't be able to share cache data with each other. If your application never performs manual cache item expiry (e.g. when you‘re using generational cache keys), then using +MemoryStore+ is ok. Otherwise, consider carefully whether you should be using this cache store.
 
 +MemoryStore+  is not only able to store strings, but also arbitrary Ruby objects.
 
 +MemoryStore+  is not thread-safe. Use +SynchronizedMemoryStore+ instead if you need thread-safety.
-                                      
+
 <ruby>
 ActionController::Base.cache_store = :memory_store
 </ruby>
@@ -280,7 +280,7 @@ It also accepts a hash of additional options:
 
 The read and write methods of the +MemCacheStore+ accept an options hash too. When reading you can specify +:raw => true+ to prevent the object being marshaled (by default this is false which means the raw value in the cache is passed to +Marshal.load+ before being returned to you.)
 
-When writing to the cache it is also possible to specify +:raw => true+ means the value is not passed to +Marshal.dump+ before being stored in the cache (by default this is false). 
+When writing to the cache it is also possible to specify +:raw => true+ means the value is not passed to +Marshal.dump+ before being stored in the cache (by default this is false).
 
 The write method also accepts an +:unless_exist+ flag which determines whether the memcached add (when true) or set (when false) method is used to store the item in the cache and an +:expires_in+ option that specifies the time-to-live for the cached item in seconds.
 
@@ -367,7 +367,7 @@ h3. Advanced Caching
 Along with the built-in mechanisms outlined above, a number of excellent plugins exist to help with finer grained control over caching. These include Chris Wanstrath's excellent cache_fu plugin (more info "here": http://errtheblog.com/posts/57-kickin-ass-w-cachefu) and Evan Weaver's interlock plugin (more info "here": http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/). Both of these plugins play nice with memcached and are a must-see for anyone
 seriously considering optimizing their caching needs.
 
-Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plugin is supposed to be mad cool. 
+Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plugin is supposed to be mad cool.
 
 h3. References
 

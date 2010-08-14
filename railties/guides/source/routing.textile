@@ -501,7 +501,7 @@ class BlacklistConstraint
 end
 
 TwitterClone::Application.routes.draw do
-  match "*path" => "blacklist#index", 
+  match "*path" => "blacklist#index",
     :constraints => BlacklistConstraint.new
 end
 </ruby>
@@ -765,7 +765,7 @@ formatted_users GET  /users.:format  {:controller=>"users", :action=>"index"}
 You may restrict the listing to the routes that map to a particular controller setting the +CONTROLLER+ environment variable:
 
 <shell>
-$ CONTROLLER=users rake routes 
+$ CONTROLLER=users rake routes
 </shell>
 
 TIP: You'll find that the output from +rake routes+ is much more readable if you widen your terminal window until the output lines don't wrap.

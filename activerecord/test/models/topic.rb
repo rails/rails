@@ -9,7 +9,7 @@ class Topic < ActiveRecord::Base
   scope :rejected, :conditions => {:approved => false}
 
   scope :by_lifo, :conditions => {:author_name => 'lifo'}
-  
+
   scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
   scope 'approved_as_string', :conditions => {:approved => true}
   scope :replied, :conditions => ['replies_count > 0']

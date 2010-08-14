@@ -8,12 +8,12 @@ module ActiveSupport
   # The order of iteration over hashes in Ruby 1.8 is undefined. For example, you do not know the
   # order in which +keys+ will return keys, or +each+ yield pairs. <tt>ActiveSupport::OrderedHash</tt>
   # implements a hash that preserves insertion order, as in Ruby 1.9:
-  #   
+  #
   #   oh = ActiveSupport::OrderedHash.new
   #   oh[:a] = 1
   #   oh[:b] = 2
   #   oh.keys # => [:a, :b], this order is guaranteed
-  #   
+  #
   # <tt>ActiveSupport::OrderedHash</tt> is namespaced to prevent conflicts with other implementations.
   class OrderedHash < ::Hash #:nodoc:
     def to_yaml_type

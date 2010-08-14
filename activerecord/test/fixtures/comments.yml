@@ -9,7 +9,7 @@ more_greetings:
   post_id: 1
   body: Thank you again for the welcome
   type: Comment
-  
+
 does_it_hurt:
   id: 3
   post_id: 2
@@ -37,7 +37,7 @@ eager_sti_on_associations_s_comment2:
 eager_sti_on_associations_comment:
   id: 8
   post_id: 4
-  body: Normal type 
+  body: Normal type
   type: Comment
 
 check_eager_sti_on_associations:

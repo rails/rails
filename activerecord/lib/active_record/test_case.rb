@@ -1,6 +1,6 @@
 module ActiveRecord
   # = Active Record Test Case
-  # 
+  #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
     def assert_date_from_db(expected, actual, message = nil)

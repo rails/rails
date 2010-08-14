@@ -654,10 +654,10 @@ class PolymorphicControllerTest < ActionController::TestCase
     get :index, :workshop_id => 1
     assert_equal "/workshops/1/sessions\n<a href=\"/workshops/1/sessions\">Session</a>", @response.body
   end
-  
+
   def test_existing_nested_resource
     @controller = SessionsController.new
-  
+
     get :show, :workshop_id => 1, :id => 1
     assert_equal "/workshops/1/sessions/1\n<a href=\"/workshops/1/sessions/1\">Session</a>", @response.body
   end

@@ -9,12 +9,12 @@ module ActiveRecord
       end unless self.new_record?
     end
 
-    # Active Record implements aggregation through a macro-like class method called +composed_of+ 
-    # for representing attributes  as value objects. It expresses relationships like "Account [is] 
-    # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call 
-    # to the macro adds a description of how the value objects  are created from the attributes of 
-    # the entity object (when the entity is initialized either  as a new object or from finding an 
-    # existing object) and how it can be turned back into attributes  (when the entity is saved to 
+    # Active Record implements aggregation through a macro-like class method called +composed_of+
+    # for representing attributes  as value objects. It expresses relationships like "Account [is]
+    # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call
+    # to the macro adds a description of how the value objects  are created from the attributes of
+    # the entity object (when the entity is initialized either  as a new object or from finding an
+    # existing object) and how it can be turned back into attributes  (when the entity is saved to
     # the database).
     #
     #   class Customer < ActiveRecord::Base
@@ -70,9 +70,9 @@ module ActiveRecord
     #    end
     #  end
     #
-    # Now it's possible to access attributes from the database through the value objects instead. If 
-    # you choose to name the composition the same as the attribute's name, it will be the only way to 
-    # access that attribute. That's the case with our +balance+ attribute. You interact with the value 
+    # Now it's possible to access attributes from the database through the value objects instead. If
+    # you choose to name the composition the same as the attribute's name, it will be the only way to
+    # access that attribute. That's the case with our +balance+ attribute. You interact with the value
     # objects just like you would any other attribute, though:
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
@@ -82,8 +82,8 @@ module ActiveRecord
     #   customer.balance == Money.new(20)    # => true
     #   customer.balance < Money.new(5)      # => false
     #
-    # Value objects can also be composed of multiple attributes, such as the case of Address. The order 
-    # of the mappings will determine the order of the parameters. 
+    # Value objects can also be composed of multiple attributes, such as the case of Address. The order
+    # of the mappings will determine the order of the parameters.
     #
     #   customer.address_street = "Hyancintvej"
     #   customer.address_city   = "Copenhagen"
@@ -94,42 +94,42 @@ module ActiveRecord
     #
     # == Writing value objects
     #
-    # Value objects are immutable and interchangeable objects that represent a given value, such as 
-    # a Money object representing $5. Two Money objects both representing $5 should be equal (through 
-    # methods such as <tt>==</tt> and <tt><=></tt> from Comparable if ranking makes sense). This is 
+    # Value objects are immutable and interchangeable objects that represent a given value, such as
+    # a Money object representing $5. Two Money objects both representing $5 should be equal (through
+    # methods such as <tt>==</tt> and <tt><=></tt> from Comparable if ranking makes sense). This is
     # unlike entity objects where equality is determined by identity. An entity class such as Customer can
-    # easily have two different objects that both have an address on Hyancintvej. Entity identity is 
-    # determined by object or relational unique identifiers (such as primary keys). Normal 
+    # easily have two different objects that both have an address on Hyancintvej. Entity identity is
+    # determined by object or relational unique identifiers (such as primary keys). Normal
     # ActiveRecord::Base classes are entity objects.
     #
-    # It's also important to treat the value objects as immutable. Don't allow the Money object to have 
-    # its amount changed after creation. Create a new Money object with the new value instead. This 
-    # is exemplified by the Money#exchange_to method that returns a new value object instead of changing 
-    # its own values. Active Record won't persist value objects that have been changed through means 
+    # It's also important to treat the value objects as immutable. Don't allow the Money object to have
+    # its amount changed after creation. Create a new Money object with the new value instead. This
+    # is exemplified by the Money#exchange_to method that returns a new value object instead of changing
+    # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
-    # The immutable requirement is enforced by Active Record by freezing any object assigned as a value 
+    # The immutable requirement is enforced by Active Record by freezing any object assigned as a value
     # object. Attempting to change it afterwards will result in a ActiveSupport::FrozenObjectError.
     #
-    # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not 
+    # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not
     # keeping value objects immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
     #
     # == Custom constructors and converters
     #
-    # By default value objects are initialized by calling the <tt>new</tt> constructor of the value 
-    # class passing each of the mapped attributes, in the order specified by the <tt>:mapping</tt> 
-    # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows 
+    # By default value objects are initialized by calling the <tt>new</tt> constructor of the value
+    # class passing each of the mapped attributes, in the order specified by the <tt>:mapping</tt>
+    # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows
     # a custom constructor to be specified.
     #
-    # When a new value is assigned to the value object the default assumption is that the new value 
-    # is an instance of the value class. Specifying a custom converter allows the new value to be automatically 
+    # When a new value is assigned to the value object the default assumption is that the new value
+    # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #
-    # For example, the NetworkResource model has +network_address+ and +cidr_range+ attributes that 
-    # should be aggregated using the NetAddr::CIDR value class (http://netaddr.rubyforge.org). The constructor 
-    # for the value class is called +create+ and it expects a CIDR address string as a parameter. New 
-    # values can be assigned to the value object using either another NetAddr::CIDR object, a string 
-    # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet 
+    # For example, the NetworkResource model has +network_address+ and +cidr_range+ attributes that
+    # should be aggregated using the NetAddr::CIDR value class (http://netaddr.rubyforge.org). The constructor
+    # for the value class is called +create+ and it expects a CIDR address string as a parameter. New
+    # values can be assigned to the value object using either another NetAddr::CIDR object, a string
+    # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet
     # these requirements:
     #
     #   class NetworkResource < ActiveRecord::Base
@@ -157,8 +157,8 @@ module ActiveRecord
     #
     # == Finding records by a value object
     #
-    # Once a +composed_of+ relationship is specified for a model, records can be loaded from the database 
-    # by specifying an instance of the value object in the conditions hash. The following example 
+    # Once a +composed_of+ relationship is specified for a model, records can be loaded from the database
+    # by specifying an instance of the value object in the conditions hash. The following example
     # finds all customers with +balance_amount+ equal to 20 and +balance_currency+ equal to "USD":
     #
     #   Customer.find(:all, :conditions => {:balance => Money.new(20, "USD")})
@@ -168,27 +168,27 @@ module ActiveRecord
       # <tt>composed_of :address</tt> adds <tt>address</tt> and <tt>address=(new_address)</tt> methods.
       #
       # Options are:
-      # * <tt>:class_name</tt> - Specifies the class name of the association. Use it only if that name 
-      #   can't be inferred from the part id. So <tt>composed_of :address</tt> will by default be linked 
-      #   to the Address class, but if the real class name is CompanyAddress, you'll have to specify it 
+      # * <tt>:class_name</tt> - Specifies the class name of the association. Use it only if that name
+      #   can't be inferred from the part id. So <tt>composed_of :address</tt> will by default be linked
+      #   to the Address class, but if the real class name is CompanyAddress, you'll have to specify it
       #   with this option.
-      # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value 
-      #   object. Each mapping is represented as an array where the first item is the name of the 
-      #   entity attribute and the second item is the name the attribute in the value object. The 
-      #   order in which mappings are defined determine the order in which attributes are sent to the 
+      # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value
+      #   object. Each mapping is represented as an array where the first item is the name of the
+      #   entity attribute and the second item is the name the attribute in the value object. The
+      #   order in which mappings are defined determine the order in which attributes are sent to the
       #   value class constructor.
       # * <tt>:allow_nil</tt> - Specifies that the value object will not be instantiated when all mapped
-      #   attributes are +nil+.  Setting the value object to +nil+ has the effect of writing +nil+ to all 
+      #   attributes are +nil+.  Setting the value object to +nil+ has the effect of writing +nil+ to all
       #   mapped attributes.
       #   This defaults to +false+.
-      # * <tt>:constructor</tt> - A symbol specifying the name of the constructor method or a Proc that 
-      #   is called to initialize the value object. The constructor is passed all of the mapped attributes, 
-      #   in the order that they are defined in the <tt>:mapping option</tt>, as arguments and uses them 
+      # * <tt>:constructor</tt> - A symbol specifying the name of the constructor method or a Proc that
+      #   is called to initialize the value object. The constructor is passed all of the mapped attributes,
+      #   in the order that they are defined in the <tt>:mapping option</tt>, as arguments and uses them
       #   to instantiate a <tt>:class_name</tt> object.
       #   The default is <tt>:new</tt>.
-      # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt> 
-      #   or a Proc that is called when a new value is assigned to the value object. The converter is 
-      #   passed the single value that is used in the assignment and is only called if the new value is 
+      # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt>
+      #   or a Proc that is called when a new value is assigned to the value object. The converter is
+      #   passed the single value that is used in the assignment and is only called if the new value is
       #   not an instance of <tt>:class_name</tt>.
       #
       # Option examples:

@@ -87,7 +87,7 @@
       ActiveResource::HttpMock.respond_to do |mock|
         mock.get "/people/1.xml", {}, "<person><name>David</name></person>"
       end
-      
+
     Now:
       ActiveResource::HttpMock.respond_to.get "/people/1.xml", {}, "<person><name>David</name></person>"
 
@@ -97,14 +97,14 @@
       self.site   = "http://app/"
       self.format = :json
     end
-    
+
     person = Person.find(1) # => GET http://app/people/1.json
     person.name = "David"
     person.save             # => PUT http://app/people/1.json {name: "David"}
-    
+
     Person.format = :xml
     person.name = "Mary"
-    person.save             # => PUT http://app/people/1.json <person><name>Mary</name></person>    
+    person.save             # => PUT http://app/people/1.json <person><name>Mary</name></person>
 
 * Fix reload error when path prefix is used.  #8727 [Ian Warshak]
 
@@ -133,7 +133,7 @@
   class Project
     headers['X-Token'] = 'foo'
   end
-  
+
   # makes the GET request with the custom X-Token header
   Project.find(:all)
 
@@ -156,7 +156,7 @@
     end
 
   assert_kind_of Highrise::Comment, Note.find(1).comments.first
-    
+
 
 * Added load_attributes_from_response as a way of loading attributes from other responses than just create [David Heinemeier Hansson]
 
@@ -248,8 +248,8 @@ d
 
 * Basic validation support [Rick Olson]
 
-  Parses the xml response of ActiveRecord::Errors#to_xml with a similar interface to ActiveRecord::Errors.  
-  
+  Parses the xml response of ActiveRecord::Errors#to_xml with a similar interface to ActiveRecord::Errors.
+
     render :xml => @person.errors.to_xml, :status => '400 Validation Error'
 
 * Deep hashes are converted into collections of resources.  [Jeremy Kemper]
@@ -267,12 +267,12 @@ d
   * Add support for specifying prefixes.
   * Allow overriding of element_name, collection_name, and primary key
   * Provide simpler HTTP mock interface for testing
-  
+
     # rails routing code
     map.resources :posts do |post|
       post.resources :comments
     end
-    
+
     # ActiveResources
     class Post < ActiveResource::Base
       self.site = "http://37s.sunrise.i:3000/"
@@ -281,7 +281,7 @@ d
     class Comment < ActiveResource::Base
       self.site = "http://37s.sunrise.i:3000/posts/:post_id/"
     end
-    
+
     @post     = Post.find 5
     @comments = Comment.find :all, :post_id => @post.id
 

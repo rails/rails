@@ -5,7 +5,7 @@ futurama:
   content: I like futurama
   created_at: <%= 1.day.ago.to_s(:db) %>
   updated_at:
-  
+
 harvey_birdman:
   id: 2
   title: Harvey Birdman is the king of all men

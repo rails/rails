@@ -3,9 +3,9 @@ require 'active_support/core_ext/array/extract_options'
 
 class Module
   # Synchronize access around a method, delegating synchronization to a
-  # particular mutex. A mutex (either a Mutex, or any object that responds to 
+  # particular mutex. A mutex (either a Mutex, or any object that responds to
   # #synchronize and yields to a block) must be provided as a final :with option.
-  # The :with option should be a symbol or string, and can represent a method, 
+  # The :with option should be a symbol or string, and can represent a method,
   # constant, or instance or class variable.
   # Example:
   #   class SharedCache

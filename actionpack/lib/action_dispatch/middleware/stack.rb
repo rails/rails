@@ -69,7 +69,7 @@ module ActionDispatch
     end
 
     def active
-      ActiveSupport::Deprecation.warn "All middlewares in the chain are active since the laziness " << 
+      ActiveSupport::Deprecation.warn "All middlewares in the chain are active since the laziness " <<
         "was removed from the middleware stack", caller
     end
 

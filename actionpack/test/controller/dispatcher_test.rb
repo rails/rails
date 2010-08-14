@@ -6,7 +6,7 @@ class DeprecatedDispatcherTest < ActiveSupport::TestCase
     def call(env)
       [200, {}, 'response']
     end
-  end 
+  end
 
   def setup
     ActionDispatch::Callbacks.reset_callbacks(:prepare)

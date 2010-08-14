@@ -79,7 +79,7 @@ plugin 'authentication', :git => 'git://github.com/foor/bar.git'
 You can even install plugins as git submodules :
 
 <ruby>
-plugin 'authentication', :git => 'git://github.com/foor/bar.git', 
+plugin 'authentication', :git => 'git://github.com/foor/bar.git',
                          :submodule => true
 </ruby>
 
@@ -103,7 +103,7 @@ class Object
   def not_nil?
     !nil?
   end
-  
+
   def not_blank?
     !blank?
   end

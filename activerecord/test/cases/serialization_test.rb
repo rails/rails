@@ -5,7 +5,7 @@ require 'models/reply'
 require 'models/company'
 
 class SerializationTest < ActiveRecord::TestCase
-  
+
   fixtures :topics, :companies, :accounts
 
   FORMATS = [ :xml, :json ]

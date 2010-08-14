@@ -102,10 +102,10 @@ A short rundown of some of the major features:
     class WeblogController < ActionController::Base
       # filters as methods
       before_filter :authenticate, :cache, :audit
-      
+
       # filter as a proc
       after_filter { |c| c.response.body = Gzip::compress(c.response.body) }
-      
+
       # class filter
       after_filter LocalizeFilter
 

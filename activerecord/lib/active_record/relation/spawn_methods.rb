@@ -12,7 +12,7 @@ module ActiveRecord
           if method == :includes
             merged_relation = merged_relation.includes(value)
           else
-            merged_relation.send(:"#{method}_values=", value) 
+            merged_relation.send(:"#{method}_values=", value)
           end
         end
       end

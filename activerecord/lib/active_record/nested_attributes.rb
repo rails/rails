@@ -25,7 +25,7 @@ module ActiveRecord
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
-    # 
+    #
     # <tt>author_attributes=(attributes)</tt> and
     # <tt>pages_attributes=(attributes)</tt>.
     #

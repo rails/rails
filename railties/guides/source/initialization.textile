@@ -229,7 +229,7 @@ This file goes on to define some classes that will be automatically loaded using
 <ruby>
   require "active_support/inflector/methods"
   require "active_support/lazy_load_hooks"
-  
+
   module ActiveSupport
     module Autoload
       def self.extended(base)
@@ -250,7 +250,7 @@ This file goes on to define some classes that will be automatically loaded using
         end
         super const_name, location
       end
-      
+
       ...
     end
   end
@@ -337,7 +337,7 @@ As you can see for the duration of the +eager_autoload+ block the class variable
   autoload :I18n, "active_support/i18n"
 </ruby>
 
-So we know the ones in +eager_autoload+ are eagerly loaded and it does this by storing them in an +@@autoloads+ hash object and then loading them via +eager_autoload!+ which is called via the +preload_frameworks+ initializer defined in _railties/lib/rails/application/bootstrap.rb_. 
+So we know the ones in +eager_autoload+ are eagerly loaded and it does this by storing them in an +@@autoloads+ hash object and then loading them via +eager_autoload!+ which is called via the +preload_frameworks+ initializer defined in _railties/lib/rails/application/bootstrap.rb_.
 
 The classes and modules that are not +eager_autoload+'d are automatically loaded as they are references
 
@@ -423,16 +423,16 @@ Now that Rails has required Action Dispatch and it has required Rack, Rails can 
 <ruby>
   module Rails
     class Server < ::Rack::Server
-    
+
       ...
-      
+
       def initialize(*)
         super
         set_environment
       end
-      
+
       ...
-      
+
       def set_environment
         ENV["RAILS_ENV"] ||= options[:environment]
       end
@@ -486,7 +486,7 @@ And +default_options+ like this:
       :AccessLog   => [],
       :config      => "config.ru"
     }
-  end  
+  end
 </ruby>
 
 Here it is important to note that the default environment is _development_. After +Rack::Server#initialize+ has done its thing it returns to +Rails::Server#initialize+ which calls +set_environment+:
@@ -752,7 +752,7 @@ If you wish to know more about how they're deprecated see the +require 'active_s
 
 h4. +require 'rails/log_subscriber'+
 
-The +Rails::LogSubscriber+ provides a central location for logging in Rails 3 so as to not slow down the main thread. When you call one of the logging methods (+info+, +debug+, +warn+, +error+, +fatal+ or +unknown+) from the +Rails::LogSubscriber+ class or one of its subclasses this will notify the Rails logger to log this call in the fashion you specify, but will not write it to the file. The file writing is done at the end of the request, courtesy of the +Rails::Rack::Logger+ middleware. 
+The +Rails::LogSubscriber+ provides a central location for logging in Rails 3 so as to not slow down the main thread. When you call one of the logging methods (+info+, +debug+, +warn+, +error+, +fatal+ or +unknown+) from the +Rails::LogSubscriber+ class or one of its subclasses this will notify the Rails logger to log this call in the fashion you specify, but will not write it to the file. The file writing is done at the end of the request, courtesy of the +Rails::Rack::Logger+ middleware.
 
 Each Railtie defines its own class that descends from +Rails::LogSubscriber+ with each defining its own methods for logging individual tasks.
 
@@ -821,7 +821,7 @@ TODO: Quotify.
 <plain>
   Active Record connects business objects and database tables to create a persistable domain model where logic and data are presented in one wrapping. It's an implementation of the object-relational mapping (ORM) pattern by the same name as described by Martin Fowler:
 
-    "An object that wraps a row in a database table or view, encapsulates 
+    "An object that wraps a row in a database table or view, encapsulates
          the database access, and adds domain logic on that data."
 
   Active Record's main contribution to the pattern is to relieve the original of two stunting problems:
@@ -910,7 +910,7 @@ h5. +require 'active_record'+
 
 Back the initial require from the _railtie.rb_.
 
-The _active_support_ and _active_model_ requires are again just an insurance for if we're loading Active Record outside of the scope of Rails. In _active_record.rb_ the ActiveRecord +Module+ is initialized and in it there is defined a couple of +autoloads+ and +eager_autoloads+. 
+The _active_support_ and _active_model_ requires are again just an insurance for if we're loading Active Record outside of the scope of Rails. In _active_record.rb_ the ActiveRecord +Module+ is initialized and in it there is defined a couple of +autoloads+ and +eager_autoloads+.
 
 There's a new method here called +autoload_under+ which is defined in +ActiveSupport::Autoload+. This sets the autoload path to temporarily be the specified path, in this case +relation+ for the +autoload+'d classes inside the block.
 
@@ -935,7 +935,7 @@ Inside the Active Record Railtie the +ActiveRecord::Railtie+ class is defined:
 <ruby>
   module ActiveRecord
     class Railtie < Rails::Railtie
-    
+
     ...
     end
   end
@@ -964,8 +964,8 @@ This Railtie is +require+'d by Active Record's Railtie.
 From the Active Model readme:
 
 <plain>
-  Prior to Rails 3.0, if a plugin or gem developer wanted to be able to have an object interact with Action Pack helpers, it was required to either copy chunks of code from Rails, or monkey patch entire helpers to make them handle objects that did not look like Active Record.  This generated code duplication and fragile applications that broke on upgrades. 
-  
+  Prior to Rails 3.0, if a plugin or gem developer wanted to be able to have an object interact with Action Pack helpers, it was required to either copy chunks of code from Rails, or monkey patch entire helpers to make them handle objects that did not look like Active Record.  This generated code duplication and fragile applications that broke on upgrades.
+
   Active Model is a solution for this problem.
 
   Active Model provides a known set of interfaces that your objects can implement to then present a common interface to the Action Pack helpers.
@@ -999,7 +999,7 @@ This first makes a couple of requires:
   require "action_view/railtie"
 </ruby>
 
-The _action_controller_ file is explained in the very next section. The require to _rails_ is requiring the already-required _railties/lib/rails.rb_. If you wish to know about the require to _action_view/railtie_ this is explained in the Action View Railtie section. 
+The _action_controller_ file is explained in the very next section. The require to _rails_ is requiring the already-required _railties/lib/rails.rb_. If you wish to know about the require to _action_view/railtie_ this is explained in the Action View Railtie section.
 
 h5. +require 'action_controller+
 
@@ -1009,7 +1009,7 @@ h5. +require 'abstract_controller'+
 
 +AbstractController+ provides the functionality of TODO.
 
-This file is in _actionpack/lib/abstract_controller.rb_ and begins by attempting to add the path to Active Support to the load path, which it would succeed in if it wasn't already set by anything loaded before it. In this case, it's not going to be set due to Arel already loading it in (TODO: right?). 
+This file is in _actionpack/lib/abstract_controller.rb_ and begins by attempting to add the path to Active Support to the load path, which it would succeed in if it wasn't already set by anything loaded before it. In this case, it's not going to be set due to Arel already loading it in (TODO: right?).
 
 The next thing in this file four +require+ calls:
 
@@ -1146,9 +1146,9 @@ For an explanation of this file _activesupport/lib/active_support/core_ext/class
 
 h5. +require 'active_support/deprecation/proxy_wrappers'+
 
-This file, _activesupport/lib/active_support/deprecation/proxy_wrappers.rb_, defines a couple of deprecation classes, which are +DeprecationProxy+, +DeprecationObjectProxy+, +DeprecationInstanceVariableProxy+, +DeprecationConstantProxy+ which are all namespaced into +ActiveSupport::Deprecation+. These last three are all subclasses of +DeprecationProxy+. 
+This file, _activesupport/lib/active_support/deprecation/proxy_wrappers.rb_, defines a couple of deprecation classes, which are +DeprecationProxy+, +DeprecationObjectProxy+, +DeprecationInstanceVariableProxy+, +DeprecationConstantProxy+ which are all namespaced into +ActiveSupport::Deprecation+. These last three are all subclasses of +DeprecationProxy+.
 
-Why do we mention them here? Beside the obvious-by-now fact that we're covering just about everything about the initialization process in this guide, if you're deprecating something in your library and you use Active Support, you too can use the +DeprecationProxy+ class (and it's subclasses) too. 
+Why do we mention them here? Beside the obvious-by-now fact that we're covering just about everything about the initialization process in this guide, if you're deprecating something in your library and you use Active Support, you too can use the +DeprecationProxy+ class (and it's subclasses) too.
 
 
 h6. +DeprecationProxy+
@@ -1177,7 +1177,7 @@ This class is used only in _railties/lib/rails/deprecation.rb_, loaded further o
   end).new
 </ruby>
 
-There is similar definitions for the other constants of +RAILS_ENV+ and +RAILS_DEFAULT_LOGGER+. All three of these constants are in the midst of being deprecated (most likely in Rails 3.1) so Rails will tell you if you reference them that they're deprecated using the +DeprecationProxy+ class. Whenever you call +RAILS_ROOT+ this will raise a warning, telling you: "RAILS_ROOT is deprecated! Use Rails.root instead".... TODO: investigate if simply calling it does raise this warning. This same rule applies to +RAILS_ENV+ and +RAILS_DEFAULT_LOGGER+, their new alternatives are +Rails.env+ and +Rails.logger+ respectively. 
+There is similar definitions for the other constants of +RAILS_ENV+ and +RAILS_DEFAULT_LOGGER+. All three of these constants are in the midst of being deprecated (most likely in Rails 3.1) so Rails will tell you if you reference them that they're deprecated using the +DeprecationProxy+ class. Whenever you call +RAILS_ROOT+ this will raise a warning, telling you: "RAILS_ROOT is deprecated! Use Rails.root instead".... TODO: investigate if simply calling it does raise this warning. This same rule applies to +RAILS_ENV+ and +RAILS_DEFAULT_LOGGER+, their new alternatives are +Rails.env+ and +Rails.logger+ respectively.
 
 h6. +DeprecatedObjectProxy+
 
@@ -1203,7 +1203,7 @@ This makes more sense in the wider scope of the initializer:
   end
 </ruby>
 
-+ActionController::Routing::Routes+ was the previous constant used in defining routes in Rails 2 applications, now it's simply a method on +Rails.application+ rather than it's own individual class: +Rails.application.routes+. Both of these still call the +draw+ method on the returned object to end up defining the routes. 
++ActionController::Routing::Routes+ was the previous constant used in defining routes in Rails 2 applications, now it's simply a method on +Rails.application+ rather than it's own individual class: +Rails.application.routes+. Both of these still call the +draw+ method on the returned object to end up defining the routes.
 
 
 h6. +DeprecatedInstanceVariableProxy+
@@ -1362,7 +1362,7 @@ Here again we have the addition of the path to Active Support to the load path a
 
 And these have already been required. If you wish to know what these files do go to the explanation of each in the "Common Includes" section. TODO: link to them!
 
-This file goes on to +require 'action_pack'+ which consists of all this code (comments stripped): 
+This file goes on to +require 'action_pack'+ which consists of all this code (comments stripped):
 
 <ruby>
   require 'action_pack/version'
@@ -1445,11 +1445,11 @@ After including +ActiveSupport::Benchmarkable+, the helpers which we have declar
 
 h5. +ActionView::Rendering+
 
-This module, from _actionpack/lib/action_view/render/rendering.rb_ defines a method you may be a little too familiar with: +render+. This is the +render+ use for rendering all kinds of things, such as partials, templates and text. 
+This module, from _actionpack/lib/action_view/render/rendering.rb_ defines a method you may be a little too familiar with: +render+. This is the +render+ use for rendering all kinds of things, such as partials, templates and text.
 
 h5. +ActionView::Partials+
 
-This module, from _actionpack/lib/action_view/render/partials.rb_, defines +ActionView::Partials::PartialRenderer+ which you can probably guess is used for rendering partials. 
+This module, from _actionpack/lib/action_view/render/partials.rb_, defines +ActionView::Partials::PartialRenderer+ which you can probably guess is used for rendering partials.
 
 h5. +ActionView::Layouts+
 
@@ -1487,7 +1487,7 @@ Next, the Railtie itself is defined:
       end
     end
   end
-</ruby> 
+</ruby>
 
 The +ActionView::LogSubscriber+ sets up a method called +render_template+ which is called when a template is rendered. TODO: Templates only or partials and layouts also? I would imagine these fall under the templates category, but there needs to research to ensure this is correct.
 
@@ -1502,7 +1502,7 @@ are used to consolidate code for sending out forgotten passwords, welcome
 wishes on signup, invoices for billing, and any other use case that requires
 a written notification to either a person or another system.
 
-Action Mailer is in essence a wrapper around Action Controller and the 
+Action Mailer is in essence a wrapper around Action Controller and the
 Mail gem.  It provides a way to make emails using templates in the same
 way that Action Controller renders views using templates.
 
@@ -1580,7 +1580,7 @@ which is used by the +ActionMailer::MailerHelper+ method +block_format+:
         :columns => 72, :first_indent => 2, :body_indent => 2, :text => paragraph
       ).format
     }.join("\n")
-  
+
     # Make list points stand on their own line
     formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
     formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { |s| "  #{$1} #{$2.strip}\n" }
@@ -1687,7 +1687,7 @@ There is only one initializer defined here: +set_configs+. This is covered later
 
 h4. ActionDispatch Railtie
 
-ActionDispatch handles all dispatch work for Rails. It interfaces with Action Controller to determine what action to undertake when a request comes in. TODO: I would quote the README but it is strangely absent. Flyin' blind here! 
+ActionDispatch handles all dispatch work for Rails. It interfaces with Action Controller to determine what action to undertake when a request comes in. TODO: I would quote the README but it is strangely absent. Flyin' blind here!
 
 The ActionDispatch Railtie was previously required when we called +require 'rails'+, but we will cover the Railtie here too.
 
@@ -1817,7 +1817,7 @@ This +called_from+ setting looks a little overwhelming to begin with, but the sh
       base.send(:include, self::Configurable)
       subclasses << base
     end
-  end  
+  end
 </ruby>
 
 Again, +YourApp::Application+ will return false for +abstract_railtie+ and so the code inside the +unless+ will be ran. The first line:
@@ -1886,7 +1886,7 @@ Now that we've covered the boot process of Rails the next line best to cover wou
   Rails::Server.start
 </ruby>
 
-The keen-eyed observer will note that this +when+ also specifies the argument could also be simply +'s'+ thereby making the full command +rails s+. This is the same with the other commands with +generate+ becoming +g+, +console+ becoming +c+ and +dbconsole+ becoming +db+. 
+The keen-eyed observer will note that this +when+ also specifies the argument could also be simply +'s'+ thereby making the full command +rails s+. This is the same with the other commands with +generate+ becoming +g+, +console+ becoming +c+ and +dbconsole+ becoming +db+.
 
 This code here ensures we are at the +ROOT_PATH+ of our application (this constant was defined in _script/rails_) and then calls +Rails::Server.start+. +Rails::Server+ descends from +Rack::Server+ which is defined in the rack gem. The +Rails::Server.start+ method is defined like this:
 
@@ -1997,7 +1997,7 @@ Finally! We've arrived at +default_options+ which leads into our next point quit
   end
 </ruby>
 
-We're not debugging anything, so there goes the first 7 lines, we're not warning, nor are we including, requiring, daemonising or writing out a pid file. That's everything except the final line, which calls +run+ with the +wrapped_app+ which is then defined like this: 
+We're not debugging anything, so there goes the first 7 lines, we're not warning, nor are we including, requiring, daemonising or writing out a pid file. That's everything except the final line, which calls +run+ with the +wrapped_app+ which is then defined like this:
 
 <ruby>
   def wrapped_app
@@ -2051,7 +2051,7 @@ First this reads your config file and checks it for +#\+ at the beginning. This 
 
   require ::File.expand_path('../config/environment',  __FILE__)
   run YourApp::Application.instance
-  
+
 </ruby>
 
 TODO: Is the above correct? I am simply guessing!
@@ -2246,7 +2246,7 @@ The method +find_with_root_flag+ is defined on +Rails::Engine+ (the superclass o
       Pathname.new(root).expand_path : Pathname.new(root).realpath
   end
 </ruby>
-  
+
 +called_from+ goes through the +caller+ which is the stacktrace of the current thread, in the case of your application it would go a little like this:
 
 <pre>
@@ -2274,7 +2274,7 @@ The method +find_with_root_flag+ is defined on +Rails::Engine+ (the superclass o
   end
 </ruby>
 
-The +call_stack+ here is the +caller+ output shown previously, minus everything after the first +:+ on all the lines. The first path that matches this is _/usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0.beta1/lib/rails_. Yours may vary slightly, but should always end in _railties-x.x.x/lib/rails_. 
+The +call_stack+ here is the +caller+ output shown previously, minus everything after the first +:+ on all the lines. The first path that matches this is _/usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0.beta1/lib/rails_. Yours may vary slightly, but should always end in _railties-x.x.x/lib/rails_.
 
 The code in +find_root_with_flag+ will go up this directory structure until it reaches the top, which in this case is +/+.
 
@@ -2302,7 +2302,7 @@ At the root of the system it looks for +config.ru+. TODO: Why? Obviously it's no
     @serve_static_assets = true
     @time_zone           = "UTC"
     @consider_all_requests_local = true
-  end  
+  end
 </ruby>
 
 The +super+ method here is the +initialize+ method in +Rails::Engine::Configuration+:
@@ -2604,7 +2604,7 @@ The +plugins+ method it calls is a little more complex:
 </ruby>
 
 When we call +@config.paths.vendor.plugins+ it will return +"vendor/plugins"+.
-  
+
 
 If you've defined specific plugin requirements for your application in _config/application.rb_ by using this code:
 
@@ -2725,7 +2725,7 @@ Now we finally have all the +initializers+ we can go through them and call +run+
   end
 </ruby>
 
-You may remember that the +@context+ in this code is +YourApp::Application+ and calling +instance_exec+ on this class will make a new instance of it and execute the code within the +&block+ passed to it. This code within the block is the code from all the initializers. 
+You may remember that the +@context+ in this code is +YourApp::Application+ and calling +instance_exec+ on this class will make a new instance of it and execute the code within the +&block+ passed to it. This code within the block is the code from all the initializers.
 
 h3. Bootstrap Initializers
 
@@ -2759,15 +2759,15 @@ We've seen +config.paths+ before when loading the plugins and they're explained 
 <ruby>
 module Rails
   class << self
-  
+
     ...
-  
+
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
-  
+
     ...
-    
+
   end
 end
 </ruby>
@@ -2953,7 +2953,7 @@ This is where it gets loaded. The +eager_autoload!+ method is defined like this:
   end
 </ruby>
 
-With +@@autoloads+ being 
+With +@@autoloads+ being
 
 
 * load_all_active_support
@@ -3144,9 +3144,9 @@ h4. +ActionDispatch::MiddlewareStack.new+
 <ruby>
   module ActionDispatch
     class MiddlewareStack < Array
-    
+
       ...
-      
+
       def initialize(*args, &block)
         super(*args)
         block.call(self) if block_given?
@@ -3188,9 +3188,9 @@ This +initialize+ method also is in a class who's ancestry is important so once 
 <ruby>
   module ActionController
     class Middleware < Metal
-    
+
     ...
-    
+
       def initialize(app)
         super()
         @_app = app
@@ -3207,9 +3207,9 @@ This is another subclassed class, this time from +ActionController::AbstractCont
 
 <ruby>
   class Metal < AbstractController::Base
-  
+
     ...
-    
+
     def initialize(*)
       @_headers = {}
       super
@@ -3217,7 +3217,7 @@ This is another subclassed class, this time from +ActionController::AbstractCont
   end
 </ruby>
 
-The single +*+ in the argument listing means we can accept any number of arguments, we just don't care what they are. 
+The single +*+ in the argument listing means we can accept any number of arguments, we just don't care what they are.
 
 h4. +AbstractController::Base.initialize+
 
@@ -3232,7 +3232,7 @@ This may be anti-climatic, but the initialize method here just returns an +Abstr
 
 h4. +ActionDispatch::MiddlewareStack.use+
 
-Now we're back to this method, from our foray into the depths of how +Middleware.new+ works, we've showed that it is an instance of +AbstractController::Base+. Therefore it does 
+Now we're back to this method, from our foray into the depths of how +Middleware.new+ works, we've showed that it is an instance of +AbstractController::Base+. Therefore it does
 
 TODO: ELABORATE ON THIS SECTION, including explaining what all the pieces of middleware do. Then explain how the default_middleware_stack does what it does, whatever that is.
 
@@ -3309,7 +3309,7 @@ In a standard Rails application we have this in our _config/environments/develop
   end
 </ruby>
 
-It's a little bit sneaky here, but +configure+ is +alias+'d to +class_eval+ on subclasses of +Rails::Application+ which of course includes +YourApp::Application+. This means that the code inside the +configure do+ block will be evaled within the context of +YourApp::Application+. The +config+ method here is the one mentioned before: the +Rails::Application::Configuration+ object. The methods on it should look familiar too: they're the ones that had +attr_accessor+ and +attr_writer+ definitions. 
+It's a little bit sneaky here, but +configure+ is +alias+'d to +class_eval+ on subclasses of +Rails::Application+ which of course includes +YourApp::Application+. This means that the code inside the +configure do+ block will be evaled within the context of +YourApp::Application+. The +config+ method here is the one mentioned before: the +Rails::Application::Configuration+ object. The methods on it should look familiar too: they're the ones that had +attr_accessor+ and +attr_writer+ definitions.
 
 The ones down the bottom, +config.action_controller+, +config.action_view+ and +config.action_mailer+ aren't defined by +attr_accessor+ or +attr_writer+, rather they're undefined methods and therefore will trigger the +method_missing+ on the +Rails::Application::Configuration+ option.
 
@@ -3381,7 +3381,7 @@ I'm going to show you two methods since the third one, +self.plugin_name+, calls
         @plugins ||= []
         @plugins << klass unless klass == Plugin
       end
-  
+
       def self.plugins
         @plugins
       end
@@ -3472,7 +3472,7 @@ h5. +Rack::Handler::WEBrick+
 This class is subclassed from +WEBrick::HTTPServlet::AbstractServlet+ which is a class that comes with the Ruby standard library. This is the magical class that serves the requests and deals with the comings (requests) and goings (responses) for your server.
 
 
-+Rack::Server+ has handlers for the request and by default the handler for a _rails server_ server is 
++Rack::Server+ has handlers for the request and by default the handler for a _rails server_ server is
 
 h3. Cruft!
 
@@ -3706,7 +3706,7 @@ This file is _activesupport/lib/active_support/inflector.rb_ and makes a couple 
   require 'active_support/core_ext/string/inflections'
 </ruby>
 
-The files included here define methods for modifying strings, such as +transliterate+ which will convert a Unicode string to its ASCII version, +parameterize+ for making strings into url-safe versions, +camelize+ for camel-casing a string such as +string_other+ into +StringOther+ and +ordinalize+ converting a string such as +101+ into +101st+. More information about these methods can be found in the Active Support Core Extensions Guide. TODO: Link to AS Guide. 
+The files included here define methods for modifying strings, such as +transliterate+ which will convert a Unicode string to its ASCII version, +parameterize+ for making strings into url-safe versions, +camelize+ for camel-casing a string such as +string_other+ into +StringOther+ and +ordinalize+ converting a string such as +101+ into +101st+. More information about these methods can be found in the Active Support Core Extensions Guide. TODO: Link to AS Guide.
 
 h4. +require 'active_support/core_ext/module/delegation'+
 
@@ -3715,7 +3715,7 @@ _activesupport/lib/active_support/core_ext/module/delegation.rb_ defines the +de
 <ruby>
   class Client < ActiveRecord::Base
     has_one :address
-    
+
     delegate :address_line_1, :to => :address
   end
 </ruby>
@@ -3736,7 +3736,7 @@ h4. +require 'active_support/core_ext/class/attribute_accessors'+
 
 The file, _activesupport/lib/active_support/core_ext/class/attribute_accessors.rb_, defines the class accessor methods +cattr_writer+, +cattr_reader+ and +cattr_accessor+. +cattr_accessor+ defines a +cattr_reader+ and +cattr_writer+ for the symbol passed in. These methods work by defining class variables when you call their dynamic methods.
 
-Throughout the Railties there a couple of common includes. They are listed here for your convenience. 
+Throughout the Railties there a couple of common includes. They are listed here for your convenience.
 
 h4. +require 'active_support/core_ext/module/attr_internal+
 

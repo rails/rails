@@ -4,7 +4,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     # Reflection enables to interrogate Active Record classes and objects
-    # about their associations and aggregations. This information can, 
+    # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
     # and displays the associations to other objects.
@@ -39,7 +39,7 @@ module ActiveRecord
         reflections.values.select { |reflection| reflection.is_a?(AggregateReflection) }
       end
 
-      # Returns the AggregateReflection object for the named +aggregation+ (use the symbol). 
+      # Returns the AggregateReflection object for the named +aggregation+ (use the symbol).
       #
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
@@ -47,9 +47,9 @@ module ActiveRecord
         reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil
       end
 
-      # Returns an array of AssociationReflection objects for all the 
-      # associations in the class. If you only want to reflect on a certain 
-      # association type, pass in the symbol (<tt>:has_many</tt>, <tt>:has_one</tt>, 
+      # Returns an array of AssociationReflection objects for all the
+      # associations in the class. If you only want to reflect on a certain
+      # association type, pass in the symbol (<tt>:has_many</tt>, <tt>:has_one</tt>,
       # <tt>:belongs_to</tt>) as the first parameter.
       #
       # Example:
@@ -78,7 +78,7 @@ module ActiveRecord
     end
 
 
-    # Abstract base class for AggregateReflection and AssociationReflection. Objects of 
+    # Abstract base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       attr_reader :active_record
@@ -89,23 +89,23 @@ module ActiveRecord
 
       # Returns the name of the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt> 
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt>
       # <tt>has_many :clients</tt> returns <tt>:clients</tt>
       attr_reader :name
 
-      # Returns the macro type. 
+      # Returns the macro type.
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:composed_of</tt>
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
       attr_reader :macro
 
-      # Returns the hash of options used for the macro.  
+      # Returns the hash of options used for the macro.
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
       attr_reader :options
 
-      # Returns the class for the macro.  
+      # Returns the class for the macro.
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
@@ -113,7 +113,7 @@ module ActiveRecord
         @klass ||= class_name.constantize
       end
 
-      # Returns the class name for the macro.  
+      # Returns the class name for the macro.
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
@@ -138,12 +138,12 @@ module ActiveRecord
     end
 
 
-    # Holds all the meta-data about an aggregation as it was specified in the 
+    # Holds all the meta-data about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
     end
 
-    # Holds all the meta-data about an association as it was specified in the 
+    # Holds all the meta-data about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       # Returns the target association's class.

@@ -12,50 +12,50 @@ module ActiveModel
   #
   # Provides a modified +OrderedHash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
-  # 
+  #
   # A minimal implementation could be:
-  # 
+  #
   #   class Person
-  #   
+  #
   #     # Required dependency for ActiveModel::Errors
   #     extend ActiveModel::Naming
-  # 
+  #
   #     def initialize
   #       @errors = ActiveModel::Errors.new(self)
   #     end
-  #   
+  #
   #     attr_accessor :name
   #     attr_reader   :errors
-  #   
+  #
   #     def validate!
   #       errors.add(:name, "can not be nil") if name == nil
   #     end
-  #   
+  #
   #     # The following methods are needed to be minimally implemented
   #
   #     def read_attribute_for_validation(attr)
   #       send(attr)
   #     end
-  #   
+  #
   #     def Person.human_attribute_name(attr, options = {})
   #       attr
   #     end
-  #   
+  #
   #     def Person.lookup_ancestors
   #       [self]
   #     end
-  #   
+  #
   #   end
-  # 
+  #
   # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
   # languages.  Of course, if you extend your object with ActiveModel::Translations
   # you will not need to implement the last two.  Likewise, using
   # ActiveModel::Validations will handle the validation related methods
   # for you.
-  # 
+  #
   # The above allows you to do:
-  # 
+  #
   #   p = Person.new
   #   p.validate!             # => ["can not be nil"]
   #   p.errors.full_messages  # => ["name can not be nil"]
@@ -66,7 +66,7 @@ module ActiveModel
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank]
 
     # Pass in the instance of the object that is using the errors object.
-    # 
+    #
     #   class Person
     #     def initialize
     #       @errors = ActiveModel::Errors.new(self)
@@ -80,9 +80,9 @@ module ActiveModel
     alias_method :get, :[]
     alias_method :set, :[]=
 
-    # When passed a symbol or a name of a method, returns an array of errors 
+    # When passed a symbol or a name of a method, returns an array of errors
     # for the method.
-    # 
+    #
     #   p.errors[:name]   # => ["can not be nil"]
     #   p.errors['name']  # => ["can not be nil"]
     def [](attribute)
@@ -90,7 +90,7 @@ module ActiveModel
     end
 
     # Adds to the supplied attribute the supplied error message.
-    # 
+    #
     #   p.errors[:name] = "must be set"
     #   p.errors[:name] # => ['must be set']
     def []=(attribute, error)
@@ -100,12 +100,12 @@ module ActiveModel
     # Iterates through each error key, value pair in the error messages hash.
     # Yields the attribute and the error for that attribute.  If the attribute
     # has more than one error message, yields once for each error message.
-    # 
+    #
     #   p.errors.add(:name, "can't be blank")
     #   p.errors.each do |attribute, errors_array|
     #     # Will yield :name and "can't be blank"
     #   end
-    # 
+    #
     #   p.errors.add(:name, "must be specified")
     #   p.errors.each do |attribute, errors_array|
     #     # Will yield :name and "can't be blank"
@@ -118,7 +118,7 @@ module ActiveModel
     end
 
     # Returns the number of error messages.
-    # 
+    #
     #   p.errors.add(:name, "can't be blank")
     #   p.errors.size # => 1
     #   p.errors.add(:name, "must be specified")
@@ -128,7 +128,7 @@ module ActiveModel
     end
 
     # Returns an array of error messages, with the attribute name included
-    # 
+    #
     #   p.errors.add(:name, "can't be blank")
     #   p.errors.add(:name, "must be specified")
     #   p.errors.to_a # => ["name can't be blank", "name must be specified"]
@@ -151,7 +151,7 @@ module ActiveModel
     end
 
     # Returns an xml formatted representation of the Errors hash.
-    # 
+    #
     #   p.errors.add(:name, "can't be blank")
     #   p.errors.add(:name, "must be specified")
     #   p.errors.to_xml
@@ -167,14 +167,14 @@ module ActiveModel
 
     # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
     def as_json(options=nil)
-      self 
+      self
     end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
     # <tt>on(attribute)</tt> for the same attribute. More than one error can be added to the same
     # +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
-    # 
+    #
     # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
@@ -253,19 +253,19 @@ module ActiveModel
       full_messages
     end
 
-    # Translates an error message in its default scope 
+    # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #
-    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, 
-    # if it's not there, it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not 
-    # there also, it returns the translation of the default message 
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>,
+    # if it's not there, it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not
+    # there also, it returns the translation of the default message
     # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name,
     # translated attribute name and the value are available for interpolation.
     #
     # When using inheritance in your models, it will check all the inherited
     # models too, but only if the model itself hasn't been found. Say you have
-    # <tt>class Admin < User; end</tt> and you wanted the translation for 
-    # the <tt>:blank</tt> error +message+ for the <tt>title</tt> +attribute+, 
+    # <tt>class Admin < User; end</tt> and you wanted the translation for
+    # the <tt>:blank</tt> error +message+ for the <tt>title</tt> +attribute+,
     # it looks for these translations:
     #
     # <ol>

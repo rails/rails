@@ -41,16 +41,16 @@ module ActiveModel
   # == Active Model Naming
   #
   # Creates a +model_name+ method on your object.
-  # 
+  #
   # To implement, just extend ActiveModel::Naming in your object:
-  # 
+  #
   #   class BookCover
   #     extend ActiveModel::Naming
   #   end
-  # 
+  #
   #   BookCover.model_name        # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
-  # 
+  #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test.  So either extending the provided
   # method below, or rolling your own is required..
@@ -90,5 +90,5 @@ module ActiveModel
         (record_or_class.is_a?(Class) ? record_or_class : record_or_class.class).model_name
       end
   end
-  
+
 end

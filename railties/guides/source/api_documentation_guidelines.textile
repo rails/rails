@@ -25,7 +25,7 @@ end
 
 Communicate to the reader the current way of doing things, both explicitly and implicitly. Use the recommended idioms in edge, reorder sections to emphasize favored approaches if needed, etc. The documentation should be a model for best practices and canonical, modern Rails usage.
 
-Documentation has to be concise but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil? 
+Documentation has to be concise but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
 
 The proper names of Rails components have a space in between the words, like "Active Support". +ActiveRecord+ is a Ruby module, whereas Active Record is an ORM. Historically there has been lack of consistency regarding this, but we checked with David when docrails started. All Rails documentation consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be fenomenal :).
 
@@ -125,7 +125,7 @@ def copy_instance_variables_from(object, exclude = [])
 end
 </ruby>
 
-WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching <tt>\A\w&#43;\z</tt>. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc: 
+WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching <tt>\A\w&#43;\z</tt>. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc:
 
 h4. Regular Font
 

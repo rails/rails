@@ -15,7 +15,7 @@ module ActionDispatch
   #   match ':controller(/:action(/:id(.:format)))'
   #
   # This route states that it expects requests to consist of a
-  # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in 
+  # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in
   # turn is followed optionally by an <tt>:id</tt>, which in turn is followed
   # optionally by a <tt>:format</tt>
   #
@@ -134,8 +134,8 @@ module ActionDispatch
   # == HTTP Methods
   #
   # Using the <tt>:via</tt> option when specifying a route allows you to restrict it to a specific HTTP method.
-  # Possible values are <tt>:post</tt>, <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>. 
-  # If your route needs to respond to more than one method you can use an array, e.g. <tt>[ :get, :post ]</tt>. 
+  # Possible values are <tt>:post</tt>, <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>.
+  # If your route needs to respond to more than one method you can use an array, e.g. <tt>[ :get, :post ]</tt>.
   # The default value is <tt>:any</tt> which means that the route will respond to any of the HTTP methods.
   #
   # Examples:
@@ -144,7 +144,7 @@ module ActionDispatch
   #   match 'post/:id' => "posts#create_comment', :via => :post
   #
   # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action. 
+  # URL will route to the <tt>show</tt> action.
   #
   # === HTTP helper methods
   #

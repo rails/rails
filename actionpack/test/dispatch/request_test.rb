@@ -428,7 +428,7 @@ class RequestTest < ActiveSupport::TestCase
 
     assert_equal "[FILTERED]", request.raw_post
     assert_equal "[FILTERED]", request.params["amount"]
-    assert_equal "1", request.params["step"]    
+    assert_equal "1", request.params["step"]
   end
 
 protected

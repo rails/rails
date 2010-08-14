@@ -79,7 +79,7 @@ module ActiveModel
       end
 
       # == Errors Testing
-      # 
+      #
       # Returns an object that has :[] and :full_messages defined on it. See below
       # for more details.
       #
