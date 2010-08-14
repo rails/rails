@@ -112,7 +112,7 @@ class RenderHelperTest < Test::Unit::TestCase
 
   def test_file_template
     mail = RenderMailer.file_template
-    assert_equal "Hello there, \n\nMr. test@localhost", mail.body.to_s.strip
+    assert_equal "Hello there,\n\nMr. test@localhost", mail.body.to_s.strip
   end
 
   def test_rxml_template
