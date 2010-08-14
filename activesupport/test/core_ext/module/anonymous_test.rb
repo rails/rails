@@ -6,7 +6,7 @@ class AnonymousTest < ActiveSupport::TestCase
     assert Module.new.anonymous?
     assert Class.new.anonymous?
   end
-  
+
   test "a named class or module are not anonymous" do
     assert !Kernel.anonymous?
     assert !Object.anonymous?

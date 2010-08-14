@@ -1401,8 +1401,8 @@ person = Person.create(:name => 'honda')
 post   = Post.create(:name => 'a1')
 person.posts << post
 person.posts << post
-person.posts.inspect # => [#<Post id: 7, name: "a1">] 
-Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>] 
+person.posts.inspect # => [#<Post id: 7, name: "a1">]
+Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>]
 </ruby>
 
 In the above case there are still two readings. However +person.posts+ shows only one post because the collection loads only unique records.

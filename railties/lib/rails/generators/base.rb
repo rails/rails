@@ -81,7 +81,7 @@ module Rails
       # guessed based on class invokes hook_for, as noticed in the example above.
       # This can be customized with two options: :base and :as.
       #
-      # Let's suppose you are creating a generator that needs to invoke the 
+      # Let's suppose you are creating a generator that needs to invoke the
       # controller generator from test unit. Your first attempt is:
       #
       #   class AwesomeGenerator < Rails::Generators::Base

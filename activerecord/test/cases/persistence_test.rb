@@ -334,7 +334,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   # This test is correct, but it is hard to fix it since
-  # update_attribute trigger simply call save! that triggers 
+  # update_attribute trigger simply call save! that triggers
   # all callbacks.
   # def test_update_attribute_with_one_changed_and_one_updated
   #   t = Topic.order('id').limit(1).first
@@ -348,7 +348,7 @@ class PersistencesTest < ActiveRecord::TestCase
   #   assert !t.title_changed?, "title should not have changed"
   #   assert_nil t.title_change, 'title change should be nil'
   #   assert_equal ['author_name'], t.changed
-  # 
+  #
   #   t.reload
   #   assert_equal 'David', t.author_name
   #   assert_equal 'super_title', t.title

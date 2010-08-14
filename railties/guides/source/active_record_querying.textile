@@ -153,7 +153,7 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 
 h4. Retrieving Multiple Objects in Batches
 
-Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc. 
+Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc.
 
 The following may seem very straight forward at first:
 
@@ -674,7 +674,7 @@ Post.joins(:category, :comments)
 This produces:
 
 <sql>
-SELECT posts.* FROM posts 
+SELECT posts.* FROM posts
   INNER JOIN categories ON posts.category_id = categories.id
   INNER JOIN comments ON comments.post_id = posts.id
 </sql>
@@ -753,7 +753,7 @@ h4. Eager Loading Multiple Associations
 
 Active Record lets you eager load any number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
 
-h5. Array of Multiple Associations 
+h5. Array of Multiple Associations
 
 <ruby>
 Post.includes(:category, :comments)
@@ -771,7 +771,7 @@ This will find the category with id 1 and eager load all of the associated posts
 
 h4. Specifying Conditions on Eager Loaded Associations
 
-Even though Active Record lets you specify conditions on the eager loaded associations just like +joins+, the recommended way is to use "joins":#joining-tables instead. 
+Even though Active Record lets you specify conditions on the eager loaded associations just like +joins+, the recommended way is to use "joins":#joining-tables instead.
 
 h3. Dynamic Finders
 
@@ -807,8 +807,8 @@ h3. Finding by SQL
 If you'd like to use your own SQL to find records in a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
 
 <ruby>
-Client.find_by_sql("SELECT * FROM clients 
-  INNER JOIN orders ON clients.id = orders.client_id 
+Client.find_by_sql("SELECT * FROM clients
+  INNER JOIN orders ON clients.id = orders.client_id
   ORDER clients.created_at desc")
 </ruby>
 

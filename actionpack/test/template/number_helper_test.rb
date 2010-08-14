@@ -116,7 +116,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "9775.00", number_with_precision(9775, :precision => 6, :significant => true )
     assert_equal "5.392900", number_with_precision(5.3929, :precision => 7, :significant => true )
     assert_equal "0.0", number_with_precision(0, :precision => 2, :significant => true )
-    assert_equal "0", number_with_precision(0, :precision => 1, :significant => true )    
+    assert_equal "0", number_with_precision(0, :precision => 1, :significant => true )
     assert_equal "0.0001", number_with_precision(0.0001, :precision => 1, :significant => true )
     assert_equal "0.000100", number_with_precision(0.0001, :precision => 3, :significant => true )
     assert_equal "0.0001", number_with_precision(0.0001111, :precision => 1, :significant => true )

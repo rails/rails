@@ -11,7 +11,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       session[:foo] = "bar"
       head :ok
     end
-    
+
     def set_serialized_session_value
       session[:foo] = SessionAutoloadTest::Foo.new
       head :ok

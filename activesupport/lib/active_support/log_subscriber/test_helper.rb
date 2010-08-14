@@ -12,7 +12,7 @@ module ActiveSupport
     #     def setup
     #       ActiveRecord::LogSubscriber.attach_to(:active_record)
     #     end
-    # 
+    #
     #     def test_basic_query_logging
     #       Developer.all
     #       wait

@@ -46,7 +46,7 @@ class KernelTest < Test::Unit::TestCase
     o = Object.new
     assert_equal class << o; self end, o.singleton_class
   end
-  
+
   def test_class_eval
     o = Object.new
     class << o; @x = 1; end

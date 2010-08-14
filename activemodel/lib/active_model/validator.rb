@@ -5,8 +5,8 @@ require 'active_support/core_ext/object/blank'
 module ActiveModel #:nodoc:
 
   # == Active Model Validator
-  # 
-  # A simple base class that can be used along with 
+  #
+  # A simple base class that can be used along with
   # +ActiveModel::Validations::ClassMethods.validates_with+
   #
   #   class Person
@@ -61,31 +61,31 @@ module ActiveModel #:nodoc:
   #       @my_custom_field = options[:field_name] || :first_name
   #     end
   #   end
-  # 
+  #
   # The easiest way to add custom validators for validating individual attributes
   # is with the convenient ActiveModel::EachValidator for example:
-  # 
+  #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
   #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless ['Mr.', 'Mrs.', 'Dr.'].include?(value)
   #     end
   #   end
-  # 
+  #
   # This can now be used in combination with the +validates+ method
   # (see ActiveModel::Validations::ClassMethods.validates for more on this)
-  # 
+  #
   #   class Person
   #     include ActiveModel::Validations
   #     attr_accessor :title
-  # 
+  #
   #     validates :title, :presence => true, :title => true
   #   end
-  # 
+  #
   # Validator may also define a +setup+ instance method which will get called
   # with the class that using that validator as it's argument. This can be
   # useful when there are prerequisites such as an attr_accessor being present
   # for example:
-  # 
+  #
   #   class MyValidator < ActiveModel::Validator
   #     def setup(klass)
   #       klass.send :attr_accessor, :custom_attribute
@@ -94,7 +94,7 @@ module ActiveModel #:nodoc:
   #
   # This setup method is only called when used with validation macros or the
   # class level <tt>validates_with</tt> method.
-  # 
+  #
   class Validator
     attr_reader :options
 
@@ -133,7 +133,7 @@ module ActiveModel #:nodoc:
   # All Active Model validations are built on top of this Validator.
   class EachValidator < Validator
     attr_reader :attributes
-    
+
     # Returns a new validator instance. All options will be available via the
     # +options+ reader, however the <tt>:attributes</tt> option will be removed
     # and instead be made available through the +attributes+ reader.

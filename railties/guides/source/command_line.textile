@@ -35,7 +35,7 @@ WARNING: You know you need the rails gem installed by typing +gem install rails+
 
 <shell>
 $ rails new commandsapp
-     create  
+     create
      create  README
      create  .gitignore
      create  Rakefile
@@ -570,7 +570,7 @@ h5. +test:+ Rails tests
 
 INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
 
-Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should. 
+Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should.
 
 The +test:+ namespace helps in running the different tests you will (hopefully!) write.
 

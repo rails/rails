@@ -52,7 +52,7 @@ module ActiveModel
           @options[:except] = Array.wrap(@options[:except]).map { |n| n.to_s }
         end
 
-        # To replicate the behavior in ActiveRecord#attributes, <tt>:except</tt> 
+        # To replicate the behavior in ActiveRecord#attributes, <tt>:except</tt>
         # takes precedence over <tt>:only</tt>.  If <tt>:only</tt> is not set
         # for a N level model but is set for the N+1 level models,
         # then because <tt>:except</tt> is set to a default value, the second

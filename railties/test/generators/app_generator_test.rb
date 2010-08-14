@@ -79,7 +79,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     reserved_words = %w[application destroy plugin runner test]
     reserved_words.each do |reserved|
       content = capture(:stderr){ run_generator [File.join(destination_root, reserved)] }
-      assert_equal "Invalid application name #{reserved}. Please give a name which does not match one of the reserved rails words.\n", content      
+      assert_equal "Invalid application name #{reserved}. Please give a name which does not match one of the reserved rails words.\n", content
     end
   end
 

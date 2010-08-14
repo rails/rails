@@ -1,7 +1,7 @@
 module ActiveRecord
 
   # = Active Record Dynamic Finder Match
-  # 
+  #
   # Refer to ActiveRecord::Base documentation for Dynamic attribute-based finders for detailed info
   #
   class DynamicFinderMatch

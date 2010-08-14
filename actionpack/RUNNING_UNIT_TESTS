@@ -1,7 +1,7 @@
 == Running with Rake
 
 The easiest way to run the unit tests is through Rake. The default task runs
-the entire test suite for all classes. For more information, checkout the 
+the entire test suite for all classes. For more information, checkout the
 full array of rake tasks with "rake -T"
 
 Rake can be found at http://rake.rubyforge.org
@@ -16,7 +16,7 @@ you can do so with something like:
 == Dependency on ActiveRecord and database setup
 
 Test cases in the test/controller/active_record/ directory depend on having
-activerecord and sqlite installed. If ActiveRecord is not in 
+activerecord and sqlite installed. If ActiveRecord is not in
 actionpack/../activerecord directory, or the sqlite rubygem is not installed,
 these tests are skipped.
 

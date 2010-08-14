@@ -17,11 +17,11 @@ module Rails
     rescue SystemCallError
       # could not chdir, no problem just return
     end
-    
+
     def self.in_rails_application?
       File.exists?(SCRIPT_RAILS)
     end
-    
+
     def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
       File.exists?(File.join(path, SCRIPT_RAILS)) || !path.root? && in_rails_application_subdirectory?(path.parent)
     end

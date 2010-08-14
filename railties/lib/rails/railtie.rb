@@ -48,7 +48,7 @@ module Rails
   #     # lib/my_gem/railtie.rb
   #     require 'my_gem'
   #     require 'rails'
-  #     
+  #
   #     module MyGem
   #       class Railtie < Rails::Railtie
   #       end
@@ -121,7 +121,7 @@ module Rails
   # described here can be used in all three.
   #
   # Be sure to look at the documentation of those specific classes for more information.
-  # 
+  #
   class Railtie
     autoload :Configurable,  "rails/railtie/configurable"
     autoload :Configuration, "rails/railtie/configuration"

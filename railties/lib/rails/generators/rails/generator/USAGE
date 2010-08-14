@@ -1,6 +1,6 @@
 Description:
     Stubs out a new generator at lib/generators. Pass the generator name, either
-    CamelCased or under_scored, as an argument. 
+    CamelCased or under_scored, as an argument.
 
 Example:
     `rails generate generator Awesome`

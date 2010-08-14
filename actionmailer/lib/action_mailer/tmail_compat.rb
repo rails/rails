@@ -1,12 +1,12 @@
 module Mail
   class Message
-    
+
     def set_content_type(*args)
       ActiveSupport::Deprecation.warn('Message#set_content_type is deprecated, please just call ' <<
                                       'Message#content_type with the same arguments', caller[0,2])
       content_type(*args)
     end
-    
+
     alias :old_transfer_encoding :transfer_encoding
     def transfer_encoding(value = nil)
       if value
@@ -29,6 +29,6 @@ module Mail
                                       'please call Message#filename', caller[0,2])
       filename
     end
-    
+
   end
 end

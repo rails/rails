@@ -53,16 +53,16 @@ module ActionView
     #     <option value="2">Sam</option>
     #     <option value="3">Tobias</option>
     #   </select>
-    # 
-    # Like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this 
+    #
+    # Like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
     # option to be in the +html_options+ parameter.
-    # 
-    # Example: 
-    # 
+    #
+    # Example:
+    #
     #   select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
-    # 
+    #
     # becomes:
-    # 
+    #
     #   <select name="album[][genre]" id="album__genre">
     #     <option value="rap">rap</option>
     #     <option value="rock">rock</option>
@@ -140,7 +140,7 @@ module ActionView
       # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
       # of +collection+. The return values are used as the +value+ attribute and contents of each
       # <tt><option></tt> tag, respectively.
-      # 
+      #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
       #     belongs_to :author

@@ -26,7 +26,7 @@
         resources :comments
       end
     end
-    
+
     You can now use comment_path for /comments/1 instead of post_comment_path for /posts/1/comments/1.
 
 * Add support for multi-subdomain session by setting cookie host in session cookie so you can share session between www.example.com, example.com and user.example.com. #4818 [Guillermo Álvarez]
@@ -110,7 +110,7 @@
 * ActionDispatch::Request#content_type returns a String to be compatible with
   Rack::Request. Use #content_mime_type for the Mime::Type instance [YK]
 
-* Updated Prototype to 1.6.1 and Scriptaculous to 1.8.3 [ML] 
+* Updated Prototype to 1.6.1 and Scriptaculous to 1.8.3 [ML]
 
 * Change the preferred way that URL helpers are included into a class[YK & CL]
 

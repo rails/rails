@@ -89,19 +89,19 @@ end
 class AssertBlankTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
   NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
-  
+
   def test_assert_blank_true
     BLANK.each { |v| assert_blank v }
   end
-  
+
   def test_assert_blank_false
     NOT_BLANK.each { |v|
-      begin 
+      begin
         assert_blank v
         fail 'should not get to here'
       rescue Exception => e
-        assert_match(/is not blank/, e.message) 
-      end  
+        assert_match(/is not blank/, e.message)
+      end
     }
   end
 end
@@ -109,19 +109,19 @@ end
 class AssertPresentTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
   NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
-  
+
   def test_assert_blank_true
     NOT_BLANK.each { |v| assert_present v }
   end
-  
+
   def test_assert_blank_false
     BLANK.each { |v|
-      begin 
+      begin
         assert_present v
         fail 'should not get to here'
       rescue Exception => e
-        assert_match(/is blank/, e.message) 
-      end  
+        assert_match(/is blank/, e.message)
+      end
     }
   end
 end

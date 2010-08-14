@@ -685,7 +685,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
       assert_difference("#{association_name.classify}.count", -2) { @pirate.save! }
     end
-    
+
     define_method("test_should_skip_validation_on_the_#{association_name}_association_if_destroyed") do
       @pirate.send(association_name).create!(:name => "#{association_name}_1")
       children = @pirate.send(association_name)

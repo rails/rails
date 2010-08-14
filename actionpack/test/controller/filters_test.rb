@@ -447,7 +447,7 @@ class FilterTest < ActionController::TestCase
 
   class ::AppSweeper < ActionController::Caching::Sweeper; end
   class SweeperTestController < ActionController::Base
-    cache_sweeper :app_sweeper  
+    cache_sweeper :app_sweeper
     def show
       render :text => 'hello world'
     end

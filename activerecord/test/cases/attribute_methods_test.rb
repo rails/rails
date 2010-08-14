@@ -10,7 +10,7 @@ require 'models/reply'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
-  
+
   def setup
     @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
     @target = Class.new(ActiveRecord::Base)
@@ -534,9 +534,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
-    
-    assert_equal [:field_a], Topic.skip_time_zone_conversion_for_attributes 
-    assert_equal [:field_b], Minimalistic.skip_time_zone_conversion_for_attributes 
+
+    assert_equal [:field_a], Topic.skip_time_zone_conversion_for_attributes
+    assert_equal [:field_b], Minimalistic.skip_time_zone_conversion_for_attributes
   end
 
   def test_read_attributes_respect_access_control

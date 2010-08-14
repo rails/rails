@@ -116,36 +116,36 @@ module ActionMailer
 
     def normalize_nonfile_hash(params)
       content_disposition = "attachment;"
-      
+
       mime_type = params.delete(:mime_type)
-      
+
       if content_type = params.delete(:content_type)
         content_type = "#{mime_type || content_type};"
       end
 
       params[:body] = params.delete(:data) if params[:data]
-      
-      { :content_type => content_type,
-        :content_disposition => content_disposition }.merge(params)
-    end
-    
-    def normalize_file_hash(params)
-      filename = File.basename(params.delete(:filename))
-      content_disposition = "attachment; filename=\"#{File.basename(filename)}\""
-      
-      mime_type = params.delete(:mime_type)
-      
-      if (content_type = params.delete(:content_type)) && (content_type !~ /filename=/)
-        content_type = "#{mime_type || content_type}; filename=\"#{filename}\""
-      end
-      
-      params[:body] = params.delete(:data) if params[:data]
-      
+
       { :content_type => content_type,
         :content_disposition => content_disposition }.merge(params)
     end
 
-    def create_mail 
+    def normalize_file_hash(params)
+      filename = File.basename(params.delete(:filename))
+      content_disposition = "attachment; filename=\"#{File.basename(filename)}\""
+
+      mime_type = params.delete(:mime_type)
+
+      if (content_type = params.delete(:content_type)) && (content_type !~ /filename=/)
+        content_type = "#{mime_type || content_type}; filename=\"#{filename}\""
+      end
+
+      params[:body] = params.delete(:data) if params[:data]
+
+      { :content_type => content_type,
+        :content_disposition => content_disposition }.merge(params)
+    end
+
+    def create_mail
       m = @_message
 
       set_fields!({:subject => subject, :to => recipients, :from => from,
@@ -178,14 +178,14 @@ module ActionMailer
 
       wrap_delivery_behavior!
       m.content_transfer_encoding = '8bit' unless m.body.only_us_ascii?
-      
+
       @_message
     end
-    
+
     # Set up the default values for the various instance variables of this
     # mailer. Subclasses may override this method to provide different
     # defaults.
-    def initialize_defaults(method_name) 
+    def initialize_defaults(method_name)
       @charset              ||= self.class.default[:charset].try(:dup)
       @content_type         ||= self.class.default[:content_type].try(:dup)
       @implicit_parts_order ||= self.class.default[:parts_order].try(:dup)
@@ -201,7 +201,7 @@ module ActionMailer
       @body ||= {}
     end
 
-    def create_parts 
+    def create_parts
       if String === @body
         @parts.unshift create_inline_part(@body)
       elsif @parts.empty? || @parts.all? { |p| p.content_disposition =~ /^attachment/ }
@@ -220,7 +220,7 @@ module ActionMailer
       end
     end
 
-    def create_inline_part(body, mime_type=nil) 
+    def create_inline_part(body, mime_type=nil)
       ct = mime_type || "text/plain"
       main_type, sub_type = split_content_type(ct.to_s)
 
@@ -242,11 +242,11 @@ module ActionMailer
       m.reply_to ||= headers.delete(:reply_to) if headers[:reply_to]
     end
 
-    def split_content_type(ct) 
+    def split_content_type(ct)
       ct.to_s.split("/")
     end
 
-    def parse_content_type(defaults=nil) 
+    def parse_content_type(defaults=nil)
       if @content_type.blank?
         [ nil, {} ]
       else

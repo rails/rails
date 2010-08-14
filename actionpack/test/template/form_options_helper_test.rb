@@ -305,7 +305,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     output_buffer = fields_for :post, @post do |f|
       concat f.select(:category, %w( abe <mus> hest))
     end
-  
+
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       output_buffer
@@ -438,11 +438,11 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_index_option
     @album = Album.new
     @album.id = 1
-  
-    expected = "<select id=\"album__genre\" name=\"album[][genre]\"><option value=\"rap\">rap</option>\n<option value=\"rock\">rock</option>\n<option value=\"country\">country</option></select>"    
+
+    expected = "<select id=\"album__genre\" name=\"album[][genre]\"><option value=\"rap\">rap</option>\n<option value=\"rock\">rock</option>\n<option value=\"country\">country</option></select>"
 
     assert_dom_equal(
-      expected, 
+      expected,
       select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
     )
   end
@@ -491,7 +491,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     output_buffer = fields_for :post, @post do |f|
       concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
-  
+
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
       output_buffer
@@ -599,7 +599,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     output_buffer = fields_for :firm, @firm do |f|
       concat f.time_zone_select(:time_zone)
     end
-  
+
     assert_dom_equal(
       "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
       "<option value=\"A\">A</option>\n" +

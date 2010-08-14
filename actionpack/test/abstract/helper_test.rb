@@ -4,7 +4,7 @@ ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers',
 
 module AbstractController
   module Testing
-  
+
     class ControllerWithHelpers < AbstractController::Base
       include AbstractController::Rendering
       include Helpers
@@ -13,13 +13,13 @@ module AbstractController
         render :inline => "Module <%= included_method %>"
       end
     end
-   
+
     module HelperyTest
       def included_method
         "Included"
       end
     end
-   
+
     class AbstractHelpers < ControllerWithHelpers
       helper(HelperyTest) do
         def helpery_test
@@ -76,6 +76,6 @@ module AbstractController
       end
 
     end
-    
+
   end
 end

@@ -149,7 +149,7 @@ class RescueController < ActionController::Base
 
   def missing_template
   end
-  
+
   def io_error_in_view
     raise ActionView::TemplateError.new(nil, {}, IOError.new('this is io error'))
   end

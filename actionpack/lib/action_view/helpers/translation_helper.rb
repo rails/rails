@@ -5,21 +5,21 @@ module ActionView
   module Helpers
     module TranslationHelper
       # Delegates to I18n#translate but also performs three additional functions.
-      # First, it'll catch MissingTranslationData exceptions and turn them into 
-      # inline spans that contains the missing key, such that you can see in a 
+      # First, it'll catch MissingTranslationData exceptions and turn them into
+      # inline spans that contains the missing key, such that you can see in a
       # view what is missing where.
       #
-      # Second, it'll scope the key by the current partial if the key starts 
-      # with a period. So if you call <tt>translate(".foo")</tt> from the 
-      # <tt>people/index.html.erb</tt> template, you'll actually be calling 
+      # Second, it'll scope the key by the current partial if the key starts
+      # with a period. So if you call <tt>translate(".foo")</tt> from the
+      # <tt>people/index.html.erb</tt> template, you'll actually be calling
       # <tt>I18n.translate("people.index.foo")</tt>. This makes it less repetitive
       # to translate many keys within the same partials and gives you a simple framework
-      # for scoping them consistently. If you don't prepend the key with a period, 
+      # for scoping them consistently. If you don't prepend the key with a period,
       # nothing is converted.
       #
-      # Third, it'll mark the translation as safe HTML if the key has the suffix 
-      # "_html" or the last element of the key is the word "html". For example, 
-      # calling translate("footer_html") or translate("footer.html") will return 
+      # Third, it'll mark the translation as safe HTML if the key has the suffix
+      # "_html" or the last element of the key is the word "html". For example,
+      # calling translate("footer_html") or translate("footer.html") will return
       # a safe HTML string that won't be escaped by other HTML helper methods. This
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.

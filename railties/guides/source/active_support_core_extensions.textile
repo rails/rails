@@ -348,7 +348,7 @@ That idiom may convey _grouping_ to the reader as well. For example, say you wan
 <ruby>
 I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
   subject i18n.t :subject
-  body    i18n.t :body, :user_name => user.name 
+  body    i18n.t :body, :user_name => user.name
 end
 </ruby>
 
@@ -762,7 +762,7 @@ class Counter
 end
 </ruby>
 
-The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block. 
+The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block.
 
 NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
@@ -1107,7 +1107,7 @@ module ActiveRecord
 end
 </ruby>
 
-Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
+Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point.
 
 NOTE: Defined in +active_support/core_ext/class/inheritable_attributes.rb+.
 
@@ -1139,7 +1139,7 @@ NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
 h5. +descendants+
 
-The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver: 
+The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver:
 
 <ruby>
 class C; end
@@ -1260,7 +1260,7 @@ Pass a +:separator+ to truncate the string at a natural break:
 
 <ruby>
 "Oh dear! Oh dear! I shall be late!".truncate(18)
-# => "Oh dear! Oh dea..." 
+# => "Oh dear! Oh dea..."
 "Oh dear! Oh dear! I shall be late!".truncate(18, :separator => ' ')
 # => "Oh dear! Oh..."
 </ruby>
@@ -1751,7 +1751,7 @@ The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wr
 <ruby>
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
 "2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
-"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000 
+"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 </ruby>
 
 +to_time+ receives an optional argument +:utc+ or +:local+, to indicate which time zone you want the time in:
@@ -3032,14 +3032,14 @@ h6. +ago+, +since+
 The method +ago+ receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
 
 <ruby>
-date = Date.current # => Fri, 11 Jun 2010 
+date = Date.current # => Fri, 11 Jun 2010
 date.ago(1)         # => Thu, 10 Jun 2010 23:59:59 EDT -04:00
 </ruby>
 
 Similarly, +since+ moves forward:
 
 <ruby>
-date = Date.current # => Fri, 11 Jun 2010 
+date = Date.current # => Fri, 11 Jun 2010
 date.since(1)       # => Fri, 11 Jun 2010 00:00:01 EDT -04:00
 </ruby>
 

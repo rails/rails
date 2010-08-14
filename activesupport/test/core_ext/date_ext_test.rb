@@ -26,7 +26,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
           assert_equal year, Date.new(year).to_time(format).year
         end
       end
-    end  
+    end
   end
 
   def test_to_datetime
@@ -242,7 +242,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_yesterday_constructor
     assert_equal Date.current - 1, Date.yesterday
   end
-  
+
   def test_yesterday_constructor_when_zone_default_is_not_set
     with_env_tz 'UTC' do
       with_tz_default do
@@ -286,7 +286,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_since
     assert_equal Time.local(2005,2,21,0,0,45), Date.new(2005,2,21).since(45)
   end
-  
+
   def test_since_when_zone_default_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
@@ -300,7 +300,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_ago
     assert_equal Time.local(2005,2,20,23,59,15), Date.new(2005,2,21).ago(45)
   end
-  
+
   def test_ago_when_zone_default_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
@@ -314,7 +314,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_beginning_of_day
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
   end
-  
+
   def test_beginning_of_day_when_zone_default_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
@@ -328,7 +328,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_end_of_day
     assert_equal Time.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
   end
-  
+
   def test_end_of_day_when_zone_default_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
@@ -338,7 +338,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
       end
     end
   end
-  
+
   def test_xmlschema
     with_env_tz 'US/Eastern' do
       assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
@@ -350,7 +350,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
       end
     end
   end
-  
+
   def test_xmlschema_when_zone_default_is_set
     with_env_tz 'UTC' do
       with_tz_default ActiveSupport::TimeZone['Eastern Time (US & Canada)'] do # UTC -5

@@ -2,7 +2,7 @@ require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
   # = Active Record Autosave Association
-  # 
+  #
   # +AutosaveAssociation+ is a module that takes care of automatically saving
   # associacted records when their parent is saved. In addition to saving, it
   # also destroys any associated records that were marked for destruction.
@@ -79,7 +79,7 @@ module ActiveRecord
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.create(:body => 'hello world')
   #   post.save # => saves both post and comment
-  #  
+  #
   # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
   #
   #   class Post
@@ -190,7 +190,7 @@ module ActiveRecord
     end
 
     # Marks this record to be destroyed as part of the parents save transaction.
-    # This does _not_ actually destroy the record instantly, rather child record will be destroyed 
+    # This does _not_ actually destroy the record instantly, rather child record will be destroyed
     # when <tt>parent.save</tt> is called.
     #
     # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
@@ -210,7 +210,7 @@ module ActiveRecord
     def changed_for_autosave?
       new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
-    
+
     private
 
     # Returns the record for an association collection that should be validated
@@ -234,7 +234,7 @@ module ActiveRecord
         association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
       end
     end
-    
+
     # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
     # turned on for the association.
     def validate_single_association(reflection)

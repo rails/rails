@@ -26,7 +26,7 @@ class ValidatesTest < ActiveModel::TestCase
     person.valid?
     assert_equal ['my custom message'], person.errors[:salary]
   end
-  
+
   def test_validates_with_validator_class
     Person.validates :karma, :email => true
     person = Person.new
@@ -93,18 +93,18 @@ class ValidatesTest < ActiveModel::TestCase
     person.valid?
     assert_equal ['my custom message'], person.errors[:karma]
   end
-  
+
   def test_validates_with_unknown_validator
     assert_raise(ArgumentError) { Person.validates :karma, :unknown => true }
   end
-  
+
   def test_validates_with_included_validator
     PersonWithValidator.validates :title, :presence => true
     person = PersonWithValidator.new
     person.valid?
     assert_equal ['Local validator'], person.errors[:title]
   end
-  
+
   def test_validates_with_included_validator_and_options
     PersonWithValidator.validates :title, :presence => { :custom => ' please' }
     person = PersonWithValidator.new

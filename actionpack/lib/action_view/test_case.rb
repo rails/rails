@@ -44,7 +44,7 @@ module ActionView
       include ActionView::Helpers
 
       attr_accessor :controller, :output_buffer, :rendered
-      
+
       module ClassMethods
         def tests(helper_class)
           self.helper_class = helper_class

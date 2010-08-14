@@ -401,7 +401,7 @@ Note that this vulnerability is not restricted to database columns.  Any setter 
 
   class Child < ActiveRecord::Base
     belongs_to :person
-  end  
+  end
 </ruby>
 
 As a result, the vulnerability is extended beyond simply exposing column assignment, allowing attackers the ability to create entirely new records in referenced tables (children in this case).

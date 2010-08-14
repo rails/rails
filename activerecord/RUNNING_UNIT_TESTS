@@ -1,13 +1,13 @@
 == Creating the test database
 
-The default names for the test databases are "activerecord_unittest" and 
-"activerecord_unittest2". If you want to use another database name then be sure 
-to update the connection adapter setups you want to test with in 
-test/connections/<your database>/connection.rb. 
-When you have the database online, you can import the fixture tables with 
+The default names for the test databases are "activerecord_unittest" and
+"activerecord_unittest2". If you want to use another database name then be sure
+to update the connection adapter setups you want to test with in
+test/connections/<your database>/connection.rb.
+When you have the database online, you can import the fixture tables with
 the test/schema/*.sql files.
 
-Make sure that you create database objects with the same user that you specified in 
+Make sure that you create database objects with the same user that you specified in
 connection.rb otherwise (on Postgres, at least) tests for default values will fail.
 
 == Running with Rake
@@ -22,11 +22,11 @@ Rake can be found at http://rake.rubyforge.org
 
 == Running by hand
 
-Unit tests are located in test/cases directory. If you only want to run a single test suite, 
+Unit tests are located in test/cases directory. If you only want to run a single test suite,
 you can do so with:
 
    rake test_mysql TEST=test/cases/base_test.rb
-   
+
 That'll run the base suite using the MySQL-Ruby adapter.  Some tests rely on the schema
 being initialized - you can initialize the schema with:
 

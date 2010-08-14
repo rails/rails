@@ -29,7 +29,7 @@ class DefaultTest < ActiveRecord::TestCase
       assert_equal BigDecimal.new("2.78"), default.decimal_number
     end
   end
-  
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_multiline_default_text
       # older postgres versions represent the default with escapes ("\\012" for a newline)
@@ -50,7 +50,7 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     #
     # We don't want that to happen, so we disable transactional fixtures here.
     self.use_transactional_fixtures = false
-    
+
     # MySQL 5 and higher is quirky with not null text/blob columns.
     # With MySQL Text/blob columns cannot have defaults. If the column is not
     # null MySQL will report that the column has a null default
@@ -80,7 +80,7 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
     end
-    
+
     # MySQL uses an implicit default 0 rather than NULL unless in strict mode.
     # We use an implicit NULL so schema.rb is compatible with other databases.
     def test_mysql_integer_not_null_defaults

@@ -462,7 +462,7 @@ XML
   def test_assert_routing_in_module
     assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
   end
-  
+
   def test_assert_routing_with_glob
     with_routing do |set|
       set.draw { |map| match('*path' => "pages#show") }

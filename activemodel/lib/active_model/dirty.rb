@@ -6,48 +6,48 @@ require 'active_support/core_ext/object/duplicable'
 module ActiveModel
   # == Active Model Dirty
   #
-  # Provides a way to track changes in your object in the same way as 
+  # Provides a way to track changes in your object in the same way as
   # Active Record does.
-  # 
+  #
   # The requirements to implement ActiveModel::Dirty are to:
   #
   # * <tt>include ActiveModel::Dirty</tt> in your object
-  # * Call <tt>define_attribute_methods</tt> passing each method you want to 
+  # * Call <tt>define_attribute_methods</tt> passing each method you want to
   #   track
-  # * Call <tt>attr_name_will_change!</tt> before each change to the tracked 
+  # * Call <tt>attr_name_will_change!</tt> before each change to the tracked
   #   attribute
-  # 
-  # If you wish to also track previous changes on save or update, you need to 
+  #
+  # If you wish to also track previous changes on save or update, you need to
   # add
-  # 
+  #
   #   @previously_changed = changes
-  # 
+  #
   # inside of your save or update method.
-  # 
+  #
   # A minimal implementation could be:
-  # 
+  #
   #   class Person
-  #   
+  #
   #     include ActiveModel::Dirty
-  #   
+  #
   #     define_attribute_methods [:name]
-  #   
+  #
   #     def name
   #       @name
   #     end
-  #   
+  #
   #     def name=(val)
   #       name_will_change! unless val == @name
   #       @name = val
   #     end
-  #   
+  #
   #     def save
   #       @previously_changed = changes
   #       @changed_attributes.clear
   #     end
-  #   
+  #
   #   end
-  # 
+  #
   # == Examples:
   #
   # A newly instantiated object is unchanged:
@@ -79,7 +79,7 @@ module ActiveModel
   #   person.changes        # => { 'name' => ['Bill', 'Bob'] }
   #
   # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
-  # to mark that the attribute is changing. Otherwise ActiveModel can't track changes to 
+  # to mark that the attribute is changing. Otherwise ActiveModel can't track changes to
   # in-place attributes.
   #
   #   person.name_will_change!
