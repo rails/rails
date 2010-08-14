@@ -16,7 +16,7 @@ module Rails
   # Besides this conceptual difference, the only difference between Rails::Engine and
   # Rails::Plugin is that plugins automatically load the file "init.rb" at the plugin
   # root during the boot process.
-  # 
+  #
   class Plugin < Engine
     def self.inherited(base)
       raise "You cannot inherit from Rails::Plugin"

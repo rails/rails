@@ -22,7 +22,7 @@ ol { list-style-type: decimal; }
 dl { margin: 0 0 1.5em 0; }
 dl dt { font-weight: bold; }
 dd { margin-left: 1.5em;}
-	
+
 pre,code { margin: 1.5em 0; white-space: pre; overflow: auto; }
 pre,code,tt { font: 1em 'andale mono', 'lucida console', monospace; line-height: 1.5; }
 
@@ -53,7 +53,7 @@ table {
 	background: #FFF;
 	border-collapse: collapse;
 }
- 
+
 table th, table td {
 	padding: 0.25em 1em;
 	border: 1px solid #CCC;
@@ -76,7 +76,7 @@ body {
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 87.5%;
 	line-height: 1.5em;
-	background: #222;	
+	background: #222;
 	color: #999;
 	}
 
@@ -114,7 +114,7 @@ body {
 #mainCol {
 	width: 45em;
 	margin-left: 2em;
-	}	
+	}
 
 #subCol {
 	position: absolute;
@@ -127,7 +127,7 @@ body {
 	font-size: 0.9285em;
 	line-height: 1.3846em;
 	}
-	
+
 #extraCol {display: none;}
 
 #footer {
@@ -180,7 +180,7 @@ a, a:link, a:visited {
 
 #header .nav .index a {
 	background: #980905 url(../images/nav_arrow.gif) no-repeat right top;
-	padding-right: 1em;	
+	padding-right: 1em;
 	position: relative;
 	z-index: 15;
 	padding-bottom: 0.125em;
@@ -246,7 +246,7 @@ h3 {
 	margin: 0.875em 0 0.2916em;
 	font-weight: bold;
 	}
-	
+
 h4 {
 	font-size: 1.2857em;
 	line-height: 1.2em;
@@ -261,7 +261,7 @@ h5 {
 	font-weight: bold;
 }
 
-h6 {	
+h6 {
 	font-size: 1em;
 	line-height: 1.5em;
 	margin: 1em 0 .5em;
@@ -367,7 +367,7 @@ tt {
 
 div.code_container {
 	background: #EEE url(../images/tab_grey.gif) no-repeat left top;
-	padding: 0.25em 1em 0.5em 48px;    
+	padding: 0.25em 1em 0.5em 48px;
 }
 
 code {
@@ -411,15 +411,15 @@ code {
 	padding: 0 0 1em;
 	font-size: 1.1667em;
 }
-	
+
 /* Clearing
 --------------------------------------- */
 
 .clearfix:after {
-    content: "."; 
-    display: block; 
-    height: 0; 
-    clear: both; 
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
     visibility: hidden;
 }
 

@@ -20,10 +20,10 @@ module ActiveRecord
       #   fruits = fruits.limit(10) if limited?
       #
       # Anonymous \scopes tend to be useful when procedurally generating complex
-      # queries, where passing intermediate values (\scopes) around as first-class 
+      # queries, where passing intermediate values (\scopes) around as first-class
       # objects is convenient.
       #
-      # You can define a \scope that applies to all finders using 
+      # You can define a \scope that applies to all finders using
       # ActiveRecord::Base.default_scope.
       def scoped(options = nil)
         if options
@@ -48,20 +48,20 @@ module ActiveRecord
       # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red,
       # in effect, represents the query <tt>Shirt.where(:color => 'red')</tt>.
       #
-      # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it 
-      # resembles the association object constructed by a <tt>has_many</tt> declaration. For instance, 
-      # you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>, <tt>Shirt.red.where(:size => 'small')</tt>. 
-      # Also, just as with the association objects, named \scopes act like an Array, implementing Enumerable; 
+      # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it
+      # resembles the association object constructed by a <tt>has_many</tt> declaration. For instance,
+      # you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>, <tt>Shirt.red.where(:size => 'small')</tt>.
+      # Also, just as with the association objects, named \scopes act like an Array, implementing Enumerable;
       # <tt>Shirt.red.each(&block)</tt>, <tt>Shirt.red.first</tt>, and <tt>Shirt.red.inject(memo, &block)</tt>
       # all behave as if Shirt.red really was an Array.
       #
-      # These named \scopes are composable. For instance, <tt>Shirt.red.dry_clean_only</tt> will produce 
+      # These named \scopes are composable. For instance, <tt>Shirt.red.dry_clean_only</tt> will produce
       # all shirts that are both red and dry clean only.
-      # Nested finds and calculations also work with these compositions: <tt>Shirt.red.dry_clean_only.count</tt> 
-      # returns the number of garments for which these criteria obtain. Similarly with 
+      # Nested finds and calculations also work with these compositions: <tt>Shirt.red.dry_clean_only.count</tt>
+      # returns the number of garments for which these criteria obtain. Similarly with
       # <tt>Shirt.red.dry_clean_only.average(:thread_count)</tt>.
       #
-      # All \scopes are available as class methods on the ActiveRecord::Base descendant upon which 
+      # All \scopes are available as class methods on the ActiveRecord::Base descendant upon which
       # the \scopes were defined. But they are also available to <tt>has_many</tt> associations. If,
       #
       #   class Person < ActiveRecord::Base
@@ -95,8 +95,8 @@ module ActiveRecord
       #     scope :published, where(:published => true)
       #   end
       #
-      #   Article.published.new.published    # => true  
-      #   Article.published.create.published # => true  
+      #   Article.published.new.published    # => true
+      #   Article.published.create.published # => true
       def scope(name, scope_options = {}, &block)
         name = name.to_sym
         valid_scope_name?(name)

@@ -311,7 +311,7 @@ module ActionController
         def tests(controller_class)
           self.controller_class = controller_class
         end
-        
+
         def controller_class=(new_class)
           prepare_controller_class(new_class) if new_class
           write_inheritable_attribute(:controller_class, new_class)

@@ -110,7 +110,7 @@ module ActiveRecord
       def preload_one_association(records, association, preload_options={})
         class_to_reflection = {}
         # Not all records have the same class, so group then preload
-        # group on the reflection itself so that if various subclass share the same association then 
+        # group on the reflection itself so that if various subclass share the same association then
         # we do not split them unnecessarily
         records.group_by { |record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, _records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
@@ -149,7 +149,7 @@ module ActiveRecord
         seen_keys = {}
         associated_records.each do |associated_record|
           #this is a has_one or belongs_to: there should only be one record.
-          #Unfortunately we can't (in portable way) ask the database for 
+          #Unfortunately we can't (in portable way) ask the database for
           #'all records where foo_id in (x,y,z), but please
           # only one row per distinct foo_id' so this where we enforce that
           next if seen_keys[associated_record[key].to_s]
@@ -163,7 +163,7 @@ module ActiveRecord
 
         id_to_record_map.each do |id, records|
           next if seen_keys.include?(id.to_s)
-          records.each {|record| record.send("set_#{reflection_name}_target", nil) }            
+          records.each {|record| record.send("set_#{reflection_name}_target", nil) }
         end
       end
 
@@ -305,7 +305,7 @@ module ActiveRecord
           polymorph_type = options[:foreign_type]
           klasses_and_ids = {}
 
-          # Construct a mapping from klass to a list of ids to load and a mapping of those ids back 
+          # Construct a mapping from klass to a list of ids to load and a mapping of those ids back
           # to their parent_records
           records.each do |record|
             if klass = record.send(polymorph_type)

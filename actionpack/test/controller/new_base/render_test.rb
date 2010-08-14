@@ -65,7 +65,7 @@ module Render
       end
     end
   end
-  
+
   class TestVariousObjectsAvailableInView < Rack::TestCase
     test "The request object is accessible in the view" do
       get "/render/blank_render/access_request"

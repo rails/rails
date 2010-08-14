@@ -3,7 +3,7 @@ require 'abstract_unit'
 module RenderText
   class SimpleController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new]
-    
+
     def index
       render :text => "hello david"
     end
@@ -14,24 +14,24 @@ module RenderText
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well.",
       "layouts/ivar.html.erb"        => "<%= yield %>, <%= @ivar %>"
-    )]    
-    
+    )]
+
     def index
       render :text => "hello david"
     end
-    
+
     def custom_code
       render :text => "hello world", :status => 404
     end
-    
+
     def with_custom_code_as_string
       render :text => "hello world", :status => "404 Not Found"
     end
-    
+
     def with_nil
       render :text => nil
     end
-    
+
     def with_nil_and_status
       render :text => nil, :status => 403
     end
@@ -39,23 +39,23 @@ module RenderText
     def with_false
       render :text => false
     end
-    
+
     def with_layout_true
       render :text => "hello world", :layout => true
     end
-    
+
     def with_layout_false
       render :text => "hello world", :layout => false
     end
-    
+
     def with_layout_nil
       render :text => "hello world", :layout => nil
     end
-    
+
     def with_custom_layout
       render :text => "hello world", :layout => "greetings"
     end
-    
+
     def with_ivar_in_layout
       @ivar = "hello world"
       render :text => "hello world", :layout => "ivar"

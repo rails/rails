@@ -110,8 +110,8 @@ module ActiveRecord
       #
       #   Also note that this just sets the primary key in the table. You additionally
       #   need to configure the primary key in the model via the +set_primary_key+ macro.
-      #   Models do NOT auto-detect the primary key from their table definition. 
-      #   
+      #   Models do NOT auto-detect the primary key from their table definition.
+      #
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]

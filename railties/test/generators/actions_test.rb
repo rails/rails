@@ -88,7 +88,7 @@ class ActionsTest < Rails::Generators::TestCase
 
     assert_deprecated do
       action :gem, 'thoughtbot-factory_girl', :require_as => 'factory_girl', :source => 'http://gems.github.com'
-    end    
+    end
 
     assert_file 'Gemfile', /gem "mislav\-will\-paginate", :require => "will\-paginate"/
     assert_file 'Gemfile', /source "http:\/\/gems\.github\.com"/
@@ -103,7 +103,7 @@ class ActionsTest < Rails::Generators::TestCase
     end
 
     assert_deprecated do
-      action :gem, 'rspec-rails', :only => %w(development test)      
+      action :gem, 'rspec-rails', :only => %w(development test)
     end
 
     assert_file 'Gemfile', /gem "rspec", :group => \["development", "test"\]/

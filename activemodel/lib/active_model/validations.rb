@@ -9,24 +9,24 @@ require 'active_model/validations/callbacks'
 module ActiveModel
 
   # == Active Model Validations
-  #   
+  #
   # Provides a full validation framework to your objects.
-  # 
+  #
   # A minimal implementation could be:
-  # 
+  #
   #   class Person
   #     include ActiveModel::Validations
-  # 
+  #
   #     attr_accessor :first_name, :last_name
   #
   #     validates_each :first_name, :last_name do |record, attr, value|
   #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
   #     end
   #   end
-  # 
+  #
   # Which provides you with the full standard validation stack that you
   # know from Active Record:
-  # 
+  #
   #   person = Person.new
   #   person.valid?                   # => true
   #   person.invalid?                 # => false
@@ -35,11 +35,11 @@ module ActiveModel
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
   #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
-  # 
+  #
   # Note that ActiveModel::Validations automatically adds an +errors+ method
   # to your instances initialized with a new ActiveModel::Errors object, so
   # there is no need for you to do this manually.
-  # 
+  #
   module Validations
     extend ActiveSupport::Concern
     include ActiveSupport::Callbacks
@@ -62,7 +62,7 @@ module ActiveModel
       #
       #   class Person
       #     include ActiveModel::Validations
-      # 
+      #
       #     attr_accessor :first_name, :last_name
       #
       #     validates_each :first_name, :last_name do |record, attr, value|
@@ -71,7 +71,7 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies when this validation is active (default is 
+      # * <tt>:on</tt> - Specifies when this validation is active (default is
       #   <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
@@ -96,7 +96,7 @@ module ActiveModel
       #
       #   class Comment
       #     include ActiveModel::Validations
-      # 
+      #
       #     validate :must_be_friends
       #
       #     def must_be_friends
@@ -129,7 +129,7 @@ module ActiveModel
         set_callback(:validate, *args, &block)
       end
 
-      # List all validators that are being used to validate the model using 
+      # List all validators that are being used to validate the model using
       # +validates_with+ method.
       def validators
         _validators.values.flatten.uniq
@@ -169,14 +169,14 @@ module ActiveModel
       self.validation_context = current_context
     end
 
-    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, 
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added,
     # false otherwise.
     def invalid?(context = nil)
       !valid?(context)
     end
 
-    # Hook method defining how an attribute value should be retrieved. By default 
-    # this is assumed to be an instance named after the attribute. Override this 
+    # Hook method defining how an attribute value should be retrieved. By default
+    # this is assumed to be an instance named after the attribute. Override this
     # method in subclasses should you need to retrieve the value for a given
     # attribute differently:
     #
@@ -195,7 +195,7 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   protected
-  
+
     def run_validations!
       _run_validate_callbacks
       errors.empty?

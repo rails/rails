@@ -9,7 +9,7 @@ class DispatcherTest < Test::Unit::TestCase
     def call(env)
       [200, {}, 'response']
     end
-  end 
+  end
 
   def setup
     Foo.a, Foo.b = 0, 0

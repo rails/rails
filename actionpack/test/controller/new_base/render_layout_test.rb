@@ -71,7 +71,7 @@ module ControllerLayouts
     self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "<html><%= yield %></html>",
       "controller_layouts/mismatch_format/index.js.rjs" => "page[:test].ext",
-      "controller_layouts/mismatch_format/implicit.rjs" => "page[:test].ext"      
+      "controller_layouts/mismatch_format/implicit.rjs" => "page[:test].ext"
     )]
 
     def explicit

@@ -8,7 +8,7 @@ class CompiledTemplatesTest < Test::Unit::TestCase
       @compiled_templates.send(:remove_method, m) if m =~ /^_render_template_/
     end
   end
-  
+
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns
     assert_equal "one", render(:file => "test/render_file_with_locals_and_default.erb")
     assert_equal "two", render(:file => "test/render_file_with_locals_and_default.erb", :locals => { :secret => "two" })

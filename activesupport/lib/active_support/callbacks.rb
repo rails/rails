@@ -479,7 +479,7 @@ module ActiveSupport
           end
 
           filters.each do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) } 
+            chain.delete_if {|c| c.matches?(type, filter) }
           end
 
           options[:prepend] ? chain.unshift(*mapped) : chain.push(*mapped)

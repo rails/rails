@@ -218,7 +218,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-  
+
   def test_truncate
     assert_equal "Hello World!", "Hello World!".truncate(12)
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)

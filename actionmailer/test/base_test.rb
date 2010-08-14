@@ -148,7 +148,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("application/pdf", email.parts[1].mime_type)
     assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
   end
-  
+
   test "can embed an inline attachment" do
     email = BaseMailer.inline_attachment
     # Need to call #encoded to force the JIT sort on parts
@@ -413,7 +413,7 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
-  
+
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
     mail = Mail::Message.new
     mail.expects(:do_delivery).once
@@ -447,7 +447,7 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver
     assert_equal("Welcome from another path", mail.body.encoded)
   end
-  
+
   test "assets tags should use ActionMailer's asset_host settings" do
     ActionMailer::Base.config.asset_host = "http://global.com"
     ActionMailer::Base.config.assets_dir = "global/"
@@ -456,7 +456,7 @@ class BaseTest < ActiveSupport::TestCase
 
     assert_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
-  
+
   test "assets tags should use a Mailer's asset_host settings when available" do
     ActionMailer::Base.config.asset_host = "global.com"
     ActionMailer::Base.config.assets_dir = "global/"
@@ -469,12 +469,12 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   # Before and After hooks
-  
+
   class MyObserver
     def self.delivered_email(mail)
     end
   end
-  
+
   test "you can register an observer to the mail object that gets informed on email delivery" do
     ActionMailer::Base.register_observer(MyObserver)
     mail = BaseMailer.welcome
@@ -493,7 +493,7 @@ class BaseTest < ActiveSupport::TestCase
     MyInterceptor.expects(:delivering_email).with(mail)
     mail.deliver
   end
-  
+
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
     mail1 = ProcMailer.welcome
     yesterday = 1.day.ago
@@ -501,7 +501,7 @@ class BaseTest < ActiveSupport::TestCase
     mail2 = ProcMailer.welcome
     assert(mail1['X-Proc-Method'].to_s.to_i > mail2['X-Proc-Method'].to_s.to_i)
   end
-  
+
   test "we can call other defined methods on the class as needed" do
     mail = ProcMailer.welcome
     assert_equal("Thanks for signing up this afternoon", mail.subject)

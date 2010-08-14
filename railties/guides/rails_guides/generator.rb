@@ -32,7 +32,7 @@
 #
 #     Separate many using commas:
 #
-#       # generates only 
+#       # generates only
 #       ONLY=assoc,migrations ruby rails_guides.rb
 #
 #     Note that if you are working on a guide generation will by default process
@@ -77,7 +77,7 @@ module RailsGuides
     def initialize_dirs(output)
       @guides_dir = File.join(File.dirname(__FILE__), '..')
       @source_dir = File.join(@guides_dir, "source")
-      @output_dir = output || File.join(@guides_dir, "output")      
+      @output_dir = output || File.join(@guides_dir, "output")
     end
 
     def create_output_dir_if_needed
@@ -116,7 +116,7 @@ module RailsGuides
     def output_file_for(guide)
       guide.sub(GUIDES_RE, '.html')
     end
-    
+
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
       fout = File.join(output_dir, output_file)
@@ -213,9 +213,9 @@ module RailsGuides
         code_blocks << %{<div class="code_container"><code class="#{css_class}">#{es}</code></div>}
         "\ndirty_workaround_for_notextile_#{code_blocks.size - 1}\n"
       end
-      
+
       body = yield body
-      
+
       body.gsub(%r{<p>dirty_workaround_for_notextile_(\d+)</p>}) do |_|
         code_blocks[$1.to_i]
       end
@@ -225,7 +225,7 @@ module RailsGuides
       anchors = extract_anchors(html)
       check_fragment_identifiers(html, anchors)
     end
-    
+
     def extract_anchors(html)
       # Textile generates headers with IDs computed from titles.
       anchors = Set.new
@@ -241,7 +241,7 @@ module RailsGuides
       anchors += Set.new(html.scan(/<p\s+class="footnote"\s+id="([^"]+)/).flatten)
       return anchors
     end
-    
+
     def check_fragment_identifiers(html, anchors)
       html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
         next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV

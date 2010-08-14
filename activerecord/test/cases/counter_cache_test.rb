@@ -43,7 +43,7 @@ class CounterCacheTest < ActiveRecord::TestCase
       Topic.reset_counters(@topic.id, :replies)
     end
   end
-  
+
   test "reset counters with string argument" do
     Topic.increment_counter('replies_count', @topic.id)
 

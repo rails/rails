@@ -63,7 +63,7 @@ class Person
   def address
     Address.new
   end
-  
+
   def address_attributes=(attributes)
     # ...
   end
@@ -77,7 +77,7 @@ class Person
   def projects
     [Project.new, Project.new]
   end
-  
+
   def projects_attributes=(attributes)
     # ...
   end
@@ -101,7 +101,7 @@ class PeopleController < ActionController:Base
     @person.built_address
     2.times { @person.projects.build }
   end
-  
+
   def create
     @person = Person.new(params[:person])
     if @person.save
@@ -142,7 +142,7 @@ Now add a nested form for the +address+ association:
 <erb>
 <%= form_for @person do |f| %>
   <%= f.text_field :name %>
-  
+
   <%= f.fields_for :address do |af| %>
     <%= f.text_field :street %>
   <% end %>
@@ -154,7 +154,7 @@ This generates:
 <html>
 <form action="/people" class="new_person" id="new_person" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
-  
+
   <input id="person_address_attributes_street" name="person[address_attributes][street]" size="30" type="text" />
 </form>
 </html>
@@ -183,7 +183,7 @@ The form code for an association collection is pretty similar to that of a singl
 <erb>
 <%= form_for @person do |f| %>
   <%= f.text_field :name %>
-  
+
   <%= f.fields_for :projects do |pf| %>
     <%= f.text_field :name %>
   <% end %>
@@ -195,7 +195,7 @@ Which generates:
 <html>
 <form action="/people" class="new_person" id="new_person" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
-  
+
   <input id="person_projects_attributes_0_name" name="person[projects_attributes][0][name]" size="30" type="text" />
   <input id="person_projects_attributes_1_name" name="person[projects_attributes][1][name]" size="30" type="text" />
 </form>

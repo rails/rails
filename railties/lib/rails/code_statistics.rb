@@ -12,7 +12,7 @@ class CodeStatistics #:nodoc:
     print_header
     @pairs.each { |pair| print_line(pair.first, @statistics[pair.first]) }
     print_splitter
-  
+
     if @total
       print_line("Total", @total)
       print_splitter
@@ -29,7 +29,7 @@ class CodeStatistics #:nodoc:
     def calculate_directory_statistics(directory, pattern = /.*\.rb$/)
       stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
 
-      Dir.foreach(directory) do |file_name| 
+      Dir.foreach(directory) do |file_name|
         if File.stat(directory + "/" + file_name).directory? and (/^\./ !~ file_name)
           newstats = calculate_directory_statistics(directory + "/" + file_name, pattern)
           stats.each { |k, v| stats[k] += newstats[k] }
@@ -85,10 +85,10 @@ class CodeStatistics #:nodoc:
       start = if TEST_TYPES.include? name
         "| #{name.ljust(20)} "
       else
-        "| #{name.ljust(20)} " 
+        "| #{name.ljust(20)} "
       end
 
-      puts start + 
+      puts start +
            "| #{statistics["lines"].to_s.rjust(5)} " +
            "| #{statistics["codelines"].to_s.rjust(5)} " +
            "| #{statistics["classes"].to_s.rjust(7)} " +

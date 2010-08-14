@@ -29,7 +29,7 @@ module ActiveRecord
       end
     end
 
-    # The SQLite adapter works with both the 2.x and 3.x series of SQLite with the sqlite-ruby 
+    # The SQLite adapter works with both the 2.x and 3.x series of SQLite with the sqlite-ruby
     # drivers (available both as gems and from http://rubyforge.org/projects/sqlite-ruby/).
     #
     # Options:

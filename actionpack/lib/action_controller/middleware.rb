@@ -31,7 +31,7 @@ module ActionController
       super()
       @_app = app
     end
-    
+
     def index
       call(env)
     end

@@ -7,7 +7,7 @@ class Object
   #       @x, @y = x, y
   #     end
   #   end
-  #   
+  #
   #   C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
   def instance_values #:nodoc:
     instance_variables.inject({}) do |values, name|
@@ -24,7 +24,7 @@ class Object
   #       @x, @y = x, y
   #     end
   #   end
-  #   
+  #
   #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
   if RUBY_VERSION >= '1.9'
     def instance_variable_names
@@ -47,15 +47,15 @@ class Object
   #     def initialize(x, y, z)
   #       @x, @y, @z = x, y, z
   #     end
-  #   
+  #
   #     def protected_instance_variables
   #       %w(@z)
   #     end
   #   end
-  #   
+  #
   #   a = C.new(0, 1, 2)
   #   b = C.new(3, 4, 5)
-  #   
+  #
   #   a.copy_instance_variables_from(b, [:@y])
   #   # a is now: @x = 3, @y = 1, @z = 2
   def copy_instance_variables_from(object, exclude = []) #:nodoc:

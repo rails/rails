@@ -3,19 +3,19 @@ require 'active_support/core_ext/hash/reverse_merge'
 module ActiveModel
 
   # == Active Model Translation
-  #   
+  #
   # Provides integration between your object and the Rails internationalization
   # (i18n) framework.
-  # 
+  #
   # A minimal implementation could be:
-  # 
+  #
   #   class TranslatedPerson
   #     extend ActiveModel::Translation
   #   end
-  # 
+  #
   #   TranslatedPerson.human_attribute_name('my_attribute')
   #   # => "My attribute"
-  # 
+  #
   # This also provides the required class methods for hooking into the
   # Rails internationalization API, including being able to define a
   # class based i18n_scope and lookup_ancestors to find translations in
@@ -28,9 +28,9 @@ module ActiveModel
       :activemodel
     end
 
-    # When localizing a string, it goes through the lookup returned by this 
+    # When localizing a string, it goes through the lookup returned by this
     # method, which is used in ActiveModel::Name#human,
-    # ActiveModel::Errors#full_messages and 
+    # ActiveModel::Errors#full_messages and
     # ActiveModel::Translation#human_attribute_name.
     def lookup_ancestors
       self.ancestors.select { |x| x.respond_to?(:model_name) }

@@ -50,7 +50,7 @@ class HelperTest < ActiveSupport::TestCase
     # Set default test helper.
     self.test_helper = LocalAbcHelper
   end
-  
+
   def test_deprecated_helper
     assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised { @controller_class.helper TestHelper }
@@ -70,25 +70,25 @@ class HelperTest < ActiveSupport::TestCase
 
   def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)    
+    klass.action(action).call(request.env)
   end
 
   def test_helper_for_nested_controller
-    assert_equal 'hello: Iz guuut!', 
+    assert_equal 'hello: Iz guuut!',
       call_controller(Fun::GamesController, "render_hello_world").last.body
     # request  = ActionController::TestRequest.new
-    # 
+    #
     # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
     # assert_equal 'hello: Iz guuut!', resp.last.body
   end
 
   def test_helper_for_acronym_controller
     assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
-    # 
+    #
     # request  = ActionController::TestRequest.new
     # response = ActionController::TestResponse.new
     # request.action = 'test'
-    # 
+    #
     # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
   end
 
@@ -192,7 +192,7 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
 
   def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)    
+    klass.action(action).call(request.env)
   end
 
   def setup

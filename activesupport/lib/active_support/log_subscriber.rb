@@ -47,7 +47,7 @@ module ActiveSupport
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR   = "\e[0m"
     BOLD    = "\e[1m"
-            
+
     # Colors
     BLACK   = "\e[30m"
     RED     = "\e[31m"

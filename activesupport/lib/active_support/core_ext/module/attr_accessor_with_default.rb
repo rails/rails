@@ -2,7 +2,7 @@ class Module
   # Declare an attribute accessor with an initial default return value.
   #
   # To give attribute <tt>:age</tt> the initial value <tt>25</tt>:
-  #  
+  #
   #   class Person
   #     attr_accessor_with_default :age, 25
   #   end
@@ -16,7 +16,7 @@ class Module
   # To give attribute <tt>:element_name</tt> a dynamic default value, evaluated
   # in scope of self:
   #
-  #   attr_accessor_with_default(:element_name) { name.underscore } 
+  #   attr_accessor_with_default(:element_name) { name.underscore }
   #
   def attr_accessor_with_default(sym, default = nil, &block)
     raise 'Default value or block required' unless !default.nil? || block

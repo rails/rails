@@ -323,7 +323,7 @@ Finally, create the +core_ext.rb+ file and add the +to_squawk+ method:
 
 <ruby>
 # vendor/plugins/yaffle/lib/yaffle/core_ext.rb
-  
+
 String.class_eval do
   def to_squawk
     "squawk! #{self}".strip

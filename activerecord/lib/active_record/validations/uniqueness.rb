@@ -78,7 +78,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Validates whether the value of the specified attributes are unique across the system. 
+      # Validates whether the value of the specified attributes are unique across the system.
       # Useful for making sure that only one user
       # can be named "davidhh".
       #
@@ -86,16 +86,16 @@ module ActiveRecord
       #     validates_uniqueness_of :user_name, :scope => :account_id
       #   end
       #
-      # It can also validate whether the value of the specified attributes are unique based on multiple 
-      # scope parameters.  For example, making sure that a teacher can only be on the schedule once 
+      # It can also validate whether the value of the specified attributes are unique based on multiple
+      # scope parameters.  For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
       #
       #   class TeacherSchedule < ActiveRecord::Base
       #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id]
       #   end
       #
-      # When the record is created, a check is performed to make sure that no record exists in the database 
-      # with the given value for the specified attribute (that maps to a column). When the record is updated, 
+      # When the record is created, a check is performed to make sure that no record exists in the database
+      # with the given value for the specified attribute (that maps to a column). When the record is updated,
       # the same check is made but disregarding the record itself.
       #
       # Configuration options:
@@ -105,11 +105,11 @@ module ActiveRecord
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or 
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The method, proc or string should 
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
+      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The method, proc or string should
       #   return or evaluate to a true or false value.
       #
       # === Concurrency and integrity
@@ -162,7 +162,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
       #   rare case that a race condition occurs, the database will guarantee
       #   the field's uniqueness.
-      #   
+      #
       #   When the database catches such a duplicate insertion,
       #   ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
       #   exception. You can either choose to let this error propagate (which
@@ -171,7 +171,7 @@ module ActiveRecord
       #   that the title already exists, and asking him to re-enter the title).
       #   This technique is also known as optimistic concurrency control:
       #   http://en.wikipedia.org/wiki/Optimistic_concurrency_control
-      #   
+      #
       #   Active Record currently provides no way to distinguish unique
       #   index constraint errors from other types of database errors, so you
       #   will have to parse the (database-specific) exception message to detect

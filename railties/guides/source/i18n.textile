@@ -518,7 +518,7 @@ es:
       title: "Título"
 </yaml>
 
-you can look up the +books.index.title+ value *inside* +app/views/books/index.html.erb+ template like this (note the dot): 
+you can look up the +books.index.title+ value *inside* +app/views/books/index.html.erb+ template like this (note the dot):
 
 <ruby>
 <%= t '.title' %>

@@ -34,7 +34,7 @@ link:files/vendor/rails/actionpack/README.html.
 
 2. At the command prompt, create a new Rails application:
 
-    rails new myapp 
+    rails new myapp
 
    where "myapp" is the application name.
 
@@ -48,7 +48,7 @@ link:files/vendor/rails/actionpack/README.html.
 
     "Welcome aboard: You're riding Ruby on Rails!"
 
-5. Follow the guidelines to start developing your application. You can find 
+5. Follow the guidelines to start developing your application. You can find
 the following resources handy:
 
 * The README file created within your application.

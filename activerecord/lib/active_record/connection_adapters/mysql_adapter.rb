@@ -278,7 +278,7 @@ module ActiveRecord
         rows
       end
 
-      # Executes an SQL query and returns a MySQL::Result object. Note that you have to free 
+      # Executes an SQL query and returns a MySQL::Result object. Note that you have to free
       # the Result object after you're done using it.
       def execute(sql, name = nil) #:nodoc:
         if name == :skip_logging

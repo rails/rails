@@ -7,12 +7,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
   attr_reader :request
   def setup
   end
-  
+
   def test_delegates_to_i18n_setting_the_raise_option
     I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true).returns("")
     translate :foo, :locale => 'en'
   end
-  
+
   def test_returns_missing_translation_message_wrapped_into_span
     expected = '<span class="translation_missing">en, foo</span>'
     assert_equal expected, translate(:foo)
@@ -28,7 +28,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.expects(:localize).with(@time)
     localize @time
   end
-  
+
   def test_scoping_by_partial
     I18n.expects(:translate).with("test.translation.helper", :raise => true).returns("helper")
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
@@ -40,7 +40,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
     assert_equal "foobar", @view.render(:file => "test/scoped_translation")
   end
-  
+
   def test_translate_does_not_mark_plain_text_as_safe_html
     I18n.expects(:translate).with("hello", :raise => true).returns("Hello World")
     assert_equal false, translate("hello").html_safe?

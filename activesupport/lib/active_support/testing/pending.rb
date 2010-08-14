@@ -25,13 +25,13 @@ module ActiveSupport
               failed = true
             end
 
-            flunk("<#{description}> did not fail.") unless failed 
+            flunk("<#{description}> did not fail.") unless failed
           end
 
           caller[0] =~ (/(.*):(.*):in `(.*)'/)
           @@pending_cases << "#{$3} at #{$1}, line #{$2}"
           print "P"
-      
+
           @@at_exit ||= begin
             at_exit do
               puts "\nPending Cases:"
@@ -42,7 +42,7 @@ module ActiveSupport
           end
         end
       end
-      
+
     end
   end
 end

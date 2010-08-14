@@ -1,10 +1,10 @@
 class Array
   # Backport of Array#sample based on Marc-Andre Lafortune's http://github.com/marcandre/backports/
-  # Returns a random element or +n+ random elements from the array. 
+  # Returns a random element or +n+ random elements from the array.
   # If the array is empty and +n+ is nil, returns <tt>nil</tt>. if +n+ is passed, returns <tt>[]</tt>.
-  # 
-  #   [1,2,3,4,5,6].sample    # => 4 
-  #   [1,2,3,4,5,6].sample(3) # => [2, 4, 5] 
+  #
+  #   [1,2,3,4,5,6].sample    # => 4
+  #   [1,2,3,4,5,6].sample(3) # => [2, 4, 5]
   #              [].sample    # => nil
   #              [].sample(3) # => []
   def sample(n=nil)

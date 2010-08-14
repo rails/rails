@@ -16,7 +16,7 @@ Active Record is the M in "MVC":getting_started.html#the-mvc-architecture - the 
 
 h4. The Active Record Pattern
 
-Active Record was described by Martin Fowler in his book _Patterns of Enterprise Application Architecture_. In Active Record, objects carry both persistent data and behavior which operates on that data. Active Record takes the opinion that ensuring data access logic is part of the object will educate users of that object on how to write to and read from the database. 
+Active Record was described by Martin Fowler in his book _Patterns of Enterprise Application Architecture_. In Active Record, objects carry both persistent data and behavior which operates on that data. Active Record takes the opinion that ensuring data access logic is part of the object will educate users of that object on how to write to and read from the database.
 
 h4. Object Relational Mapping
 
@@ -132,7 +132,7 @@ CRUD is an acronym for the four verbs we use to operate on data: *C*reate, *R*ea
 
 h4. Create
 
-Active Record objects can be created from a hash, a block or have its attributes manually set after creation. The _new_ method will return a new object while _create_ will return the object and save it to the database. 
+Active Record objects can be created from a hash, a block or have its attributes manually set after creation. The _new_ method will return a new object while _create_ will return the object and save it to the database.
 
 For example, given a model +User+ with attributes of +name+ and +occupation+, the _create_ method call will create and save a new record into the database:
 

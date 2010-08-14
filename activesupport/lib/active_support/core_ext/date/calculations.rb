@@ -7,7 +7,7 @@ require 'active_support/core_ext/time/zones'
 class Date
   if RUBY_VERSION < '1.9'
     undef :>>
-    
+
     # Backported from 1.9. The one in 1.8 leads to incorrect next_month and
     # friends for dates where the calendar reform is involved. It additionally
     # prevents an infinite loop fixed in r27013.
@@ -156,7 +156,7 @@ class Date
   def next_year
     years_since(1)
   end unless method_defined?(:next_year)
-  
+
   # Shorthand for months_ago(1)
   def prev_month
     months_ago(1)

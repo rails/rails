@@ -66,7 +66,7 @@ module I18n
 
       I18n.fallbacks = I18n::Locale::Fallbacks.new(*args)
     end
-  
+
     def self.validate_fallbacks(fallbacks)
       case fallbacks
       when ActiveSupport::OrderedOptions

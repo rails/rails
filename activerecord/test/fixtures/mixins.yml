@@ -1,6 +1,6 @@
 # Nested set mixins
 
-<% (1..10).each do |counter| %>  
+<% (1..10).each do |counter| %>
 set_<%= counter %>:
   id: <%= counter+3000 %>
 <% end %>

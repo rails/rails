@@ -115,7 +115,7 @@ h4. Routing Parameters
 The +params+ hash will always contain the +:controller+ and +:action+ keys, but you should use the methods +controller_name+ and +action_name+ instead to access these values. Any other parameters defined by the routing, such as +:id+ will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the +:status+ parameter in a "pretty" URL:
 
 <ruby>
-map.connect "/clients/:status", 
+map.connect "/clients/:status",
   :controller => "clients",
   :action => "index",
   :foo => "bar"
@@ -296,7 +296,7 @@ class MainController < ApplicationController
     # Will persist all flash values.
     flash.keep
 
-    # You can also use a key to keep only some kind of value. 
+    # You can also use a key to keep only some kind of value.
     # flash.keep(:notice)
     redirect_to users_url
   end
@@ -369,14 +369,14 @@ class UsersController < ApplicationController
 end
 </ruby>
 
-Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ . 
+Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
 
 
 h3. Filters
 
-Filters are methods that are run before, after or "around" a controller action. 
+Filters are methods that are run before, after or "around" a controller action.
 
-Filters are inherited, so if you set a filter on +ApplicationController+, it will be run on every controller in your application. 
+Filters are inherited, so if you set a filter on +ApplicationController+, it will be run on every controller in your application.
 
 Before filters may halt the request cycle. A common before filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
@@ -536,7 +536,7 @@ You will see how the token gets added as a hidden field:
 
 <html>
 <form action="/users/1" method="post">
-<input type="hidden" 
+<input type="hidden"
        value="67250ab105eb5ad10851c00a5621854a23af5489"
        name="authenticity_token"/>
 <!-- fields -->
@@ -659,7 +659,7 @@ class ClientsController < ApplicationController
   # returns it. The user will get the PDF as a file download.
   def download_pdf
     client = Client.find(params[:id])
-    send_data generate_pdf(client), 
+    send_data generate_pdf(client),
               :filename => "#{client.name}.pdf",
               :type => "application/pdf"
   end

@@ -25,7 +25,7 @@ class Object
   #  end
   #
   #  foo # => ['bar', 'baz']
-  #  
+  #
   #  # returning with a block argument
   #  def foo
   #    returning [] do |values|
@@ -33,7 +33,7 @@ class Object
   #      values << 'baz'
   #    end
   #  end
-  #  
+  #
   #  foo # => ['bar', 'baz']
   def returning(value)
     ActiveSupport::Deprecation.warn('Object#returning has been deprecated in favor of Object#tap.', caller)

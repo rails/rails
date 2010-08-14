@@ -24,7 +24,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     assert p.save, "should have saved after fixing the validation, but had: #{p.errors.inspect}"
   end
-  
+
   def test_fails_save!
     p = new_project(:name => nil)
     assert_raise(ActiveResource::ResourceInvalid) { p.save! }

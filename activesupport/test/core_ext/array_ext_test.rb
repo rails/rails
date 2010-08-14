@@ -18,10 +18,10 @@ class ArrayExtAccessTests < Test::Unit::TestCase
     assert_equal %w( a b c ), %w( a b c d ).to(2)
     assert_equal %w( a b c d ), %w( a b c d ).to(10)
   end
-  
+
   def test_second_through_tenth
     array = (1..42).to_a
-    
+
     assert_equal array[1], array.second
     assert_equal array[2], array.third
     assert_equal array[3], array.fourth
@@ -319,7 +319,7 @@ class ArrayExtractOptionsTests < Test::Unit::TestCase
     assert_equal({}, options)
     assert_equal [hash], array
   end
-  
+
   def test_extract_options_extracts_extractable_subclass
     hash = ExtractableHashSubclass.new
     hash[:foo] = 1
@@ -370,14 +370,14 @@ class ArrayExtRandomTests < ActiveSupport::TestCase
     assert_equal 2, s.size
     assert_equal 1, (a-s).size
     assert_equal [], a-(0..20).sum{a.sample(2)}
-  
+
     o = Object.new
     def o.to_int; 1; end
     assert_equal [0], [0].sample(o)
-  
+
     o = Object.new
     assert_raises(TypeError) { [0].sample(o) }
-    
+
     o = Object.new
     def o.to_int; ''; end
     assert_raises(TypeError) { [0].sample(o) }

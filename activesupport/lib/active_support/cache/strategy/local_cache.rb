@@ -16,7 +16,7 @@ module ActiveSupport
             @data = {}
           end
 
-          # Don't allow synchronizing since it isn't thread safe, 
+          # Don't allow synchronizing since it isn't thread safe,
           def synchronize # :nodoc:
             yield
           end

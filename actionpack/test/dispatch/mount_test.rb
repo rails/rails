@@ -28,7 +28,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     get "/its_a/sprocket/omg"
     assert_equal "/its_a/sprocket -- /omg", response.body
   end
-  
+
   def test_mounting_with_shorthand
     get "/shorthand/omg"
     assert_equal "/shorthand -- /omg", response.body
