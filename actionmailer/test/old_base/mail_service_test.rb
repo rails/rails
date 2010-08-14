@@ -392,7 +392,7 @@ class ActionMailerTest < Test::Unit::TestCase
     expected = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there, \n\nMr. #{@recipient}"
+    expected.body    = "Hello there,\n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.now
 
@@ -420,7 +420,7 @@ class ActionMailerTest < Test::Unit::TestCase
     expected         = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there, \n\nMr. #{@recipient}"
+    expected.body    = "Hello there,\n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
 
