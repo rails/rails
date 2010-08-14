@@ -74,7 +74,7 @@ ActiveRecord::Schema.define do
     t.column :name, :string
   end
 
-  create_table :booleantests, :force => true do |t|
+  create_table :booleans, :force => true do |t|
     t.boolean :value
   end
 
