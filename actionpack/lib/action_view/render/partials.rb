@@ -56,7 +56,7 @@ module ActionView
   # you're following its conventions for RecordIdentifier#partial_path. Examples:
   #
   #  # @account is an Account instance, so it uses the RecordIdentifier to replace
-  #  # <%= render :partial => "accounts/account", :locals => { :account => @buyer } %>
+  #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>
   #  <%= render :partial => @account %>
   #
   #  # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
