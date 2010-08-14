@@ -112,14 +112,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
-      bool = Booleantest.create({ "value" => false })
+      bool = Boolean.create({ "value" => false })
       assert_equal "0", bool.reload.attributes_before_type_cast["value"]
     end
   end
 
   if current_adapter?(:Mysql2Adapter)
     def test_read_attributes_before_type_cast_on_boolean
-      bool = Booleantest.create({ "value" => false })
+      bool = Boolean.create({ "value" => false })
       assert_equal 0, bool.reload.attributes_before_type_cast["value"]
     end
   end
