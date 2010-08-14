@@ -32,6 +32,7 @@ module ActiveSupport
     end
 
     # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.
+    # 
     # Example:
     # 
     #   require 'active_support/configurable'      
