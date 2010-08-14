@@ -4,7 +4,7 @@ require 'active_support/core_ext/class/attribute'
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume ActiveSupport::Notifications
   # with solely purpose of logging. The log subscriber dispatches notifications to a
-  # regirested object based on its given namespace.
+  # registered object based on its given namespace.
   #
   # An example would be Active Record log subscriber responsible for logging queries:
   #
@@ -16,7 +16,7 @@ module ActiveSupport
   #     end
   #   end
   #
-  # And it's finally registed as:
+  # And it's finally registered as:
   #
   #   ActiveRecord::LogSubscriber.attach_to :active_record
   #

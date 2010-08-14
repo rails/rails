@@ -46,8 +46,10 @@ module ActiveSupport
     #  p SecureRandom.random_bytes(10) # => "\016\t{\370g\310pbr\301"
     #  p SecureRandom.random_bytes(10) # => "\323U\030TO\234\357\020\a\337"
     #  ...
+    #
     module SecureRandom
-      # SecureRandom.random_bytes generates a random binary string.
+
+      # Generates a random binary string.
       #
       # The argument n specifies the length of the result string.
       #
@@ -56,6 +58,7 @@ module ActiveSupport
       #
       # If secure random number generator is not available,
       # NotImplementedError is raised.
+      #
       def self.random_bytes(n=nil)
         n ||= 16
 
@@ -124,7 +127,7 @@ module ActiveSupport
         raise NotImplementedError, "No random device"
       end
 
-      # SecureRandom.hex generates a random hex string.
+      # Generates a random hex string.
       #
       # The argument n specifies the length of the random length.
       # The length of the result string is twice of n.
@@ -134,11 +137,12 @@ module ActiveSupport
       #
       # If secure random number generator is not available,
       # NotImplementedError is raised.
+      #
       def self.hex(n=nil)
         random_bytes(n).unpack("H*")[0]
       end
 
-      # SecureRandom.base64 generates a random base64 string.
+      # Generates a random base64 string.
       #
       # The argument n specifies the length of the random length.
       # The length of the result string is about 4/3 of n.
@@ -148,11 +152,12 @@ module ActiveSupport
       #
       # If secure random number generator is not available,
       # NotImplementedError is raised.
+      #
       def self.base64(n=nil)
         [random_bytes(n)].pack("m*").delete("\n")
       end
 
-      # SecureRandom.random_number generates a random number.
+      # Generates a random number.
       #
       # If an positive integer is given as n,
       # SecureRandom.random_number returns an integer:
@@ -161,6 +166,7 @@ module ActiveSupport
       # If 0 is given or an argument is not given,
       # SecureRandom.random_number returns an float:
       # 0.0 <= SecureRandom.random_number() < 1.0.
+      #
       def self.random_number(n=0)
         if 0 < n
           hex = n.to_s(16)
