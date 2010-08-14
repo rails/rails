@@ -25,5 +25,10 @@ module Arel
       @head.limit = limit
       self
     end
+
+    def insert stuff
+      viz = Visitors::Dot.new
+      puts viz.accept stuff
+    end
   end
 end

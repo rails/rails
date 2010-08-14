@@ -1,0 +1,108 @@
+module Arel
+  module Visitors
+    class Dot
+      class Node # :nodoc:
+        attr_accessor :name, :id, :fields
+
+        def initialize name, id, fields = []
+          @name   = name
+          @id     = id
+          @fields = fields
+        end
+      end
+
+      class Edge < Struct.new :name, :from, :to # :nodoc:
+      end
+
+      def initialize
+        @nodes      = []
+        @edges      = []
+        @node_stack = []
+        @edge_stack = []
+        @seen       = {}
+      end
+
+      def accept object
+        visit object
+        to_dot
+      end
+
+      private
+      def visit_Arel_Table o
+        visit_edge o, "name"
+      end
+
+      def visit_Arel_Attribute o
+        visit_edge o, "relation"
+        visit_edge o, "name"
+      end
+      alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
+      alias :visit_Arel_Attributes_String :visit_Arel_Attribute
+      alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
+
+      def visit_String o
+        @node_stack.last.fields << o
+      end
+      alias :visit_Time :visit_String
+      alias :visit_NilClass :visit_String
+
+      def visit_Hash o
+        o.each_with_index do |(k,v),i|
+          edge("key_#{i}")   { visit k }
+          edge("value_#{i}") { visit v }
+        end
+      end
+
+      def visit_edge o, method
+        edge(method) { visit o.send(method) }
+      end
+
+      def visit o
+        if node = @seen[o.object_id]
+          @edge_stack.last.to = node
+          return
+        end
+
+        node = Node.new(o.class.name, o.object_id)
+        @seen[node.id] = node
+        @nodes << node
+        with_node node do
+          send "visit_#{o.class.name.gsub('::', '_')}", o
+        end
+      end
+
+      def edge name
+        edge = Edge.new(name, @node_stack.last)
+        @edge_stack.push edge
+        @edges << edge
+        yield
+        @edge_stack.pop
+      end
+
+      def with_node node
+        if edge = @edge_stack.last
+          edge.to = node
+        end
+
+        @node_stack.push node
+        yield
+        @node_stack.pop
+      end
+
+      def to_dot
+        "digraph \"ARel\" {\nnode [width=0.375,height=0.25,shape=record];\n" +
+          @nodes.map { |node|
+            label = "<f0>#{node.name}"
+
+            node.fields.each_with_index do |field, i|
+              label << "|<f#{i + 1}>#{field}"
+            end
+
+            "#{node.id} [label=\"#{label}\"];"
+          }.join("\n") + "\n" + @edges.map { |edge|
+            "#{edge.from.id} -> #{edge.to.id} [label=\"#{edge.name}\"];"
+          }.join("\n") + "\n}"
+      end
+    end
+  end
+end

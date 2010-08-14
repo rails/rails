@@ -18,3 +18,4 @@ require 'arel/sql_literal'
 ####
 
 require 'arel/visitors/to_sql'
+require 'arel/visitors/dot'
