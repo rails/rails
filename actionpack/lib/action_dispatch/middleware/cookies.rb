@@ -69,16 +69,26 @@ module ActionDispatch
 
     class CookieJar < Hash #:nodoc:
 
-      # This regular expression is used to split the levels of a domain
-      # So www.example.co.uk gives:
-      # $1 => www.
-      # $2 => example
-      # $3 => co.uk
-      DOMAIN_REGEXP = /^(.*\.)*(.*)\.(...|...\...|....|..\...|..)$/
+      # This regular expression is used to split the levels of a domain.
+      # The top level domain can be any string without a period or
+      # **.**, ***.** style TLDs like co.uk or com.au
+      #
+      # www.example.co.uk gives:
+      # $1 => example
+      # $2 => co.uk
+      #
+      # example.com gives:
+      # $1 => example
+      # $2 => com
+      #
+      # lots.of.subdomains.example.local gives:
+      # $1 => example
+      # $2 => local
+      DOMAIN_REGEXP = /([^.]*)\.([^.]*|..\...|...\...)$/
 
       def self.build(request)
         secret = request.env[TOKEN_KEY]
-        host = request.env["HTTP_HOST"]
+        host = request.host
 
         new(secret, host).tap do |hash|
           hash.update(request.cookies)
@@ -104,7 +114,7 @@ module ActionDispatch
 
         if options[:domain] == :all
           @host =~ DOMAIN_REGEXP
-          options[:domain] = ".#{$2}.#{$3}"
+          options[:domain] = ".#{$1}.#{$2}"
         end
       end
 
