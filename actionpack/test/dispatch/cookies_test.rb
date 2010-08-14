@@ -232,6 +232,34 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/"
   end
 
+  def test_cookie_with_all_domain_option_using_a_non_standard_tld
+    @request.host = "two.subdomains.nextangle.local"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_australian_style_tld
+    @request.host = "nextangle.com.au"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com.au; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_uk_style_tld
+    @request.host = "nextangle.co.uk"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_host_with_port
+    @request.host = "nextangle.local:3000"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+  end
+
   def test_deleting_cookie_with_all_domain_option
     get :delete_cookie_with_domain
     assert_response :success
