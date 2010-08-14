@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
+require 'models/boolean'
 require 'models/computer'
 require 'models/topic'
 require 'models/company'
@@ -101,7 +102,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
-      bool = Booleantest.create({ "value" => false })
+      bool = Boolean.create({ "value" => false })
       assert_equal "0", bool.reload.attributes_before_type_cast["value"]
     end
   end

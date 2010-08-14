@@ -10,6 +10,7 @@ require 'models/developer'
 require 'models/project'
 require 'models/default'
 require 'models/auto_id'
+require 'models/boolean'
 require 'models/column_name'
 require 'models/subscriber'
 require 'models/keyboard'
@@ -42,7 +43,7 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
-class Booleantest < ActiveRecord::Base; end
+class Boolean < ActiveRecord::Base; end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
@@ -596,34 +597,34 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean
-    b_nil = Booleantest.create({ "value" => nil })
+    b_nil = Boolean.create({ "value" => nil })
     nil_id = b_nil.id
-    b_false = Booleantest.create({ "value" => false })
+    b_false = Boolean.create({ "value" => false })
     false_id = b_false.id
-    b_true = Booleantest.create({ "value" => true })
+    b_true = Boolean.create({ "value" => true })
     true_id = b_true.id
 
-    b_nil = Booleantest.find(nil_id)
+    b_nil = Boolean.find(nil_id)
     assert_nil b_nil.value
-    b_false = Booleantest.find(false_id)
+    b_false = Boolean.find(false_id)
     assert !b_false.value?
-    b_true = Booleantest.find(true_id)
+    b_true = Boolean.find(true_id)
     assert b_true.value?
   end
 
   def test_boolean_cast_from_string
-    b_blank = Booleantest.create({ "value" => "" })
+    b_blank = Boolean.create({ "value" => "" })
     blank_id = b_blank.id
-    b_false = Booleantest.create({ "value" => "0" })
+    b_false = Boolean.create({ "value" => "0" })
     false_id = b_false.id
-    b_true = Booleantest.create({ "value" => "1" })
+    b_true = Boolean.create({ "value" => "1" })
     true_id = b_true.id
 
-    b_blank = Booleantest.find(blank_id)
+    b_blank = Boolean.find(blank_id)
     assert_nil b_blank.value
-    b_false = Booleantest.find(false_id)
+    b_false = Boolean.find(false_id)
     assert !b_false.value?
-    b_true = Booleantest.find(true_id)
+    b_true = Boolean.find(true_id)
     assert b_true.value?
   end
 
