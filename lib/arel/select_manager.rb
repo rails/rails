@@ -26,9 +26,11 @@ module Arel
       self
     end
 
-    def insert stuff
-      viz = Visitors::Dot.new
-      puts viz.accept stuff
+    # FIXME: this method should go away
+    def insert values
+      im = InsertManager.new @engine
+      im.insert values
+      raise
     end
   end
 end

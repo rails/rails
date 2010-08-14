@@ -8,6 +8,32 @@ module Arel
       end
     end
 
+    describe 'insert' do
+      it 'takes a list of lists' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new Table.engine
+        manager.into table
+        manager.insert [[table[:id], 1], [table[:name], 'aaron']]
+        manager.to_sql.should be_like %{
+          INSERT INTO "users" ("users"."id", "users"."name") VALUES (1, 'aaron')
+        }
+      end
+
+      it 'defaults the table' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new Table.engine
+        manager.insert [[table[:id], 1], [table[:name], 'aaron']]
+        manager.to_sql.should be_like %{
+          INSERT INTO "users" ("users"."id", "users"."name") VALUES (1, 'aaron')
+        }
+      end
+
+      it 'takes an empty list' do
+        manager = Arel::InsertManager.new Table.engine
+        manager.insert []
+      end
+    end
+
     describe 'into' do
       it 'takes an engine' do
         manager = Arel::InsertManager.new Table.engine

@@ -28,6 +28,17 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_SelectCore o
+        visit_edge o, "froms"
+        visit_edge o, "projections"
+        visit_edge o, "wheres"
+      end
+
+      def visit_Arel_Nodes_SelectStatement o
+        visit_edge o, "cores"
+        visit_edge o, "limit"
+      end
+
       def visit_Arel_Table o
         visit_edge o, "name"
       end
@@ -47,9 +58,14 @@ module Arel
       alias :visit_NilClass :visit_String
 
       def visit_Hash o
-        o.each_with_index do |(k,v),i|
-          edge("key_#{i}")   { visit k }
-          edge("value_#{i}") { visit v }
+        o.each_with_index do |pair, i|
+          edge("pair_#{i}")   { visit pair }
+        end
+      end
+
+      def visit_Array o
+        o.each_with_index do |x,i|
+          edge(i) { visit x }
         end
       end
 
