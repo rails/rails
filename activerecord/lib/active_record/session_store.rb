@@ -182,7 +182,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Use the ActiveRecord::Base.connection by default.
-      cattr_writer :connection
+      cattr_accessor :connection
 
       ##
       # :singleton-method:
