@@ -69,6 +69,9 @@ module ActionView
         query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << ',}'
       end
 
+      query.gsub!(/\{\.html,/, "{.html,.text.html,")
+      query.gsub!(/\{\.text,/, "{.text,.text.plain,")
+
       Dir[query].reject { |p| File.directory?(p) }.map do |p|
         handler, format = extract_handler_and_format(p, formats)
 
@@ -87,6 +90,18 @@ module ActionView
       pieces.shift
 
       handler  = Template.handler_class_for_extension(pieces.pop)
+
+      if pieces.last == "html" && pieces[-2] == "text"
+        correct_path = path.gsub(/\.text\.html/, ".html")
+        ActiveSupport::Deprecation.warn "The file `#{path}` uses the deprecated format `text.html`. Please rename it to #{correct_path}", caller
+      end
+
+      if pieces.last == "plain" && pieces[-2] == "text"
+        correct_path = path.gsub(/\.text\.plain/, ".text")
+        pieces.pop
+        ActiveSupport::Deprecation.warn "The file `#{path}` uses the deprecated format `text.plain`. Please rename it to #{correct_path}", caller
+      end
+
       format   = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
       format ||= handler.default_format if handler.respond_to?(:default_format)
       format ||= default_formats
