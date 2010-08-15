@@ -806,6 +806,9 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false
         Topic.reset_column_information
+
+        Topic.connection.change_column "topics", "written_on", :datetime, :null => true
+        Topic.reset_column_information
       end
     end
 
