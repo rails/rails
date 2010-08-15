@@ -3,6 +3,12 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
+      # Returns this record's primary key value wrapped in an Array
+      # or nil if the record is a new_record?
+      def to_key
+        new_record? ? nil : [ id ]
+      end
+
       module ClassMethods
         # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
         # primary_key_prefix_type setting, though.
