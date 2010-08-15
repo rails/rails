@@ -516,6 +516,22 @@ match 'photos/*other' => 'photos#unknown'
 
 This route would match +photos/12+ or +/photos/long/path/to/12+, setting +params[:other]+ to +"12"+ or +"long/path/to/12"+.
 
+Wildcard segments do not need to be last in a route. For example
+
+<ruby>
+match 'books/*section/:title' => 'books#show'
+</ruby>
+
+would match +books/some/section/last-words-a-memoir+ with +params[:section]+ equals +"some/section"+, and +params[:title]+ equals +"last-words-a-memoir"+.
+
+Techincally a route can have even more than one wildard segment indeed, the matcher assigns segments to parameters in an intuitive way. For instance
+
+<ruby>
+match '*a/foo/*b' => 'test#index'
+</ruby>
+
+would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +params[:b]+ equals +"bar/baz"+.
+
 h4. Redirection
 
 You can redirect any path to another path using the +redirect+ helper in your router:
