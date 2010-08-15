@@ -8,6 +8,24 @@ module Arel
       end
     end
 
+    describe 'set' do
+      it 'takes a list of lists' do
+        table = Table.new(:users)
+        um = Arel::UpdateManager.new Table.engine
+        um.table table
+        um.set [[table[:id], 1], [table[:name], 'hello']]
+        um.to_sql.should be_like %{
+          UPDATE "users" SET "id" = 1, "name" =  'hello'
+        }
+      end
+
+      it 'chains' do
+        table = Table.new(:users)
+        um = Arel::UpdateManager.new Table.engine
+        um.set([[table[:id], 1], [table[:name], 'hello']]).should == um
+      end
+    end
+
     describe 'table' do
       it 'generates an update statement' do
         um = Arel::UpdateManager.new Table.engine

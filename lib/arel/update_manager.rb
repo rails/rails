@@ -16,5 +16,10 @@ module Arel
       @head.wheres << expr
       self
     end
+
+    def set values
+      @head.values = values
+      self
+    end
   end
 end

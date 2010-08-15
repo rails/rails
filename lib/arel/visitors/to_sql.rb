@@ -15,6 +15,9 @@ module Arel
       def visit_Arel_Nodes_UpdateStatement o
         [
           "UPDATE #{visit o.relation}",
+          ("SET #{o.values.map { |column,value|
+              "#{quote_column_name(column.name)} = #{quote visit value}"
+            }.join ', '}" if o.values),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?)
         ].compact.join ' '
       end
