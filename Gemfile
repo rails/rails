@@ -49,12 +49,3 @@ platforms :jruby do
     gem "activerecord-jdbcpostgresql-adapter"
   end
 end
-
-env 'CI' do
-  gem "nokogiri", ">= 1.4.3.1"
-
-  platforms :ruby_18 do
-    # fcgi gem doesn't compile on 1.9
-    gem "fcgi", ">= 0.8.8"
-  end
-end
