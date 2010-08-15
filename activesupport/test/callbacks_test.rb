@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'test/unit'
 require 'active_support'
+require 'active_support/testing/deprecation'
 
 module CallbacksTest
   class Record
@@ -59,6 +60,10 @@ module CallbacksTest
 
     def save
       run_callbacks :save
+    end
+
+    def deprecated_save
+      callback :save
     end
   end
 
@@ -317,6 +322,8 @@ module CallbacksTest
   end
 
   class CallbacksTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Deprecation
+
     def test_save_person
       person = Person.new
       assert_equal [], person.history
@@ -334,6 +341,25 @@ module CallbacksTest
         [:after_save, :symbol]
       ], person.history
     end
+
+    def test_save_person_deprecated
+      person = Person.new
+      assert_equal [], person.history
+      assert_deprecated { person.deprecated_save }
+      assert_equal [
+        [:before_save, :symbol],
+        [:before_save, :string],
+        [:before_save, :proc],
+        [:before_save, :object],
+        [:before_save, :block],
+        [:after_save, :block],
+        [:after_save, :object],
+        [:after_save, :proc],
+        [:after_save, :string],
+        [:after_save, :symbol]
+      ], person.history
+    end
+
   end
 
   class ConditionalCallbackTest < Test::Unit::TestCase
