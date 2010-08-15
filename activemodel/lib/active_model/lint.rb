@@ -38,6 +38,7 @@ module ActiveModel
       # not persisted?, then to_param should always return nil.
       def test_to_param
         assert model.respond_to?(:to_param), "The model should respond to to_param"
+        def model.to_key() [1] end
         def model.persisted?() false end
         assert model.to_param.nil?
       end
