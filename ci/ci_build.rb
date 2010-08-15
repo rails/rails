@@ -89,6 +89,14 @@ end
 
 cd "#{root_dir}/activerecord" do
   puts
+  puts "[CruiseControl] Building ActiveRecord with MySQL2"
+  puts
+  build_results[:activerecord_mysql2] = rake 'mysql:rebuild_databases', 'mysql2:test'
+  # build_results[:activerecord_mysql2_isolated] = rake 'mysql:rebuild_databases', 'mysql2:isolated_test'
+end
+
+cd "#{root_dir}/activerecord" do
+  puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
   build_results[:activerecord_postgresql8] = rake 'postgresql:rebuild_databases', 'postgresql:test'
