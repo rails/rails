@@ -446,6 +446,33 @@ module ActionMailer #:nodoc:
       super
     end
 
+    class DeprecatedHeaderProxy < ActiveSupport::BasicObject
+      def initialize(message)
+        @message = message
+      end
+
+      def []=(key, value)
+        unless value.is_a?(String)
+          ActiveSupport::Deprecation.warn("Using a non-String object for a header's value is deprecated. " \
+            "You specified #{value.inspect} (a #{value.class}) for #{key}", caller)
+
+          value = value.to_s
+        end
+
+        @message[key] = value
+      end
+
+      def headers(hash = {})
+        hash.each_pair do |k,v|
+          self[k] = v
+        end
+      end
+
+      def method_missing(meth, *args, &block)
+        @message.send(meth, *args, &block)
+      end
+    end
+
     # Allows you to pass random and unusual headers to the new +Mail::Message+ object
     # which will add them to itself.
     #
@@ -462,9 +489,9 @@ module ActionMailer #:nodoc:
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
       if args
-        @_message.headers(args)
+        DeprecatedHeaderProxy.new(@_message).headers(args)
       else
-        @_message
+        DeprecatedHeaderProxy.new(@_message)
       end
     end
 

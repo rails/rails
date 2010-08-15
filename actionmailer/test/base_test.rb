@@ -76,6 +76,11 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Not SPAM", email['X-SPAM'].decoded)
   end
 
+  test "deprecated non-String custom headers" do
+    email = assert_deprecated { BaseMailer.welcome_with_fixnum_header }
+    assert_equal("2", email['X-SPAM-COUNT'].decoded)
+  end
+
   test "can pass random headers in as a hash to mail" do
     hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
             'In-Reply-To' => '1234@mikel.me.com' }

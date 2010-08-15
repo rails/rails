@@ -10,6 +10,11 @@ class BaseMailer < ActionMailer::Base
     mail({:subject => "The first email on new API!"}.merge!(hash))
   end
 
+  def welcome_with_fixnum_header(hash = {})
+    headers['X-SPAM-COUNT'] = 2
+    mail({:template_name => "welcome", :subject => "The first email on new API!"}.merge!(hash))
+  end
+
   def welcome_with_headers(hash = {})
     headers hash
     mail
