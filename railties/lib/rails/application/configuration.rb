@@ -16,9 +16,9 @@ module Rails
 
       def initialize(*)
         super
+        self.encoding = "utf-8"
         @allow_concurrency = false
         @consider_all_requests_local = false
-        @encoding = "utf-8"
         @filter_parameters = []
         @dependency_loading = true
         @serve_static_assets = true
