@@ -10,6 +10,7 @@ require 'arel/relation'
 require 'arel/tree_manager'
 require 'arel/insert_manager'
 require 'arel/select_manager'
+require 'arel/update_manager'
 require 'arel/nodes'
 
 #### these are deprecated

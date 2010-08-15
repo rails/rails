@@ -12,6 +12,13 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_UpdateStatement o
+        [
+          "UPDATE #{visit o.relation}",
+          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?)
+        ].compact.join ' '
+      end
+
       def visit_Arel_Nodes_InsertStatement o
         [
           "INSERT INTO #{visit o.relation}",
