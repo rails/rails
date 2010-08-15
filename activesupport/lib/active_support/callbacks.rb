@@ -93,6 +93,11 @@ module ActiveSupport
       send("_run_#{kind}_callbacks", *args, &block)
     end
 
+    def callback(kind)
+      ActiveSupport::Deprecation.warn("callback is deprecated. Please use run_callbacks")
+      send("_run_#{kind}_callbacks")
+    end
+
     class Callback
       @@_callback_sequence = 0
 
