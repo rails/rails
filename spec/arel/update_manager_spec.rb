@@ -9,6 +9,14 @@ module Arel
     end
 
     describe 'set' do
+      it "updates with null" do
+        table = Table.new(:users)
+        um = Arel::UpdateManager.new Table.engine
+        um.table table
+        um.set [[table[:name], nil]]
+        um.to_sql.should be_like %{ UPDATE "users" SET "name" =  NULL }
+      end
+
       it 'takes a list of lists' do
         table = Table.new(:users)
         um = Arel::UpdateManager.new Table.engine

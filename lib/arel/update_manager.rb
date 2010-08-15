@@ -12,6 +12,10 @@ module Arel
       self
     end
 
+    def wheres= exprs
+      @head.wheres = exprs
+    end
+
     def where expr
       @head.wheres << expr
       self
