@@ -6,7 +6,7 @@ module Arel
       def initialize
         @relation = nil
         @wheres   = []
-        @values   = nil
+        @values   = []
       end
     end
   end
