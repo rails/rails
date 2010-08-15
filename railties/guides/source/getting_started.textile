@@ -492,7 +492,7 @@ TIP: Unlike the development web server, the console does not automatically load 
 
 h4. Listing All Posts
 
-The easiest place to start looking at functionality is with the code that lists all posts. Open the file +app/controllers/posts_controller.rb + and look at the +index+ action:
+The easiest place to start looking at functionality is with the code that lists all posts. Open the file +app/controllers/posts_controller.rb+ and look at the +index+ action:
 
 <ruby>
 def index
@@ -505,7 +505,7 @@ def index
 end
 </ruby>
 
-+Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array containing the posts which has been saved in an instance variable called +@posts+.
++Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array of posts that we store in a instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
@@ -552,7 +552,7 @@ TIP: For more details on the rendering process, see "Layouts and Rendering in Ra
 
 h4. Customizing the Layout
 
-The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. In previous versions of Rails, the +rails generate scaffold+ command would automatically create a controller specific layout, like +app/views/layouts/posts.html.erb+, for the posts controller. However this has been changed in Rails 3.0. A application specific +layout+ is used for all the controllers and can be found in +app/views/layouts/application.html.erb+. Open this layout in your editor and modify the +body+ tag:
+The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. In previous versions of Rails, the +rails generate scaffold+ command would automatically create a controller specific layout, like +app/views/layouts/posts.html.erb+, for the posts controller. However this has been changed in Rails 3.0. An application specific +layout+ is used for all the controllers and can be found in +app/views/layouts/application.html.erb+. Open this layout in your editor and modify the +body+ tag:
 
 <erb>
 <!DOCTYPE html>
@@ -668,7 +668,7 @@ The +create+ action instantiates a new Post object from the data supplied by the
 
 If the post was not successfully saved, due to a validation error, then the controller returns the user back to the +new+ action with any error messages so that the user has the chance to fix the error and try again.
 
-The "Post was successfully created" message is stored inside of the Rails +flash+ hash, (usually just called the Flash) so that messages can be carried over to another action, providing the user with useful information on the status of their request. In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
+The "Post was successfully created." message is stored inside of the Rails +flash+ hash, (usually just called _the flash_) so that messages can be carried over to another action, providing the user with useful information on the status of their request. In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
 
 h4. Showing an Individual Post
 
