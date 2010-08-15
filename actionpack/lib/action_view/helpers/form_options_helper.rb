@@ -481,7 +481,7 @@ module ActionView
         end
 
         zone_options += options_for_select(convert_zones[zones], selected)
-        zone_options
+        zone_options.html_safe
       end
 
       private

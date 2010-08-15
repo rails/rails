@@ -280,6 +280,10 @@ class FormOptionsHelperTest < ActionView::TestCase
                  opts
   end
 
+  def test_time_zone_options_returns_html_safe_string
+    assert time_zone_options_for_select.html_safe?
+  end
+
   def test_select
     @post = Post.new
     @post.category = "<mus>"
