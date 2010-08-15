@@ -96,6 +96,12 @@ module ActionMailer
     def render(*args)
       options = args.last.is_a?(Hash) ? args.last : {}
 
+      if file = options[:file] and !file.index("/")
+        ActiveSupport::Deprecation.warn("render :file is deprecated except for absolute paths. " \
+                                        "Please use render :template instead")
+        options[:prefix] = _prefix
+      end
+
       if options[:body].is_a?(Hash)
         ActiveSupport::Deprecation.warn(':body in render deprecated. Please use instance ' <<
                                         'variables as assigns instead', caller[0,1])

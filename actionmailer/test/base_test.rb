@@ -428,6 +428,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
   end
 
+  test "render :file uses render :template semantics and is deprecated" do
+    mail = nil
+    assert_deprecated { mail = BaseMailer.implicit_different_template_with_file('implicit_multipart').deliver }
+    assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
+    assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+  end
+
   test "you can specify a different template for explicit render" do
     mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
