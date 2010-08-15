@@ -205,6 +205,7 @@ module ActiveRecord
       class << self
         alias :data_column_name :data_column
 
+        remove_method :connection
         def connection
           @@connection ||= ActiveRecord::Base.connection
         end
