@@ -31,19 +31,6 @@ module ActiveSupport
   # all logs when the request finishes (via action_dispatch.callback notification) in
   # a Rails environment.
   class LogSubscriber
-    mattr_accessor :colorize_logging
-    self.colorize_logging = true
-
-    class_attribute :logger
-
-    class << self
-      remove_method :logger
-    end
-
-    def self.logger
-      @logger ||= Rails.logger if defined?(Rails)
-    end
-
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR   = "\e[0m"
     BOLD    = "\e[1m"
@@ -58,32 +45,44 @@ module ActiveSupport
     CYAN    = "\e[36m"
     WHITE   = "\e[37m"
 
-    def self.attach_to(namespace, log_subscriber=new, notifier=ActiveSupport::Notifications)
-      log_subscribers << log_subscriber
-      @@flushable_loggers = nil
+    mattr_accessor :colorize_logging
+    self.colorize_logging = true
 
-      log_subscriber.public_methods(false).each do |event|
-        next if 'call' == event.to_s
+    class_attribute :logger
 
-        notifier.subscribe("#{event}.#{namespace}", log_subscriber)
+    class << self
+      remove_method :logger
+      def logger
+        @logger ||= Rails.logger if defined?(Rails)
       end
-    end
 
-    def self.log_subscribers
-      @@log_subscribers ||= []
-    end
+      def attach_to(namespace, log_subscriber=new, notifier=ActiveSupport::Notifications)
+        log_subscribers << log_subscriber
+        @@flushable_loggers = nil
 
-    def self.flushable_loggers
-      @@flushable_loggers ||= begin
-        loggers = log_subscribers.map(&:logger)
-        loggers.uniq!
-        loggers.select { |l| l.respond_to?(:flush) }
+        log_subscriber.public_methods(false).each do |event|
+          next if 'call' == event.to_s
+
+          notifier.subscribe("#{event}.#{namespace}", log_subscriber)
+        end
       end
-    end
 
-    # Flush all log_subscribers' logger.
-    def self.flush_all!
-      flushable_loggers.each(&:flush)
+      def log_subscribers
+        @@log_subscribers ||= []
+      end
+
+      def flushable_loggers
+        @@flushable_loggers ||= begin
+          loggers = log_subscribers.map(&:logger)
+          loggers.uniq!
+          loggers.select { |l| l.respond_to?(:flush) }
+        end
+      end
+
+      # Flush all log_subscribers' logger.
+      def flush_all!
+        flushable_loggers.each(&:flush)
+      end
     end
 
     def call(message, *args)
