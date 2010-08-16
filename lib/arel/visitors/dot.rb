@@ -56,6 +56,8 @@ module Arel
       end
       alias :visit_Time :visit_String
       alias :visit_NilClass :visit_String
+      alias :visit_Arel_SqlLiteral :visit_String
+      alias :visit_Fixnum :visit_String
 
       def visit_Hash o
         o.each_with_index do |pair, i|
@@ -105,13 +107,17 @@ module Arel
         @node_stack.pop
       end
 
+      def quote string
+        string.to_s.gsub('"', '\"')
+      end
+
       def to_dot
         "digraph \"ARel\" {\nnode [width=0.375,height=0.25,shape=record];\n" +
           @nodes.map { |node|
             label = "<f0>#{node.name}"
 
             node.fields.each_with_index do |field, i|
-              label << "|<f#{i + 1}>#{field}"
+              label << "|<f#{i + 1}>#{quote field}"
             end
 
             "#{node.id} [label=\"#{label}\"];"

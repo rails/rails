@@ -57,7 +57,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Equality o
-        "#{visit o.left} = #{visit o.right}"
+        "#{visit o.left} = #{quote visit o.right}"
       end
 
       def visit_Arel_Attributes_Attribute o
