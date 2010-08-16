@@ -1,10 +1,5 @@
-# gem "rsim-activerecord-oracle_enhanced-adapter"
-# gem "activerecord-oracle_enhanced-adapter", ">=1.2.1"
-# uses local copy of oracle_enhanced adapter
-$:.unshift("../../oracle-enhanced/lib")
+# uses oracle_enhanced adapter in ENV['ORACLE_ENHANCED_PATH'] or from github.com/rsim/oracle-enhanced.git
 require 'active_record/connection_adapters/oracle_enhanced_adapter'
-# gem "activerecord-jdbc-adapter"
-# require 'active_record/connection_adapters/jdbc_adapter'
 
 # otherwise failed with silence_warnings method missing exception
 require 'active_support/core_ext/kernel/reporting'
