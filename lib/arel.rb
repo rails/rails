@@ -18,6 +18,7 @@ require 'arel/nodes'
 #### these are deprecated
 require 'arel/sql/engine'
 require 'arel/sql_literal'
+require 'arel/expression'
 ####
 
 require 'arel/visitors/to_sql'
