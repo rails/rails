@@ -1,3 +1,5 @@
+require 'arel/crud'
+
 require 'arel/version'
 require 'arel/table'
 require 'arel/attributes'

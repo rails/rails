@@ -1,5 +1,7 @@
 module Arel
   class SelectManager < Arel::TreeManager
+    include Arel::Crud
+
     def initialize engine
       super
       @head   = Nodes::SelectStatement.new
@@ -24,22 +26,6 @@ module Arel
     def take limit
       @head.limit = limit
       self
-    end
-
-    # FIXME: this method should go away
-    def update values
-      um = UpdateManager.new @engine
-      um.table values.first.first.relation
-      um.set values
-      um.wheres = @ctx.wheres
-      @engine.connection.execute um.to_sql
-    end
-
-    # FIXME: this method should go away
-    def insert values
-      im = InsertManager.new @engine
-      im.insert values
-      @engine.connection.execute im.to_sql
     end
   end
 end

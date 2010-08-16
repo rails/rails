@@ -1,5 +1,7 @@
 module Arel
   class Table
+    include Arel::Crud
+
     @engine = nil
     class << self; attr_accessor :engine; end
 
