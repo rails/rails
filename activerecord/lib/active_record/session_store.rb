@@ -59,17 +59,15 @@ module ActiveRecord
       end
 
       def drop_table!
-        connection.execute "DROP TABLE #{table_name}"
+        connection.drop_table table_name
       end
 
       def create_table!
-        connection.execute <<-end_sql
-          CREATE TABLE #{table_name} (
-            id #{connection.type_to_sql(:primary_key)},
-            #{connection.quote_column_name(session_id_column)} VARCHAR(255) UNIQUE,
-            #{connection.quote_column_name(data_column_name)} TEXT
-          )
-        end_sql
+        connection.create_table(table_name) do |t|
+          t.string session_id_column, :limit => 255
+          t.text data_column_name
+        end
+        connection.add_index table_name, session_id_column, :unique => true
       end
     end
 
