@@ -4,6 +4,7 @@ require 'fileutils'
 require 'arel'
 
 require 'support/matchers/be_like'
+require 'support/check'
 
 if adapter = ENV['ADAPTER']
   require "support/connections/#{adapter}_connection.rb"
@@ -11,6 +12,7 @@ end
 
 Spec::Runner.configure do |config|
   config.include Matchers
+  config.include Check
 
   if defined?(ActiveRecord::Base)
     tmp = File.expand_path('../../tmp', __FILE__)

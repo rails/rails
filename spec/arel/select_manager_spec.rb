@@ -127,7 +127,7 @@ module Arel
       it "chains" do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.from(table).project(table['id']).should == manager
+        check manager.from(table).project(table['id']).should == manager
         manager.to_sql.should be_like 'SELECT "users"."id" FROM "users"'
       end
     end

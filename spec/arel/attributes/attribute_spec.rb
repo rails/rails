@@ -7,9 +7,21 @@ module Arel
         it 'should return an equality node' do
           attribute = Attribute.new nil, nil, nil
           equality = attribute.eq 1
-          equality.left.should == attribute
-          equality.right.should == 1
+          check equality.left.should == attribute
+          check equality.right.should == 1
           equality.should be_kind_of Nodes::Equality
+        end
+      end
+
+      describe '#in' do
+        it 'can be constructed with a list' do
+        end
+
+        it 'should return an in node' do
+          attribute = Attribute.new nil, nil, nil
+          node = Nodes::In.new attribute, [1,2,3]
+          check node.left.should  == attribute
+          check node.right.should == [1, 2, 3]
         end
       end
     end

@@ -13,6 +13,15 @@ module Arel
         @visitor.accept attr
       end
 
+      describe "Nodes::In" do
+        it "should know how to visit" do
+          node = @attr.in [1, 2, 3]
+          @visitor.accept(node).should be_like %{
+            "users"."id" IN (1, 2, 3)
+          }
+        end
+      end
+
       describe 'Equality' do
         it "should escape strings" do
           test = @attr.eq 'Aaron Patterson'
