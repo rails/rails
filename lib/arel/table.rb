@@ -26,6 +26,10 @@ module Arel
       tm.project thing
     end
 
+    def take amount
+      tm.take amount
+    end
+
     def columns
       @columns ||= @engine.connection.columns(@name, "#{@name} Columns").map do |column|
         Attributes.for(column).new self, column.name, column
