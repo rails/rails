@@ -28,6 +28,12 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_InsertStatement o
+        visit_edge o, "relation"
+        visit_edge o, "columns"
+        visit_edge o, "values"
+      end
+
       def visit_Arel_Nodes_SelectCore o
         visit_edge o, "froms"
         visit_edge o, "projections"
@@ -50,12 +56,14 @@ module Arel
       alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
       alias :visit_Arel_Attributes_String :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
+      alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
 
       def visit_String o
         @node_stack.last.fields << o
       end
       alias :visit_Time :visit_String
       alias :visit_NilClass :visit_String
+      alias :visit_TrueClass :visit_String
       alias :visit_Arel_SqlLiteral :visit_String
       alias :visit_Fixnum :visit_String
 

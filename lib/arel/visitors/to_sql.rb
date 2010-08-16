@@ -74,6 +74,7 @@ module Arel
       def visit_Fixnum o; o end
       alias :visit_Time :visit_Fixnum
       alias :visit_String :visit_Fixnum
+      alias :visit_TrueClass :visit_Fixnum
       alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
       alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
 

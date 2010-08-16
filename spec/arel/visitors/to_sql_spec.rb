@@ -13,6 +13,10 @@ module Arel
         @visitor.accept attr
       end
 
+      it "should visit_TrueClass" do
+        @visitor.accept(@attr.eq(true)).should be_like %{ "users"."id" = 't' }
+      end
+
       describe "Nodes::In" do
         it "should know how to visit" do
           node = @attr.in [1, 2, 3]
