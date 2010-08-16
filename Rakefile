@@ -41,6 +41,18 @@ else
 
       desc "Run specs with the #{adapter} database adapter"
       task adapter => "set_env_for_#{adapter}"
+
+      namespace :v1 do
+        Spec::Rake::SpecTask.new(adapter) do |t|
+          t.spec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
+          t.libs << "#{File.dirname(__FILE__)}/spec"
+          t.warning    = true
+          t.spec_files = FileList['spec/arel/**/*_spec.rb']
+        end
+
+        desc "Run specs with the #{adapter} database adapter"
+        task adapter => "set_env_for_#{adapter}"
+      end
     end
   end
 

@@ -4,6 +4,10 @@ module Arel
       def eq other
         Nodes::Equality.new self, other
       end
+
+      def in other
+        Nodes::In.new self, other
+      end
     end
 
     class String  < Attribute; end

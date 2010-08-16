@@ -56,6 +56,10 @@ module Arel
         quote_table_name o.name
       end
 
+      def visit_Arel_Nodes_In o
+        "#{visit o.left} IN (#{o.right.map { |x| quote visit x }.join ', '})"
+      end
+
       def visit_Arel_Nodes_Equality o
         "#{visit o.left} = #{quote visit o.right}"
       end
