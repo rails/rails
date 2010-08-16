@@ -272,7 +272,7 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
     topic = TopicWithObserverAttached.new
     topic.save!
 
-    assert topic.history, [:"TopicWithObserverAttachedObserver#after_commit"]
+    assert_equal topic.history, [:"TopicWithObserverAttachedObserver#after_commit"]
   end
 
   def test_after_rollback_called
@@ -283,6 +283,6 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert topic.history, [:"TopicWithObserverObserver#after_rollback"]
+    assert_equal topic.history, [:"TopicWithObserverObserver#after_rollback"]
   end
 end
