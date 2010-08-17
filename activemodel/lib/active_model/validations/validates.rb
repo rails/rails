@@ -48,7 +48,7 @@ module ActiveModel
       #
       #     class TitleValidator < ActiveModel::EachValidator
       #       def validate_each(record, attribute, value)
-      #         record.errors[attribute] << "must start with 'the'" unless =~ /^the/i
+      #         record.errors[attribute] << "must start with 'the'" unless value =~ /^the/i
       #       end
       #     end
       #
