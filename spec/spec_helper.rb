@@ -5,6 +5,7 @@ require 'arel'
 
 require 'support/matchers/be_like'
 require 'support/check'
+Dir[File.join(File.dirname(__FILE__),'support/shared/*')].each { |f| require f }
 
 if adapter = ENV['ADAPTER']
   require "support/connections/#{adapter}_connection.rb"

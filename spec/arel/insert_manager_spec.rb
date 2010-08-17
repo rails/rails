@@ -110,5 +110,16 @@ module Arel
         }
       end
     end
+
+    describe "TreeManager" do
+      subject do
+        table = Table.new(:users)
+        Arel::InsertManager.new(Table.engine).tap do |manager|
+          manager.insert [[table[:id], nil]]
+        end
+      end
+
+      it_should_behave_like "TreeManager"
+    end
   end
 end

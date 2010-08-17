@@ -73,5 +73,17 @@ module Arel
         um.where(table[:id].eq(1)).should == um
       end
     end
+
+    describe "TreeManager" do
+      subject do
+        table = Table.new :users
+        Arel::UpdateManager.new(Table.engine).tap do |manager|
+          manager.table table
+          manager.where table[:id].eq(1)
+        end
+      end
+
+      it_should_behave_like "TreeManager"
+    end
   end
 end

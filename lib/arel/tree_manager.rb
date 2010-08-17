@@ -15,5 +15,10 @@ module Arel
       viz = Visitors::ToSql.new @engine
       viz.accept @head
     end
+
+    def initialize_copy other
+      super
+      @head = @head.clone
+    end
   end
 end
