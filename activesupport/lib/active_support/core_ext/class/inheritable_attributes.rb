@@ -5,7 +5,7 @@ require 'active_support/core_ext/array/extract_options'
 module ClassInheritableAttributes # :nodoc:
 end
 
-# It is recommend to use <tt>class_attribute</tt> over methods defined in this file. Please
+# It is recommended to use <tt>class_attribute</tt> over methods defined in this file. Please
 # refer to documentation for <tt>class_attribute</tt> for more information. Officially it is not
 # deprecated but <tt>class_attribute</tt> is faster.
 #
