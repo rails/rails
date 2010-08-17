@@ -449,7 +449,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Comment.send(:with_scope, :create => { :body => "Hey guys, nested scopes are broken. Please fix!" }) do
       Comment.send(:with_exclusive_scope, :create => { :post_id => 1 }) do
         assert_equal({:post_id => 1}, Comment.scoped.send(:scope_for_create))
-        assert Comment.new.body.blank?
+        assert_blank Comment.new.body
         comment = Comment.create :body => "Hey guys"
       end
     end
