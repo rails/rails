@@ -731,6 +731,7 @@ module ActionDispatch
             end
           elsif resource_method_scope?
             path = path_for_custom_action
+            options[:action] ||= action
             options[:as] = name_for_action(options[:as]) if options[:as]
             args.push(options)
 
