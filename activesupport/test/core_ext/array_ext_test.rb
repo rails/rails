@@ -82,6 +82,11 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
     assert_equal "one", ['one'].to_sentence
   end
 
+  def test_one_element_not_same_object
+    elements = ["one"]
+    assert_not_equal elements[0].object_id, elements.to_sentence.object_id
+  end
+
   def test_one_non_string_element
     assert_equal '1', [1].to_sentence
   end
