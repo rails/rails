@@ -313,7 +313,7 @@ To add a member route, just add a +member+ block into the resource block:
 <ruby>
 resources :photos do
   member do
-    get :preview
+    get 'preview'
   end
 end
 </ruby>
@@ -324,7 +324,7 @@ Within the block of member routes, each route name specifies the HTTP verb that 
 
 <ruby>
 resources :photos do
-  get :preview, :on => :member
+  get 'preview', :on => :member
 end
 </ruby>
 
@@ -335,7 +335,7 @@ To add a route to the collection:
 <ruby>
 resources :photos do
   collection do
-    get :search
+    get 'search'
   end
 end
 </ruby>
@@ -346,7 +346,7 @@ Just as with member routes, you can pass +:on+ to a route:
 
 <ruby>
 resources :photos do
-  get :search, :on => :collection
+  get 'search', :on => :collection
 end
 </ruby>
 
