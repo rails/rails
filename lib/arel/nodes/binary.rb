@@ -18,7 +18,7 @@ module Arel
       #
       # Maybe we should just use `Table.engine`?  :'(
       def to_sql
-        viz = Visitors::ToSql.new left.relation.engine
+        viz = Visitors::ToSql.new Table.engine
         viz.accept self
       end
     end
