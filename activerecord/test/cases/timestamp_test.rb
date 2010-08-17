@@ -97,7 +97,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   ensure
-    Pet.belongs_to :owner, :counter_cache => :use_count, :touch => true
+    Pet.belongs_to :owner, :touch => true
   end
 
   def test_touching_a_record_touches_parent_record_and_grandparent_record
