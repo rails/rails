@@ -98,19 +98,19 @@ Title: Rails debugging guide
 
 h4. Debugging JavaScript
 
-Rails has built-in support to debug RJS – to activate it, set +ActionView::Base.debug_rjs+ to _true_. This will specify that RJS responses should be wrapped in a try/catch block that displays the caught exception using +alert()+ (and then re-raises it).
-
-To enable it, add the following in the +Rails::Initializer do |config|+ block inside +environment.rb+:
+Rails has built-in support to debug RJS. To enable it, add the following in the +Rails::Initializer do |config|+ block inside +environment.rb+:
 
 <ruby>
 config.action_view[:debug_rjs] = true
 </ruby>
 
-Or, at any time, set +ActionView::Base.debug_rjs+ to _true_:
+Or, at any time, set +ActionView::Base.debug_rjs+ to true:
 
 <ruby>
 ActionView::Base.debug_rjs = true
 </ruby>
+
+This will specify that RJS responses should be wrapped in a try/catch block that displays the caught exception using +alert()+ (and then re-raises it).
 
 TIP: For more information on debugging JavaScript, refer to "Firebug":http://getfirebug.com/, the popular debugger for Firefox.
 
