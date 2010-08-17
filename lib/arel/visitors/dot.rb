@@ -58,6 +58,11 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
 
+      def visit_Arel_Nodes_Equality o
+        visit_edge o, "left"
+        visit_edge o, "right"
+      end
+
       def visit_String o
         @node_stack.last.fields << o
       end
