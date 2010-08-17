@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class Equality < Arel::Nodes::Binary
+    class Or < Arel::Nodes::Binary
     end
   end
 end

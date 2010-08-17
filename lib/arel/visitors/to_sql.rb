@@ -60,6 +60,10 @@ module Arel
         "#{visit o.left} IN (#{o.right.map { |x| quote visit x }.join ', '})"
       end
 
+      def visit_Arel_Nodes_Or o
+        "#{visit o.left} OR #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_Equality o
         "#{visit o.left} = #{quote visit o.right}"
       end

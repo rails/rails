@@ -8,6 +8,13 @@ module Arel
         @attr = Table.new(:users)[:id]
       end
 
+      it "should visit_Arel_Nodes_Or" do
+        node = Nodes::Or.new @attr.eq(10), @attr.eq(11)
+        @visitor.accept(node).should be_like %{
+          "users"."id" = 10 OR "users"."id" = 11
+        }
+      end
+
       it "should visit visit_Arel_Attributes_Time" do
         attr = Attributes::Time.new(@attr.relation, @attr.name, @attr.column)
         @visitor.accept attr
