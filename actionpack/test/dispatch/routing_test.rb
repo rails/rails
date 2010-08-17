@@ -128,7 +128,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
 
           member do
-            get  :some_path_with_name
+            get  'some_path_with_name'
             put  :accessible_projects
             post :resend, :generate_new_password
           end
