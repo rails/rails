@@ -104,8 +104,8 @@ module ActiveSupport #:nodoc:
           # element of self[Object] will be an Array of the constants that were present
           # before parent.rb was required. The second element will be an Array of the
           # constants that were present before child.rb was required.
-          self[namespace].each do |constants|
-            constants.concat(new_constants)
+          self[namespace].each do |namespace_constants|
+            namespace_constants.concat(new_constants)
           end
 
           # Normalize the list of new constants, and add them to the list we will return
