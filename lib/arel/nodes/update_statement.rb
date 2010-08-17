@@ -8,6 +8,12 @@ module Arel
         @wheres   = []
         @values   = []
       end
+
+      def initialize_copy other
+        super
+        @wheres = @wheres.map { |o| o.clone }
+        @values = @values.map { |o| o.clone }
+      end
     end
   end
 end

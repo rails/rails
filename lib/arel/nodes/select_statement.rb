@@ -8,6 +8,11 @@ module Arel
         @cores = cores
         @limit = nil
       end
+
+      def initialize_copy other
+        super
+        @cores = @cores.map { |o| o.clone }
+      end
     end
   end
 end
