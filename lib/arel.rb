@@ -3,6 +3,7 @@ require 'arel/crud'
 require 'arel/version'
 require 'arel/table'
 require 'arel/attributes'
+require 'arel/compatibility/wheres'
 
 #### these are deprecated
 # The Arel::Relation constant is referenced in Rails

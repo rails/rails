@@ -23,6 +23,10 @@ module Arel
       self
     end
 
+    def wheres
+      Compatibility::Wheres.new @engine, @ctx.wheres
+    end
+
     def take limit
       @head.limit = limit
       self
