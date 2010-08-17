@@ -735,7 +735,7 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 |+rake test:plugins+             |Run all the plugin tests from +vendor/plugins/*/**/test+ (or specify with +PLUGIN=_name_+)|
 |+rake test:profile+             |Profile the performance tests|
 |+rake test:recent+              |Tests recent changes|
-|+rake test:uncommitted+         |Runs all the tests which are uncommitted. Only supports Subversion|
+|+rake test:uncommitted+         |Runs all the tests which are uncommitted. Supports Subversion and Git|
 |+rake test:units+               |Runs all the unit tests from +test/unit+|
 
 
