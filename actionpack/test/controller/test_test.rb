@@ -546,7 +546,7 @@ XML
     assert_equal "bar", @request.params[:foo]
     @request.recycle!
     post :no_op
-    assert @request.params[:foo].blank?
+    assert_blank @request.params[:foo]
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set

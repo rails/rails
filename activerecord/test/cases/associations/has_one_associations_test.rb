@@ -253,7 +253,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_dependence_with_missing_association_and_nullify
     Account.destroy_all
     firm = DependentFirm.find(:first)
-    assert firm.account.nil?
+    assert_nil firm.account
     firm.destroy
   end
 

@@ -633,7 +633,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do
-      assert Client.find(client_id).firm.nil?
+      assert_nil Client.find(client_id).firm
     end
   end
 
@@ -658,7 +658,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [client_id], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is dependent.
-    assert Client.find_by_id(client_id).nil?
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_clearing_an_exclusively_dependent_association_collection

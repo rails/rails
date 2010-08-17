@@ -25,13 +25,13 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
   end
 
   def test_mass_assignment_protection_inheritance
-    assert LoosePerson.accessible_attributes.blank?
+    assert_blank LoosePerson.accessible_attributes
     assert_equal Set.new([ 'credit_rating', 'administrator']), LoosePerson.protected_attributes
 
-    assert LooseDescendant.accessible_attributes.blank?
+    assert_blank LooseDescendant.accessible_attributes
     assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number']), LooseDescendant.protected_attributes
 
-    assert LooseDescendantSecond.accessible_attributes.blank?
+    assert_blank LooseDescendantSecond.accessible_attributes
     assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name']), LooseDescendantSecond.protected_attributes,
       'Running attr_protected twice in one class should merge the protections'
 

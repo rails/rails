@@ -411,7 +411,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_in_empty_array
     authors = Author.scoped.where(:id => [])
-    assert authors.all.blank?
+    assert_blank authors.all
   end
 
   def test_exists
@@ -486,7 +486,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC") & Developer.limit(2)
-    assert devs.locked.present?
+    assert_present devs.locked
   end
 
   def test_relation_merging_with_preload

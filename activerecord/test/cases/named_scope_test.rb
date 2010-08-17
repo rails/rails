@@ -480,8 +480,8 @@ class DynamicScopeTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing
-    assert Developer.methods.grep(/scoped_by_created_at/).blank?
+    assert_blank Developer.methods.grep(/scoped_by_created_at/)
     Developer.scoped_by_created_at(nil)
-    assert Developer.methods.grep(/scoped_by_created_at/).present?
+    assert_present Developer.methods.grep(/scoped_by_created_at/)
   end
 end
