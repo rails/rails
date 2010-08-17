@@ -45,6 +45,12 @@ module Arel
         visit_edge o, "limit"
       end
 
+      def visit_Arel_Nodes_UpdateStatement o
+        visit_edge o, "relation"
+        visit_edge o, "wheres"
+        visit_edge o, "values"
+      end
+
       def visit_Arel_Table o
         visit_edge o, "name"
       end
