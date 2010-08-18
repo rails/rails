@@ -15,9 +15,7 @@ module Arel
       def visit_Arel_Nodes_UpdateStatement o
         [
           "UPDATE #{visit o.relation}",
-          ("SET #{o.values.map { |column,value|
-              "#{quote_column_name(column.name)} = #{value ? quote(visit(value)) : 'NULL'}"
-            }.join ', '}" unless o.values.empty?),
+          ("SET #{o.values.map { |value| visit value }.join ', '}" unless o.values.empty?),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?)
         ].compact.join ' '
       end
@@ -65,7 +63,13 @@ module Arel
       end
 
       def visit_Arel_Nodes_Equality o
-        "#{visit o.left} = #{quote visit o.right}"
+        right = o.right
+        right = right ? quote(visit(right)) : 'NULL'
+        "#{visit o.left} = #{right}"
+      end
+
+      def visit_Arel_Nodes_UnqualifiedColumn o
+        "#{quote_column_name o.name}"
       end
 
       def visit_Arel_Attributes_Attribute o

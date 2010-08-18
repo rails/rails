@@ -17,6 +17,14 @@ module Arel
         um.to_sql.should be_like %{ UPDATE "users" SET "name" =  NULL }
       end
 
+      it 'takes a string' do
+        table = Table.new(:users)
+        um = Arel::UpdateManager.new Table.engine
+        um.table table
+        um.set "foo = bar"
+        um.to_sql.should be_like %{ UPDATE "users" SET foo = bar }
+      end
+
       it 'takes a list of lists' do
         table = Table.new(:users)
         um = Arel::UpdateManager.new Table.engine

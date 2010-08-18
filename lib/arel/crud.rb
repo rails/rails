@@ -5,7 +5,12 @@ module Arel
     # FIXME: this method should go away
     def update values
       um = UpdateManager.new @engine
-      um.table values.first.first.relation
+
+      if String === values
+        um.table @ctx.froms.last
+      else
+        um.table values.first.first.relation
+      end
       um.set values
       um.wheres = @ctx.wheres
       @engine.connection.execute um.to_sql

@@ -22,7 +22,16 @@ module Arel
     end
 
     def set values
-      @head.values = values
+      if String === values
+        @head.values = [values]
+      else
+        @head.values = values.map { |column,value|
+          Nodes::Equality.new(
+            Nodes::UnqualifiedColumn.new(column),
+            value
+          )
+        }
+      end
       self
     end
   end

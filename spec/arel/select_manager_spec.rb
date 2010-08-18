@@ -24,6 +24,16 @@ module Arel
 
   describe 'select manager' do
     describe 'update' do
+      it 'takes a string' do
+        engine  = EngineProxy.new Table.engine
+        table   = Table.new :users
+        manager = Arel::SelectManager.new engine
+        manager.from table
+        manager.update('foo = bar')
+
+        engine.executed.last.should be_like %{ UPDATE "users" SET foo = bar }
+      end
+
       it 'copies where clauses' do
         engine  = EngineProxy.new Table.engine
         table   = Table.new :users
