@@ -45,6 +45,12 @@ module Arel
         visit_edge o, "limit"
       end
 
+      def visit_Arel_Nodes_UpdateStatement o
+        visit_edge o, "relation"
+        visit_edge o, "wheres"
+        visit_edge o, "values"
+      end
+
       def visit_Arel_Table o
         visit_edge o, "name"
       end
@@ -58,6 +64,11 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
 
+      def visit_Arel_Nodes_Equality o
+        visit_edge o, "left"
+        visit_edge o, "right"
+      end
+
       def visit_String o
         @node_stack.last.fields << o
       end
@@ -66,6 +77,7 @@ module Arel
       alias :visit_TrueClass :visit_String
       alias :visit_Arel_SqlLiteral :visit_String
       alias :visit_Fixnum :visit_String
+      alias :visit_Symbol :visit_String
 
       def visit_Hash o
         o.each_with_index do |pair, i|
