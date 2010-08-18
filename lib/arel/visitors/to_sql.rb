@@ -12,6 +12,13 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_DeleteStatement o
+        [
+          "DELETE FROM #{visit o.relation}",
+          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?)
+        ].compact.join ' '
+      end
+
       def visit_Arel_Nodes_UpdateStatement o
         [
           "UPDATE #{visit o.relation}",

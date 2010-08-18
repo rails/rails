@@ -23,6 +23,31 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'delete' do
+      it "copies from" do
+        engine  = EngineProxy.new Table.engine
+        table   = Table.new :users
+        manager = Arel::SelectManager.new engine
+        manager.from table
+        manager.delete
+
+        engine.executed.last.should be_like %{ DELETE FROM "users" }
+      end
+
+      it "copies where" do
+        engine  = EngineProxy.new Table.engine
+        table   = Table.new :users
+        manager = Arel::SelectManager.new engine
+        manager.from table
+        manager.where table[:id].eq 10
+        manager.delete
+
+        engine.executed.last.should be_like %{
+          DELETE FROM "users" WHERE "users"."id" = 10
+        }
+      end
+    end
+
     describe 'update' do
       it 'takes a string' do
         engine  = EngineProxy.new Table.engine

@@ -22,5 +22,12 @@ module Arel
       im.insert values
       @engine.connection.execute im.to_sql
     end
+
+    def delete
+      dm = DeleteManager.new @engine
+      dm.wheres = @ctx.wheres
+      dm.from @ctx.froms.last
+      @engine.connection.execute dm.to_sql
+    end
   end
 end
