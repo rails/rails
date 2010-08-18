@@ -315,6 +315,7 @@ module ActiveRecord
         rows = []
         result.each { |row| rows << row }
         result.free
+        @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end
 
@@ -638,6 +639,7 @@ module ActiveRecord
           result = execute(sql, name)
           rows = result.all_hashes
           result.free
+          @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
           rows
         end
 
