@@ -47,6 +47,14 @@ Project   = Struct.new(:description, :person) do
   delegate :to_f, :to => :description, :allow_nil => true
 end
 
+Developer = Struct.new(:client) do
+  delegate :name, :to => :client, :prefix => nil
+end
+
+Tester = Struct.new(:client) do
+  delegate :name, :to => :client, :prefix => false
+end
+
 class Name
   delegate :upcase, :to => :@full_name
 
@@ -95,6 +103,11 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal invoice.customer_name, "David"
     assert_equal invoice.customer_street, "Paulina"
     assert_equal invoice.customer_city, "Chicago"
+  end
+
+  def test_delegation_prefix_with_nil_or_false
+    assert_equal Developer.new(@david).name, "David"
+    assert_equal Tester.new(@david).name, "David"
   end
 
   def test_delegation_prefix_with_instance_variable
