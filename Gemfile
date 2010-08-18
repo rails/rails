@@ -10,7 +10,7 @@ gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
-gem "rdoc",  ">= 2.5.9"
+gem "rdoc",  ">= 2.5.10"
 gem "horo",  ">= 1.0.1"
 
 # AS
