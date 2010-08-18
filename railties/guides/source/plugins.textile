@@ -1341,7 +1341,7 @@ h3. Plugins as Gems
 
 Turning your rails plugin into a gem is a simple and straightforward task.  This section will cover how to turn your plugin into a gem.  It will not cover how to distribute that gem.
 
-The initialization file has to be called +rails/init.rb+, the root +init.rb+ file, if any, is ignored by Rails. Also, the name of the plugin now is relevant since +config.gem+ tries to load it. Either name the main file after your gem, or document that users should use the +:lib+ option.
+Rails 3 ignores both <tt>init.rb</tt> and <tt>rails/init.rb</tt> file of a gem. Also, the name of the plugin now is relevant since +config.gem+ tries to load it. Either name the main file after your gem, or document that users should use the +:lib+ option.
 
 It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in +Rakefile+.  A rake task that packages the gem might look like this:
 
