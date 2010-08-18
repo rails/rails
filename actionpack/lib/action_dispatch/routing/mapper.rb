@@ -498,16 +498,14 @@ module ActionDispatch
           end
 
           def plural
-            name.to_s.pluralize
+            @plural ||= name.to_s
           end
 
           def singular
-            name.to_s.singularize
+            @singular ||= name.to_s.singularize
           end
 
-          def member_name
-            singular
-          end
+          alias :member_name :singular
 
           # Checks for uncountable plurals, and appends "_index" if they're.
           def collection_name
@@ -518,9 +516,7 @@ module ActionDispatch
             { :controller => controller }
           end
 
-          def collection_scope
-            path
-          end
+          alias :collection_scope :path
 
           def member_scope
             "#{path}/:id"
@@ -547,15 +543,19 @@ module ActionDispatch
             @options    = options
           end
 
-          def member_name
-            name
+          def plural
+            @plural ||= name.to_s.pluralize
           end
-          alias :collection_name :member_name
 
-          def member_scope
-            path
+          def singular
+            @singular ||= name.to_s
           end
-          alias :nested_scope :member_scope
+
+          alias :member_name :singular
+          alias :collection_name :singular
+
+          alias :member_scope :path
+          alias :nested_scope :path
         end
 
         def initialize(*args) #:nodoc:
