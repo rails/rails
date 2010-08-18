@@ -379,6 +379,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :wiki do
+        resources :articles, :id => /[^\/]+/ do
+          resources :comments, :only => [:create, :new]
+        end
+      end
+
       scope :only => :show do
         namespace :only do
           resources :sectors, :only => :index do
@@ -1959,6 +1965,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/sections/1/preview'
       assert_equal 'sections#preview', @response.body
       assert_equal '/sections/1/preview', preview_section_path(:id => '1')
+    end
+  end
+
+  def test_resource_constraints_are_pushed_to_scope
+    with_test_routes do
+      get '/wiki/articles/Ruby_on_Rails_3.0'
+      assert_equal 'wiki/articles#show', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0', wiki_article_path(:id => 'Ruby_on_Rails_3.0')
+
+      get '/wiki/articles/Ruby_on_Rails_3.0/comments/new'
+      assert_equal 'wiki/comments#new', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments/new', new_wiki_article_comment_path(:article_id => 'Ruby_on_Rails_3.0')
+
+      post '/wiki/articles/Ruby_on_Rails_3.0/comments'
+      assert_equal 'wiki/comments#create', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments', wiki_article_comments_path(:article_id => 'Ruby_on_Rails_3.0')
     end
   end
 

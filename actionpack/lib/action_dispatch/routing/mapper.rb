@@ -774,6 +774,10 @@ module ActionDispatch
               return true
             end
 
+            options.each do |k,v|
+              (options[:constraints] ||= {})[k] = options.delete(k) if options[k].is_a?(Regexp)
+            end
+
             scope_options = options.slice!(*RESOURCE_OPTIONS)
             unless scope_options.empty?
               scope(scope_options) do
