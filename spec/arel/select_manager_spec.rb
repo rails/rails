@@ -54,7 +54,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new engine
         manager.from table
-        manager.update('foo = bar')
+        manager.update(SqlLiteral.new('foo = bar'))
 
         engine.executed.last.should be_like %{ UPDATE "users" SET foo = bar }
       end
@@ -89,7 +89,7 @@ module Arel
       it 'takes strings' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.project '*'
+        manager.project Nodes::SqlLiteral.new('*')
         manager.to_sql.should be_like %{
           SELECT *
         }
@@ -146,6 +146,24 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from(table)
         manager.project(table['id']).where(table['id'].eq 1).should == manager
+      end
+    end
+
+    describe "join" do
+      it "joins itself" do
+        left      = Table.new :users
+        right     = left.alias
+        predicate = left[:id].eq(right[:id])
+
+        mgr = left.join(right)
+        mgr.project Nodes::SqlLiteral.new('*')
+        check mgr.on(predicate).should == mgr
+
+        mgr.to_sql.should be_like %{
+           SELECT * FROM "users"
+             INNER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id"
+        }
       end
     end
 

@@ -21,7 +21,7 @@ module Arel
         table = Table.new(:users)
         um = Arel::UpdateManager.new Table.engine
         um.table table
-        um.set "foo = bar"
+        um.set Nodes::SqlLiteral.new "foo = bar"
         um.to_sql.should be_like %{ UPDATE "users" SET foo = bar }
       end
 

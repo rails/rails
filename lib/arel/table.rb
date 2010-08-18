@@ -5,17 +5,28 @@ module Arel
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_reader :name, :engine
+    attr_reader :name, :engine, :aliases
 
     def initialize name, engine = Table.engine
       @name    = name
       @engine  = engine
       @engine  = engine[:engine] if Hash === engine
       @columns = nil
+      @aliases = []
+    end
+
+    def alias
+      Nodes::TableAlias.new("#{name}_2", self).tap do |node|
+        @aliases << node
+      end
     end
 
     def tm
       SelectManager.new(@engine).from(self)
+    end
+
+    def join relation
+      SelectManager.new(@engine).from(Nodes::InnerJoin.new(self, relation, nil))
     end
 
     def where condition

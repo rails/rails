@@ -6,6 +6,18 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'alias' do
+      it 'should create a node that proxies to a table' do
+        check @relation.aliases.should == []
+
+        node = @relation.alias
+        check @relation.aliases.should == [node]
+        check node.name.should == 'users_2'
+        check node[:id].relation.should == node
+        check node[:id].relation.should != node
+      end
+    end
+
     describe 'new' do
       it 'should accept an engine' do
         rel = Table.new :users, 'foo'

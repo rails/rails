@@ -36,7 +36,7 @@ module Arel
             }.join ', '})" unless o.columns.empty?),
 
           ("VALUES (#{o.values.map { |value|
-            value ? quote(visit(value)) : 'NULL'
+            value ? visit(value) : 'NULL'
           }.join ', '})" unless o.values.empty?),
 
         ].compact.join ' '
@@ -57,12 +57,24 @@ module Arel
         ].compact.join ' '
       end
 
+      def visit_Arel_Nodes_TableAlias o
+        "#{visit o.relation} #{quote_table_name o.name}"
+      end
+
+      def visit_Arel_Nodes_InnerJoin o
+        "#{visit o.left} INNER JOIN #{visit o.right} #{visit o.constraint}"
+      end
+
+      def visit_Arel_Nodes_On o
+        "ON #{visit o.expr}"
+      end
+
       def visit_Arel_Table o
         quote_table_name o.name
       end
 
       def visit_Arel_Nodes_In o
-        "#{visit o.left} IN (#{o.right.map { |x| quote visit x }.join ', '})"
+        "#{visit o.left} IN (#{o.right.map { |x| visit x }.join ', '})"
       end
 
       def visit_Arel_Nodes_Or o
@@ -71,7 +83,7 @@ module Arel
 
       def visit_Arel_Nodes_Equality o
         right = o.right
-        right = right ? quote(visit(right)) : 'NULL'
+        right = right ? visit(right) : 'NULL'
         "#{visit o.left} = #{right}"
       end
 
@@ -87,11 +99,12 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
 
       def visit_Fixnum o; o end
-      alias :visit_Time :visit_Fixnum
-      alias :visit_String :visit_Fixnum
-      alias :visit_TrueClass :visit_Fixnum
       alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
       alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
+
+      def visit_TrueClass o; quote(o) end
+      def visit_String o; quote(o) end
+      def visit_Time o; quote(o) end
 
       DISPATCH = {}
       def visit object

@@ -8,12 +8,21 @@ module Arel
       @ctx    = @head.cores.last
     end
 
+    def on expr
+      @ctx.froms.last.constraint = Nodes::On.new(expr)
+      self
+    end
+
     def from table
       @ctx.froms << table
       self
     end
 
     def project projection
+      projection = ::String == projection.class ?
+        Nodes::SqlLiteral.new(projection) :
+        projection
+
       @ctx.projections << projection
       self
     end
