@@ -229,7 +229,7 @@ module ActiveRecord
           arel.project(selects.last)
         end
       else
-        arel.project(@klass.quoted_table_name + '.*')
+        arel.project(Arel::SqlLiteral.new(@klass.quoted_table_name + '.*'))
       end
     end
 
