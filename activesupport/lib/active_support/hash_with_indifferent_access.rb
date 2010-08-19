@@ -107,7 +107,7 @@ module ActiveSupport
     # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
     # This overloaded definition prevents returning a regular hash, if reverse_merge is called on a HashWithDifferentAccess.
     def reverse_merge(other_hash)
-      super other_hash.with_indifferent_access
+      super self.class.new_from_hash_copying_default(other_hash)
     end
 
     def reverse_merge!(other_hash)
@@ -138,9 +138,9 @@ module ActiveSupport
       def convert_value(value)
         case value
         when Hash
-          value.with_indifferent_access
+          self.class.new_from_hash_copying_default(value)
         when Array
-          value.collect { |e| e.is_a?(Hash) ? e.with_indifferent_access : e }
+          value.collect { |e| e.is_a?(Hash) ? self.class.new_from_hash_copying_default(e) : e }
         else
           value
         end
