@@ -38,5 +38,16 @@ module Arel
         check dm.where(table[:id].eq(10)).should == dm
       end
     end
+
+    describe "TreeManager" do
+      subject do
+        table = Table.new :users
+        Arel::DeleteManager.new(Table.engine).tap do |manager|
+          manager.where(table[:id].eq(10))
+        end
+      end
+
+      it_should_behave_like "TreeManager"
+    end
   end
 end
