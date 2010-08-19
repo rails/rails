@@ -190,6 +190,18 @@ module ActiveRecord
     # destruction, are saved and destroyed automatically and atomically when
     # the parent model is saved. This happens inside the transaction initiated
     # by the parents save method. See ActiveRecord::AutosaveAssociation.
+    #
+    # === Using with attr_accessible
+    #
+    # The use of <tt>attr_accessible</tt> can interfere with nested attributes
+    # if you're not careful. For example, if the <tt>Member</tt> model above
+    # was using <tt>attr_accessible</tt> like this:
+    #
+    #   attr_accessible :name
+    #
+    # You would need to modify it to look like this:
+    #
+    #   attr_accessible :name, :posts_attributes
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
 
