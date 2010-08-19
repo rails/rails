@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Arel::Nodes::SelectStatement do
+describe Arel::Nodes::DeleteStatement do
   describe "#clone" do
-    it "clones where" do
+    it "clones wheres" do
       statement = Arel::Nodes::DeleteStatement.new
       statement.wheres = %w[a b c]
 
