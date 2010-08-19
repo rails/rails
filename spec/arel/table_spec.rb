@@ -33,14 +33,14 @@ module Arel
     describe 'take' do
       it "should add a limit" do
         manager = @relation.take 1
-        manager.project '*'
+        manager.project SqlLiteral.new '*'
         manager.to_sql.should be_like %{ SELECT * FROM "users" LIMIT 1 }
       end
     end
 
     describe 'project' do
       it 'can project' do
-        manager = @relation.project '*'
+        manager = @relation.project SqlLiteral.new '*'
         manager.to_sql.should be_like %{
           SELECT *
           FROM "users"

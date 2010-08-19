@@ -7,6 +7,7 @@ module Arel
       um = UpdateManager.new @engine
 
       if String === values
+        values = SqlLiteral.new values
         um.table @ctx.froms.last
       else
         um.table values.first.first.relation

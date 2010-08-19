@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class InnerJoin < Arel::Nodes::Join
+    class OuterJoin < Arel::Nodes::Join
     end
   end
 end

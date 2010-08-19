@@ -23,6 +23,30 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'joins' do
+      it 'returns join sql' do
+        table   = Table.new :users
+        aliaz   = table.alias
+        manager = Arel::SelectManager.new Table.engine
+        manager.from Nodes::InnerJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
+        manager.join_sql.should be_like %{
+          "users" INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
+        }
+        check manager.joins(manager).should == manager.join_sql
+      end
+
+      it 'returns outer join sql' do
+        table   = Table.new :users
+        aliaz   = table.alias
+        manager = Arel::SelectManager.new Table.engine
+        manager.from Nodes::OuterJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
+        manager.join_sql.should be_like %{
+          "users" OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
+        }
+        check manager.joins(manager).should == manager.join_sql
+      end
+    end
+
     describe 'delete' do
       it "copies from" do
         engine  = EngineProxy.new Table.engine
