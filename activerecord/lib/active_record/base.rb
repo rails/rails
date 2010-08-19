@@ -918,7 +918,11 @@ module ActiveRecord #:nodoc:
             self
           else
             begin
-              compute_type(type_name)
+              if store_full_sti_class
+                ActiveSupport::Dependencies.constantize(type_name)
+              else
+                compute_type(type_name)
+              end
             rescue NameError
               raise SubclassNotFound,
                 "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
