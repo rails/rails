@@ -1171,7 +1171,7 @@ MSG
           if type_name.match(/^::/)
             # If the type is prefixed with a scope operator then we assume that
             # the type_name is an absolute reference.
-            type_name.constantize
+            ActiveSupport::Dependencies.constantize(type_name)
           else
             # Build a list of candidates to search for
             candidates = []
@@ -1180,7 +1180,7 @@ MSG
 
             candidates.each do |candidate|
               begin
-                constant = candidate.constantize
+                constant = ActiveSupport::Dependencies.constantize(candidate)
                 return constant if candidate == constant.to_s
               rescue NameError => e
                 # We don't want to swallow NoMethodError < NameError errors
