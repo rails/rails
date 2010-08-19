@@ -93,11 +93,7 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        if conn = @reserved_connections[current_connection_id]
-          conn
-        else
-          @reserved_connections[current_connection_id] = checkout
-        end
+        @reserved_connections[current_connection_id] ||= checkout
       end
 
       # Signal that the thread is finished with the current connection.
