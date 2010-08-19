@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/keys'
 
 # This class has dubious semantics and we only have it so that
@@ -25,6 +24,12 @@ module ActiveSupport
         self[key]
       else
         super
+      end
+    end
+
+    def self.new_from_hash_copying_default(hash)
+      ActiveSupport::HashWithIndifferentAccess.new(hash).tap do |new_hash|
+        new_hash.default = hash.default
       end
     end
 
