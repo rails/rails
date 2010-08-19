@@ -288,7 +288,7 @@ module ActionDispatch
             uri = URI.parse(path_proc.call(*params))
             uri.scheme ||= req.scheme
             uri.host   ||= req.host
-            uri.port   ||= req.port unless req.port == 80
+            uri.port   ||= req.port unless req.standard_port?
 
             body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
 
