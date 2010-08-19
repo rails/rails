@@ -8,6 +8,13 @@ module Arel
         @projections = []
         @wheres      = []
       end
+
+      def initialize_copy other
+        super
+        @froms = @froms.map { |o| o.clone }
+        @projections = @projections.map { |o| o.clone }
+        @wheres = @wheres.map { |o| o.clone }
+      end
     end
   end
 end
