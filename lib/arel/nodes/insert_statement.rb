@@ -8,6 +8,12 @@ module Arel
         @columns  = []
         @values   = []
       end
+
+      def initialize_copy other
+        super
+        @columns = @columns.map { |o| o.clone }
+        @values =  @values.map  { |o| o.clone }
+      end
     end
   end
 end

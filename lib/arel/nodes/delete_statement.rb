@@ -7,6 +7,11 @@ module Arel
         @from   = nil
         @wheres = []
       end
+
+      def initialize_copy other
+        super
+        @wheres = @wheres.map { |o| o.clone }        
+      end
     end
   end
 end
