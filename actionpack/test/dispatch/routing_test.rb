@@ -45,6 +45,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
+      match 'secure', :to => redirect("/secure/login")
 
       constraints(lambda { |req| true }) do
         match 'account/overview'
@@ -2003,9 +2004,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_https
+    with_test_routes do
+      with_https do
+        get '/secure'
+        verify_redirect 'https://www.example.com/secure/login'
+      end
+    end
+  end
+
 private
   def with_test_routes
     yield
+  end
+
+  def with_https
+    old_https = https?
+    https!
+    yield
+  ensure
+    https!(old_https)
   end
 
   def verify_redirect(url, status=301)
