@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Arel::Nodes::UpdateStatement do
-  describe "clone" do
-    it "clones cores" do
+  describe "#clone" do
+    it "clones wheres and values" do
       statement = Arel::Nodes::UpdateStatement.new
       statement.wheres = %w[a b c]
       statement.values = %w[x y z]

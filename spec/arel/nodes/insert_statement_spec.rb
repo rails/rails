@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Arel::Nodes::InsertStatement do
-  describe "clone" do
-    it "clones cores" do
+  describe "#clone" do
+    it "clones columns and values" do
       statement = Arel::Nodes::InsertStatement.new
       statement.columns = %w[a b c]
       statement.values  = %w[x y z]
