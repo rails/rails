@@ -413,6 +413,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :sections, :id => /.+/ do
+        get :preview, :on => :member
+      end
+
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
@@ -1943,6 +1947,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       delete '/medical/taxis'
       assert_equal 'medical/taxes#destroy', @response.body
+    end
+  end
+
+  def test_greedy_resource_id_regexp_doesnt_match_edit_and_custom_action
+    with_test_routes do
+      get '/sections/1/edit'
+      assert_equal 'sections#edit', @response.body
+      assert_equal '/sections/1/edit', edit_section_path(:id => '1')
+
+      get '/sections/1/preview'
+      assert_equal 'sections#preview', @response.body
+      assert_equal '/sections/1/preview', preview_section_path(:id => '1')
     end
   end
 
