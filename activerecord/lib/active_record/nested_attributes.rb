@@ -202,6 +202,22 @@ module ActiveRecord
     # You would need to modify it to look like this:
     #
     #   attr_accessible :name, :posts_attributes
+    #
+    # === Validating the presence of a parent model
+    #
+    # If you want to validate that a child record is associated with a parent
+    # record, you can use <tt>validates_presence_of</tt> and
+    # <tt>inverse_of</tt> as this example illustrates:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts, :inverse_of => :member
+    #     accepts_nested_attributes_for :posts
+    #   end
+    #
+    #   class Post < ActiveRecord::Base
+    #     belongs_to :member, :inverse_of => :posts
+    #     validates_presence_of :member
+    #   end
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
 
