@@ -89,7 +89,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   def test_undefined_connection_returns_false
     old_handler = ActiveRecord::Base.connection_handler
     ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    assert_equal false, ActiveRecord::Base.connected?
+    assert ! ActiveRecord::Base.connected?
   ensure
     ActiveRecord::Base.connection_handler = old_handler
   end
