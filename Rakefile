@@ -26,6 +26,7 @@ desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.title    = "Ruby on Rails Documentation"
+  rdoc.main     = "railties/README"
 
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '-A cattr_accessor=object'
