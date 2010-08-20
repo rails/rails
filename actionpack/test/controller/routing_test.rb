@@ -956,7 +956,7 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people", :method => :put)
     assert_equal("update", params[:action])
 
-    assert_raise(ActionController::RoutingError) {
+    assert_raise(ActionController::UnknownHttpMethod) {
       set.recognize_path("/people", :method => :bacon)
     }
 
