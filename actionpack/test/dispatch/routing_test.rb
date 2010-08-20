@@ -45,6 +45,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
+      match 'secure', :to => redirect("/secure/login")
 
       constraints(lambda { |req| true }) do
         match 'account/overview'
@@ -128,7 +129,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
 
           member do
-            get  :some_path_with_name
+            get  'some_path_with_name'
             put  :accessible_projects
             post :resend, :generate_new_password
           end
@@ -337,6 +338,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :content
 
+      namespace :transport do
+        resources :taxis
+      end
+
+      namespace :medical do
+        resource :taxis
+      end
+
       scope :constraints => { :id => /\d+/ } do
         get '/tickets', :to => 'tickets#index', :as => :tickets
       end
@@ -371,6 +380,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :wiki do
+        resources :articles, :id => /[^\/]+/ do
+          resources :comments, :only => [:create, :new]
+        end
+      end
+
+      resources :wiki_pages, :path => :pages
+      resource :wiki_account, :path => :my_account
+
       scope :only => :show do
         namespace :only do
           resources :sectors, :only => :index do
@@ -403,6 +421,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
             resources :managers, :only => :index
           end
         end
+      end
+
+      resources :sections, :id => /.+/ do
+        get :preview, :on => :member
       end
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
@@ -1884,9 +1906,124 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resources_are_not_pluralized
+    with_test_routes do
+      get '/transport/taxis'
+      assert_equal 'transport/taxis#index', @response.body
+      assert_equal '/transport/taxis', transport_taxis_path
+
+      get '/transport/taxis/new'
+      assert_equal 'transport/taxis#new', @response.body
+      assert_equal '/transport/taxis/new', new_transport_taxi_path
+
+      post '/transport/taxis'
+      assert_equal 'transport/taxis#create', @response.body
+
+      get '/transport/taxis/1'
+      assert_equal 'transport/taxis#show', @response.body
+      assert_equal '/transport/taxis/1', transport_taxi_path(:id => '1')
+
+      get '/transport/taxis/1/edit'
+      assert_equal 'transport/taxis#edit', @response.body
+      assert_equal '/transport/taxis/1/edit', edit_transport_taxi_path(:id => '1')
+
+      put '/transport/taxis/1'
+      assert_equal 'transport/taxis#update', @response.body
+
+      delete '/transport/taxis/1'
+      assert_equal 'transport/taxis#destroy', @response.body
+    end
+  end
+
+  def test_singleton_resources_are_not_singularized
+    with_test_routes do
+      get '/medical/taxis/new'
+      assert_equal 'medical/taxes#new', @response.body
+      assert_equal '/medical/taxis/new', new_medical_taxis_path
+
+      post '/medical/taxis'
+      assert_equal 'medical/taxes#create', @response.body
+
+      get '/medical/taxis'
+      assert_equal 'medical/taxes#show', @response.body
+      assert_equal '/medical/taxis', medical_taxis_path
+
+      get '/medical/taxis/edit'
+      assert_equal 'medical/taxes#edit', @response.body
+      assert_equal '/medical/taxis/edit', edit_medical_taxis_path
+
+      put '/medical/taxis'
+      assert_equal 'medical/taxes#update', @response.body
+
+      delete '/medical/taxis'
+      assert_equal 'medical/taxes#destroy', @response.body
+    end
+  end
+
+  def test_greedy_resource_id_regexp_doesnt_match_edit_and_custom_action
+    with_test_routes do
+      get '/sections/1/edit'
+      assert_equal 'sections#edit', @response.body
+      assert_equal '/sections/1/edit', edit_section_path(:id => '1')
+
+      get '/sections/1/preview'
+      assert_equal 'sections#preview', @response.body
+      assert_equal '/sections/1/preview', preview_section_path(:id => '1')
+    end
+  end
+
+  def test_resource_constraints_are_pushed_to_scope
+    with_test_routes do
+      get '/wiki/articles/Ruby_on_Rails_3.0'
+      assert_equal 'wiki/articles#show', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0', wiki_article_path(:id => 'Ruby_on_Rails_3.0')
+
+      get '/wiki/articles/Ruby_on_Rails_3.0/comments/new'
+      assert_equal 'wiki/comments#new', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments/new', new_wiki_article_comment_path(:article_id => 'Ruby_on_Rails_3.0')
+
+      post '/wiki/articles/Ruby_on_Rails_3.0/comments'
+      assert_equal 'wiki/comments#create', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments', wiki_article_comments_path(:article_id => 'Ruby_on_Rails_3.0')
+    end
+  end
+
+  def test_resources_path_can_be_a_symbol
+    with_test_routes do
+      get '/pages'
+      assert_equal 'wiki_pages#index', @response.body
+      assert_equal '/pages', wiki_pages_path
+
+      get '/pages/Ruby_on_Rails'
+      assert_equal 'wiki_pages#show', @response.body
+      assert_equal '/pages/Ruby_on_Rails', wiki_page_path(:id => 'Ruby_on_Rails')
+
+      get '/my_account'
+      assert_equal 'wiki_accounts#show', @response.body
+      assert_equal '/my_account', wiki_account_path
+    end
+  end
+
+  def test_redirect_https
+    with_test_routes do
+      with_https do
+        get '/secure'
+        verify_redirect 'https://www.example.com/secure/login'
+      end
+    end
+  end
+
 private
   def with_test_routes
     yield
+  end
+
+  def with_https
+    old_https = https?
+    https!
+    yield
+  ensure
+    https!(old_https)
   end
 
   def verify_redirect(url, status=301)

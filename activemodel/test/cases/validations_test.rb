@@ -25,9 +25,11 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.title = "There's no content!"
     assert r.invalid?, "A reply without content shouldn't be saveable"
+    assert r.after_validation_performed, "after_validation callback should be called"
 
     r.content = "Messa content!"
     assert r.valid?, "A reply with content should be saveable"
+    assert r.after_validation_performed, "after_validation callback should be called"
   end
 
   def test_single_attr_validation_and_error_msg

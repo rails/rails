@@ -163,19 +163,17 @@ module ActiveRecord
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase
 
+      distinct = nil
+
       if operation == "count"
         column_name ||= (select_for_count || :all)
 
-        joins = arel.joins(arel)
-        if joins.present? && joins =~ /LEFT OUTER/i
+        if arel.joins(arel) =~ /LEFT OUTER/i
           distinct = true
           column_name = @klass.primary_key if column_name == :all
         end
 
-        distinct = nil if column_name.to_s =~ /\s*DISTINCT\s+/i
-        distinct ||= options[:distinct]
-      else
-        distinct = nil
+        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
 
       distinct = options[:distinct] || distinct

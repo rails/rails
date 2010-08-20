@@ -288,7 +288,7 @@ module ActionDispatch
             uri = URI.parse(path_proc.call(*params))
             uri.scheme ||= req.scheme
             uri.host   ||= req.host
-            uri.port   ||= req.port unless req.port == 80
+            uri.port   ||= req.port unless req.standard_port?
 
             body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
 
@@ -473,7 +473,7 @@ module ActionDispatch
 
           def initialize(entities, options = {})
             @name       = entities.to_s
-            @path       = options.delete(:path) || @name
+            @path       = (options.delete(:path) || @name).to_s
             @controller = (options.delete(:controller) || @name).to_s
             @as         = options.delete(:as)
             @options    = options
@@ -498,16 +498,14 @@ module ActionDispatch
           end
 
           def plural
-            name.to_s.pluralize
+            @plural ||= name.to_s
           end
 
           def singular
-            name.to_s.singularize
+            @singular ||= name.to_s.singularize
           end
 
-          def member_name
-            singular
-          end
+          alias :member_name :singular
 
           # Checks for uncountable plurals, and appends "_index" if they're.
           def collection_name
@@ -518,9 +516,7 @@ module ActionDispatch
             { :controller => controller }
           end
 
-          def collection_scope
-            path
-          end
+          alias :collection_scope :path
 
           def member_scope
             "#{path}/:id"
@@ -541,21 +537,25 @@ module ActionDispatch
 
           def initialize(entities, options)
             @name       = entities.to_s
-            @path       = options.delete(:path) || @name
+            @path       = (options.delete(:path) || @name).to_s
             @controller = (options.delete(:controller) || plural).to_s
             @as         = options.delete(:as)
             @options    = options
           end
 
-          def member_name
-            name
+          def plural
+            @plural ||= name.to_s.pluralize
           end
-          alias :collection_name :member_name
 
-          def member_scope
-            path
+          def singular
+            @singular ||= name.to_s
           end
-          alias :nested_scope :member_scope
+
+          alias :member_name :singular
+          alias :collection_name :singular
+
+          alias :member_scope :path
+          alias :nested_scope :path
         end
 
         def initialize(*args) #:nodoc:
@@ -586,10 +586,10 @@ module ActionDispatch
             end if parent_resource.actions.include?(:new)
 
             member_scope  do
+              get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
               put    :update if parent_resource.actions.include?(:update)
               delete :destroy if parent_resource.actions.include?(:destroy)
-              get    :edit if parent_resource.actions.include?(:edit)
             end
           end
 
@@ -616,10 +616,10 @@ module ActionDispatch
             end if parent_resource.actions.include?(:new)
 
             member_scope  do
+              get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
               put    :update if parent_resource.actions.include?(:update)
               delete :destroy if parent_resource.actions.include?(:destroy)
-              get    :edit if parent_resource.actions.include?(:edit)
             end
           end
 
@@ -731,6 +731,7 @@ module ActionDispatch
             end
           elsif resource_method_scope?
             path = path_for_custom_action
+            options[:action] ||= action
             options[:as] = name_for_action(options[:as]) if options[:as]
             args.push(options)
 
@@ -771,6 +772,10 @@ module ActionDispatch
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
               return true
+            end
+
+            options.each do |k,v|
+              (options[:constraints] ||= {})[k] = options.delete(k) if options[k].is_a?(Regexp)
             end
 
             scope_options = options.slice!(*RESOURCE_OPTIONS)

@@ -6,6 +6,11 @@ module ActionDispatch
         protocol + host_with_port + fullpath
       end
 
+      # Returns 'https' if this is an SSL request and 'http' otherwise.
+      def scheme
+        ssl? ? 'https' : 'http'
+      end
+
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
       def protocol
         ssl? ? 'https://' : 'http://'
@@ -51,6 +56,11 @@ module ActionDispatch
           when 'https://' then 443
           else 80
         end
+      end
+
+      # Returns whether this request is using the standard port
+      def standard_port?
+        port == standard_port
       end
 
       # Returns a \port suffix like ":8080" if the \port number of this request

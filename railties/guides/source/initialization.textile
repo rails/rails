@@ -150,7 +150,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * nokogiri-1.4.3.1.gem
 * polyglot-0.3.1.gem
 * rack-1.2.1.gem
-* rack-mount-0.6.9.gem
+* rack-mount-0.6.10.gem
 * rack-test-0.5.4.gem
 * rails-3.0.0.beta4.gem
 * railties-3.0.0.beta4.gem
@@ -160,7 +160,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * text-hyphen-1.0.0.gem
 * thor-0.13.7.gem
 * treetop-1.4.8.gem
-* tzinfo-0.3.22.gem
+* tzinfo-0.3.23.gem
 
 TODO: Prettify when it becomes more stable.
 

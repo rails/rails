@@ -89,6 +89,8 @@ module ActionController #:nodoc:
 
     def initialize(controller, resources, options={})
       @controller = controller
+      @request = @controller.request
+      @format = @controller.formats.first
       @resource = resources.last
       @resources = resources
       @options = options
@@ -98,14 +100,6 @@ module ActionController #:nodoc:
 
     delegate :head, :render, :redirect_to,   :to => :controller
     delegate :get?, :post?, :put?, :delete?, :to => :request
-
-    def request
-      @request ||= @controller.request
-    end
-
-    def format
-      @format ||= @controller.formats.first
-    end
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)

@@ -1409,7 +1409,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_no_method_error
-    String.any_instance.stubs(:constantize).raises(NoMethodError)
+    ActiveSupport::Dependencies.stubs(:constantize).raises(NoMethodError)
     assert_raises NoMethodError do
       ActiveRecord::Base.send :compute_type, 'InvalidModel'
     end
