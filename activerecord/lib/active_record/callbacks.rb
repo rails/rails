@@ -25,6 +25,8 @@ module ActiveRecord
   # Check out <tt>ActiveRecord::Transactions</tt> for more details about <tt>after_commit</tt> and
   # <tt>after_rollback</tt>.
   #
+  # Note that if validation fails then <tt>after_validation</tt> will not be invoked .
+  #
   # That's a total of ten callbacks, which gives you immense power to react and prepare for each state in the
   # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar,
   # except that each <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
