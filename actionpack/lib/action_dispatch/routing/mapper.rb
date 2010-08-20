@@ -774,7 +774,7 @@ module ActionDispatch
               return true
             end
 
-            options.each do |k,v|
+            options.keys.each do |k|
               (options[:constraints] ||= {})[k] = options.delete(k) if options[k].is_a?(Regexp)
             end
 
