@@ -385,6 +385,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :wiki_pages, :path => :pages
+      resource :wiki_account, :path => :my_account
+
       scope :only => :show do
         namespace :only do
           resources :sectors, :only => :index do
@@ -1981,6 +1984,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/wiki/articles/Ruby_on_Rails_3.0/comments'
       assert_equal 'wiki/comments#create', @response.body
       assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments', wiki_article_comments_path(:article_id => 'Ruby_on_Rails_3.0')
+    end
+  end
+
+  def test_resources_path_can_be_a_symbol
+    with_test_routes do
+      get '/pages'
+      assert_equal 'wiki_pages#index', @response.body
+      assert_equal '/pages', wiki_pages_path
+
+      get '/pages/Ruby_on_Rails'
+      assert_equal 'wiki_pages#show', @response.body
+      assert_equal '/pages/Ruby_on_Rails', wiki_page_path(:id => 'Ruby_on_Rails')
+
+      get '/my_account'
+      assert_equal 'wiki_accounts#show', @response.body
+      assert_equal '/my_account', wiki_account_path
     end
   end
 
