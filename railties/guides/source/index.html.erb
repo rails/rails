@@ -1,23 +1,25 @@
 <% content_for :header_section do %>
-h2. Ruby on Rails guides
+<h2>Ruby on Rails guides</h2>
 
-These guides are designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together. There are two different versions of the Guides site, and you should be sure to use the one that applies to your situation:
+<p>These guides are designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together. There are two different versions of the Guides site, and you should be sure to use the one that applies to your situation:</p>
 
-* "Current Release version":http://guides.rubyonrails.org - based on Rails 2.3
-* "Edge version":http://guides.rails.info - based on the current Rails "master branch":http://github.com/rails/rails/tree/master
+<ul>
+<li><a href="http://guides.rubyonrails.org">Current Release version</a> - based on Rails 2.3</li>
+<li><a href="http://edgeguides.rubyonrails.org">Edge version</a> - based on the current Rails <a href="http://github.com/rails/rails/tree/master">master branch</a></li>
+</ul>
 
 <% end %>
 
 <% content_for :index_section do %>
 <div id="subCol">
   <dl>
-    <dd class="warning">Rails Guides are a result of the ongoing "Guides hackfest":http://hackfest.rubyonrails.org and a work in progress.</dd>
+    <dd class="warning">Rails Guides are a result of the ongoing <a href="http://hackfest.rubyonrails.org">Guides hackfest</a> and a work in progress.</dd>
     <dd class="ticket">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections at the respective Lighthouse ticket.</dd>
   </dl>
 </div>
 <% end %>
 
-h3. Start Here
+<h3>Start Here</h3>
 
 <dl>
 <% guide('Getting Started with Rails', 'getting_started.html') do %>
@@ -25,7 +27,7 @@ h3. Start Here
 <% end %>
 </dl>
 
-h3. Models
+<h3>Models</h3>
 
 <dl>
 <% guide("Rails Database Migrations", 'migrations.html') do %>
@@ -45,7 +47,7 @@ h3. Models
 <% end %>
 </dl>
 
-h3. Views
+<h3>Views</h3>
 
 <dl>
 <% guide("Layouts and Rendering in Rails", 'layouts_and_rendering.html') do %>
@@ -57,7 +59,7 @@ h3. Views
 <% end %>
 </dl>
 
-h3. Controllers
+<h3>Controllers</h3>
 
 <dl>
 <% guide("Action Controller Overview", 'action_controller_overview.html') do %>
@@ -69,7 +71,7 @@ h3. Controllers
 <% end %>
 </dl>
 
-h3. Digging Deeper
+<h3>Digging Deeper</h3>
 
 <dl>
 
@@ -86,7 +88,7 @@ h3. Digging Deeper
 <% end %>
 
 <% guide("Testing Rails Applications", 'testing.html', :ticket => 8) do %>
-  This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from “What is a test?” to the testing APIs. Enjoy.
+  This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from ‚ÄúWhat is a test?‚Äù to the testing APIs. Enjoy.
 <% end %>
 
 <% guide("Securing Rails Applications", 'security.html') do %>
@@ -120,5 +122,4 @@ h3. Digging Deeper
 <% guide("Contributing to Rails", 'contributing_to_rails.html') do %>
   Rails is not "somebody else's framework." This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
 <% end %>
-
 </dl>
