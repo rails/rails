@@ -1,8 +1,5 @@
-gem 'rdoc', '>= 2.5.10'
-require 'rdoc'
 require 'rake'
 require 'rake/testtask'
-require 'rdoc/task'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
@@ -162,28 +159,6 @@ end
 
 task :build_frontbase_databases => 'frontbase:build_databases'
 task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
-
-
-# Generate the RDoc documentation
-
-RDoc::Task.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Active Record -- Object-relation mapping put on rails"
-  rdoc.options << '-f' << 'horo'
-  rdoc.options << '--main' << 'README.rdoc'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.rdoc_files.include('README.rdoc', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
-  rdoc.rdoc_files.include('dev-utils/*.rb')
-}
-
-# Enhance rdoc task to copy referenced images also
-task :rdoc do
-  FileUtils.mkdir_p "doc/files/examples/"
-  FileUtils.copy "examples/associations.png", "doc/files/examples/associations.png"
-end
-
 
 spec = eval(File.read('activerecord.gemspec'))
 

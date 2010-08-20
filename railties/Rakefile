@@ -1,8 +1,5 @@
-gem 'rdoc', '>= 2.5.10'
-require 'rdoc'
 require 'rake'
 require 'rake/testtask'
-require 'rdoc/task'
 require 'rake/gempackagetask'
 
 require 'date'
@@ -57,19 +54,6 @@ desc 'Validate guides, use ONLY=foo to process just "foo.html"'
 task :validate_guides do
   ruby "guides/w3c_validator.rb"
 end
-
-# Generate documentation ------------------------------------------------------------------
-
-RDoc::Task.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Railties -- Gluing the Engine to the Rails"
-  rdoc.options << '-f' << 'horo'
-  rdoc.options << '--main' << 'README.rdoc'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.rdoc_files.include('README.rdoc', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/rails/generators/**/templates/*')
-}
 
 # Generate GEM ----------------------------------------------------------------------------
 
