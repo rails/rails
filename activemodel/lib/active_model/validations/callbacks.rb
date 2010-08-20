@@ -40,7 +40,7 @@ module ActiveModel
           options = args.extract_options!
           options[:prepend] = true
           options[:if] = Array.wrap(options[:if])
-          options[:if] << "!halted && value != false"
+          options[:if] << "!halted"
           options[:if] << "self.validation_context == :#{options[:on]}" if options[:on]
           set_callback(:validation, :after, *(args << options), &block)
         end
