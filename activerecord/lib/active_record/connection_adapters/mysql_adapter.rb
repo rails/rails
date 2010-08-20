@@ -31,6 +31,7 @@ module ActiveRecord
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslca] || config[:sslkey]
 
       default_flags = Mysql.const_defined?(:CLIENT_MULTI_RESULTS) ? Mysql::CLIENT_MULTI_RESULTS : 0
+      default_flags |= Mysql::CLIENT_FOUND_ROWS if Mysql.const_defined?(:CLIENT_FOUND_ROWS)
       options = [host, username, password, database, port, socket, default_flags]
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
     end
