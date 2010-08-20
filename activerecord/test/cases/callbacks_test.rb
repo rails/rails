@@ -461,7 +461,12 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
-      [ :before_validation, :returning_false  ]
+      [ :before_validation, :returning_false  ],
+      [ :after_rollback, :block  ],
+      [ :after_rollback, :object ],
+      [ :after_rollback, :proc   ],
+      [ :after_rollback, :string ],
+      [ :after_rollback, :method ],
     ], david.history
   end
 
