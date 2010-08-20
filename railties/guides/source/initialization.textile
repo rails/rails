@@ -160,7 +160,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * text-hyphen-1.0.0.gem
 * thor-0.13.7.gem
 * treetop-1.4.8.gem
-* tzinfo-0.3.22.gem
+* tzinfo-0.3.23.gem
 
 TODO: Prettify when it becomes more stable.
 
