@@ -218,11 +218,11 @@ module Rails
       puts "Usage: rails #{command} GENERATOR [args] [options]"
       puts
       puts "General options:"
-      puts "  -h, [--help]     # Print generators options and usage"
+      puts "  -h, [--help]     # Print generator's options and usage"
       puts "  -p, [--pretend]  # Run but do not make any changes"
       puts "  -f, [--force]    # Overwrite files that already exist"
       puts "  -s, [--skip]     # Skip files that already exist"
-      puts "  -q, [--quiet]    # Supress status output"
+      puts "  -q, [--quiet]    # Suppress status output"
       puts
       puts "Please choose a generator below."
       puts
