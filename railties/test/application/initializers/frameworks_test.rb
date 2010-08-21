@@ -98,17 +98,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      expects = [ActiveRecord::QueryCache, ActiveRecord::SessionStore]
-      middleware = Rails.application.config.middleware.map { |m| m.klass }
-      assert_equal expects, middleware & expects
-    end
-
-    test "database middleware initializes when allow concurrency is true" do
-      add_to_config "config.threadsafe!"
-
-      require "#{app_path}/config/environment"
-
-      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache]
+      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
       assert_equal expects, middleware & expects
     end
