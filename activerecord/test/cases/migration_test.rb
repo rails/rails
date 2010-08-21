@@ -566,6 +566,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         if bob.moment_of_truth.is_a?(DateTime)
 
           with_env_tz 'US/Eastern' do
+            bob.reload
             assert_equal DateTime.local_offset, bob.moment_of_truth.offset
             assert_not_equal 0, bob.moment_of_truth.offset
             assert_not_equal "Z", bob.moment_of_truth.zone
