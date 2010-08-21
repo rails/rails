@@ -54,14 +54,14 @@ class KernelTest < Test::Unit::TestCase
   end
 end
 
-class KernelSupressTest < Test::Unit::TestCase
+class KernelSuppressTest < Test::Unit::TestCase
   def test_reraise
     assert_raise(LoadError) do
       suppress(ArgumentError) { raise LoadError }
     end
   end
 
-  def test_supression
+  def test_suppression
     suppress(ArgumentError) { raise ArgumentError }
     suppress(LoadError) { raise LoadError }
     suppress(LoadError, ArgumentError) { raise LoadError }
