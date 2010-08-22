@@ -12,12 +12,16 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
+require 'active_support/core_ext/kernel/reporting'
+
 require 'active_support/core_ext/string/encoding'
 if "ruby".encoding_aware?
   # These are the normal settings that will be set up by Railties
   # TODO: Have these tests support other combinations of these values
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  silence_warnings do
+    Encoding.default_internal = "UTF-8"
+    Encoding.default_external = "UTF-8"
+  end
 end
 
 require 'test/unit'
