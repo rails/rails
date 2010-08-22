@@ -1,12 +1,5 @@
 require "abstract_unit"
 
-if "ruby".encoding_aware?
-  # These are the normal settings that will be set up by Railties
-  # TODO: Have these tests support other combinations of these values
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
-end
-
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB
 
