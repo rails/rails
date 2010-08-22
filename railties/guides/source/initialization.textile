@@ -150,7 +150,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * nokogiri-1.4.3.1.gem
 * polyglot-0.3.1.gem
 * rack-1.2.1.gem
-* rack-mount-0.6.10.gem
+* rack-mount-0.6.12.gem
 * rack-test-0.5.4.gem
 * rails-3.0.0.beta4.gem
 * railties-3.0.0.beta4.gem
