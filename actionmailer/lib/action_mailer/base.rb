@@ -452,8 +452,8 @@ module ActionMailer #:nodoc:
       end
 
       def []=(key, value)
-        unless value.is_a?(String)
-          ActiveSupport::Deprecation.warn("Using a non-String object for a header's value is deprecated. " \
+        unless value.is_a?(::String)
+          ::ActiveSupport::Deprecation.warn("Using a non-String object for a header's value is deprecated. " \
             "You specified #{value.inspect} (a #{value.class}) for #{key}", caller)
 
           value = value.to_s
