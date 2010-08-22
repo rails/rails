@@ -109,7 +109,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     record = con.select_rows(sql).last
     assert_not_nil record[2]
     assert_not_nil record[3]
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :OracleAdapter)
       assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2].to_s(:db)
       assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3].to_s(:db)
     else
