@@ -427,6 +427,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
+      scope '/countries/:country', :constraints => lambda { |params, req| %[all France].include?(params[:country]) } do
+        match '/',       :to => 'countries#index'
+        match '/cities', :to => 'countries#cities'
+      end
+
+      match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
+
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
   end
@@ -2011,6 +2018,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         verify_redirect 'https://www.example.com/secure/login'
       end
     end
+  end
+
+  def test_symbolized_path_parameters_is_not_stale
+    get '/countries/France'
+    assert_equal 'countries#index', @response.body
+
+    get '/countries/France/cities'
+    assert_equal 'countries#cities', @response.body
+
+    get '/countries/UK'
+    verify_redirect 'http://www.example.com/countries/all'
+
+    get '/countries/UK/cities'
+    verify_redirect 'http://www.example.com/countries/all/cities'
   end
 
 private

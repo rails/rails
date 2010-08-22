@@ -26,13 +26,18 @@ module ActionDispatch
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
               return [ 404, {'X-Cascade' => 'pass'}, [] ]
-            elsif constraint.respond_to?(:call) && !constraint.call(req)
+            elsif constraint.respond_to?(:call) && !constraint.call(*constraint_args(constraint, req))
               return [ 404, {'X-Cascade' => 'pass'}, [] ]
             end
           }
 
           @app.call(env)
         end
+
+        private
+          def constraint_args(constraint, request)
+            constraint.arity == 1 ? [request] : [request.symbolized_path_parameters, request]
+          end
       end
 
       class Mapping #:nodoc:
@@ -774,7 +779,7 @@ module ActionDispatch
               return true
             end
 
-            options.each do |k,v|
+            options.keys.each do |k|
               (options[:constraints] ||= {})[k] = options.delete(k) if options[k].is_a?(Regexp)
             end
 
