@@ -14,7 +14,7 @@ module ActiveModel
       #     include ActiveModel::Validations::Callbacks
       #
       #     before_validation :do_stuff_before_validation
-      #     after_validation  :do_tuff_after_validation
+      #     after_validation  :do_stuff_after_validation
       #   end
       #
       #   Like other before_* callbacks if <tt>before_validation</tt> returns false
