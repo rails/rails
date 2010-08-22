@@ -340,11 +340,6 @@ module ActionDispatch
               singleton_class.send(:define_method, :_routes) { routes }
             end
 
-            def initialize(*)
-              @_routes = nil
-              super
-            end
-
             define_method(:_routes) { @_routes || routes }
           end
 
