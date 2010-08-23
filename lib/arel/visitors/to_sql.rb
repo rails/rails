@@ -45,6 +45,7 @@ module Arel
       def visit_Arel_Nodes_SelectStatement o
         [
           o.cores.map { |x| visit x }.join,
+          ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
           ("LIMIT #{o.limit}" if o.limit)
         ].compact.join ' '
       end

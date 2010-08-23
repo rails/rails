@@ -23,6 +23,37 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'order' do
+      it 'generates order clauses' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.project SqlLiteral.new '*'
+        manager.from table
+        manager.order table[:id]
+        manager.to_sql.should be_like %{
+          SELECT * FROM "users" ORDER BY "users"."id"
+        }
+      end
+
+      # FIXME: I would like to deprecate this
+      it 'takes *args' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.project SqlLiteral.new '*'
+        manager.from table
+        manager.order table[:id], table[:name]
+        manager.to_sql.should be_like %{
+          SELECT * FROM "users" ORDER BY "users"."id", "users"."name"
+        }
+      end
+
+      it 'chains' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        check manager.order(table[:id]).should == manager
+      end
+    end
+
     describe 'joins' do
       it 'returns join sql' do
         table   = Table.new :users

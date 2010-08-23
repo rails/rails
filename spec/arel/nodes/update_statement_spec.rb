@@ -15,8 +15,8 @@ describe Arel::Nodes::UpdateStatement do
       end
 
       dolly = statement.clone
-      dolly.wheres.should == %w[a0 b1 c2]
-      dolly.values.should == %w[x0 y1 z2]
+      check dolly.wheres.should == %w[a0 b1 c2]
+      check dolly.values.should == %w[x0 y1 z2]
     end
   end
 end

@@ -28,6 +28,11 @@ module Arel
       self
     end
 
+    def order *expr
+      @head.orders.concat expr
+      self
+    end
+
     def wheres
       Compatibility::Wheres.new @engine, @ctx.wheres
     end

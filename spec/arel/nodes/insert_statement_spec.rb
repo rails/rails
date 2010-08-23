@@ -15,8 +15,8 @@ describe Arel::Nodes::InsertStatement do
       end
 
       dolly = statement.clone
-      dolly.columns.should == %w[a0 b1 c2]
-      dolly.values.should  == %w[x0 y1 z2]
+      check dolly.columns.should == %w[a0 b1 c2]
+      check dolly.values.should  == %w[x0 y1 z2]
     end
   end
 end

@@ -13,11 +13,11 @@ describe Arel::Nodes::SelectCore do
           o.should_receive(:clone).and_return("#{o}#{j}")
         end
       end
-      
+
       dolly = core.clone
-      dolly.froms.should == %w[a0 b1 c2]
-      dolly.projections.should == %w[d0 e1 f2]
-      dolly.wheres.should == %w[g0 h1 i2]
+      check dolly.froms.should == %w[a0 b1 c2]
+      check dolly.projections.should == %w[d0 e1 f2]
+      check dolly.wheres.should == %w[g0 h1 i2]
     end
   end
 end
