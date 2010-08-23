@@ -242,7 +242,7 @@ module Rails
     autoload :Configuration, "rails/engine/configuration"
 
     class << self
-      attr_accessor :called_from
+      attr_accessor :called_from, :namespaced
       alias :engine_name :railtie_name
 
       def inherited(base)
@@ -292,11 +292,17 @@ module Rails
             "#{name}_"
           end
         end
+
+        self.namespaced = true
+      end
+
+      def namespaced?
+        !!namespaced
       end
     end
 
     delegate :middleware, :root, :paths, :to => :config
-    delegate :engine_name, :to => "self.class"
+    delegate :engine_name, :namespaced?, :to => "self.class"
 
     def load_tasks
       super
@@ -435,6 +441,14 @@ module Rails
         config.static_asset_paths[config.compiled_asset_path] = public_path
       end
     end
+
+    initializer :prepend_helpers_path do
+      unless namespaced?
+        config.helpers_paths = [] unless config.respond_to?(:helpers_paths)
+        config.helpers_paths = config.paths.app.helpers.to_a + config.helpers_paths
+      end
+    end
+
   protected
     def find_root_with_flag(flag, default=nil)
       root_path = self.class.called_from

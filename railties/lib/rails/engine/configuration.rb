@@ -11,6 +11,7 @@ module Rails
         super()
         @root = root
         @middleware = Rails::Configuration::MiddlewareStackProxy.new
+        @helpers_paths = []
       end
 
       def paths

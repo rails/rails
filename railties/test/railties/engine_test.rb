@@ -304,11 +304,12 @@ module RailtiesTest
       assert_equal response[2].path, File.join(app_path, "public/bukkits/file_from_app.html")
     end
 
-    test "shared engine should include application's helpers" do
+    test "shared engine should include application's helpers and own helpers" do
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
           match "/foo" => "bukkits/foo#index", :as => "foo"
           match "/foo/show" => "bukkits/foo#show"
+          match "/foo/bar" => "bukkits/foo#bar"
         end
       RUBY
 
@@ -316,6 +317,14 @@ module RailtiesTest
         module SomeHelper
           def something
             "Something... Something... Something..."
+          end
+        end
+      RUBY
+
+      @plugin.write "app/helpers/bar_helper.rb", <<-RUBY
+        module BarHelper
+          def bar
+            "It's a bar."
           end
         end
       RUBY
@@ -329,6 +338,10 @@ module RailtiesTest
           def show
             render :text => foo_path
           end
+
+          def bar
+            render :inline => "<%= bar %>"
+          end
         end
       RUBY
 
@@ -341,6 +354,10 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/foo/show")
       response = Rails.application.call(env)
       assert_equal "/foo", response[2].body
+
+      env = Rack::MockRequest.env_for("/foo/bar")
+      response = Rails.application.call(env)
+      assert_equal "It's a bar.", response[2].body
     end
 
     test "namespaced engine should include only its own routes and helpers" do

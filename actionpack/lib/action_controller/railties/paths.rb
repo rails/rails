@@ -1,21 +1,15 @@
 module ActionController
   module Railties
     module Paths
-      def self.with(_app)
+      def self.with(app)
         Module.new do
           define_method(:inherited) do |klass|
             super(klass)
             if namespace = klass.parents.detect {|m| m.respond_to?(:_railtie) }
-              app = namespace._railtie
+              klass.helpers_path = namespace._railtie.config.paths.app.helpers.to_a
             else
-              app = _app
+              klass.helpers_path = app.config.helpers_paths
             end
-
-            paths   = app.config.paths
-            options = app.config.action_controller
-
-            options.helpers_path         ||= paths.app.helpers.to_a
-            options.each { |k,v| klass.send("#{k}=", v) }
 
             klass.helper :all
           end
