@@ -50,5 +50,9 @@ module Arel
     def joins manager
       manager.join_sql
     end
+
+    def to_a
+      raise NotImplementedError
+    end
   end
 end
