@@ -25,6 +25,22 @@ class Series < ActiveRecord::Base
   set_table_name 'projects'
 end
 
+module Blog
+  class Post < ActiveRecord::Base
+    set_table_name 'projects'
+  end
+
+  class Blog < ActiveRecord::Base
+    set_table_name 'projects'
+  end
+
+  def self._railtie
+    o = Object.new
+    def o.railtie_name; "blog" end
+    o
+  end
+end
+
 class PolymorphicRoutesTest < ActionController::TestCase
   include SharedTestRoutes.url_helpers
   self.default_url_options[:host] = 'example.com'
@@ -37,6 +53,30 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @tax = Tax.new
     @fax = Fax.new
     @series = Series.new
+    @blog_post = Blog::Post.new
+    @blog_blog = Blog::Blog.new
+  end
+
+  def test_namespaced_model
+    with_namespaced_routes(:blog) do
+      @blog_post.save
+      assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url(@blog_post)
+    end
+  end
+
+  def test_namespaced_model_with_name_the_same_as_namespace
+    with_namespaced_routes(:blog) do
+      @blog_blog.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}", polymorphic_url(@blog_blog)
+    end
+  end
+
+  def test_namespaced_model_with_nested_resources
+    with_namespaced_routes(:blog) do
+      @blog_post.save
+      @blog_blog.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", polymorphic_url([@blog_blog, @blog_post])
+    end
   end
 
   def test_with_record
@@ -382,6 +422,22 @@ class PolymorphicRoutesTest < ActionController::TestCase
       @series.save
       assert_equal "http://example.com/series/#{@series.id}", polymorphic_url(@series)
       assert_equal "http://example.com/series", polymorphic_url(Series.new)
+    end
+  end
+
+  def with_namespaced_routes(name)
+    with_routing do |set|
+      set.draw do
+        namespace(name, :shallow_path => nil, :path => nil, :as => nil) do
+          resources :blogs do
+            resources :posts
+          end
+          resources :posts
+        end
+      end
+
+      self.class.send(:include, @routes.url_helpers)
+      yield
     end
   end
 
