@@ -3,6 +3,7 @@ require 'arel/nodes/equality'
 require 'arel/nodes/or'
 
 require 'arel/nodes/in'
+require 'arel/nodes/count'
 require 'arel/nodes/sql_literal'
 require 'arel/nodes/select_core'
 require 'arel/nodes/select_statement'
