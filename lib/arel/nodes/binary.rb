@@ -12,6 +12,10 @@ module Arel
         Nodes::Or.new self, right
       end
 
+      def and right
+        Nodes::And.new self, right
+      end
+
       # FIXME: this method should go away.  I don't like people calling
       # to_sql on non-head nodes.  This forces us to walk the AST until we
       # can find a node that has a "relation" member.

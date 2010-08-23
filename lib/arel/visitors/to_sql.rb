@@ -86,6 +86,10 @@ module Arel
         "#{visit o.left} IN (#{o.right.map { |x| visit x }.join ', '})"
       end
 
+      def visit_Arel_Nodes_And o
+        "#{visit o.left} AND #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_Or o
         "#{visit o.left} OR #{visit o.right}"
       end
