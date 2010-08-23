@@ -221,11 +221,6 @@ module ActionController
     # Rails 2.x compatibility
     include ActionController::Compatibility
 
-    def self.inherited(klass)
-      super
-      klass.helper :all if klass.superclass == ActionController::Base
-    end
-
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

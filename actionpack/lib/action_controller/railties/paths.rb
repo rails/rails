@@ -14,12 +14,10 @@ module ActionController
             paths   = app.config.paths
             options = app.config.action_controller
 
-            options.assets_dir           ||= paths.public.to_a.first
-            options.javascripts_dir      ||= paths.public.javascripts.to_a.first
-            options.stylesheets_dir      ||= paths.public.stylesheets.to_a.first
-            options.page_cache_directory ||= paths.public.to_a.first
             options.helpers_path         ||= paths.app.helpers.to_a
             options.each { |k,v| klass.send("#{k}=", v) }
+
+            klass.helper :all
           end
         end
       end
