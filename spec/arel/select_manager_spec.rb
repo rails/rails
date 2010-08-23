@@ -17,9 +17,10 @@ module Arel
     def quote_column_name thing; @engine.connection.quote_column_name thing end
     def quote thing, column; @engine.connection.quote thing, column end
 
-    def execute sql
+    def execute sql, name = nil
       @executed << sql
     end
+    alias :update :execute
   end
 
   describe 'select manager' do

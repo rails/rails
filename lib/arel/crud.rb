@@ -6,22 +6,21 @@ module Arel
     def update values
       um = UpdateManager.new @engine
 
-      if String === values
-        values = SqlLiteral.new values
+      if Nodes::SqlLiteral === values
         um.table @ctx.froms.last
       else
         um.table values.first.first.relation
       end
       um.set values
       um.wheres = @ctx.wheres
-      @engine.connection.execute um.to_sql
+      @engine.connection.update um.to_sql, 'AREL'
     end
 
     # FIXME: this method should go away
     def insert values
       im = InsertManager.new @engine
       im.insert values
-      @engine.connection.execute im.to_sql
+      @engine.connection.insert im.to_sql
     end
 
     def delete
