@@ -5,7 +5,7 @@ module Arel
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_reader :name, :engine, :aliases
+    attr_reader :name, :engine, :aliases, :table_alias
 
     def initialize name, engine = Table.engine
       @name    = name
@@ -13,6 +13,7 @@ module Arel
       @engine  = engine[:engine] if Hash === engine
       @columns = nil
       @aliases = []
+      @table_alias = nil
     end
 
     def alias

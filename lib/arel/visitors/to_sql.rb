@@ -71,7 +71,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_InnerJoin o
-        "#{visit o.left} INNER JOIN #{visit o.right} #{visit o.constraint}"
+        "#{visit o.left} INNER JOIN #{visit o.right} #{visit o.constraint if o.constraint}"
       end
 
       def visit_Arel_Nodes_On o
