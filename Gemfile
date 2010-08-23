@@ -35,7 +35,7 @@ platforms :ruby do
   group :db do
     gem "pg", ">= 0.9.0"
     gem "mysql", ">= 2.8.1"
-    gem "mysql2", :git => 'git://github.com/brianmario/mysql2.git'
+    gem "mysql2", ">= 0.2.3"
   end
 end
 
