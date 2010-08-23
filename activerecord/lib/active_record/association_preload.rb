@@ -215,7 +215,7 @@ module ActiveRecord
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             if through_reflection.macro == :belongs_to
-              rev_id_to_record_map, rev_ids = construct_id_map(records, through_primary_key)
+              rev_id_to_record_map = construct_id_map(records, through_primary_key).first
               rev_primary_key = through_reflection.klass.primary_key
               through_records.each do |through_record|
                 add_preloaded_record_to_collection(rev_id_to_record_map[through_record[rev_primary_key].to_s],
@@ -243,7 +243,6 @@ module ActiveRecord
 
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
-          through_reflection = reflections[options[:through]]
           unless through_records.empty?
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source, options)
@@ -261,7 +260,6 @@ module ActiveRecord
 
       def preload_through_records(records, reflection, through_association)
         through_reflection = reflections[through_association]
-        through_primary_key = through_reflection.primary_key_name
 
         through_records = []
         if reflection.options[:source_type]
