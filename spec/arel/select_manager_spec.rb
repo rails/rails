@@ -21,6 +21,7 @@ module Arel
       @executed << sql
     end
     alias :update :execute
+    alias :delete :execute
   end
 
   describe 'select manager' do

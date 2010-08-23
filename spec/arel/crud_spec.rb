@@ -47,5 +47,17 @@ module Arel
         }.should_not be_nil
       end
     end
+
+    describe 'delete' do
+      it 'should call delete on the connection' do
+        table = Table.new :users
+        fc = FakeCrudder.new
+        fc.from table
+        fc.delete
+        fc.engine.calls.find { |method, _|
+          method == :delete
+        }.should_not be_nil
+      end
+    end
   end
 end

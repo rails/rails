@@ -27,7 +27,7 @@ module Arel
       dm = DeleteManager.new @engine
       dm.wheres = @ctx.wheres
       dm.from @ctx.froms.last
-      @engine.connection.execute dm.to_sql
+      @engine.connection.delete dm.to_sql, 'AREL'
     end
   end
 end
