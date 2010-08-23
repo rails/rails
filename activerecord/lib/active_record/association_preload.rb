@@ -370,7 +370,7 @@ module ActiveRecord
         conditions << append_conditions(reflection, preload_options)
 
         find_options = {
-          :select => preload_options[:select] || options[:select] || "#{table_name}.*",
+          :select => preload_options[:select] || options[:select] || Arel::SqlLiteral.new("#{table_name}.*"),
           :include => preload_options[:include] || options[:include],
           :conditions => [conditions, ids],
           :joins => options[:joins],
