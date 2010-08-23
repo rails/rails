@@ -143,13 +143,19 @@ module Arel
     end
 
     describe 'project' do
+      it 'takes multiple args' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.project Nodes::SqlLiteral.new('foo'),
+          Nodes::SqlLiteral.new('bar')
+        manager.to_sql.should be_like %{ SELECT foo, bar }
+      end
+
       it 'takes strings' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.project Nodes::SqlLiteral.new('*')
-        manager.to_sql.should be_like %{
-          SELECT *
-        }
+        manager.to_sql.should be_like %{ SELECT * }
       end
 
       it "takes sql literals" do

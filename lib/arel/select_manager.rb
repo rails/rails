@@ -18,8 +18,8 @@ module Arel
       self
     end
 
-    def project projection
-      @ctx.projections << projection
+    def project *projections
+      @ctx.projections.concat projections
       self
     end
 
