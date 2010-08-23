@@ -1,6 +1,6 @@
 Description:
     Stubs out a new generator at lib/generators. Pass the generator name as an argument,
-    either CamelCased or snake_cased, as an argument.
+    either CamelCased or snake_cased.
 
 Example:
     `rails generate generator Awesome`
