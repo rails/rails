@@ -121,8 +121,10 @@ module ActiveRecord
         when Hash, Array, Symbol
           if array_of_strings?(join)
             join_string = join.join(' ')
-            arel = arel.join(join_string)
+            arel = arel.join(Arel::SqlLiteral.new(join_string))
           end
+        when String
+          arel = arel.join(Arel::SqlLiteral.new(join))
         else
           arel = arel.join(join)
         end
