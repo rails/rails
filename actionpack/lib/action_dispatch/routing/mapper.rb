@@ -726,22 +726,17 @@ module ActionDispatch
           path = options.delete(:path)
           action = args.first
 
-          if action.is_a?(Symbol)
+          if action && action.to_s =~ /^[\w_]+$/
             path = path_for_action(action, path)
-            options[:to] ||= action
-            options[:as]   = name_for_action(action, options[:as])
+            options[:action] ||= action
+            options[:as] = name_for_action(action, options[:as])
 
             with_exclusive_scope do
               return super(path, options)
             end
           elsif resource_method_scope?
             path = path_for_custom_action
-            if action =~ /^[a-zA-Z][_a-zA-Z0-9]*$/
-              options[:action] ||= action
-              options[:as] = name_for_action(action, options[:as])
-            else
-              options[:as] = name_for_action(options[:as]) if options[:as]
-            end
+            options[:as] = name_for_action(options[:as]) if options[:as]
             args.push(options)
 
             with_exclusive_scope do
