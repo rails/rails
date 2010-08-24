@@ -212,11 +212,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           get "overdue", :to => :overdue, :on => :collection
           get "print" => "invoices#print", :as => :print, :on => :member
           post "preview" => "invoices#preview", :as => :preview, :on => :new
+          get "aged/:months", :on => :collection, :action => :aged, :as => :aged
         end
         resources :notes, :shallow => true do
           get "preview" => "notes#preview", :as => :preview, :on => :new
           get "print" => "notes#print", :as => :print, :on => :member
         end
+        get "inactive", :on => :collection
+        post "deactivate", :on => :member
+        get "old", :on => :collection, :as => :stale
       end
 
       namespace :api do
@@ -2032,6 +2036,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/countries/UK/cities'
     verify_redirect 'http://www.example.com/countries/all/cities'
+  end
+
+  def test_custom_resource_actions_defined_using_string
+    get '/customers/inactive'
+    assert_equal 'customers#inactive', @response.body
+    assert_equal '/customers/inactive', inactive_customers_path
+
+    post '/customers/1/deactivate'
+    assert_equal 'customers#deactivate', @response.body
+    assert_equal '/customers/1/deactivate', deactivate_customer_path(:id => '1')
+
+    get '/customers/old'
+    assert_equal 'customers#old', @response.body
+    assert_equal '/customers/old', stale_customers_path
+
+    get '/customers/1/invoices/aged/3'
+    assert_equal 'invoices#aged', @response.body
+    assert_equal '/customers/1/invoices/aged/3', aged_customer_invoices_path(:customer_id => '1', :months => '3')
   end
 
 private
