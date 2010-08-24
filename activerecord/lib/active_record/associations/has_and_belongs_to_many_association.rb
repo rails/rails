@@ -24,7 +24,7 @@ module ActiveRecord
 
       protected
         def construct_find_options!(options)
-          options[:joins]      = @join_sql
+          options[:joins]      = Arel::SqlLiteral.new @join_sql
           options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
           options[:select]   ||= (@reflection.options[:select] || '*')
         end
