@@ -726,7 +726,7 @@ module ActionDispatch
           path = options.delete(:path)
           action = args.first
 
-          if action && action.to_s =~ /^[\w_]+$/
+          if action && action.to_s =~ /^[A-Za-z_]\w*$/
             path = path_for_action(action, path)
             options[:action] ||= action
             options[:as] = name_for_action(action, options[:as])
