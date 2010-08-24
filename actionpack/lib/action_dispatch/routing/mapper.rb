@@ -43,9 +43,9 @@ module ActionDispatch
       class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
 
-        def initialize(set, scope, args)
-          @set, @scope    = set, scope
-          @path, @options = extract_path_and_options(args)
+        def initialize(set, scope, path, options)
+          @set, @scope, @options = set, scope, options
+          @path = normalize_path(path)
           normalize_options!
         end
 
@@ -54,31 +54,16 @@ module ActionDispatch
         end
 
         private
-          def extract_path_and_options(args)
-            options = args.extract_options!
-
-            if using_to_shorthand?(args, options)
-              path, to = options.find { |name, value| name.is_a?(String) }
-              options.merge!(:to => to).delete(path) if path
-            else
-              path = args.first
-            end
-
-            if path.match(':controller')
-              raise ArgumentError, ":controller segment is not allowed within a namespace block" if @scope[:module]
-
-              # Add a default constraint for :controller path segments that matches namespaced
-              # controllers with default routes like :controller/:action/:id(.:format), e.g:
-              # GET /admin/products/show/1
-              # => { :controller => 'admin/products', :action => 'show', :id => '1' }
-              options.reverse_merge!(:controller => /.+?/)
-            end
-
-            [ normalize_path(path), options ]
-          end
 
           def normalize_options!
             path_without_format = @path.sub(/\(\.:format\)$/, '')
+            @options = (@scope[:options] || {}).merge(@options)
+
+            if @scope[:as] && !@options[:as].blank?
+              @options[:as] = "#{@scope[:as]}_#{@options[:as]}"
+            elsif @scope[:as] && @options[:as] == ""
+              @options[:as] = @scope[:as].to_s
+            end
 
             if using_match_shorthand?(path_without_format, @options)
               to_shorthand    = @options[:to].blank?
@@ -89,11 +74,6 @@ module ActionDispatch
             @options.merge!(default_controller_and_action(to_shorthand))
           end
 
-          # match "account" => "account#index"
-          def using_to_shorthand?(args, options)
-            args.empty? && options.present?
-          end
-
           # match "account/overview"
           def using_match_shorthand?(path, options)
             path && options.except(:via, :anchor, :to, :as).empty? && path =~ %r{^/[\w\/]+$}
@@ -101,7 +81,19 @@ module ActionDispatch
 
           def normalize_path(path)
             raise ArgumentError, "path is required" if @scope[:path].blank? && path.blank?
-            Mapper.normalize_path("#{@scope[:path]}/#{path}")
+            path = Mapper.normalize_path("#{@scope[:path]}/#{path}")
+
+            if path.match(':controller')
+              raise ArgumentError, ":controller segment is not allowed within a namespace block" if @scope[:module]
+
+              # Add a default constraint for :controller path segments that matches namespaced
+              # controllers with default routes like :controller/:action/:id(.:format), e.g:
+              # GET /admin/products/show/1
+              # => { :controller => 'admin/products', :action => 'show', :id => '1' }
+              @options.reverse_merge!(:controller => /.+?/)
+            end
+
+            path
           end
 
           def app
@@ -233,8 +225,8 @@ module ActionDispatch
           match '/', options.reverse_merge(:as => :root)
         end
 
-        def match(*args)
-          mapping = Mapping.new(@set, @scope, args).to_route
+        def match(path, options=nil)
+          mapping = Mapping.new(@set, @scope, path, options || {}).to_route
           @set.add_route(*mapping)
           self
         end
@@ -387,21 +379,6 @@ module ActionDispatch
 
         def defaults(defaults = {})
           scope(:defaults => defaults) { yield }
-        end
-
-        def match(*args)
-          options = args.extract_options!
-
-          options = (@scope[:options] || {}).merge(options)
-
-          if @scope[:as] && !options[:as].blank?
-            options[:as] = "#{@scope[:as]}_#{options[:as]}"
-          elsif @scope[:as] && options[:as] == ""
-            options[:as] = @scope[:as].to_s
-          end
-
-          args.push(options)
-          super(*args)
         end
 
         private
@@ -957,10 +934,24 @@ module ActionDispatch
           end
       end
 
+      module Shorthand
+        def match(*args)
+          if args.size == 1 && args.last.is_a?(Hash)
+            options  = args.pop
+            path, to = options.find { |name, value| name.is_a?(String) }
+            options.merge!(:to => to).delete(path)
+            super(path, options)
+          else
+            super
+          end
+        end
+      end
+
       include Base
       include HttpHelpers
       include Scoping
       include Resources
+      include Shorthand
     end
   end
 end
