@@ -658,7 +658,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/bookmark/remove'
       assert_equal 'bookmarks#destroy', @response.body
-      assert_equal '/bookmark/remove', bookmark_remove_path
+      assert_equal '/bookmark/remove', remove_bookmark_path
     end
   end
 
@@ -1192,7 +1192,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_match_shorthand_inside_namespace
     with_test_routes do
-      assert_equal '/account/shorthand', account_shorthand_path
+      assert_equal '/account/shorthand', shorthand_account_path
       get '/account/shorthand'
       assert_equal 'account#shorthand', @response.body
     end
@@ -1244,7 +1244,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_normalize_namespaced_matches
     with_test_routes do
-      assert_equal '/account/description', account_description_path
+      assert_equal '/account/description', description_account_path
 
       get '/account/description'
       assert_equal 'account#description', @response.body
