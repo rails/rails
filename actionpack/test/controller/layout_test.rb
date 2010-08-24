@@ -208,7 +208,7 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-unless Config::CONFIG['host_os'] =~ /mswin|mingw/
+unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
   class LayoutSymlinkedTest < LayoutTest
     layout "symlinked/symlinked_layout"
   end

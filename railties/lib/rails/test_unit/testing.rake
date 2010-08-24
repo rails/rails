@@ -1,3 +1,4 @@
+require 'rbconfig'
 require 'rake/testtask'
 
 # Monkey-patch to silence the description from Rake::TestTask to cut down on rake -T noise
@@ -62,7 +63,7 @@ end
 module Kernel
   def silence_stderr
     old_stderr = STDERR.dup
-    STDERR.reopen(Config::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+    STDERR.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
     STDERR.sync = true
     yield
   ensure
