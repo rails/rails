@@ -40,6 +40,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get  :new, :path => "build"
         post :create, :path => "create", :as => ""
         put  :update
+        get  :remove, :action => :destroy, :as => :remove
+      end
+
+      scope "pagemark", :controller => "pagemarks", :as => :pagemark do
+        get  "new", :path => "build"
+        post "create", :as => ""
+        put  "update"
         get  "remove", :action => :destroy, :as => :remove
       end
 
@@ -203,11 +210,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :customers do
-        get "recent" => "customers#recent", :on => :collection
-        get "profile" => "customers#profile", :on => :member
+        get :recent, :on => :collection
+        get "profile", :on => :member
+        get "secret/profile" => "customers#secret", :on => :member
         post "preview" => "customers#preview", :as => :another_preview, :on => :new
         resource :avatar do
-          get "thumbnail(.:format)" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+          get "thumbnail" => "avatars#thumbnail", :as => :thumbnail, :on => :member
         end
         resources :invoices do
           get "outstanding" => "invoices#outstanding", :as => :outstanding, :on => :collection
@@ -648,19 +656,39 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/bookmark/build'
       assert_equal 'bookmarks#new', @response.body
-      assert_equal '/bookmark/build', new_bookmark_path
+      assert_equal '/bookmark/build', bookmark_new_path
 
       post '/bookmark/create'
       assert_equal 'bookmarks#create', @response.body
       assert_equal '/bookmark/create', bookmark_path
 
-      put '/bookmark'
+      put '/bookmark/update'
       assert_equal 'bookmarks#update', @response.body
-      assert_equal '/bookmark', update_bookmark_path
+      assert_equal '/bookmark/update', bookmark_update_path
 
       get '/bookmark/remove'
       assert_equal 'bookmarks#destroy', @response.body
       assert_equal '/bookmark/remove', bookmark_remove_path
+    end
+  end
+
+  def test_pagemarks
+    with_test_routes do
+      get '/pagemark/build'
+      assert_equal 'pagemarks#new', @response.body
+      assert_equal '/pagemark/build', pagemark_new_path
+
+      post '/pagemark/create'
+      assert_equal 'pagemarks#create', @response.body
+      assert_equal '/pagemark/create', pagemark_path
+
+      put '/pagemark/update'
+      assert_equal 'pagemarks#update', @response.body
+      assert_equal '/pagemark/update', pagemark_update_path
+
+      get '/pagemark/remove'
+      assert_equal 'pagemarks#destroy', @response.body
+      assert_equal '/pagemark/remove', pagemark_remove_path
     end
   end
 
@@ -1564,6 +1592,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       assert_equal '/customers/recent', recent_customers_path
       assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
+      assert_equal '/customers/1/secret/profile', secret_profile_customer_path(:id => '1')
       assert_equal '/customers/new/preview', another_preview_new_customer_path
       assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
       assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
@@ -1577,6 +1606,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/customers/1/invoices/overdue'
       assert_equal 'invoices#overdue', @response.body
+
+      get '/customers/1/secret/profile'
+      assert_equal 'customers#secret', @response.body
     end
   end
 
