@@ -44,7 +44,8 @@ module ActionDispatch
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
 
         def initialize(set, scope, path, options)
-          @set, @scope, @options = set, scope, options
+          @set, @scope = set, scope
+          @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
         end
@@ -57,18 +58,11 @@ module ActionDispatch
 
           def normalize_options!
             path_without_format = @path.sub(/\(\.:format\)$/, '')
-            @options = (@scope[:options] || {}).merge(@options)
-
-            if @scope[:as] && !@options[:as].blank?
-              @options[:as] = "#{@scope[:as]}_#{@options[:as]}"
-            elsif @scope[:as] && @options[:as] == ""
-              @options[:as] = @scope[:as].to_s
-            end
 
             if using_match_shorthand?(path_without_format, @options)
               to_shorthand    = @options[:to].blank?
               @options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
-              @options[:as] ||= path_without_format[1..-1].gsub("/", "_")
+              @options[:as] ||= Mapper.normalize_name(path_without_format)
             end
 
             @options.merge!(default_controller_and_action(to_shorthand))
@@ -80,8 +74,8 @@ module ActionDispatch
           end
 
           def normalize_path(path)
-            raise ArgumentError, "path is required" if @scope[:path].blank? && path.blank?
-            path = Mapper.normalize_path("#{@scope[:path]}/#{path}")
+            raise ArgumentError, "path is required" if path.blank?
+            path = Mapper.normalize_path(path)
 
             if path.match(':controller')
               raise ArgumentError, ":controller segment is not allowed within a namespace block" if @scope[:module]
@@ -93,7 +87,11 @@ module ActionDispatch
               @options.reverse_merge!(:controller => /.+?/)
             end
 
-            path
+            if path.include?(":format")
+              path
+            else
+              "#{path}(.:format)"
+            end
           end
 
           def app
@@ -216,6 +214,10 @@ module ActionDispatch
         path
       end
 
+      def self.normalize_name(name)
+        normalize_path(name)[1..-1].gsub("/", "_")
+      end
+
       module Base
         def initialize(set) #:nodoc:
           @set = set
@@ -324,13 +326,7 @@ module ActionDispatch
             ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
           end
 
-          case args.first
-          when String
-            options[:path] = args.first
-          when Symbol
-            options[:controller] = args.first
-          end
-
+          options[:path] = args.first if args.first.is_a?(String)
           recover = {}
 
           options[:constraints] ||= {}
@@ -362,8 +358,9 @@ module ActionDispatch
           @scope[:blocks]  = recover[:block]
         end
 
-        def controller(controller)
-          scope(controller.to_sym) { yield }
+        def controller(controller, options={})
+          options[:controller] = controller
+          scope(options) { yield }
         end
 
         def namespace(path, options = {})
@@ -444,9 +441,9 @@ module ActionDispatch
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
-        VALID_ON_OPTIONS = [:new, :collection, :member]
-        CANONICAL_ACTIONS = [:index, :create, :new, :show, :update, :destroy]
-        RESOURCE_OPTIONS = [:as, :controller, :path, :only, :except]
+        VALID_ON_OPTIONS  = [:new, :collection, :member]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except]
+        CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
           DEFAULT_ACTIONS = [:index, :create, :new, :show, :update, :destroy, :edit]
@@ -700,41 +697,27 @@ module ActionDispatch
             return member { match(*args) }
           end
 
-          path = options.delete(:path)
-          action = args.first
-
-          if action.is_a?(Symbol) || (resource_method_scope? && action.to_s =~ /^[A-Za-z_]\w*$/)
-            path = path_for_action(action, path)
-            options[:action] ||= action
-            options[:as] = name_for_action(action, options[:as])
-
-            with_exclusive_scope do
-              return super(path, options)
-            end
-          elsif resource_method_scope?
-            path = path_for_custom_action
-            options[:as] = name_for_action(options[:as]) if options[:as]
-            args.push(options)
-
-            with_exclusive_scope do
-              scope(path) do
-                return super
-              end
-            end
-          end
-
           if resource_scope?
             raise ArgumentError, "can't define route directly in resource(s) scope"
           end
 
-          args.push(options)
-          super
+          action = args.first
+          path = path_for_action(action, options.delete(:path))
+
+          if action.to_s =~ /^[\w\/]+$/
+            options[:action] ||= action unless action.to_s.include?("/")
+            options[:as] = name_for_action(action, options[:as])
+          else
+            options[:as] = name_for_action(options[:as])
+          end
+
+          super(path, options)
         end
 
         def root(options={})
           if @scope[:scope_level] == :resources
-            with_scope_level(:nested) do
-              scope(parent_resource.path, :as => parent_resource.collection_name) do
+            with_scope_level(:root) do
+              scope(parent_resource.path) do
                 super(options)
               end
             end
@@ -871,7 +854,7 @@ module ActionDispatch
           end
 
           def canonical_action?(action, flag)
-            flag && CANONICAL_ACTIONS.include?(action)
+            flag && resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
           def shallow_scoping?
@@ -882,18 +865,10 @@ module ActionDispatch
             prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
-            if canonical_action?(action, path.blank?)
-              "#{prefix}(.:format)"
+            path = if canonical_action?(action, path.blank?)
+              prefix.to_s
             else
-              "#{prefix}/#{action_path(action, path)}(.:format)"
-            end
-          end
-
-          def path_for_custom_action
-            if shallow_scoping?
-              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id"
-            else
-              @scope[:path]
+              "#{prefix}/#{action_path(action, path)}"
             end
           end
 
@@ -913,6 +888,7 @@ module ActionDispatch
 
           def name_for_action(action, as=nil)
             prefix = prefix_name_for_action(action, as)
+            prefix = Mapper.normalize_name(prefix) if prefix
             name_prefix = @scope[:as]
 
             if parent_resource
@@ -922,15 +898,18 @@ module ActionDispatch
 
             name = case @scope[:scope_level]
             when :collection
-              [name_prefix, collection_name]
+              [prefix, name_prefix, collection_name]
             when :new
-              [:new, name_prefix, member_name]
+              [prefix, :new, name_prefix, member_name]
+            when :member
+              [prefix, shallow_scoping? ? @scope[:shallow_prefix] : name_prefix, member_name]
+            when :root
+              [name_prefix, collection_name, prefix]
             else
-              [shallow_scoping? ? @scope[:shallow_prefix] : name_prefix, member_name]
+              [name_prefix, member_name, prefix]
             end
 
-            name.unshift(prefix)
-            name.select(&:present?).join("_")
+            name.select(&:present?).join("_").presence
           end
       end
 
