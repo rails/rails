@@ -235,13 +235,8 @@ module ActionView
           html_options = convert_options_to_data_attributes(options, html_options)
           url = url_for(options)
 
-          if html_options
-            html_options = html_options.stringify_keys
-            href = html_options['href']
-            tag_options = tag_options(html_options)
-          else
-            tag_options = nil
-          end
+          href = html_options['href']
+          tag_options = tag_options(html_options)
 
           href_attr = "href=\"#{html_escape(url)}\"" unless href
           "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
