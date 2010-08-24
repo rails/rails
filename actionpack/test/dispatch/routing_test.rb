@@ -218,7 +218,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           get "thumbnail" => "avatars#thumbnail", :as => :thumbnail, :on => :member
         end
         resources :invoices do
-          get "outstanding" => "invoices#outstanding", :as => :outstanding, :on => :collection
+          get "outstanding" => "invoices#outstanding", :on => :collection
           get "overdue", :to => :overdue, :on => :collection
           get "print" => "invoices#print", :as => :print, :on => :member
           post "preview" => "invoices#preview", :as => :preview, :on => :new

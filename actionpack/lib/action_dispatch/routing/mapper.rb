@@ -87,7 +87,10 @@ module ActionDispatch
               @options.reverse_merge!(:controller => /.+?/)
             end
 
-            if path.include?(":format")
+            if @options[:format] == false
+              @options.delete(:format)
+              path
+            elsif path.include?(":format")
               path
             else
               "#{path}(.:format)"
@@ -244,7 +247,7 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
-          match(path, options.merge(:to => app, :anchor => false))
+          match(path, options.merge(:to => app, :anchor => false, :format => false))
           self
         end
 
