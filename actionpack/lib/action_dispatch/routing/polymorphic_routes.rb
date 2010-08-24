@@ -148,29 +148,29 @@ module ActionDispatch
         def build_named_route_call(records, inflection, options = {})
           unless records.is_a?(Array)
             record = extract_record(records)
-            route  = ''
+            route  = []
           else
             record = records.pop
-            route = records.inject("") do |string, parent|
+            route = records.map do |parent|
               if parent.is_a?(Symbol) || parent.is_a?(String)
-                string << "#{parent}_"
+                parent
               else
-                string << ActiveModel::Naming.plural(parent).singularize
-                string << "_"
+                ActiveModel::Naming.plural(parent).singularize
               end
             end
           end
 
           if record.is_a?(Symbol) || record.is_a?(String)
-            route << "#{record}_"
+            route << record
           else
             route << ActiveModel::Naming.plural(record)
-            route = route.singularize if inflection == :singular
-            route << "_"
-            route << "index_" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
+            route = [route.join("_").singularize] if inflection == :singular
+            route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
           end
 
-          action_prefix(options) + route + routing_type(options).to_s
+          route << routing_type(options)
+
+          action_prefix(options) + route.join("_")
         end
 
         def extract_record(record_or_hash_or_array)
