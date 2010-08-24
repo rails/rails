@@ -1,3 +1,8 @@
+*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
+
+* No material changes (see http://github.com/rails/rails/compare/v3.0.0_RC...v3.0.0_RC2 for gory details)
+
+
 *Rails 3.0.0 [release candidate] (July 26th, 2010)*
 
 * Changed update_attribute to not run callbacks and update the record directly in the database [Neeraj Singh]

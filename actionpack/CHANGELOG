@@ -1,6 +1,10 @@
-*Support routing constraints in functional tests. [Andrew White]
+*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
 
-*Add a header that tells Internet Explorer (all versions) to use the best available standards support. [Yehuda Katz]
+* See http://github.com/rails/rails/compare/v3.0.0_RC...v3.0.0_RC2 for gory details
+
+* Support routing constraints in functional tests. [Andrew White]
+
+* Add a header that tells Internet Explorer (all versions) to use the best available standards support. [Yehuda Katz]
 
 
 *Rails 3.0.0 [release candidate] (July 26th, 2010)*
