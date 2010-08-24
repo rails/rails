@@ -208,10 +208,14 @@ module ActiveRecord
     # If an attribute name is passed, that attribute is updated along with
     # updated_at/on attributes.
     #
-    # Examples:
-    #
     #   product.touch               # updates updated_at/on
     #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
+    #
+    # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
+    #
+    #   Brake.belongs_to :car,         :touch => true
+    #   Car.belongs_to   :corporation, :touch => true  
+    #   @brake.touch #=> will also invoke @brake.car.touch and @brake.car.corporation.touch
     def touch(name = nil)
       attributes = timestamp_attributes_for_update_in_model
       unless attributes.blank?
