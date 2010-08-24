@@ -61,7 +61,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      record_timestamps && !partial_updates? || changed?
+      record_timestamps && (!partial_updates? || changed?)
     end
 
     def timestamp_attributes_for_update_in_model
