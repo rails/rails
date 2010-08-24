@@ -926,11 +926,11 @@ module ActionDispatch
 
           def prefix_name_for_action(action, as)
             if as.present?
-              "#{as}_"
+              as.to_s
             elsif as
-              ""
+              nil
             elsif !canonical_action?(action, @scope[:scope_level])
-              "#{action}_"
+              action.to_s
             end
           end
 
@@ -941,22 +941,19 @@ module ActionDispatch
             if parent_resource
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
-              name_prefix = "#{name_prefix}_" if name_prefix.present?
             end
 
-            case @scope[:scope_level]
+            name = case @scope[:scope_level]
             when :collection
-              "#{prefix}#{name_prefix}#{collection_name}"
+              [name_prefix, collection_name]
             when :new
-              "#{prefix}new_#{name_prefix}#{member_name}"
+              [:new, name_prefix, member_name]
             else
-              if shallow_scoping?
-                shallow_prefix = "#{@scope[:shallow_prefix]}_" if @scope[:shallow_prefix].present?
-                "#{prefix}#{shallow_prefix}#{member_name}"
-              else
-                "#{prefix}#{name_prefix}#{member_name}"
-              end
+              [shallow_scoping? ? @scope[:shallow_prefix] : name_prefix, member_name]
             end
+
+            name.unshift(prefix)
+            name.select(&:present?).join("_")
           end
       end
 
