@@ -32,7 +32,7 @@ module ActiveRecord #:nodoc:
   # Active Record objects. The mapping that binds a given Active Record class to a certain
   # database table will happen automatically in most common cases, but can be overwritten for the uncommon ones.
   #
-  # See the mapping rules in table_name and the full example in link:files/README.html for more insight.
+  # See the mapping rules in table_name and the full example in link:files/activerecord/README_rdoc.html for more insight.
   #
   # == Creation
   #
