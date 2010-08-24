@@ -488,6 +488,8 @@ After the console loads, you can use it to work with your application's models:
 
 This code shows creating a new +Post+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the post.
 
+When you're finished, type +exit+ and hit +return+ to exit the console.
+
 TIP: Unlike the development web server, the console does not automatically load your code afresh for each line. If you make changes to your models while the console is open, type +reload!+ at the console prompt to load them.
 
 h4. Listing All Posts
