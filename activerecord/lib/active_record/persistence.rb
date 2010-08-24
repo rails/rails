@@ -214,18 +214,20 @@ module ActiveRecord
     #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
     def touch(name = nil)
       attributes = timestamp_attributes_for_update_in_model
-      attributes << name if name
+      unless attributes.blank?
+        attributes << name if name
 
-      current_time = current_time_from_proper_timezone
-      changes = {}
+        current_time = current_time_from_proper_timezone
+        changes = {}
 
-      attributes.each do |column|
-        changes[column.to_s] = write_attribute(column.to_s, current_time)
+        attributes.each do |column|
+          changes[column.to_s] = write_attribute(column.to_s, current_time)
+        end
+
+        @changed_attributes.except!(*changes.keys)
+        primary_key = self.class.primary_key
+        self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
       end
-
-      @changed_attributes.except!(*changes.keys)
-      primary_key = self.class.primary_key
-      self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
     end
 
   private
