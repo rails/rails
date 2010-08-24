@@ -881,7 +881,7 @@ module ActiveRecord #:nodoc:
       #
       # Post.unscoped.published 
       # Post.published 
-      def unscoped
+      def unscoped #:nodoc:
         block_given? ? relation.scoping { yield } : relation
       end
 
