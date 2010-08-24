@@ -394,6 +394,7 @@ module Rails
         when "postgresql" then "pg"
         when "sqlite3"    then "sqlite3-ruby"
         when "frontbase"  then "ruby-frontbase"
+        when "mysql"      then "mysql2"
         else options[:database]
         end
       end
