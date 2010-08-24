@@ -188,7 +188,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      resources :sheep
+      resources :sheep do
+        get "_it", :on => :member
+      end
 
       resources :clients do
         namespace :google do
@@ -996,6 +998,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/sheep/1', sheep_path(1)
       assert_equal '/sheep/new', new_sheep_path
       assert_equal '/sheep/1/edit', edit_sheep_path(1)
+      assert_equal '/sheep/1/_it', _it_sheep_path(1)
     end
   end
 
