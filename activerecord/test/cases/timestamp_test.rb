@@ -3,13 +3,15 @@ require 'models/developer'
 require 'models/owner'
 require 'models/pet'
 require 'models/toy'
+require 'models/car'
 
 class TimestampTest < ActiveRecord::TestCase
-  fixtures :developers, :owners, :pets, :toys
+  fixtures :developers, :owners, :pets, :toys, :cars
 
   def setup
     @developer = Developer.first
     @previously_updated_at = @developer.updated_at
+    @car = Car.first
   end
 
   def test_saving_a_changed_record_updates_its_timestamp
@@ -56,6 +58,10 @@ class TimestampTest < ActiveRecord::TestCase
     assert !@developer.changed?, 'record should not be changed'
     assert_not_equal previously_created_at, @developer.created_at
     assert_not_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_touch_a_record_without_timestamps
+    assert_nothing_raised { @car.touch }
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
