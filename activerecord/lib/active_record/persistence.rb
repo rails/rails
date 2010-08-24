@@ -213,9 +213,16 @@ module ActiveRecord
     #
     # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
     #
-    #   Brake.belongs_to :car,         :touch => true
-    #   Car.belongs_to   :corporation, :touch => true  
-    #   @brake.touch #=> will also invoke @brake.car.touch and @brake.car.corporation.touch
+    #   class Brake < ActiveRecord::Base
+    #     belongs_to :car, :touch => true
+    #   end
+    #
+    #   class Car < ActiveRecord::Base
+    #     belongs_to :corporation, :touch => true
+    #   end
+    #
+    #   # triggers @brake.car.touch and @brake.car.corporation.touch
+    #   @brake.touch
     def touch(name = nil)
       attributes = timestamp_attributes_for_update_in_model
       unless attributes.blank?
