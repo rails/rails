@@ -203,9 +203,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :customers do
-        get "recent" => "customers#recent", :as => :recent, :on => :collection
-        get "profile" => "customers#profile", :as => :profile, :on => :member
-        post "preview" => "customers#preview", :as => :preview, :on => :new
+        get "recent" => "customers#recent", :on => :collection
+        get "profile" => "customers#profile", :on => :member
+        post "preview" => "customers#preview", :as => :another_preview, :on => :new
         resource :avatar do
           get "thumbnail(.:format)" => "avatars#thumbnail", :as => :thumbnail, :on => :member
         end
@@ -1564,7 +1564,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       assert_equal '/customers/recent', recent_customers_path
       assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
-      assert_equal '/customers/new/preview', preview_new_customer_path
+      assert_equal '/customers/new/preview', another_preview_new_customer_path
       assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
       assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
       assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(:customer_id => '1', :id => '2')
