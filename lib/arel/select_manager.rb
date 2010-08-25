@@ -51,7 +51,9 @@ module Arel
     end
 
     def order_clauses
-      Visitors::OrderClauses.new(@engine).accept @head
+      Visitors::OrderClauses.new(@engine).accept(@head).map { |x|
+        Nodes::SqlLiteral.new x
+      }
     end
 
     def joins manager

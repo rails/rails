@@ -126,8 +126,8 @@ module Arel
 
       DISPATCH = {}
       def visit object
-        #send "visit_#{object.class.name.gsub('::', '_')}", object
-        send DISPATCH[object.class], object
+        send "visit_#{object.class.name.gsub('::', '_')}", object
+        #send DISPATCH[object.class], object
       end
 
       private_instance_methods(false).each do |method|
