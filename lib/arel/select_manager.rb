@@ -44,9 +44,7 @@ module Arel
 
     def join_sql
       viz = Visitors::JoinSql.new @engine
-      Nodes::SqlLiteral.new(
-        @ctx.froms.grep(Nodes::Join).map { |x| viz.accept x }.join ', '
-      )
+      Nodes::SqlLiteral.new viz.accept @ctx
     end
 
     def joins manager

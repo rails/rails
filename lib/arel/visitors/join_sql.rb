@@ -9,6 +9,10 @@ module Arel
     # This visitor is used in SelectManager#join_sql and is for backwards
     # compatibility with Arel V1.0
     class JoinSql < Arel::Visitors::ToSql
+      def visit_Arel_Nodes_SelectCore o
+        o.froms.grep(Nodes::Join).map { |x| visit x }.join ', '
+      end
+
       def visit_Arel_Nodes_OuterJoin o
         "OUTER JOIN #{visit o.right} #{visit o.constraint}"
       end
