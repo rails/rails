@@ -7,18 +7,17 @@ module ActiveRecord
     #
     # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
     # * Count using column: By passing a column name to count, it will return a count of all the
-    #   rows for the model with supplied column present
+    #   rows for the model with supplied column present.
     # * Count using options will find the row count matched by the options used.
     #
     # The third approach, count using options, accepts an option hash as the only parameter. The options are:
     #
     # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
     #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
-    #   or named associations in the same form used for the <tt>:include</tt> option, which will
-    #   perform an INNER JOIN on the associated table(s).
-    #   If the value is a string, then the records will be returned read-only since they will have
-    #   attributes that do not correspond to the table's columns.
+    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" 
+    #   (rarely needed) or named associations in the same form used for the <tt>:include</tt> option, which will
+    #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records 
+    #   will be returned read-only since they will have attributes that do not correspond to the table's columns.
     #   Pass <tt>:readonly => false</tt> to override.
     # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs.
     #   The symbols named refer to already defined associations. When using named associations, count
@@ -27,8 +26,7 @@ module ActiveRecord
     # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
     # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
     # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example,
-    #   want to do a join but not
-    #   include the joined columns.
+    #   want to do a join but not include the joined columns.
     # * <tt>:distinct</tt>: Set this to true to make this a distinct calculation, such as
     #   SELECT COUNT(DISTINCT posts.id) ...
     # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an
