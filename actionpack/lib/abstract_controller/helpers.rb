@@ -40,7 +40,7 @@ module AbstractController
       #  <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
       #
       # ==== Parameters
-      # meths<Array[#to_s]>:: The name of a method on the controller
+      # * <tt>method[, method]</tt> - A name or names of a method on the controller
       #   to be made available on the view.
       def helper_method(*meths)
         meths.flatten.each do |meth|
@@ -55,8 +55,8 @@ module AbstractController
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
       # ==== Parameters
-      # *args<Array[Module, Symbol, String, :all]>
-      # block<Block>:: A block defining helper methods
+      # * <tt>*args</tt> - Module, Symbol, String, :all
+      # * <tt>block</tt> - A block defining helper methods
       #
       # ==== Examples
       # When the argument is a module it will be included directly in the template class.
@@ -100,7 +100,7 @@ module AbstractController
       # rendered through this controller.
       #
       # ==== Parameters
-      # mod<Module>:: The module to include into the current helper module
+      # * <tt>module</tt> - The module to include into the current helper module
       #   for the class
       def add_template_helper(mod)
         _helpers.module_eval { include mod }
@@ -118,10 +118,10 @@ module AbstractController
       # are returned.
       #
       # ==== Parameters
-      # args<Array[String, Symbol, Module]>:: A list of helpers
+      # * <tt>args</tt> - An array of helpers
       #
       # ==== Returns
-      # Array[Module]:: A normalized list of modules for the list of
+      # * <tt>Array</tt> - A normalized list of modules for the list of
       #   helpers provided.
       def modules_for_helpers(args)
         args.flatten.map! do |arg|

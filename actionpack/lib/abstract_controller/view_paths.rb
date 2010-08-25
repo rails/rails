@@ -34,9 +34,9 @@ module AbstractController
       # Append a path to the list of view paths for this controller.
       #
       # ==== Parameters
-      # path<String, ViewPath>:: If a String is provided, it gets converted into
-      # the default view path. You may also provide a custom view path
-      # (see ActionView::ViewPathSet for more information)
+      # * <tt>path</tt> - If a String is provided, it gets converted into
+      #   the default view path. You may also provide a custom view path
+      #   (see ActionView::ViewPathSet for more information)
       def append_view_path(path)
         self.view_paths = view_paths.dup + Array(path)
       end
@@ -44,9 +44,9 @@ module AbstractController
       # Prepend a path to the list of view paths for this controller.
       #
       # ==== Parameters
-      # path<String, ViewPath>:: If a String is provided, it gets converted into
-      # the default view path. You may also provide a custom view path
-      # (see ActionView::ViewPathSet for more information)
+      # * <tt>path</tt> - If a String is provided, it gets converted into
+      #   the default view path. You may also provide a custom view path
+      #   (see ActionView::ViewPathSet for more information)
       def prepend_view_path(path)
         self.view_paths = Array(path) + view_paths.dup
       end
@@ -59,7 +59,7 @@ module AbstractController
       # Set the view paths.
       #
       # ==== Parameters
-      # paths<ViewPathSet, Object>:: If a ViewPathSet is provided, use that;
+      # * <tt>paths</tt> - If a ViewPathSet is provided, use that;
       #   otherwise, process the parameter into a ViewPathSet.
       def view_paths=(paths)
         self._view_paths = ActionView::Base.process_view_paths(paths)

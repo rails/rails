@@ -6,6 +6,10 @@ module AbstractController
   class Error < StandardError; end
   class ActionNotFound < StandardError; end
 
+  # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
+  # using it directly, and subclasses (like ActionController::Base) are
+  # expected to provide their own +render+ method, since rendering means
+  # different things depending on the context.  
   class Base
     attr_internal :response_body
     attr_internal :action_name
@@ -36,13 +40,12 @@ module AbstractController
         controller.public_instance_methods(true)
       end
 
-      # The list of hidden actions to an empty Array. Defaults to an
-      # empty Array. This can be modified by other modules or subclasses
+      # The list of hidden actions to an empty array. Defaults to an
+      # empty array. This can be modified by other modules or subclasses
       # to specify particular actions as hidden.
       #
       # ==== Returns
-      # Array[String]:: An array of method names that should not be
-      #                 considered actions.
+      # * <tt>array</tt> - An array of method names that should not be considered actions.
       def hidden_actions
         []
       end
@@ -54,8 +57,7 @@ module AbstractController
       # itself. Finally, #hidden_actions are removed.
       #
       # ==== Returns
-      # Array[String]:: A list of all methods that should be considered
-      #                 actions.
+      # * <tt>array</tt> - A list of all methods that should be considered actions.
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
@@ -84,7 +86,7 @@ module AbstractController
       # controller_name.
       #
       # ==== Returns
-      # String
+      # * <tt>string</tt>
       def controller_path
         @controller_path ||= name.sub(/Controller$/, '').underscore unless anonymous?
       end
@@ -104,7 +106,7 @@ module AbstractController
     # ActionNotFound error is raised.
     #
     # ==== Returns
-    # self
+    # * <tt>self</tt>
     def process(action, *args)
       @_action_name = action_name = action.to_s
 
@@ -133,10 +135,10 @@ module AbstractController
       # can be considered an action.
       #
       # ==== Parameters
-      # name<String>:: The name of an action to be tested
+      # * <tt>name</tt> - The name of an action to be tested
       #
       # ==== Returns
-      # TrueClass, FalseClass
+      # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
       def action_method?(name)
         self.class.action_methods.include?(name)
       end
@@ -180,11 +182,11 @@ module AbstractController
       # returns nil, an ActionNotFound exception will be raised.
       #
       # ==== Parameters
-      # action_name<String>:: An action name to find a method name for
+      # * <tt>action_name</tt> - An action name to find a method name for
       #
       # ==== Returns
-      # String:: The name of the method that handles the action
-      # nil::    No method name could be found. Raise ActionNotFound.
+      # * <tt>string</tt> - The name of the method that handles the action
+      # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
       def method_for_action(action_name)
         if action_method?(action_name) then action_name
         elsif respond_to?(:action_missing, true) then "_handle_action_missing"

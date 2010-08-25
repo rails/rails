@@ -367,8 +367,8 @@ module ActionView
       # "Go Back" link instead of a link to the comments page, we could do something like this...
       #
       #    <%=
-      #        link_to_unless_current("Comment", { :controller => 'comments', :action => 'new}) do
-      #           link_to("Go back", { :controller => 'posts', :action => 'index' })
+      #        link_to_unless_current("Comment", { :controller => "comments", :action => "new" }) do
+      #           link_to("Go back", { :controller => "posts", :action => "index" })
       #        end
       #     %>
       def link_to_unless_current(name, options = {}, html_options = {}, &block)
