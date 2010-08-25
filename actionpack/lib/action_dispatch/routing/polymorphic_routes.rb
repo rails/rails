@@ -129,6 +129,9 @@ module ActionDispatch
         if proxy
           proxy.send(named_route, *args)
         else
+          # we need to use url_for, because polymorphic_url can be used in context of other than
+          # current routes (e.g. engine's routes). As named routes from engine are not included
+          # calling engine's named route directly would fail.
           url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
         end
       end
