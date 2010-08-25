@@ -8,6 +8,10 @@ module Arel
         @attr = Table.new(:users)[:id]
       end
 
+      it "should visit_Date" do
+        @visitor.accept Date.today
+      end
+
       it "should visit_Arel_Nodes_And" do
         node = Nodes::And.new @attr.eq(10), @attr.eq(11)
         @visitor.accept(node).should be_like %{
