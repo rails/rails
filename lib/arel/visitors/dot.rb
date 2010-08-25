@@ -28,6 +28,11 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_StringJoin o
+        visit_edge o, "left"
+        visit_edge o, "right"
+      end
+
       def visit_Arel_Nodes_InsertStatement o
         visit_edge o, "relation"
         visit_edge o, "columns"

@@ -27,7 +27,14 @@ module Arel
     end
 
     def join relation
-      SelectManager.new(@engine).from(Nodes::InnerJoin.new(self, relation, nil))
+      sm = SelectManager.new(@engine)
+      case relation
+      when String, Nodes::SqlLiteral
+        raise if relation.blank?
+        sm.from Nodes::StringJoin.new(self, relation)
+      else
+        sm.from Nodes::InnerJoin.new(self, relation, nil)
+      end
     end
 
     def where condition

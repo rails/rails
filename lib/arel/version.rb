@@ -1,3 +1,3 @@
 module Arel
-  VERSION = '0.4.1.beta.1'
+  VERSION = '1.0.0.beta.1'
 end

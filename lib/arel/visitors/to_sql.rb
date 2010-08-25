@@ -66,6 +66,10 @@ module Arel
         "#{visit o.relation} #{quote_table_name o.name}"
       end
 
+      def visit_Arel_Nodes_StringJoin o
+        "#{visit o.left} #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_OuterJoin o
         "#{visit o.left} OUTER JOIN #{visit o.right} #{visit o.constraint}"
       end

@@ -63,7 +63,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::InnerJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
         manager.join_sql.should be_like %{
-          "users" INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
+          INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
         check manager.joins(manager).should == manager.join_sql
       end
@@ -74,7 +74,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::OuterJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
         manager.join_sql.should be_like %{
-          "users" OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
+          OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
         check manager.joins(manager).should == manager.join_sql
       end
