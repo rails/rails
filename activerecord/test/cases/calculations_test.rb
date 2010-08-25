@@ -275,6 +275,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50 AND firm_id IS NOT NULL")
   end
 
+  def test_should_count_field_in_joined_table
+    assert_equal 5, Account.count('companies.id', :joins => :firm)
+    assert_equal 4, Account.count('companies.id', :joins => :firm, :distinct => true)
+  end
+
+  def test_should_count_field_in_joined_table_with_group_by
+    c = Account.count('companies.id', :group => :firm_id, :joins => :firm)
+
+    [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
+  end
+
   def test_count_with_no_parameters_isnt_deprecated
     assert_not_deprecated { Account.count }
   end
@@ -335,5 +346,4 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_from_option_with_table_different_than_class
     assert_equal Account.count(:all), Company.count(:all, :from => 'accounts')
   end
-
 end
