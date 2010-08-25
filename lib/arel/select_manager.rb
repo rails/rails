@@ -29,7 +29,10 @@ module Arel
     end
 
     def order *expr
-      @head.orders.concat expr
+      # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
+      @head.orders.concat expr.map { |x|
+        String === x ? Nodes::SqlLiteral.new(x) : x
+      }
       self
     end
 
@@ -45,6 +48,10 @@ module Arel
     def join_sql
       viz = Visitors::JoinSql.new @engine
       Nodes::SqlLiteral.new viz.accept @ctx
+    end
+
+    def order_clauses
+      Visitors::OrderClauses.new(@engine).accept @head
     end
 
     def joins manager

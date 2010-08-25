@@ -80,6 +80,17 @@ module Arel
       end
     end
 
+    describe 'order_clauses' do
+      it 'returns order clauses as a list' do
+        table   = Table.new :users
+        aliaz   = table.alias
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.order table[:id]
+        manager.order_clauses.first.should be_like %{ "users"."id" }
+      end
+    end
+
     describe 'delete' do
       it "copies from" do
         engine  = EngineProxy.new Table.engine

@@ -26,4 +26,5 @@ require 'arel/expression'
 
 require 'arel/visitors/to_sql'
 require 'arel/visitors/join_sql'
+require 'arel/visitors/order_clauses'
 require 'arel/visitors/dot'
