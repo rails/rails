@@ -237,6 +237,16 @@ module Rails
   # end
   #
   # Note that :as option takes engine_name as default, so most of the time you can ommit it.
+  #
+  # If you want to generate url to engine's route using polymorphic_url, you can also use that helpers.
+  #
+  # Let's say that you want to create a form pointing to one of the engine's routes. All you need to do
+  # is passing helper as the first element in array with attributes for url:
+  #
+  # form_for([my_engine, @user])
+  #
+  # This code will use my_engine.user_path(@user) to generate proper route.
+  #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
