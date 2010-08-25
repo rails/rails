@@ -96,7 +96,7 @@ module ActiveRecord
     end
 
     def reverse_order
-      order_clause = arel.send(:order_clauses).join(', ')
+      order_clause = arel.order_clauses.join(', ')
       relation = except(:order)
 
       unless order_clauses.blank?
