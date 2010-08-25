@@ -285,7 +285,7 @@ JSON is a javascript data format used by many AJAX libraries. Rails has built-in
 render :json => @product
 </ruby>
 
-TIP: You don't need to call +as_json+ on the object that you want to render. If you use the +:json+ option, +render+ will automatically call +as_json+ for you.
+TIP: You don't need to call +to_json+ on the object that you want to render. If you use the +:json+ option, +render+ will automatically call +to_json+ for you.
 
 h5. Rendering XML
 

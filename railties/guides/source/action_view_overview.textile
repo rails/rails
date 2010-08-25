@@ -1380,7 +1380,7 @@ page.insert_html :bottom, 'my_list', '<li>Last item</li>'
 
 h5. literal
 
-Returns an object whose as_json evaluates to the code provided. Use this to pass a literal JavaScript expression as an argument to another JavaScriptGenerator method.
+Returns an object whose to_json evaluates to the code provided. Use this to pass a literal JavaScript expression as an argument to another JavaScriptGenerator method.
 
 h5. redirect_to
 
