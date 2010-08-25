@@ -52,7 +52,6 @@ module ActionController
 
       ENV_SESSION_KEY = "rack.session".freeze
       ENV_SESSION_OPTIONS_KEY = "rack.session.options".freeze
-      HTTP_SET_COOKIE = "Set-Cookie".freeze
 
       # Raised when storing more than 4K of session data.
       class CookieOverflow < StandardError; end
@@ -116,9 +115,7 @@ module ActionController
             cookie[:expires] = Time.now + options[:expire_after]
           end
 
-          cookie = build_cookie(@key, cookie.merge(options))
-          headers[HTTP_SET_COOKIE] = [] if headers[HTTP_SET_COOKIE].blank?
-          headers[HTTP_SET_COOKIE] << cookie
+          Rack::Utils.set_cookie_header!(headers, @key, cookie.merge(options))
         end
 
         [status, headers, body]
@@ -129,26 +126,6 @@ module ActionController
         def prepare!(env)
           env[ENV_SESSION_KEY] = AbstractStore::SessionHash.new(self, env)
           env[ENV_SESSION_OPTIONS_KEY] = AbstractStore::OptionsHash.new(self, env, @default_options)
-        end
-      
-        # Should be in Rack::Utils soon
-        def build_cookie(key, value)
-          case value
-          when Hash
-            domain  = "; domain="  + value[:domain] if value[:domain]
-            path    = "; path="    + value[:path]   if value[:path]
-            # According to RFC 2109, we need dashes here.
-            # N.B.: cgi.rb uses spaces...
-            expires = "; expires=" + value[:expires].clone.gmtime.
-              strftime("%a, %d-%b-%Y %H:%M:%S GMT") if value[:expires]
-            secure = "; secure" if value[:secure]
-            httponly = "; HttpOnly" if value[:httponly]
-            value = value[:value]
-          end
-          value = [value] unless Array === value
-          cookie = Rack::Utils.escape(key) + "=" +
-            value.map { |v| Rack::Utils.escape(v) }.join("&") +
-            "#{domain}#{path}#{expires}#{secure}#{httponly}"
         end
 
         def load_session(env)

@@ -106,7 +106,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      assert_equal ["_myapp_session=#{response.body}; path=/; HttpOnly"],
+      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
         headers['Set-Cookie']
    end
   end
@@ -159,7 +159,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set(:secure => true) do
       get '/set_session_value', nil, 'HTTPS' => 'on'
       assert_response :success
-      assert_equal ["_myapp_session=#{response.body}; path=/; secure; HttpOnly"],
+      assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
         headers['Set-Cookie']
     end
   end
@@ -195,12 +195,12 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/set_session_value'
       assert_response :success
       session_payload = response.body
-      assert_equal ["_myapp_session=#{response.body}; path=/; HttpOnly"],
+      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
         headers['Set-Cookie']
 
       get '/call_reset_session'
       assert_response :success
-      assert_not_equal [], headers['Set-Cookie']
+      assert_not_equal "", headers['Set-Cookie']
       assert_not_equal session_payload, cookies[SessionKey]
 
       get '/get_session_value'
@@ -214,7 +214,7 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/set_session_value'
       assert_response :success
       session_payload = response.body
-      assert_equal ["_myapp_session=#{response.body}; path=/; HttpOnly"],
+      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
         headers['Set-Cookie']
 
       get '/call_session_clear'
