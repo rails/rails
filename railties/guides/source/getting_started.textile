@@ -235,7 +235,7 @@ If you choose to use MySQL instead of the shipped Sqlite3 database, your +config
 
 <yaml>
 development:
-  adapter: mysql
+  adapter: mysql2
   encoding: utf8
   database: blog_development
   pool: 5
@@ -1017,7 +1017,7 @@ Once we have made the new comment, we send the user back to the original post us
 
 Now you can add posts and comments to your blog and have them show up in the right places.
 
-h3. Refactorization
+h3. Refactoring
 
 Now that we have Posts and Comments working, if we take a look at the +app/views/posts/show.html.erb+ template, it's getting long and awkward. We can use partials to clean this up.
 
@@ -1141,7 +1141,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 <%= link_to 'Back to Posts', posts_path %> |
 </erb>
 
-The second render just defines the partial template we want to render, <tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that string and realise that you want to render the <tt>_form.html.erb</tt> file in the <tt>app/views/comments</tt> directory.
+The second render just defines the partial template we want to render, <tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that string and realize that you want to render the <tt>_form.html.erb</tt> file in the <tt>app/views/comments</tt> directory.
 
 The +@post+ object is available to any partials rendered in the view because we defined it as an instance variable.
 
@@ -1279,7 +1279,7 @@ Again, run the migration to create the database table:
 $ rake db:migrate
 </shell>
 
-Next, edit the +post.rb+ file to create the other side of the association, and to tell Rails (via the +accepts_nested_attributes+ macro) that you intend to edit tags via posts:
+Next, edit the +post.rb+ file to create the other side of the association, and to tell Rails (via the +accepts_nested_attributes_for+ macro) that you intend to edit tags via posts:
 
 <ruby>
 class Post < ActiveRecord::Base
