@@ -390,7 +390,7 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          namespace(:bukkits, :path => nil, :shallow_path => nil, :as => nil) do
+          scope(:module => :bukkits) do
             match "/foo" => "foo#index", :as => "foo"
             match "/foo/show" => "foo#show"
             match "/from_app" => "foo#from_app"
