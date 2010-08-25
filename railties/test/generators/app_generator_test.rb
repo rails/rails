@@ -45,6 +45,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
+    
+    Kernel::silence_warnings do
+      Thor::Base.shell.send(:attr_accessor, :always_force)
+      @shell = Thor::Base.shell.new
+      @shell.send(:always_force=, true)
+    end
   end
 
   def teardown
@@ -118,16 +124,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     FileUtils.mv(app_root, app_moved_root)
 
-    # forces the shell to automatically overwrite all files
-    Thor::Base.shell.send(:attr_accessor, :always_force)
-    shell = Thor::Base.shell.new
-    shell.send(:always_force=, true)
-
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                               :destination_root => app_moved_root, :shell => shell
+                                                               :destination_root => app_moved_root, :shell => @shell
     generator.send(:app_const)
     silence(:stdout){ generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
+  end
+  
+  def test_rails_update_generates_correct_session_key
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+    
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
+    generator.send(:app_const)
+    silence(:stdout){ generator.send(:create_config_files) }
+    assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
   end
 
   def test_application_names_are_not_singularized
