@@ -59,6 +59,17 @@ class HttpMockTest < ActiveSupport::TestCase
       assert_equal "XML", request(method, "/people/1", FORMAT_HEADER[method] => "application/xml").body
       assert_equal "Json", request(method, "/people/1", FORMAT_HEADER[method] => "application/json").body
     end
+
+    test "raises InvalidRequestError if no response found for the #{method} request" do
+      ActiveResource::HttpMock.respond_to do |mock|
+        mock.send(method, "/people/1", {FORMAT_HEADER[method] => "application/xml"}, "XML")
+      end
+
+      assert_raise(::ActiveResource::InvalidRequestError) do
+        request(method, "/people/1", FORMAT_HEADER[method] => "application/json")
+      end
+    end
+    
   end
 
   def request(method, path, headers = {}, body = nil)
