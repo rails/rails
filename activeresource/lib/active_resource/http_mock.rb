@@ -123,13 +123,13 @@ module ActiveResource
         # def post(path, body, headers)
         #   request = ActiveResource::Request.new(:post, path, body, headers)
         #   self.class.requests << request
-        #   self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for #{request}"))
+        #   self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("Could not find a response recorded for #{request.to_s} - Responses recorded are: - #{inspect_responses}"))
         # end
         module_eval <<-EOE, __FILE__, __LINE__ + 1
           def #{method}(path, #{'body, ' if has_body}headers)
             request = ActiveResource::Request.new(:#{method}, path, #{has_body ? 'body, ' : 'nil, '}headers)
             self.class.requests << request
-            self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for \#{request}"))
+            self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("Could not find a response recorded for \#{request.to_s} - Responses recorded are: - \#{inspect_responses}"))
           end
         EOE
       end
@@ -137,6 +137,10 @@ module ActiveResource
 
     def initialize(site) #:nodoc:
       @site = site
+    end
+
+    def inspect_responses #:nodoc:
+      self.class.responses.map { |r| r[0].to_s }.inspect
     end
   end
 
