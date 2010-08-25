@@ -42,6 +42,18 @@ module ActionDispatch
     #
     #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
     #   polymorphic_path(@post, :format => :pdf)  # => "/posts/1.pdf"
+    #
+    # == Using with mounted engines
+    #
+    # If you use mounted engine, there is a possibility that you will need to use
+    # polymorphic_url pointing at engine's routes. To do that, just pass proxy used
+    # to reach engine's routes as a first argument:
+    #
+    # For example:
+    #
+    # polymorphic_url([blog, @post])  # it will call blog.post_path(@post)
+    # form_for([blog, @post])         # => "/blog/posts/1
+    #
     module PolymorphicRoutes
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
@@ -78,6 +90,9 @@ module ActionDispatch
       def polymorphic_url(record_or_hash_or_array, options = {})
         if record_or_hash_or_array.kind_of?(Array)
           record_or_hash_or_array = record_or_hash_or_array.compact
+          if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
+            proxy = record_or_hash_or_array.shift
+          end
           record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
 
@@ -111,7 +126,11 @@ module ActionDispatch
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
 
-        url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
+        if proxy
+          proxy.send(named_route, *args)
+        else
+          url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
+        end
       end
 
       # Returns the path component of a URL for the given record. It uses

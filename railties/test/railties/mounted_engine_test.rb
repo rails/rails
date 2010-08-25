@@ -18,10 +18,31 @@ module ApplicationTests
           match "/engine_route" => "application_generating#engine_route"
           match "/engine_route_in_view" => "application_generating#engine_route_in_view"
           match "/url_for_engine_route" => "application_generating#url_for_engine_route"
+          match "/polymorphic_route" => "application_generating#polymorphic_route"
           scope "/:user", :user => "anonymous" do
             mount Blog::Engine => "/blog"
           end
           root :to => 'main#index'
+        end
+      RUBY
+
+      @plugin.write "app/models/blog/post.rb", <<-RUBY
+        module Blog
+          class Post
+            extend ActiveModel::Naming
+
+            def id
+              44
+            end
+
+            def to_param
+              id.to_s
+            end
+
+            def new_record?
+              false
+            end
+          end
         end
       RUBY
 
@@ -77,6 +98,10 @@ module ApplicationTests
 
           def url_for_engine_route
             render :text => blog.url_for(:controller => "blog/posts", :action => "index", :user => "john", :only_path => true)
+          end
+
+          def polymorphic_route
+            render :text => polymorphic_url([blog, Blog::Post.new])
           end
         end
       RUBY
@@ -141,6 +166,11 @@ module ApplicationTests
       script_name "/foo"
       get "/someone/blog/generate_application_route", {}, 'SCRIPT_NAME' => '/foo'
       assert_equal "/foo/", last_response.body
+      reset_script_name!
+
+      # test polymorphic routes
+      get "/polymorphic_route"
+      assert_equal "http://example.org/anonymous/blog/posts/44", last_response.body
     end
   end
 end

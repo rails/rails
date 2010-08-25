@@ -57,6 +57,14 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @blog_blog = Blog::Blog.new
   end
 
+  def test_passing_routes_proxy
+    with_namespaced_routes(:blog) do
+      proxy = ActionDispatch::Routing::RoutesProxy.new(_routes, self)
+      @blog_post.save
+      assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url([proxy, @blog_post])
+    end
+  end
+
   def test_namespaced_model
     with_namespaced_routes(:blog) do
       @blog_post.save
