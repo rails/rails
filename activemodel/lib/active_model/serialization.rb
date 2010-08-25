@@ -54,12 +54,12 @@ module ActiveModel
   #
   #   person = Person.new
   #   person.serializable_hash   # => {"name"=>nil}
-  #   person.to_json             # => "{\"name\":null}"
+  #   person.as_json             # => "{\"name\":null}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
   #   person.name = "Bob"
   #   person.serializable_hash   # => {"name"=>"Bob"}
-  #   person.to_json             # => "{\"name\":\"Bob\"}"
+  #   person.as_json             # => "{\"name\":\"Bob\"}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
   # Valid options are <tt>:only</tt>, <tt>:except</tt> and <tt>:methods</tt> .
