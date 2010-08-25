@@ -2226,7 +2226,7 @@ There's also a related idiom that uses the splat operator:
 [*object]
 </ruby>
 
-which returns +[nil]+ for +nil+, and calls to <tt>Array(object)</tt> otherwise
+which in Ruby 1.8 returns +[nil]+ for +nil+, and calls to <tt>Array(object)</tt> otherwise. (Please if you know the exact behavior in 1.9 contact fxn.)
 
 Thus, in this case the behavior is different for +nil+, and the differences with <tt>Kernel#Array</tt> explained above apply to the rest of +object+s.
 
