@@ -201,9 +201,9 @@ Finally a couple of enhancements were added to the rake tasks:
 
 Railties now deprecates:
 
-* <tt>RAILS_ROOT</tt> in favour of <tt>Rails.root</tt>,
-* <tt>RAILS_ENV</tt> in favour of <tt>Rails.env</tt>, and
-* <tt>RAILS_DEFAULT_LOGGER</tt> in favour of <tt>Rails.logger</tt>.
+* <tt>RAILS_ROOT</tt> in favor of <tt>Rails.root</tt>,
+* <tt>RAILS_ENV</tt> in favor of <tt>Rails.env</tt>, and
+* <tt>RAILS_DEFAULT_LOGGER</tt> in favor of <tt>Rails.logger</tt>.
 
 <tt>PLUGIN/rails/tasks</tt>, and <tt>PLUGIN/tasks</tt> are no longer loaded all tasks now must be in <tt>PLUGIN/lib/tasks</tt>.
 
@@ -241,7 +241,7 @@ h4. Action Controller
 
 Deprecations:
 
-* <tt>filter_parameter_logging</tt> is deprecated in favour of <tt>config.filter_parameters << :password</tt>.
+* <tt>filter_parameter_logging</tt> is deprecated in favor of <tt>config.filter_parameters << :password</tt>.
 
 More Information:
 * "Render Options in Rails 3":http://www.engineyard.com/blog/2010/render-options-in-rails-3/
@@ -363,8 +363,8 @@ Validations have been moved from Active Record into Active Model, providing an i
 * The +validates+ method has the following options:
   * <tt>:acceptance => Boolean</tt>.
   * <tt>:confirmation => Boolean</tt>.
-  * <tt>:exclusion => { :in => Ennumerable }</tt>.
-  * <tt>:inclusion => { :in => Ennumerable }</tt>.
+  * <tt>:exclusion => { :in => Enumerable }</tt>.
+  * <tt>:inclusion => { :in => Enumerable }</tt>.
   * <tt>:format => { :with => Regexp, :on => :create }</tt>.
   * <tt>:length => { :maximum => Fixnum }</tt>.
   * <tt>:numericality => Boolean</tt>.
@@ -452,7 +452,7 @@ h4. Patches and Deprecations
 
 Additionally, many fixes in the Active Record branch:
 
-* SQLite 2 support has been dropped in favour of SQLite 3.
+* SQLite 2 support has been dropped in favor of SQLite 3.
 * MySQL support for column order.
 * PostgreSQL adapter has had its +TIME ZONE+ support fixed so it no longer inserts incorrect values.
 * Support multiple schemas in table names for PostgreSQL.
@@ -464,11 +464,11 @@ As well as the following deprecations:
 
 * +named_scope+ in an Active Record class is deprecated and has been renamed to just +scope+.
 * In +scope+ methods, you should move to using the relation methods, instead of a <tt>:conditions => {}</tt> finder method, for example <tt>scope :since, lambda {|time| where("created_at > ?", time) }</tt>.
-* <tt>save(false)</tt> is deprecated, in favour of <tt>save(:validate => false)</tt>.
+* <tt>save(false)</tt> is deprecated, in favor of <tt>save(:validate => false)</tt>.
 * I18n error messages for ActiveRecord should be changed from :en.activerecord.errors.template to <tt>:en.errors.template</tt>.
-* <tt>model.errors.on</tt> is deprecated in favour of <tt>model.errors[]</tt>
+* <tt>model.errors.on</tt> is deprecated in favor of <tt>model.errors[]</tt>
 * validates_presence_of => validates... :presence => true
-* <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::LogSubscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
+* <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favor of <tt>Rails::LogSubscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
 
 NOTE: While an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
 
@@ -491,7 +491,7 @@ Active Resource was also extracted out to Active Model allowing you to use Activ
 * Renamed <tt>SchemaDefinition</tt> to <tt>Schema</tt> and <tt>define_schema</tt> to <tt>schema</tt>.
 * Use the <tt>format</tt> of Active Resources rather than the <tt>content-type</tt> of remote errors to load errors.
 * Use <tt>instance_eval</tt> for schema block.
-* Fix <tt>ActiveResource::ConnectionError#to_s</tt> when +@response+ does not respond to #code or #message, handles Ruby 1.9 compat.
+* Fix <tt>ActiveResource::ConnectionError#to_s</tt> when +@response+ does not respond to #code or #message, handles Ruby 1.9 compatibility.
 * Add support for errors in JSON format.
 * Ensure <tt>load</tt> works with numeric arrays.
 * Recognizes a 410 response from remote resource as the resource has been deleted.
@@ -500,7 +500,7 @@ Active Resource was also extracted out to Active Model allowing you to use Activ
 
 Deprecations:
 
-* <tt>save(false)</tt> is deprecated, in favour of <tt>save(:validate => false)</tt>.
+* <tt>save(false)</tt> is deprecated, in favor of <tt>save(:validate => false)</tt>.
 * Ruby 1.9.2: <tt>URI.parse</tt> and <tt>.decode</tt> are deprecated and are no longer used in the library.
 
 
@@ -551,7 +551,7 @@ The following methods have been removed because they are now available in Ruby 1
 * <tt>Object#instance_variable_defined?</tt>
 * <tt>Enumerable#none?</tt>
 
-The security patch for REXML remains in Active Support because early patchlevels of Ruby 1.8.7 still need it. Active Support knows whether it has to apply it or not.
+The security patch for REXML remains in Active Support because early patch-levels of Ruby 1.8.7 still need it. Active Support knows whether it has to apply it or not.
 
 The following methods have been removed because they are no longer used in the framework:
 
@@ -579,7 +579,7 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 
 Deprecations:
 
-* <tt>:charset</tt>, <tt>:content_type</tt>, <tt>:mime_version</tt>, <tt>:implicit_parts_order</tt> are all deprecated in favour of <tt>ActionMailer.default :key => value</tt> style declarations.
+* <tt>:charset</tt>, <tt>:content_type</tt>, <tt>:mime_version</tt>, <tt>:implicit_parts_order</tt> are all deprecated in favor of <tt>ActionMailer.default :key => value</tt> style declarations.
 * Mailer dynamic <tt>create_method_name</tt> and <tt>deliver_method_name</tt> are deprecated, just call <tt>method_name</tt> which now returns a <tt>Mail::Message</tt> object.
 * <tt>ActionMailer.deliver(message)</tt> is deprecated, just call <tt>message.deliver</tt>.
 * <tt>template_root</tt> is deprecated, pass options to a render call inside a proc from the <tt>format.mime_type</tt> method inside the <tt>mail</tt> generation block
