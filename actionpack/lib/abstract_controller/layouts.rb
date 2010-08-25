@@ -114,11 +114,13 @@ module AbstractController
   #
   #   class WeblogController < ActionController::Base
   #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #   end
   #
   # Of course, the most common way of specifying a layout is still just as a plain template name:
   #
   #   class WeblogController < ActionController::Base
   #     layout "weblog_standard"
+  #   end
   #
   # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
   # Otherwise, it will be looked up relative to the template root.
@@ -183,7 +185,7 @@ module AbstractController
         # layout.
         #
         # ==== Returns
-        # Boolean:: True if the action has a layout, false otherwise.
+        # * <tt> Boolean</tt> - True if the action has a layout, false otherwise.
         def action_has_layout?
           return unless super
 
@@ -209,11 +211,11 @@ module AbstractController
       # true::   raise an ArgumentError
       #
       # ==== Parameters
-      # layout<String, Symbol, false)>:: The layout to use.
+      # * <tt>String, Symbol, false</tt> - The layout to use.
       #
       # ==== Options (conditions)
-      # :only<#to_s, Array[#to_s]>:: A list of actions to apply this layout to.
-      # :except<#to_s, Array[#to_s]>:: Apply this layout to all actions but this one
+      # * :only   - A list of actions to apply this layout to.
+      # * :except - Apply this layout to all actions but this one.
       def layout(layout, conditions = {})
         include LayoutConditions unless conditions.empty?
 
@@ -228,7 +230,7 @@ module AbstractController
       # value of this method.
       #
       # ==== Returns
-      # String:: A template name
+      # * <tt>String</tt> - A template name
       def _implied_layout_name
         controller_path
       end
@@ -313,8 +315,8 @@ module AbstractController
     # the name type.
     #
     # ==== Parameters
-    # name<String|TrueClass|FalseClass|Symbol>:: The name of the template
-    # details<Hash{Symbol => Object}>:: A list of details to restrict
+    # * <tt>name</tt> - The name of the template
+    # * <tt>details</tt> - A list of details to restrict
     #   the lookup to. By default, layout lookup is limited to the
     #   formats specified for the current request.
     def _layout_for_option(name)
@@ -333,14 +335,14 @@ module AbstractController
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
-    # details<Hash>:: A list of details to restrict the search by. This
+    # * <tt>details</tt> - A list of details to restrict the search by. This
     #   might include details like the format or locale of the template.
-    # require_layout<Boolean>:: If this is true, raise an ArgumentError
+    # * <tt>require_logout</tt> - If this is true, raise an ArgumentError
     #   with details about the fact that the exception could not be
     #   found (defaults to false)
     #
     # ==== Returns
-    # Template:: The template object for the default layout (or nil)
+    # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
         layout_name = _layout if action_has_layout?
