@@ -113,12 +113,13 @@ module ActionView
       @identifier         = identifier
       @handler            = handler
       @original_encoding  = nil
-
-      @virtual_path = details[:virtual_path]
-      @method_names = {}
+      @method_names       = {}
 
       format   = details[:format] || :html
       @formats = Array.wrap(format).map(&:to_sym)
+
+      @virtual_path = details[:virtual_path]
+      @virtual_path.sub!(".#{format}", "") if @virtual_path
     end
 
     def render(view, locals, &block)
