@@ -95,6 +95,13 @@ module AbstractController
         _helpers.module_eval(&block) if block_given?
       end
 
+      # Clears up all existing helpers in this class, only keeping the helper
+      # with the same name as this class.
+      def clear_helpers
+        self._helpers = Module.new
+        default_helper_module! unless anonymous?
+      end
+
       private
       # Makes all the (instance) methods in the helper module available to templates
       # rendered through this controller.
