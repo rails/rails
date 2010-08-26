@@ -194,15 +194,13 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 
 h4. Installing the Required Gems
 
-Rails uses the "Bundler":http://www.github.com/carlhuda/bundler gem to populate the +vendor+ directory with all the gems your application depends on.  As we don't need any special gems beyond the default, we just need to do the following:
+Rails applications manage gem dependencies with "Bundler":http://www.github.com/carlhuda/bundler by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
-As the root user:
-# gem install bundler
-# bundle install
+bundle install
 </shell>
 
-This will copy down the versions of all the gems you need to start a rails application.
+to have them ready.
 
 h4. Configuring a Database
 
