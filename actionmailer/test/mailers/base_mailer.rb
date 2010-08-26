@@ -111,4 +111,8 @@ class BaseMailer < ActionMailer::Base
       format.html { render :layout => layout_name }
     end
   end
+
+  def email_with_translations
+    body render("email_with_translations.html")
+  end
 end

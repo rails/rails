@@ -209,6 +209,12 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "New Subject!", email.subject
   end
 
+  test "translations are scoped properly" do
+    I18n.backend.store_translations('en', :base_mailer => {:email_with_translations => {:greet_user => "Hello %{name}!"}})
+    email = BaseMailer.email_with_translations
+    assert_equal 'Hello lifo!', email.body.encoded
+  end
+
   # Implicit multipart
   test "implicit multipart" do
     email = BaseMailer.implicit_multipart
