@@ -1453,7 +1453,7 @@ h3. What's Next?
 
 Now that you've seen your first Rails application, you should feel free to update it and experiment on your own. But you don't have to do everything without help. As you need assistance getting up and running with Rails, feel free to consult these support resources:
 
-* The "Ruby On Rails guides":index.html
+* The "Ruby on Rails guides":index.html
 * The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
 * The "#rubyonrails":irc://irc.freenode.net/#rubyonrails channel on irc.freenode.net
 * The "Rails Wiki":http://wiki.rubyonrails.org/
