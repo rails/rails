@@ -43,28 +43,28 @@ module ActionController
     end
   end
 
-  # ActionController::Metal provides a way to get a valid Rack application from a controller.
+  # Provides a way to get a valid Rack application from a controller.
   #
   # In AbstractController, dispatching is triggered directly by calling #process on a new controller.
-  # ActionController::Metal provides an #action method that returns a valid Rack application for a
-  # given action. Other rack builders, such as Rack::Builder, Rack::URLMap, and the Rails router,
-  # can dispatch directly to the action returned by FooController.action(:index).
+  # <tt>ActionController::Metal</tt> provides an <tt>action</tt> method that returns a valid Rack application for a
+  # given action. Other rack builders, such as Rack::Builder, Rack::URLMap, and the \Rails router,
+  # can dispatch directly to actions returned by controllers in your application.
   class Metal < AbstractController::Base
     abstract!
 
     attr_internal :env
 
     # Returns the last part of the controller's name, underscored, without the ending
-    # "Controller". For instance, MyApp::MyPostsController would return "my_posts" for
-    # controller_name
+    # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
+    # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
     #
     # ==== Returns
-    # String
+    # * <tt>string</tt>
     def self.controller_name
       @controller_name ||= self.name.demodulize.sub(/Controller$/, '').underscore
     end
 
-    # Delegates to the class' #controller_name
+    # Delegates to the class' <tt>controller_name</tt>
     def controller_name
       self.class.controller_name
     end
@@ -95,7 +95,7 @@ module ActionController
     # Basic implementations for content_type=, location=, and headers are
     # provided to reduce the dependency on the RackDelegation module
     # in Renderer and Redirector.
-
+    
     def content_type=(type)
       headers["Content-Type"] = type.to_s
     end
@@ -125,8 +125,7 @@ module ActionController
       super body
     end
 
-    # :api: private
-    def dispatch(name, request)
+    def dispatch(name, request) #:nodoc:
       @_request = request
       @_env = request.env
       @_env['action_controller.instance'] = self
@@ -134,8 +133,7 @@ module ActionController
       to_a
     end
 
-    # :api: private
-    def to_a
+    def to_a #:nodoc:
       response ? response.to_a : [status, headers, response_body]
     end
 
@@ -164,10 +162,10 @@ module ActionController
     # for the same action.
     #
     # ==== Parameters
-    # action<#to_s>:: An action name
+    # * <tt>action</tt> - An action name
     #
     # ==== Returns
-    # Proc:: A rack application
+    # * <tt>proc</tt> - A rack application
     def self.action(name, klass = ActionDispatch::Request)
       middleware_stack.build(name.to_s) do |env|
         new.dispatch(name, klass.new(env))

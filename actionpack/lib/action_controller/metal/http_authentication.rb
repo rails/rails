@@ -3,9 +3,9 @@ require 'active_support/core_ext/object/blank'
 
 module ActionController
   module HttpAuthentication
-    # Makes it dead easy to do HTTP Basic authentication.
+    # Makes it dead easy to do HTTP \Basic and \Digest authentication.
     #
-    # Simple Basic example:
+    # === Simple \Basic example
     #
     #   class PostsController < ApplicationController
     #     USER_NAME, PASSWORD = "dhh", "secret"
@@ -29,7 +29,9 @@ module ActionController
     #   end
     #
     #
-    # Here is a more advanced Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
+    # === Advanced \Basic example
+    # 
+    # Here is a more advanced \Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
     # the regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
@@ -69,7 +71,7 @@ module ActionController
     #     assert_equal 200, status
     #   end
     #
-    # Simple Digest example:
+    # === Simple \Digest example
     #
     #   require 'digest/md5'
     #   class PostsController < ApplicationController
@@ -95,18 +97,20 @@ module ActionController
     #       end
     #   end
     #
-    # NOTE: The +authenticate_or_request_with_http_digest+ block must return the user's password or the ha1 digest hash so the framework can appropriately
-    #       hash to check the user's credentials. Returning +nil+ will cause authentication to fail.
-    #       Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
-    #       the password file or database is compromised, the attacker would be able to use the ha1 hash to
-    #       authenticate as the user at this +realm+, but would not have the user's password to try using at
-    #       other sites.
+    # === Notes
+    # 
+    # The +authenticate_or_request_with_http_digest+ block must return the user's password
+    # or the ha1 digest hash so the framework can appropriately hash to check the user's
+    # credentials. Returning +nil+ will cause authentication to fail.
     #
-    # On shared hosts, Apache sometimes doesn't pass authentication headers to
-    # FCGI instances. If your environment matches this description and you cannot
-    # authenticate, try this rule in your Apache setup:
+    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
+    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
+    # authenticate as the user at this +realm+, but would not have the user's password to try using at
+    # other sites.
     #
-    #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
+    # In rare instances, web servers or front proxies strip authorization headers before
+    # they reach your application. You can debug this situation by logging all environment
+    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Basic
       extend self
 

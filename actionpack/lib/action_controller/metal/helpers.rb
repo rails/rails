@@ -2,21 +2,21 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 
 module ActionController
-  # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+,
-  # +numbers+ and model objects, to name a few. These helpers are available to all templates
+  # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
+  # numbers and model objects, to name a few. These helpers are available to all templates
   # by default.
   #
-  # In addition to using the standard template helpers provided in the Rails framework, creating custom helpers to
+  # In addition to using the standard template helpers provided, creating custom helpers to
   # extract complicated logic or reusable functionality is strongly encouraged. By default, the controller will
   # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
   # include <tt>MyHelper</tt>.
   #
-  # Additional helpers can be specified using the +helper+ class method in <tt>ActionController::Base</tt> or any
+  # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
   #
   # ==== Examples
-  # The +to_s+ method from the Time class can be wrapped in a helper method to display a custom message if
-  # the Time object is blank:
+  # The +to_s+ method from the \Time class can be wrapped in a helper method to display a custom message if
+  # a \Time object is blank:
   #
   #   module FormattedTimeHelper
   #     def format_time(time, format=:long, blank_message="&nbsp;")
@@ -71,12 +71,11 @@ module ActionController
       # Declares helper accessors for controller attributes. For example, the
       # following adds new +name+ and <tt>name=</tt> instance methods to a
       # controller and makes them available to the view:
-      #   helper_attr :name
       #   attr_accessor :name
+      #   helper_attr :name
       #
       # ==== Parameters
-      # *attrs<Array[String, Symbol]>:: Names of attributes to be converted
-      #   into helpers.
+      # * <tt>attrs</tt> - Names of attributes to be converted into helpers.
       def helper_attr(*attrs)
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
@@ -91,17 +90,16 @@ module ActionController
         # all helpers in helpers_dir.
         #
         # ==== Parameters
-        # args<Array[String, Symbol, Module, all]>:: A list of helpers
+        # * <tt>args</tt> - A list of helpers
         #
         # ==== Returns
-        # Array[Module]:: A normalized list of modules for the list of
-        #   helpers provided.
+        # * <tt>array</tt> - A normalized list of modules for the list of helpers provided.
         def modules_for_helpers(args)
           args += all_application_helpers if args.delete(:all)
           super(args)
         end
 
-        # Extract helper names from files in app/helpers/**/*_helper.rb
+        # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
         def all_application_helpers
           helpers = []
           Array.wrap(helpers_path).each do |path|
