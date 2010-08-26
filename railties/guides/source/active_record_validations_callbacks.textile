@@ -57,7 +57,7 @@ We can see how it works by looking at some +rails console+ output:
 => false
 </shell>
 
-Creating and saving a new record will send a SQL +INSERT+ operation to the database. Updating an existing record will send a SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
+Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
 
 CAUTION: There are many ways to change the state of an object in the database. Some methods will trigger validations, but some will not. This means that it's possible to save an object in the database in an invalid state if you aren't careful.
 
@@ -382,7 +382,7 @@ class Account < ActiveRecord::Base
 end
 </ruby>
 
-The validation happens by performing a SQL query into the model's table, searching for an existing record with the same value in that attribute.
+The validation happens by performing an SQL query into the model's table, searching for an existing record with the same value in that attribute.
 
 There is a +:scope+ option that you can use to specify other attributes that are used to limit the uniqueness check:
 
