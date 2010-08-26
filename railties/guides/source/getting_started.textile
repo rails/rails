@@ -1056,8 +1056,7 @@ Then in the +app/views/posts/show.html.erb+ you can change it to look like the f
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
@@ -1127,8 +1126,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1381,8 +1379,7 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to sho
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1436,8 +1433,7 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
