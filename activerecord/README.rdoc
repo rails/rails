@@ -70,7 +70,7 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Validations.html]
 
 
-* Callbacks available for the entire lifecycle (instantiation, saving, destroying, validating, etc.)
+* Callbacks available for the entire life cycle (instantiation, saving, destroying, validating, etc.)
 
    class Person < ActiveRecord::Base
      before_destroy :invalidate_payment_plan
