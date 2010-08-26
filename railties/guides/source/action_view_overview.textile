@@ -428,7 +428,7 @@ A method for caching fragments of a view rather than an entire action or page. T
 
 <ruby>
 <% cache do %>
-  <%= render :partial => "shared/footer" %>
+  <%= render "shared/footer" %>
 <% end %>
 </ruby>
 
