@@ -120,7 +120,7 @@ module ActiveRecord
         options ||= {}
         [options[:extend]].flatten.each { |extension| extend extension } if options[:extend]
         extend Module.new(&block) if block_given?
-        unless Scope === proxy_scope
+        unless (Scope === proxy_scope || ActiveRecord::Associations::AssociationCollection === proxy_scope)
           @current_scoped_methods_when_defined = proxy_scope.send(:current_scoped_methods)
         end
         @proxy_scope, @proxy_options = proxy_scope, options.except(:extend)

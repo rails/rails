@@ -146,6 +146,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal authors(:david).posts & Post.containing_the_letter_a, authors(:david).posts.containing_the_letter_a
   end
 
+  def test_nested_named_scopes_doesnt_duplicate_conditions_on_child_scopes
+    comments_scope = posts(:welcome).comments.send(:construct_sql)
+    named_scope_sql_conditions = posts(:welcome).comments.containing_the_letter_e.send(:current_scoped_methods)[:find][:conditions]
+    assert_no_match /#{comments_scope}.*#{comments_scope}/i, named_scope_sql_conditions
+  end
+
   def test_has_many_through_associations_have_access_to_named_scopes
     assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
