@@ -93,7 +93,7 @@ module ActiveModel
 
   # == Active Model Observers
   #
-  # Observer classes respond to lifecycle callbacks to implement trigger-like
+  # Observer classes respond to life cycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
   # functionality that doesn't pertain to the core responsibility of the

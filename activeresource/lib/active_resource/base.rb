@@ -35,7 +35,7 @@ module ActiveResource
   #   end
   #
   # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
-  # you can now use Active Resource's lifecycle methods to manipulate resources. In the case where you already have
+  # you can now use Active Resource's life cycle methods to manipulate resources. In the case where you already have
   # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
   #
   #   class PersonResource < ActiveResource::Base
@@ -51,7 +51,7 @@ module ActiveResource
   #   end
   #
   #
-  # == Lifecycle methods
+  # == Life cycle methods
   #
   # Active Resource exposes methods for creating, finding, updating, and deleting resources
   # from REST web services.
@@ -70,12 +70,12 @@ module ActiveResource
   #
   #   ryan.destroy             # => true
   #
-  # As you can see, these are very similar to Active Record's lifecycle methods for database records.
+  # As you can see, these are very similar to Active Record's life cycle methods for database records.
   # You can read more about each of these methods in their respective documentation.
   #
   # === Custom REST methods
   #
-  # Since simple CRUD/lifecycle methods can't accomplish every task, Active Resource also supports
+  # Since simple CRUD/life cycle methods can't accomplish every task, Active Resource also supports
   # defining your own custom REST methods. To invoke them, Active Resource provides the <tt>get</tt>,
   # <tt>post</tt>, <tt>put</tt> and <tt>\delete</tt> methods where you can specify a custom REST method
   # name to invoke.
