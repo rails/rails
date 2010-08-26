@@ -245,7 +245,7 @@ module ActionController
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
   #
-  # (Earlier versions of Rails required each functional test to subclass
+  # (Earlier versions of \Rails required each functional test to subclass
   # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
   #
   # == Controller is automatically inferred
@@ -258,7 +258,7 @@ module ActionController
   #     tests WidgetController
   #   end
   #
-  # == Testing controller internals
+  # == \Testing controller internals
   #
   # In addition to these specific assertions, you also have easy access to various collections that the regular test/unit assertions
   # can be used against. These collections are:
@@ -266,7 +266,7 @@ module ActionController
   # * assigns: Instance variables assigned in the action that are available for the view.
   # * session: Objects being saved in the session.
   # * flash: The flash objects currently in the session.
-  # * cookies: Cookies being sent to the user on this request.
+  # * cookies: \Cookies being sent to the user on this request.
   #
   # These collections can be used just like any other hash:
   #
@@ -292,7 +292,7 @@ module ActionController
   #   @request.session[:key] = "value"
   #   @request.cookies["key"] = "value"
   #
-  # == Testing named routes
+  # == \Testing named routes
   #
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   # Example:
