@@ -223,7 +223,7 @@ module ActionController
 
     def self.inherited(klass)
       super
-      klass.helper :all
+      klass.helper :all if klass.superclass == ActionController::Base
     end
 
     require "action_controller/deprecated/base"

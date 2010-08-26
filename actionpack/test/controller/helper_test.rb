@@ -25,6 +25,13 @@ class AllHelpersController < ActionController::Base
   helper :all
 end
 
+class JustMeController < ActionController::Base
+  clear_helpers
+end
+
+class MeTooController < JustMeController
+end
+
 module LocalAbcHelper
   def a() end
   def b() end
@@ -90,6 +97,11 @@ class HelperTest < ActiveSupport::TestCase
     # request.action = 'test'
     #
     # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
+  end
+
+  def test_default_helpers_only
+    assert_equal [JustMeHelper], JustMeController._helpers.ancestors.reject(&:anonymous?)
+    assert_equal [MeTooHelper, JustMeHelper], MeTooController._helpers.ancestors.reject(&:anonymous?)
   end
 
   def test_all_helpers
