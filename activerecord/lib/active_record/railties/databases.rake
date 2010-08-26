@@ -61,7 +61,7 @@ namespace :db do
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
-        error_class = config['adapter'] == 'mysql2' ? Mysql2::Error : Mysql::Error
+        error_class = config['adapter'] =~ /mysql2/ ? Mysql2::Error : Mysql::Error
         access_denied_error = 1045
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
