@@ -3,7 +3,7 @@ require 'active_support/core_ext/array/wrap'
 module ActiveRecord
   # = Active Record Callbacks
   #
-  # Callbacks are hooks into the lifecycle of an Active Record object that allow you to trigger logic
+  # Callbacks are hooks into the life cycle of an Active Record object that allow you to trigger logic
   # before or after an alteration of the object state. This can be used to make sure that associated and
   # dependent objects are deleted when +destroy+ is called (by overwriting +before_destroy+) or to massage attributes
   # before they're validated (by overwriting +before_validation+). As an example of the callbacks initiated, consider
@@ -26,7 +26,7 @@ module ActiveRecord
   # <tt>after_rollback</tt>.
   #
   # That's a total of ten callbacks, which gives you immense power to react and prepare for each state in the
-  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar,
+  # Active Record life cycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar,
   # except that each <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
   #
   # Examples:

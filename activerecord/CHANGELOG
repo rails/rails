@@ -5218,7 +5218,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
   NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
 
 
-* Added validation macros to make the stackable just like the lifecycle callbacks. Examples:
+* Added validation macros to make the stackable just like the life cycle callbacks. Examples:
 
     class Person < ActiveRecord::Base
       validate { |record| record.errors.add("name", "too short") unless name.size > 10 }

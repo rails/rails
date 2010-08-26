@@ -30,7 +30,7 @@ that inherits from ActiveResource::Base and providing a <tt>site</tt> class vari
    end
 
 Now the Person class is REST enabled and can invoke REST services very similarly to how Active Record invokes
-lifecycle methods that operate against a persistent store.
+life cycle methods that operate against a persistent store.
 
    # Find a person with id = 1
    ryan = Person.find(1)
