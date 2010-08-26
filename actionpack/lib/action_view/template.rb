@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActionView
@@ -117,9 +118,7 @@ module ActionView
 
       format   = details[:format] || :html
       @formats = Array.wrap(format).map(&:to_sym)
-
-      @virtual_path = details[:virtual_path]
-      @virtual_path.sub(".#{format}", "") if @virtual_path
+      @virtual_path = details[:virtual_path].try(:sub, ".#{format}", "")
     end
 
     def render(view, locals, &block)
