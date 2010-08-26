@@ -695,13 +695,12 @@ module ActionDispatch
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
-          if @scope[:scope_level] == :resource
+          if @scope[:scope_level] == :resources
+            args.push(options)
+            return nested { match(*args) }
+          elsif @scope[:scope_level] == :resource
             args.push(options)
             return member { match(*args) }
-          end
-
-          if resource_scope?
-            raise ArgumentError, "can't define route directly in resource(s) scope"
           end
 
           action = args.first
@@ -900,6 +899,8 @@ module ActionDispatch
             end
 
             name = case @scope[:scope_level]
+            when :nested
+              [member_name, prefix]
             when :collection
               [prefix, name_prefix, collection_name]
             when :new
