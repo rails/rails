@@ -7,7 +7,7 @@ module ActionDispatch
     end
   end
 
-  # Cookies are read and written through ActionController#cookies.
+  # \Cookies are read and written through ActionController#cookies.
   #
   # The cookies being read are the ones received along with the request, the cookies
   # being written will be sent out with the response. Reading a cookie does not get
@@ -20,6 +20,15 @@ module ActionDispatch
   #
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
+  #
+  #   # Sets a signed cookie, which prevents a user from tampering with its value.
+  #   # You must specify a value in ActionController::Base.cookie_verifier_secret.
+  #   cookies.signed[:remember_me] = [current_user.id, current_user.salt]
+  #
+  #   # Sets a "permanent" cookie (which expires in 20 years from now).
+  #   cookies.permanent[:login] = "XJ-122"
+  #   # You can also chain these methods:
+  #   cookies.permanent.signed[:login] = "XJ-122"
   #
   # Examples for reading:
   #
@@ -55,7 +64,7 @@ module ActionDispatch
   #     :domain => :all # Allow the cookie for the top most level
   #                       domain and subdomains.
   #
-  # * <tt>:expires</tt> - The time at which this cookie expires, as a Time object.
+  # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
   # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
