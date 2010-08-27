@@ -12,6 +12,8 @@ class FormHelperTest < ActionView::TestCase
     def name
       "Santiago"
     end
+
+    attr_writer :language
   end
 
   def form_for(*)
@@ -255,6 +257,17 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       '<input id="developer_name" name="developer[name]" size="30" type="text" value="Santiago" />', text_field("developer", "name")
     )
+  end
+
+  def test_text_field_on_a_model_with_undefined_attr_reader
+    @developer = Developer.new
+    @developer.language = 'ruby'
+    begin
+      text_field("developer", "language")
+    rescue NoMethodError => error
+      message = error.message
+    end
+    assert_equal "Model #{Developer} does not respond to language", message
   end
 
   def test_check_box
