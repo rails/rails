@@ -30,6 +30,11 @@ module ActionDispatch
   #       <div class="notice"><%= flash[:notice] %></div>
   #     <% end %>
   #
+  # Since the +notice+ and +alert+ keys are a common idiom, convenience accessors are available:
+  #
+  #   flash.alert = "You must be logged in"
+  #   flash.notice = "Successfully created post"
+  #
   # This example just places a string in the flash, but you can put any object in there. And of course, you can put as
   # many as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.
   #
