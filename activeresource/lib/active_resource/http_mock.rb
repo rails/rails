@@ -126,7 +126,7 @@ module ActiveResource
         #   if response = self.class.responses.assoc(request)
         #     response[1]
         #   else
-        #     raise InvalidRequestError.new("No response recorded for #{request}")
+        #     raise InvalidRequestError.new("Could not find a response recorded for #{request.to_s} - Responses recorded are: - #{inspect_responses}")
         #   end
         # end
         module_eval <<-EOE, __FILE__, __LINE__ + 1
@@ -136,7 +136,7 @@ module ActiveResource
             if response = self.class.responses.assoc(request)
               response[1]
             else
-              raise InvalidRequestError.new("No response recorded for \#{request}")
+              raise InvalidRequestError.new("Could not find a response recorded for \#{request.to_s} - Responses recorded are: \#{inspect_responses}")
             end
           end
         EOE
@@ -145,6 +145,10 @@ module ActiveResource
 
     def initialize(site) #:nodoc:
       @site = site
+    end
+
+    def inspect_responses #:nodoc:
+      self.class.responses.map { |r| r[0].to_s }.inspect
     end
   end
 

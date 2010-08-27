@@ -629,7 +629,7 @@ end
 
 h6(#belongs_to-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -899,7 +899,7 @@ end
 
 h6(#has_one-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -961,7 +961,7 @@ end
 
 h6(#has_one-order). +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
 
 h6(#has_one-primary_key). +:primary_key+
 
@@ -1209,7 +1209,7 @@ end
 
 h6(#has_many-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1335,7 +1335,7 @@ The +:offset+ option lets you specify the starting offset for fetching objects v
 
 h6(#has_many-order). +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1635,7 +1635,7 @@ end
 
 h6(#has_and_belongs_to_many-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Parts < ActiveRecord::Base
@@ -1724,7 +1724,7 @@ The +:offset+ option lets you specify the starting offset for fetching objects v
 
 h6(#has_and_belongs_to_many-order). +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
 
 <ruby>
 class Parts < ActiveRecord::Base
@@ -1760,9 +1760,9 @@ If you want to assign an object to a +has_and_belongs_to_many+ association witho
 
 h4. Association Callbacks
 
-Normal callbacks hook into the lifecycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a +:before_save+ callback to cause something to happen just before an object is saved.
+Normal callbacks hook into the life cycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a +:before_save+ callback to cause something to happen just before an object is saved.
 
-Association callbacks are similar to normal callbacks, but they are triggered by events in the lifecycle of a collection. There are four available association callbacks:
+Association callbacks are similar to normal callbacks, but they are triggered by events in the life cycle of a collection. There are four available association callbacks:
 
 * +before_add+
 * +after_add+

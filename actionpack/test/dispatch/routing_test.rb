@@ -231,6 +231,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "inactive", :on => :collection
         post "deactivate", :on => :member
         get "old", :on => :collection, :as => :stale
+        get "export"
       end
 
       namespace :api do
@@ -2089,6 +2090,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/customers/1/invoices/aged/3'
     assert_equal 'invoices#aged', @response.body
     assert_equal '/customers/1/invoices/aged/3', aged_customer_invoices_path(:customer_id => '1', :months => '3')
+  end
+
+  def test_route_defined_in_resources_scope_level
+    get '/customers/1/export'
+    assert_equal 'customers#export', @response.body
+    assert_equal '/customers/1/export', customer_export_path(:customer_id => '1')
   end
 
 private

@@ -58,7 +58,7 @@ module ActiveSupport
         end
     end
 
-    class DeprecatedConstantProxy < DeprecationProxy #:nodoc:
+    class DeprecatedConstantProxy < DeprecationProxy #:nodoc:all
       def initialize(old_const, new_const)
         @old_const = old_const
         @new_const = new_const

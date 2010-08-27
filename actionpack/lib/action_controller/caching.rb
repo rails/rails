@@ -3,7 +3,7 @@ require 'uri'
 require 'set'
 
 module ActionController #:nodoc:
-  # Caching is a cheap way of speeding up slow applications by keeping the result of
+  # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
   # Action Controller affords you three approaches in varying levels of granularity:
   # Page, Action, Fragment.
@@ -14,7 +14,7 @@ module ActionController #:nodoc:
   # Note: To turn off all caching and sweeping, set
   #   config.action_controller.perform_caching = false.
   #
-  # == Caching stores
+  # == \Caching stores
   #
   # All the caching stores from ActiveSupport::Cache are available to be used as backends
   # for Action Controller caching. This setting only affects action and fragment caching

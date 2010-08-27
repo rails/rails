@@ -18,7 +18,7 @@ module ActionController #:nodoc:
     #
     #   <% cache(:action => "list", :action_suffix => "all_topics") do %>
     #
-    # That would result in a name such as "/topics/list/all_topics", avoiding conflicts with the action cache and with any fragments that use a
+    # That would result in a name such as <tt>/topics/list/all_topics</tt>, avoiding conflicts with the action cache and with any fragments that use a
     # different suffix. Note that the URL doesn't have to really exist or be callable - the url_for system is just used to generate unique
     # cache names that we can refer to when we need to expire the cache.
     #
@@ -28,7 +28,7 @@ module ActionController #:nodoc:
     module Fragments
       # Given a key (as described in <tt>expire_fragment</tt>), returns a key suitable for use in reading,
       # writing, or expiring a cached fragment. If the key is a hash, the generated key is the return
-      # value of url_for on that hash (without the protocol). All keys are prefixed with "views/" and uses
+      # value of url_for on that hash (without the protocol). All keys are prefixed with <tt>views/</tt> and uses
       # ActiveSupport::Cache.expand_cache_key for the expansion.
       def fragment_cache_key(key)
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
@@ -71,7 +71,7 @@ module ActionController #:nodoc:
       #
       # +key+ can take one of three forms:
       # * String - This would normally take the form of a path, like
-      #   <tt>"pages/45/notes"</tt>.
+      #   <tt>pages/45/notes</tt>.
       # * Hash - Treated as an implicit call to +url_for+, like
       #   <tt>{:controller => "pages", :action => "notes", :id => 45}</tt>
       # * Regexp - Will remove any fragment that matches, so

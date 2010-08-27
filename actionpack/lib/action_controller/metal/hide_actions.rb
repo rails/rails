@@ -1,8 +1,7 @@
 require 'active_support/core_ext/class/attribute'
 
 module ActionController
-  # ActionController::HideActions adds the ability to prevent public methods on a controller
-  # to be called as actions.
+  # Adds the ability to prevent public methods on a controller to be called as actions.
   module HideActions
     extend ActiveSupport::Concern
 
@@ -23,7 +22,7 @@ module ActionController
       # Sets all of the actions passed in as hidden actions.
       #
       # ==== Parameters
-      # *args<#to_s>:: A list of actions
+      # * <tt>args</tt> - A list of actions
       def hide_action(*args)
         self.hidden_actions = hidden_actions.dup.merge(args.map(&:to_s)).freeze
       end

@@ -61,12 +61,14 @@ namespace :db do
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
+        error_class = config['adapter'] == 'mysql2' ? Mysql2::Error : Mysql::Error
+        access_denied_error = 1045
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
           ActiveRecord::Base.connection.create_database(config['database'], creation_options)
           ActiveRecord::Base.establish_connection(config)
-        rescue Mysql::Error => sqlerr
-          if sqlerr.errno == Mysql::Error::ER_ACCESS_DENIED_ERROR
+        rescue error_class => sqlerr
+          if sqlerr.errno == access_denied_error
             print "#{sqlerr.error}. \nPlease provide the root password for your mysql installation\n>"
             root_password = $stdin.gets.strip
             grant_statement = "GRANT ALL PRIVILEGES ON #{config['database']}.* " \

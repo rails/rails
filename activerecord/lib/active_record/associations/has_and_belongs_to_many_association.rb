@@ -26,7 +26,7 @@ module ActiveRecord
         def construct_find_options!(options)
           options[:joins]      = Arel::SqlLiteral.new @join_sql
           options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
-          options[:select]   ||= (@reflection.options[:select] || '*')
+          options[:select]   ||= (@reflection.options[:select] || Arel::SqlLiteral.new('*'))
         end
 
         def count_records

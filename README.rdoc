@@ -51,8 +51,9 @@ more separate. Each of these packages can be used independently outside of
 5. Follow the guidelines to start developing your application. You can find the following resources handy:
 
 * The README file created within your application.
-* The {Getting Started Guide}[http://guides.rubyonrails.org/getting_started.html].
-* The {Ruby on Rails Tutorial Book}[http://railstutorial.org/book].
+* The {Getting Started with Rails}[http://guides.rubyonrails.org/getting_started.html].
+* The {Ruby on Rails Tutorial}[http://railstutorial.org/book].
+* The {Ruby on Rails guides}[http://guides.rubyonrails.org/getting_started.html].
 * The {API documentation}[http://api.rubyonrails.org].
 
 

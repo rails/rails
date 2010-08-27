@@ -2039,7 +2039,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
       end
     end
 
-* Fixed that schema changes while the database was open would break any connections to a SQLite database (now we reconnect if that error is throw) [David Heinemeier Hansson]
+* Fixed that schema changes while the database was open would break any connections to an SQLite database (now we reconnect if that error is throw) [David Heinemeier Hansson]
 
 * Don't classify the has_one class when eager loading, it is already singular. Add tests. (closes #4117) [Jonathan Viney]
 
@@ -3554,7 +3554,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
       end
     end
 
-* Fixed that schema changes while the database was open would break any connections to a SQLite database (now we reconnect if that error is throw) [David Heinemeier Hansson]
+* Fixed that schema changes while the database was open would break any connections to an SQLite database (now we reconnect if that error is throw) [David Heinemeier Hansson]
 
 * Don't classify the has_one class when eager loading, it is already singular. Add tests. (closes #4117) [Jonathan Viney]
 
@@ -5218,7 +5218,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
   NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
 
 
-* Added validation macros to make the stackable just like the lifecycle callbacks. Examples:
+* Added validation macros to make the stackable just like the life cycle callbacks. Examples:
 
     class Person < ActiveRecord::Base
       validate { |record| record.errors.add("name", "too short") unless name.size > 10 }
