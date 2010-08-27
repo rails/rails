@@ -9,6 +9,9 @@ module AbstractController
     included do
       class_attribute :_helpers
       self._helpers = Module.new
+
+      class_attribute :_helper_methods
+      self._helper_methods = Array.new
     end
 
     module ClassMethods
@@ -43,7 +46,10 @@ module AbstractController
       # * <tt>method[, method]</tt> - A name or names of a method on the controller
       #   to be made available on the view.
       def helper_method(*meths)
-        meths.flatten.each do |meth|
+        meths.flatten!
+        self._helper_methods += meths
+
+        meths.each do |meth|
           _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def #{meth}(*args, &blk)
               controller.send(%(#{meth}), *args, &blk)
@@ -98,7 +104,11 @@ module AbstractController
       # Clears up all existing helpers in this class, only keeping the helper
       # with the same name as this class.
       def clear_helpers
+        inherited_helper_methods = _helper_methods
         self._helpers = Module.new
+        self._helper_methods = Array.new
+
+        inherited_helper_methods.each { |meth| helper_method meth }
         default_helper_module! unless anonymous?
       end
 
