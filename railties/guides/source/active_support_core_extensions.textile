@@ -1685,27 +1685,7 @@ foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h4. Conversions
-
-h5. +constantize+
-
-The method +constantize+ expects the receiver to contain the name of a constant, and tries to get you the object stored in there, assuming it is defined:
-
-<ruby>
-"ActiveRecord::Base".constantize # => ActiveRecord::Base
-</ruby>
-
-The name is assumed to be top-level, no matter whether it starts with "::" or not. No lexical context is taken into account:
-
-<ruby>
-C = 1
-module M
-  C = 2
-  "C".constantize # => 1, same as "::C".constantize
-end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+h4(#string-conversions). Conversions
 
 h5. +ord+
 
@@ -2041,7 +2021,7 @@ This method receives an arbitrary number of action names, and an optional hash o
 
 NOTE: Defined in +active_support/core_ext/array/extract_options.rb+.
 
-h4. Conversions
+h4(#array-conversions). Conversions
 
 h5. +to_sentence+
 
@@ -2985,7 +2965,7 @@ Date.new(2010, 1, 31).change(:month => 2)
 # => ArgumentError: invalid date
 </ruby>
 
-h5. Durations
+h5(#date-durations). Durations
 
 Durations can be added and substracted to dates:
 
@@ -3191,7 +3171,7 @@ DateTime.current.change(:month => 2, :day => 30)
 # => ArgumentError: invalid date
 </ruby>
 
-h5. Durations
+h5(#datetime-durations). Durations
 
 Durations can be added and substracted to datetimes:
 
@@ -3304,7 +3284,7 @@ Both +local_time+ and +utc_time+ accept up to seven positional arguments: year, 
 
 If the time to be constructed lies beyond the range supported by +Time+ in the runtime platform, usecs are discarded and a +DateTime+ object is returned instead.
 
-h5. Durations
+h5(#time-durations). Durations
 
 Durations can be added and substracted to time objects:
 

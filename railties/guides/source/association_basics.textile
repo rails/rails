@@ -550,7 +550,7 @@ build_customer
 create_customer
 </ruby>
 
-h6. <em>association</em>(force_reload = false)
+h6. <tt>_association_(force_reload = false)</tt>
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
 
@@ -560,7 +560,7 @@ The <tt><em>association</em></tt> method returns the associated object, if any. 
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass +true+ as the +force_reload+ argument.
 
-h6. _association_=(associate)
+h6. <tt>_association_=(associate)</tt>
 
 The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
@@ -568,7 +568,7 @@ The <tt><em>association</em>=</tt> method assigns an associated object to this o
 @order.customer = @customer
 </ruby>
 
-h6. build_<em>association</em>(attributes = {})
+h6(#belongs_to-build_association). <tt>build_<em>association</em>(attributes = {})</tt>
 
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
 
@@ -577,7 +577,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
   :customer_name => "John Doe")
 </ruby>
 
-h6. create_<em>association</em>(attributes = {})
+h6(#belongs_to-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
 
@@ -835,7 +835,7 @@ The <tt><em>association</em>=</tt> method assigns an associated object to this o
 @supplier.account = @account
 </ruby>
 
-h6. <tt>build_<em>association</em>(attributes = {})</tt>
+h6(#has_one-build_association). <tt>build_<em>association</em>(attributes = {})</tt>
 
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will _not_ yet be saved.
 
@@ -843,7 +843,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
 @account = @supplier.build_account(:terms => "Net 30")
 </ruby>
 
-h6. <tt>create_<em>association</em>(attributes = {})</tt>
+h6(#has_one-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
 
@@ -985,7 +985,7 @@ The +:source_type+ option specifies the source association type for a +has_one :
 
 h6(#has_one-through). +:through+
 
-The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
+The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has_one-through-association">earlier in this guide</a>.
 
 h6(#has_one-validate). +:validate+
 
@@ -1136,7 +1136,7 @@ h6. <tt><em>collection</em>.exists?(...)</tt>
 
 The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
-h6. <tt><em>collection</em>.build(attributes = {}, ...)</tt>
+h6(#has_many_collection_build). <tt><em>collection</em>.build(attributes = {}, ...)</tt>
 
 The <tt><em>collection</em>.build</tt> method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
@@ -1367,7 +1367,7 @@ The +:source_type+ option specifies the source association type for a +has_many 
 
 h6(#has_many-through). +:through+
 
-The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has-many-through-association">earlier in this guide</a>.
+The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has_many-through-association">earlier in this guide</a>.
 
 h6(#has_many-uniq). +:uniq+
 
@@ -1553,7 +1553,7 @@ h6(#has_and_belongs_to_many-collection-exists). <tt><em>collection</em>.exists?(
 
 The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
-h6. <tt><em>collection</em>.build(attributes = {})</tt>
+h6(#has_and_belongs_to_many-collection-build). <tt><em>collection</em>.build(attributes = {})</tt>
 
 The <tt><em>collection</em>.build</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
 
