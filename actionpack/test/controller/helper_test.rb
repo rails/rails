@@ -25,8 +25,27 @@ class AllHelpersController < ActionController::Base
   helper :all
 end
 
+module ImpressiveLibrary
+  extend ActiveSupport::Concern
+  included do
+    helper_method :useful_function
+  end
+
+  def useful_function() end
+end
+
+ActionController::Base.send :include, ImpressiveLibrary
+
 class JustMeController < ActionController::Base
   clear_helpers
+
+  def flash
+    render :inline => "<h1><%= notice %></h1>"
+  end
+  
+  def lib
+    render :inline => '<%= useful_function %>'
+  end
 end
 
 class MeTooController < JustMeController
@@ -102,6 +121,18 @@ class HelperTest < ActiveSupport::TestCase
   def test_default_helpers_only
     assert_equal [JustMeHelper], JustMeController._helpers.ancestors.reject(&:anonymous?)
     assert_equal [MeTooHelper, JustMeHelper], MeTooController._helpers.ancestors.reject(&:anonymous?)
+  end
+
+  def test_base_helper_methods_after_clear_helpers
+    assert_nothing_raised do
+      call_controller(JustMeController, "flash")
+    end
+  end
+
+  def test_lib_helper_methods_after_clear_helpers
+    assert_nothing_raised do
+      call_controller(JustMeController, "lib")
+    end
   end
 
   def test_all_helpers
