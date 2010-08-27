@@ -207,12 +207,18 @@ module HTML
 
     class << self
 
+      # :call-seq:
+      #   Selector.for_class(cls) => selector
+      #
       # Creates a new selector for the given class name.
       def for_class(cls)
         self.new([".?", cls])
       end
 
 
+      # :call-seq:
+      #   Selector.for_id(id) => selector
+      #
       # Creates a new selector for the given id.
       def for_id(id)
         self.new(["#?", id])
@@ -221,6 +227,9 @@ module HTML
     end
 
 
+    # :call-seq:
+    #   Selector.new(string, [values ...]) => selector
+    #
     # Creates a new selector from a CSS 2 selector expression.
     #
     # The first argument is the selector expression. All other arguments
@@ -333,6 +342,9 @@ module HTML
     end
 
 
+    # :call-seq:
+    #   match(element, first?) => array or nil
+    #
     # Matches an element against the selector.
     #
     # For a simple selector this method returns an array with the
@@ -422,6 +434,9 @@ module HTML
     end
 
 
+    # :call-seq:
+    #   select(root) => array
+    #
     # Selects and returns an array with all matching elements, beginning
     # with one node and traversing through all children depth-first.
     # Returns an empty array if no match is found.

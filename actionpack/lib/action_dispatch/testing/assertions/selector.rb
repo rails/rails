@@ -9,7 +9,7 @@ module ActionDispatch
   module Assertions
     NO_STRIP = %w{pre script style textarea}
 
-    # Adds the +assert_select+ method for use in \Rails functional
+    # Adds the +assert_select+ method for use in Rails functional
     # test cases, which can be used to make assertions on the response HTML of a controller
     # action. You can also call +assert_select+ within another +assert_select+ to
     # make assertions on elements selected by the enclosing assertion.
@@ -18,12 +18,16 @@ module ActionDispatch
     # from the response HTML or elements selected by the enclosing assertion.
     #
     # In addition to HTML responses, you can make the following assertions:
-    # * +assert_select_rjs+ - \Assertions on HTML content of RJS update and insertion operations.
-    # * +assert_select_encoded+ - \Assertions on HTML encoded inside XML, for example for dealing with feed item descriptions.
-    # * +assert_select_email+ - \Assertions on the HTML body of an e-mail.
+    # * +assert_select_rjs+ - Assertions on HTML content of RJS update and insertion operations.
+    # * +assert_select_encoded+ - Assertions on HTML encoded inside XML, for example for dealing with feed item descriptions.
+    # * +assert_select_email+ - Assertions on the HTML body of an e-mail.
     #
     # Also see HTML::Selector to learn how to use selectors.
     module SelectorAssertions
+      # :call-seq:
+      #   css_select(selector) => array
+      #   css_select(element, selector) => array
+      #
       # Select and return all matching elements.
       #
       # If called with a single argument, uses that argument as a selector
@@ -35,7 +39,7 @@ module ActionDispatch
       # base element and any of its children. Returns an empty array if no
       # match is found.
       #
-      # The selector may be a CSS selector expression (string), an expression
+      # The selector may be a CSS selector expression (String), an expression
       # with substitution values (Array) or an HTML::Selector object.
       #
       # ==== Examples
@@ -95,6 +99,10 @@ module ActionDispatch
         selector.select(root)
       end
 
+      # :call-seq:
+      #   assert_select(selector, equality?, message?)
+      #   assert_select(element, selector, equality?, message?)
+      #
       # An assertion that selects elements and makes one or more equality tests.
       #
       # If the first argument is an element, selects all matching elements
@@ -124,7 +132,7 @@ module ActionDispatch
       #     assert_select "li", 8
       #   end
       #
-      # The selector may be a CSS selector expression (string), an expression
+      # The selector may be a CSS selector expression (String), an expression
       # with substitution values, or an HTML::Selector object.
       #
       # === Equality Tests
@@ -132,11 +140,11 @@ module ActionDispatch
       # The equality test may be one of the following:
       # * <tt>true</tt> - Assertion is true if at least one element selected.
       # * <tt>false</tt> - Assertion is true if no element selected.
-      # * <tt>string/Regexp</tt> - Assertion is true if the text value of at least
+      # * <tt>String/Regexp</tt> - Assertion is true if the text value of at least
       #   one element matches the string or regular expression.
-      # * <tt>integer</tt> - Assertion is true if exactly that number of
+      # * <tt>Integer</tt> - Assertion is true if exactly that number of
       #   elements are selected.
-      # * <tt>range</tt> - Assertion is true if the number of selected
+      # * <tt>Range</tt> - Assertion is true if the number of selected
       #   elements fit the range.
       # If no equality test specified, the assertion is true if at least one
       # element selected.
@@ -324,6 +332,11 @@ module ActionDispatch
         end
       end
 
+      # :call-seq:
+      #   assert_select_rjs(id?) { |elements| ... }
+      #   assert_select_rjs(statement, id?) { |elements| ... }
+      #   assert_select_rjs(:insert, position, id?) { |elements| ... }
+      #
       # Selects content from the RJS response.
       #
       # === Narrowing down
@@ -461,6 +474,9 @@ module ActionDispatch
         end
       end
 
+      # :call-seq:
+      #   assert_select_encoded(element?) { |elements| ... }
+      #
       # Extracts the content of an element, treats it as encoded HTML and runs
       # nested assertion on it.
       #
@@ -527,6 +543,9 @@ module ActionDispatch
         end
       end
 
+      # :call-seq:
+      #   assert_select_email { }
+      #
       # Extracts the body of an email and runs nested assertions on it.
       #
       # You must enable deliveries for this assertion to work, use:
