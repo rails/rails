@@ -1,6 +1,6 @@
 module ActionDispatch
   module Assertions
-    # A small suite of assertions that test responses from Rails applications.
+    # A small suite of assertions that test responses from \Rails applications.
     module ResponseAssertions
       extend ActiveSupport::Concern
 
@@ -18,8 +18,8 @@ module ActionDispatch
       # * <tt>:missing</tt>   - Status code was 404
       # * <tt>:error</tt>     - Status code was in the 500-599 range
       #
-      # You can also pass an explicit status number like assert_response(501)
-      # or its symbolic equivalent assert_response(:not_implemented).
+      # You can also pass an explicit status number like <tt>assert_response(501)</tt>
+      # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
       # See ActionDispatch::StatusCodes for a full list.
       #
       # ==== Examples
@@ -45,8 +45,8 @@ module ActionDispatch
       end
 
       # Assert that the redirection options passed in match those of the redirect called in the latest action.
-      # This match can be partial, such that assert_redirected_to(:controller => "weblog") will also
-      # match the redirection of redirect_to(:controller => "weblog", :action => "show") and so on.
+      # This match can be partial, such that <tt>assert_redirected_to(:controller => "weblog")</tt> will also
+      # match the redirection of <tt>redirect_to(:controller => "weblog", :action => "show")</tt> and so on.
       #
       # ==== Examples
       #

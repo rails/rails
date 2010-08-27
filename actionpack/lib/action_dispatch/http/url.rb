@@ -1,7 +1,7 @@
 module ActionDispatch
   module Http
     module URL
-      # Returns the complete URL used for this request.
+      # Returns the complete \URL used for this request.
       def url
         protocol + host_with_port + fullpath
       end
@@ -96,7 +96,7 @@ module ActionDispatch
       end
 
       # Returns the request URI, accounting for server idiosyncrasies.
-      # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
+      # WEBrick includes the full \URL. IIS leaves REQUEST_URI blank.
       def request_uri
         ActiveSupport::Deprecation.warn "Using #request_uri is deprecated. Use fullpath instead.", caller
         fullpath

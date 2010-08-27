@@ -3,7 +3,7 @@ require 'action_controller/vendor/html-scanner'
 module ActionDispatch
   module Assertions
     module DomAssertions
-      # Test two HTML strings for equivalency (e.g., identical up to reordering of attributes)
+      # \Test two HTML strings for equivalency (e.g., identical up to reordering of attributes)
       #
       # ==== Examples
       #
