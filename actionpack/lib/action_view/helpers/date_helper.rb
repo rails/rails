@@ -1,6 +1,7 @@
-require "date"
+require 'date'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/object/with_options'
 
 module ActionView
   module Helpers
