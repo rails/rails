@@ -237,8 +237,9 @@ module RailsGuides
         end
       end
 
-      # Also, footnotes are rendered as paragraphs this way.
+      # Footnotes.
       anchors += Set.new(html.scan(/<p\s+class="footnote"\s+id="([^"]+)/).flatten)
+      anchors += Set.new(html.scan(/<sup\s+class="footnote"\s+id="([^"]+)/).flatten)
       return anchors
     end
 
