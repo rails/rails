@@ -35,7 +35,7 @@ module Rails
     end
   end
 
-  DeprecatedConstant.deprecate("RAILS_ROOT",           "Rails.root.to_s")
-  DeprecatedConstant.deprecate("RAILS_ENV",            "Rails.env")
-  DeprecatedConstant.deprecate("RAILS_DEFAULT_LOGGER", "Rails.logger")
+  DeprecatedConstant.deprecate("RAILS_ROOT",           "::Rails.root.to_s")
+  DeprecatedConstant.deprecate("RAILS_ENV",            "::Rails.env")
+  DeprecatedConstant.deprecate("RAILS_DEFAULT_LOGGER", "::Rails.logger")
 end
