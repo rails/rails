@@ -23,15 +23,15 @@ module ActionController #:nodoc:
     # Action caching internally uses the fragment caching and an around
     # filter to do the job. The fragment cache is named according to both
     # the current host and the path. So a page that is accessed at
-    # http://david.somewhere.com/lists/show/1 will result in a fragment named
-    # "david.somewhere.com/lists/show/1". This allows the cacher to
-    # differentiate between "david.somewhere.com/lists/" and
-    # "jamis.somewhere.com/lists/" -- which is a helpful way of assisting
+    # <tt>http://david.example.com/lists/show/1</tt> will result in a fragment named
+    # <tt>david.example.com/lists/show/1</tt>. This allows the cacher to
+    # differentiate between <tt>david.example.com/lists/</tt> and
+    # <tt>jamis.example.com/lists/</tt> -- which is a helpful way of assisting
     # the subdomain-as-account-key pattern.
     #
     # Different representations of the same resource, e.g.
-    # <tt>http://david.somewhere.com/lists</tt> and
-    # <tt>http://david.somewhere.com/lists.xml</tt>
+    # <tt>http://david.example.com/lists</tt> and
+    # <tt>http://david.example.com/lists.xml</tt>
     # are treated like separate requests and so are cached separately.
     # Keep in mind when expiring an action cache that
     # <tt>:action => 'lists'</tt> is not the same as
@@ -144,7 +144,7 @@ module ActionController #:nodoc:
         attr_reader :path, :extension
 
         # If +infer_extension+ is true, the cache path extension is looked up from the request's
-        # path & format. This is desirable when reading and writing the cache, but not when
+        # path and format. This is desirable when reading and writing the cache, but not when
         # expiring the cache - expire_action should expire the same files regardless of the
         # request format.
         def initialize(controller, options = {}, infer_extension = true)

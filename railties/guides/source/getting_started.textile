@@ -194,7 +194,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 
 h4. Installing the Required Gems
 
-Rails applications manage gem dependencies with "Bundler":http://www.github.com/carlhuda/bundler by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
+Rails applications manage gem dependencies with "Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
 bundle install
@@ -320,7 +320,7 @@ $ rm public/index.html
 
 We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic contact we generate from the controllers.
 
-Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +:root to+, uncomment it and change it like the following:
+Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+, uncomment it and change it like the following:
 
 <ruby>
 Blog::Application.routes.draw do
@@ -1056,8 +1056,7 @@ Then in the +app/views/posts/show.html.erb+ you can change it to look like the f
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
@@ -1127,8 +1126,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1381,8 +1379,7 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to sho
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1436,8 +1433,7 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment",
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>

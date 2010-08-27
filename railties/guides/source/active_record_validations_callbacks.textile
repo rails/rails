@@ -197,7 +197,7 @@ end
 
 This validation will work with all of the association types.
 
-CAUTION: Don't use +validates_associated+ on both ends of your associations, they would call each other in an infinite loop.
+CAUTION: Don't use +validates_associated+ on both ends of your associations. They would call each other in an infinite loop.
 
 The default error message for +validates_associated+ is "_is invalid_". Note that each associated object will contain its own +errors+ collection; errors do not bubble up to the calling model.
 

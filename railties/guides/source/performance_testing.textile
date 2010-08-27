@@ -469,7 +469,7 @@ And in "views":http://api.rubyonrails.org/classes/ActionController/Benchmarking/
 
 <erb>
 <% benchmark("Showing projects partial") do %>
-  <%= render :partial => @projects %>
+  <%= render @projects %>
 <% end %>
 </erb>
 
