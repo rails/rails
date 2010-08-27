@@ -24,10 +24,6 @@ module ActionDispatch
     #
     # Also see HTML::Selector to learn how to use selectors.
     module SelectorAssertions
-      # :call-seq:
-      #   css_select(selector) => array
-      #   css_select(element, selector) => array
-      #
       # Select and return all matching elements.
       #
       # If called with a single argument, uses that argument as a selector
@@ -99,10 +95,6 @@ module ActionDispatch
         selector.select(root)
       end
 
-      # :call-seq:
-      #   assert_select(selector, equality?, message?)
-      #   assert_select(element, selector, equality?, message?)
-      #
       # An assertion that selects elements and makes one or more equality tests.
       #
       # If the first argument is an element, selects all matching elements
@@ -332,11 +324,6 @@ module ActionDispatch
         end
       end
 
-      # :call-seq:
-      #   assert_select_rjs(id?) { |elements| ... }
-      #   assert_select_rjs(statement, id?) { |elements| ... }
-      #   assert_select_rjs(:insert, position, id?) { |elements| ... }
-      #
       # Selects content from the RJS response.
       #
       # === Narrowing down
@@ -474,9 +461,6 @@ module ActionDispatch
         end
       end
 
-      # :call-seq:
-      #   assert_select_encoded(element?) { |elements| ... }
-      #
       # Extracts the content of an element, treats it as encoded HTML and runs
       # nested assertion on it.
       #
@@ -543,9 +527,6 @@ module ActionDispatch
         end
       end
 
-      # :call-seq:
-      #   assert_select_email { }
-      #
       # Extracts the body of an email and runs nested assertions on it.
       #
       # You must enable deliveries for this assertion to work, use:
