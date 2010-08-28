@@ -624,16 +624,16 @@ module ActionView
       #
       # ==== Examples
       #   password_field(:login, :pass, :size => 20)
-      #   # => <input type="text" id="login_pass" name="login[pass]" size="20" value="#{@login.pass}" />
+      #   # => <input type="password" id="login_pass" name="login[pass]" size="20" value="#{@login.pass}" />
       #
       #   password_field(:account, :secret, :class => "form_input")
-      #   # => <input type="text" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
+      #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
       #
       #   password_field(:user, :password, :onchange => "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }")
-      #   # => <input type="text" id="user_password" name="user[password]" value="#{@user.password}" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
+      #   # => <input type="password" id="user_password" name="user[password]" value="#{@user.password}" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
       #
       #   password_field(:account, :pin, :size => 20, :class => 'form_input')
-      #   # => <input type="text" id="account_pin" name="account[pin]" size="20" value="#{@account.pin}" class="form_input" />
+      #   # => <input type="password" id="account_pin" name="account[pin]" size="20" value="#{@account.pin}" class="form_input" />
       #
       def password_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", options)
