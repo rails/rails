@@ -1,3 +1,5 @@
+*Rails 3.0.0 (unreleased)*
+
 * password_field renders with nil value by default making the use of passwords secure by default, if you want to render you should do for instance f.password_field(:password, :value => @user.password) [Santiago Pastorino]
 
 * Symbols and strings in routes should yield the same behavior. Note this may break existing apps that were using symbols with the new routes API. [José Valim]

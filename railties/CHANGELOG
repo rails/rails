@@ -1,7 +1,16 @@
+*Rails 3.0.0 (unreleased)*
+
+* No changes
+
+
+*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
+
+* No changes
+
+
 *Rails 3.0.0 [release candidate] (July 26th, 2010)*
 
-* Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit
-  and --skip-active-record respectively. [fxn]
+* Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit and --skip-active-record respectively. [fxn]
 
 * Added console to Rails::Railtie as a hook called just after console starts. [José Valim]
 
