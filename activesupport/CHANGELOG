@@ -1,3 +1,13 @@
+*Rails 3.0.0 (unreleased)*
+
+* Pluggable cache stores: setting config.cache_store = "custom_store" will require 'active_support/cache/custom_store' and look for the CustomStore constant.  #5486 [Mike Perham]
+
+
+*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
+
+* No changes
+
+
 *Rails 3.0.0 [release candidate] (July 26th, 2010)*
 
 * Removed Object#returning, Object#tap should be used instead. [Santiago Pastorino]
