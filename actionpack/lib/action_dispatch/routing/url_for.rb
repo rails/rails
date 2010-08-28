@@ -1,6 +1,6 @@
 module ActionDispatch
   module Routing
-    # In <b>routes.rb</b> one defines URL-to-controller mappings, but the reverse
+    # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
     # is also possible: an URL can be generated from one of your routing definitions.
     # URL generation functionality is centralized in this module.
     #
@@ -12,15 +12,14 @@ module ActionDispatch
     #
     # == URL generation from parameters
     #
-    # As you may know, some functions - such as ActionController::Base#url_for
+    # As you may know, some functions, such as ActionController::Base#url_for
     # and ActionView::Helpers::UrlHelper#link_to, can generate URLs given a set
     # of parameters. For example, you've probably had the chance to write code
     # like this in one of your views:
     #
     #   <%= link_to('Click here', :controller => 'users',
     #           :action => 'new', :message => 'Welcome!') %>
-    #
-    #   # Generates a link to /users/new?message=Welcome%21
+    #   # => "/users/new?message=Welcome%21"
     #
     # link_to, and all other functions that require URL generation functionality,
     # actually use ActionController::UrlFor under the hood. And in particular,
@@ -61,7 +60,7 @@ module ActionDispatch
     #
     # UrlFor also allows one to access methods that have been auto-generated from
     # named routes. For example, suppose that you have a 'users' resource in your
-    # <b>routes.rb</b>:
+    # <tt>config/routes.rb</tt>:
     #
     #   resources :users
     #
