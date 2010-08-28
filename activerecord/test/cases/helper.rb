@@ -11,7 +11,14 @@ require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'
-require 'connection'
+begin
+  require 'connection'
+rescue LoadError
+  # If we cannot load connection we assume that driver was not loaded for this test case, so we load sqlite3 as default one.
+  # This allows for running separate test cases by simply running test file.
+  connection_type = defined?(JRUBY_VERSION) ? 'jdbc' : 'native'
+  require "test/connections/#{connection_type}_sqlite3/connection"
+end
 
 begin
   require 'ruby-debug'
