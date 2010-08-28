@@ -2,30 +2,10 @@ require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
 
 module ActionDispatch
-  # = Routing
-  #
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
-  # mod_rewrite rules. Best of all, Rails' Routing works with any web server.
+  # mod_rewrite rules. Best of all, Rails' \Routing works with any web server.
   # Routes are defined in <tt>config/routes.rb</tt>.
-  #
-  # Consider the following route, which you will find commented out at the
-  # bottom of your generated <tt>config/routes.rb</tt>:
-  #
-  #   match ':controller(/:action(/:id(.:format)))'
-  #
-  # This route states that it expects requests to consist of a
-  # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in
-  # turn is followed optionally by an <tt>:id</tt>, which in turn is followed
-  # optionally by a <tt>:format</tt>
-  #
-  # Suppose you get an incoming request for <tt>/blog/edit/22</tt>, you'll end
-  # up with:
-  #
-  #   params = { :controller => 'blog',
-  #              :action     => 'edit',
-  #              :id         => '22'
-  #           }
   #
   # Think of creating routes as drawing a map for your requests. The map tells
   # them where to go based on some predefined pattern:
@@ -42,6 +22,39 @@ module ActionDispatch
   #   :action     maps to an action with your controllers
   #
   # Other names simply map to a parameter as in the case of <tt>:id</tt>.
+  #
+  # == Resources
+  #
+  # Resource routing allows you to quickly declare all of the common routes
+  # for a given resourceful controller. Instead of declaring separate routes
+  # for your +index+, +show+, +new+, +edit+, +create+, +update+ and +destroy+
+  # actions, a resourceful route declares them in a single line of code:
+  #
+  #  resources :photos
+  #
+  # Sometimes, you have a resource that clients always look up without
+  # referencing an ID. A common example, /profile always shows the profile of
+  # the currently logged in user. In this case, you can use a singular resource
+  # to map /profile (rather than /profile/:id) to the show action.
+  #
+  #  resource :profile
+  #
+  # It's common to have resources that are logically children of other
+  # resources:
+  #
+  #   resources :magazines do
+  #     resources :ads
+  #   end
+  #
+  # You may wish to organize groups of controllers under a namespace. Most
+  # commonly, you might group a number of administrative controllers under
+  # an +admin+ namespace. You would place these controllers under the
+  # app/controllers/admin directory, and you can group them together in your
+  # router:
+  #
+  #   namespace "admin" do
+  #     resources :posts, :comments
+  #   end
   #
   # == Named routes
   #
@@ -131,6 +144,30 @@ module ActionDispatch
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
   #
+  # == Default route
+  #
+  # Consider the following route, which you will find commented out at the
+  # bottom of your generated <tt>config/routes.rb</tt>:
+  #
+  #   match ':controller(/:action(/:id(.:format)))'
+  #
+  # This route states that it expects requests to consist of a
+  # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in
+  # turn is followed optionally by an <tt>:id</tt>, which in turn is followed
+  # optionally by a <tt>:format</tt>.
+  #
+  # Suppose you get an incoming request for <tt>/blog/edit/22</tt>, you'll end
+  # up with:
+  #
+  #   params = { :controller => 'blog',
+  #              :action     => 'edit',
+  #              :id         => '22'
+  #           }
+  #
+  # By not relying on default routes, you improve the security of your
+  # application since not all controller actions, which includes actions you
+  # might add at a later time, are exposed by default.
+  #
   # == HTTP Methods
   #
   # Using the <tt>:via</tt> option when specifying a route allows you to restrict it to a specific HTTP method.
@@ -159,6 +196,20 @@ module ActionDispatch
   # This syntax is less verbose and the intention is more apparent to someone else reading your code,
   # however if your route needs to respond to more than one HTTP method (or all methods) then using the
   # <tt>:via</tt> option on <tt>match</tt> is preferable.
+  #
+  # == External redirects
+  #
+  # You can redirect any path to another path using the redirect helper in your router:
+  #
+  #   match "/stories" => redirect("/posts")
+  #
+  # == Routing to Rack Applications
+  #
+  # Instead of a String, like <tt>posts#index</tt>, which corresponds to the
+  # index action in the PostsController, you can specify any Rack application
+  # as the endpoint for a matcher:
+  #
+  #   match "/application.js" => Sprockets
   #
   # == Reloading routes
   #
@@ -208,7 +259,9 @@ module ActionDispatch
   #
   # == View a list of all your routes
   #
-  # Run <tt>rake routes</tt>.
+  #   rake routes
+  #
+  # Target specific controllers by prefixing the command with <tt>CONTROLLER=x</tt>.
   #
   module Routing
     autoload :DeprecatedMapper, 'action_dispatch/routing/deprecated_mapper'
