@@ -64,7 +64,10 @@ module ActiveRecord
     # callbacks, Observer methods, or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      self.class.delete(id) if persisted?
+      if persisted?
+        self.class.delete(id)
+        IdentityMap.remove(self)
+      end
       @destroyed = true
       freeze
     end
@@ -73,6 +76,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     def destroy
       if persisted?
+        IdentityMap.remove(self)
         self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
       end
 
@@ -196,7 +200,12 @@ module ActiveRecord
     def reload(options = nil)
       clear_aggregation_cache
       clear_association_cache
-      @attributes.update(self.class.unscoped { self.class.find(self.id, options) }.instance_variable_get('@attributes'))
+
+      IdentityMap.without do
+        fresh_object = self.class.unscoped { self.class.find(self.id, options) }
+        @attributes.update(fresh_object.instance_variable_get('@attributes'))
+      end
+
       @attributes_cache = {}
       self
     end
@@ -270,6 +279,7 @@ module ActiveRecord
 
       self.id ||= new_id
 
+      IdentityMap.add(self)
       @persisted = true
       id
     end
