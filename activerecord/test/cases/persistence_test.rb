@@ -367,7 +367,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal 'super_title', t.title
   end
 
-  def test_update_attribute_for_udpated_at_on
+  def test_update_attribute_for_updated_at_on
     developer = Developer.find(1)
     prev_month = Time.now.prev_month
 
