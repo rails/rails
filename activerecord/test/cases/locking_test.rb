@@ -15,6 +15,11 @@ class ReadonlyFirstNamePerson < Person
   attr_readonly :first_name
 end
 
+# Becouse of introduction of IdentityMap optimistic locking should only be needed
+# in multithreaded applications, or when more then one software operates on database.
+#
+# I'm using ActiveRecord::IdentityMap.without to prevent Identity map from
+# using one record here.
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references
 
@@ -22,6 +27,10 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   # adapter (at least) chokes when we try and change the schema in the middle
   # of a test (see test_increment_counter_*).
   self.use_transactional_fixtures = false
+
+  def setup
+    ActiveRecord::IdentityMap.enabled = false
+  end
 
   def test_lock_existing
     p1 = Person.find(1)
@@ -213,6 +222,10 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       p1.reload
       assert_equal lock_version, p1.lock_version
     end
+  end
+
+  def teardown
+    ActiveRecord::IdentityMap.enabled = true
   end
 
   private
