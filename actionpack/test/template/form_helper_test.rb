@@ -167,7 +167,10 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title")
     )
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" size="30" type="password" value="Hello World" />', password_field("post", "title")
+      '<input id="post_title" name="post[title]" size="30" type="password" />', password_field("post", "title")
+    )
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" size="30" type="password" value="Hello World" />', password_field("post", "title", :value => @post.title)
     )
     assert_dom_equal(
       '<input id="person_name" name="person[name]" size="30" type="password" />', password_field("person", "name")
