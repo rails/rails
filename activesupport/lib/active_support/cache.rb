@@ -58,7 +58,14 @@ module ActiveSupport
       case store
       when Symbol
         store_class_name = store.to_s.camelize
-        store_class = ActiveSupport::Cache.const_get(store_class_name)
+        store_class =
+          begin
+            require "active_support/cache/#{store}"
+          rescue LoadError
+            raise "Could not find cache store adapter for #{store} (#{$!})"
+          else
+            ActiveSupport::Cache.const_get(store_class_name)
+          end
         store_class.new(*parameters)
       when nil
         ActiveSupport::Cache::MemoryStore.new
