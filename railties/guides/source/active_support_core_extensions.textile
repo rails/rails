@@ -1296,6 +1296,31 @@ Active Support defines 3rd person aliases of +String#start_with?+ and +String#en
 
 NOTE: Defined in +active_support/core_ext/string/starts_ends_with.rb+.
 
+h4. +strip_heredoc+
+
+The method +strip_heredoc+ strips indentation in heredocs.
+
+For example in
+
+<ruby>
+if options[:usage]
+  puts <<-USAGE.strip_heredoc
+    This command does such and such.
+
+    Supported options are:
+      -h         This message
+      ...
+  USAGE
+end
+</ruby>
+
+the user would see the usage message aligned against the left margin.
+
+Technically, it looks for the least indented line in the whole string, and removes
+that amount of leading whitespace.
+
+NOTE: Defined in +active_support/core_ext/string/strip.rb+.
+
 h4. Access
 
 h5. +at(position)+

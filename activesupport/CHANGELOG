@@ -1,5 +1,7 @@
 *Rails 3.0.0 (August 29, 2010)*
 
+* Implemented String#strip_heredoc. [fxn]
+
 * Pluggable cache stores: setting config.cache_store = "custom_store" will require 'active_support/cache/custom_store' and look for the CustomStore constant.  #5486 [Mike Perham]
 
 * Removed Object#returning, Object#tap should be used instead. [Santiago Pastorino]
