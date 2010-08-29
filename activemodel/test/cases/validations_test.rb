@@ -215,42 +215,6 @@ class ValidationsTest < ActiveModel::TestCase
     assert !t.invalid?
   end
 
-  def test_deprecated_error_messages_on
-    Topic.validates_presence_of :title
-
-    t = Topic.new
-    assert t.invalid?
-
-    [:title, "title"].each do |attribute|
-      assert_deprecated { assert_equal "can't be blank", t.errors.on(attribute) }
-    end
-
-    Topic.validates_each(:title) do |record, attribute|
-      record.errors[attribute] << "invalid"
-    end
-
-    assert t.invalid?
-
-    [:title, "title"].each do |attribute|
-      assert_deprecated do
-        assert t.errors.on(attribute).include?("invalid")
-        assert t.errors.on(attribute).include?("can't be blank")
-      end
-    end
-  end
-
-  def test_deprecated_errors_on_base_and_each
-    t = Topic.new
-    assert t.valid?
-
-    assert_deprecated { t.errors.add_to_base "invalid topic" }
-    assert_deprecated { assert_equal "invalid topic", t.errors.on_base }
-    assert_deprecated { assert t.errors.invalid?(:base) }
-
-    all_errors = t.errors.to_a
-    assert_deprecated { assert_equal all_errors, t.errors.each_full{|err| err} }
-  end
-
   def test_validation_with_message_as_proc
     Topic.validates_presence_of(:title, :message => proc { "no blanks here".upcase })
 

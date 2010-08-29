@@ -54,11 +54,5 @@ module ActiveModel
       options.reverse_merge! :count => 1, :default => defaults
       I18n.translate(defaults.shift, options)
     end
-
-    # Model.human_name is deprecated. Use Model.model_name.human instead.
-    def human_name(*args)
-      ActiveSupport::Deprecation.warn("human_name has been deprecated, please use model_name.human instead", caller[0,5])
-      model_name.human(*args)
-    end
   end
 end
