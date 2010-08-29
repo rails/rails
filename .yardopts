@@ -1,0 +1,3 @@
+--exclude /templates/
+--quiet
+act*/lib/**/*.rb
