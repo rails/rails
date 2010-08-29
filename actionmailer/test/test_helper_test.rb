@@ -2,11 +2,10 @@ require 'abstract_unit'
 
 class TestHelperMailer < ActionMailer::Base
   def test
-    recipients "test@example.com"
-    from       "tester@example.com"
-
     @world = "Earth"
-    render(:inline => "Hello, <%= @world %>")
+    mail :body => render(:inline => "Hello, <%= @world %>"),
+      :to => "test@example.com",
+      :from => "tester@example.com"
   end
 end
 

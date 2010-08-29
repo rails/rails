@@ -18,13 +18,10 @@ class UrlTestMailer < ActionMailer::Base
   end
 
   def signed_up_with_url(recipient)
-    @recipients   = recipient
-    @subject      = "[Signed up] Welcome #{recipient}"
-    @from         = "system@loudthinking.com"
-    @sent_on      = Time.local(2004, 12, 12)
-
     @recipient   = recipient
     @welcome_url = url_for :host => "example.com", :controller => "welcome", :action => "greeting"
+    mail(:to => recipient, :subject => "[Signed up] Welcome #{recipient}",
+      :from => "system@loudthinking.com", :date => Time.local(2004, 12, 12))
   end
 end
 
@@ -47,6 +44,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries.clear
+    ActiveSupport::Deprecation.silenced = false
 
     @recipient = 'test@localhost'
   end
@@ -71,6 +69,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     expected.body    = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img alt=\"Somelogo\" src=\"/images/somelogo.png\" />"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
+    expected.content_type = "text/html"
 
     created = nil
     assert_nothing_raised { created = UrlTestMailer.signed_up_with_url(@recipient) }

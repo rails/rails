@@ -334,6 +334,7 @@ class ActionMailerTest < Test::Unit::TestCase
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.raise_delivery_errors = true
     ActionMailer::Base.deliveries.clear
+    ActiveSupport::Deprecation.silenced = true
 
     @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
@@ -343,6 +344,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def teardown
     TestMailer.logger = @original_logger
+    ActiveSupport::Deprecation.silenced = false
     restore_delivery_method
   end
 

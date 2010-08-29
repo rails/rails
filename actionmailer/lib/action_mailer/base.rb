@@ -341,8 +341,10 @@ module ActionMailer #:nodoc:
     include AbstractController::Translation
     include AbstractController::AssetPaths
 
-    helper  ActionMailer::MailHelper
+    cattr_reader :protected_instance_variables
+    @@protected_instance_variables = []
 
+    helper  ActionMailer::MailHelper
     include ActionMailer::OldApi
 
     delegate :register_observer, :to => Mail
@@ -443,6 +445,10 @@ module ActionMailer #:nodoc:
     def process(*args) #:nodoc:
       lookup_context.skip_default_locale!
       super
+    end
+
+    def mailer_name
+      self.class.mailer_name
     end
 
     # Allows you to pass random and unusual headers to the new +Mail::Message+ object

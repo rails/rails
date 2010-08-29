@@ -19,18 +19,6 @@ class RenderMailer < ActionMailer::Base
     body       render(:file => "templates/signed_up")
   end
 
-  def rxml_template
-    recipients 'test@localhost'
-    subject    "rendering rxml template"
-    from       "tester@example.com"
-  end
-
-  def included_subtemplate
-    recipients 'test@localhost'
-    subject    "Including another template in the one being rendered"
-    from       "tester@example.com"
-  end
-
   def no_instance_variable
     recipients 'test@localhost'
     subject    "No Instance Variable"
@@ -39,11 +27,6 @@ class RenderMailer < ActionMailer::Base
     silence_warnings do
       body render(:inline => "Look, subject.nil? is <%= @subject.nil? %>!")
     end
-  end
-
-  def initialize_defaults(method_name)
-    super
-    mailer_name "test_mailer"
   end
 
   def multipart_alternative
@@ -97,11 +80,13 @@ class RenderHelperTest < Test::Unit::TestCase
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries.clear
+    ActiveSupport::Deprecation.silenced = true
 
     @recipient = 'test@localhost'
   end
 
   def teardown
+    ActiveSupport::Deprecation.silenced = false
     restore_delivery_method
   end
 
@@ -115,16 +100,6 @@ class RenderHelperTest < Test::Unit::TestCase
     assert_equal "Hello there,\n\nMr. test@localhost", mail.body.to_s.strip
   end
 
-  def test_rxml_template
-    mail = RenderMailer.rxml_template.deliver
-    assert_equal %(<?xml version="1.0" encoding="UTF-8"?>\n<test/>), mail.body.to_s.strip
-  end
-
-  def test_included_subtemplate
-    mail = RenderMailer.included_subtemplate.deliver
-    assert_equal "Hey Ho, let's go!", mail.body.to_s.strip
-  end
-
   def test_no_instance_variable
     mail = RenderMailer.no_instance_variable.deliver
     assert_equal "Look, subject.nil? is true!", mail.body.to_s.strip
@@ -134,6 +109,7 @@ end
 class FirstSecondHelperTest < Test::Unit::TestCase
   def setup
     set_delivery_method :test
+    ActiveSupport::Deprecation.silenced = true
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries.clear
 
@@ -141,6 +117,7 @@ class FirstSecondHelperTest < Test::Unit::TestCase
   end
 
   def teardown
+    ActiveSupport::Deprecation.silenced = false
     restore_delivery_method
   end
 

@@ -3,9 +3,9 @@ require 'action_controller'
 
 class AssetHostMailer < ActionMailer::Base
   def email_with_asset
-    recipients 'test@localhost'
-    subject    "testing email containing asset path while asset_host is set"
-    from       "tester@example.com"
+    mail :to => 'test@localhost',
+      :subject => 'testing email containing asset path while asset_host is set',
+      :from => 'tester@example.com'
   end
 end
 

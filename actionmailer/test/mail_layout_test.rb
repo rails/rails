@@ -1,53 +1,45 @@
 require 'abstract_unit'
 
 class AutoLayoutMailer < ActionMailer::Base
+  default :to => 'test@localhost',
+    :subject => "You have a mail",
+    :from => "tester@example.com"
 
   def hello
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
+    mail()
   end
 
   def spam
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
-
     @world = "Earth"
-    body render(:inline => "Hello, <%= @world %>", :layout => 'spam')
+    mail(:body => render(:inline => "Hello, <%= @world %>", :layout => 'spam'))
   end
 
   def nolayout
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
-
     @world = "Earth"
-    body render(:inline => "Hello, <%= @world %>", :layout => false)
+    mail(:body => render(:inline => "Hello, <%= @world %>", :layout => false))
   end
 
   def multipart(type = nil)
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
-
-    content_type(type) if type
+    mail(:content_type => type) do |format|
+      format.text { render }
+      format.html { render }
+    end
   end
 end
 
 class ExplicitLayoutMailer < ActionMailer::Base
   layout 'spam', :except => [:logout]
 
+  default :to => 'test@localhost',
+    :subject => "You have a mail",
+    :from => "tester@example.com"
+
   def signup
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
+    mail()
   end
 
   def logout
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
+    mail()
   end
 end
 
@@ -90,19 +82,6 @@ class LayoutMailerTest < Test::Unit::TestCase
     assert_equal 'text/html', mail.parts.last.mime_type
     assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
   end
-
-  def test_should_fix_multipart_layout
-    mail = AutoLayoutMailer.multipart("text/plain")
-    assert_equal "multipart/alternative", mail.mime_type
-    assert_equal 2, mail.parts.size
-
-    assert_equal 'text/plain', mail.parts.first.mime_type
-    assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
-
-    assert_equal 'text/html', mail.parts.last.mime_type
-    assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
-  end
-
 
   def test_should_pickup_layout_given_to_render
     mail = AutoLayoutMailer.spam

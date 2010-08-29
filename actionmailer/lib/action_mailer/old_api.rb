@@ -8,9 +8,7 @@ module ActionMailer
 
     included do
       extend ActionMailer::AdvAttrAccessor
-
-      @@protected_instance_variables = %w(@parts)
-      cattr_reader :protected_instance_variables
+      self.protected_instance_variables.concat %w(@parts @mail_was_called)
 
       # Specify the BCC addresses for the message
       adv_attr_accessor :bcc
@@ -42,11 +40,11 @@ module ActionMailer
 
       # The recipient addresses for the message, either as a string (for a single
       # address) or an array (for multiple addresses).
-      adv_attr_accessor :recipients
+      adv_attr_accessor :recipients, "Please pass :to as hash key to mail() instead"
 
       # The date on which the message was sent. If not set (the default), the
       # header will be set by the delivery agent.
-      adv_attr_accessor :sent_on
+      adv_attr_accessor :sent_on, "Please pass :date as hash key to mail() instead"
 
       # Specify the subject of the message.
       adv_attr_accessor :subject
@@ -54,20 +52,12 @@ module ActionMailer
       # Specify the template name to use for current message. This is the "base"
       # template name, without the extension or directory, and may be used to
       # have multiple mailer methods share the same template.
-      adv_attr_accessor :template
-
-      # Override the mailer name, which defaults to an inflected version of the
-      # mailer's class name. If you want to use a template in a non-standard
-      # location, you can use this to specify that location.
-      adv_attr_accessor :mailer_name
+      adv_attr_accessor :template, "Please pass :template_name or :template_path as hash key to mail() instead"
 
       # Define the body of the message. This is either a Hash (in which case it
       # specifies the variables to pass to the template when it is rendered),
       # or a string, in which case it specifies the actual text of the message.
       adv_attr_accessor :body
-
-      # Alias controller_path to mailer_name so render :partial in views work.
-      alias :controller_path :mailer_name
     end
 
     def process(method_name, *args)
@@ -84,6 +74,8 @@ module ActionMailer
     # part itself is yielded to the block so that other properties (charset,
     # body, headers, etc.) can be set on it.
     def part(params)
+      ActiveSupport::Deprecation.warn "part() is deprecated and will be removed in future versions. " <<
+        "Please pass a block to mail() instead."
       params = {:content_type => params} if String === params
 
       if custom_headers = params.delete(:headers)
@@ -99,6 +91,8 @@ module ActionMailer
     # Add an attachment to a multipart message. This is simply a part with the
     # content-disposition set to "attachment".
     def attachment(params, &block)
+      ActiveSupport::Deprecation.warn "attachment() is deprecated and will be removed in future versions. " <<
+        "Please use the attachments[] API instead."
       params = { :content_type => params } if String === params
 
       params[:content] ||= params.delete(:data) || params.delete(:body)
@@ -148,11 +142,11 @@ module ActionMailer
     def create_mail
       m = @_message
 
-      set_fields!({:subject => subject, :to => recipients, :from => from,
-                   :bcc => bcc, :cc => cc, :reply_to => reply_to}, charset)
+      set_fields!({:subject => @subject, :to => @recipients, :from => @from,
+                   :bcc => @bcc, :cc => @cc, :reply_to => @reply_to}, @charset)
 
-      m.mime_version = mime_version    unless mime_version.nil?
-      m.date         = sent_on.to_time rescue sent_on if sent_on
+      m.mime_version = @mime_version    if @mime_version
+      m.date         = @sent_on.to_time rescue @sent_on if @sent_on
 
       @headers.each { |k, v| m[k] = v }
 
@@ -190,6 +184,8 @@ module ActionMailer
       @content_type         ||= self.class.default[:content_type].try(:dup)
       @implicit_parts_order ||= self.class.default[:parts_order].try(:dup)
       @mime_version         ||= self.class.default[:mime_version].try(:dup)
+
+      @cc, @bcc, @reply_to, @subject, @from, @recipients = nil, nil, nil, nil, nil, nil
 
       @mailer_name   ||= self.class.mailer_name.dup
       @template      ||= method_name
