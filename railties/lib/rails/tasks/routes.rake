@@ -13,14 +13,14 @@ task :routes => :environment do
     reqs[:to] = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
     reqs = reqs.empty? ? "" : reqs.inspect
 
-    {:name => route.name, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
+    {:name => route.name.to_s, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
   end
 
   routes.reject! { |r| r[:path] =~ %r{/rails/info/properties} } # Skip the route if it's internal info route
 
-  name_width = routes.map{ |r| r[:name].length if r[:name] }.max
-  verb_width = routes.map{ |r| r[:verb].length if r[:verb] }.max
-  path_width = routes.map{ |r| r[:path].length if r[:path] }.max
+  name_width = routes.map{ |r| r[:name].length }.max
+  verb_width = routes.map{ |r| r[:verb].length }.max
+  path_width = routes.map{ |r| r[:path].length }.max
 
   routes.each do |r|
     puts "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
