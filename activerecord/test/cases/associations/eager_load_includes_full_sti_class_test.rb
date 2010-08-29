@@ -27,6 +27,8 @@ class EagerLoadIncludeFullStiClassNamesTest < ActiveRecord::TestCase
     post = Namespaced::Post.find_by_title( 'Great stuff', :include => :tagging )
     assert_nil post.tagging
 
+    ActiveRecord::IdentityMap.clear # we need to clear IM to reload post.
+
     ActiveRecord::Base.store_full_sti_class = true
     post = Namespaced::Post.find_by_title( 'Great stuff', :include => :tagging )
     assert_instance_of Tagging, post.tagging

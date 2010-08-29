@@ -227,23 +227,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     assert r1.save
-    assert_equal 0, Topic.find(t1.id).replies.size
-    assert_equal 1, Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 1, t2.reload.replies.size
 
     r1.topic = nil
 
-    assert_equal 0, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
 
     r1.topic = t1
 
-    assert_equal 1, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 1, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
 
     r1.destroy
 
-    assert_equal 0, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
   end
 
   def test_belongs_to_reassign_with_namespaced_models_and_counters
@@ -259,8 +259,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     r1.topic = Web::Topic.find(t2.id)
 
     assert r1.save
-    assert_equal 0, Web::Topic.find(t1.id).replies.size
-    assert_equal 1, Web::Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 1, t2.reload.replies.size
   end
 
   def test_belongs_to_counter_after_save
