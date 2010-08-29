@@ -103,7 +103,7 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
 <ruby>
   source 'http://rubygems.org'
 
-  gem 'rails', '3.0.0.beta4'
+  gem 'rails', '3.0.0'
 
   # Bundle edge Rails instead:
   # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -133,15 +133,15 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
 Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This is until you run +bundle pack+. This command freezes all the gems required by your application into _vendor/cache_. The gems installed by default are:
 
 * abstract-1.0.0.gem
-* actionmailer-3.0.0.beta4.gem
-* actionpack-3.0.0.beta4.gem
-* activemodel-3.0.0.beta4.gem
-* activerecord-3.0.0.beta4.gem
-* activeresource-3.0.0.beta4.gem
-* activesupport-3.0.0.beta4.gem
+* actionmailer-3.0.0.gem
+* actionpack-3.0.0.gem
+* activemodel-3.0.0.gem
+* activerecord-3.0.0.gem
+* activeresource-3.0.0.gem
+* activesupport-3.0.0.gem
 * arel-0.4.0.gem
 * builder-2.1.2.gem
-* bundler-1.0.0.rc.2.gem
+* bundler-1.0.0.gem
 * erubis-2.6.6.gem
 * i18n-0.4.1.gem
 * mail-2.2.5.gem
@@ -152,8 +152,8 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * rack-1.2.1.gem
 * rack-mount-0.6.12.gem
 * rack-test-0.5.4.gem
-* rails-3.0.0.beta4.gem
-* railties-3.0.0.beta4.gem
+* rails-3.0.0.gem
+* railties-3.0.0.gem
 * rake-0.8.7.gem
 * sqlite3-ruby-1.3.1.gem
 * text-format-1.0.0.gem
@@ -1375,7 +1375,7 @@ the _version_ file contains this code (comments stripped):
     module VERSION #:nodoc:
       MAJOR = 3
       MINOR = 1
-      TINY  = "0.beta1"
+      TINY  = 0
 
       STRING = [MAJOR, MINOR, TINY].join('.')
     end
@@ -2250,18 +2250,18 @@ The method +find_with_root_flag+ is defined on +Rails::Engine+ (the superclass o
 +called_from+ goes through the +caller+ which is the stacktrace of the current thread, in the case of your application it would go a little like this:
 
 <pre>
-  /usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0.beta1/lib/rails/application.rb:30:in `inherited'
+  /usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0/lib/rails/application.rb:30:in `inherited'
   /home/you/yourapp/config/application.rb:4:in `<module:TestApp>'
   /home/you/yourapp/config/application.rb:3:in `<top (required)>'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:167:in `require'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:167:in `block in require'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:537:in `new_constants_in'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:167:in `require'
-  /usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0.beta1/lib/rails/commands.rb:33:in `<top (required)>'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:167:in `require'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:167:in `block in require'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:537:in `new_constants_in'
-  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0.beta1/lib/active_support/dependencies.rb:167:in `require'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:167:in `require'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:167:in `block in require'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:537:in `new_constants_in'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:167:in `require'
+  /usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0/lib/rails/commands.rb:33:in `<top (required)>'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:167:in `require'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:167:in `block in require'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:537:in `new_constants_in'
+  /usr/local/lib/ruby/gems/1.9.1/gems/activesupport-3.0.0/lib/active_support/dependencies.rb:167:in `require'
   /var/www/rboard/script/rails:10:in `<main>'
 </pre>
 
@@ -2274,7 +2274,7 @@ The method +find_with_root_flag+ is defined on +Rails::Engine+ (the superclass o
   end
 </ruby>
 
-The +call_stack+ here is the +caller+ output shown previously, minus everything after the first +:+ on all the lines. The first path that matches this is _/usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0.beta1/lib/rails_. Yours may vary slightly, but should always end in _railties-x.x.x/lib/rails_.
+The +call_stack+ here is the +caller+ output shown previously, minus everything after the first +:+ on all the lines. The first path that matches this is _/usr/local/lib/ruby/gems/1.9.1/gems/railties-3.0.0/lib/rails_. Yours may vary slightly, but should always end in _railties-x.x.x/lib/rails_.
 
 The code in +find_root_with_flag+ will go up this directory structure until it reaches the top, which in this case is +/+.
 
