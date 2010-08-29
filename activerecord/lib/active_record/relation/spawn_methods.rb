@@ -8,7 +8,7 @@ module ActiveRecord
 
       ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) - [:joins, :where]).each do |method|
         value = r.send(:"#{method}_values")
-        if value.present?
+        unless value.empty?
           if method == :includes
             merged_relation = merged_relation.includes(value)
           else
