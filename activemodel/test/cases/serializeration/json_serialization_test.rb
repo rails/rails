@@ -116,5 +116,32 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_equal hash.to_json, car.errors.to_json
   end
 
+  test "serializable_hash should not modify options passed in argument" do
+    options = { :except => :name }
+    @contact.serializable_hash(options)
+
+    assert_nil options[:only]
+    assert_equal :name, options[:except]
+  end
+
+  test "as_json should return a hash" do
+    json = @contact.as_json
+
+    assert_kind_of Hash, json
+    assert_kind_of Hash, json['contact']
+    %w(name age created_at awesome preferences).each do |field|
+      assert_equal @contact.send(field), json['contact'][field]
+    end
+  end
+
+  test "custom as_json should be honored when generating json" do
+    def @contact.as_json(options); { :name => name, :created_at => created_at }; end
+    json = @contact.to_json
+
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert_no_match %r{"awesome":}, json
+    assert_no_match %r{"preferences":}, json
+  end
 
 end
