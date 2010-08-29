@@ -129,16 +129,6 @@ class RenderHelperTest < Test::Unit::TestCase
     mail = RenderMailer.no_instance_variable.deliver
     assert_equal "Look, subject.nil? is true!", mail.body.to_s.strip
   end
-
-  def test_legacy_multipart_alternative
-    mail = RenderMailer.multipart_alternative.deliver
-    assert_equal(2, mail.parts.size)
-    assert_equal("multipart/alternative", mail.mime_type)
-    assert_equal("text/plain", mail.parts[0].mime_type)
-    assert_equal("foo: bar", mail.parts[0].body.encoded)
-    assert_equal("text/html", mail.parts[1].mime_type)
-    assert_equal("<strong>foo</strong> bar", mail.parts[1].body.encoded)
-  end
 end
 
 class FirstSecondHelperTest < Test::Unit::TestCase

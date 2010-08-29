@@ -344,7 +344,6 @@ module ActionMailer #:nodoc:
     helper  ActionMailer::MailHelper
 
     include ActionMailer::OldApi
-    include ActionMailer::DeprecatedApi
 
     delegate :register_observer, :to => Mail
     delegate :register_interceptor, :to => Mail

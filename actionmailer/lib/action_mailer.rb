@@ -43,7 +43,6 @@ module ActionMailer
   autoload :Collector
   autoload :Base
   autoload :DeliveryMethods
-  autoload :DeprecatedApi
   autoload :MailHelper
   autoload :OldApi
   autoload :TestCase
