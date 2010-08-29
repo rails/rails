@@ -4,6 +4,6 @@ module ActiveResource
     MINOR = 0
     TINY  = 0
 
-    STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
+    STRING = [MAJOR, MINOR, TINY].join('.')
   end
 end
