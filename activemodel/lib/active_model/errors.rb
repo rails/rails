@@ -283,8 +283,8 @@ module ActiveModel
 
       if options[:default]
         ActiveSupport::Deprecation.warn \
-          "ActiveModel::Errors#generate_message(attributes, custom_message) has been deprecated.\n" +
-          "Use ActiveModel::Errors#generate_message(attributes, :message => 'your message') instead."
+          "Giving :default as validation option to errors.add has been deprecated.\n" +
+          "Please use :message instead."
         options[:message] = options.delete(:default)
       end
 
