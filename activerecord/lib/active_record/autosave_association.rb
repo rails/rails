@@ -140,6 +140,23 @@ module ActiveRecord
         CODE
       end
 
+      def define_non_cyclic_method(name, reflection, &block)
+        define_method(name) do |*args|
+          result = true; @_already_called ||= {}
+          # Loop prevention for validation of associations
+          unless @_already_called[[name, reflection.name]]
+            begin
+              @_already_called[[name, reflection.name]]=true
+              result = instance_eval(&block)
+            ensure
+              @_already_called[[name, reflection.name]]=false
+            end
+          end
+
+          result
+        end
+      end
+
       # Adds validation and save callbacks for the association as specified by
       # the +reflection+.
       #
@@ -160,7 +177,7 @@ module ActiveRecord
           if collection
             before_save :before_save_collection_association
 
-            define_method(save_method) { save_collection_association(reflection) }
+            define_non_cyclic_method(save_method, reflection) { save_collection_association(reflection) }
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
             after_create save_method
             after_update save_method
@@ -178,7 +195,7 @@ module ActiveRecord
               after_create save_method
               after_update save_method
             else
-              define_method(save_method) { save_belongs_to_association(reflection) }
+              define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
               before_save save_method
             end
           end
@@ -186,7 +203,7 @@ module ActiveRecord
 
         if reflection.validate? && !method_defined?(validation_method)
           method = (collection ? :validate_collection_association : :validate_single_association)
-          define_method(validation_method) { send(method, reflection) }
+          define_non_cyclic_method(validation_method, reflection) { send(method, reflection) }
           validate validation_method
         end
       end
