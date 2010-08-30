@@ -364,7 +364,7 @@ end
 
 h3. Advanced Caching
 
-Along with the built-in mechanisms outlined above, a number of excellent plugins exist to help with finer grained control over caching. These include Chris Wanstrath's excellent cache_fu plugin (more info "here": http://errtheblog.com/posts/57-kickin-ass-w-cachefu) and Evan Weaver's interlock plugin (more info "here": http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/). Both of these plugins play nice with memcached and are a must-see for anyone
+Along with the built-in mechanisms outlined above, a number of excellent plugins exist to help with finer grained control over caching. These include Chris Wanstrath's excellent cache_fu plugin (more info "here":http://errtheblog.com/posts/57-kickin-ass-w-cachefu ) and Evan Weaver's interlock plugin (more info "here":http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/ ). Both of these plugins play nice with memcached and are a must-see for anyone
 seriously considering optimizing their caching needs.
 
 Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plugin is supposed to be mad cool.
