@@ -144,6 +144,7 @@ task :rdoc do
   FileUtils.copy "activerecord/examples/associations.png", "doc/rdoc/files/examples/associations.png"
 end
 
+desc 'Bump all versions to match version.rb'
 task :update_versions do
   require File.dirname(__FILE__) + "/version"
 

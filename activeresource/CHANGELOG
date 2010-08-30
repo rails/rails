@@ -1,29 +1,11 @@
-*Rails 3.0.0 (unreleased)*
+*Rails 3.1.0 (unreleased)*
 
 * No changes
 
 
-*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
-
-* No changes
-
-
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
-
-* No changes
-
-
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
+*Rails 3.0.0 (August 29, 2010)*
 
 * JSON: set Base.include_root_in_json = true to include a root value in the JSON: {"post": {"title": ...}}. Mirrors the Active Record option.  [Santiago Pastorino]
-
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
-
-* No changes
-
-
-*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Add support for errors in JSON format.  #1956 [Fabien Jakimowicz]
 

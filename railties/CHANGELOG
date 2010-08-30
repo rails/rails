@@ -1,14 +1,9 @@
-*Rails 3.0.0 (unreleased)*
+*Rails 3.1.0 (unreleased)*
 
 * No changes
 
 
-*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
-
-* No changes
-
-
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+*Rails 3.0.0 (August 29, 2010)*
 
 * Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit and --skip-active-record respectively. [fxn]
 
@@ -24,18 +19,9 @@
 
 * Made the rails command work even when you're in a subdirectory [Chad Fowler]
 
-
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
-
 * Removed Rails Metal [Yehuda Katz, José Valim].
 
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
-
 * Renamed config.cookie_secret to config.secret_token and pass it as env key. [José Valim]
-
-
-*Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Session store configuration has changed [Yehuda Katz, Carl Lerche]
 
@@ -47,8 +33,6 @@
 
 * Added config.generators.templates to provide alternative paths for the generators
   to look for templates [José Valim]
-
-*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Added "rake about" as a replacement for script/about [DHH]
 
