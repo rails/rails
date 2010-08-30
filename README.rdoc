@@ -60,7 +60,7 @@ more separate. Each of these packages can be used independently outside of
 == Contributing
 
 We encourage you to contribute to Ruby on \Rails! Please check out the {Contributing to Rails
-guide}[http://edgeguides.rubyonrails.org/contributing_to_rails.html] for guidelines about how
+guide}[http://guides.rubyonrails.org/contributing_to_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 == License
