@@ -157,13 +157,21 @@ module ActiveResource
         # def post(path, body, headers)
         #   request = ActiveResource::Request.new(:post, path, body, headers)
         #   self.class.requests << request
-        #   self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("Could not find a response recorded for #{request.to_s} - Responses recorded are: - #{inspect_responses}"))
+        #   if response = self.class.responses.assoc(request)
+        #     response[1]
+        #   else
+        #     raise InvalidRequestError.new("Could not find a response recorded for #{request.to_s} - Responses recorded are: - #{inspect_responses}")
+        #   end
         # end
         module_eval <<-EOE, __FILE__, __LINE__ + 1
           def #{method}(path, #{'body, ' if has_body}headers)
             request = ActiveResource::Request.new(:#{method}, path, #{has_body ? 'body, ' : 'nil, '}headers)
             self.class.requests << request
-            self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("Could not find a response recorded for \#{request.to_s} - Responses recorded are: - \#{inspect_responses}"))
+            if response = self.class.responses.assoc(request)
+              response[1]
+            else
+              raise InvalidRequestError.new("Could not find a response recorded for \#{request.to_s} - Responses recorded are: \#{inspect_responses}")
+            end
           end
         EOE
       end
@@ -182,16 +190,29 @@ module ActiveResource
     attr_accessor :path, :method, :body, :headers
 
     def initialize(method, path, body = nil, headers = {})
-      @method, @path, @body, @headers = method, path, body, headers.merge(ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[method] => 'application/xml')
+      @method, @path, @body, @headers = method, path, body, headers
     end
 
     def ==(req)
-      path == req.path && method == req.method && headers == req.headers
+      path == req.path && method == req.method && headers_match?(req)
     end
 
     def to_s
       "<#{method.to_s.upcase}: #{path} [#{headers}] (#{body})>"
     end
+
+    private
+
+    def headers_match?(req)
+      # Ignore format header on equality if it's not defined
+      format_header = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[method]
+      if headers[format_header].present? || req.headers[format_header].blank?
+        headers == req.headers
+      else
+        headers.dup.merge(format_header => req.headers[format_header]) == req.headers
+      end
+    end
+
   end
 
   class Response
