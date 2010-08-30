@@ -1,4 +1,4 @@
-# encoding: us-ascii
+# encoding: utf-8
 require 'abstract_unit'
 require 'testing_sandbox'
 
@@ -415,6 +415,12 @@ class TextHelperTest < ActionView::TestCase
     link10_raw    = 'http://www.mail-archive.com/ruby-talk@ruby-lang.org/'
     link10_result = generate_result(link10_raw)
     assert_equal %(<p>#{link10_result} Link</p>), auto_link("<p>#{link10_raw} Link</p>")
+
+    link11_raw    = 'http://asakusa.rubyist.net/'
+    link11_result = generate_result(link11_raw)
+    with_kcode 'u' do
+      assert_equal %(浅草.rbの公式サイトはこちら#{link11_result}), auto_link("浅草.rbの公式サイトはこちら#{link11_raw}")
+    end
   end
 
   def test_auto_link_should_sanitize_input_when_sanitize_option_is_not_false
