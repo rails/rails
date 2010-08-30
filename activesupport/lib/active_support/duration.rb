@@ -99,7 +99,7 @@ module ActiveSupport
     private
 
       def method_missing(method, *args, &block) #:nodoc:
-        value.send(method, *args)
+        value.send(method, *args, &block)
       end
   end
 end
