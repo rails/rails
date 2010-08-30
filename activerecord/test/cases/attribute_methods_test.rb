@@ -419,12 +419,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.instance_variable_set "@cached_attributes", nil
   end
 
-  def test_time_related_columns_are_actually_cached
-    column_types = %w(datetime timestamp time date).map(&:to_sym)
-    column_names = Topic.columns.select{|c| column_types.include?(c.type) }.map(&:name)
-
-    assert_equal column_names.sort, Topic.cached_attributes.sort
-    assert_equal time_related_columns_on_topic.sort, Topic.cached_attributes.sort
+  def test_cacheable_columns_are_actually_cached
+    assert_equal cached_columns.sort, Topic.cached_attributes.sort
   end
 
   def test_accessing_cached_attributes_caches_the_converted_values_and_nothing_else
@@ -435,8 +431,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert cache.empty?
 
     all_columns = Topic.columns.map(&:name)
-    cached_columns = time_related_columns_on_topic
-    uncached_columns =  all_columns - cached_columns
+    uncached_columns = all_columns - cached_columns
 
     all_columns.each do |attr_name|
       attribute_gets_cached = Topic.cache_attribute?(attr_name)
@@ -594,8 +589,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
 
   private
+  def cached_columns
+    @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)
+  end
+
   def time_related_columns_on_topic
-    Topic.columns.select{|c| [:time, :date, :datetime, :timestamp].include?(c.type)}.map(&:name)
+    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
+  end
+
+  def serialized_columns_on_topic
+    Topic.columns.select { |c| Topic.serialized_attributes.include?(c.name) }
   end
 
   def in_time_zone(zone)

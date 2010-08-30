@@ -415,6 +415,11 @@ module ActiveRecord #:nodoc:
     class_inheritable_accessor :default_scoping, :instance_writer => false
     self.default_scoping = []
 
+    # Returns a hash of all the attributes that have been specified for serialization as
+    # keys and their class restriction as values.
+    class_attribute :serialized_attributes
+    self.serialized_attributes = {}
+
     class << self # Class methods
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
@@ -524,12 +529,6 @@ module ActiveRecord #:nodoc:
       #   end
       def serialize(attr_name, class_name = Object)
         serialized_attributes[attr_name.to_s] = class_name
-      end
-
-      # Returns a hash of all the attributes that have been specified for serialization as
-      # keys and their class restriction as values.
-      def serialized_attributes
-        read_inheritable_attribute(:attr_serialized) or write_inheritable_attribute(:attr_serialized, {})
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
