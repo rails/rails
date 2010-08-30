@@ -33,6 +33,15 @@ class StringInflectionsTest < Test::Unit::TestCase
     EOS
   end
 
+  def test_strip_heredoc_on_a_regular_indented_heredoc_with_blank_lines
+    assert_equal "foo\n  bar\n\nbaz\n", <<-EOS.strip_heredoc
+      foo
+        bar
+
+      baz
+    EOS
+  end
+
   def test_pluralize
     SingularToPlural.each do |singular, plural|
       assert_equal(plural, singular.pluralize)
