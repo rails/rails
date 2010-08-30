@@ -11,9 +11,9 @@ module Arel
 
       def initialize_copy other
         super
-        @froms = @froms.map { |o| o.clone }
-        @projections = @projections.map { |o| o.clone }
-        @wheres = @wheres.map { |o| o.clone }
+        @froms = @froms.clone
+        @projections = @projections.clone
+        @wheres = @wheres.clone
       end
     end
   end

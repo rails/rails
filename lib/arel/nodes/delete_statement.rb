@@ -10,7 +10,7 @@ module Arel
 
       def initialize_copy other
         super
-        @wheres = @wheres.map { |o| o.clone }        
+        @wheres = @wheres.clone
       end
     end
   end

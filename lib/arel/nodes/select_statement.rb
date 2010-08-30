@@ -12,7 +12,7 @@ module Arel
 
       def initialize_copy other
         super
-        @cores = @cores.map { |o| o.clone }
+        @cores = @cores.clone
       end
     end
   end

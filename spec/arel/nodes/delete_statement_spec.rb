@@ -6,12 +6,10 @@ describe Arel::Nodes::DeleteStatement do
       statement = Arel::Nodes::DeleteStatement.new
       statement.wheres = %w[a b c]
 
-      statement.wheres.each_with_index do |o, j|
-        o.should_receive(:clone).and_return("#{o}#{j}")
-      end
+      statement.wheres.should_receive(:clone).and_return([:wheres])
 
       dolly = statement.clone
-      dolly.wheres.should == %w[a0 b1 c2]
+      dolly.wheres.should == [:wheres]
     end
   end
 end

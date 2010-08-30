@@ -11,8 +11,8 @@ module Arel
 
       def initialize_copy other
         super
-        @columns = @columns.map { |o| o.clone }
-        @values =  @values.map  { |o| o.clone }
+        @columns = @columns.clone
+        @values =  @values.clone
       end
     end
   end

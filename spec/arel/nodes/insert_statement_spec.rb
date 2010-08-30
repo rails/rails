@@ -7,16 +7,12 @@ describe Arel::Nodes::InsertStatement do
       statement.columns = %w[a b c]
       statement.values  = %w[x y z]
 
-      statement.columns.each_with_index do |o, j|
-        o.should_receive(:clone).and_return("#{o}#{j}")
-      end
-      statement.values.each_with_index do |o, j|
-        o.should_receive(:clone).and_return("#{o}#{j}")
-      end
+      statement.columns.should_receive(:clone).and_return([:columns])
+      statement.values.should_receive(:clone).and_return([:values])
 
       dolly = statement.clone
-      check dolly.columns.should == %w[a0 b1 c2]
-      check dolly.values.should  == %w[x0 y1 z2]
+      check dolly.columns.should == [:columns]
+      check dolly.values.should  == [:values]
     end
   end
 end
