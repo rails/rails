@@ -571,13 +571,13 @@ end
 
 h5. Pessimistic Locking
 
-Pessimistic locking uses a locking mechanism provided by the underlying database. Passing +:lock => true+ to +Model.find+ obtains an exclusive lock on the selected rows. +Model.find+ using +:lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
+Pessimistic locking uses a locking mechanism provided by the underlying database. Using +lock+ when building a relation obtains an exclusive lock on the selected rows. Relations using +lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
 For example:
 
 <ruby>
 Item.transaction do
-  i = Item.first(:lock => true)
+  i = Item.lock.first
   i.name = 'Jones'
   i.save
 end
@@ -592,11 +592,11 @@ Item Update (0.4ms)   UPDATE `items` SET `updated_at` = '2009-02-07 18:05:56', `
 SQL (0.8ms)   COMMIT
 </sql>
 
-You can also pass raw SQL to the +:lock+ option to allow different types of locks. For example, MySQL has an expression called +LOCK IN SHARE MODE+ where you can lock a record but still allow other queries to read it. To specify this expression just pass it in as the lock option:
+You can also pass raw SQL to the +lock+ method for allowing different types of locks. For example, MySQL has an expression called +LOCK IN SHARE MODE+ where you can lock a record but still allow other queries to read it. To specify this expression just pass it in as the lock option:
 
 <ruby>
 Item.transaction do
-  i = Item.find(1, :lock => "LOCK IN SHARE MODE")
+  i = Item.lock("LOCK IN SHARE MODE").find(1)
   i.increment!(:views)
 end
 </ruby>
