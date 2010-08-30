@@ -509,21 +509,15 @@ This will return single order objects for each day, but only for the last month.
 
 h4. Readonly Objects
 
-To explicitly disallow modification/destruction of the matching records returned in a Relation object, you could chain the +readonly+ method as +true+ to the find call.
-
-Any attempt to alter or destroy the readonly records will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception. To set this option, specify it like this:
+Active Record provides +readonly+ method on a relation to explicitly disallow modification or deletion of any of the returned object. Any attempt to alter or destroy a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
 <ruby>
-Client.first.readonly(true)
-</ruby>
-
-For example, calling the following code will raise an +ActiveRecord::ReadOnlyRecord+ exception:
-
-<ruby>
-client = Client.first.readonly(true)
-client.locked = false
+client = Client.readonly.first
+client.visits += 1
 client.save
 </ruby>
+
+As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when trying to calling +client.save+ with an updated value of _visists_.
 
 h4. Locking Records for Update
 
