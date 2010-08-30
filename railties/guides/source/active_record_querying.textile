@@ -856,22 +856,24 @@ h3. Calculations
 
 This section uses count as an example method in this preamble, but the options described apply to all sub-sections.
 
-<tt>count</tt> takes conditions much in the same way +exists?+ does:
+All calculation methods work directly on a model:
 
 <ruby>
-Client.count(:conditions => "first_name = 'Ryan'")
+Client.count
+# SELECT count(*) AS count_all FROM clients
 </ruby>
 
-Which will execute:
-
-<sql>
-SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
-</sql>
-
-You can also use the +includes+ or +joins+ methods for this to do something a little more complex:
+Or on a relation :
 
 <ruby>
-Client.where("clients.first_name = 'Ryan' AND orders.status = 'received'").includes("orders").count
+Client.where(:first_name => 'Ryan').count
+# SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
+</ruby>
+
+You can also use various finder methods on a relation for performing complex calculations:
+
+<ruby>
+Client.includes("orders").where(:first_name => 'Ryan', :orders => {:status => 'received'}).count
 </ruby>
 
 Which will execute:
@@ -881,8 +883,6 @@ SELECT count(DISTINCT clients.id) AS count_all FROM clients
   LEFT OUTER JOIN orders ON orders.client_id = client.id WHERE
   (clients.first_name = 'Ryan' AND orders.status = 'received')
 </sql>
-
-This code specifies +clients.first_name+ just in case one of the join tables has a field also called +first_name+ and it uses +orders.status+ because that's the name of our join table.
 
 h4. Count
 
