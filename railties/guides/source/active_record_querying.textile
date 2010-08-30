@@ -603,14 +603,14 @@ end
 
 h3. Joining Tables
 
-<tt>Model.find</tt> provides a +:joins+ option for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to specify the +:joins+ option:
+Active Record provides a finder method called +joins+ for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to use the +joins+ method.
 
 h4. Using a String SQL Fragment
 
-You can just supply the raw SQL specifying the +JOIN+ clause to the +:joins+ option. For example:
+You can just supply the raw SQL specifying the +JOIN+ clause to +joins+:
 
 <ruby>
-Client.all(:joins => 'LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
+Client.joins('LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
 </ruby>
 
 This will result in the following SQL:
@@ -625,7 +625,7 @@ WARNING: This method only works with +INNER JOIN+,
 
 <br />
 
-Active Record lets you use the names of the "associations":association_basics.html defined on the model as a shortcut for specifying the +:joins+ option.
+Active Record lets you use the names of the "associations":association_basics.html defined on the model as a shortcut for specifying +JOIN+ clause for those associations when using the +joins+ method.
 
 For example, consider the following +Category+, +Post+, +Comments+ and +Guest+ models:
 
