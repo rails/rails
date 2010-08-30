@@ -15,7 +15,6 @@ class CaptureHelperTest < ActionView::TestCase
     end
     assert_nil @av.output_buffer
     assert_equal 'foobar', string
-    assert_kind_of ActionView::NonConcattingString, string
   end
 
   def test_capture_captures_the_value_returned_by_the_block_if_the_temporary_buffer_is_blank
@@ -23,7 +22,6 @@ class CaptureHelperTest < ActionView::TestCase
       a + b
     end
     assert_equal 'foobar', string
-    assert_kind_of ActionView::NonConcattingString, string
   end
 
   def test_capture_returns_nil_if_the_returned_value_is_not_a_string
