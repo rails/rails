@@ -133,8 +133,44 @@ module ActiveResource
       #   pairs = {create_matz => created_response, get_matz => ok_response}
       # 
       #   ActiveResource::HttpMock.respond_to(pairs)
-      def respond_to(pairs = {}) #:yields: mock
-        reset!
+      #
+      # Note, by default, every time you call +respond_to+, any previous request and response pairs stored
+      # in HttpMock will be deleted giving you a clean slate to work on.
+      # 
+      # If you want to override this behaviour, pass in +false+ as the last argument to +respond_to+
+      # 
+      # === Example
+      # 
+      #   ActiveResource::HttpMock.respond_to do |mock|
+      #     mock.send(:get, "/people/1", {}, "XML1")
+      #   end
+      #   ActiveResource::HttpMock.responses.length #=> 1
+      #   
+      #   ActiveResource::HttpMock.respond_to(false) do |mock|
+      #     mock.send(:get, "/people/2", {}, "XML2")
+      #   end
+      #   ActiveResource::HttpMock.responses.length #=> 2
+      # 
+      # This also works with passing in generated pairs of requests and responses, again, just pass in false
+      # as the last argument:
+      # 
+      # === Example
+      # 
+      #   ActiveResource::HttpMock.respond_to do |mock|
+      #     mock.send(:get, "/people/1", {}, "XML1")
+      #   end
+      #   ActiveResource::HttpMock.responses.length #=> 1
+      # 
+      #   get_matz         = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+      #   ok_response      = ActiveResource::Response.new("", 200, {})
+      # 
+      #   pairs = {get_matz => ok_response}
+      #
+      #   ActiveResource::HttpMock.respond_to(pairs, false)
+      #   ActiveResource::HttpMock.responses.length #=> 2
+      def respond_to(*args) #:yields: mock
+        pairs = args.first || {}
+        reset! if args.last.class != FalseClass
         responses.concat pairs.to_a
         if block_given?
           yield Responder.new(responses)

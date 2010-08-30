@@ -119,6 +119,32 @@ class HttpMockTest < ActiveSupport::TestCase
     assert_equal 1, ActiveResource::HttpMock.responses.length
   end
 
+  test "allows you to add new responses to the existing responses by calling a block" do
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.send(:get, "/people/1", {}, "XML1")
+    end
+    assert_equal 1, ActiveResource::HttpMock.responses.length
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.send(:get, "/people/2", {}, "XML2")
+    end
+    assert_equal 2, ActiveResource::HttpMock.responses.length
+  end
+
+  test "allows you to add new responses to the existing responses by passing pairs" do
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.send(:get, "/people/1", {}, "XML1")
+    end
+    assert_equal 1, ActiveResource::HttpMock.responses.length
+
+    matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+    get_matz = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+    ok_response = ActiveResource::Response.new(matz, 200, {})
+    ActiveResource::HttpMock.respond_to({get_matz => ok_response}, false)
+
+    assert_equal 2, ActiveResource::HttpMock.responses.length
+  end
+
   def request(method, path, headers = {}, body = nil)
     if [:put, :post].include? method
       @http.send(method, path, body, headers)
