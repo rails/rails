@@ -2,8 +2,9 @@ module ActionMailer
   module VERSION #:nodoc:
     MAJOR = 3
     MINOR = 0
-    TINY  = 0
+    TINY  = 1
+    BUILD = 'pre'
 
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
   end
 end

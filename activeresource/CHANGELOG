@@ -1,3 +1,8 @@
+*Rails 3.0.1 (unreleased)*
+
+* No changes
+
+
 *Rails 3.0.0 (August 29, 2010)*
 
 * JSON: set Base.include_root_in_json = true to include a root value in the JSON: {"post": {"title": ...}}. Mirrors the Active Record option.  [Santiago Pastorino]
