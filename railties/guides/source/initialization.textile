@@ -1375,6 +1375,7 @@ the _version_ file contains this code (comments stripped):
     module VERSION #:nodoc:
       MAJOR = 3
       MINOR = 1
+      MINOR = 0
       TINY  = 0
 
       STRING = [MAJOR, MINOR, TINY].join('.')
@@ -1437,7 +1438,7 @@ Afterwards this includes the +ActiveSupport::Benchmarkable+ which is used for be
   end
 </ruby>
 
-The "documentation":http://api.rails.info/classes/ActiveSupport/Benchmarkable.html#M000607 is great about explaining what precisely this does. (TODO: replace link with real documentation link when it becomes available.)
+The "documentation":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html is great about explaining what precisely this does.
 
 This module is also included into Active Record and +AbstractController+, meaning you can also use the +benchmark+ method in these methods.
 

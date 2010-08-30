@@ -18,9 +18,6 @@ module ActiveRecord
       !(new_record? || destroyed?)
     end
 
-    # :call-seq:
-    #   save(options)
-    #
     # Saves the model.
     #
     # If the model is new a record gets created in the database, otherwise
