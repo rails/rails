@@ -24,13 +24,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   include ActionView::Context
   include RenderERBUtils
 
-  # self.default_url_options = {:host => "www.example.com"}
-
-  # TODO: This shouldn't be needed (see template.rb:53)
-  def assigns
-    {}
-  end
-
   def hash_for(opts = [])
     ActiveSupport::OrderedHash[*([:controller, "foo", :action, "bar"].concat(opts))]
   end
