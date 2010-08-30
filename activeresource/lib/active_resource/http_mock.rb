@@ -29,7 +29,8 @@ module ActiveResource
   #
   # In order for a mock to deliver its content, the incoming request must match by the <tt>http_method</tt>,
   # +path+ and <tt>request_headers</tt>.  If no match is found an InvalidRequestError exception
-  # will be raised letting you know you need to create a new mock for that request.
+  # will be raised showing you what request it could not find a response for and also what requests and response
+  # pairs have been recorded so you can create a new mock for that request.
   #
   # ==== Example
   #   def setup
@@ -97,8 +98,41 @@ module ActiveResource
         @@responses ||= []
       end
 
-      # Accepts a block which declares a set of requests and responses for the HttpMock to respond to. See the main
-      # ActiveResource::HttpMock description for a more detailed explanation.
+      # Accepts a block which declares a set of requests and responses for the HttpMock to respond to in
+      # the following format:
+      # 
+      #   mock.http_method(path, request_headers = {}, body = nil, status = 200, response_headers = {})
+      # 
+      # === Example
+      # 
+      #   @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+      #   ActiveResource::HttpMock.respond_to do |mock|
+      #     mock.post   "/people.xml",   {}, @matz, 201, "Location" => "/people/1.xml"
+      #     mock.get    "/people/1.xml", {}, @matz
+      #     mock.put    "/people/1.xml", {}, nil, 204
+      #     mock.delete "/people/1.xml", {}, nil, 200
+      #   end
+      # 
+      # Alternatively, accepts a hash of <tt>{Request => Response}</tt> pairs allowing you to generate
+      # these the following format:
+      # 
+      #   ActiveResource::Request.new(method, path, body, request_headers)
+      #   ActiveResource::Response.new(body, status, response_headers)
+      # 
+      # === Example
+      # 
+      # Request.new(:#{method}, path, nil, request_headers)
+      # 
+      #   @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+      #
+      #   create_matz      = ActiveResource::Request.new(:post, '/people.xml', @matz, {})
+      #   created_response = ActiveResource::Response.new("", 201, {"Location" => "/people/1.xml"})
+      #   get_matz         = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+      #   ok_response      = ActiveResource::Response.new("", 200, {})
+      # 
+      #   pairs = {create_matz => created_response, get_matz => ok_response}
+      # 
+      #   ActiveResource::HttpMock.respond_to(pairs)
       def respond_to(pairs = {}) #:yields: mock
         reset!
         responses.concat pairs.to_a
