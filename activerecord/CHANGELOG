@@ -1,14 +1,9 @@
-*Rails 3.0.0 (unreleased)*
+*Rails 3.1.0 (unreleased)*
 
 * No changes
 
 
-*Rails 3.0.0 [release candidate 2] (August 23rd, 2010)*
-
-* No changes
-
-
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+*Rails 3.0.0 (August 29, 2010)*
 
 * Changed update_attribute to not run callbacks and update the record directly in the database [Neeraj Singh]
 
@@ -19,9 +14,6 @@
 * select and order for ActiveRecord now always concatenate nested calls. Use reorder if you want the original order to be overwritten [Santiago Pastorino]
 
 * PostgreSQL: ensure the database time zone matches Ruby's time zone #4895 [Aaron Patterson]
-
-
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Fixed that ActiveRecord::Base.compute_type would swallow NoMethodError #4751 [Andrew Bloomgarden, Andrew White]
 
@@ -47,9 +39,6 @@
 
 * Observers can prevent records from saving by returning false, just like before_save and friends.  #4087 [Mislav Marohnić]
 
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
-
 * Add Relation extensions. [Pratik Naik]
 
   users = User.where(:admin => true).extending(User::AdminPowers)
@@ -63,9 +52,6 @@
 * To prefix the table names of all models in a module, define self.table_name_prefix on the module.  #4032 [Andrew White]
 
 * Silenced "SHOW FIELDS" and "SET SQL_AUTO_IS_NULL=0" statements from the MySQL driver to improve log signal to noise ration in development [DHH]
-
-
-*Rails 3.0.0 [Beta 1] (February 4th, 2010)*
 
 * PostgreSQLAdapter: set time_zone to UTC when Base.default_timezone == :utc so that Postgres doesn't incorrectly offset-adjust values inserted into TIMESTAMP WITH TIME ZONE columns. #3777 [Jack Christensen]
 
