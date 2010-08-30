@@ -6,6 +6,16 @@ module ActionController
     end
 
     module ClassMethods
+      # TODO Remove this after the old router map is removed.
+      def resource_action_separator
+        @resource_action_separator ||= "/"
+      end
+
+      # TODO Remove this after the old router map is removed.     
+      def resource_action_separator=(val)
+        ActiveSupport::Deprecation.warn "ActionController::Base.resource_action_separator is deprecated"
+        @resource_action_separator = val
+      end
     end
 
     # Temporary hax
@@ -39,12 +49,6 @@ module ActionController
     def assign_shortcuts(*) end
 
     def _normalize_options(options)
-      if options[:action] && options[:action].to_s.include?(?/)
-        ActiveSupport::Deprecation.warn "Giving a path to render :action is deprecated. " <<
-          "Please use render :template instead", caller
-        options[:template] = options.delete(:action)
-      end
-
       options[:text] = nil if options.delete(:nothing) == true
       options[:text] = " " if options.key?(:text) && options[:text].nil?
       super

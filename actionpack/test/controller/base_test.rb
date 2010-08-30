@@ -100,20 +100,6 @@ class ControllerClassTests < ActiveSupport::TestCase
     assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
   end
 
-  def test_filter_parameter_logging
-    parameters = []
-    config = mock(:config => mock(:filter_parameters => parameters))
-    Rails.expects(:application).returns(config)
-
-    assert_deprecated do
-      Class.new(ActionController::Base) do
-        filter_parameter_logging :password
-      end
-    end
-
-    assert_equal [:password], parameters
-  end
-
   def test_record_identifier
     assert_respond_to RecordIdentifierController.new, :dom_id
     assert_respond_to RecordIdentifierController.new, :dom_class

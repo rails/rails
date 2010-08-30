@@ -15,10 +15,8 @@ class AssertSelectTest < ActionController::TestCase
 
   class AssertSelectMailer < ActionMailer::Base
     def test(html)
-      recipients "test <test@test.host>"
-      from "test@test.host"
-      subject "Test e-mail"
-      part :content_type=>"text/html", :body=>html
+      mail :body => html, :content_type => "text/html",
+        :subject => "Test e-mail", :from => "test@test.host", :to => "test <test@test.host>"
     end
   end
 

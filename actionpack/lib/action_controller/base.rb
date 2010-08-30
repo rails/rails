@@ -229,5 +229,3 @@ module ActionController
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end
-
-require "action_controller/deprecated/base"
