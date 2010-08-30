@@ -1,13 +1,9 @@
-*2.3.9 (unreleased)*
+*2.3.9 (August 30, 2010)*
 
 * Deprecates config.load_(once_)paths in favor of autolaod_(once_)paths. [fxn]
 
 
 *2.3.8 (May 24, 2010)*
-
-* Version bump.
-
-
 *2.3.7 (May 24, 2010)*
 
 * Version bump.
