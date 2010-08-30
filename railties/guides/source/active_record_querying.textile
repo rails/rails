@@ -234,7 +234,7 @@ h4. Array Conditions
 Now what if that number could vary, say as an argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
 
 <ruby>
-Client.where(["orders_count = ?", params[:orders]])
+Client.where("orders_count = ?", params[:orders])
 </ruby>
 
 Active Record will go through the first element in the conditions value and any additional elements will replace the question marks +(?)+ in the first element.
@@ -242,7 +242,7 @@ Active Record will go through the first element in the conditions value and any 
 Or if you want to specify two conditions, you can do it like:
 
 <ruby>
-Client.where(["orders_count = ? AND locked = ?", params[:orders], false])
+Client.where("orders_count = ? AND locked = ?", params[:orders], false)
 </ruby>
 
 In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with the SQL representation of +false+, which depends on the adapter.
@@ -250,7 +250,7 @@ In this example, the first question mark will be replaced with the value in +par
 The reason for doing code like:
 
 <ruby>
-Client.where(["orders_count = ?", params[:orders]])
+Client.where("orders_count = ?", params[:orders])
 </ruby>
 
 instead of:
