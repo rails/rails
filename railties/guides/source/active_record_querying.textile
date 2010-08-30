@@ -838,13 +838,13 @@ Client.exists?(1,2,3)
 Client.exists?([1,2,3])
 </ruby>
 
-The +exists+ method may also take a +conditions+ option much like find:
+It's even possible to use +exists?+ without any arguments on a model or a relation.
 
 <ruby>
-Client.exists?(:conditions => "first_name = 'Ryan'")
+Client.where(:first_name => 'Ryan').exists?
 </ruby>
 
-It's even possible to use +exists?+ without any arguments:
+The above returns +true+ if there is at least one client with the +first_name+ 'Ryan' and +false+ otherwise.
 
 <ruby>
 Client.exists?
