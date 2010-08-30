@@ -268,8 +268,8 @@ h5. Placeholder Conditions
 Similar to the +(?)+ replacement style of params, you can also specify keys/values hash in your array conditions:
 
 <ruby>
-Client.where(
-  ["created_at >= :start_date AND created_at <= :end_date", { :start_date => params[:start_date], :end_date => params[:end_date] }])
+Client.where("created_at >= :start_date AND created_at <= :end_date",
+  {:start_date => params[:start_date], :end_date => params[:end_date]})
 </ruby>
 
 This makes for clearer readability if you have a large number of variable conditions.
@@ -279,8 +279,8 @@ h5(#array-range_conditions). Range Conditions
 If you're looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the +IN+ SQL statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:
 
 <ruby>
-Client.where(["created_at IN (?)",
-  (params[:start_date].to_date)..(params[:end_date].to_date)])
+Client.where("created_at IN (?)",
+  (params[:start_date].to_date)..(params[:end_date].to_date))
 </ruby>
 
 This would generate the proper query which is great for small ranges but not so good for larger ranges. For example if you pass in a range of date objects spanning a year that's 365 (or possibly 366, depending on the year) strings it will attempt to match your field against.
@@ -301,8 +301,8 @@ h5. Time and Date Conditions
 Things can get *really* messy if you pass in Time objects as it will attempt to compare your field to *every second* in that range:
 
 <ruby>
-Client.where(["created_at IN (?)",
-  (params[:start_date].to_date.to_time)..(params[:end_date].to_date.to_time)])
+Client.where("created_at IN (?)",
+  (params[:start_date].to_date.to_time)..(params[:end_date].to_date.to_time))
 </ruby>
 
 <sql>
@@ -323,14 +323,14 @@ In this example it would be better to use greater-than and less-than operators i
 
 <ruby>
 Client.where(
-  ["created_at > ? AND created_at < ?", params[:start_date], params[:end_date]])
+  "created_at > ? AND created_at < ?", params[:start_date], params[:end_date])
 </ruby>
 
 You can also use the greater-than-or-equal-to and less-than-or-equal-to like this:
 
 <ruby>
 Client.where(
-  ["created_at >= ? AND created_at <= ?", params[:start_date], params[:end_date]])
+  "created_at >= ? AND created_at <= ?", params[:start_date], params[:end_date])
 </ruby>
 
 Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash Conditions":#hash-conditions section later on in the guide.
@@ -344,13 +344,13 @@ NOTE: Only equality, range and subset checking are possible with Hash conditions
 h5. Equality Conditions
 
 <ruby>
-Client.where({ :locked => true })
+Client.where(:locked => true)
 </ruby>
 
 The field name can also be a string:
 
 <ruby>
-Client.where({ 'locked' => true })
+Client.where('locked' => true)
 </ruby>
 
 h5(#hash-range_conditions). Range Conditions
@@ -358,7 +358,7 @@ h5(#hash-range_conditions). Range Conditions
 The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
 
 <ruby>
-Client.where({ :created_at => (Time.now.midnight - 1.day)..Time.now.midnight})
+Client.where(:created_at => (Time.now.midnight - 1.day)..Time.now.midnight)
 </ruby>
 
 This will find all clients created yesterday by using a +BETWEEN+ SQL statement:
@@ -374,7 +374,7 @@ h5. Subset Conditions
 If you want to find records using the +IN+ expression you can pass an array to the conditions hash:
 
 <ruby>
-Client.where({ :orders_count => [1,3,5] })
+Client.where(:orders_count => [1,3,5])
 </ruby>
 
 This code will generate SQL like this:
