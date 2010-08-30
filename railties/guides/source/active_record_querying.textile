@@ -159,14 +159,14 @@ The following may seem very straight forward at first:
 
 <ruby>
 # Very inefficient when users table has thousands of rows.
-User.each do |user|
+User.all.each do |user|
   NewsLetter.weekly_deliver(user)
 end
 </ruby>
 
 But if the total number of rows in the table is very large, the above approach may vary from being under performant to just plain impossible.
 
-This is because +User.each+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
+This is because +User.all.each+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
 
 h5. +find_each+
 
