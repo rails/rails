@@ -129,6 +129,14 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
   end
+  
+  def test_delegation_with_block_works
+    counter = 0
+    assert_nothing_raised do
+      1.minute.times {counter += 1}
+    end
+    assert_equal counter, 60
+  end
 
   protected
     def with_env_tz(new_tz = 'US/Eastern')
