@@ -353,18 +353,21 @@ module Rails
       end
 
       def app_name
-        @app_name ||= File.basename(destination_root)
+        @app_name ||= defined_app_const_base? ? defined_app_name : File.basename(destination_root)
       end
-      
-      alias_method :defined_app_name, :app_name
+
+      def defined_app_name
+        defined_app_const_base.underscore
+      end
 
       def defined_app_const_base
         Rails.respond_to?(:application) && defined?(Rails::Application) &&
           Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
       end
 
+      alias :defined_app_const_base? :defined_app_const_base
+
       def app_const_base
-        defined_app_name # ensures the correct app_name if it's already defined
         @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
 

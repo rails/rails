@@ -129,6 +129,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator.send(:app_const)
     silence(:stdout){ generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
+    assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
   
   def test_rails_update_generates_correct_session_key
