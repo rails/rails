@@ -296,7 +296,6 @@ PKG_FILES = FileList[
   'doc/**/*', 
   'dispatches/**/*', 
   'environments/**/*', 
-  'guides/**/*', 
   'helpers/**/*', 
   'generators/**/*', 
   'html/**/*', 
@@ -323,7 +322,7 @@ spec = Gem::Specification.new do |s|
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
 
-  s.files = PKG_FILES.to_a.delete_if {|f| f =~ %r{\.svn|guides/output}}
+  s.files = PKG_FILES
   s.require_path = 'lib'
   s.bindir = "bin"                               # Use these for applications.
   s.executables = ["rails"]
