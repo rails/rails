@@ -177,8 +177,7 @@ module ActionDispatch
               if parent.is_a?(Symbol) || parent.is_a?(String)
                 parent
               else
-                str = ActiveModel::Naming.plural(parent).singularize
-                remove_namespace(str, parent)
+                ActiveModel::Naming.route_key(parent).singularize
               end
             end
           end
@@ -186,8 +185,7 @@ module ActionDispatch
           if record.is_a?(Symbol) || record.is_a?(String)
             route << record
           else
-            route << ActiveModel::Naming.plural(record)
-            remove_namespace(route, record)
+            route << ActiveModel::Naming.route_key(record)
             route = [route.join("_").singularize] if inflection == :singular
             route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
           end
@@ -195,13 +193,6 @@ module ActionDispatch
           route << routing_type(options)
 
           action_prefix(options) + route.join("_")
-        end
-
-        def remove_namespace(string, parent)
-          if namespace = parent.class.parents.detect { |n| n.respond_to?(:_railtie) }
-            string.sub!(/#{namespace._railtie.railtie_name}_/, '')
-          end
-          string
         end
 
         def extract_record(record_or_hash_or_array)

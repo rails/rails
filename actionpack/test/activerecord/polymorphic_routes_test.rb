@@ -436,7 +436,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def with_namespaced_routes(name)
     with_routing do |set|
       set.draw do
-        namespace(name, :shallow_path => nil, :path => nil, :as => nil) do
+        scope(:module => name) do
           resources :blogs do
             resources :posts
           end
