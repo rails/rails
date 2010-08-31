@@ -6,8 +6,9 @@ module ActiveRecord
       merged_relation = clone
       return merged_relation unless r
 
-      ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) - [:joins, :where]).each do |method|
+      Relation::ASSOCIATION_METHODS.each do |method|
         value = r.send(:"#{method}_values")
+
         unless value.empty?
           if method == :includes
             merged_relation = merged_relation.includes(value)
@@ -17,15 +18,18 @@ module ActiveRecord
         end
       end
 
+      (Relation::MULTI_VALUE_METHODS - [:joins, :where]).each do |method|
+        value = r.send(:"#{method}_values")
+        merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
+      end
+
       merged_relation = merged_relation.joins(r.joins_values)
 
       merged_wheres = @where_values
 
       r.where_values.each do |w|
         if w.respond_to?(:operator) && w.operator == :==
-          merged_wheres = merged_wheres.reject { |p|
-            p.respond_to?(:operator) && p.operator == :== && p.operand1.name == w.operand1.name
-          }
+          merged_wheres = merged_wheres.reject {|p| p.respond_to?(:operator) && p.operator == :== && p.operand1.name == w.operand1.name }
         end
 
         merged_wheres += [w]
@@ -34,9 +38,8 @@ module ActiveRecord
       merged_relation.where_values = merged_wheres
 
       Relation::SINGLE_VALUE_METHODS.reject {|m| m == :lock}.each do |method|
-        unless (value = r.send(:"#{method}_value")).nil?
-          merged_relation.send(:"#{method}_value=", value)
-        end
+        value = r.send(:"#{method}_value")
+        merged_relation.send(:"#{method}_value=", value) unless value.nil?
       end
 
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
