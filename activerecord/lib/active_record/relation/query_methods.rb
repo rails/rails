@@ -52,7 +52,7 @@ module ActiveRecord
     end
 
     def where(opts, *rest)
-      if value = build_where(opts, rest)
+      if opts.present? && value = build_where(opts, rest)
         copy = clone
         copy.where_values += Array.wrap(value)
         copy
