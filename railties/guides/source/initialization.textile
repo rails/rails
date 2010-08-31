@@ -1375,10 +1375,10 @@ the _version_ file contains this code (comments stripped):
     module VERSION #:nodoc:
       MAJOR = 3
       MINOR = 1
-      MINOR = 0
       TINY  = 0
+      BUILD = "beta"
 
-      STRING = [MAJOR, MINOR, TINY].join('.')
+      STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
     end
   end
 </ruby>
