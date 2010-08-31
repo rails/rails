@@ -269,8 +269,9 @@ module ActionView
       # The +options+ hash accepts the same options as url_for.
       #
       # There are a few special +html_options+:
-      # * <tt>:method</tt> - Specifies the anchor name to be appended to the path.
-      # * <tt>:disabled</tt> - Specifies the anchor name to be appended to the path.
+      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>, 
+      #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
+      # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
