@@ -43,20 +43,31 @@ module ActiveRecord
     end
 
     def joins(*args)
-      args.flatten!
-      args.present? ? clone.tap {|r| r.joins_values += args } : clone
+      if args.present?
+        args.flatten!
+        clone.tap {|r| r.joins_values += args }
+      else
+        clone
+      end
     end
 
     def where(opts, *rest)
-      value = build_where(opts, rest)
-      copy = clone
-      copy.where_values += Array.wrap(value) if value
-      copy
+      if value = build_where(opts, rest)
+        copy = clone
+        copy.where_values += Array.wrap(value)
+        copy
+      else
+        clone
+      end
     end
 
     def having(*args)
-      value = build_where(*args)
-      value.present? ? clone.tap {|r| r.having_values += Array.wrap(value) } : clone
+      if args.present?
+        value = build_where(*args)
+        clone.tap {|r| r.having_values += Array.wrap(value) }
+      else
+        clone
+      end
     end
 
     def limit(value)
