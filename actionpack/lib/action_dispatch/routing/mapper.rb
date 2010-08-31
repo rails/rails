@@ -909,6 +909,11 @@ module ActionDispatch
               return true
             end
 
+            if resource_scope?
+              nested { send(method, resources.pop, options, &block) }
+              return true
+            end
+
             options.keys.each do |k|
               (options[:constraints] ||= {})[k] = options.delete(k) if options[k].is_a?(Regexp)
             end
@@ -923,13 +928,6 @@ module ActionDispatch
 
             unless action_options?(options)
               options.merge!(scope_action_options) if scope_action_options?
-            end
-
-            if resource_scope?
-              nested do
-                send(method, resources.pop, options, &block)
-              end
-              return true
             end
 
             false
@@ -1017,11 +1015,11 @@ module ActionDispatch
           end
 
           def id_constraint?
-            @scope[:id].is_a?(Regexp) || (@scope[:constraints] && @scope[:constraints][:id].is_a?(Regexp))
+            @scope[:constraints] && @scope[:constraints][:id].is_a?(Regexp)
           end
 
           def id_constraint
-            @scope[:id] || @scope[:constraints][:id]
+            @scope[:constraints][:id]
           end
 
           def canonical_action?(action, flag)
