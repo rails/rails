@@ -293,31 +293,32 @@ module ActionView
       #
       # If you don't need to attach a form to a model instance, then check out
       # FormTagHelper#form_tag.
-      def form_for(record_or_name_or_array, *args, &proc)
+      def form_for(record, record_object = nil, options = nil, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 
-        options = args.extract_options!
+        options, record_object = record_object, nil if record_object.is_a?(Hash)
+        options ||= {}
 
-        case record_or_name_or_array
+        case record
         when String, Symbol
-          ActiveSupport::Deprecation.warn("Using form_for(:name, @resource) is deprecated. Please use form_for(@resource, :as => :name) instead.", caller) unless args.empty?
-          object_name = record_or_name_or_array
+          ActiveSupport::Deprecation.warn("Using form_for(:name, @resource) is deprecated. Please use form_for(@resource, :as => :name) instead.", caller) if record_object
+          object_name = record
+          object = record_object
         when Array
-          object = record_or_name_or_array.last
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
-          apply_form_for_options!(record_or_name_or_array, options)
-          args.unshift object
+          object = record.last
+          object_name = options[:as] || ActiveModel::Naming.singular(object)
+          apply_form_for_options!(record, options)
         else
-          object = record_or_name_or_array
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          object = record
+          object_name = options[:as] || ActiveModel::Naming.singular(object)
           apply_form_for_options!([object], options)
-          args.unshift object
         end
 
-        (options[:html] ||= {})[:remote] = true if options.delete(:remote)
+        options[:html] ||= {}
+        options[:html][:remote] = options.delete(:remote)
 
-        output = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
-        output << fields_for(object_name, *(args << options), &proc)
+        output  = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
+        output << fields_for(object_name, object, options, &proc)
         output.safe_concat('</form>')
       end
 
