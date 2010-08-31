@@ -70,13 +70,19 @@ module ActiveRecord
             if cache_attribute?(attr_name)
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
             end
-            generated_attribute_methods.module_eval("def #{symbol}; #{access_code}; end", __FILE__, __LINE__)
+            generated_attribute_methods.module_eval("def _#{symbol}; #{access_code}; end; alias #{symbol} _#{symbol}", __FILE__, __LINE__)
           end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
+        send "_#{attr_name}"
+      rescue NoMethodError
+        _read_attribute attr_name
+      end
+
+      def _read_attribute(attr_name)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id'
         if !(value = @attributes[attr_name]).nil?
@@ -89,8 +95,6 @@ module ActiveRecord
           else
             value
           end
-        else
-          nil
         end
       end
 
