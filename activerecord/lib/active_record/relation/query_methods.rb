@@ -11,40 +11,40 @@ module ActiveRecord
 
     def includes(*args)
       args.reject! { |a| a.blank? }
-      clone.tap {|r| r.includes_values = (r.includes_values + args).flatten.uniq if args.present? }
+      args.present? ? clone.tap {|r| r.includes_values = (r.includes_values + args).flatten.uniq } : clone
     end
 
     def eager_load(*args)
-      clone.tap {|r| r.eager_load_values += args if args.present? }
+      args.present? ? clone.tap {|r| r.eager_load_values += args } : clone
     end
 
     def preload(*args)
-      clone.tap {|r| r.preload_values += args if args.present? }
+      args.present? ? clone.tap {|r| r.preload_values += args } : clone
     end
 
     def select(*args)
       if block_given?
         to_a.select {|*block_args| yield(*block_args) }
       else
-        clone.tap {|r| r.select_values += args if args.present? }
+        args.present? ? clone.tap {|r| r.select_values += args  } : clone
       end
     end
 
     def group(*args)
-      clone.tap {|r| r.group_values += args.flatten if args.present? }
+      args.present? ? clone.tap {|r| r.group_values += args.flatten  } : clone
     end
 
     def order(*args)
-      clone.tap {|r| r.order_values += args if args.present? }
+      args.present? ? clone.tap {|r| r.order_values += args  } : clone
     end
 
     def reorder(*args)
-      clone.tap {|r| r.order_values = args if args.present? }
+      args.present? ? clone.tap {|r| r.order_values = args  } : clone
     end
 
     def joins(*args)
       args.flatten!
-      clone.tap {|r| r.joins_values += args if args.present? }
+      args.present? ? clone.tap {|r| r.joins_values += args } : clone
     end
 
     def where(opts, *rest)
@@ -56,7 +56,7 @@ module ActiveRecord
 
     def having(*args)
       value = build_where(*args)
-      clone.tap {|r| r.having_values += Array.wrap(value) if value.present? }
+      value.present? ? clone.tap {|r| r.having_values += Array.wrap(value) } : clone
     end
 
     def limit(value)
