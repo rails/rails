@@ -442,6 +442,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
+      match '/purchases/:token/:filename',
+        :to => 'purchases#fetch',
+        :token => /[[:alnum:]]{10}/,
+        :filename => /(.+)/,
+        :as => :purchase
+
       scope '/countries/:country', :constraints => lambda { |params, req| %[all France].include?(params[:country]) } do
         match '/',       :to => 'countries#index'
         match '/cities', :to => 'countries#cities'
@@ -2096,6 +2102,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/customers/1/export'
     assert_equal 'customers#export', @response.body
     assert_equal '/customers/1/export', customer_export_path(:customer_id => '1')
+  end
+
+  def test_named_character_classes_in_regexp_constraints
+    get '/purchases/315004be7e/Ruby_on_Rails_3.pdf'
+    assert_equal 'purchases#fetch', @response.body
+    assert_equal '/purchases/315004be7e/Ruby_on_Rails_3.pdf', purchase_path(:token => '315004be7e', :filename => 'Ruby_on_Rails_3.pdf')
   end
 
 private
