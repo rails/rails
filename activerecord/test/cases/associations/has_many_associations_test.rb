@@ -147,6 +147,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, companies(:first_firm).limited_clients.find(:all, :limit => nil).size
   end
 
+  def test_find_should_append_to_association_order
+    ordered_clients =  companies(:first_firm).clients_sorted_desc.order('companies.id')
+    assert_equal ['id DESC', 'companies.id'], ordered_clients.order_values
+  end
+
   def test_dynamic_find_last_without_specified_order
     assert_equal companies(:second_client), companies(:first_firm).unsorted_clients.find_last_by_type('Client')
   end
@@ -156,19 +161,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client')
   end
 
-  def test_dynamic_find_order_should_override_association_order
-    assert_equal companies(:first_client), companies(:first_firm).clients_sorted_desc.find(:first, :conditions => "type = 'Client'", :order => 'id')
-    assert_equal companies(:first_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client', :order => 'id')
-  end
-
   def test_dynamic_find_all_should_respect_association_order
     assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find(:all, :conditions => "type = 'Client'")
     assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client')
-  end
-
-  def test_dynamic_find_all_order_should_override_association_order
-    assert_equal [companies(:first_client), companies(:second_client)], companies(:first_firm).clients_sorted_desc.find(:all, :conditions => "type = 'Client'", :order => 'id')
-    assert_equal [companies(:first_client), companies(:second_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client', :order => 'id')
   end
 
   def test_dynamic_find_all_should_respect_association_limit
@@ -1018,19 +1013,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal Comment.find(10), authors(:david).comments_desc.find_by_type('SpecialComment')
   end
 
-  def test_dynamic_find_order_should_override_association_order_for_through
-    assert_equal Comment.find(3), authors(:david).comments_desc.find(:first, :conditions => "comments.type = 'SpecialComment'", :order => 'comments.id')
-    assert_equal Comment.find(3), authors(:david).comments_desc.find_by_type('SpecialComment', :order => 'comments.id')
-  end
-
   def test_dynamic_find_all_should_respect_association_order_for_through
     assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find(:all, :conditions => "comments.type = 'SpecialComment'")
     assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find_all_by_type('SpecialComment')
-  end
-
-  def test_dynamic_find_all_order_should_override_association_order_for_through
-    assert_equal [Comment.find(3), Comment.find(6), Comment.find(7), Comment.find(10)], authors(:david).comments_desc.find(:all, :conditions => "comments.type = 'SpecialComment'", :order => 'comments.id')
-    assert_equal [Comment.find(3), Comment.find(6), Comment.find(7), Comment.find(10)], authors(:david).comments_desc.find_all_by_type('SpecialComment', :order => 'comments.id')
   end
 
   def test_dynamic_find_all_should_respect_association_limit_for_through
