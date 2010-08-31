@@ -59,13 +59,13 @@ module ActiveRecord
       clone.tap {|r| r.having_values += Array.wrap(value) if value.present? }
     end
 
-    def limit(value = true)
+    def limit(value)
       copy = clone
       copy.limit_value = value
       copy
     end
 
-    def offset(value = true)
+    def offset(value)
       clone.tap {|r| r.offset_value = value }
     end
 
@@ -82,11 +82,11 @@ module ActiveRecord
       clone.tap {|r| r.readonly_value = value }
     end
 
-    def create_with(value = true)
+    def create_with(value)
       clone.tap {|r| r.create_with_value = value }
     end
 
-    def from(value = true)
+    def from(value)
       clone.tap {|r| r.from_value = value }
     end
 
