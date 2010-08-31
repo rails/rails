@@ -260,22 +260,26 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
 
   class TopicWithObserverAttachedObserver < ActiveRecord::Observer
     def after_commit(record)
-      record.history.push :"TopicWithObserverAttachedObserver#after_commit"
+      record.history.push "after_commit"
     end
 
     def after_rollback(record)
-      record.history.push :"TopicWithObserverAttachedObserver#after_rollback"
+      record.history.push "after_rollback"
     end
   end
 
   def test_after_commit_called
+    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
+
     topic = TopicWithObserverAttached.new
     topic.save!
 
-    assert topic.history, [:"TopicWithObserverAttachedObserver#after_commit"]
+    assert_equal %w{ after_commit }, topic.history
   end
 
   def test_after_rollback_called
+    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
+
     topic = TopicWithObserverAttached.new
 
     Topic.transaction do
@@ -283,6 +287,6 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert topic.history, [:"TopicWithObserverObserver#after_rollback"]
+    assert_equal %w{ after_rollback }, topic.history
   end
 end

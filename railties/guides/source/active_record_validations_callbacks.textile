@@ -16,7 +16,7 @@ endprologue.
 
 h3. The Object Life Cycle
 
-During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object life cycle</em> so that you can control your application and its data. 
+During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object life cycle</em> so that you can control your application and its data.
 
 Validations allow you to ensure that only valid data is stored in your database. Callbacks and observers allow you to trigger logic before or after an alteration of an object's state.
 
@@ -33,7 +33,7 @@ There are several ways to validate data before it is saved into your database, i
 * Database constraints and/or stored procedures make the validation mechanisms database-dependent and can make testing and maintenance more difficult. However, if your database is used by other applications, it may be a good idea to use some constraints at the database level. Additionally, database-level validations can safely handle some things (such as uniqueness in heavily-used tables) that can be difficult to implement otherwise.
 * Client-side validations can be useful, but are generally unreliable if used alone. If they are implemented using JavaScript, they may be bypassed if JavaScript is turned off in the user's browser. However, if combined with other techniques, client-side validation can be a convenient way to provide users with immediate feedback as they use your site.
 * Controller-level validations can be tempting to use, but often become unwieldy and difficult to test and maintain. Whenever possible, it's a good idea to "keep your controllers skinny":http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model, as it will make your application a pleasure to work with in the long run.
-* Model-level validations are the best way to ensure that only valid data is saved into your database. They are database agnostic, cannot be bypassed by end users, and are convenient to test and maintain. Rails makes them easy to use, provides built-in helpers for common needs, and allows you to create your own validation methods as well. 
+* Model-level validations are the best way to ensure that only valid data is saved into your database. They are database agnostic, cannot be bypassed by end users, and are convenient to test and maintain. Rails makes them easy to use, provides built-in helpers for common needs, and allows you to create your own validation methods as well.
 
 h4. When Does Validation Happen?
 
@@ -57,7 +57,7 @@ We can see how it works by looking at some +rails console+ output:
 => false
 </shell>
 
-Creating and saving a new record will send a SQL +INSERT+ operation to the database. Updating an existing record will send a SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
+Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
 
 CAUTION: There are many ways to change the state of an object in the database. Some methods will trigger validations, but some will not. This means that it's possible to save an object in the database in an invalid state if you aren't careful.
 
@@ -116,7 +116,7 @@ end
 => #<Person id: nil, name: nil>
 >> p.errors
 => {}
-  
+
 >> p.valid?
 => false
 >> p.errors
@@ -126,7 +126,7 @@ end
 => #<Person id: nil, name: nil>
 >> p.errors
 => {:name=>["can't be blank"]}
-  
+
 >> p.save
 => false
 
@@ -197,7 +197,7 @@ end
 
 This validation will work with all of the association types.
 
-CAUTION: Don't use +validates_associated+ on both ends of your associations, they would call each other in an infinite loop.
+CAUTION: Don't use +validates_associated+ on both ends of your associations. They would call each other in an infinite loop.
 
 The default error message for +validates_associated+ is "_is invalid_". Note that each associated object will contain its own +errors+ collection; errors do not bubble up to the calling model.
 
@@ -368,7 +368,7 @@ class LineItem < ActiveRecord::Base
 end
 </ruby>
 
-Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use +validates_inclusion_of :field_name, :in => [true, false]+. 
+Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use +validates_inclusion_of :field_name, :in => [true, false]+.
 
 The default error message for +validates_presence_of+ is "_can't be empty_".
 
@@ -382,7 +382,7 @@ class Account < ActiveRecord::Base
 end
 </ruby>
 
-The validation happens by performing a SQL query into the model's table, searching for an existing record with the same value in that attribute.
+The validation happens by performing an SQL query into the model's table, searching for an existing record with the same value in that attribute.
 
 There is a +:scope+ option that you can use to specify other attributes that are used to limit the uniqueness check:
 
@@ -550,9 +550,9 @@ end
 
 h3. Creating Custom Validation Methods
 
-When the built-in validation helpers are not enough for your needs, you can write your own validation methods. 
+When the built-in validation helpers are not enough for your needs, you can write your own validation methods.
 
-Simply create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using one or more of the +validate+, +validate_on_create+ or +validate_on_update+ class methods, passing in the symbols for the validation methods' names. 
+Simply create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using one or more of the +validate+, +validate_on_create+ or +validate_on_update+ class methods, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective validations will be run in the same order as they were registered.
 
@@ -593,7 +593,7 @@ end
 
 h3. Working with Validation Errors
 
-In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects. 
+In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects.
 
 The following is a list of the most commonly used methods. Please refer to the +ActiveRecord::Errors+ documentation for a list of all the available methods.
 
@@ -611,7 +611,7 @@ person = Person.new
 person.valid? # => false
 person.errors
  # => {:name => ["can't be blank", "is too short (minimum is 3 characters)"]}
- 
+
 person = Person.new(:name => "John Doe")
 person.valid? # => true
 person.errors # => []
@@ -660,7 +660,7 @@ person.errors[:name]
 person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
 </ruby>
-  
+
 Another way to do this is using +[]=+ setter
 
 <ruby>
@@ -739,7 +739,7 @@ person.errors.size # => 0
 
 h3. Displaying Validation Errors in the View
 
-Rails provides built-in helpers to display the error messages of your models in your view templates. 
+Rails provides built-in helpers to display the error messages of your models in your view templates.
 
 h4. +error_messages+ and +error_messages_for+
 
@@ -811,7 +811,7 @@ The name of the class and the id can be changed with the +:class+ and +:id+ opti
 
 h4. Customizing the Error Messages HTML
 
-By default, form fields with errors are displayed enclosed by a +div+ element with the +field_with_errors+ CSS class. However, it's possible to override that. 
+By default, form fields with errors are displayed enclosed by a +div+ element with the +field_with_errors+ CSS class. However, it's possible to override that.
 
 The way form fields with errors are treated is defined by +ActionView::Base.field_error_proc+. This is a +Proc+ that receives two parameters:
 
@@ -865,7 +865,7 @@ The macro-style class methods can also receive a block. Consider using this styl
 class User < ActiveRecord::Base
   validates_presence_of :login, :email
 
-  before_create {|user| user.name = user.login.capitalize 
+  before_create {|user| user.name = user.login.capitalize
 	if user.name.blank?}
 end
 </ruby>
@@ -967,7 +967,7 @@ The +after_initialize+ callback is triggered every time a new object of the clas
 
 h3. Skipping Callbacks
 
-Just as with validations, it's also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data. 
+Just as with validations, it's also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
 
 * +decrement+
 * +decrement_counter+
@@ -982,7 +982,7 @@ Just as with validations, it's also possible to skip callbacks. These methods sh
 
 h3. Halting Execution
 
-As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed. 
+As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed.
 
 The whole callback chain is wrapped in a transaction. If any <em>before</em> callback method returns exactly +false+ or raises an exception the execution chain gets halted and a ROLLBACK is issued; <em>after</em> callbacks can only accomplish that by raising an exception.
 
@@ -990,11 +990,11 @@ WARNING. Raising an arbitrary exception may break code that expects +save+ and f
 
 h3. Relational Callbacks
 
-Callbacks work through model relationships, and can even be defined by them. Let's take an example where a user has many posts. In our example, a user's posts should be destroyed if the user is destroyed. So, we'll add an +after_destroy+ callback to the +User+ model by way of its relationship to the +Post+ model. 
+Callbacks work through model relationships, and can even be defined by them. Let's take an example where a user has many posts. In our example, a user's posts should be destroyed if the user is destroyed. So, we'll add an +after_destroy+ callback to the +User+ model by way of its relationship to the +Post+ model.
 
 <ruby>
 class User < ActiveRecord::Base
-  has_many :posts, :dependent => :destroy    
+  has_many :posts, :dependent => :destroy
 end
 
 class Post < ActiveRecord::Base
@@ -1069,7 +1069,7 @@ Here's an example where we create a class with an +after_destroy+ callback for a
 <ruby>
 class PictureFileCallbacks
   def after_destroy(picture_file)
-    File.delete(picture_file.filepath) 
+    File.delete(picture_file.filepath)
       if File.exists?(picture_file.filepath)
   end
 end
@@ -1088,7 +1088,7 @@ Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we
 <ruby>
 class PictureFileCallbacks
   def self.after_destroy(picture_file)
-    File.delete(picture_file.filepath) 
+    File.delete(picture_file.filepath)
       if File.exists?(picture_file.filepath)
   end
 end
@@ -1144,7 +1144,7 @@ By default, Rails will simply strip "Observer" from an observer's name to find t
 <ruby>
 class MailerObserver < ActiveRecord::Observer
   observe :registration, :user
-  
+
   def after_create(model)
     # code to send confirmation email...
   end

@@ -13,6 +13,8 @@ require 'models/reader'
 require 'models/tagging'
 require 'models/invoice'
 require 'models/line_item'
+require 'models/car'
+require 'models/bulb'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
@@ -45,6 +47,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def setup
     Client.destroyed_client_ids.clear
+  end
+
+  def test_create_from_association_should_respect_default_scope
+    car = Car.create(:name => 'honda')
+    assert_equal 'honda', car.name
+
+    bulb = Bulb.create
+    assert_equal 'defaulty', bulb.name
+
+    bulb = car.bulbs.build
+    assert_equal 'defaulty', bulb.name
+
+    bulb = car.bulbs.create
+    assert_equal 'defaulty', bulb.name
+
+    bulb = car.bulbs.create(:name => 'exotic')
+    assert_equal 'exotic', bulb.name
   end
 
   def test_create_resets_cached_counters
@@ -633,7 +652,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do
-      assert Client.find(client_id).firm.nil?
+      assert_nil Client.find(client_id).firm
     end
   end
 
@@ -658,7 +677,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [client_id], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is dependent.
-    assert Client.find_by_id(client_id).nil?
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_clearing_an_exclusively_dependent_association_collection

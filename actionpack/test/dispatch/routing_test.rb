@@ -40,11 +40,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get  :new, :path => "build"
         post :create, :path => "create", :as => ""
         put  :update
+        get  :remove, :action => :destroy, :as => :remove
+      end
+
+      scope "pagemark", :controller => "pagemarks", :as => :pagemark do
+        get  "new", :path => "build"
+        post "create", :as => ""
+        put  "update"
         get  "remove", :action => :destroy, :as => :remove
       end
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
+      match 'secure', :to => redirect("/secure/login")
 
       constraints(lambda { |req| true }) do
         match 'account/overview'
@@ -128,7 +136,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
 
           member do
-            get  :some_path_with_name
+            get  'some_path_with_name'
             put  :accessible_projects
             post :resend, :generate_new_password
           end
@@ -187,7 +195,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      resources :sheep
+      resources :sheep do
+        get "_it", :on => :member
+      end
 
       resources :clients do
         namespace :google do
@@ -200,22 +210,28 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :customers do
-        get "recent" => "customers#recent", :as => :recent, :on => :collection
-        get "profile" => "customers#profile", :as => :profile, :on => :member
-        post "preview" => "customers#preview", :as => :preview, :on => :new
+        get :recent, :on => :collection
+        get "profile", :on => :member
+        get "secret/profile" => "customers#secret", :on => :member
+        post "preview" => "customers#preview", :as => :another_preview, :on => :new
         resource :avatar do
-          get "thumbnail(.:format)" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+          get "thumbnail" => "avatars#thumbnail", :as => :thumbnail, :on => :member
         end
         resources :invoices do
-          get "outstanding" => "invoices#outstanding", :as => :outstanding, :on => :collection
+          get "outstanding" => "invoices#outstanding", :on => :collection
           get "overdue", :to => :overdue, :on => :collection
           get "print" => "invoices#print", :as => :print, :on => :member
           post "preview" => "invoices#preview", :as => :preview, :on => :new
+          get "aged/:months", :on => :collection, :action => :aged, :as => :aged
         end
         resources :notes, :shallow => true do
           get "preview" => "notes#preview", :as => :preview, :on => :new
           get "print" => "notes#print", :as => :print, :on => :member
         end
+        get "inactive", :on => :collection
+        post "deactivate", :on => :member
+        get "old", :on => :collection, :as => :stale
+        get "export"
       end
 
       namespace :api do
@@ -337,6 +353,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resources :content
 
+      namespace :transport do
+        resources :taxis
+      end
+
+      namespace :medical do
+        resource :taxis
+      end
+
       scope :constraints => { :id => /\d+/ } do
         get '/tickets', :to => 'tickets#index', :as => :tickets
       end
@@ -371,6 +395,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :wiki do
+        resources :articles, :id => /[^\/]+/ do
+          resources :comments, :only => [:create, :new]
+        end
+      end
+
+      resources :wiki_pages, :path => :pages
+      resource :wiki_account, :path => :my_account
+
       scope :only => :show do
         namespace :only do
           resources :sectors, :only => :index do
@@ -404,6 +437,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
         end
       end
+
+      resources :sections, :id => /.+/ do
+        get :preview, :on => :member
+      end
+
+      scope '/countries/:country', :constraints => lambda { |params, req| %[all France].include?(params[:country]) } do
+        match '/',       :to => 'countries#index'
+        match '/cities', :to => 'countries#cities'
+      end
+
+      match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
     end
@@ -613,19 +657,39 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/bookmark/build'
       assert_equal 'bookmarks#new', @response.body
-      assert_equal '/bookmark/build', new_bookmark_path
+      assert_equal '/bookmark/build', bookmark_new_path
 
       post '/bookmark/create'
       assert_equal 'bookmarks#create', @response.body
       assert_equal '/bookmark/create', bookmark_path
 
-      put '/bookmark'
+      put '/bookmark/update'
       assert_equal 'bookmarks#update', @response.body
-      assert_equal '/bookmark', update_bookmark_path
+      assert_equal '/bookmark/update', bookmark_update_path
 
       get '/bookmark/remove'
       assert_equal 'bookmarks#destroy', @response.body
       assert_equal '/bookmark/remove', bookmark_remove_path
+    end
+  end
+
+  def test_pagemarks
+    with_test_routes do
+      get '/pagemark/build'
+      assert_equal 'pagemarks#new', @response.body
+      assert_equal '/pagemark/build', pagemark_new_path
+
+      post '/pagemark/create'
+      assert_equal 'pagemarks#create', @response.body
+      assert_equal '/pagemark/create', pagemark_path
+
+      put '/pagemark/update'
+      assert_equal 'pagemarks#update', @response.body
+      assert_equal '/pagemark/update', pagemark_update_path
+
+      get '/pagemark/remove'
+      assert_equal 'pagemarks#destroy', @response.body
+      assert_equal '/pagemark/remove', pagemark_remove_path
     end
   end
 
@@ -963,6 +1027,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/sheep/1', sheep_path(1)
       assert_equal '/sheep/new', new_sheep_path
       assert_equal '/sheep/1/edit', edit_sheep_path(1)
+      assert_equal '/sheep/1/_it', _it_sheep_path(1)
     end
   end
 
@@ -1528,7 +1593,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       assert_equal '/customers/recent', recent_customers_path
       assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
-      assert_equal '/customers/new/preview', preview_new_customer_path
+      assert_equal '/customers/1/secret/profile', secret_profile_customer_path(:id => '1')
+      assert_equal '/customers/new/preview', another_preview_new_customer_path
       assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
       assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
       assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(:customer_id => '1', :id => '2')
@@ -1541,6 +1607,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/customers/1/invoices/overdue'
       assert_equal 'invoices#overdue', @response.body
+
+      get '/customers/1/secret/profile'
+      assert_equal 'customers#secret', @response.body
     end
   end
 
@@ -1884,9 +1953,162 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resources_are_not_pluralized
+    with_test_routes do
+      get '/transport/taxis'
+      assert_equal 'transport/taxis#index', @response.body
+      assert_equal '/transport/taxis', transport_taxis_path
+
+      get '/transport/taxis/new'
+      assert_equal 'transport/taxis#new', @response.body
+      assert_equal '/transport/taxis/new', new_transport_taxi_path
+
+      post '/transport/taxis'
+      assert_equal 'transport/taxis#create', @response.body
+
+      get '/transport/taxis/1'
+      assert_equal 'transport/taxis#show', @response.body
+      assert_equal '/transport/taxis/1', transport_taxi_path(:id => '1')
+
+      get '/transport/taxis/1/edit'
+      assert_equal 'transport/taxis#edit', @response.body
+      assert_equal '/transport/taxis/1/edit', edit_transport_taxi_path(:id => '1')
+
+      put '/transport/taxis/1'
+      assert_equal 'transport/taxis#update', @response.body
+
+      delete '/transport/taxis/1'
+      assert_equal 'transport/taxis#destroy', @response.body
+    end
+  end
+
+  def test_singleton_resources_are_not_singularized
+    with_test_routes do
+      get '/medical/taxis/new'
+      assert_equal 'medical/taxes#new', @response.body
+      assert_equal '/medical/taxis/new', new_medical_taxis_path
+
+      post '/medical/taxis'
+      assert_equal 'medical/taxes#create', @response.body
+
+      get '/medical/taxis'
+      assert_equal 'medical/taxes#show', @response.body
+      assert_equal '/medical/taxis', medical_taxis_path
+
+      get '/medical/taxis/edit'
+      assert_equal 'medical/taxes#edit', @response.body
+      assert_equal '/medical/taxis/edit', edit_medical_taxis_path
+
+      put '/medical/taxis'
+      assert_equal 'medical/taxes#update', @response.body
+
+      delete '/medical/taxis'
+      assert_equal 'medical/taxes#destroy', @response.body
+    end
+  end
+
+  def test_greedy_resource_id_regexp_doesnt_match_edit_and_custom_action
+    with_test_routes do
+      get '/sections/1/edit'
+      assert_equal 'sections#edit', @response.body
+      assert_equal '/sections/1/edit', edit_section_path(:id => '1')
+
+      get '/sections/1/preview'
+      assert_equal 'sections#preview', @response.body
+      assert_equal '/sections/1/preview', preview_section_path(:id => '1')
+    end
+  end
+
+  def test_resource_constraints_are_pushed_to_scope
+    with_test_routes do
+      get '/wiki/articles/Ruby_on_Rails_3.0'
+      assert_equal 'wiki/articles#show', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0', wiki_article_path(:id => 'Ruby_on_Rails_3.0')
+
+      get '/wiki/articles/Ruby_on_Rails_3.0/comments/new'
+      assert_equal 'wiki/comments#new', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments/new', new_wiki_article_comment_path(:article_id => 'Ruby_on_Rails_3.0')
+
+      post '/wiki/articles/Ruby_on_Rails_3.0/comments'
+      assert_equal 'wiki/comments#create', @response.body
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments', wiki_article_comments_path(:article_id => 'Ruby_on_Rails_3.0')
+    end
+  end
+
+  def test_resources_path_can_be_a_symbol
+    with_test_routes do
+      get '/pages'
+      assert_equal 'wiki_pages#index', @response.body
+      assert_equal '/pages', wiki_pages_path
+
+      get '/pages/Ruby_on_Rails'
+      assert_equal 'wiki_pages#show', @response.body
+      assert_equal '/pages/Ruby_on_Rails', wiki_page_path(:id => 'Ruby_on_Rails')
+
+      get '/my_account'
+      assert_equal 'wiki_accounts#show', @response.body
+      assert_equal '/my_account', wiki_account_path
+    end
+  end
+
+  def test_redirect_https
+    with_test_routes do
+      with_https do
+        get '/secure'
+        verify_redirect 'https://www.example.com/secure/login'
+      end
+    end
+  end
+
+  def test_symbolized_path_parameters_is_not_stale
+    get '/countries/France'
+    assert_equal 'countries#index', @response.body
+
+    get '/countries/France/cities'
+    assert_equal 'countries#cities', @response.body
+
+    get '/countries/UK'
+    verify_redirect 'http://www.example.com/countries/all'
+
+    get '/countries/UK/cities'
+    verify_redirect 'http://www.example.com/countries/all/cities'
+  end
+
+  def test_custom_resource_actions_defined_using_string
+    get '/customers/inactive'
+    assert_equal 'customers#inactive', @response.body
+    assert_equal '/customers/inactive', inactive_customers_path
+
+    post '/customers/1/deactivate'
+    assert_equal 'customers#deactivate', @response.body
+    assert_equal '/customers/1/deactivate', deactivate_customer_path(:id => '1')
+
+    get '/customers/old'
+    assert_equal 'customers#old', @response.body
+    assert_equal '/customers/old', stale_customers_path
+
+    get '/customers/1/invoices/aged/3'
+    assert_equal 'invoices#aged', @response.body
+    assert_equal '/customers/1/invoices/aged/3', aged_customer_invoices_path(:customer_id => '1', :months => '3')
+  end
+
+  def test_route_defined_in_resources_scope_level
+    get '/customers/1/export'
+    assert_equal 'customers#export', @response.body
+    assert_equal '/customers/1/export', customer_export_path(:customer_id => '1')
+  end
+
 private
   def with_test_routes
     yield
+  end
+
+  def with_https
+    old_https = https?
+    https!
+    yield
+  ensure
+    https!(old_https)
   end
 
   def verify_redirect(url, status=301)

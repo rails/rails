@@ -24,9 +24,9 @@ module ActiveRecord
 
       protected
         def construct_find_options!(options)
-          options[:joins]      = @join_sql
+          options[:joins]      = Arel::SqlLiteral.new @join_sql
           options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
-          options[:select]   ||= (@reflection.options[:select] || '*')
+          options[:select]   ||= (@reflection.options[:select] || Arel::SqlLiteral.new('*'))
         end
 
         def count_records
@@ -79,7 +79,7 @@ module ActiveRecord
           else
             relation = Arel::Table.new(@reflection.options[:join_table])
             relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
-              and(Arel::Predicates::In.new(relation[@reflection.association_foreign_key], records.map(&:id)))
+              and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }))
             ).delete
           end
         end
@@ -106,9 +106,9 @@ module ActiveRecord
                         :limit => @reflection.options[:limit] } }
         end
 
-        # Join tables with additional columns on top of the two foreign keys must be considered 
-        # ambiguous unless a select clause has been explicitly defined. Otherwise you can get 
-        # broken records back, if, for example, the join column also has an id column. This will 
+        # Join tables with additional columns on top of the two foreign keys must be considered
+        # ambiguous unless a select clause has been explicitly defined. Otherwise you can get
+        # broken records back, if, for example, the join column also has an id column. This will
         # then overwrite the id column of the records coming back.
         def finding_with_ambiguous_select?(select_clause)
           !select_clause && columns.size != 2
@@ -127,7 +127,7 @@ module ActiveRecord
 
         def record_timestamp_columns(record)
           if record.record_timestamps
-            record.send(:all_timestamp_attributes).map(&:to_s)
+            record.send(:all_timestamp_attributes).map { |x| x.to_s }
           else
             []
           end

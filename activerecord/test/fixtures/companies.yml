@@ -44,17 +44,17 @@ a_third_client:
   ruby_type: Client
 
 rails_core:
-  id: 6          
+  id: 6
   name: RailsCore
   type: DependentFirm
-  
+
 leetsoft:
-  id: 7 
+  id: 7
   name: Leetsoft
   client_of: 6
-  
+
 jadedpixel:
-  id: 8 
+  id: 8
   name: Jadedpixel
   client_of: 6
 

@@ -12,6 +12,8 @@ class FormHelperTest < ActionView::TestCase
     def name
       "Santiago"
     end
+
+    attr_writer :language
   end
 
   def form_for(*)
@@ -165,7 +167,10 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title")
     )
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" size="30" type="password" value="Hello World" />', password_field("post", "title")
+      '<input id="post_title" name="post[title]" size="30" type="password" />', password_field("post", "title")
+    )
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" size="30" type="password" value="Hello World" />', password_field("post", "title", :value => @post.title)
     )
     assert_dom_equal(
       '<input id="person_name" name="person[name]" size="30" type="password" />', password_field("person", "name")
@@ -255,6 +260,17 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       '<input id="developer_name" name="developer[name]" size="30" type="text" value="Santiago" />', text_field("developer", "name")
     )
+  end
+
+  def test_text_field_on_a_model_with_undefined_attr_reader
+    @developer = Developer.new
+    @developer.language = 'ruby'
+    begin
+      text_field("developer", "language")
+    rescue NoMethodError => error
+      message = error.message
+    end
+    assert_equal "Model #{Developer} does not respond to language", message
   end
 
   def test_check_box
@@ -1513,7 +1529,7 @@ class FormHelperTest < ActionView::TestCase
 
   def snowman(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
-    txt << %{<input name="_e" type="hidden" value="&#9731;" />}
+    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
     txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
     txt << %{</div>}
   end

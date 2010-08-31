@@ -1,6 +1,6 @@
-== Welcome to Rails
+== Welcome to \Rails
 
-Rails is a web-application framework that includes everything needed to create
+\Rails is a web-application framework that includes everything needed to create
 database-backed web applications according to the Model-View-Control pattern.
 
 This pattern splits the view (also called the presentation) into "dumb"
@@ -11,30 +11,30 @@ persist themselves to a database. The controller handles the incoming requests
 (such as Save New Account, Update Product, Show Post) by manipulating the model
 and directing data to the view.
 
-In Rails, the model is handled by what's called an object-relational mapping
+In \Rails, the model is handled by what's called an object-relational mapping
 layer entitled Active Record. This layer allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in
-link:files/vendor/rails/activerecord/README.html.
+methods. You can read more about Active Record in its
+{README}[link:files/activerecord/README_rdoc.html].
 
 The controller and view are handled by the Action Pack, which handles both
 layers by its two parts: Action View and Action Controller. These two layers
 are bundled in a single package due to their heavy interdependence. This is
 unlike the relationship between the Active Record and Action Pack that is much
 more separate. Each of these packages can be used independently outside of
-Rails. You can read more about Action Pack in
-link:files/vendor/rails/actionpack/README.html.
+\Rails. You can read more about Action Pack in its
+{README}[link:files/actionpack/README_rdoc.html].
 
 
 == Getting Started
 
-1. Install Rails at the command prompt if you haven't yet:
+1. Install \Rails at the command prompt if you haven't yet:
 
     gem install rails
 
-2. At the command prompt, create a new Rails application:
+2. At the command prompt, create a new \Rails application:
 
-    rails new myapp 
+    rails new myapp
 
    where "myapp" is the application name.
 
@@ -48,20 +48,21 @@ link:files/vendor/rails/actionpack/README.html.
 
     "Welcome aboard: You're riding Ruby on Rails!"
 
-5. Follow the guidelines to start developing your application. You can find 
-the following resources handy:
+5. Follow the guidelines to start developing your application. You can find the following resources handy:
 
 * The README file created within your application.
-* The {Getting Started Guide}[http://guides.rubyonrails.org/getting_started.html].
-* The {Ruby on Rails Tutorial Book}[http://railstutorial.org/book].
+* The {Getting Started with Rails}[http://guides.rubyonrails.org/getting_started.html].
+* The {Ruby on Rails Tutorial}[http://railstutorial.org/book].
+* The {Ruby on Rails guides}[http://guides.rubyonrails.org/getting_started.html].
+* The {API documentation}[http://api.rubyonrails.org].
 
 
 == Contributing
 
-We encourage you to contribute to Ruby on Rails! Please check out the {Contributing to Rails
+We encourage you to contribute to Ruby on \Rails! Please check out the {Contributing to Rails
 guide}[http://edgeguides.rubyonrails.org/contributing_to_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 == License
 
-Ruby on Rails is released under the MIT license.
+Ruby on \Rails is released under the MIT license.

@@ -11,7 +11,12 @@ class AdvAttrTest < ActiveSupport::TestCase
   end
 
   def setup
+    ActiveSupport::Deprecation.silenced = true
     @person = Person.new
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.silenced = false
   end
 
   def test_adv_attr

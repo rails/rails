@@ -1,4 +1,13 @@
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+*Rails 3.1.0 (unreleased)*
+
+* No changes
+
+
+*Rails 3.0.0 (August 29, 2010)*
+
+* Implemented String#strip_heredoc. [fxn]
+
+* Pluggable cache stores: setting config.cache_store = "custom_store" will require 'active_support/cache/custom_store' and look for the CustomStore constant.  #5486 [Mike Perham]
 
 * Removed Object#returning, Object#tap should be used instead. [Santiago Pastorino]
 
@@ -17,9 +26,6 @@
 * ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 [Paul Mucur, fxn]
 
 * Date#since, #ago, #beginning_of_day, #end_of_day, and #xmlschema honor now the user time zone if set. [Geoff Buesing]
-
-
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Extracted String#truncate from TextHelper#truncate [DHH]
 
@@ -73,31 +79,22 @@
 
 * JSON: encode objects that don't have a native JSON representation using to_hash, if available, instead of instance_values (the old fallback) or to_s (other encoders' default). Encode BigDecimal and Regexp encode as strings to conform with other encoders. Try to transcode non-UTF-8 strings.  [Jeremy Kemper]
 
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
-
 * HashWithIndifferentAccess: remove inherited symbolize_keys! since its keys are always strings.  [Santiago Pastorino]
 
 * Improve transliteration quality.  #4374 [Norman Clarke]
 
 * Speed up and add Ruby 1.9 support for ActiveSupport::Multibyte::Chars#tidy_bytes.  #4350 [Norman Clarke]
 
-
-*Rails 3.0.0 [beta 2] (April 1st, 2010)*
-
 * Reduced load time by deferring configuration of classes using
   ActiveSupport::on_load(:component_name) [YK]
 
 * Rename #metaclass to #singleton_class now that ruby-core has decided [JK]
 
-* New assertions assert_blank and assert_present.  #4299 [Juanjo Bazan] 
+* New assertions assert_blank and assert_present.  #4299 [Juanjo Bazan]
 
 * Use Object#singleton_class instead of #metaclass. Prefer Ruby's choice.  [Jeremy Kemper]
 
 * JSON backend for YAJL. Preferred if available.  #2666 [Brian Lopez]
-
-
-*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Introduce class_attribute to declare inheritable class attributes. Writing an attribute on a subclass behaves just like overriding the superclass reader method.  Unifies and replaces most usage of cattr_accessor, class_inheritable_attribute, superclass_delegating_attribute, and extlib_inheritable_attribute.  [Jeremy Kemper, Yehuda Katz]
 
@@ -243,10 +240,10 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
 * Fix Ruby's Time marshaling bug in pre-1.9 versions of Ruby: utc instances are now correctly unmarshaled with a utc zone instead of the system local zone [#900 state:resolved] [Luca Guidi, Geoff Buesing]
 
 * Add Array#in_groups which splits or iterates over the array in specified number of groups. #579. [Adrian Mugnolo] Example:
-  
+
   a = (1..10).to_a
-  a.in_groups(3)        #=> [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
-  a.in_groups(3, false) #=> [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+  a.in_groups(3)        # => [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
+  a.in_groups(3, false) # => [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
 
 * Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
 
@@ -331,7 +328,7 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
 
 * TZInfo: Removing unneeded TimezoneProxy class [Geoff Buesing]
 
-* TZInfo: Removing unneeded TimezoneIndexDefinition, since we're not including Indexes::Timezones [Geoff Buesing] 
+* TZInfo: Removing unneeded TimezoneIndexDefinition, since we're not including Indexes::Timezones [Geoff Buesing]
 
 * Removing unnecessary uses_tzinfo helper from tests, given that TZInfo is now bundled [Geoff Buesing]
 
@@ -339,7 +336,7 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
 
 * TimeWithZone#marshal_load does zone lookup via Time.get_zone, so that tzinfo/Olson identifiers are handled [Geoff Buesing]
 
-* Time.zone= accepts TZInfo::Timezone instances and Olson identifiers; wraps result in TimeZone instance [Geoff Buesing] 
+* Time.zone= accepts TZInfo::Timezone instances and Olson identifiers; wraps result in TimeZone instance [Geoff Buesing]
 
 * TimeWithZone time conversions don't need to be wrapped in TimeOrDateTime, because TZInfo does this internally [Geoff Buesing]
 
@@ -433,7 +430,7 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
 
 * TimeZone#to_s uses UTC rather than GMT; reapplying change that was undone in [8679]. #1689 [Cheah Chu Yeow]
 
-* Time.days_in_month defaults to current year if no year is supplied as argument #10799 [Radar], uses Date.gregorian_leap? to determine leap year, and uses constant lookup to determine days in month [Geoff Buesing]  
+* Time.days_in_month defaults to current year if no year is supplied as argument #10799 [Radar], uses Date.gregorian_leap? to determine leap year, and uses constant lookup to determine days in month [Geoff Buesing]
 
 * Adding Time and DateTime #compare_with_coercion, which layers behavior on #<=> so that any combination of Time, DateTime and ActiveSupport::TimeWithZone instances can be chronologically compared [Geoff Buesing]
 
@@ -510,7 +507,7 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
 
 * Introduce a base class for all test cases used by rails applications. ActiveSupport::TestCase [Michael Koziarski]
 
-  The intention is to use this to reduce the amount of monkeypatching / overriding that 
+  The intention is to use this to reduce the amount of monkeypatching / overriding that
   is done to test/unit's classes.
 
 * Document Enumerable and Hash #to_json.  #9970 [Cheah Chu Yeow]
@@ -679,14 +676,14 @@ ActiveSupport.escape_html_entities_in_json from true to false to match previousl
       <name>David</name>
       <avatar type="file" name="me.jpg" content_type="image/jpg">R0lGODlhkACZAPUAAM5lcfjrtMQCG=\n</avatar>
     </person>
-  
+
   ...becomes:
-  
+
     attributes = { :person => { :name => "David", :avatar => #<StringIO> } }
     attributes[:person][:avatar].content_type      # => "image/jpg"
     attributes[:person][:avatar].original_filename # => "me.jpg"
     attributes[:person][:avatar].read # => binary data of the file
-  
+
   Which is duck-type compatible with the files that you get when doing multipart uploads through HTML.
 
 * Improved multibyte performance by relying less on exception raising #8159 [Blaine]
@@ -889,11 +886,11 @@ public for compatibility.  [Jeremy Kemper]
     class Content < ActiveRecord::Base
       # has a title attribute
     end
- 
+
     class Email < ActiveRecord::Base
       alias_attribute :subject, :title
     end
- 
+
     e = Email.find(1)
     e.title    # => "Superstars"
     e.subject  # => "Superstars"
@@ -942,7 +939,7 @@ public for compatibility.  [Jeremy Kemper]
 * Enhance Symbol#to_proc so it works with list objects, such as multi-dimensional arrays. Closes #5295 [nov@yo.rim.or.jp].  Example:
 
     {1 => "one", 2 => "two", 3 => "three"}.sort_by(&:first).map(&:last)
-    #=> ["one", "two", "three"]
+    # => ["one", "two", "three"]
 
 * Added Hash.create_from_xml(string) which will create a hash from a XML string and even typecast if possible [David Heinemeier Hansson]. Example:
 
@@ -952,9 +949,9 @@ public for compatibility.  [Jeremy Kemper]
         <created-at type="date">2004-10-10</created-at>
       </note>
     EOT
-  
+
   ...would return:
-  
+
     { :note => { :title => "This is a note", :created_at => Date.new(2004, 10, 10) } }
 
 * Added Jim Weirich's excellent FlexMock class to vendor (Copyright 2003, 2004 by Jim Weirich (jim@weriichhouse.org)) -- it's not automatically required, though, so require 'flexmock' is still necessary [David Heinemeier Hansson]
@@ -966,28 +963,28 @@ public for compatibility.  [Jeremy Kemper]
 * Add OrderedHash#values. [Sam Stephenson]
 
 * Added Array#to_s(:db) that'll produce a comma-separated list of ids [David Heinemeier Hansson]. Example:
-    
+
     Purchase.find(:all, :conditions => "product_id IN (#{shops.products.to_s(:db)})"
 
-* Normalize classify's argument to a String so that it plays nice with Symbols. [Marcel Molina Jr.] 
+* Normalize classify's argument to a String so that it plays nice with Symbols. [Marcel Molina Jr.]
 
 * Strip out leading schema name in classify. References #5139. [Michael Schoen]
 
 * Remove Enumerable#first_match since break(value) handles the use case well enough. [Nicholas Seckar]
 
   Enumerable#first_match was like detect, but instead of returning the matching element, the yielded value returned. For example:
-  
+
     user_xml = adapters(:from => User, :to => Xml).first_match do |adapter|
       adapter.adapt @user
     end
-  
+
   But this is just as easily done with:
-  
+
     user_xml = adapters(:from => User, :to => Xml).each do
       break adapter.adapt(@user)
     end
-  
-* Make Array#in_groups_of just return the grouped collection if a block isn't given. [Marcel Molina Jr.] 
+
+* Make Array#in_groups_of just return the grouped collection if a block isn't given. [Marcel Molina Jr.]
 
 * Don't destroy a HashWithIndifferentAccess if symbolize_keys! or  stringify_keys! is called on it. Closes #5076. [Marcel Molina Jr., guy.naor@famundo.com]
 
@@ -999,7 +996,7 @@ public for compatibility.  [Jeremy Kemper]
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
-* Allow default options in with_options to be overridden. Closes #4480. [murphy@cYcnus.de] 
+* Allow default options in with_options to be overridden. Closes #4480. [murphy@cYcnus.de]
 
 * Added Module#alias_method_chain [Jamis Buck]
 
@@ -1050,7 +1047,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 * Added Hash#to_xml and Array#to_xml that makes it much easier to produce XML from basic structures [David Heinemeier Hansson]. Examples:
 
     { :name => "David", :street_name => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml
-    
+
   ...returns:
 
       <person>
@@ -1069,7 +1066,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 
   ex.
 
-     latest_transcripts.group_by(&:day).each do |day, transcripts| 
+     latest_transcripts.group_by(&:day).each do |day, transcripts|
        p "#{day} -> #{transcripts.map(&:class) * ', '}"
      end
      "2006-03-01 -> Transcript"
@@ -1093,7 +1090,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 
 * Add 'around' methods to Logger,  to make it easy to log before and after messages for a given block as requested in #3809. [Michael Koziarski]  Example:
 
-  logger.around_info("Start rendering component (#{options.inspect}): ", 
+  logger.around_info("Start rendering component (#{options.inspect}): ",
                      "\n\nEnd of component rendering") { yield }
 
 * Added Time#beginning_of_quarter #3607 [cohen.jeff@gmail.com]
@@ -1111,7 +1108,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
       delegate :free?, :paying?, :to => :subscription
       delegate :overdue?, :to => "subscription.last_payment"
     end
-    
+
     account.free?    # => account.subscription.free?
     account.overdue? # => account.subscription.last_payment.overdue?
 
@@ -1126,7 +1123,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 * Add Reloadable::Subclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. [Nicholas Seckar]
 
 * Further improvements to reloading code [Nicholas Seckar, Trevor Squires]
-  
+
   - All classes/modules which include Reloadable can define reloadable? for fine grained control of reloading
   - Class.remove_class uses Module#parent to access the parent module
   - Class.remove_class expanded to handle multiple classes in a single call
@@ -1138,7 +1135,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
     class Setting
       include Reloadable
     end
-  
+
   Reloading a class is done by removing its constant which will cause it to be loaded again on the next reference. [David Heinemeier Hansson]
 
 * Added auto-loading support for classes in modules, so Conductor::Migration will look for conductor/migration.rb and Conductor::Database::Settings will look for conductor/database/settings.rb [Nicholas Seckar]
@@ -1175,7 +1172,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 * Add Symbol#to_proc, which allows for, e.g. [:foo, :bar].map(&:to_s). [Marcel Molina Jr.]
 
 * Added the following methods [Marcel Molina Jr., Sam Stephenson]:
-  * Object#copy_instance_variables_from(object) to copy instance variables from one object to another 
+  * Object#copy_instance_variables_from(object) to copy instance variables from one object to another
   * Object#extended_by to get an instance's included/extended modules
   * Object#extend_with_included_modules_from(object) to extend an instance with the modules from another instance
 
@@ -1226,7 +1223,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 
 *1.2.0* (October 16th, 2005)
 
-* Update Exception extension to show the first few framework frames in an application trace. [Nicholas Seckar] 
+* Update Exception extension to show the first few framework frames in an application trace. [Nicholas Seckar]
 
 * Added Exception extension to provide support for clean backtraces. [Nicholas Seckar]
 
@@ -1275,9 +1272,9 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
     Inflector.inflections do |inflect|
       inflect.plural /^(ox)$/i, '\1\2en'
       inflect.singular /^(ox)en/i, '\1'
-    
+
       inflect.irregular 'octopus', 'octopi'
-    
+
       inflect.uncountable "equipment"
     end
 
@@ -1360,9 +1357,9 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 * Added Object#suppress which allows you to make a saner choice around with exceptions to swallow #980. Example:
 
     suppress(ZeroDivisionError) { 1/0 }
-  
+
   ...instead of:
-  
+
     1/0 rescue nil # BAD, EVIL, DIRTY.
 
 
@@ -1376,7 +1373,7 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
         values << 'baz'
       end
     end
-    
+
     foo # => ['bar', 'baz']
 
 

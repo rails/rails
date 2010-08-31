@@ -375,7 +375,7 @@ module Commands
                       "Enables updating but does not add a svn:externals entry.") { |v| @method = :checkout }
         o.on(         "-e", "--export",
                       "Use svn export to grab the plugin.",
-                      "Exports the plugin, allowing you to check it into your local repository. Does not enable updates, or add an svn:externals entry.") { |v| @method = :export }
+                      "Exports the plugin, allowing you to check it into your local repository. Does not enable updates or add an svn:externals entry.") { |v| @method = :export }
         o.on(         "-q", "--quiet",
                       "Suppresses the output from installation.",
                       "Ignored if -v is passed (rails plugin -v install ...)") { |v| @options[:quiet] = true }

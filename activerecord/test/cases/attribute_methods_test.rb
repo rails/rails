@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
+require 'models/boolean'
 require 'models/computer'
 require 'models/topic'
 require 'models/company'
@@ -10,7 +11,7 @@ require 'models/reply'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
-  
+
   def setup
     @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
     @target = Class.new(ActiveRecord::Base)
@@ -101,7 +102,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
-      bool = Booleantest.create({ "value" => false })
+      bool = Boolean.create({ "value" => false })
       assert_equal "0", bool.reload.attributes_before_type_cast["value"]
     end
   end
@@ -119,9 +120,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         assert_equal developer.created_at_before_type_cast, "345643456"
         assert_equal developer.created_at, nil
 
-        developer.created_at = "2010-03-21T21:23:32+01:00"
-        assert_equal developer.created_at_before_type_cast, "2010-03-21T21:23:32+01:00"
-        assert_equal developer.created_at, Time.parse("2010-03-21T21:23:32+01:00")
+        developer.created_at = "2010-03-21 21:23:32"
+        assert_equal developer.created_at_before_type_cast, "2010-03-21 21:23:32"
+        assert_equal developer.created_at, Time.parse("2010-03-21 21:23:32")
       end
     end
   end
@@ -534,9 +535,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
-    
-    assert_equal [:field_a], Topic.skip_time_zone_conversion_for_attributes 
-    assert_equal [:field_b], Minimalistic.skip_time_zone_conversion_for_attributes 
+
+    assert_equal [:field_a], Topic.skip_time_zone_conversion_for_attributes
+    assert_equal [:field_b], Minimalistic.skip_time_zone_conversion_for_attributes
   end
 
   def test_read_attributes_respect_access_control

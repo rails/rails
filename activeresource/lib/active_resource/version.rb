@@ -1,9 +1,9 @@
 module ActiveResource
   module VERSION #:nodoc:
     MAJOR = 3
-    MINOR = 0
+    MINOR = 1
     TINY  = 0
-    BUILD = "rc"
+    BUILD = "beta"
 
     STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
   end

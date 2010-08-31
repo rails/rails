@@ -1,8 +1,5 @@
-gem 'rdoc', '>= 2.5.9'
-require 'rdoc'
 require 'rake'
 require 'rake/testtask'
-require 'rdoc/task'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
@@ -35,24 +32,6 @@ Rake::TestTask.new(:test_active_record_integration) do |t|
   t.libs << 'test'
   t.test_files = Dir.glob("test/activerecord/*_test.rb")
 end
-
-# Genereate the RDoc documentation
-
-RDoc::Task.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Action Pack -- On rails from request to response"
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.options << '-f' << 'horo'
-  rdoc.options << '--main' << 'README.rdoc'
-  if ENV['DOC_FILES']
-    rdoc.rdoc_files.include(ENV['DOC_FILES'].split(/,\s*/))
-  else
-    rdoc.rdoc_files.include('README.rdoc', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
-    rdoc.rdoc_files.include(Dir['lib/**/*.rb'] -
-                            Dir['lib/*/vendor/**/*.rb'])
-    rdoc.rdoc_files.exclude('lib/actionpack.rb')
-  end
-}
 
 spec = eval(File.read('actionpack.gemspec'))
 

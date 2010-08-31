@@ -1,8 +1,5 @@
 dir = File.dirname(__FILE__)
 
-gem 'rdoc', '>= 2.5.9'
-require 'rdoc'
-
 require 'rake/testtask'
 
 task :default => :test
@@ -21,21 +18,6 @@ namespace :test do
     end or raise "Failures"
   end
 end
-
-
-require 'rdoc/task'
-
-# Generate the RDoc documentation
-RDoc::Task.new do |rdoc|
-  rdoc.rdoc_dir = "doc"
-  rdoc.title    = "Active Model"
-  rdoc.options << '-f' << 'horo'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.options << '--main' << 'README.rdoc'
-  rdoc.rdoc_files.include("README.rdoc", "CHANGELOG")
-  rdoc.rdoc_files.include("lib/**/*.rb")
-end
-
 
 require 'rake/packagetask'
 require 'rake/gempackagetask'

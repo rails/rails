@@ -18,38 +18,38 @@ modules:
 
     class Person
       include ActiveModel::AttributeMethods
-      
+
       attribute_method_prefix 'clear_'
       define_attribute_methods [:name, :age]
-      
+
       attr_accessor :name, :age
-      
+
       def clear_attribute(attr)
         send("#{attr}=", nil)
       end
     end
-    
+
     person.clear_name
     person.clear_age
-  
+
   {Learn more}[link:classes/ActiveModel/AttributeMethods.html]
-  
+
 * Callbacks for certain operations
 
     class Person
       extend ActiveModel::Callbacks
       define_model_callbacks :create
-    
+
       def create
         _run_create_callbacks do
           # Your create action methods here
         end
       end
     end
-  
+
   This generates +before_create+, +around_create+ and +after_create+
   class methods that wrap your create method.
-  
+
   {Learn more}[link:classes/ActiveModel/CallBacks.html]
 
 * Tracking value changes
@@ -66,36 +66,36 @@ modules:
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
-  
+
   {Learn more}[link:classes/ActiveModel/Dirty.html]
 
 * Adding +errors+ interface to objects
 
   Exposing error messages allows objects to interact with Action Pack
   helpers seamlessly.
-  
+
     class Person
-    
+
       def initialize
         @errors = ActiveModel::Errors.new(self)
       end
-    
+
       attr_accessor :name
       attr_reader   :errors
-    
+
       def validate!
         errors.add(:name, "can not be nil") if name == nil
       end
-    
+
       def ErrorsPerson.human_attribute_name(attr, options = {})
         "Name"
       end
-    
+
     end
-    
+
     person.errors.full_messages
     # => ["Name Can not be nil"]
-    
+
     person.errors.full_messages
     # => ["Name Can not be nil"]
 
@@ -106,9 +106,9 @@ modules:
     class NamedPerson
       extend ActiveModel::Naming
     end
-    
-    NamedPerson.model_name        #=> "NamedPerson"
-    NamedPerson.model_name.human  #=> "Named person"
+
+    NamedPerson.model_name        # => "NamedPerson"
+    NamedPerson.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 
@@ -117,19 +117,19 @@ modules:
   ActiveModel::Observers allows your object to implement the Observer
   pattern in a Rails App and take advantage of all the standard observer
   functions.
-  
+
   {Learn more}[link:classes/ActiveModel/Observer.html]
 
 * Making objects serializable
 
   ActiveModel::Serialization provides a standard interface for your object
   to provide +to_json+ or +to_xml+ serialization.
-  
+
     s = SerialPerson.new
     s.serializable_hash   # => {"name"=>nil}
     s.to_json             # => "{\"name\":null}"
     s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
-  
+
   {Learn more}[link:classes/ActiveModel/Serialization.html]
 
 * Internationalization (i18n) support
@@ -137,10 +137,10 @@ modules:
     class Person
       extend ActiveModel::Translation
     end
-    
+
     Person.human_attribute_name('my_attribute')
-    #=> "My attribute"
-  
+    # => "My attribute"
+
   {Learn more}[link:classes/ActiveModel/Translation.html]
 
 * Validation support
@@ -157,10 +157,10 @@ modules:
 
    person = Person.new
    person.first_name = 'zoolander'
-   person.valid?  #=> false
+   person.valid?  # => false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
-  
+
 * Custom validators
 
    class Person
@@ -168,17 +168,17 @@ modules:
      validates_with HasNameValidator
      attr_accessor :name
    end
-   
+
    class HasNameValidator < ActiveModel::Validator
      def validate(record)
       record.errors[:name] = "must exist" if record.name.blank?
      end
    end
-   
+
    p = ValidatorPerson.new
-   p.valid?                  #=>  false
-   p.errors.full_messages    #=> ["Name must exist"]
+   p.valid?                  # =>  false
+   p.errors.full_messages    # => ["Name must exist"]
    p.name = "Bob"
-   p.valid?                  #=>  true
+   p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]

@@ -21,7 +21,7 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
       assert_respond_to @klass.new, :a=
     end
   end
-  
+
   def test_writer_declaration_without_instance_writer
     assert_nothing_raised do
       @klass.class_inheritable_writer :a, :instance_writer => false
@@ -39,7 +39,7 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
       assert_respond_to @klass.new, :a=
     end
   end
-  
+
   def test_accessor_declaration_without_instance_writer
     assert_nothing_raised do
       @klass.class_inheritable_accessor :a, :instance_writer => false
@@ -176,37 +176,37 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
     assert_equal 'b', @klass.b
     assert_equal 'B', @sub.b
   end
-  
+
   def test_array_inheritance
     @klass.class_inheritable_accessor :a
     @klass.a = []
 
     @sub = eval("class SubbyArray < @klass; end; SubbyArray")
-    
+
     assert_equal [], @klass.a
     assert_equal [], @sub.a
-    
+
     @sub.a << :first
-    
+
     assert_equal [:first], @sub.a
     assert_equal [], @klass.a
   end
-  
+
   def test_array_inheritance_
     @klass.class_inheritable_accessor :a
     @klass.a = {}
 
     @sub = eval("class SubbyHash < @klass; end; SubbyHash")
-    
+
     assert_equal Hash.new, @klass.a
     assert_equal Hash.new, @sub.a
-    
+
     @sub.a[:first] = :first
-    
+
     assert_equal 1, @sub.a.keys.size
     assert_equal 0, @klass.a.keys.size
   end
-  
+
   def test_reset_inheritable_attributes
     @klass.class_inheritable_accessor :a
     @klass.a = 'a'

@@ -1,8 +1,10 @@
 h2. Active Support Core Extensions
 
-Active Support is the Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff. It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Rails itself.
+Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff.
 
-By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Rails.
+It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Ruby on Rails itself.
+
+By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Active Support.
 
 endprologue.
 
@@ -84,30 +86,23 @@ The following values are considered to be blank in a Rails application:
 
 WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
 
-For example, this method from +ActionDispatch::Response+ uses +blank?+ to easily be robust to +nil+ and whitespace strings in one shot:
+For example, this method from +ActionDispatch::Session::AbstractStore+ uses +blank?+ for checking whether a session key is present:
 
 <ruby>
-def charset
-  charset = String(headers["Content-Type"] || headers["type"]).split(";")[1]
-  charset.blank? ? nil : charset.strip.split("=")[1]
+def ensure_session_key!
+  if @key.blank?
+    raise ArgumentError, 'A key is required...'
+  end
 end
 </ruby>
 
-That's a typical use case for +blank?+.
-
-Here, the method Rails runs to instantiate observers upon initialization has nothing to do if there are none:
+The method +present?+ is equivalent to +!blank?+. This example is taken from +ActionDispatch::Http::Cache::Response+:
 
 <ruby>
-def instantiate_observers
-  return if @observers.blank?
-  # ...
+def set_conditional_cache_control!
+  return if self["Cache-Control"].present?
+  ...
 end
-</ruby>
-
-The method +present?+ is equivalent to +!blank?+:
-
-<ruby>
-assert @response.body.present? # same as !@response.body.blank?
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/blank.rb+.
@@ -151,28 +146,17 @@ Active Support provides +duplicable?+ to programmatically query an object about 
 false.duplicable?  # => false
 </ruby>
 
-By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, numbers, and class objects.
+By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, numbers, and class and module objects.
 
-WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
+WARNING. Any class can disallow duplication removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell whether a given arbitrary object is duplicable. +duplicable?+ depends on the hard-coded list above, but it is much faster than +rescue+. Use it only if you know the hard-coded list is enough in your use case.
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +try+
 
-Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
+Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
 
-For instance, note how this method of +ActiveRecord::ConnectionAdapters::AbstractAdapter+ checks if there's a +@logger+:
-
-<ruby>
-def log_info(sql, name, ms)
-  if @logger && @logger.debug?
-    name = '%s (%.1fms)' % [name || 'SQL', ms]
-    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
-  end
-end
-</ruby>
-
-You can shorten that using +Object#try+. This method is a synonym for +Object#send+ except that it returns +nil+ if sent to +nil+. The previous example could then be rewritten as:
+For instance, in this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you save the check and write in an optimistic style:
 
 <ruby>
 def log_info(sql, name, ms)
@@ -364,7 +348,7 @@ That idiom may convey _grouping_ to the reader as well. For example, say you wan
 <ruby>
 I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
   subject i18n.t :subject
-  body    i18n.t :body, :user_name => user.name 
+  body    i18n.t :body, :user_name => user.name
 end
 </ruby>
 
@@ -778,7 +762,7 @@ class Counter
 end
 </ruby>
 
-The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block. 
+The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block.
 
 NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
@@ -1123,7 +1107,7 @@ module ActiveRecord
 end
 </ruby>
 
-Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
+Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point.
 
 NOTE: Defined in +active_support/core_ext/class/inheritable_attributes.rb+.
 
@@ -1155,7 +1139,7 @@ NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
 h5. +descendants+
 
-The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver: 
+The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver:
 
 <ruby>
 class C; end
@@ -1276,7 +1260,7 @@ Pass a +:separator+ to truncate the string at a natural break:
 
 <ruby>
 "Oh dear! Oh dear! I shall be late!".truncate(18)
-# => "Oh dear! Oh dea..." 
+# => "Oh dear! Oh dea..."
 "Oh dear! Oh dear! I shall be late!".truncate(18, :separator => ' ')
 # => "Oh dear! Oh..."
 </ruby>
@@ -1311,6 +1295,31 @@ Active Support defines 3rd person aliases of +String#start_with?+ and +String#en
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/string/starts_ends_with.rb+.
+
+h4. +strip_heredoc+
+
+The method +strip_heredoc+ strips indentation in heredocs.
+
+For example in
+
+<ruby>
+if options[:usage]
+  puts <<-USAGE.strip_heredoc
+    This command does such and such.
+
+    Supported options are:
+      -h         This message
+      ...
+  USAGE
+end
+</ruby>
+
+the user would see the usage message aligned against the left margin.
+
+Technically, it looks for the least indented line in the whole string, and removes
+that amount of leading whitespace.
+
+NOTE: Defined in +active_support/core_ext/string/strip.rb+.
 
 h4. Access
 
@@ -1701,27 +1710,7 @@ foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h4. Conversions
-
-h5. +constantize+
-
-The method +constantize+ expects the receiver to contain the name of a constant, and tries to get you the object stored in there, assuming it is defined:
-
-<ruby>
-"ActiveRecord::Base".constantize # => ActiveRecord::Base
-</ruby>
-
-The name is assumed to be top-level, no matter whether it starts with "::" or not. No lexical context is taken into account:
-
-<ruby>
-C = 1
-module M
-  C = 2
-  "C".constantize # => 1, same as "::C".constantize
-end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
+h4(#string-conversions). Conversions
 
 h5. +ord+
 
@@ -1767,7 +1756,7 @@ The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wr
 <ruby>
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
 "2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
-"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000 
+"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 </ruby>
 
 +to_time+ receives an optional argument +:utc+ or +:local+, to indicate which time zone you want the time in:
@@ -2057,7 +2046,7 @@ This method receives an arbitrary number of action names, and an optional hash o
 
 NOTE: Defined in +active_support/core_ext/array/extract_options.rb+.
 
-h4. Conversions
+h4(#array-conversions). Conversions
 
 h5. +to_sentence+
 
@@ -2242,7 +2231,7 @@ There's also a related idiom that uses the splat operator:
 [*object]
 </ruby>
 
-which returns +[nil]+ for +nil+, and calls to <tt>Array(object)</tt> otherwise
+which in Ruby 1.8 returns +[nil]+ for +nil+, and calls to <tt>Array(object)</tt> otherwise. (Please if you know the exact behavior in 1.9 contact fxn.)
 
 Thus, in this case the behavior is different for +nil+, and the differences with <tt>Kernel#Array</tt> explained above apply to the rest of +object+s.
 
@@ -3001,7 +2990,7 @@ Date.new(2010, 1, 31).change(:month => 2)
 # => ArgumentError: invalid date
 </ruby>
 
-h5. Durations
+h5(#date-durations). Durations
 
 Durations can be added and substracted to dates:
 
@@ -3048,14 +3037,14 @@ h6. +ago+, +since+
 The method +ago+ receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
 
 <ruby>
-date = Date.current # => Fri, 11 Jun 2010 
+date = Date.current # => Fri, 11 Jun 2010
 date.ago(1)         # => Thu, 10 Jun 2010 23:59:59 EDT -04:00
 </ruby>
 
 Similarly, +since+ moves forward:
 
 <ruby>
-date = Date.current # => Fri, 11 Jun 2010 
+date = Date.current # => Fri, 11 Jun 2010
 date.since(1)       # => Fri, 11 Jun 2010 00:00:01 EDT -04:00
 </ruby>
 
@@ -3207,7 +3196,7 @@ DateTime.current.change(:month => 2, :day => 30)
 # => ArgumentError: invalid date
 </ruby>
 
-h5. Durations
+h5(#datetime-durations). Durations
 
 Durations can be added and substracted to datetimes:
 
@@ -3320,7 +3309,7 @@ Both +local_time+ and +utc_time+ accept up to seven positional arguments: year, 
 
 If the time to be constructed lies beyond the range supported by +Time+ in the runtime platform, usecs are discarded and a +DateTime+ object is returned instead.
 
-h5. Durations
+h5(#time-durations). Durations
 
 Durations can be added and substracted to time objects:
 

@@ -462,7 +462,7 @@ module ActionView
           text.gsub(AUTO_LINK_RE) do
             scheme, href = $1, $&
             punctuation = []
-            
+
             if auto_linked?($`, $')
               # do not change string; URL is already linked
               href
@@ -507,7 +507,7 @@ module ActionView
             end
           end
         end
-        
+
         # Detects already linked context or position in the middle of a tag
         def auto_linked?(left, right)
           (left =~ AUTO_LINK_CRE[0] and right =~ AUTO_LINK_CRE[1]) or

@@ -19,6 +19,6 @@ class Module
   def anonymous?
     # Uses blank? because the name of an anonymous class is an empty
     # string in 1.8, and nil in 1.9.
-    name.blank? 
+    name.blank?
   end
 end

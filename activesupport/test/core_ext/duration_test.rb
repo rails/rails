@@ -117,13 +117,13 @@ class DurationTest < ActiveSupport::TestCase
   ensure
     Time.zone_default = nil
   end
-  
+
   def test_adding_hours_across_dst_boundary
     with_env_tz 'CET' do
       assert_equal Time.local(2009,3,29,0,0,0) + 24.hours, Time.local(2009,3,30,1,0,0)
     end
   end
-  
+
   def test_adding_day_across_dst_boundary
     with_env_tz 'CET' do
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)

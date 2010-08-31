@@ -182,7 +182,7 @@ module HTML
   # not another using <tt>:not</tt>. For example:
   #   p:not(.post)
   # Matches all paragraphs that do not have the class <tt>.post</tt>.
-  #   
+  #
   # === Substitution Values
   #
   # You can use substitution with identifiers, class names and element values.

@@ -1,6 +1,7 @@
-require "date"
+require 'date'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/object/with_options'
 
 module ActionView
   module Helpers
@@ -751,10 +752,8 @@ module ActionView
         #  => [nil, "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         #           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         def translated_month_names
-          begin
-            key = @options[:use_short_month] ? :'date.abbr_month_names' : :'date.month_names'
-            I18n.translate(key, :locale => @options[:locale])
-          end
+          key = @options[:use_short_month] ? :'date.abbr_month_names' : :'date.month_names'
+          I18n.translate(key, :locale => @options[:locale])
         end
 
         # Lookup month name for number
@@ -781,9 +780,7 @@ module ActionView
         memoize :date_order
 
         def translated_date_order
-          begin
-            I18n.translate(:'date.order', :locale => @options[:locale]) || []
-          end
+          I18n.translate(:'date.order', :locale => @options[:locale]) || []
         end
 
         # Build full select tag from date type and options
@@ -837,15 +834,14 @@ module ActionView
         #  prompt_option_tag(:month, :prompt => 'Select month')
         #  => "<option value="">Select month</option>"
         def prompt_option_tag(type, options)
-          default_options = {:year => false, :month => false, :day => false, :hour => false, :minute => false, :second => false}
-
-          case options
-          when Hash
-            prompt = default_options.merge(options)[type.to_sym]
-          when String
-            prompt = options
-          else
-            prompt = I18n.translate(('datetime.prompts.' + type.to_s).to_sym, :locale => @options[:locale])
+          prompt = case options
+            when Hash
+              default_options = {:year => false, :month => false, :day => false, :hour => false, :minute => false, :second => false}
+              default_options.merge!(options)[type.to_sym]
+            when String
+              options
+            else
+              I18n.translate(:"datetime.prompts.#{type}", :locale => @options[:locale])
           end
 
           prompt ? content_tag(:option, prompt, :value => '') : ''

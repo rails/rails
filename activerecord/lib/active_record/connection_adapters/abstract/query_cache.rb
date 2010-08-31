@@ -57,14 +57,6 @@ module ActiveRecord
         end
       end
 
-      def columns(*)
-        if @query_cache_enabled
-          @query_cache["SHOW FIELDS FROM #{args.first}"] ||= super
-        else
-          super
-        end
-      end
-
       private
         def cache_sql(sql)
           result =

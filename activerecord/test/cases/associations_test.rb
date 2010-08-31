@@ -70,7 +70,7 @@ class AssociationsTest < ActiveRecord::TestCase
     ship.parts.send(:load_target)
     assert_equal 'Deck', ship.parts[0].name
   end
-  
+
 
   def test_include_with_order_works
     assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
@@ -107,7 +107,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
   end
-  
+
   def test_using_limitable_reflections_helper
     using_limitable_reflections = lambda { |reflections| Tagging.scoped.send :using_limitable_reflections?, reflections }
     belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
@@ -117,7 +117,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
     assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
-  
+
   def test_force_reload_is_uncached
     firm = Firm.create!("name" => "A New Firm, Inc")
     client = Client.create!("name" => "TheClient.com", :firm => firm)

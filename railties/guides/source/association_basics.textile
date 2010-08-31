@@ -550,7 +550,7 @@ build_customer
 create_customer
 </ruby>
 
-h6. _association_(force_reload = false)
+h6. <tt>_association_(force_reload = false)</tt>
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
 
@@ -560,7 +560,7 @@ The <tt><em>association</em></tt> method returns the associated object, if any. 
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass +true+ as the +force_reload+ argument.
 
-h6. _association_=(associate)
+h6. <tt>_association_=(associate)</tt>
 
 The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
@@ -568,7 +568,7 @@ The <tt><em>association</em>=</tt> method assigns an associated object to this o
 @order.customer = @customer
 </ruby>
 
-h6. build_<em>association</em>(attributes = {})
+h6(#belongs_to-build_association). <tt>build_<em>association</em>(attributes = {})</tt>
 
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
 
@@ -577,7 +577,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
   :customer_name => "John Doe")
 </ruby>
 
-h6. create_<em>association</em>(attributes = {})
+h6(#belongs_to-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
 
@@ -629,7 +629,7 @@ end
 
 h6(#belongs_to-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -835,7 +835,7 @@ The <tt><em>association</em>=</tt> method assigns an associated object to this o
 @supplier.account = @account
 </ruby>
 
-h6. <tt>build_<em>association</em>(attributes = {})</tt>
+h6(#has_one-build_association). <tt>build_<em>association</em>(attributes = {})</tt>
 
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will _not_ yet be saved.
 
@@ -843,7 +843,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
 @account = @supplier.build_account(:terms => "Net 30")
 </ruby>
 
-h6. <tt>create_<em>association</em>(attributes = {})</tt>
+h6(#has_one-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
 
@@ -899,7 +899,7 @@ end
 
 h6(#has_one-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -961,7 +961,7 @@ end
 
 h6(#has_one-order). +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
 
 h6(#has_one-primary_key). +:primary_key+
 
@@ -985,7 +985,7 @@ The +:source_type+ option specifies the source association type for a +has_one :
 
 h6(#has_one-through). +:through+
 
-The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
+The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has_one-through-association">earlier in this guide</a>.
 
 h6(#has_one-validate). +:validate+
 
@@ -1136,7 +1136,7 @@ h6. <tt><em>collection</em>.exists?(...)</tt>
 
 The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
-h6. <tt><em>collection</em>.build(attributes = {}, ...)</tt>
+h6(#has_many_collection_build). <tt><em>collection</em>.build(attributes = {}, ...)</tt>
 
 The <tt><em>collection</em>.build</tt> method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
@@ -1209,7 +1209,7 @@ end
 
 h6(#has_many-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1335,7 +1335,7 @@ The +:offset+ option lets you specify the starting offset for fetching objects v
 
 h6(#has_many-order). +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1367,7 +1367,7 @@ The +:source_type+ option specifies the source association type for a +has_many 
 
 h6(#has_many-through). +:through+
 
-The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has-many-through-association">earlier in this guide</a>.
+The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has_many-through-association">earlier in this guide</a>.
 
 h6(#has_many-uniq). +:uniq+
 
@@ -1401,8 +1401,8 @@ person = Person.create(:name => 'honda')
 post   = Post.create(:name => 'a1')
 person.posts << post
 person.posts << post
-person.posts.inspect # => [#<Post id: 7, name: "a1">] 
-Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>] 
+person.posts.inspect # => [#<Post id: 7, name: "a1">]
+Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>]
 </ruby>
 
 In the above case there are still two readings. However +person.posts+ shows only one post because the collection loads only unique records.
@@ -1553,7 +1553,7 @@ h6(#has_and_belongs_to_many-collection-exists). <tt><em>collection</em>.exists?(
 
 The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
-h6. <tt><em>collection</em>.build(attributes = {})</tt>
+h6(#has_and_belongs_to_many-collection-build). <tt><em>collection</em>.build(attributes = {})</tt>
 
 The <tt><em>collection</em>.build</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
 
@@ -1635,7 +1635,7 @@ end
 
 h6(#has_and_belongs_to_many-conditions). +:conditions+
 
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
+The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
 
 <ruby>
 class Parts < ActiveRecord::Base
@@ -1724,7 +1724,7 @@ The +:offset+ option lets you specify the starting offset for fetching objects v
 
 h6(#has_and_belongs_to_many-order). +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
 
 <ruby>
 class Parts < ActiveRecord::Base
@@ -1760,9 +1760,9 @@ If you want to assign an object to a +has_and_belongs_to_many+ association witho
 
 h4. Association Callbacks
 
-Normal callbacks hook into the lifecycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a +:before_save+ callback to cause something to happen just before an object is saved.
+Normal callbacks hook into the life cycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a +:before_save+ callback to cause something to happen just before an object is saved.
 
-Association callbacks are similar to normal callbacks, but they are triggered by events in the lifecycle of a collection. There are four available association callbacks:
+Association callbacks are similar to normal callbacks, but they are triggered by events in the life cycle of a collection. There are four available association callbacks:
 
 * +before_add+
 * +after_add+

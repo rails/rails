@@ -249,8 +249,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal customer1, order.billing
     assert_equal customer2, order.shipping
 
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +2, Customer.count
+    assert_equal num_orders + 1, Order.count
+    assert_equal num_customers + 2, Customer.count
   end
 
   def test_store_association_in_two_relations_with_one_save
@@ -268,8 +268,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal customer, order.billing
     assert_equal customer, order.shipping
 
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +1, Customer.count
+    assert_equal num_orders + 1, Order.count
+    assert_equal num_customers + 1, Customer.count
   end
 
   def test_store_association_in_two_relations_with_one_save_in_existing_object
@@ -287,8 +287,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal customer, order.billing
     assert_equal customer, order.shipping
 
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +1, Customer.count
+    assert_equal num_orders + 1, Order.count
+    assert_equal num_customers + 1, Customer.count
   end
 
   def test_store_association_in_two_relations_with_one_save_in_existing_object_with_values
@@ -311,14 +311,14 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal customer, order.billing
     assert_equal customer, order.shipping
 
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +2, Customer.count
+    assert_equal num_orders + 1, Order.count
+    assert_equal num_customers + 2, Customer.count
   end
 
   def test_store_association_with_a_polymorphic_relationship
     num_tagging = Tagging.count
     tags(:misc).create_tagging(:taggable => posts(:thinking))
-    assert_equal num_tagging +1, Tagging.count
+    assert_equal num_tagging + 1, Tagging.count
   end
 end
 
@@ -372,7 +372,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     assert firm.save
     assert !client.new_record?
-    assert_equal no_of_clients+1, Client.count
+    assert_equal no_of_clients + 1, Client.count
   end
 
   def test_invalid_build
@@ -403,8 +403,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert !new_firm.new_record?
     assert !c.new_record?
     assert_equal new_firm, c.firm
-    assert_equal no_of_firms+1, Firm.count      # Firm was saved to database.
-    assert_equal no_of_clients+2, Client.count  # Clients were saved to database.
+    assert_equal no_of_firms + 1, Firm.count      # Firm was saved to database.
+    assert_equal no_of_clients + 2, Client.count  # Clients were saved to database.
 
     assert_equal 2, new_firm.clients_of_firm.size
     assert_equal 2, new_firm.clients_of_firm(true).size
@@ -685,7 +685,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
       assert_difference("#{association_name.classify}.count", -2) { @pirate.save! }
     end
-    
+
     define_method("test_should_skip_validation_on_the_#{association_name}_association_if_destroyed") do
       @pirate.send(association_name).create!(:name => "#{association_name}_1")
       children = @pirate.send(association_name)
@@ -1061,7 +1061,7 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_allow_to_bypass_validations_on_the_associated_models_on_create
-    assert_difference("#{ @association_name == :birds ? 'Bird' : 'Parrot' }.count", +2) do
+    assert_difference("#{ @association_name == :birds ? 'Bird' : 'Parrot' }.count", 2) do
       2.times { @pirate.send(@association_name).build }
       @pirate.save(:validate => false)
     end

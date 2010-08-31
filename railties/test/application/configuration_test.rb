@@ -172,17 +172,27 @@ module ApplicationTests
       assert $prepared
     end
 
+    def assert_utf8
+      if RUBY_VERSION < '1.9'
+        assert_equal "UTF8", $KCODE
+      else
+        assert_equal Encoding::UTF_8, Encoding.default_external
+        assert_equal Encoding::UTF_8, Encoding.default_internal
+      end
+    end
+
+    test "skipping config.encoding still results in 'utf-8' as the default" do
+      require "#{app_path}/config/application"
+      assert_utf8
+    end
+
     test "config.encoding sets the default encoding" do
       add_to_config <<-RUBY
         config.encoding = "utf-8"
       RUBY
 
       require "#{app_path}/config/application"
-
-      unless RUBY_VERSION < '1.9'
-        assert_equal Encoding::UTF_8, Encoding.default_external
-        assert_equal Encoding::UTF_8, Encoding.default_internal
-      end
+      assert_utf8
     end
 
     test "config.paths.public sets Rails.public_path" do

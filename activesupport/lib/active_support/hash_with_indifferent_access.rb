@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/keys'
 
 # This class has dubious semantics and we only have it so that
@@ -25,6 +24,12 @@ module ActiveSupport
         self[key]
       else
         super
+      end
+    end
+
+    def self.new_from_hash_copying_default(hash)
+      ActiveSupport::HashWithIndifferentAccess.new(hash).tap do |new_hash|
+        new_hash.default = hash.default
       end
     end
 
@@ -102,7 +107,7 @@ module ActiveSupport
     # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
     # This overloaded definition prevents returning a regular hash, if reverse_merge is called on a HashWithDifferentAccess.
     def reverse_merge(other_hash)
-      super other_hash.with_indifferent_access
+      super self.class.new_from_hash_copying_default(other_hash)
     end
 
     def reverse_merge!(other_hash)
@@ -133,9 +138,9 @@ module ActiveSupport
       def convert_value(value)
         case value
         when Hash
-          value.with_indifferent_access
+          self.class.new_from_hash_copying_default(value)
         when Array
-          value.collect { |e| e.is_a?(Hash) ? e.with_indifferent_access : e }
+          value.collect { |e| e.is_a?(Hash) ? self.class.new_from_hash_copying_default(e) : e }
         else
           value
         end

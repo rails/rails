@@ -106,7 +106,7 @@ class TestMailer < ActionMailer::Base
     cc         "Foo áëô îü <extended@example.net>"
     bcc        "Foo áëô îü <extended@example.net>"
     charset    "UTF-8"
-    
+
     body       "åœö blah"
   end
 
@@ -334,6 +334,7 @@ class ActionMailerTest < Test::Unit::TestCase
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.raise_delivery_errors = true
     ActionMailer::Base.deliveries.clear
+    ActiveSupport::Deprecation.silenced = true
 
     @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
@@ -343,6 +344,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def teardown
     TestMailer.logger = @original_logger
+    ActiveSupport::Deprecation.silenced = false
     restore_delivery_method
   end
 
@@ -359,7 +361,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "text/plain", created.parts[0].parts[0].mime_type
     assert_equal "text/html", created.parts[0].parts[1].mime_type
     assert_equal "application/octet-stream", created.parts[1].mime_type
-    
+
   end
 
   def test_nested_parts_with_body
@@ -392,14 +394,14 @@ class ActionMailerTest < Test::Unit::TestCase
     expected = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there, \n\nMr. #{@recipient}"
+    expected.body    = "Hello there,\n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.now
 
     created = nil
     assert_nothing_raised { created = TestMailer.signed_up(@recipient) }
     assert_not_nil created
-    
+
     expected.message_id = '<123@456>'
     created.message_id = '<123@456>'
 
@@ -420,7 +422,7 @@ class ActionMailerTest < Test::Unit::TestCase
     expected         = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there, \n\nMr. #{@recipient}"
+    expected.body    = "Hello there,\n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
 
@@ -503,7 +505,7 @@ class ActionMailerTest < Test::Unit::TestCase
     delivered = ActionMailer::Base.deliveries.first
     expected.message_id = '<123@456>'
     delivered.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, delivered.encoded
   end
 
@@ -546,10 +548,10 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.different_reply_to @recipient
     end
     assert_not_nil created
-    
+
     expected.message_id = '<123@456>'
     created.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
@@ -558,10 +560,10 @@ class ActionMailerTest < Test::Unit::TestCase
 
     delivered = ActionMailer::Base.deliveries.first
     assert_not_nil delivered
-    
+
     expected.message_id = '<123@456>'
     delivered.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, delivered.encoded
   end
 
@@ -581,7 +583,7 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.iso_charset @recipient
     end
     assert_not_nil created
-    
+
     expected.message_id = '<123@456>'
     created.message_id = '<123@456>'
 
@@ -596,7 +598,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
     expected.message_id = '<123@456>'
     delivered.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, delivered.encoded
   end
 
@@ -631,7 +633,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
     expected.message_id = '<123@456>'
     delivered.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, delivered.encoded
   end
 
@@ -761,10 +763,10 @@ EOF
 
     delivered = ActionMailer::Base.deliveries.first
     assert_not_nil delivered
-    
+
     expected.message_id = '<123@456>'
     delivered.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, delivered.encoded
   end
 
@@ -887,7 +889,7 @@ EOF
     assert_equal "iso-8859-1", mail.parts[1].charset
 
     assert_equal "image/jpeg", mail.parts[2].mime_type
-    
+
     assert_equal "attachment", mail.parts[2][:content_disposition].disposition_type
     assert_equal "foo.jpg", mail.parts[2][:content_disposition].filename
     assert_equal "foo.jpg", mail.parts[2][:content_type].filename
@@ -1005,7 +1007,7 @@ EOF
     attachment = mail.attachments.last
 
     expected = "01 Quien Te Dij\212at. Pitbull.mp3"
-    
+
     if expected.respond_to?(:force_encoding)
       result = attachment.filename.dup
       expected.force_encoding(Encoding::ASCII_8BIT)
@@ -1094,113 +1096,5 @@ EOF
     TestMailer.signed_up(@recipient).deliver
   ensure
     TestMailer.smtp_settings.merge!(:enable_starttls_auto => true)
-  end
-end
-
-class InheritableTemplateRootTest < ActiveSupport::TestCase
-  def test_attr
-    expected = File.expand_path("#{File.dirname(__FILE__)}/../fixtures/path.with.dots")
-    assert_equal expected, FunkyPathMailer.template_root.to_s
-
-    sub = Class.new(FunkyPathMailer)
-    assert_deprecated do
-      sub.template_root = 'test/path'
-    end
-
-    assert_equal File.expand_path('test/path'), sub.template_root.to_s
-    assert_equal expected, FunkyPathMailer.template_root.to_s
-  end
-end
-
-class MethodNamingTest < ActiveSupport::TestCase
-  include ActionMailer::TestHelper
-
-  class TestMailer < ActionMailer::Base
-    def send
-      body       'foo'
-    end
-  end
-
-  def setup
-    set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
-  end
-
-  def teardown
-    restore_delivery_method
-  end
-
-  def test_send_method
-    assert_nothing_raised do
-      assert_emails 1 do
-        assert_deprecated do
-          TestMailer.deliver_send
-        end
-      end
-    end
-  end
-end
-class RespondToTest < Test::Unit::TestCase
-  class RespondToMailer < ActionMailer::Base; end
-
-  def setup
-    set_delivery_method :test
-  end
-
-  def teardown
-    restore_delivery_method
-  end
-
-  def test_should_respond_to_new
-    assert_respond_to RespondToMailer, :new
-  end
-
-  def test_should_respond_to_create_with_template_suffix
-    assert_respond_to RespondToMailer, :create_any_old_template
-  end
-
-  def test_should_respond_to_deliver_with_template_suffix
-    assert_respond_to RespondToMailer, :deliver_any_old_template
-  end
-
-  def test_should_not_respond_to_new_with_template_suffix
-    assert !RespondToMailer.respond_to?(:new_any_old_template)
-  end
-
-  def test_should_not_respond_to_create_with_template_suffix_unless_it_is_separated_by_an_underscore
-    assert !RespondToMailer.respond_to?(:createany_old_template)
-  end
-
-  def test_should_not_respond_to_deliver_with_template_suffix_unless_it_is_separated_by_an_underscore
-    assert !RespondToMailer.respond_to?(:deliverany_old_template)
-  end
-
-  def test_should_not_respond_to_create_with_template_suffix_if_it_begins_with_a_uppercase_letter
-    assert !RespondToMailer.respond_to?(:create_Any_old_template)
-  end
-
-  def test_should_not_respond_to_deliver_with_template_suffix_if_it_begins_with_a_uppercase_letter
-    assert !RespondToMailer.respond_to?(:deliver_Any_old_template)
-  end
-
-  def test_should_not_respond_to_create_with_template_suffix_if_it_begins_with_a_digit
-    assert !RespondToMailer.respond_to?(:create_1_template)
-  end
-
-  def test_should_not_respond_to_deliver_with_template_suffix_if_it_begins_with_a_digit
-    assert !RespondToMailer.respond_to?(:deliver_1_template)
-  end
-
-  def test_should_not_respond_to_method_where_deliver_is_not_a_suffix
-    assert !RespondToMailer.respond_to?(:foo_deliver_template)
-  end
-
-  def test_should_still_raise_exception_with_expected_message_when_calling_an_undefined_method
-    error = assert_raise NoMethodError do
-      RespondToMailer.not_a_method
-    end
-
-    assert_match(/method.*not_a_method/, error.message)
   end
 end

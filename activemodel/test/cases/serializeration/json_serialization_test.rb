@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/contact'
+require 'models/automobile'
 require 'active_support/core_ext/object/instance_variables'
 
 class Contact
@@ -105,15 +106,15 @@ class JsonSerializationTest < ActiveModel::TestCase
 
   test "should return OrderedHash for errors" do
     car = Automobile.new
-    
+
     # run the validation
-    car.valid? 
-    
+    car.valid?
+
     hash = ActiveSupport::OrderedHash.new
     hash[:make]  = "can't be blank"
     hash[:model] = "is too short (minimum is 2 characters)"
     assert_equal hash.to_json, car.errors.to_json
   end
-  
-  
+
+
 end

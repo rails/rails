@@ -355,6 +355,8 @@ module Rails
       def app_name
         @app_name ||= File.basename(destination_root)
       end
+      
+      alias_method :defined_app_name, :app_name
 
       def defined_app_const_base
         Rails.respond_to?(:application) && defined?(Rails::Application) &&
@@ -362,6 +364,7 @@ module Rails
       end
 
       def app_const_base
+        defined_app_name # ensures the correct app_name if it's already defined
         @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
@@ -394,6 +397,7 @@ module Rails
         when "postgresql" then "pg"
         when "sqlite3"    then "sqlite3-ruby"
         when "frontbase"  then "ruby-frontbase"
+        when "mysql"      then "mysql2"
         else options[:database]
         end
       end
@@ -415,7 +419,7 @@ module Rails
           "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless Config::CONFIG['host_os'] =~ /mswin|mingw/
+        ].find { |f| File.exist?(f) } unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
       end
 
       def empty_directory_with_gitkeep(destination, config = {})

@@ -1,4 +1,21 @@
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+*Rails 3.1.0 (unreleased)*
+
+* No changes
+
+
+*Rails 3.0.0 (August 29, 2010)*
+
+* password_field renders with nil value by default making the use of passwords secure by default, if you want to render you should do for instance f.password_field(:password, :value => @user.password) [Santiago Pastorino]
+
+* Symbols and strings in routes should yield the same behavior. Note this may break existing apps that were using symbols with the new routes API. [José Valim]
+
+* Add clear_helpers as a way to clean up all helpers added to this controller, maintaing just the helper with the same name as the controller. [José Valim]
+
+* See http://github.com/rails/rails/compare/v3.0.0_RC...v3.0.0_RC2 for gory details
+
+* Support routing constraints in functional tests. [Andrew White]
+
+* Add a header that tells Internet Explorer (all versions) to use the best available standards support. [Yehuda Katz]
 
 * Allow stylesheet/javascript extensions to be changed through railties. [Josh Kalderimis]
 
@@ -26,15 +43,12 @@
         resources :comments
       end
     end
-    
+
     You can now use comment_path for /comments/1 instead of post_comment_path for /posts/1/comments/1.
 
 * Add support for multi-subdomain session by setting cookie host in session cookie so you can share session between www.example.com, example.com and user.example.com. #4818 [Guillermo Álvarez]
 
 * Removed textilize, textilize_without_paragraph and markdown helpers. [Santiago Pastorino]
-
-
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
 
 * Remove middleware laziness [José Valim]
 
@@ -51,9 +65,6 @@
 * Add support for shorthand routes like /projects/status(.:format)  #4423 [Diego Carrion]
 
 * Changed translate helper so that it doesn’t mark every translation as safe HTML. Only keys with a "_html" suffix and keys named "html" are considered to be safe HTML. All other translations are left untouched. [Craig Davey]
-
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
 
 * New option :as added to form_for allows to change the object name. The old <% form_for :client, @post %> becomes <% form_for @post, :as => :client %> [spastorino]
 
@@ -89,9 +100,6 @@
   "HEAD" and #request_method returns "GET" in HEAD requests). This
   is for compatibility with Rack::Request [YK]
 
-
-*Rails 3.0.0 [beta 2] (April 1st, 2010)*
-
 * #concat is now deprecated in favor of using <%= %> helpers [YK]
 
 * Block helpers now return Strings, so you can use <%= form_for @foo do |f| %>.
@@ -110,7 +118,7 @@
 * ActionDispatch::Request#content_type returns a String to be compatible with
   Rack::Request. Use #content_mime_type for the Mime::Type instance [YK]
 
-* Updated Prototype to 1.6.1 and Scriptaculous to 1.8.3 [ML] 
+* Updated Prototype to 1.6.1 and Scriptaculous to 1.8.3 [ML]
 
 * Change the preferred way that URL helpers are included into a class[YK & CL]
 
@@ -119,9 +127,6 @@
 
     # for just url_for
     include Rails.application.router.url_for
-
-
-*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Fixed that PrototypeHelper#update_page should return html_safe [DHH]
 

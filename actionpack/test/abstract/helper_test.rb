@@ -4,7 +4,7 @@ ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers',
 
 module AbstractController
   module Testing
-  
+
     class ControllerWithHelpers < AbstractController::Base
       include AbstractController::Rendering
       include Helpers
@@ -13,13 +13,13 @@ module AbstractController
         render :inline => "Module <%= included_method %>"
       end
     end
-   
+
     module HelperyTest
       def included_method
         "Included"
       end
     end
-   
+
     class AbstractHelpers < ControllerWithHelpers
       helper(HelperyTest) do
         def helpery_test
@@ -38,6 +38,10 @@ module AbstractController
       end
     end
 
+    class ::HelperyTestController < AbstractHelpers
+      clear_helpers
+    end
+
     class AbstractHelpersBlock < ControllerWithHelpers
       helper do
         include ::AbstractController::Testing::HelperyTest
@@ -45,7 +49,6 @@ module AbstractController
     end
 
     class TestHelpers < ActiveSupport::TestCase
-
       def setup
         @controller = AbstractHelpers.new
       end
@@ -74,8 +77,22 @@ module AbstractController
         @controller.process(:with_module)
         assert_equal "Module Included", @controller.response_body
       end
-
     end
-    
+
+    class ClearHelpersTest < ActiveSupport::TestCase
+      def setup
+        @controller = HelperyTestController.new
+      end
+
+      def test_clears_up_previous_helpers
+        @controller.process(:with_symbol)
+        assert_equal "I respond to bare_a: false", @controller.response_body
+      end
+
+      def test_includes_controller_default_helper
+        @controller.process(:with_block)
+        assert_equal "Hello Default", @controller.response_body
+      end
+    end
   end
 end

@@ -6,10 +6,10 @@
 # EMAIL NOTIFICATION
 # ------------------
 
-# CruiseControl.rb can notify you about build status via email. It uses the Action Mailer component of Ruby on Rails 
-# framework. Obviously, Action Mailer needs to know how to send out email messages. 
+# CruiseControl.rb can notify you about build status via email. It uses the Action Mailer component of Ruby on Rails
+# framework. Obviously, Action Mailer needs to know how to send out email messages.
 # If you have an SMTP server on your network, and it needs no authentication, write this in your site_config.rb:
-# 
+#
 ActionMailer::Base.smtp_settings = {
   :address =>        "localhost",
   :domain =>         "ci.rubyonrails.org",
@@ -26,8 +26,8 @@ ActionMailer::Base.smtp_settings = {
 #   :user_name =>      "yourgmailaccount",
 #   :password =>       "yourgmailpassword"
 # }
-# 
-# The same approach works for other SMTP servers thet require authentication. Note that GMail's SMTP server runs on a 
+#
+# The same approach works for other SMTP servers thet require authentication. Note that GMail's SMTP server runs on a
 # non-standard port 587 (standard port for SMTP is 25).
 #
 # For further details about configuration of outgoing email, see Ruby On Rails documentation for ActionMailer::Base.
@@ -63,7 +63,7 @@ Configuration.serialize_builds = true
 # Amount of time a project will wait to build before failing when build serialization is on
 Configuration.serialized_build_timeout = 3.hours
 
-# To delete build when there are more than a certain number present, uncomment this line - it will make the dashboard 
+# To delete build when there are more than a certain number present, uncomment this line - it will make the dashboard
 # perform better
 BuildReaper.number_of_builds_to_keep = 100
 

@@ -12,8 +12,16 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
-if defined?(Encoding.default_internal)
-  Encoding.default_internal = "UTF-8"
+require 'active_support/core_ext/kernel/reporting'
+
+require 'active_support/core_ext/string/encoding'
+if "ruby".encoding_aware?
+  # These are the normal settings that will be set up by Railties
+  # TODO: Have these tests support other combinations of these values
+  silence_warnings do
+    Encoding.default_internal = "UTF-8"
+    Encoding.default_external = "UTF-8"
+  end
 end
 
 require 'test/unit'
@@ -218,7 +226,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)  
+    path = File.join(File.dirname(__FILE__), "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else

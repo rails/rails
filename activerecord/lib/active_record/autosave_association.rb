@@ -2,14 +2,14 @@ require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
   # = Active Record Autosave Association
-  # 
-  # AutosaveAssociation is a module that takes care of automatically saving
-  # associacted records when parent is saved. In addition to saving, it
+  #
+  # +AutosaveAssociation+ is a module that takes care of automatically saving
+  # associacted records when their parent is saved. In addition to saving, it
   # also destroys any associated records that were marked for destruction.
-  # (See mark_for_destruction and marked_for_destruction?)
+  # (See +mark_for_destruction+ and <tt>marked_for_destruction?</tt>).
   #
   # Saving of the parent, its associations, and the destruction of marked
-  # associations, all happen inside 1 transaction. This should never leave the
+  # associations, all happen inside a transaction. This should never leave the
   # database in an inconsistent state.
   #
   # If validations for any of the associations fail, their error messages will
@@ -17,6 +17,9 @@ module ActiveRecord
   #
   # Note that it also means that associations marked for destruction won't
   # be destroyed directly. They will however still be marked for destruction.
+  #
+  # Note that <tt>:autosave => false</tt> is not same as not declaring <tt>:autosave</tt>.
+  # When the <tt>:autosave</tt> option is not present new associations are saved.
   #
   # === One-to-one Example
   #
@@ -28,7 +31,7 @@ module ActiveRecord
   # automatically _and_ atomically:
   #
   #   post = Post.find(1)
-  #   post.title # => "The current global position of migrating ducks"
+  #   post.title       # => "The current global position of migrating ducks"
   #   post.author.name # => "alloy"
   #
   #   post.title = "On the migration of ducks"
@@ -36,7 +39,7 @@ module ActiveRecord
   #
   #   post.save
   #   post.reload
-  #   post.title # => "On the migration of ducks"
+  #   post.title       # => "On the migration of ducks"
   #   post.author.name # => "Eloy Duran"
   #
   # Destroying an associated model, as part of the parent's save action, is as
@@ -46,6 +49,7 @@ module ActiveRecord
   #   post.author.marked_for_destruction? # => true
   #
   # Note that the model is _not_ yet removed from the database:
+  #
   #   id = post.author.id
   #   Author.find_by_id(id).nil? # => false
   #
@@ -53,40 +57,49 @@ module ActiveRecord
   #   post.reload.author # => nil
   #
   # Now it _is_ removed from the database:
+  #
   #   Author.find_by_id(id).nil? # => true
   #
   # === One-to-many Example
   #
-  # Consider a Post model with many Comments:
+  # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
+  #
+  #   class Post
+  #     has_many :comments # :autosave option is no declared
+  #   end
+  #
+  #   post = Post.new(:title => 'ruby rocks')
+  #   post.comments.build(:body => 'hello world')
+  #   post.save # => saves both post and comment
+  #
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.build(:body => 'hello world')
+  #   post.save # => saves both post and comment
+  #
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.create(:body => 'hello world')
+  #   post.save # => saves both post and comment
+  #
+  # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
   #
   #   class Post
   #     has_many :comments, :autosave => true
   #   end
   #
-  # Saving changes to the parent and its associated model can now be performed
-  # automatically _and_ atomically:
+  #   post = Post.create(:title => 'ruby rocks')
+  #   post.comments.create(:body => 'hello world')
+  #   post.comments[0].body = 'hi everyone'
+  #   post.save # => saves both post and comment, with 'hi everyone' as title
   #
-  #   post = Post.find(1)
-  #   post.title # => "The current global position of migrating ducks"
-  #   post.comments.first.body # => "Wow, awesome info thanks!"
-  #   post.comments.last.body # => "Actually, your article should be named differently."
-  #
-  #   post.title = "On the migration of ducks"
-  #   post.comments.last.body = "Actually, your article should be named differently. [UPDATED]: You are right, thanks."
-  #
-  #   post.save
-  #   post.reload
-  #   post.title # => "On the migration of ducks"
-  #   post.comments.last.body # => "Actually, your article should be named differently. [UPDATED]: You are right, thanks."
-  #
-  # Destroying one of the associated models members, as part of the parent's
-  # save action, is as simple as marking it for destruction:
+  # Destroying one of the associated models as part of the parent's save action
+  # is as simple as marking it for destruction:
   #
   #   post.comments.last.mark_for_destruction
   #   post.comments.last.marked_for_destruction? # => true
   #   post.comments.length # => 2
   #
   # Note that the model is _not_ yet removed from the database:
+  #
   #   id = post.comments.last.id
   #   Comment.find_by_id(id).nil? # => false
   #
@@ -94,37 +107,12 @@ module ActiveRecord
   #   post.reload.comments.length # => 1
   #
   # Now it _is_ removed from the database:
+  #
   #   Comment.find_by_id(id).nil? # => true
   #
   # === Validation
   #
-  # Validation is performed on the parent as usual, but also on all autosave
-  # enabled associations. If any of the associations fail validation, its
-  # error messages will be applied on the parents errors object and validation
-  # of the parent will fail.
-  #
-  # Consider a Post model with Author which validates the presence of its name
-  # attribute:
-  #
-  #   class Post
-  #     has_one :author, :autosave => true
-  #   end
-  #
-  #   class Author
-  #     validates_presence_of :name
-  #   end
-  #
-  #   post = Post.find(1)
-  #   post.author.name = ''
-  #   post.save # => false
-  #   post.errors # => #<ActiveRecord::Errors:0x174498c @errors={"author.name"=>["can't be blank"]}, @base=#<Post ...>>
-  #
-  # No validations will be performed on the associated models when validations
-  # are skipped for the parent:
-  #
-  #   post = Post.find(1)
-  #   post.author.name = ''
-  #   post.save(:validate => false) # => true
+  # Children records are validated unless <tt>:validate</tt> is +false+.
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -202,7 +190,7 @@ module ActiveRecord
     end
 
     # Marks this record to be destroyed as part of the parents save transaction.
-    # This does _not_ actually destroy the record instantly, rather child record will be destroyed 
+    # This does _not_ actually destroy the record instantly, rather child record will be destroyed
     # when <tt>parent.save</tt> is called.
     #
     # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
@@ -222,7 +210,7 @@ module ActiveRecord
     def changed_for_autosave?
       new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
-    
+
     private
 
     # Returns the record for an association collection that should be validated
@@ -243,10 +231,10 @@ module ActiveRecord
     def nested_records_changed_for_autosave?
       self.class.reflect_on_all_autosave_associations.any? do |reflection|
         association = association_instance_get(reflection.name)
-        association && Array.wrap(association.target).any?(&:changed_for_autosave?)
+        association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
       end
     end
-    
+
     # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
     # turned on for the association.
     def validate_single_association(reflection)

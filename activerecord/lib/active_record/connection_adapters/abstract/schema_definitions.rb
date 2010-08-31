@@ -23,7 +23,7 @@ module ActiveRecord
       #
       # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int(11)</tt>.
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +sql_type+ is used to extract the column's length, if necessary. For example +60+ in 
+      # +sql_type+ is used to extract the column's length, if necessary. For example +60+ in
       # <tt>company_name varchar(60)</tt>.
       # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
       # +null+ determines if this column allows +NULL+ values.
@@ -360,7 +360,7 @@ module ActiveRecord
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and 
+      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and
       #   <tt>:text</tt> columns and number of bytes for :binary and :integer columns.
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
@@ -464,7 +464,7 @@ module ActiveRecord
       # TableDefinition#timestamps that'll add created_at and +updated_at+ as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
-      # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of 
+      # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of
       # options, these will be used when creating the <tt>_type</tt> column. So what can be written like this:
       #
       #   create_table :taggings do |t|
@@ -528,7 +528,7 @@ module ActiveRecord
       # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
-        @columns.map(&:to_sql) * ', '
+        @columns.map { |c| c.to_sql } * ', '
       end
 
       private

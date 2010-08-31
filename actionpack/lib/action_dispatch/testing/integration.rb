@@ -115,8 +115,8 @@ module ActionDispatch
       end
     end
 
-    # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Because you can instantiate
+    # An instance of this class represents a set of requests and responses
+    # performed sequentially by a test process. Because you can instantiate
     # multiple sessions and run them side-by-side, you can also mimic (to some
     # limited extent) multiple simultaneous users interacting with your system.
     #
@@ -373,12 +373,12 @@ module ActionDispatch
     end
   end
 
-  # An IntegrationTest is one that spans multiple controllers and actions,
+  # An test that spans multiple controllers and actions,
   # tying them all together to ensure they work together as expected. It tests
   # more completely than either unit or functional tests do, exercising the
   # entire stack, from the dispatcher to the database.
   #
-  # At its simplest, you simply extend IntegrationTest and write your tests
+  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your tests
   # using the get/post methods:
   #
   #   require "test_helper"
@@ -403,7 +403,7 @@ module ActionDispatch
   # However, you can also have multiple session instances open per test, and
   # even extend those instances with assertions and methods to create a very
   # powerful testing DSL that is specific for your application. You can even
-  # reference any named routes you happen to have defined!
+  # reference any named routes you happen to have defined.
   #
   #   require "test_helper"
   #

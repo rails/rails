@@ -31,6 +31,7 @@ module ActiveRecord
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslca] || config[:sslkey]
 
       default_flags = Mysql.const_defined?(:CLIENT_MULTI_RESULTS) ? Mysql::CLIENT_MULTI_RESULTS : 0
+      default_flags |= Mysql::CLIENT_FOUND_ROWS if Mysql.const_defined?(:CLIENT_FOUND_ROWS)
       options = [host, username, password, database, port, socket, default_flags]
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
     end
@@ -275,10 +276,11 @@ module ActiveRecord
         rows = []
         result.each { |row| rows << row }
         result.free
+        @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped 
         rows
       end
 
-      # Executes an SQL query and returns a MySQL::Result object. Note that you have to free 
+      # Executes an SQL query and returns a MySQL::Result object. Note that you have to free
       # the Result object after you're done using it.
       def execute(sql, name = nil) #:nodoc:
         if name == :skip_logging
@@ -618,6 +620,7 @@ module ActiveRecord
           rows = []
           result.each_hash { |row| rows << row }
           result.free
+          @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped 
           rows
         end
 

@@ -18,7 +18,7 @@ module ActiveSupport
   #
   # See Time and TimeZone for further documentation of these methods.
   #
-  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangeable. 
+  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangeable.
   # Examples:
   #
   #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25 EDT -04:00
@@ -32,11 +32,12 @@ module ActiveSupport
   #   t > Time.utc(1999)                    # => true
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
+  #
   class TimeWithZone
     def self.name
       'Time' # Report class name as 'Time' to thwart type checking
     end
-    
+
     include Comparable
     attr_reader :time_zone
 
@@ -127,6 +128,7 @@ module ActiveSupport
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
     #   # => "2005/02/01 15:15:10 +0000"
+    #
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
         xmlschema

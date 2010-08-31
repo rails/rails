@@ -14,7 +14,7 @@ module ActiveRecord
       module ClassMethods
         protected
           # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
-          # This enhanced read method automatically converts the UTC time stored in the database to the time 
+          # This enhanced read method automatically converts the UTC time stored in the database to the time
           # zone stored in Time.zone.
           def define_method_attribute(attr_name)
             if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])

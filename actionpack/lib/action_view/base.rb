@@ -6,9 +6,6 @@ require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
 
 module ActionView #:nodoc:
-  class NonConcattingString < ActiveSupport::SafeBuffer
-  end
-
   # = Action View Base
   #
   # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb

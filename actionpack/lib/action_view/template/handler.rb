@@ -35,7 +35,7 @@ module ActionView
       end
     end
   end
-  
+
   TemplateHandlers = Template::Handlers
   TemplateHandler = Template::Handler
 end

@@ -1,9 +1,14 @@
 module ActionDispatch
   module Http
     module URL
-      # Returns the complete URL used for this request.
+      # Returns the complete \URL used for this request.
       def url
         protocol + host_with_port + fullpath
+      end
+
+      # Returns 'https' if this is an SSL request and 'http' otherwise.
+      def scheme
+        ssl? ? 'https' : 'http'
       end
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
@@ -53,6 +58,11 @@ module ActionDispatch
         end
       end
 
+      # Returns whether this request is using the standard port
+      def standard_port?
+        port == standard_port
+      end
+
       # Returns a \port suffix like ":8080" if the \port number of this request
       # is not the default HTTP \port 80 or HTTPS \port 443.
       def port_string
@@ -86,7 +96,7 @@ module ActionDispatch
       end
 
       # Returns the request URI, accounting for server idiosyncrasies.
-      # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
+      # WEBrick includes the full \URL. IIS leaves REQUEST_URI blank.
       def request_uri
         ActiveSupport::Deprecation.warn "Using #request_uri is deprecated. Use fullpath instead.", caller
         fullpath

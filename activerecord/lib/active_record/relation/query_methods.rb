@@ -11,7 +11,7 @@ module ActiveRecord
 
     def includes(*args)
       args.reject! { |a| a.blank? }
-      clone.tap {|r| r.includes_values += args if args.present? }
+      clone.tap {|r| r.includes_values = (r.includes_values + args).flatten.uniq if args.present? }
     end
 
     def eager_load(*args)
@@ -49,7 +49,9 @@ module ActiveRecord
 
     def where(opts, *rest)
       value = build_where(opts, rest)
-      value ? clone.tap {|r| r.where_values += Array.wrap(value) } : clone
+      copy = clone
+      copy.where_values += Array.wrap(value) if value
+      copy
     end
 
     def having(*args)
@@ -58,7 +60,9 @@ module ActiveRecord
     end
 
     def limit(value = true)
-      clone.tap {|r| r.limit_value = value }
+      copy = clone
+      copy.limit_value = value
+      copy
     end
 
     def offset(value = true)
@@ -92,14 +96,14 @@ module ActiveRecord
     end
 
     def reverse_order
-      order_clause = arel.send(:order_clauses).join(', ')
+      order_clause = arel.order_clauses.join(', ')
       relation = except(:order)
 
-      unless order_clauses.blank?
-        relation.order(reverse_sql_order(order_clause))
-      else
-        relation.order("#{@klass.table_name}.#{@klass.primary_key} DESC")
-      end
+      order = order_clause.blank? ?
+        "#{@klass.table_name}.#{@klass.primary_key} DESC" :
+        reverse_sql_order(order_clause)
+
+      relation.order Arel::SqlLiteral.new order
     end
 
     def arel
@@ -117,8 +121,10 @@ module ActiveRecord
         when Hash, Array, Symbol
           if array_of_strings?(join)
             join_string = join.join(' ')
-            arel = arel.join(join_string)
+            arel = arel.join(Arel::SqlLiteral.new(join_string))
           end
+        when String
+          arel = arel.join(Arel::SqlLiteral.new(join))
         else
           arel = arel.join(join)
         end
@@ -131,9 +137,7 @@ module ActiveRecord
 
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
-      @where_values.uniq.each do |where|
-        next if where.blank?
-
+      (@where_values - ['']).uniq.each do |where|
         case where
         when Arel::SqlLiteral
           arel = arel.where(where)
@@ -184,7 +188,7 @@ module ActiveRecord
         association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
       end
 
-      stashed_association_joins = joins.select {|j| j.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)}
+      stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
       custom_joins = custom_join_sql(*non_association_joins)
@@ -217,7 +221,7 @@ module ActiveRecord
     end
 
     def build_select(arel, selects)
-      if selects.present?
+      unless selects.empty?
         @implicit_readonly = false
         # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
         # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
@@ -227,7 +231,7 @@ module ActiveRecord
           arel.project(selects.last)
         end
       else
-        arel.project(@klass.quoted_table_name + '.*')
+        arel.project(Arel::SqlLiteral.new(@klass.quoted_table_name + '.*'))
       end
     end
 

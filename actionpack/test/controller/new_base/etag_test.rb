@@ -34,7 +34,7 @@ module Etags
       body = "teh Hello from without_layout.html.erb tagz"
       assert_body body
       assert_header "Etag", etag_for(body)
-      assert_status 200      
+      assert_status 200
     end
 
     private

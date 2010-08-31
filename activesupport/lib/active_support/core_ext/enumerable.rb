@@ -9,7 +9,7 @@ module Enumerable
   #
   # Example:
   #
-  #   latest_transcripts.group_by(&:day).each do |day, transcripts| 
+  #   latest_transcripts.group_by(&:day).each do |day, transcripts|
   #     p "#{day} -> #{transcripts.map(&:class).join(', ')}"
   #   end
   #   "2006-03-01 -> Transcript"
@@ -88,21 +88,21 @@ module Enumerable
   #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
   #   people.index_by { |person| "#{person.first_name} #{person.last_name}" }
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
-  # 
+  #
   def index_by
     inject({}) do |accum, elem|
       accum[yield(elem)] = elem
       accum
     end
   end
-  
+
   # Returns true if the collection has more than 1 element. Functionally equivalent to collection.size > 1.
   # Works with a block too ala any?, so people.many? { |p| p.age > 26 } # => returns true if more than 1 person is over 26.
   def many?(&block)
     size = block_given? ? select(&block).size : self.size
     size > 1
   end
-  
+
   # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
   def exclude?(object)
     !include?(object)

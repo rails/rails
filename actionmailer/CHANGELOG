@@ -1,9 +1,9 @@
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+*Rails 3.1.0 (unreleased)*
 
-* No material changes
+* No changes
 
 
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
+*Rails 3.0.0 (August 29, 2010)*
 
 * subject is automatically looked up on I18n using mailer_name and action_name as scope as in t(".subject") [JK]
 
@@ -11,15 +11,9 @@
 
 * Added ability to pass Proc objects to the defaults hash [ML]
 
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
-
 * Removed all quoting.rb type files from ActionMailer and put Mail 2.2.0 in instead [ML]
 
 * Lot of updates to various test cases that now work better with the new Mail and so have different expectations
-
-
-*Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Added interceptors and observers from Mail [ML]
 
@@ -37,9 +31,6 @@
 * Changed all utf-8 to UTF-8 for consistency
 
 * Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
-
-
-*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * The Mail::Message class has helped methods for all the field types that return 'common' defaults for the common use case, so to get the subject, mail.subject will give you a string, mail.date will give you a DateTime object, mail.from will give you an array of address specs (mikel@test.lindsaar.net) etc.  If you want to access the field object itself, call mail[:field_name] which will return the field object you want, which you can then chain, like mail[:from].formatted
 
@@ -181,7 +172,7 @@
 
 * ActionMailer::Base documentation rewrite. Closes #4991 [Kevin Clark, Marcel Molina Jr.]
 
-* Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.] 
+* Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
@@ -327,7 +318,7 @@
 
 * Added that deliver_* will now return the email that was sent
 
-* Added that quoting to UTF-8 only happens if the characters used are in that range #955 [Jamis Buck] 
+* Added that quoting to UTF-8 only happens if the characters used are in that range #955 [Jamis Buck]
 
 * Fixed quoting for all address headers, not just to #955 [Jamis Buck]
 
@@ -366,7 +357,7 @@
       @body       = "Nothing to see here."
       @charset    = "iso-8859-1"
     end
-    
+
     def unencoded_subject(recipient)
       @recipients = recipient
       @subject    = "testing unencoded subject"
@@ -375,7 +366,7 @@
       @encode_subject = false
       @charset    = "iso-8859-1"
     end
-    
+
 
 *0.6.1* (January 18th, 2005)
 

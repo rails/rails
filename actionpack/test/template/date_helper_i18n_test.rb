@@ -62,7 +62,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
       [:'about_x_years',       1]   => 'about 1 year',
       [:'about_x_years',       2]   => 'about 2 years',
       [:'over_x_years',        1]   => 'over 1 year',
-      [:'over_x_years',        2]   => 'over 2 years' 
+      [:'over_x_years',        2]   => 'over 2 years'
 
       }.each do |args, expected|
       key, count = *args

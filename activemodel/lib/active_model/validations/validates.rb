@@ -9,7 +9,7 @@ module ActiveModel
       # validator classes ending in 'Validator'. Note that Rails default
       # validators can be overridden inside specific classes by creating
       # custom validator classes in their place such as PresenceValidator.
-      # 
+      #
       # Examples of using the default rails validators:
       #
       #   validates :terms, :acceptance => true
@@ -21,25 +21,25 @@ module ActiveModel
       #   validates :age, :numericality => true
       #   validates :username, :presence => true
       #   validates :username, :uniqueness => true
-      # 
+      #
       # The power of the +validates+ method comes when using custom validators
       # and default validators in one call for a given attribute e.g.
       #
       #   class EmailValidator < ActiveModel::EachValidator
       #     def validate_each(record, attribute, value)
       #       record.errors[attribute] << (options[:message] || "is not an email") unless
-      #         value =~ /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i
+      #         value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
       #     end
       #   end
-      # 
+      #
       #   class Person
       #     include ActiveModel::Validations
       #     attr_accessor :name, :email
-      # 
+      #
       #     validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
       #     validates :email, :presence => true, :email => true
       #   end
-      # 
+      #
       # Validator classes may also exist within the class being validated
       # allowing custom modules of validators to be included as needed e.g.
       #
@@ -48,7 +48,7 @@ module ActiveModel
       #
       #     class TitleValidator < ActiveModel::EachValidator
       #       def validate_each(record, attribute, value)
-      #         record.errors[attribute] << "must start with 'the'" unless =~ /^the/i
+      #         record.errors[attribute] << "must start with 'the'" unless value =~ /\Athe/i
       #       end
       #     end
       #

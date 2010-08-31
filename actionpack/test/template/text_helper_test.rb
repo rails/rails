@@ -99,7 +99,7 @@ class TextHelperTest < ActionView::TestCase
   def test_highlight_should_be_html_safe
     assert highlight("This is a beautiful morning", "beautiful").html_safe?
   end
- 
+
   def test_highlight
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning",
@@ -430,7 +430,7 @@ class TextHelperTest < ActionView::TestCase
   def test_auto_link_other_protocols
     ftp_raw = 'ftp://example.com/file.txt'
     assert_equal %(Download #{generate_result(ftp_raw)}), auto_link("Download #{ftp_raw}")
-    
+
     file_scheme   = 'file:///home/username/RomeoAndJuliet.pdf'
     z39_scheme    = 'z39.50r://host:696/db'
     chrome_scheme = 'chrome://package/section/path'
@@ -452,7 +452,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal linked3, auto_link(linked3)
     assert_equal linked4, auto_link(linked4)
     assert_equal linked5, auto_link(linked5)
-    
+
     linked_email = %Q(<a href="mailto:david@loudthinking.com">Mail me</a>)
     assert_equal linked_email, auto_link(linked_email)
   end
@@ -493,11 +493,11 @@ class TextHelperTest < ActionView::TestCase
 
     assert_equal %(<p><a href="#{url}">#{url[0...7]}...</a><br /><a href="mailto:#{email}">#{email[0...7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, :length => 10) }
   end
-  
+
   def test_auto_link_with_block_with_html
     pic = "http://example.com/pic.png"
     url = "http://example.com/album?a&b=c"
-    
+
     assert_equal %(My pic: <a href="#{pic}"><img src="#{pic}" width="160px"></a> -- full album here #{generate_result(url)}), auto_link("My pic: #{pic} -- full album here #{url}") { |link|
       if link =~ /\.(jpg|gif|png|bmp|tif)$/i
         raw %(<img src="#{link}" width="160px">)
@@ -512,7 +512,7 @@ class TextHelperTest < ActionView::TestCase
       auto_link("Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com.",
                 :link => :all, :html => { :class => "menu", :target => "_blank" })
   end
-  
+
   def test_auto_link_with_multiple_trailing_punctuations
     url = "http://youtube.com"
     url_result = generate_result(url)

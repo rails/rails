@@ -29,7 +29,7 @@ module ActiveRecord
       end
     end
 
-    # The SQLite adapter works with both the 2.x and 3.x series of SQLite with the sqlite-ruby 
+    # The SQLite adapter works with both the 2.x and 3.x series of SQLite with the sqlite-ruby
     # drivers (available both as gems and from http://rubyforge.org/projects/sqlite-ruby/).
     #
     # Options:
@@ -40,11 +40,11 @@ module ActiveRecord
         include Comparable
 
         def initialize(version_string)
-          @version = version_string.split('.').map(&:to_i)
+          @version = version_string.split('.').map { |v| v.to_i }
         end
 
         def <=>(version_string)
-          @version <=> version_string.split('.').map(&:to_i)
+          @version <=> version_string.split('.').map { |v| v.to_i }
         end
       end
 
@@ -345,7 +345,7 @@ module ActiveRecord
               name = name[5..-1]
             end
 
-            to_column_names = columns(to).map(&:name)
+            to_column_names = columns(to).map { |c| c.name }
             columns = index.columns.map {|c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end

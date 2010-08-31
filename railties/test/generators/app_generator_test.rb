@@ -45,6 +45,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
+    
+    Kernel::silence_warnings do
+      Thor::Base.shell.send(:attr_accessor, :always_force)
+      @shell = Thor::Base.shell.new
+      @shell.send(:always_force=, true)
+    end
   end
 
   def teardown
@@ -79,7 +85,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     reserved_words = %w[application destroy plugin runner test]
     reserved_words.each do |reserved|
       content = capture(:stderr){ run_generator [File.join(destination_root, reserved)] }
-      assert_equal "Invalid application name #{reserved}. Please give a name which does not match one of the reserved rails words.\n", content      
+      assert_equal "Invalid application name #{reserved}. Please give a name which does not match one of the reserved rails words.\n", content
     end
   end
 
@@ -118,16 +124,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     FileUtils.mv(app_root, app_moved_root)
 
-    # forces the shell to automatically overwrite all files
-    Thor::Base.shell.send(:attr_accessor, :always_force)
-    shell = Thor::Base.shell.new
-    shell.send(:always_force=, true)
-
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                               :destination_root => app_moved_root, :shell => shell
+                                                               :destination_root => app_moved_root, :shell => @shell
     generator.send(:app_const)
     silence(:stdout){ generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
+  end
+  
+  def test_rails_update_generates_correct_session_key
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+    
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
+    generator.send(:app_const)
+    silence(:stdout){ generator.send(:create_config_files) }
+    assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
   end
 
   def test_application_names_are_not_singularized
@@ -144,7 +159,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    assert_file "Gemfile", /^gem\s+["']mysql["']$/
+    assert_file "Gemfile", /^gem\s+["']mysql2["']$/
   end
 
   def test_config_database_is_not_added_if_skip_active_record_is_given

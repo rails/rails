@@ -1,7 +1,11 @@
-*Rails 3.0.0 [release candidate] (July 26th, 2010)*
+*Rails 3.1.0 (unreleased)*
 
-* Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit
-  and --skip-active-record respectively. [fxn]
+* No changes
+
+
+*Rails 3.0.0 (August 29, 2010)*
+
+* Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit and --skip-active-record respectively. [fxn]
 
 * Added console to Rails::Railtie as a hook called just after console starts. [José Valim]
 
@@ -15,18 +19,9 @@
 
 * Made the rails command work even when you're in a subdirectory [Chad Fowler]
 
-
-*Rails 3.0.0 [beta 4] (June 8th, 2010)*
-
 * Removed Rails Metal [Yehuda Katz, José Valim].
 
-
-*Rails 3.0.0 [beta 3] (April 13th, 2010)*
-
 * Renamed config.cookie_secret to config.secret_token and pass it as env key. [José Valim]
-
-
-*Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Session store configuration has changed [Yehuda Katz, Carl Lerche]
 
@@ -39,14 +34,12 @@
 * Added config.generators.templates to provide alternative paths for the generators
   to look for templates [José Valim]
 
-*Rails 3.0.0 [beta 1] (February 4, 2010)*
-
 * Added "rake about" as a replacement for script/about [DHH]
 
 * Removed all the default commands in script/* and replaced them with script/rails and a rails command that'll act the same when run from within the app [DHH]. Example:
 
   ./script/generate scaffold post title:string  can now be called as  rails g scaffold post title:string
-  
+
   Run rails --help inside an app for more help.
 
 * Removed config/initializers/new_rails_defaults.rb as all frameworks now follow the settings from it [DHH]
@@ -68,7 +61,7 @@
 
     cookies.permanent.signed[:remember_me] = current_user.id
     # => Set-Cookie: discount=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
-    
+
   ...to use the signed cookies, you need to set a secret to ActionController::Base.cookie_verifier_secret (automatically done in config/initializers/cookie_verification_secret.rb for new Rails applications).
 
 * Added config/initializers/cookie_verification_secret.rb with an auto-generated secret for using ActionController::Base#cookies.signed [DHH]
@@ -101,42 +94,42 @@
 * Add "-m/--template" option to Rails generator to apply a template to the generated application. [Jeremy McAnally]
 
     This has been extracted from rg - http://github.com/jeremymcanally/rg
-    
+
     Example:
-    
+
         # template.rb
-        
+
         # Install plugins from git or svn
         plugin "will-paginate", :git => "git://github.com/mislav/will_paginate.git"
         plugin "old-restful-auth", :svn => "http://svn.techno-weenie.net/projects/plugins/restful_authentication/"
-    
+
         # Add gems to environment.rb
         gem "jeremymcanally-context"
         gem "bluecloth"
-    
+
         # Vendor file. Data in a string or...
         vendor("borrowed.rb", <<CODE
           def helpful_method
             do_something_helpful_here
           end
         CODE
-    
+
         # ...file data from block return value.
         # #initializer creates a new initializer file
         initializer("crypto.rb") do
           salt = "--#{Time.now}--#{rand}--#{srand(Time.now.to_i)}"
-    
+
           "SPECIAL_SALT = '#{salt}'"
         end
-    
+
     Usage:
-    
+
       To use a template, provide a file path or URL:
-    
+
       1. Using a local file :
 
         rails <application name> -m /path/to/my/template.rb
-        
+
       2. Or directly from a URL :
 
         rails <application name> --template=http://gist.github.com/31208.txt
@@ -235,7 +228,7 @@
 
   rake gems:unpack             # unpacks all gems
   rake gems:unpack GEM=mygem   # unpacks only the gem 'mygem'
-  
+
   rake gems:build              # builds all unpacked gems
   rake gems:build GEM=mygem    # builds only the gem 'mygem'
 
@@ -246,16 +239,16 @@
 * Allow files in plugins to be reloaded like the rest of the application.  [Rick Olson]
 
   Enables or disables plugin reloading.
-  
+
     config.reload_plugins = true
-  
+
   You can get around this setting per plugin.
   If #reload_plugins? == false (DEFAULT), add this to your plugin's init.rb to make it reloadable:
-  
+
     Dependencies.load_once_paths.delete lib_path
-  
+
   If #reload_plugins? == true, add this to your plugin's init.rb to only load it once:
-  
+
     Dependencies.load_once_paths << lib_path
 
 * Small tweak to allow plugins to specify gem dependencies.  [Rick Olson]
@@ -280,13 +273,13 @@
     config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
     config.gem "aws-s3", :lib => "aws/s3"
   end
-  
+
   # List required gems.
   rake gems
-  
+
   # Install all required gems:
   rake gems:install
-  
+
   # Unpack specified gem to vendor/gems/gem_name-x.x.x
   rake gems:unpack GEM=bj
 
@@ -473,9 +466,9 @@ databases on localhost.  #9753 [Trevor Wennblom]
 	For example:
 
 	ruby script/generation migration AddSomeStuffToCustomers first_name:string last_name:string
-	
+
 	or
-	
+
 	ruby script/generation migration RemoveSomeStuffFromCustomers first_name:string last_name:string
 
 * Add ActiveResource to Rails::Info.  Closes #8741 [Chris Kampmeier]
@@ -535,13 +528,13 @@ databases on localhost.  #9753 [Trevor Wennblom]
 * Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [David Heinemeier Hansson]
 
   To use the new debugger, start your server with script/server --debugger and insert a call to  'debugger'
-  (instead of 'breakpoint') where you want to jump into the debugger. 
-  
+  (instead of 'breakpoint') where you want to jump into the debugger.
+
   BACKWARDS INCOMPATIBILITY NOTE: You must remove the default line 12 from config/environments/development.rb:
-  
+
     config.breakpoint_server = true
-  
-  This configuration option is no longer available. Rails will fail to start in development mode as long as 
+
+  This configuration option is no longer available. Rails will fail to start in development mode as long as
   that's still present.
 
 * Resource scaffolding returns the created entity.to_xml.  [Jeremy Kemper]
@@ -553,7 +546,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 * Include Active Resource instead of Action Web Service [David Heinemeier Hansson] You can add AWS back with this in config/environment.rb:
 
     config.load_paths += %W( #{RAILS_ROOT}/vendor/rails/actionwebservice/lib )
-  
+
   ...or just gem 'actionwebservice'
 
 * Give generate scaffold a more descriptive database message.  Closes #7316 [Jeremy McAnally]
@@ -566,7 +559,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Windows: include MinGW in RUBY_PLATFORM check.  #2982 [okkez000@gmail.com, Kaspar Schiess]
 
-* Split out the basic plugin locator functionality into an abstract super class. Add a FileSystemLocator to do the job of checking the plugin_paths for plugins. Add plugin_locators configuration option which will iterate over the set of plugin locators and load each of the plugin loaders they return. Rename locater everywhere to locator. [Marcel Molina Jr.] 
+* Split out the basic plugin locator functionality into an abstract super class. Add a FileSystemLocator to do the job of checking the plugin_paths for plugins. Add plugin_locators configuration option which will iterate over the set of plugin locators and load each of the plugin loaders they return. Rename locater everywhere to locator. [Marcel Molina Jr.]
 
 * Split plugin location and loading out of the initializer and into a new Plugin namespace, which includes Plugin::Locater and Plugin::Loader. The loader class that is used can be customized using the config.plugin_loader option.  Those monkey patching the plugin loading subsystem take note, the internals changing here will likely break your modifications. The good news is that it should be substantially easier to hook into the plugin locating and loading process now.  [Marcel Molina Jr.]
 
@@ -602,7 +595,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick Olson]
   If you really want your plugins to reload, add this to the very top of init.rb:
-  
+
     Dependencies.load_once_paths.delete(lib_path)
 
 * Allow config.to_prepare to work, make the dispatcher safe to 're require'. [Michael Koziarski, Nicholas Seckar]
@@ -724,9 +717,9 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Remove the uncanny default of adding all app/models/*/ directories to the load path. This change will break application which expect the current behavior. As
 documented in initializer.rb, the workaround is:
-  
+
   config.autoload_paths += Dir[RAILS_ROOT + '/app/models/*/']
-  
+
 References #6031. [Nicholas Seckar]
 
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
@@ -811,10 +804,10 @@ References #6031. [Nicholas Seckar]
     0002    def show
     0003->    breakpoint
     0004    end
-    0005    
+    0005
     0006    def index
     0007    end
-    0008    
+    0008
     => "/path/to/rails/root/app/controllers/top_controller.rb"
 
     irb(#<TopController:0x40822a68>):004:0> show_call_stack 3
@@ -905,7 +898,7 @@ References #6031. [Nicholas Seckar]
 
 * Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick Olson]
   If you really want your plugins to reload, add this to the very top of init.rb:
-  
+
     Dependencies.load_once_paths.delete(lib_path)
 
 * Fix scaffold_resource generator so it respects the --pretend argument when creating the routes file.  Closes #6852 [fearoffish]
@@ -1011,9 +1004,9 @@ References #6031. [Nicholas Seckar]
 
 * Remove the uncanny default of adding all app/models/*/ directories to the load path. This change will break application which expect the current behavior. As
 documented in initializer.rb, the workaround is:
-  
+
   config.autoload_paths += Dir[RAILS_ROOT + '/app/models/*/']
-  
+
 References #6031. [Nicholas Seckar]
 
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
@@ -1094,10 +1087,10 @@ References #6031. [Nicholas Seckar]
     0002    def show
     0003->    breakpoint
     0004    end
-    0005    
+    0005
     0006    def index
     0007    end
-    0008    
+    0008
     => "/path/to/rails/root/app/controllers/top_controller.rb"
 
     irb(#<TopController:0x40822a68>):004:0> show_call_stack 3
@@ -1332,7 +1325,7 @@ References #6031. [Nicholas Seckar]
 
 * Changed the default session configuration to place sessions in tmp/sessions, if that directory is available, instead of /tmp (this essentially means a goodbye to 9/10 White Screen of Death errors and should have web hosting firms around the world cheering) [David Heinemeier Hansson]
 
-* Added tmp/sessions, tmp/cache, and tmp/sockets as default directories in the Rails skeleton [David Heinemeier Hansson] 
+* Added tmp/sessions, tmp/cache, and tmp/sockets as default directories in the Rails skeleton [David Heinemeier Hansson]
 
 * Added that script/generate model will now automatically create a migration file for the model created. This can be turned off by calling the generator with --skip-migration [David Heinemeier Hansson]
 
@@ -1711,7 +1704,7 @@ References #6031. [Nicholas Seckar]
 
     # runs the one statement 10 times
     script/benchmarker 10 'Person.expensive_method(10)'
-    
+
     # pits the two statements against each other with 50 runs each
     script/benchmarker 50 'Person.expensive_method(10)' 'Person.cheap_method(10)'
 
@@ -1751,18 +1744,18 @@ References #6031. [Nicholas Seckar]
 * Changed .htaccess to allow dispatch.* to be called from a sub-directory as part of the push with Action Pack to make Rails work on non-vhost setups #826 [Nicholas Seckar/Tobias Lütke]
 
 * Added script/runner which can be used to run code inside the environment by eval'ing the first parameter. Examples:
-    
+
     ./script/runner 'ReminderService.deliver'
     ./script/runner 'Mailer.receive(STDIN.read)'
-  
+
   This makes it easier to do CRON and postfix scripts without actually making a script just to trigger 1 line of code.
 
 * Fixed webrick_server cookie handling to allow multiple cookes to be set at once #800, #813 [dave@cherryville.org]
 
 * Fixed the Rakefile's interaction with postgresql to:
 
-    1. Use PGPASSWORD and PGHOST in the environment to fix prompting for 
-       passwords when connecting to a remote db and local socket connections. 
+    1. Use PGPASSWORD and PGHOST in the environment to fix prompting for
+       passwords when connecting to a remote db and local socket connections.
     2. Add a '-x' flag to pg_dump which stops it dumping privileges #807 [rasputnik]
     3. Quote the user name and use template0 when dumping so the functions doesn't get dumped too #855 [pburleson]
     4. Use the port if available #875 [madrobby]
@@ -1825,10 +1818,10 @@ References #6031. [Nicholas Seckar]
 
     Controller: components/list/items_controller.rb
     (holds a List::ItemsController class with uses_component_template_root called)
-    
+
     Model     : components/list/item.rb
     (namespace is still shared, so an Item model in app/models will take precedence)
-    
+
     Views     : components/list/items/show.rhtml
 
 
@@ -1921,11 +1914,11 @@ References #6031. [Nicholas Seckar]
 
 * Fixed dependency management to happen in a unified fashion for Active Record and Action Pack using the new Dependencies module. This means that
   the environment options needs to change from:
-  
+
     Before in development.rb:
       ActionController::Base.reload_dependencies = true  
       ActiveRecord::Base.reload_associations     = true
-    
+
     Now in development.rb:
       Dependencies.mechanism = :load
 
@@ -1979,41 +1972,41 @@ References #6031. [Nicholas Seckar]
 
 * Added breakpoint support through the script/breakpointer client. This means that you can break out of execution at any point in
   the code, investigate and change the model, AND then resume execution! Example:
-  
+
     class WeblogController < ActionController::Base
       def index
         @posts = Post.find_all
         breakpoint "Breaking out from the list"
       end
     end
-    
-  So the controller will accept the action, run the first line, then present you with a IRB prompt in the breakpointer window. 
+
+  So the controller will accept the action, run the first line, then present you with a IRB prompt in the breakpointer window.
   Here you can do things like:
-  
+
   Executing breakpoint "Breaking out from the list" at .../webrick_server.rb:16 in 'breakpoint'
 
     >> @posts.inspect
-    => "[#<Post:0x14a6be8 @attributes={\"title\"=>nil, \"body\"=>nil, \"id\"=>\"1\"}>, 
+    => "[#<Post:0x14a6be8 @attributes={\"title\"=>nil, \"body\"=>nil, \"id\"=>\"1\"}>,
          #<Post:0x14a6620 @attributes={\"title\"=>\"Rails you know!\", \"body\"=>\"Only ten..\", \"id\"=>\"2\"}>]"
     >> @posts.first.title = "hello from a breakpoint"
     => "hello from a breakpoint"
 
   ...and even better is that you can examine how your runtime objects actually work:
 
-    >> f = @posts.first 
+    >> f = @posts.first
     => #<Post:0x13630c4 @attributes={"title"=>nil, "body"=>nil, "id"=>"1"}>
     >> f.
     Display all 152 possibilities? (y or n)
-  
+
   Finally, when you're ready to resume execution, you press CTRL-D
 
 * Changed environments to be configurable through an environment variable. By default, the environment is "development", but you
   can change that and set your own by configuring the Apache vhost with a string like (mod_env must be available on the server):
-  
+
     SetEnv RAILS_ENV production
-  
+
   ...if you're using WEBrick, you can pick the environment to use with the command-line parameters -e/--environment, like this:
-  
+
     ruby public/dispatcher.servlet -e production
 
 * Added a new default environment called "development", which leaves the production environment to be tuned exclusively for that.
@@ -2028,11 +2021,11 @@ References #6031. [Nicholas Seckar]
 
     app/controllers/account_controller.rb        # URL: /account/
     app/controllers/admin/account_controller.rb  # URL: /admin/account/
-  
+
   NOTE: You need to update your public/.htaccess with the new rules to pick it up
 
-* Added reloading for associations and dependencies under cached environments like FastCGI and mod_ruby. This makes it possible to use 
-  those environments for development. This is turned on by default, but can be turned off with 
+* Added reloading for associations and dependencies under cached environments like FastCGI and mod_ruby. This makes it possible to use
+  those environments for development. This is turned on by default, but can be turned off with
   ActiveRecord::Base.reload_associations = false and ActionController::Base.reload_dependencies = false in production environments.
 
 * Added support for sub-directories in app/models. So now you can have something like Basecamp with:
@@ -2041,7 +2034,7 @@ References #6031. [Nicholas Seckar]
     app/models/project
     app/models/participants
     app/models/settings
-  
+
   It's poor man's namespacing, but only for file-system organization. You still require files just like before.
   Nothing changes inside the files themselves.
 
@@ -2061,7 +2054,7 @@ References #6031. [Nicholas Seckar]
       @david.projects << @new_project
       breakpoint "Let's have a closer look at @david"
     end
-  
+
   You need to install dev-utils yourself for this to work ("gem install dev-util").
 
 * Added shared generator behavior so future upgrades should be possible without manually copying over files [Jeremy Kemper]
@@ -2120,7 +2113,7 @@ References #6031. [Nicholas Seckar]
 
 *0.7.0*
 
-* Added an optional second argument to the new_model script that allows the programmer to specify the table name, 
+* Added an optional second argument to the new_model script that allows the programmer to specify the table name,
   which will used to generate a custom table_name method in the model and will also be used in the creation of fixtures.
   [Kevin Radloff]
 
@@ -2134,8 +2127,8 @@ References #6031. [Nicholas Seckar]
 
 * create_fixtures in both the functional and unit test helper now turns off the log during fixture generation
   and can generate more than one fixture at a time. Which makes it possible for assignments like:
-  
-    @people, @projects, @project_access, @companies, @accounts = 
+
+    @people, @projects, @project_access, @companies, @accounts =
       create_fixtures "people", "projects", "project_access", "companies", "accounts"
 
 * Upgraded to Action Pack 0.8.5 (locally-scoped variables, partials, advanced send_file)
@@ -2147,7 +2140,7 @@ References #6031. [Nicholas Seckar]
 
 * No longer specifies a template for rdoc, so it'll use whatever is default (you can change it in the rakefile)
 
-* The new_model generator will now use the same rules for plural wordings as Active Record 
+* The new_model generator will now use the same rules for plural wordings as Active Record
   (so Category will give categories, not categorys) [Kevin Radloff]
 
 * dispatch.fcgi now sets FCGI_PURE_RUBY to true to ensure that it's the Ruby version that's loaded [danp]
@@ -2173,13 +2166,13 @@ References #6031. [Nicholas Seckar]
 
 * Added environments that can be included from any script to get the full Active Record and Action Controller
   context running. This can be used by maintenance scripts or to interact with the model through IRB. Example:
-  
+
     require 'config/environments/production'
-    
+
     for account in Account.find_all
       account.recalculate_interests
     end
-  
+
   A short migration script for an account model that had it's interest calculation strategy changed.
 
 * Accessing the index of a controller with "/weblog" will now redirect to "/weblog/" (only on Apache, not WEBrick)
@@ -2202,7 +2195,7 @@ References #6031. [Nicholas Seckar]
 
 * Added lib in root as a place to store app specific libraries
 
-* Added lib and vendor to load_path, so anything store within can be loaded directly. 
+* Added lib and vendor to load_path, so anything store within can be loaded directly.
   Hence lib/redcloth.rb can be loaded with require "redcloth"
 
 * Upgraded to Action Pack 0.7.8 (lots of fixes)
@@ -2216,7 +2209,7 @@ References #6031. [Nicholas Seckar]
 
 * Updated the generated template stubs to valid XHTML files
 
-* Ensure that controllers generated are capitalized, so "new_controller TodoLists" 
+* Ensure that controllers generated are capitalized, so "new_controller TodoLists"
   gives the same as "new_controller Todolists" and "new_controller todolists".
 
 

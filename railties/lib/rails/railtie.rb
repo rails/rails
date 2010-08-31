@@ -48,7 +48,7 @@ module Rails
   #     # lib/my_gem/railtie.rb
   #     require 'my_gem'
   #     require 'rails'
-  #     
+  #
   #     module MyGem
   #       class Railtie < Rails::Railtie
   #       end
@@ -87,7 +87,7 @@ module Rails
   #     config.generators.orm :my_railtie_orm
   #
   #     # Add a to_prepare block which is executed once in production
-  #     # and before which request in development
+  #     # and before each request in development
   #     config.to_prepare do
   #       MyRailtie.setup!
   #     end
@@ -121,7 +121,7 @@ module Rails
   # described here can be used in all three.
   #
   # Be sure to look at the documentation of those specific classes for more information.
-  # 
+  #
   class Railtie
     autoload :Configurable,  "rails/railtie/configurable"
     autoload :Configuration, "rails/railtie/configuration"

@@ -624,19 +624,19 @@ module ActionView
       #
       # ==== Examples
       #   password_field(:login, :pass, :size => 20)
-      #   # => <input type="text" id="login_pass" name="login[pass]" size="20" value="#{@login.pass}" />
+      #   # => <input type="password" id="login_pass" name="login[pass]" size="20" />
       #
-      #   password_field(:account, :secret, :class => "form_input")
-      #   # => <input type="text" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
+      #   password_field(:account, :secret, :class => "form_input", :value => @account.secret)
+      #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
       #
       #   password_field(:user, :password, :onchange => "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }")
-      #   # => <input type="text" id="user_password" name="user[password]" value="#{@user.password}" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
+      #   # => <input type="password" id="user_password" name="user[password]" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
       #
       #   password_field(:account, :pin, :size => 20, :class => 'form_input')
-      #   # => <input type="text" id="account_pin" name="account[pin]" size="20" value="#{@account.pin}" class="form_input" />
+      #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
       #
       def password_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", { :value => nil }.merge!(options))
       end
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -1006,9 +1006,14 @@ module ActionView
 
         def value_before_type_cast(object, method_name)
           unless object.nil?
-            object.respond_to?(method_name) ?
-            object.send(method_name) :
-            object.send(method_name + "_before_type_cast")
+            if object.respond_to?(method_name)
+              object.send(method_name)
+            # FIXME: this is AR dependent
+            elsif object.respond_to?(method_name + "_before_type_cast")
+              object.send(method_name + "_before_type_cast")
+            else
+              raise NoMethodError, "Model #{object.class} does not respond to #{method_name}"
+            end
           end
         end
 

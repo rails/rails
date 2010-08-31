@@ -5,9 +5,9 @@ require 'active_support/core_ext/array/extract_options'
 module ClassInheritableAttributes # :nodoc:
 end
 
-# It is recommend to use <tt>class_attribute</tt> over methods defined in this file. Please
+# It is recommended to use <tt>class_attribute</tt> over methods defined in this file. Please
 # refer to documentation for <tt>class_attribute</tt> for more information. Officially it is not
-# deprected but <tt>class_attribute</tt> is faster.
+# deprecated but <tt>class_attribute</tt> is faster.
 #
 # Allows attributes to be shared within an inheritance hierarchy. Each descendant gets a copy of
 # their parents' attributes, instead of just a pointer to the same. This means that the child can add elements
@@ -22,8 +22,8 @@ end
 #  end
 #
 #  Person.hair_colors = [:brown, :black, :blonde, :red]
-#  Person.hair_colors     #=> [:brown, :black, :blonde, :red]
-#  Person.new.hair_colors #=> [:brown, :black, :blonde, :red]
+#  Person.hair_colors     # => [:brown, :black, :blonde, :red]
+#  Person.new.hair_colors # => [:brown, :black, :blonde, :red]
 #
 # To opt out of the instance writer method, pass :instance_writer => false.
 # To opt out of the instance reader method, pass :instance_reader => false.

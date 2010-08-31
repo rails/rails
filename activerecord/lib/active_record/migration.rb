@@ -31,13 +31,13 @@ module ActiveRecord
   end
 
   # = Active Record Migrations
-  # 
-  # Migrations can manage the evolution of a schema used by several physical 
+  #
+  # Migrations can manage the evolution of a schema used by several physical
   # databases. It's a solution to the common problem of adding a field to make
   # a new feature work in your local database, but being unsure of how to
-  # push that change to other developers and to the production server. With 
+  # push that change to other developers and to the production server. With
   # migrations, you can describe the transformations in self-contained classes
-  # that can be checked into version control systems and executed against 
+  # that can be checked into version control systems and executed against
   # another database that might be one, two, or five versions behind.
   #
   # Example of a simple migration:
@@ -52,12 +52,12 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This migration will add a boolean flag to the accounts table and remove it 
-  # if you're backing out of the migration. It shows how all migrations have 
-  # two class methods +up+ and +down+ that describes the transformations 
+  # This migration will add a boolean flag to the accounts table and remove it
+  # if you're backing out of the migration. It shows how all migrations have
+  # two class methods +up+ and +down+ that describes the transformations
   # required to implement or remove the migration. These methods can consist
   # of both the migration specific methods like add_column and remove_column,
-  # but may also contain regular Ruby code for generating data needed for the 
+  # but may also contain regular Ruby code for generating data needed for the
   # transformations.
   #
   # Example of a more complex migration that also needs to initialize data:
@@ -72,8 +72,8 @@ module ActiveRecord
   #         t.integer  :position
   #       end
   #
-  #       SystemSetting.create  :name => "notice", 
-  #                             :label => "Use notice?", 
+  #       SystemSetting.create  :name => "notice",
+  #                             :label => "Use notice?",
   #                             :value => 1
   #     end
   #
@@ -82,48 +82,48 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This migration first adds the system_settings table, then creates the very 
+  # This migration first adds the system_settings table, then creates the very
   # first row in it using the Active Record model that relies on the table. It
-  # also uses the more advanced create_table syntax where you can specify a 
+  # also uses the more advanced create_table syntax where you can specify a
   # complete table schema in one block call.
   #
   # == Available transformations
   #
-  # * <tt>create_table(name, options)</tt> Creates a table called +name+ and 
+  # * <tt>create_table(name, options)</tt> Creates a table called +name+ and
   #   makes the table object available to a block that can then add columns to it,
-  #   following the same format as add_column. See example above. The options hash 
-  #   is for fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create 
+  #   following the same format as add_column. See example above. The options hash
+  #   is for fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create
   #   table definition.
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
-  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+ 
+  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
   #   to +new_name+.
-  # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column 
+  # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column
   #   to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
-  #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>, 
+  #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>,
   #   <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
   #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be
-  #   specified by passing an +options+ hash like <tt>{ :default => 11 }</tt>. 
-  #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g. 
-  #   <tt>{ :limit => 50, :null => false }</tt>) -- see 
+  #   specified by passing an +options+ hash like <tt>{ :default => 11 }</tt>.
+  #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g.
+  #   <tt>{ :limit => 50, :null => false }</tt>) -- see
   #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
   #   a column but keeps the type and content.
-  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes 
+  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named 
+  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named
   #   +column_name+ from the table called +table_name+.
-  # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index 
+  # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
-  #   <tt>:name</tt> and <tt>:unique</tt> (e.g. 
+  #   <tt>:name</tt> and <tt>:unique</tt> (e.g.
   #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
-  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified 
+  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified
   #   by +index_name+.
   #
   # == Irreversible transformations
   #
-  # Some transformations are destructive in a manner that cannot be reversed. 
-  # Migrations of that kind should raise an <tt>ActiveRecord::IrreversibleMigration</tt> 
+  # Some transformations are destructive in a manner that cannot be reversed.
+  # Migrations of that kind should raise an <tt>ActiveRecord::IrreversibleMigration</tt>
   # exception in their +down+ method.
   #
   # == Running migrations from within Rails
@@ -134,8 +134,8 @@ module ActiveRecord
   #   rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
-  # create an empty migration file <tt>timestamp_my_new_migration.rb</tt> 
-  # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the 
+  # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
+  # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the
   # UTC formatted date and time that the migration was generated.
   #
   # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
@@ -217,9 +217,9 @@ module ActiveRecord
   #
   # == Using a model after changing its table
   #
-  # Sometimes you'll want to add a column in a migration and populate it 
-  # immediately after. In that case, you'll need to make a call to 
-  # <tt>Base#reset_column_information</tt> in order to ensure that the model has the 
+  # Sometimes you'll want to add a column in a migration and populate it
+  # immediately after. In that case, you'll need to make a call to
+  # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
   #   class AddPeopleSalary < ActiveRecord::Migration
@@ -374,7 +374,7 @@ module ActiveRecord
       end
 
       def method_missing(method, *arguments, &block)
-        arg_list = arguments.map(&:inspect) * ', '
+        arg_list = arguments.map{ |a| a.inspect } * ', '
 
         say_with_time "#{method}(#{arg_list})" do
           unless arguments.empty? || method == :execute
@@ -451,7 +451,7 @@ module ActiveRecord
 
       def get_all_versions
         table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version']).to_sql).map(&:to_i).sort
+        Base.connection.select_values(table.project(table['version']).to_sql).map{ |v| v.to_i }.sort
       end
 
       def current_version
@@ -569,7 +569,7 @@ module ActiveRecord
           klasses << migration
         end
 
-        migrations = migrations.sort_by(&:version)
+        migrations = migrations.sort_by { |m| m.version }
         down? ? migrations.reverse : migrations
       end
     end

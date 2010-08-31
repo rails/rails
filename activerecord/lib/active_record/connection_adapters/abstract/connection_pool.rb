@@ -93,11 +93,7 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        if conn = @reserved_connections[current_connection_id]
-          conn
-        else
-          @reserved_connections[current_connection_id] = checkout
-        end
+        @reserved_connections[current_connection_id] ||= checkout
       end
 
       # Signal that the thread is finished with the current connection.
@@ -109,7 +105,7 @@ module ActiveRecord
       end
 
       # If a connection already exists yield it to the block.  If no connection
-      # exists checkout a connection, yield it to the block, and checkin the 
+      # exists checkout a connection, yield it to the block, and checkin the
       # connection when finished.
       def with_connection
         connection_id = current_connection_id
@@ -326,7 +322,7 @@ module ActiveRecord
       # already been opened.
       def connected?(klass)
         conn = retrieve_connection_pool(klass)
-        conn ? conn.connected? : false
+        conn && conn.connected?
       end
 
       # Remove the connection for this class. This will close the active

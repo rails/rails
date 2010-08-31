@@ -29,19 +29,19 @@ class Class
   # In such cases, you don't want to do changes in places but use setters:
   #
   #   Base.setting = []
-  #   Base.setting                #=> []
-  #   Subclass.setting            #=> []
+  #   Base.setting                # => []
+  #   Subclass.setting            # => []
   #
   #   # Appending in child changes both parent and child because it is the same object:
   #   Subclass.setting << :foo
-  #   Base.setting               #=> [:foo]
-  #   Subclass.setting           #=> [:foo]
+  #   Base.setting               # => [:foo]
+  #   Subclass.setting           # => [:foo]
   #
   #   # Use setters to not propagate changes:
   #   Base.setting = []
   #   Subclass.setting += [:foo]
-  #   Base.setting               #=> []
-  #   Subclass.setting           #=> [:foo]
+  #   Base.setting               # => []
+  #   Subclass.setting           # => [:foo]
   #
   # For convenience, a query method is defined as well:
   #
@@ -72,6 +72,7 @@ class Class
             remove_possible_method(:#{name})
             define_method(:#{name}) { val }
           end
+          val
         end
 
         def #{name}

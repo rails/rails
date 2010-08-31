@@ -325,7 +325,7 @@ module ActionView
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
         defaults = defaults.merge(human)
-        
+
         options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)

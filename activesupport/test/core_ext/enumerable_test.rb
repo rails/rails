@@ -89,7 +89,7 @@ class EnumerableTests < Test::Unit::TestCase
     assert ![ 1, 2 ].many? {|x| x > 1 }
     assert [ 1, 2, 2 ].many? {|x| x > 1 }
   end
-  
+
   def test_exclude?
     assert [ 1 ].exclude?(2)
     assert ![ 1 ].exclude?(1)

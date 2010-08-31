@@ -132,7 +132,7 @@ module RailtiesTest
       require "#{app_path}/config/environment"
       assert $ran_block
     end
-    
+
     test "we can change our environment if we want to" do
       begin
         original_env = Rails.env

@@ -22,7 +22,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to
     Client.find(3).firm.name
     assert_equal companies(:first_firm).name, Client.find(3).firm.name
-    assert !Client.find(3).firm.nil?, "Microsoft should have a firm"
+    assert_not_nil Client.find(3).firm, "Microsoft should have a firm"
   end
 
   def test_belongs_to_with_primary_key
@@ -75,8 +75,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_primary_key
-    apple = Firm.create("name" => "Apple")
-    citibank = Client.create("name" => "Citibank", :firm_name => "Apple")
+    Firm.create("name" => "Apple")
+    Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key)
     assert_not_nil citibank_result.instance_variable_get("@firm_with_primary_key")
   end

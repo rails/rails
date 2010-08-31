@@ -14,7 +14,7 @@ module ActiveModel
       #     include ActiveModel::Validations::Callbacks
       #
       #     before_validation :do_stuff_before_validation
-      #     after_validation  :do_tuff_after_validation
+      #     after_validation  :do_stuff_after_validation
       #   end
       #
       #   Like other before_* callbacks if <tt>before_validation</tt> returns false
@@ -40,7 +40,7 @@ module ActiveModel
           options = args.extract_options!
           options[:prepend] = true
           options[:if] = Array.wrap(options[:if])
-          options[:if] << "!halted && value != false"
+          options[:if] << "!halted"
           options[:if] << "self.validation_context == :#{options[:on]}" if options[:on]
           set_callback(:validation, :after, *(args << options), &block)
         end

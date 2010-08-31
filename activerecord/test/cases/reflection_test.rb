@@ -135,7 +135,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_association_reflection_in_modules
     ActiveRecord::Base.store_full_sti_class = false
-    
+
     assert_reflection MyApplication::Business::Firm,
       :clients_of_firm,
       :klass      => MyApplication::Business::Client,

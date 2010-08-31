@@ -11,7 +11,7 @@ thinking_general:
   taggable_id: 2
   taggable_type: Post
 
-fake: 
+fake:
   id: 3
   tag_id: 1
   taggable_id: 1

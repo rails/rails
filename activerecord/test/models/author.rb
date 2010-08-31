@@ -93,6 +93,9 @@ class Author < ActiveRecord::Base
   belongs_to :author_address, :dependent => :destroy
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
 
+  scope :relation_include_posts, includes(:posts)
+  scope :relation_include_tags, includes(:tags)
+
   attr_accessor :post_log
   after_initialize :set_post_log
 

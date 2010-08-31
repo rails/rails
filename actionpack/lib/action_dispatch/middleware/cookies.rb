@@ -7,7 +7,7 @@ module ActionDispatch
     end
   end
 
-  # Cookies are read and written through ActionController#cookies.
+  # \Cookies are read and written through ActionController#cookies.
   #
   # The cookies being read are the ones received along with the request, the cookies
   # being written will be sent out with the response. Reading a cookie does not get
@@ -20,6 +20,15 @@ module ActionDispatch
   #
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
+  #
+  #   # Sets a signed cookie, which prevents a user from tampering with its value.
+  #   # You must specify a value in ActionController::Base.cookie_verifier_secret.
+  #   cookies.signed[:remember_me] = [current_user.id, current_user.salt]
+  #
+  #   # Sets a "permanent" cookie (which expires in 20 years from now).
+  #   cookies.permanent[:login] = "XJ-122"
+  #   # You can also chain these methods:
+  #   cookies.permanent.signed[:login] = "XJ-122"
   #
   # Examples for reading:
   #
@@ -55,7 +64,7 @@ module ActionDispatch
   #     :domain => :all # Allow the cookie for the top most level
   #                       domain and subdomains.
   #
-  # * <tt>:expires</tt> - The time at which this cookie expires, as a Time object.
+  # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
   # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
@@ -69,16 +78,26 @@ module ActionDispatch
 
     class CookieJar < Hash #:nodoc:
 
-      # This regular expression is used to split the levels of a domain
-      # So www.example.co.uk gives:
-      # $1 => www.
-      # $2 => example
-      # $3 => co.uk
-      DOMAIN_REGEXP = /^(.*\.)*(.*)\.(...|...\...|....|..\...|..)$/
+      # This regular expression is used to split the levels of a domain.
+      # The top level domain can be any string without a period or
+      # **.**, ***.** style TLDs like co.uk or com.au
+      #
+      # www.example.co.uk gives:
+      # $1 => example
+      # $2 => co.uk
+      #
+      # example.com gives:
+      # $1 => example
+      # $2 => com
+      #
+      # lots.of.subdomains.example.local gives:
+      # $1 => example
+      # $2 => local
+      DOMAIN_REGEXP = /([^.]*)\.([^.]*|..\...|...\...)$/
 
       def self.build(request)
         secret = request.env[TOKEN_KEY]
-        host = request.env["HTTP_HOST"]
+        host = request.host
 
         new(secret, host).tap do |hash|
           hash.update(request.cookies)
@@ -104,7 +123,7 @@ module ActionDispatch
 
         if options[:domain] == :all
           @host =~ DOMAIN_REGEXP
-          options[:domain] = ".#{$2}.#{$3}"
+          options[:domain] = ".#{$1}.#{$2}"
         end
       end
 

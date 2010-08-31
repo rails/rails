@@ -5,7 +5,7 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActiveSupport
-  # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
+  # Callbacks are hooks into the life cycle of an object that allow you to trigger logic
   # before or after an alteration of the object state.
   #
   # Mixing in this module allows you to define callbacks in your class.
@@ -479,7 +479,7 @@ module ActiveSupport
           end
 
           filters.each do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) } 
+            chain.delete_if {|c| c.matches?(type, filter) }
           end
 
           options[:prepend] ? chain.unshift(*mapped) : chain.push(*mapped)

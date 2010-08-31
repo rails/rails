@@ -69,7 +69,7 @@ All of the Rails tests must pass with any code you submit, otherwise you have no
 NOTE: Ensure you install bundler v1.0
 
 <shell>
-gem install -v=1.0.0.rc.2 bundler
+gem install bundler
 bundle install --without db
 </shell>
 

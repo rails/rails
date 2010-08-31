@@ -12,9 +12,9 @@ endprologue.
 
 h3. What is Action View?
 
-Action View and Action Controller are the two major components of Action Pack. In Rails, web requests are handled by Action Pack, which splits the work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response. 
+Action View and Action Controller are the two major components of Action Pack. In Rails, web requests are handled by Action Pack, which splits the work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
-Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves. 
+Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
 Note: Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
 
@@ -24,7 +24,7 @@ TODO...
 
 h3. Using Action View outside of Rails
 
-Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small "Rack":http://rack.rubyforge.org/ application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application. 
+Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small "Rack":http://rack.rubyforge.org/ application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
@@ -55,11 +55,11 @@ We can see this all come together by starting up the application and then visiti
 ruby hello_world.rb
 </shell>
 
-TODO needs a screenshot? I have one - not sure where to put it. 
+TODO needs a screenshot? I have one - not sure where to put it.
 
-Notice how 'hello world' has been converted into 'Hello World' by the +titleize+ helper method. 
+Notice how 'hello world' has been converted into 'Hello World' by the +titleize+ helper method.
 
-Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the same way. 
+Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the same way.
 
 Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
 
@@ -90,7 +90,7 @@ ruby hello_world.rb
 
 Once the application is running, you can see Sinatra and Action View working together by visiting +http://localhost:4567/+
 
-TODO needs a screenshot? I have one - not sure where to put it. 
+TODO needs a screenshot? I have one - not sure where to put it.
 
 h3. Templates, Partials and Layouts
 
@@ -172,7 +172,7 @@ TODO...
 
 h3. Overview of all the helpers provided by Action View
 
-The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the API Documentation, which covers all of the helpers in more detail, but this should serve as a good starting point. 
+The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the API Documentation, which covers all of the helpers in more detail, but this should serve as a good starting point.
 
 h4. ActiveRecordHelper
 
@@ -196,7 +196,7 @@ error_messages_for "post"
 
 h5. form
 
-Returns a form with inputs for all attributes of the specified Active Record object. For example, let's say we have a +@post+ with attributes named +title+ of type +String+ and +body+ of type +Text+. Calling +form+ would produce a form to creating a new post with inputs for those attributes. 
+Returns a form with inputs for all attributes of the specified Active Record object. For example, let's say we have a +@post+ with attributes named +title+ of type +String+ and +body+ of type +Text+. Calling +form+ would produce a form to creating a new post with inputs for those attributes.
 
 <ruby>
 form("post")
@@ -220,24 +220,24 @@ Typically, +form_for+ is used instead of +form+ because it doesn't automatically
 
 h5. input
 
-Returns a default input tag for the type of object returned by the method. 
+Returns a default input tag for the type of object returned by the method.
 
 For example, if +@post+ has an attribute +title+ mapped to a +String+ column that holds "Hello World":
 
 <ruby>
-input("post", "title") # => 
+input("post", "title") # =>
   <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
 </ruby>
 
 h4. AssetTagHelper
 
-This module provides methods for generating HTML that links views to assets such as images, javascripts, stylesheets, and feeds. 
+This module provides methods for generating HTML that links views to assets such as images, javascripts, stylesheets, and feeds.
 
 By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +ActionController::Base.asset_host+ in your +config/environment.rb+. For example, let's say your asset host is +assets.example.com+:
 
 <ruby>
 ActionController::Base.asset_host = "assets.example.com"
-image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" /> 
+image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
 </ruby>
 
 h5. register_javascript_expansion
@@ -301,10 +301,10 @@ Returns an html script tag for each of the sources provided. You can pass in the
 
 <ruby>
 javascript_include_tag "common" # =>
-  <script type="text/javascript" src="/javascripts/common.js"></script>  
+  <script type="text/javascript" src="/javascripts/common.js"></script>
 </ruby>
 
-To include the Prototype and Scriptaculous javascript libraries in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +public/javascripts+ directory, it will be included as well. 
+To include the Prototype and Scriptaculous javascript libraries in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +public/javascripts+ directory, it will be included as well.
 
 <ruby>
 javascript_include_tag :defaults
@@ -319,8 +319,8 @@ javascript_include_tag :all
 You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if +ActionController::Base.perform_caching+ is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 <ruby>
-javascript_include_tag :all, :cache => true # => 
-  <script type="text/javascript" src="/javascripts/all.js"></script>  
+javascript_include_tag :all, :cache => true # =>
+  <script type="text/javascript" src="/javascripts/all.js"></script>
 </ruby>
 
 h5. javascript_path
@@ -333,7 +333,7 @@ javascript_path "common" # => /javascripts/common.js
 
 h5. stylesheet_link_tag
 
-Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, +.css+ will be appended automatically. 
+Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, +.css+ will be appended automatically.
 
 <ruby>
 stylesheet_link_tag "application" # =>
@@ -346,7 +346,7 @@ You can also include all styles in the stylesheet directory using :all as the so
 stylesheet_link_tag :all
 </ruby>
 
-You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment). 
+You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 <ruby>
 stylesheet_link_tag :all, :cache => true
@@ -415,7 +415,7 @@ Allows you to measure the execution time of a block in a template and records th
 <ruby>
 <% benchmark "Process data files" do %>
   <%= expensive_files_operation %>
-<% end %>  
+<% end %>
 </ruby>
 
 This would add something like "Process data files (0.34523)" to the log, which you can then use to compare timings when optimizing your code.
@@ -428,7 +428,7 @@ A method for caching fragments of a view rather than an entire action or page. T
 
 <ruby>
 <% cache do %>
-  <%= render :partial => "shared/footer" %>
+  <%= render "shared/footer" %>
 <% end %>
 </ruby>
 
@@ -455,7 +455,7 @@ The captured variable can then be used anywhere else.
     <%= @greeting %>
   </body>
 </html>
-</ruby>  
+</ruby>
 
 h5. content_for
 
@@ -484,7 +484,7 @@ For example, let's say we have a standard application layout, but also a special
 
 <% content_for :special_script do %>
   <script type="text/javascript">alert('Hello!')</script>
-<% end %>  
+<% end %>
 </ruby>
 
 h4. DateHelper
@@ -523,7 +523,7 @@ Returns a set of html select-tags (one for year, month, and day) pre-selected wi
 select_date(Time.today + 6.days)
 
 # Generates a date select that defaults to today (no specified date)
-select_date()  
+select_date()
 </ruby>
 
 h5. select_datetime
@@ -535,7 +535,7 @@ Returns a set of html select-tags (one for year, month, day, hour, and minute) p
 select_datetime(Time.now + 4.days)
 
 # Generates a datetime select that defaults to today (no specified datetime)
-select_datetime()  
+select_datetime()
 </ruby>
 
 h5. select_day
@@ -583,7 +583,7 @@ Returns a select tag with options for each of the seconds 0 through 59 with the 
 
 <ruby>
 # Generates a select field for seconds that defaults to the seconds for the time provided
-select_second(Time.now + 16.minutes)  
+select_second(Time.now + 16.minutes)
 </ruby>
 
 h5. select_time
@@ -592,7 +592,7 @@ Returns a set of html select-tags (one for hour and minute).
 
 <ruby>
 # Generates a time select that defaults to the time provided
-select_time(Time.now)  
+select_time(Time.now)
 </ruby>
 
 h5. select_year
@@ -621,7 +621,7 @@ Returns a set of select tags (one for hour, minute and optionally second) pre-se
 
 <ruby>
 # Creates a time select tag that, when POSTed, will be stored in the order variable in the submitted attribute
-time_select("order", "submitted")  
+time_select("order", "submitted")
 </ruby>
 
 h4. DebugHelper
@@ -711,7 +711,7 @@ Returns an file upload input tag tailored for accessing a specified attribute.
 
 <ruby>
 file_field(:user, :avatar)
-# => <input type="file" id="user_avatar" name="user[avatar]" />  
+# => <input type="file" id="user_avatar" name="user[avatar]" />
 </ruby>
 
 h5. form_for
@@ -733,7 +733,7 @@ Returns a hidden input tag tailored for accessing a specified attribute.
 
 <ruby>
 hidden_field(:user, :token)
-# => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />  
+# => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
 </ruby>
 
 h5. label
@@ -751,7 +751,7 @@ Returns an input tag of the "password" type tailored for accessing a specified a
 
 <ruby>
 password_field(:login, :pass)
-# => <input type="text" id="login_pass" name="login[pass]" value="#{@login.pass}" />  
+# => <input type="text" id="login_pass" name="login[pass]" value="#{@login.pass}" />
 </ruby>
 
 h5. radio_button
@@ -854,7 +854,7 @@ end
 
 Sample usage:
 
-<ruby>  
+<ruby>
 option_groups_from_collection_for_select(@continents, :countries, :name, :id, :name, 3)
 </ruby>
 
@@ -880,7 +880,7 @@ Note: Only the +optgroup+ and +option+ tags are returned, so you still have to w
 
 h5. options_for_select
 
-Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. 
+Accepts a container (hash, array, enumerable, your type) and returns a string of option tags.
 
 <ruby>
 options_for_select([ "VISA", "MasterCard" ])
@@ -902,7 +902,7 @@ For example, imagine a loop iterating over each person in @project.people to gen
 <ruby>
 options_from_collection_for_select(@project.people, "id", "name")
 # => <option value="#{person.id}">#{person.name}</option>
-</ruby> 
+</ruby>
 
 Note: Only the +option+ tags are returned, you have to wrap this call in a regular HTML +select+ tag.
 
@@ -949,7 +949,7 @@ Creates a check box form input tag.
 
 <ruby>
 check_box_tag 'accept'
-# => <input id="accept" name="accept" type="checkbox" value="1" />  
+# => <input id="accept" name="accept" type="checkbox" value="1" />
 </ruby>
 
 h5. field_set_tag
@@ -965,7 +965,7 @@ Creates a field set for grouping HTML form elements.
 
 h5. file_field_tag
 
-Creates a file upload field. 
+Creates a file upload field.
 
 If you are using file uploads then you will also need to set the multipart option for the form tag:
 
@@ -1173,7 +1173,7 @@ number_with_delimiter(12345678) # => 12,345,678
 
 h5. number_with_precision
 
-Formats a number with the specified level of +precision+, which defaults to 3. 
+Formats a number with the specified level of +precision+, which defaults to 3.
 
 <ruby>
 number_with_precision(111.2345)     # => 111.235
@@ -1207,7 +1207,7 @@ form_remote_tag :html => { :action => url_for(:controller => "some", :action => 
 would generate the following:
 
 <html>
-<form action="/some/place" method="post" onsubmit="new Ajax.Request('', 
+<form action="/some/place" method="post" onsubmit="new Ajax.Request('',
   {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;">
 </html>
 
@@ -1293,7 +1293,7 @@ Yields a JavaScriptGenerator and returns the generated JavaScript code. Use this
 <ruby>
 update_page do |page|
   page.hide 'spinner'
-end  
+end
 </ruby>
 
 h5. update_page_tag
@@ -1395,7 +1395,7 @@ h5. remove
 Removes the DOM elements with the given ids from the page.
 
 <ruby>
-page.remove 'person_23', 'person_9', 'person_2'  
+page.remove 'person_23', 'person_9', 'person_2'
 </ruby>
 
 h5. replace
@@ -1420,7 +1420,7 @@ Returns a collection reference by finding it through a CSS pattern in the DOM.
 
 <ruby>
 page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
-</ruby>  
+</ruby>
 
 h5. show
 
@@ -1440,7 +1440,7 @@ Toggles the visibility of the DOM elements with the given ids. Example:
 
 <ruby>
 page.toggle 'person_14', 'person_12', 'person_23'      # Hides the elements
-page.toggle 'person_14', 'person_12', 'person_23'      # Shows the previously hidden elements  
+page.toggle 'person_14', 'person_12', 'person_23'      # Shows the previously hidden elements
 </ruby>
 
 h5. visual_effect
@@ -1455,11 +1455,11 @@ h3. Localized Views
 
 Action View has the ability render different templates depending on the current locale.
 
-For example, suppose you have a Posts controller with a show action. By default, calling this action will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :de+, then +app/views/posts/show.de.html.erb+ will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available. 
+For example, suppose you have a Posts controller with a show action. By default, calling this action will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :de+, then +app/views/posts/show.de.html.erb+ will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
 
 You can use the same technique to localize the rescue files in your public directory. For example, setting +I18n.locale = :de+ and creating +public/500.de.html+ and +public/404.de.html+ would allow you to have localized rescue pages.
 
-Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to +app/controllers/application.rb+: 
+Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to +app/controllers/application.rb+:
 
 <ruby>
 before_filter :set_expert_locale
@@ -1471,7 +1471,7 @@ end
 
 Then you could create special views like +app/views/posts/show.expert.html.erb+ that would only be displayed to expert users.
 
-You can read more about the Rails Internationalization (I18n) API "here":i18n.html. 
+You can read more about the Rails Internationalization (I18n) API "here":i18n.html.
 
 h3. Changelog
 

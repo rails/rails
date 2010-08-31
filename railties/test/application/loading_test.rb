@@ -18,10 +18,10 @@ class LoadingTest < Test::Unit::TestCase
         validates_acceptance_of :title, :accept => "omg"
       end
     MODEL
-  
+
     require "#{rails_root}/config/environment"
     setup_ar!
-  
+
     p = Post.create(:title => 'omg')
     assert_equal 1, Post.count
     assert_equal 'omg', p.title
@@ -73,7 +73,7 @@ class LoadingTest < Test::Unit::TestCase
   end
 
   protected
-  
+
   def setup_ar!
     ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
     ActiveRecord::Migration.verbose = false

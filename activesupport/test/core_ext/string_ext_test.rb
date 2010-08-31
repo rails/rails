@@ -6,9 +6,41 @@ require 'inflector_test_cases'
 require 'active_support/core_ext/string'
 require 'active_support/time'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/string/strip'
 
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
+
+  def test_strip_heredoc_on_an_empty_string
+    assert_equal '', ''.strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_string_with_no_lines
+    assert_equal 'x', 'x'.strip_heredoc
+    assert_equal 'x', '    x'.strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_heredoc_with_no_margin
+    assert_equal "foo\nbar", "foo\nbar".strip_heredoc
+    assert_equal "foo\n  bar", "foo\n  bar".strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_regular_indented_heredoc
+    assert_equal "foo\n  bar\nbaz\n", <<-EOS.strip_heredoc
+      foo
+        bar
+      baz
+    EOS
+  end
+
+  def test_strip_heredoc_on_a_regular_indented_heredoc_with_blank_lines
+    assert_equal "foo\n  bar\n\nbaz\n", <<-EOS.strip_heredoc
+      foo
+        bar
+
+      baz
+    EOS
+  end
 
   def test_pluralize
     SingularToPlural.each do |singular, plural|
@@ -218,7 +250,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-  
+
   def test_truncate
     assert_equal "Hello World!", "Hello World!".truncate(12)
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)

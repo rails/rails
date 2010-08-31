@@ -209,7 +209,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_nested_exclusive_scope_for_create
     comment = Comment.create_with(:body => "Hey guys, nested scopes are broken. Please fix!").scoping do
       Comment.unscoped.create_with(:post_id => 1).scoping do
-        assert Comment.new.body.blank?
+        assert_blank Comment.new.body
         Comment.create :body => "Hey guys"
       end
     end
@@ -339,7 +339,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_default_scoping_with_inheritance
     # Inherit a class having a default scope and define a new default scope
     klass = Class.new(DeveloperOrderedBySalary)
-    klass.send :default_scope, :limit => 1 
+    klass.send :default_scope, :limit => 1
 
     # Scopes added on children should append to parent scope
     assert_equal 1,               klass.scoped.limit_value
@@ -413,7 +413,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 'David', PoorDeveloperCalledJamis.create!(:name => 'David').name
     assert_equal 200000, PoorDeveloperCalledJamis.create!(:name => 'David', :salary => 200000).salary
   end
- 
+
   def test_create_attribute_overwrites_default_values
     assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary

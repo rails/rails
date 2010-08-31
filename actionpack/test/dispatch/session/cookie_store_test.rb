@@ -118,11 +118,11 @@ class CookieStoreTest < ActionController::IntegrationTest
         assert_equal 'id: ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
       end
     end
-  end  
-  
+  end
+
   def test_deserializes_unloaded_classes_on_get_value
     with_test_route_set do
-      with_autoload_path "session_autoload_test" do 
+      with_autoload_path "session_autoload_test" do
         cookies[SessionKey] = SignedSerializedCookie
         get '/get_session_value'
         assert_response :success
@@ -267,7 +267,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     end
   end
 
-  def test_session_store_without_domain 
+  def test_session_store_without_domain
     with_test_route_set do
       get '/set_session_value'
       assert_no_match(/domain\=/, headers['Set-Cookie'])

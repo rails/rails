@@ -183,13 +183,13 @@ module ActiveRecord
     # * <tt>:username</tt> - Defaults to nothing.
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
-    # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given 
+    # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
     #   as a string of comma-separated schema names.  This is backward-compatible with the <tt>:schema_order</tt> option.
-    # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO 
+    # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
-    # * <tt>:min_messages</tt> - An optional client min messages that is used in a 
+    # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock; 
+    # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock;
     #   otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
       ADAPTER_NAME = 'PostgreSQL'.freeze
@@ -879,7 +879,7 @@ module ActiveRecord
         # Construct a clean list of column names from the ORDER BY clause, removing
         # any ASC/DESC modifiers
         order_columns = order_by.split(',').collect { |s| s.split.first }
-        order_columns.delete_if(&:blank?)
+        order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 
         # Return a DISTINCT ON() clause that's distinct on the columns we want but includes

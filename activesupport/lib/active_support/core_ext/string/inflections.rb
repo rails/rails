@@ -1,5 +1,7 @@
 require 'active_support/inflector/methods'
 require 'active_support/inflector/inflections'
+require 'active_support/inflector/transliterate'
+
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a database from the name of a class.
 #
@@ -72,7 +74,7 @@ class String
   alias_method :titlecase, :titleize
 
   # The reverse of +camelize+. Makes an underscored, lowercase form from the expression in the string.
-  # 
+  #
   # +underscore+ will also change '::' to '/' to convert namespaces to paths.
   #
   #   "ActiveRecord".underscore         # => "active_record"
@@ -97,7 +99,7 @@ class String
   end
 
   # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
-  # 
+  #
   # ==== Examples
   #
   #   class Person
@@ -105,10 +107,10 @@ class String
   #       "#{id}-#{name.parameterize}"
   #     end
   #   end
-  # 
+  #
   #   @person = Person.find(1)
   #   # => #<Person id: 1, name: "Donald E. Knuth">
-  # 
+  #
   #   <%= link_to(@person.name, person_path %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   def parameterize(sep = '-')
@@ -138,11 +140,11 @@ class String
   def classify
     ActiveSupport::Inflector.classify(self)
   end
-  
+
   # Capitalizes the first word, turns underscores into spaces, and strips '_id'.
   # Like +titleize+, this is meant for creating pretty output.
   #
-  #   "employee_salary" # => "Employee salary" 
+  #   "employee_salary" # => "Employee salary"
   #   "author_id"       # => "Author"
   def humanize
     ActiveSupport::Inflector.humanize(self)

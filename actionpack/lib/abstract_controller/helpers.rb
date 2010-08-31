@@ -9,6 +9,9 @@ module AbstractController
     included do
       class_attribute :_helpers
       self._helpers = Module.new
+
+      class_attribute :_helper_methods
+      self._helper_methods = Array.new
     end
 
     module ClassMethods
@@ -40,10 +43,13 @@ module AbstractController
       #  <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
       #
       # ==== Parameters
-      # meths<Array[#to_s]>:: The name of a method on the controller
+      # * <tt>method[, method]</tt> - A name or names of a method on the controller
       #   to be made available on the view.
       def helper_method(*meths)
-        meths.flatten.each do |meth|
+        meths.flatten!
+        self._helper_methods += meths
+
+        meths.each do |meth|
           _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def #{meth}(*args, &blk)
               controller.send(%(#{meth}), *args, &blk)
@@ -55,8 +61,8 @@ module AbstractController
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
       # ==== Parameters
-      # *args<Array[Module, Symbol, String, :all]>
-      # block<Block>:: A block defining helper methods
+      # * <tt>*args</tt> - Module, Symbol, String, :all
+      # * <tt>block</tt> - A block defining helper methods
       #
       # ==== Examples
       # When the argument is a module it will be included directly in the template class.
@@ -95,12 +101,23 @@ module AbstractController
         _helpers.module_eval(&block) if block_given?
       end
 
+      # Clears up all existing helpers in this class, only keeping the helper
+      # with the same name as this class.
+      def clear_helpers
+        inherited_helper_methods = _helper_methods
+        self._helpers = Module.new
+        self._helper_methods = Array.new
+
+        inherited_helper_methods.each { |meth| helper_method meth }
+        default_helper_module! unless anonymous?
+      end
+
       private
       # Makes all the (instance) methods in the helper module available to templates
       # rendered through this controller.
       #
       # ==== Parameters
-      # mod<Module>:: The module to include into the current helper module
+      # * <tt>module</tt> - The module to include into the current helper module
       #   for the class
       def add_template_helper(mod)
         _helpers.module_eval { include mod }
@@ -118,10 +135,10 @@ module AbstractController
       # are returned.
       #
       # ==== Parameters
-      # args<Array[String, Symbol, Module]>:: A list of helpers
+      # * <tt>args</tt> - An array of helpers
       #
       # ==== Returns
-      # Array[Module]:: A normalized list of modules for the list of
+      # * <tt>Array</tt> - A normalized list of modules for the list of
       #   helpers provided.
       def modules_for_helpers(args)
         args.flatten.map! do |arg|

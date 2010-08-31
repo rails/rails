@@ -101,7 +101,7 @@ class FixturesTest < ActiveRecord::TestCase
       second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
       assert_nil(second_row["author_email_address"])
 
-      # This checks for a caching problem which causes a bug in the fixtures 
+      # This checks for a caching problem which causes a bug in the fixtures
       # class-level configuration helper.
       assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
     ensure
@@ -151,6 +151,17 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_empty_yaml_fixture_with_a_comment_in_it
     assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', FIXTURES_ROOT + "/naked/yml/companies")
+  end
+
+  def test_nonexistent_fixture_file
+    nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
+
+    #sanity check to make sure that this file never exists
+    assert Dir[nonexistent_fixture_path+"*"].empty?
+
+    assert_raise(FixturesFileNotFound) do
+      Fixtures.new( Account.connection, "companies", 'Company', nonexistent_fixture_path)
+    end
   end
 
   def test_dirty_dirty_yaml_file
@@ -256,7 +267,7 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   def test_fixtures_from_root_yml_without_instantiation
     assert !defined?(@unknown), "@unknown is not defined"
   end
-  
+
   def test_visibility_of_accessor_method
     assert_equal false, respond_to?(:topics, false), "should be private method"
     assert_equal true, respond_to?(:topics, true), "confirm to respond surely"
@@ -371,7 +382,7 @@ end
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 
@@ -383,7 +394,7 @@ end
 class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class :items => Book
   fixtures :items
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 
@@ -395,7 +406,7 @@ end
 class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
   set_fixture_class :items => Book, :funny_jokes => Joke
   fixtures :items, :funny_jokes
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 
@@ -411,7 +422,7 @@ end
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 
@@ -423,7 +434,7 @@ end
 
 class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our lack of set_fixture_class
   self.use_transactional_fixtures = false
 
@@ -437,7 +448,7 @@ end
 class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 

@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/try'
 require 'abstract_unit'
+require 'active_support/core_ext/object/try'
 
 class ResourcesController < ActionController::Base
   def index() render :nothing => true end

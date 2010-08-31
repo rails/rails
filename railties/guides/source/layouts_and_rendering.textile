@@ -143,7 +143,7 @@ def update
 end
 </ruby>
 
-If the call to +update_attributes+ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.  
+If the call to +update_attributes+ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.
 
 If you prefer, you can use a symbol instead of a string to specify the action to render:
 
@@ -200,7 +200,7 @@ render "/u/apps/warehouse_app/current/app/views/products/show"
 Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the +:file+ option (which was required on Rails 2.2 and earlier):
 
 <ruby>
-render :file => 
+render :file =>
   "/u/apps/warehouse_app/current/app/views/products/show"
 </ruby>
 
@@ -240,7 +240,7 @@ h5. Using +render+ with +:inline+
 The +render+ method can do without a view completely, if you're willing to use the +:inline+ option to supply ERB as part of the method call. This is perfectly valid:
 
 <ruby>
-render :inline => 
+render :inline =>
   "<% products.each do |p| %><p><%= p.name %><p><% end %>"
 </ruby>
 
@@ -249,7 +249,7 @@ WARNING: There is seldom any good reason to use this option. Mixing ERB into you
 By default, inline rendering uses ERb. You can force it to use Builder instead with the +:type+ option:
 
 <ruby>
-render :inline => 
+render :inline =>
   "xml.p {'Horrid coding practice!'}", :type => :builder
 </ruby>
 
@@ -676,7 +676,7 @@ h5. Linking to Feeds with +auto_discovery_link_tag+
 The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 <erb>
-<%= auto_discovery_link_tag(:rss, {:action => "feed"}, 
+<%= auto_discovery_link_tag(:rss, {:action => "feed"},
   {:title => "RSS Feed"}) %>
 </erb>
 
@@ -739,7 +739,7 @@ If you're loading multiple javascript files, you can create a better user experi
 By default, the combined file will be delivered as +javascripts/all.js+. You can specify a location for the cached asset file instead:
 
 <erb>
-<%= javascript_include_tag "main", "columns", 
+<%= javascript_include_tag "main", "columns",
   :cache => 'cache/main/display' %>
 </erb>
 
@@ -798,7 +798,7 @@ If you're loading multiple CSS files, you can create a better user experience by
 By default, the combined file will be delivered as +stylesheets/all.css+. You can specify a location for the cached asset file instead:
 
 <erb>
-<%= stylesheet_link_tag "main", "columns", 
+<%= stylesheet_link_tag "main", "columns",
   :cache => 'cache/main/display' %>
 </erb>
 
@@ -1085,7 +1085,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 <p>Product Name: <%= product.name %></p>
 </erb>
 
-When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered. 
+When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered.
 
 In Rails 3.0 there is also a shorthand for this, assuming +@posts+ is a collection of +post+ instances, you can simply do in the +index.html.erb+:
 
@@ -1132,7 +1132,7 @@ With this change, you can access an instance of the +@products+ collection as th
 You can also pass in arbitrary local variables to any partial you are rendering with the +:locals => {}+ option:
 
 <erb>
-<%= render :partial => 'products', :collection => @products, 
+<%= render :partial => 'products', :collection => @products,
            :as => :item, :locals => {:title => "Products Page"} %>
 </erb>
 

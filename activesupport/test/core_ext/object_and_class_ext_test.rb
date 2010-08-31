@@ -144,7 +144,7 @@ class ObjectTryTest < Test::Unit::TestCase
     assert !@string.respond_to?(method)
     assert_raise(NoMethodError) { @string.try(method) }
   end
-  
+
   def test_valid_method
     assert_equal 5, @string.try(:size)
   end

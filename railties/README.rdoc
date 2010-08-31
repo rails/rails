@@ -15,7 +15,7 @@ The latest version of Railties can be installed with Rubygems:
 
 * gem install railties
 
-Documentation can be found at 
+Documentation can be found at
 
 * http://api.rubyonrails.org
 

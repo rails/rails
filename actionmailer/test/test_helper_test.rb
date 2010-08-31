@@ -2,11 +2,10 @@ require 'abstract_unit'
 
 class TestHelperMailer < ActionMailer::Base
   def test
-    recipients "test@example.com"
-    from       "tester@example.com"
-
     @world = "Earth"
-    render(:inline => "Hello, <%= @world %>")
+    mail :body => render(:inline => "Hello, <%= @world %>"),
+      :to => "test@example.com",
+      :from => "tester@example.com"
   end
 end
 
@@ -32,7 +31,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       self.class.determine_default_mailer("NotAMailerTest")
     end
   end
-  
+
   def test_charset_is_utf_8
     assert_equal "UTF-8", charset
   end
@@ -44,14 +43,14 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
   end
-  
+
   def test_repeated_assert_emails_calls
     assert_nothing_raised do
       assert_emails 1 do
         TestHelperMailer.test.deliver
       end
     end
-    
+
     assert_nothing_raised do
       assert_emails 2 do
         TestHelperMailer.test.deliver
@@ -59,20 +58,20 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
   end
-  
+
   def test_assert_emails_with_no_block
     assert_nothing_raised do
       TestHelperMailer.test.deliver
       assert_emails 1
     end
-    
+
     assert_nothing_raised do
       TestHelperMailer.test.deliver
       TestHelperMailer.test.deliver
       assert_emails 3
     end
   end
-  
+
   def test_assert_no_emails
     assert_nothing_raised do
       assert_no_emails do
@@ -80,17 +79,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
   end
-  
+
   def test_assert_emails_too_few_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 2 do
         TestHelperMailer.test.deliver
       end
     end
-    
+
     assert_match(/2 .* but 1/, error.message)
   end
-  
+
   def test_assert_emails_too_many_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 1 do
@@ -98,17 +97,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
         TestHelperMailer.test.deliver
       end
     end
-    
+
     assert_match(/1 .* but 2/, error.message)
   end
-  
+
   def test_assert_no_emails_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_emails do
         TestHelperMailer.test.deliver
       end
     end
-    
+
     assert_match(/0 .* but 1/, error.message)
   end
 end

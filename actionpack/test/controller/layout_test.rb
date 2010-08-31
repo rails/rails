@@ -115,7 +115,7 @@ end
 
 class LayoutSetInResponseTest < ActionController::TestCase
   include ActionView::Template::Handlers
-  
+
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new
     get :hello
@@ -127,7 +127,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
     get :hello
     assert_template :layout => "layouts/item"
   end
-  
+
   def test_layout_only_exception_when_included
     @controller = OnlyLayoutController.new
     get :hello
@@ -208,7 +208,7 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-unless Config::CONFIG['host_os'] =~ /mswin|mingw/
+unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
   class LayoutSymlinkedTest < LayoutTest
     layout "symlinked/symlinked_layout"
   end

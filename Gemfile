@@ -10,8 +10,8 @@ gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
-gem "rdoc",  ">= 2.5.9"
-gem "horo",  ">= 1.0.1"
+gem "rdoc",  ">= 2.5.10"
+gem "horo",  ">= 1.0.2"
 
 # AS
 gem "memcache-client", ">= 1.8.5"
@@ -35,7 +35,7 @@ platforms :ruby do
   group :db do
     gem "pg", ">= 0.9.0"
     gem "mysql", ">= 2.8.1"
-    gem "mysql2", :git => 'git://github.com/brianmario/mysql2.git'
+    gem "mysql2", ">= 0.2.3"
   end
 end
 
@@ -50,11 +50,14 @@ platforms :jruby do
   end
 end
 
-env 'CI' do
-  gem "nokogiri", ">= 1.4.3.1"
-
-  platforms :ruby_18 do
-    # fcgi gem doesn't compile on 1.9
-    gem "fcgi", ">= 0.8.8"
+# gems that are necessary for ActiveRecord tests with Oracle database
+if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
+  platforms :ruby do
+    gem 'ruby-oci8', ">= 2.0.4"
+  end
+  if ENV['ORACLE_ENHANCED_PATH']
+    gem 'activerecord-oracle_enhanced-adapter', :path => ENV['ORACLE_ENHANCED_PATH']
+  else
+    gem "activerecord-oracle_enhanced-adapter", :git => "git://github.com/rsim/oracle-enhanced.git"
   end
 end

@@ -32,7 +32,7 @@ module ActionDispatch
         end
       end
 
-      # Returns the Mime type for the \format used in the request.
+      # Returns the MIME type for the \format used in the request.
       #
       #   GET /posts/5.xml   | request.format => Mime::XML
       #   GET /posts/5.xhtml | request.format => Mime::HTML

@@ -371,7 +371,7 @@ The mass-assignment feature may become a problem, as it allows an attacker to se
 
 <ruby>
 def signup
-  params[:user] #=> {:name => “ow3ned”, :admin => true}
+  params[:user] # => {:name => “ow3ned”, :admin => true}
   @user = User.new(params[:user])
 end
 </ruby>
@@ -385,7 +385,7 @@ Mass-assignment saves you much work, because you don't have to set each value in
 This will set the following parameters in the controller:
 
 <ruby>
-params[:user] #=> {:name => “ow3ned”, :admin => true}
+params[:user] # => {:name => “ow3ned”, :admin => true}
 </ruby>
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
@@ -401,7 +401,7 @@ Note that this vulnerability is not restricted to database columns.  Any setter 
 
   class Child < ActiveRecord::Base
     belongs_to :person
-  end  
+  end
 </ruby>
 
 As a result, the vulnerability is extended beyond simply exposing column assignment, allowing attackers the ability to create entirely new records in referenced tables (children in this case).
@@ -423,11 +423,11 @@ attr_accessible :name
 If you want to set a protected attribute, you will to have to assign it individually:
 
 <ruby>
-params[:user] #=> {:name => "ow3ned", :admin => true}
+params[:user] # => {:name => "ow3ned", :admin => true}
 @user = User.new(params[:user])
-@user.admin #=> false # not mass-assigned
+@user.admin # => false # not mass-assigned
 @user.admin = true
-@user.admin #=> true
+@user.admin # => true
 </ruby>
 
 A more paranoid technique to protect your whole project would be to enforce that all models whitelist their accessible attributes.  This can be easily achieved with a very simple initializer:

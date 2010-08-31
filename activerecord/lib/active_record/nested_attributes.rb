@@ -25,7 +25,7 @@ module ActiveRecord
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
-    # 
+    #
     # <tt>author_attributes=(attributes)</tt> and
     # <tt>pages_attributes=(attributes)</tt>.
     #
@@ -190,6 +190,34 @@ module ActiveRecord
     # destruction, are saved and destroyed automatically and atomically when
     # the parent model is saved. This happens inside the transaction initiated
     # by the parents save method. See ActiveRecord::AutosaveAssociation.
+    #
+    # === Using with attr_accessible
+    #
+    # The use of <tt>attr_accessible</tt> can interfere with nested attributes
+    # if you're not careful. For example, if the <tt>Member</tt> model above
+    # was using <tt>attr_accessible</tt> like this:
+    #
+    #   attr_accessible :name
+    #
+    # You would need to modify it to look like this:
+    #
+    #   attr_accessible :name, :posts_attributes
+    #
+    # === Validating the presence of a parent model
+    #
+    # If you want to validate that a child record is associated with a parent
+    # record, you can use <tt>validates_presence_of</tt> and
+    # <tt>inverse_of</tt> as this example illustrates:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts, :inverse_of => :member
+    #     accepts_nested_attributes_for :posts
+    #   end
+    #
+    #   class Post < ActiveRecord::Base
+    #     belongs_to :member, :inverse_of => :posts
+    #     validates_presence_of :member
+    #   end
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
 

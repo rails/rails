@@ -39,7 +39,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   def test_should_add_a_proc_to_nested_attributes_options
     assert_equal ActiveRecord::NestedAttributes::ClassMethods::REJECT_ALL_BLANK_PROC,
                  Pirate.nested_attributes_options[:birds_with_reject_all_blank][:reject_if]
-    
+
     [:parrots, :birds].each do |name|
       assert_instance_of Proc, Pirate.nested_attributes_options[name][:reject_if]
     end
@@ -356,7 +356,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     assert_equal @ship.name, 'Nights Dirty Lightning'
     assert_equal @pirate, @ship.pirate
-   end
+  end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
     @ship.reload.pirate_attributes = { 'id' => @pirate.id, 'catchphrase' => 'Arr' }
@@ -817,29 +817,29 @@ class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRe
     @part = @ship.parts.create!(:name => "Mast")
     @trinket = @part.trinkets.create!(:name => "Necklace")
   end
-  
+
   test "when great-grandchild changed in memory, saving parent should save great-grandchild" do
     @trinket.name = "changed"
     @pirate.save
     assert_equal "changed", @trinket.reload.name
   end
-  
+
   test "when great-grandchild changed via attributes, saving parent should save great-grandchild" do
     @pirate.attributes = {:ship_attributes => {:id => @ship.id, :parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :name => "changed"}]}]}}
     @pirate.save
     assert_equal "changed", @trinket.reload.name
   end
-  
+
   test "when great-grandchild marked_for_destruction via attributes, saving parent should destroy great-grandchild" do
     @pirate.attributes = {:ship_attributes => {:id => @ship.id, :parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :_destroy => true}]}]}}
     assert_difference('@part.trinkets.count', -1) { @pirate.save }
   end
-  
+
   test "when great-grandchild added via attributes, saving parent should create great-grandchild" do
     @pirate.attributes = {:ship_attributes => {:id => @ship.id, :parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:name => "created"}]}]}}
     assert_difference('@part.trinkets.count', 1) { @pirate.save }
   end
-  
+
   test "when extra records exist for associations, validate (which calls nested_records_changed_for_autosave?) should not load them up" do
     @trinket.name = "changed"
     Ship.create!(:pirate => @pirate, :name => "The Black Rock")
@@ -880,23 +880,23 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     @ship.save
     assert_equal "changed", @trinket.reload.name
   end
-  
+
   test "when grandchild changed via attributes, saving parent should save grandchild" do
     @ship.attributes = {:parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :name => "changed"}]}]}
     @ship.save
     assert_equal "changed", @trinket.reload.name
   end
-  
+
   test "when grandchild marked_for_destruction via attributes, saving parent should destroy grandchild" do
     @ship.attributes = {:parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:id => @trinket.id, :_destroy => true}]}]}
     assert_difference('@part.trinkets.count', -1) { @ship.save }
   end
-  
+
   test "when grandchild added via attributes, saving parent should create grandchild" do
     @ship.attributes = {:parts_attributes => [{:id => @part.id, :trinkets_attributes => [{:name => "created"}]}]}
     assert_difference('@part.trinkets.count', 1) { @ship.save }
   end
-  
+
   test "when extra records exist for associations, validate (which calls nested_records_changed_for_autosave?) should not load them up" do
     @trinket.name = "changed"
     Ship.create!(:name => "The Black Rock")

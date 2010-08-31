@@ -44,14 +44,14 @@ class AttributeAliasingTest < Test::Unit::TestCase
     # upper-case attributes, and when people want to alias those names
     # to more sensible ones, everything goes *foof*.
     e = AttributeAliasing::Email.new
-    
+
     assert !e.body?
     assert !e.Data?
-    
+
     e.body = "No, really, this is not a joke."
     assert_equal "No, really, this is not a joke.", e.Data
     assert e.Data?
-    
+
     e.Data = "Uppercased methods are teh suck"
     assert_equal "Uppercased methods are teh suck", e.body
     assert e.body?

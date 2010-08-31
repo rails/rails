@@ -19,19 +19,19 @@ A short rundown of some of the major features:
 
    class Product < ActiveRecord::Base
    end
-   
+
    The Product class is automatically mapped to the table named "products",
    which might look like this:
-   
+
    CREATE TABLE products (
      id int(11) NOT NULL auto_increment,
      name varchar(255),
      PRIMARY KEY  (id)
    );
-   
+
    This would also define the following accessors: `Product#name` and
    `Product#name=(new_name)`
-   
+
   {Learn more}[link:classes/ActiveRecord/Base.html]
 
 
@@ -51,7 +51,7 @@ A short rundown of some of the major features:
    class Account < ActiveRecord::Base
      composed_of :balance, :class_name => "Money",
                  :mapping => %w(balance amount)
-     composed_of :address, 
+     composed_of :address,
                  :mapping => [%w(address_street street), %w(address_city city)]
    end
 
@@ -70,7 +70,7 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Validations.html]
 
 
-* Callbacks available for the entire lifecycle (instantiation, saving, destroying, validating, etc.)
+* Callbacks available for the entire life cycle (instantiation, saving, destroying, validating, etc.)
 
    class Person < ActiveRecord::Base
      before_destroy :invalidate_payment_plan
@@ -91,7 +91,7 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Observer.html]
 
 
-* Inheritance hierarchies 
+* Inheritance hierarchies
 
    class Company < ActiveRecord::Base; end
    class Firm < Company; end
@@ -170,7 +170,7 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Migration.html]
 
 
-== Philosophy 
+== Philosophy
 
 Active Record is an implementation of the object-relational mapping (ORM)
 pattern[http://www.martinfowler.com/eaaCatalog/activeRecord.html] by the same
@@ -179,7 +179,7 @@ name described by Martin Fowler:
   "An object that wraps a row in a database table or view,
   encapsulates the database access, and adds domain logic on that data."
 
-Active Record attempts to provide a coherent wrapper as a solution for the inconvenience that is 
+Active Record attempts to provide a coherent wrapper as a solution for the inconvenience that is
 object-relational mapping. The prime directive for this mapping has been to minimize
 the amount of code needed to build a real-world domain model. This is made possible
 by relying on a number of conventions that make it easy for Active Record to infer
@@ -188,7 +188,7 @@ complex relations and structures from a minimal amount of explicit direction.
 Convention over Configuration:
 * No XML-files!
 * Lots of reflection and run-time extension
-* Magic is not inherently a bad word 
+* Magic is not inherently a bad word
 
 Admit the Database:
 * Lets you drop down to SQL for odd cases and performance

@@ -38,7 +38,7 @@ module Kernel
   #   puts 'But this will'
   def silence_stream(stream)
     old_stream = stream.dup
-    stream.reopen(Config::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+    stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
     stream.sync = true
     yield
   ensure

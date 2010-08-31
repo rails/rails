@@ -33,7 +33,6 @@ module ActiveModel
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
   autoload :Conversion
-  autoload :DeprecatedErrorMethods
   autoload :Dirty
   autoload :EachValidator, 'active_model/validator'
   autoload :Errors

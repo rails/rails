@@ -22,19 +22,22 @@ module ActiveModel
   #   cm.to_param         # => nil
   #
   module Conversion
-    # If your object is already designed to implement all of the Active Model 
-    # you can use the default to_model implementation, which simply returns 
+    # If your object is already designed to implement all of the Active Model
+    # you can use the default to_model implementation, which simply returns
     # self.
-    # 
-    # If your model does not act like an Active Model object, then you should 
-    # define <tt>:to_model</tt> yourself returning a proxy object that wraps 
+    #
+    # If your model does not act like an Active Model object, then you should
+    # define <tt>:to_model</tt> yourself returning a proxy object that wraps
     # your object with Active Model compliant methods.
     def to_model
       self
     end
 
-    # Returns an Enumerable of all (primary) key attributes or nil if 
-    # persisted? is false
+    # Returns an Enumerable of all key attributes if any is set, regardless
+    # if the object is persisted or not.
+    #
+    # Note the default implementation uses persisted? just because all objects
+    # in Ruby 1.8.x responds to :id.
     def to_key
       persisted? ? [id] : nil
     end
@@ -42,7 +45,7 @@ module ActiveModel
     # Returns a string representing the object's key suitable for use in URLs,
     # or nil if persisted? is false
     def to_param
-      to_key ? to_key.join('-') : nil
+      persisted? ? to_key.join('-') : nil
     end
   end
 end

@@ -132,6 +132,32 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal [], request.subdomains
   end
 
+  test "standard_port" do
+    request = stub_request
+    assert_equal 80, request.standard_port
+
+    request = stub_request 'HTTPS' => 'on'
+    assert_equal 443, request.standard_port
+  end
+
+  test "standard_port?" do
+    request = stub_request
+    assert !request.ssl?
+    assert request.standard_port?
+
+    request = stub_request 'HTTPS' => 'on'
+    assert request.ssl?
+    assert request.standard_port?
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
+    assert !request.ssl?
+    assert !request.standard_port?
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8443', 'HTTPS' => 'on'
+    assert request.ssl?
+    assert !request.standard_port?
+  end
+
   test "port string" do
     request = stub_request 'HTTP_HOST' => 'www.example.org:80'
     assert_equal "", request.port_string
@@ -221,6 +247,16 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'HTTP_X_FORWARDED_PROTO' => 'https'
     assert request.ssl?
+  end
+
+  test "scheme returns https when proxied" do
+    request = stub_request 'rack.url_scheme' => 'http'
+    assert !request.ssl?
+    assert_equal 'http', request.scheme
+
+    request = stub_request 'rack.url_scheme' => 'http', 'HTTP_X_FORWARDED_PROTO' => 'https'
+    assert request.ssl?
+    assert_equal 'https', request.scheme
   end
 
   test "String request methods" do
@@ -428,7 +464,7 @@ class RequestTest < ActiveSupport::TestCase
 
     assert_equal "[FILTERED]", request.raw_post
     assert_equal "[FILTERED]", request.params["amount"]
-    assert_equal "1", request.params["step"]    
+    assert_equal "1", request.params["step"]
   end
 
 protected

@@ -462,7 +462,7 @@ XML
   def test_assert_routing_in_module
     assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
   end
-  
+
   def test_assert_routing_with_glob
     with_routing do |set|
       set.draw { |map| match('*path' => "pages#show") }
@@ -546,7 +546,15 @@ XML
     assert_equal "bar", @request.params[:foo]
     @request.recycle!
     post :no_op
-    assert @request.params[:foo].blank?
+    assert_blank @request.params[:foo]
+  end
+
+  def test_symbolized_path_params_reset_after_request
+    get :test_params, :id => "foo"
+    assert_equal "foo", @request.symbolized_path_parameters[:id]
+    @request.recycle!
+    get :test_params
+    assert_nil @request.symbolized_path_parameters[:id]
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
