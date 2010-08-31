@@ -519,16 +519,18 @@ module ActionView
       #       Delete: <%= project_fields.check_box :_destroy %>
       #     <% end %>
       #   <% end %>
-      def fields_for(record_or_name_or_array, *args, &block)
+      def fields_for(record, record_object = nil, options = nil, &block)
         raise ArgumentError, "Missing block" unless block_given?
-        options = args.extract_options!
 
-        case record_or_name_or_array
+        options, record_object = record_object, nil if record_object.is_a?(Hash)
+        options ||= {}
+
+        case record
         when String, Symbol
-          object_name = record_or_name_or_array
-          object = args.first
+          object = record_object
+          object_name = record
         else
-          object = record_or_name_or_array
+          object = record
           object_name = ActiveModel::Naming.singular(object)
         end
 
