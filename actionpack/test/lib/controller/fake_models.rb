@@ -149,3 +149,18 @@ class Author < Comment
   attr_accessor :post
   def post_attributes=(attributes); end
 end
+
+module Blog
+  def self._railtie
+    self
+  end
+
+  class Post < Struct.new(:title, :id)
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
+    def persisted?
+      id.present?
+    end
+  end
+end

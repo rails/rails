@@ -75,6 +75,8 @@ class FormHelperTest < ActionView::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret      = 1
     @post.written_on  = Date.new(2004, 6, 15)
+
+    @blog_post = Blog::Post.new("And his name will be forty and four.", 44)
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -673,6 +675,21 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_isolated_namespaced_model
+    form_for(@blog_post) do |f|
+      concat f.text_field :title
+      concat f.submit('Edit post')
+    end
+
+    expected =
+      "<form accept-charset='UTF-8' action='/posts/44' method='post'>" +
+      snowman +
+      "<label for='post_title'>The Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
+      "<input name='commit' id='post_submit' type='submit' value='Edit post' />" +
+      "</form>"
   end
 
   def test_form_for_with_symbol_object_name

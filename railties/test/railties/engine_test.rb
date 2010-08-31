@@ -360,7 +360,7 @@ module RailtiesTest
       assert_equal "It's a bar.", response[2].body
     end
 
-    test "namespaced engine should include only its own routes and helpers" do
+    test "isolated engine should include only its own routes and helpers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
@@ -477,6 +477,69 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits/polymorphic_path_without_namespace")
       response = AppTemplate::Application.call(env)
       assert_equal "/bukkits/posts/1", response[2].body
+    end
+
+    test "isolated engine should avoid namespace in names if that's possible" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            namespace Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "app/models/bukkits/post.rb", <<-RUBY
+        module Bukkits
+          class Post
+            extend ActiveModel::Naming
+            include ActiveModel::Conversion
+            attr_accessor :title
+
+            def to_param
+              "1"
+            end
+
+            def persisted?
+              false
+            end
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          scope(:module => :bukkits) do
+            resources :posts
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/posts_controller.rb", <<-RUBY
+        class Bukkits::PostsController < ActionController::Base
+          def new
+          end
+        end
+      RUBY
+
+      @plugin.write "app/views/bukkits/posts/new.html.erb", <<-RUBY
+          <%= form_for(Bukkits::Post.new) do |f| %>
+            <%= f.text_field :title %>
+          <% end %>
+      RUBY
+
+      add_to_config("config.action_dispatch.show_exceptions = false")
+
+      boot_rails
+
+      env = Rack::MockRequest.env_for("/bukkits/posts/new")
+      response = AppTemplate::Application.call(env)
+      assert response[2].body =~ /name="post\[title\]"/
     end
   end
 end

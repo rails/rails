@@ -304,12 +304,12 @@ module ActionView
           object_name = record_or_name_or_array
         when Array
           object = record_or_name_or_array.last
-          object_name = options[:as] || ActiveModel::Naming.singular(object)
+          object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!(record_or_name_or_array, options)
           args.unshift object
         else
           object = record_or_name_or_array
-          object_name = options[:as] || ActiveModel::Naming.singular(object)
+          object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!([object], options)
           args.unshift object
         end
@@ -539,7 +539,7 @@ module ActionView
           object_name = record
         else
           object = record
-          object_name = ActiveModel::Naming.singular(object)
+          object_name = ActiveModel::Naming.param_key(object)
         end
 
         builder = options[:builder] || ActionView::Base.default_form_builder
@@ -1168,11 +1168,11 @@ module ActionView
           end
         when Array
           object = record_or_name_or_array.last
-          name = "#{object_name}#{index}[#{ActiveModel::Naming.singular(object)}]"
+          name = "#{object_name}#{index}[#{ActiveModel::Naming.param_key(object)}]"
           args.unshift(object)
         else
           object = record_or_name_or_array
-          name = "#{object_name}#{index}[#{ActiveModel::Naming.singular(object)}]"
+          name = "#{object_name}#{index}[#{ActiveModel::Naming.param_key(object)}]"
           args.unshift(object)
         end
 
