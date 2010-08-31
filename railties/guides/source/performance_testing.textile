@@ -20,7 +20,7 @@ In a freshly generated Rails application, +test/performance/browsing_test.rb+ co
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 # Profiling results for each test method are written to tmp/performance.
 class BrowsingTest < ActionController::PerformanceTest
@@ -34,17 +34,17 @@ This example is a simple performance test case for profiling a GET request to th
 
 h4. Generating Performance Tests
 
-Rails provides a generator called +performance_test+ for creating new performance tests:
+Rails provides a generator called +test_unit:performance+ for creating new performance tests:
 
 <shell>
-rails generate performance_test homepage
+rails generate test_unit:performance homepage
 </shell>
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class HomepageTest < ActionController::PerformanceTest
   # Replace this with your real tests.
@@ -103,7 +103,7 @@ Here's the performance test for +HomeController#dashboard+ and +PostsController#
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class PostPerformanceTest < ActionController::PerformanceTest
   def setup
@@ -131,7 +131,7 @@ Performance test for +Post+ model:
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class PostModelTest < ActionController::PerformanceTest
   def test_creation
