@@ -95,10 +95,26 @@ module ActiveModel
       plural(record_or_class) == singular(record_or_class)
     end
 
+    # Returns string to use while generating route names. It differs for
+    # namespaced models regarding whether it's inside isolated engine.
+    #
+    # For isolated engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> posts
+    #
+    # For shared engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
     def self.route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).route_key
     end
 
+    # Returns string to use for params names. It differs for
+    # namespaced models regarding whether it's inside isolated engine.
+    #
+    # For isolated engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> post
+    #
+    # For shared engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> blog_post
     def self.param_key(record_or_class)
       model_name_from_record_or_class(record_or_class).param_key
     end
