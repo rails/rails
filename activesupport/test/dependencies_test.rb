@@ -574,6 +574,17 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
+  def test_unloadable_constants_should_receive_callback
+    Object.const_set :C, Class.new
+    C.unloadable
+    C.expects(:before_remove_const).once
+    assert C.respond_to?(:before_remove_const)
+    ActiveSupport::Dependencies.clear
+    assert !defined?(C)
+  ensure
+    Object.class_eval { remove_const :C } if defined?(C)
+  end
+
   def test_new_contants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }

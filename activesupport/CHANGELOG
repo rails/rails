@@ -1,6 +1,6 @@
 *Rails 3.1.0 (unreleased)*
 
-* No changes
+* Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! [Andrew White]
 
 
 *Rails 3.0.0 (August 29, 2010)*
