@@ -1139,18 +1139,18 @@ class BasicsTest < ActiveRecord::TestCase
     scoped_developers = Developer.send(:with_scope, :find => { :limit => 1 }) do
       Developer.find(:all, :order => 'salary DESC')
     end
-    # Test scope order + find order, find has priority
+    # Test scope order + find order, order has priority
     scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :order => 'id DESC' }) do
       Developer.find(:all, :order => 'salary ASC')
     end
     assert scoped_developers.include?(developers(:poor_jamis))
-    assert scoped_developers.include?(developers(:david))
+    assert ! scoped_developers.include?(developers(:david))
     assert ! scoped_developers.include?(developers(:jamis))
     assert_equal 3, scoped_developers.size
 
     # Test without scoped find conditions to ensure we get the right thing
-    developers = Developer.find(:all, :order => 'id', :limit => 1)
-    assert scoped_developers.include?(developers(:david))
+    assert ! scoped_developers.include?(Developer.find(1))
+    assert scoped_developers.include?(Developer.find(11))
   end
 
   def test_scoped_find_limit_offset_including_has_many_association

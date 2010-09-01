@@ -667,4 +667,22 @@ class RelationTest < ActiveRecord::TestCase
   def test_relations_limit_with_conditions_or_limit
     assert_equal Post.limit(2).size, Post.limit(2).all.size
   end
+
+  def test_order_with_find_with_order
+    assert_equal 'zyke', Car.order('name desc').find(:first, :order => 'id').name
+  end
+
+  def test_default_scope_order_with_named_scope_order
+    assert_equal 'zyke', Car.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', Car.order_using_old_style.limit(1).first.name
+  end
+
+  def test_order_using_scoping
+    car = Car.order('id DESC').scoping do
+      Car.find(:first, :order => 'id asc')
+    end
+    assert_equal 'zyke', car.name
+  end
+
+
 end
