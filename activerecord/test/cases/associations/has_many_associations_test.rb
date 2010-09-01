@@ -26,7 +26,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post   = Post.find :first
 
     assert_equal [], person.readers
-    assert_nil person.readers.find_by_post_id post.id
+    assert_nil person.readers.find_by_post_id(post.id)
 
     reader = person.readers.create_by_post_id post.id
 
@@ -55,7 +55,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post   = Post.find :first
 
     assert_equal [], person.readers
-    assert_nil person.readers.find_by_post_id post.id
+    assert_nil person.readers.find_by_post_id(post.id)
 
     reader = person.readers.find_or_create_by_post_id post.id
 

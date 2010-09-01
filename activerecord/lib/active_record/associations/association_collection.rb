@@ -383,7 +383,7 @@ module ActiveRecord
             return  send("find_by_#{rest}", *args) ||
                     method_missing("create_by_#{rest}", *args)
           when /^create_by_(.*)$/
-            return create Hash[$1.split('_and_').zip(args)]
+            return create($1.split('_and_').zip(args).inject({}) { |h,kv| k,v=kv ; h[k] = v ; h })
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
