@@ -199,7 +199,7 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :set, :routes, :named_routes
+      attr_accessor :set, :routes, :named_routes, :default_scope
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
 
@@ -230,7 +230,11 @@ module ActionDispatch
         if block.arity == 1
           mapper.instance_exec(DeprecatedMapper.new(self), &block)
         else
-          mapper.instance_exec(&block)
+          if default_scope
+            mapper.with_default_scope(default_scope, &block)
+          else
+            mapper.instance_exec(&block)
+          end
         end
 
         finalize! unless @disable_clear_and_finalize

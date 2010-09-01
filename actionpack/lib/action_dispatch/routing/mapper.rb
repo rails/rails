@@ -274,6 +274,12 @@ module ActionDispatch
         end
         alias_method :default_url_options, :default_url_options=
 
+        def with_default_scope(scope, &block)
+          scope(scope) do
+            instance_exec(&block)
+          end
+        end
+
         private
           def app_name(app)
             return unless app.respond_to?(:routes)
