@@ -890,6 +890,10 @@ module ActiveRecord #:nodoc:
         Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
       end
 
+      def before_remove_const #:nodoc:
+        reset_scoped_methods
+      end
+
       private
 
         def relation #:nodoc:
@@ -1172,6 +1176,10 @@ MSG
 
         def current_scoped_methods #:nodoc:
           scoped_methods.last
+        end
+
+        def reset_scoped_methods #:nodoc:
+          Thread.current[:"#{self}_scoped_methods"] = nil
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
