@@ -188,11 +188,6 @@ module ActionView #:nodoc:
 
     delegate :logger, :to => :controller, :allow_nil => true
 
-    # TODO: HACK FOR RJS
-    def view_context
-      self
-    end
-
     def self.xss_safe? #:nodoc:
       true
     end

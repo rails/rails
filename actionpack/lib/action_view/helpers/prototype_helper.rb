@@ -579,7 +579,7 @@ module ActionView
       #     page.hide 'spinner'
       #   end
       def update_page(&block)
-        JavaScriptGenerator.new(view_context, &block).to_s.html_safe
+        JavaScriptGenerator.new(self, &block).to_s.html_safe
       end
 
       # Works like update_page but wraps the generated JavaScript in a <script>
