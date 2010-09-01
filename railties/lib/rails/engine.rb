@@ -431,11 +431,6 @@ module Rails
       end
     end
 
-    initializer :engines_blank_point do
-      # We need this initializer so all extra initializers added in engines are
-      # consistently executed after all the initializers above across all engines.
-    end
-
     initializer :load_environment_config, :before => :load_environment_hook do
       environment = config.paths.config.environments.to_a.first
       require environment if environment
@@ -455,6 +450,11 @@ module Rails
         config.helpers_paths = [] unless config.respond_to?(:helpers_paths)
         config.helpers_paths = config.paths.app.helpers.to_a + config.helpers_paths
       end
+    end
+
+    initializer :engines_blank_point do
+      # We need this initializer so all extra initializers added in engines are
+      # consistently executed after all the initializers above across all engines.
     end
 
   protected
