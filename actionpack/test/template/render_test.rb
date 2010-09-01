@@ -69,8 +69,6 @@ module RenderTestCases
   end
 
   def test_render_update
-    # TODO: You should not have to stub out template because template is self!
-    @view.instance_variable_set(:@template, @view)
     assert_equal 'alert("Hello, World!");', @view.render(:update) { |page| page.alert('Hello, World!') }
   end
 
