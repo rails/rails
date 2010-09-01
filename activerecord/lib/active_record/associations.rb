@@ -602,7 +602,7 @@ module ActiveRecord
     # other than the main one. If this is the case Active Record falls back to the previously
     # used LEFT OUTER JOIN based strategy. For example
     #
-    #   Post.find(:all, :include => [ :author, :comments ], :conditions => ['comments.approved = ?', true])
+    #   Post.includes([:author, :comments]).where(['comments.approved = ?', true]).all
     #
     # This will result in a single SQL query with joins along the lines of:
     # <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and

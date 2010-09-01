@@ -14,9 +14,9 @@ module ActiveRecord
     #
     # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
     #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" 
+    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id"
     #   (rarely needed) or named associations in the same form used for the <tt>:include</tt> option, which will
-    #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records 
+    #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records
     #   will be returned read-only since they will have attributes that do not correspond to the table's columns.
     #   Pass <tt>:readonly => false</tt> to override.
     # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs.
