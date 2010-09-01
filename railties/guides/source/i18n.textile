@@ -686,6 +686,8 @@ The key for the error message in this case is +:blank+. Active Record will look 
 activerecord.errors.models.[model_name].attributes.[attribute_name]
 activerecord.errors.models.[model_name]
 activerecord.errors.messages
+errors.attributes.[attribute_name]
+errors.messages
 </ruby>
 
 Thus, in our example it will try the following keys in this order and return the first result:
@@ -694,6 +696,8 @@ Thus, in our example it will try the following keys in this order and return the
 activerecord.errors.models.user.attributes.name.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
+errors.attributes.name.blank
+errors.messagges.blank
 </ruby>
 
 When your models are additionally using inheritance then the messages are looked up in the inheritance chain.
@@ -714,6 +718,8 @@ activerecord.errors.models.admin.blank
 activerecord.errors.models.user.attributes.title.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
+errors.attributes.title.blank
+errors.messagges.blank
 </ruby>
 
 This way you can provide special translations for various error messages at different points in your models inheritance chain and in the attributes, models, or default scopes.
