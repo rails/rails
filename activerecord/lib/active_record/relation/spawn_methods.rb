@@ -99,9 +99,8 @@ module ActiveRecord
 
       relation = relation.readonly(options[:readonly]) if options.key? :readonly
 
-      # Give precedence to newly-applied orders and groups to play nicely with with_scope
       [:group, :order].each do |finder|
-        relation.send("#{finder}_values=", Array.wrap(options[finder]) + relation.send("#{finder}_values")) if options.has_key?(finder)
+        relation.send("#{finder}_values=", relation.send("#{finder}_values") + Array.wrap(options[finder])) if options.has_key?(finder)
       end
 
       relation = relation.where(options[:conditions]) if options.has_key?(:conditions)

@@ -398,8 +398,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_overwriting_default_scope
-    expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
+  def test_order_in_default_scope_should_prevail
+    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
   end
