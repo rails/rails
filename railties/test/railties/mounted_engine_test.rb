@@ -56,11 +56,9 @@ module ApplicationTests
 
       @plugin.write "config/routes.rb", <<-RUBY
         Blog::Engine.routes.draw do
-          scope(:module => :blog) do
-            resources :posts do
-              get :generate_application_route
-              get :application_route_in_view
-            end
+          resources :posts do
+            get :generate_application_route
+            get :application_route_in_view
           end
         end
       RUBY

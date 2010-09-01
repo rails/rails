@@ -303,6 +303,8 @@ module Rails
           end
         end
 
+        self.routes.default_scope = {:module => name}
+
         self.namespaced = true
       end
 

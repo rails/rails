@@ -390,14 +390,12 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          scope(:module => :bukkits) do
-            match "/foo" => "foo#index", :as => "foo"
-            match "/foo/show" => "foo#show"
-            match "/from_app" => "foo#from_app"
-            match "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
-            match "/polymorphic_path_without_namespace" => "foo#polymorphic_path_without_namespace"
-            resources :posts
-          end
+          match "/foo" => "foo#index", :as => "foo"
+          match "/foo/show" => "foo#show"
+          match "/from_app" => "foo#from_app"
+          match "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
+          match "/polymorphic_path_without_namespace" => "foo#polymorphic_path_without_namespace"
+          resources :posts
         end
       RUBY
 
@@ -514,9 +512,7 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          scope(:module => :bukkits) do
-            resources :posts
-          end
+          resources :posts
         end
       RUBY
 
