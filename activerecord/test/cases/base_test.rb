@@ -1415,6 +1415,21 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_default_scope_is_reset
+    Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
+    UnloadablePost.table_name = 'posts'
+    UnloadablePost.class_eval do
+      default_scope order('posts.comments_count ASC')
+    end
+
+    UnloadablePost.unloadable
+    assert_not_nil Thread.current[:UnloadablePost_scoped_methods]
+    ActiveSupport::Dependencies.remove_unloadable_constants!
+    assert_nil Thread.current[:UnloadablePost_scoped_methods]
+  ensure
+    Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
