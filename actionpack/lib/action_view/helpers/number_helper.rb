@@ -459,7 +459,8 @@ module ActionView
           raise ArgumentError, ":units must be a Hash or String translation scope."
         end.keys.map{|e_name| DECIMAL_UNITS.invert[e_name] }.sort_by{|e| -e}
 
-        number_exponent = Math.log10(number).floor
+        number_exponent = 0
+        number_exponent = Math.log10(number).floor if number != 0
         display_exponent = unit_exponents.find{|e| number_exponent >= e }
         number  /= 10 ** display_exponent
 
