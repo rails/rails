@@ -34,6 +34,11 @@ module ActiveModel
         @observers ||= []
       end
 
+      # Gets the current observer instances.
+      def observer_instances
+        @observer_instances ||= []
+      end
+
       # Instantiate the global Active Record observers.
       def instantiate_observers
         observers.each { |o| instantiate_observer(o) }
@@ -43,20 +48,17 @@ module ActiveModel
         unless observer.respond_to? :update
           raise ArgumentError, "observer needs to respond to `update'"
         end
-        @observer_instances ||= []
-        @observer_instances << observer
+        observer_instances << observer
       end
 
       def notify_observers(*arg)
-        if defined? @observer_instances
-          for observer in @observer_instances
-            observer.update(*arg)
-          end
+        for observer in observer_instances
+          observer.update(*arg)
         end
       end
 
       def count_observers
-        @observer_instances.size
+        observer_instances.size
       end
 
       protected

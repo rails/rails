@@ -12,7 +12,7 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
-        superclass_delegating_accessor :partial_updates
+        class_attribute :partial_updates
         self.partial_updates = true
       end
 

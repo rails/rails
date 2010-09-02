@@ -10,89 +10,133 @@ module ActiveRecord
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value, :from_value
 
     def includes(*args)
-      args.reject! { |a| a.blank? }
-      clone.tap {|r| r.includes_values = (r.includes_values + args).flatten.uniq if args.present? }
+      args.reject! {|a| a.blank? }
+
+      relation = clone
+      relation.includes_values = (relation.includes_values + args).flatten.uniq if args.present?
+      relation
     end
 
     def eager_load(*args)
-      clone.tap {|r| r.eager_load_values += args if args.present? }
+      relation = clone
+      relation.eager_load_values += args if args.present?
+      relation
     end
 
     def preload(*args)
-      clone.tap {|r| r.preload_values += args if args.present? }
+      relation = clone
+      relation.preload_values += args if args.present?
+      relation
     end
 
     def select(*args)
       if block_given?
         to_a.select {|*block_args| yield(*block_args) }
       else
-        clone.tap {|r| r.select_values += args if args.present? }
+        relation = clone
+        relation.select_values += args if args.present?
+        relation
       end
     end
 
     def group(*args)
-      clone.tap {|r| r.group_values += args.flatten if args.present? }
+      relation = clone
+      relation.group_values += args.flatten if args.present?
+      relation
     end
 
     def order(*args)
-      clone.tap {|r| r.order_values += args if args.present? }
+      relation = clone
+      relation.order_values += args.flatten if args.present?
+      relation
     end
 
     def reorder(*args)
-      clone.tap {|r| r.order_values = args if args.present? }
+      relation = clone
+      relation.order_values = args if args.present?
+      relation
     end
 
     def joins(*args)
-      args.flatten!
-      clone.tap {|r| r.joins_values += args if args.present? }
+      relation = clone
+
+      if args.present?
+        args.flatten!
+        relation.joins_values += args if args.present?
+      end
+
+      relation
     end
 
     def where(opts, *rest)
-      value = build_where(opts, rest)
-      copy = clone
-      copy.where_values += Array.wrap(value) if value
-      copy
+      relation = clone
+
+      if opts.present? && value = build_where(opts, rest)
+        relation.where_values += Array.wrap(value)
+      end
+
+      relation
     end
 
     def having(*args)
-      value = build_where(*args)
-      clone.tap {|r| r.having_values += Array.wrap(value) if value.present? }
+      relation = clone
+
+      if args.present? && value = build_where(*args)
+        relation.having_values += Array.wrap(value)
+      end
+
+      relation
     end
 
-    def limit(value = true)
-      copy = clone
-      copy.limit_value = value
-      copy
+    def limit(value)
+      relation = clone
+      relation.limit_value = value
+      relation
     end
 
-    def offset(value = true)
-      clone.tap {|r| r.offset_value = value }
+    def offset(value)
+      relation = clone
+      relation.offset_value = value
+      relation
     end
 
     def lock(locks = true)
+      relation = clone
+
       case locks
       when String, TrueClass, NilClass
-        clone.tap {|r| r.lock_value = locks || true }
+        relation.lock_value = locks || true
       else
-        clone.tap {|r| r.lock_value = false }
+        relation.lock_value = false
       end
+
+      relation
     end
 
     def readonly(value = true)
-      clone.tap {|r| r.readonly_value = value }
+      relation = clone
+      relation.readonly_value = value
+      relation
     end
 
-    def create_with(value = true)
-      clone.tap {|r| r.create_with_value = value }
+    def create_with(value)
+      relation = clone
+      relation.create_with_value = value
+      relation
     end
 
-    def from(value = true)
-      clone.tap {|r| r.from_value = value }
+    def from(value)
+      relation = clone
+      relation.from_value = value
+      relation
     end
 
     def extending(*modules, &block)
       modules << Module.new(&block) if block_given?
-      clone.tap {|r| r.send(:apply_modules, *modules) }
+
+      relation = clone
+      relation.send(:apply_modules, *modules)
+      relation
     end
 
     def reverse_order
@@ -103,7 +147,7 @@ module ActiveRecord
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
         reverse_sql_order(order_clause)
 
-      relation.order Arel::SqlLiteral.new order
+      relation.order(Arel::SqlLiteral.new(order))
     end
 
     def arel
@@ -112,6 +156,7 @@ module ActiveRecord
 
     def custom_join_sql(*joins)
       arel = table
+
       joins.each do |join|
         next if join.blank?
 
@@ -129,6 +174,7 @@ module ActiveRecord
           arel = arel.join(join)
         end
       end
+
       arel.joins(arel)
     end
 

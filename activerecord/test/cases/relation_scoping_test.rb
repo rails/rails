@@ -363,14 +363,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal "David", klass.first.name
     assert_equal 100000,  klass.first.salary
   end
+
   def test_method_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_nested_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
       DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     end
@@ -378,14 +379,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_named_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
     assert_equal expected, received
   end
 
-  def test_named_scope_reorders_default
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.reordered_by_name.find(:all).collect { |dev| dev.name }
+  def test_reorder_overrides_default_scope_order
+    expected = Developer.order('name DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.reorder('name DESC').collect { |dev| dev.name }
     assert_equal expected, received
   end
 

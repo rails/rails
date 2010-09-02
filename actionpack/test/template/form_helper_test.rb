@@ -641,6 +641,18 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_format
+    form_for(@post, :format => :json, :html => { :id => "edit_post_123", :class => "edit_post" }) do |f|
+      concat f.label(:title)
+    end
+
+    expected = whole_form("/posts/123.json", "edit_post_123" , "edit_post", :method => "put") do
+      "<label for='post_title'>Title</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_symbol_object_name
     form_for(@post, :as => "other_name", :html => { :id => 'create-post' }) do |f|
       concat f.label(:title, :class => 'post_title')
@@ -1761,8 +1773,12 @@ class FormHelperTest < ActionView::TestCase
       "/posts"
     end
 
-    def post_path(post)
-      "/posts/#{post.id}"
+    def post_path(post, options = {})
+      if options[:format]
+        "/posts/#{post.id}.#{options[:format]}"
+      else
+        "/posts/#{post.id}"
+      end
     end
 
     def protect_against_forgery?

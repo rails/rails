@@ -202,6 +202,12 @@ module ActionView
       #     ...
       #   <% end %>
       #
+      # You can also set the answer format, like this:
+      #
+      #   <%= form_for(@post, :format => :json) do |f| %>
+      #     ...
+      #   <% end %>
+      #
       # If you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
@@ -332,7 +338,9 @@ module ActionView
 
         options[:html] ||= {}
         options[:html].reverse_merge!(html_options)
-        options[:url] ||= polymorphic_path(object_or_array)
+        options[:url] ||= options[:format] ? \
+          polymorphic_path(object_or_array, :format => options.delete(:format)) : \
+          polymorphic_path(object_or_array)
       end
 
       # Creates a scope around a specific model object like form_for, but
@@ -519,16 +527,18 @@ module ActionView
       #       Delete: <%= project_fields.check_box :_destroy %>
       #     <% end %>
       #   <% end %>
-      def fields_for(record_or_name_or_array, *args, &block)
+      def fields_for(record, record_object = nil, options = nil, &block)
         raise ArgumentError, "Missing block" unless block_given?
-        options = args.extract_options!
 
-        case record_or_name_or_array
+        options, record_object = record_object, nil if record_object.is_a?(Hash)
+        options ||= {}
+
+        case record
         when String, Symbol
-          object_name = record_or_name_or_array
-          object = args.first
+          object = record_object
+          object_name = record
         else
-          object = record_or_name_or_array
+          object = record
           object_name = ActiveModel::Naming.singular(object)
         end
 

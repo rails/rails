@@ -442,6 +442,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
+      match '/purchases/:token/:filename',
+        :to => 'purchases#fetch',
+        :token => /[[:alnum:]]{10}/,
+        :filename => /(.+)/,
+        :as => :purchase
+
+      resources :lists, :id => /([A-Za-z0-9]{25})|default/ do
+        resources :todos, :id => /\d+/
+      end
+
       scope '/countries/:country', :constraints => lambda { |params, req| %[all France].include?(params[:country]) } do
         match '/',       :to => 'countries#index'
         match '/cities', :to => 'countries#cities'
@@ -2096,6 +2106,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/customers/1/export'
     assert_equal 'customers#export', @response.body
     assert_equal '/customers/1/export', customer_export_path(:customer_id => '1')
+  end
+
+  def test_named_character_classes_in_regexp_constraints
+    get '/purchases/315004be7e/Ruby_on_Rails_3.pdf'
+    assert_equal 'purchases#fetch', @response.body
+    assert_equal '/purchases/315004be7e/Ruby_on_Rails_3.pdf', purchase_path(:token => '315004be7e', :filename => 'Ruby_on_Rails_3.pdf')
+  end
+
+  def test_nested_resource_constraints
+    get '/lists/01234012340123401234fffff'
+    assert_equal 'lists#show', @response.body
+    assert_equal '/lists/01234012340123401234fffff', list_path(:id => '01234012340123401234fffff')
+
+    get '/lists/01234012340123401234fffff/todos/1'
+    assert_equal 'todos#show', @response.body
+    assert_equal '/lists/01234012340123401234fffff/todos/1', list_todo_path(:list_id => '01234012340123401234fffff', :id => '1')
+
+    get '/lists/2/todos/1'
+    assert_equal 'Not Found', @response.body
+    assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
 private

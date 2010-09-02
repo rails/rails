@@ -511,7 +511,12 @@ module ActiveSupport #:nodoc:
     end
 
     # Remove the constants that have been autoloaded, and those that have been
-    # marked for unloading.
+    # marked for unloading. Before each constant is removed a callback is sent
+    # to its class/module if it implements +before_remove_const+.
+    #
+    # The callback implementation should be restricted to cleaning up caches, etc.
+    # as the enviroment will be in an inconsistent state, e.g. other constants
+    # may have already been unloaded and not accessible.
     def remove_unloadable_constants!
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
@@ -636,6 +641,7 @@ module ActiveSupport #:nodoc:
       parent = Inflector.constantize(names * '::')
 
       log "removing constant #{const}"
+      constantize(const).before_remove_const if constantize(const).respond_to?(:before_remove_const)
       parent.instance_eval { remove_const to_remove }
 
       return true

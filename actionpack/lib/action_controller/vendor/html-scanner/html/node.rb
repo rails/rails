@@ -77,9 +77,7 @@ module HTML #:nodoc:
 
     # Return a textual representation of the node.
     def to_s
-      s = ""
-      @children.each { |child| s << child.to_s }
-      s
+      @children.join()
     end
 
     # Return false (subclasses must override this to provide specific matching

@@ -524,4 +524,31 @@ module CallbacksTest
       assert_equal "ACTION", obj.stuff
     end
   end
+
+  class WriterSkipper < Person
+    attr_accessor :age
+    skip_callback :save, :before, :before_save_method, :if => lambda {self.age > 21}
+  end
+
+  class WriterCallbacksTest < Test::Unit::TestCase
+    def test_skip_writer
+      writer = WriterSkipper.new
+      writer.age = 18
+      assert_equal [], writer.history
+      writer.save
+      assert_equal [
+        [:before_save, :symbol],
+        [:before_save, :string],
+        [:before_save, :proc],
+        [:before_save, :object],
+        [:before_save, :block],
+        [:after_save, :block],
+        [:after_save, :object],
+        [:after_save, :proc],
+        [:after_save, :string],
+        [:after_save, :symbol]
+      ], writer.history
+    end
+  end
+  
 end
