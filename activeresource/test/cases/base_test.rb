@@ -1041,6 +1041,12 @@ class BaseTest < Test::Unit::TestCase
   ensure
     Person.element_name = old_elem_name
   end
+  
+  def test_to_xml_with_private_method_name_as_attribute
+    assert_nothing_raised(ArgumentError) {
+      Customer.new(:test => true).to_xml
+    }
+  end
 
   def test_to_json
     Person.include_root_in_json = true
