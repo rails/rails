@@ -1,5 +1,3 @@
-require 'action_controller/metal/exceptions'
-
 module ActiveRecord
   # = Active Record Session Store
   #

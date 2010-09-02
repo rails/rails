@@ -2,7 +2,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/dependencies'
-require 'action_controller/metal/exceptions'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end

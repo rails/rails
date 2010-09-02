@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_controller/metal/exceptions'
 
 class WorkshopsController < ActionController::Base
 end

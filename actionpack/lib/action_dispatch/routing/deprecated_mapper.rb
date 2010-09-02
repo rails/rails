@@ -1,7 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/with_options'
 require 'active_support/core_ext/object/try'
-require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   module Routing

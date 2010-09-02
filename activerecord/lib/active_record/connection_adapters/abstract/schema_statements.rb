@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/wrap'
-require 'action_controller/metal/exceptions'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:

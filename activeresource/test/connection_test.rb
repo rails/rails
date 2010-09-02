@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_controller/metal/exceptions'
 
 class ConnectionTest < Test::Unit::TestCase
   ResponseCodeStub = Struct.new(:code)

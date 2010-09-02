@@ -1,7 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "action_view/template"
-require 'action_controller/metal/exceptions'
 
 module ActionView
   # = Action View Resolver

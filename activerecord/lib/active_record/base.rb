@@ -22,7 +22,6 @@ require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
-require 'action_controller/metal/exceptions'
 
 module ActiveRecord #:nodoc:
   # = Active Record

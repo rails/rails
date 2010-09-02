@@ -1,9 +1,8 @@
+require 'active_support/core_ext/benchmark'
 require 'net/https'
 require 'date'
 require 'time'
 require 'uri'
-require 'active_support/core_ext/benchmark'
-require 'action_controller/metal/exceptions'
 
 module ActiveResource
   # Class to handle connections to remote web services.

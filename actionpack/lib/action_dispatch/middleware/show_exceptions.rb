@@ -1,7 +1,6 @@
 require 'active_support/core_ext/exception'
 require 'active_support/notifications'
 require 'action_dispatch/http/request'
-require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application and renders

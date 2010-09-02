@@ -1,5 +1,3 @@
-require 'action_controller/metal/exceptions'
-
 begin
   require 'securerandom'
 rescue LoadError

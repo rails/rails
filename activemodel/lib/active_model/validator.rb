@@ -1,7 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require "active_support/core_ext/module/anonymous"
 require 'active_support/core_ext/object/blank'
-require 'action_controller/metal/exceptions'
 
 module ActiveModel #:nodoc:
 
