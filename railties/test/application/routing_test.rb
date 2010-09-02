@@ -215,6 +215,23 @@ module ApplicationTests
       end
     end
 
+    test 'routes are loaded just after initialization' do
+      require "#{app_path}/config/application"
+
+      ActiveSupport.on_load(:after_initialize) do
+        ::InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
+      end
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match 'foo', :to => ::InitializeRackApp
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal "InitializeRackApp", last_response.body
+    end
+
     test 'resource routing with irrigular inflection' do
       app_file 'config/initializers/inflection.rb', <<-RUBY
         ActiveSupport::Inflector.inflections do |inflect|

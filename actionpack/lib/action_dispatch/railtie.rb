@@ -8,10 +8,5 @@ module ActionDispatch
     config.action_dispatch.ip_spoofing_check = true
     config.action_dispatch.show_exceptions = true
     config.action_dispatch.best_standards_support = true
-
-    # Prepare dispatcher callbacks and run 'prepare' callbacks
-    initializer "action_dispatch.prepare_dispatcher" do |app|
-      ActionDispatch::Callbacks.to_prepare { app.routes_reloader.execute_if_updated }
-    end
   end
 end
