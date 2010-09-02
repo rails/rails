@@ -1,7 +1,7 @@
 begin
   require 'memcache'
 rescue LoadError => e
-  $stderr.puts "You don't have memcache installed in your application. Please add it to your Gemfile and run bundle install"
+  $stderr.puts "You don't have memcache-client installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 require 'digest/md5'
