@@ -427,12 +427,6 @@ module Rails
       end
     end
 
-    initializer :load_config_initializers do
-      paths.config.initializers.to_a.sort.each do |initializer|
-        load(initializer)
-      end
-    end
-
     initializer :load_environment_config, :before => :load_environment_hook do
       environment = config.paths.config.environments.to_a.first
       require environment if environment
@@ -451,6 +445,12 @@ module Rails
       unless namespaced?
         config.helpers_paths = [] unless config.respond_to?(:helpers_paths)
         config.helpers_paths = config.paths.app.helpers.to_a + config.helpers_paths
+      end
+    end
+
+    initializer :load_config_initializers do
+      paths.config.initializers.to_a.sort.each do |initializer|
+        load(initializer)
       end
     end
 

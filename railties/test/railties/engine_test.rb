@@ -55,11 +55,18 @@ module RailtiesTest
 
       initializers = Rails.application.initializers.tsort
       index        = initializers.index { |i| i.name == "dummy_initializer" }
+      selection    = initializers[(index-3)..(index)].map(&:name).map(&:to_s)
 
-      assert index > initializers.index { |i| i.name == :load_config_initializers }
-      assert index > initializers.index { |i| i.name == :engines_blank_point }
+      assert_equal %w(
+       load_config_initializers
+       load_config_initializers
+       engines_blank_point
+       dummy_initializer
+      ), selection
+
       assert index < initializers.index { |i| i.name == :build_middleware_stack }
     end
+
 
     class Upcaser
       def initialize(app)
