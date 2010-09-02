@@ -46,6 +46,13 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
+      # Force routes to be loaded just at the end and add it to to_prepare callbacks
+      initializer :set_routes_reloader do |app|
+        reloader = lambda { app.routes_reloader.execute_if_updated }
+        reloader.call
+        ActionDispatch::Callbacks.to_prepare(&reloader)
+      end
+
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
         if config.cache_classes && !config.dependency_loading
