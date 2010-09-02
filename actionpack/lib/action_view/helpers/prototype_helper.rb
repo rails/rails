@@ -619,7 +619,7 @@ module ActionView
 
           if protect_against_forgery? && !options[:form]
             if js_options['parameters']
-              js_options['parameters'] << " + '&"
+              js_options['parameters'] << " + '&amp;"
             else
               js_options['parameters'] = "'"
             end
