@@ -14,7 +14,7 @@ require 'rbench'
 require File.expand_path("../../../load_paths", __FILE__)
 require "active_record"
 
-conn = { :adapter => 'mysql',
+conn = { :adapter => 'mysql2',
   :database => 'activerecord_unittest',
   :username => 'rails', :password => '',
   :encoding => 'utf8' }
