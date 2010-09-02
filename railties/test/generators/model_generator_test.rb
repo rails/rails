@@ -11,6 +11,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_match /TestUnit options:/, content
   end
 
+  def test_model_with_missing_attribute_type
+    content = capture(:stderr) { run_generator ["post", "title:string", "body"] }
+    assert_match /Missing type for attribute 'body'/, content
+    assert_match /Example: 'body:string' where string is the type/, content
+  end
+
   def test_invokes_default_orm
     run_generator
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/

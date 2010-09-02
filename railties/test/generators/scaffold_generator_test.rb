@@ -231,4 +231,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end
+
+  def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
+    content = capture(:stderr) { run_generator ["post", "title:string", "body"]}
+    assert_match /Missing type for attribute 'body'/, content
+    assert_match /Example: 'body:string' where string is the type/, content
+  end
 end
