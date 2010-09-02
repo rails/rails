@@ -17,7 +17,7 @@ module ActiveModel
 
           def initialize(name, serializable, raw_value=nil)
             @name, @serializable = name, serializable
-            @value = value || @serializable.send(name)
+            @value = raw_value || @serializable.send(name)
             @type  = compute_type
           end
 
