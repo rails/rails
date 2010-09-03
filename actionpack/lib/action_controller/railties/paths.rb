@@ -11,7 +11,7 @@ module ActionController
               klass.helpers_path = app.config.helpers_paths
             end
 
-            klass.helper :all
+            klass.helper :all if klass.superclass == ActionController::Base
           end
         end
       end
