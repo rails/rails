@@ -121,29 +121,29 @@ module Rails
   # If you don't specify endpoint, routes will be used as default endpoint. You can use them
   # just like you use application's routes:
   #
-  # # ENGINE/config/routes.rb
-  # MyEngine::Engine.routes.draw do
-  #   match "/" => "posts#index"
-  # end
+  #   # ENGINE/config/routes.rb
+  #   MyEngine::Engine.routes.draw do
+  #     match "/" => "posts#index"
+  #   end
   #
   # == Mount priority
   #
   # Note that now there can be more than one router in you application and it's better to avoid
   # passing requests through many routers. Consider such situation:
   #
-  # MyRailsApp::Application.routes.draw do
-  #   mount MyEngine::Engine => "/blog"
-  #   match "/blog/omg" => "main#omg"
-  # end
+  #   MyRailsApp::Application.routes.draw do
+  #     mount MyEngine::Engine => "/blog"
+  #     match "/blog/omg" => "main#omg"
+  #   end
   #
   # MyEngine is mounted at "/blog" path and additionaly "/blog/omg" points application's controller.
   # In such situation request to "/blog/omg" will go through MyEngine and if there is no such route
   # in Engine's routes, it will be dispatched to "main#omg". It's much better to swap that:
   #
-  # MyRailsApp::Application.routes.draw do
-  #   match "/blog/omg" => "main#omg"
-  #   mount MyEngine::Engine => "/blog"
-  # end
+  #   MyRailsApp::Application.routes.draw do
+  #     match "/blog/omg" => "main#omg"
+  #     mount MyEngine::Engine => "/blog"
+  #   end
   #
   # Now, Engine will get only requests that were not handled by application.
   #
@@ -153,11 +153,11 @@ module Rails
   # to application's public directory. To simplify generating paths for assets, you can set asset_path
   # for an Engine:
   #
-  # module MyEngine
-  #   class Engine < Rails::Engine
-  #     config.asset_path = "/my_engine/%s"
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       config.asset_path = "/my_engine/%s"
+  #     end
   #   end
-  # end
   #
   # With such config, asset paths will be automatically modified inside Engine:
   # image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
@@ -172,11 +172,11 @@ module Rails
   # Engine name is set by default based on class name. For MyEngine::Engine it will be my_engine_engine.
   # You can change it manually it manually using engine_name method:
   #
-  # module MyEngine
-  #   class Engine < Rails::Engine
-  #     engine_name "my_engine"
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       engine_name "my_engine"
+  #     end
   #   end
-  # end
   #
   # == Namespaced Engine
   #
@@ -186,20 +186,20 @@ module Rails
   # engine provides its own routes, you don't want that. To isolate engine's stuff from application
   # you can use namespace method:
   #
-  # module MyEngine
-  #   class Engine < Rails::Engine
-  #     namespace MyEngine
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       namespace MyEngine
+  #     end
   #   end
-  # end
   #
   # With such Engine, everything that is inside MyEngine module, will be isolated from application.
   #
   # Consider such controller:
   #
-  # module MyEngine
-  #   class FooController < ActionController::Base
+  #   module MyEngine
+  #     class FooController < ActionController::Base
+  #     end
   #   end
-  # end
   #
   # If engine is marked as namespaced, FooController has access only to helpers from engine and
   # url_helpers from MyEngine::Engine.routes.
@@ -214,27 +214,27 @@ module Rails
   # url_helpers inside application. When you mount Engine in application's routes special helper is
   # created to allow doing that. Consider such scenario:
   #
-  # # APP/config/routes.rb
-  # MyApplication::Application.routes.draw do
-  #   mount MyEngine::Engine => "/my_engine", :as => "my_engine"
-  #   match "/foo" => "foo#index"
-  # end
+  #   # APP/config/routes.rb
+  #   MyApplication::Application.routes.draw do
+  #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
+  #     match "/foo" => "foo#index"
+  #   end
   #
   # Now, you can use my_engine helper:
   #
-  # class FooController < ApplicationController
-  #   def index
-  #     my_engine.root_url #=> /my_engine/
+  #   class FooController < ApplicationController
+  #     def index
+  #       my_engine.root_url #=> /my_engine/
+  #     end
   #   end
-  # end
   #
   # There is also 'app' helper that gives you access to application's routes inside Engine:
   #
-  # module MyEngine
-  #   class BarController
-  #     app.foo_path #=> /foo
+  #   module MyEngine
+  #     class BarController
+  #       app.foo_path #=> /foo
+  #     end
   #   end
-  # end
   #
   # Note that :as option takes engine_name as default, so most of the time you can ommit it.
   #
@@ -288,7 +288,6 @@ module Rails
       end
 
       def namespace(mod)
-        # TODO: extract that into a module
         engine_name(generate_railtie_name(mod))
 
         _railtie = self
@@ -386,7 +385,7 @@ module Rails
     # per engine and get the engine as a block parameter
     initializer :set_autoload_paths, :before => :bootstrap_hook do |app|
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
-      ActiveSupport::Dependencies.autoload_once_paths.unshift(*config.autoload_once_paths)
+      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
       config.autoload_paths.freeze
@@ -419,11 +418,9 @@ module Rails
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActiveSupport.on_load(:action_controller) do
-        prepend_view_path(views)
-      end
-      ActiveSupport.on_load(:action_mailer) do
-        prepend_view_path(views)
+      unless views.empty?
+        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) }
+        ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
       end
     end
 
@@ -433,7 +430,7 @@ module Rails
     end
 
     initializer :append_asset_paths do
-      config.asset_path = "/#{engine_name}%s" unless config.asset_path
+      config.asset_path ||= "/#{engine_name}%s"
 
       public_path = config.paths.public.to_a.first
       if config.compiled_asset_path && File.exist?(public_path)
@@ -477,6 +474,10 @@ module Rails
 
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new
+    end
+
+    def _all_autoload_once_paths
+      config.autoload_once_paths
     end
 
     def _all_autoload_paths
