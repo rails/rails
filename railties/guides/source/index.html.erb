@@ -3,7 +3,7 @@ Ruby on Rails Guides
 <% end %>
 
 <% content_for :header_section do %>
-<h2>Ruby on Rails Guides</h2>
+<h2>Ruby on Rails Guides (<%= ENV['RAILS_VERSION'] || 'edge' %>)</h2>
 
 <% if @edge %>
 <p>
@@ -14,8 +14,12 @@ Ruby on Rails Guides
   If you are looking for the ones for the stable version please check
   <a href="http://guides.rubyonrails.org">http://guides.rubyonrails.org</a> instead.
 </p>
+<% else %>
+<p>
+  These are the new guides for Rails 3. The guides for Rails 2.3 are still available
+  at <a href="http://guides.rubyonrails.org/v2.3.8/">http://guides.rubyonrails.org/v2.3.8/</a>.
+</p>
 <% end %>
-
 <p>
   These guides are designed to make you immediately productive with Rails,
   and to help you understand how all of the pieces fit together.
