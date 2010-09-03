@@ -7,16 +7,13 @@ module ActionDispatch
       @compiled_at = Regexp.compile(/^#{Regexp.escape(at)}/) unless @at.blank?
       @compiled_root = Regexp.compile(/^#{Regexp.escape(root)}/)
       @file_server = ::Rack::File.new(root)
-
-      ext = ::ActionController::Base.page_cache_extension
-      @ext = "{,#{ext},/index#{ext}}"
     end
 
     def match?(path)
       path = path.dup
       if @compiled_at.blank? || path.sub!(@compiled_at, '')
         full_path = File.join(@root, ::Rack::Utils.unescape(path))
-        paths = "#{full_path}#{@ext}"
+        paths = "#{full_path}#{ext}"
 
         matches = Dir[paths]
         match = matches.detect { |m| File.file?(m) }
@@ -29,6 +26,13 @@ module ActionDispatch
 
     def call(env)
       @file_server.call(env)
+    end
+
+    def ext
+      @ext ||= begin
+        ext = ::ActionController::Base.page_cache_extension
+        "{,#{ext},/index#{ext}}"
+      end
     end
   end
 
