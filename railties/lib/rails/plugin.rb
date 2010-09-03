@@ -52,19 +52,6 @@ module Rails
       name.to_s
     end
 
-    def load_tasks
-      super
-      load_deprecated_tasks
-    end
-
-    def load_deprecated_tasks
-      tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"].sort
-      if tasks.any?
-        ActiveSupport::Deprecation.warn "Rake tasks in #{tasks.to_sentence} are deprecated. Use lib/tasks instead"
-        tasks.each { |ext| load(ext) }
-      end
-    end
-
     def initialize(root)
       @name = File.basename(root).to_sym
       config.root = root
@@ -85,15 +72,12 @@ module Rails
     end
 
     initializer :load_init_rb, :before => :load_config_initializers do |app|
-      files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
-      if initrb = files.find { |path| File.file? path }
-        if initrb == files.first
-          ActiveSupport::Deprecation.warn "Use toplevel init.rb; rails/init.rb is deprecated: #{initrb}"
-        end
+      init_rb = File.expand_path("init.rb", root)
+      if File.file?(init_rb)
         config = app.config
         # TODO: think about evaling initrb in context of Engine (currently it's
         # always evaled in context of Rails::Application)
-        eval(File.read(initrb), binding, initrb)
+        eval(File.read(init_rb), binding, init_rb)
       end
     end
 

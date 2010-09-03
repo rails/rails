@@ -115,32 +115,5 @@ module RailtiesTest
 
       assert rescued, "Expected boot rails to fail"
     end
-
-    test "loads deprecated rails/init.rb" do
-      @plugin.write "rails/init.rb", <<-RUBY
-        $loaded = true
-      RUBY
-
-      boot_rails
-      assert $loaded
-    end
-
-    test "deprecated tasks are also loaded" do
-      $executed = false
-      @plugin.write "tasks/foo.rake", <<-RUBY
-        task :foo do
-          $executed = true
-        end
-      RUBY
-
-      boot_rails
-      require 'rake'
-      require 'rake/rdoctask'
-      require 'rake/testtask'
-      Rails.application.load_tasks
-      Rake::Task[:foo].invoke
-      assert $executed
-    end
-
   end
 end
