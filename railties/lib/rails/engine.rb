@@ -2,6 +2,7 @@ require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
 require 'rbconfig'
+require 'rails/engine/railties'
 
 module Rails
   # Rails::Engine allows you to wrap a specific Rails application and share it accross
@@ -86,14 +87,172 @@ module Rails
   # all folders under "app" are automatically added to the load path. So if you have
   # "app/observers", it's added by default.
   #
+  # == Endpoint
+  #
+  # Engine can be also a rack application. It can be useful if you have a rack application that
+  # you would like to wrap with Engine and provide some of the Engine's features.
+  #
+  # To do that, use endpoint method:
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       endpoint MyRackApplication
+  #     end
+  #   end
+  #
+  # Now you can mount your engine in application's routes just like that:
+  #
+  # MyRailsApp::Application.routes.draw do
+  #   mount MyEngine::Engine => "/engine"
+  # end
+  #
+  # == Middleware stack
+  #
+  # As Engine can now be rack endpoint, it can also have a middleware stack. The usage is exactly
+  # the same as in application:
+  #
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       middleware.use SomeMiddleware
+  #     end
+  #   end
+  #
+  # == Routes
+  #
+  # If you don't specify endpoint, routes will be used as default endpoint. You can use them
+  # just like you use application's routes:
+  #
+  # # ENGINE/config/routes.rb
+  # MyEngine::Engine.routes.draw do
+  #   match "/" => "posts#index"
+  # end
+  #
+  # == Mount priority
+  #
+  # Note that now there can be more than one router in you application and it's better to avoid
+  # passing requests through many routers. Consider such situation:
+  #
+  # MyRailsApp::Application.routes.draw do
+  #   mount MyEngine::Engine => "/blog"
+  #   match "/blog/omg" => "main#omg"
+  # end
+  #
+  # MyEngine is mounted at "/blog" path and additionaly "/blog/omg" points application's controller.
+  # In such situation request to "/blog/omg" will go through MyEngine and if there is no such route
+  # in Engine's routes, it will be dispatched to "main#omg". It's much better to swap that:
+  #
+  # MyRailsApp::Application.routes.draw do
+  #   match "/blog/omg" => "main#omg"
+  #   mount MyEngine::Engine => "/blog"
+  # end
+  #
+  # Now, Engine will get only requests that were not handled by application.
+  #
+  # == Asset path
+  #
+  # When you use engine with its own public directory, you will probably want to copy or symlink it
+  # to application's public directory. To simplify generating paths for assets, you can set asset_path
+  # for an Engine:
+  #
+  # module MyEngine
+  #   class Engine < Rails::Engine
+  #     config.asset_path = "/my_engine/%s"
+  #   end
+  # end
+  #
+  # With such config, asset paths will be automatically modified inside Engine:
+  # image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
+  #
+  # == Engine name
+  #
+  # There are some places where engine's name is used.
+  # * routes: when you mount engine with mount(MyEngine::Engine => '/my_engine'), it's used as default :as option
+  # * migrations: when you copy engine's migrations, they will be decorated with suffix based on engine_name, for example:
+  #   2010010203121314_create_users.my_engine.rb
+  #
+  # Engine name is set by default based on class name. For MyEngine::Engine it will be my_engine_engine.
+  # You can change it manually it manually using engine_name method:
+  #
+  # module MyEngine
+  #   class Engine < Rails::Engine
+  #     engine_name "my_engine"
+  #   end
+  # end
+  #
+  # == Namespaced Engine
+  #
+  # Normally, when you create controllers, helpers and models inside engine, they are treated
+  # as they would be created inside application. One of the cosequences of that is including
+  # application's helpers and url_helpers inside controller. Sometimes, especially when your
+  # engine provides its own routes, you don't want that. To isolate engine's stuff from application
+  # you can use namespace method:
+  #
+  # module MyEngine
+  #   class Engine < Rails::Engine
+  #     namespace MyEngine
+  #   end
+  # end
+  #
+  # With such Engine, everything that is inside MyEngine module, will be isolated from application.
+  #
+  # Consider such controller:
+  #
+  # module MyEngine
+  #   class FooController < ActionController::Base
+  #   end
+  # end
+  #
+  # If engine is marked as namespaced, FooController has access only to helpers from engine and
+  # url_helpers from MyEngine::Engine.routes.
+  #
+  # Additionaly namespaced engine will set its name according to namespace, so in that case:
+  # MyEngine::Engine.engine_name #=> "my_engine"
+  # and it will set MyEngine.table_name_prefix to "my_engine_"
+  #
+  # == Using Engine's routes outside Engine
+  #
+  # Since you can mount engine inside application's routes now, you do not have direct access to engine's
+  # url_helpers inside application. When you mount Engine in application's routes special helper is
+  # created to allow doing that. Consider such scenario:
+  #
+  # # APP/config/routes.rb
+  # MyApplication::Application.routes.draw do
+  #   mount MyEngine::Engine => "/my_engine", :as => "my_engine"
+  #   match "/foo" => "foo#index"
+  # end
+  #
+  # Now, you can use my_engine helper:
+  #
+  # class FooController < ApplicationController
+  #   def index
+  #     my_engine.root_url #=> /my_engine/
+  #   end
+  # end
+  #
+  # There is also 'app' helper that gives you access to application's routes inside Engine:
+  #
+  # module MyEngine
+  #   class BarController
+  #     app.foo_path #=> /foo
+  #   end
+  # end
+  #
+  # Note that :as option takes engine_name as default, so most of the time you can ommit it.
+  #
+  # If you want to generate url to engine's route using polymorphic_url, you can also use that helpers.
+  #
+  # Let's say that you want to create a form pointing to one of the engine's routes. All you need to do
+  # is passing helper as the first element in array with attributes for url:
+  #
+  # form_for([my_engine, @user])
+  #
+  # This code will use my_engine.user_path(@user) to generate proper route.
+  #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
 
     class << self
-      attr_accessor :called_from
-
-      # TODO Remove this. It's deprecated.
+      attr_accessor :called_from, :namespaced
       alias :engine_name :railtie_name
 
       def inherited(base)
@@ -122,9 +281,40 @@ module Rails
         RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ?
           Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
+
+      def endpoint(endpoint = nil)
+        @endpoint = endpoint if endpoint
+        @endpoint
+      end
+
+      def namespace(mod)
+        # TODO: extract that into a module
+        engine_name(generate_railtie_name(mod))
+
+        _railtie = self
+        name = engine_name
+        mod.singleton_class.instance_eval do
+          define_method(:_railtie) do
+            _railtie
+          end
+
+          define_method(:table_name_prefix) do
+            "#{name}_"
+          end
+        end
+
+        self.routes.default_scope = {:module => name}
+
+        self.namespaced = true
+      end
+
+      def namespaced?
+        !!namespaced
+      end
     end
 
-    delegate :paths, :root, :to => :config
+    delegate :middleware, :root, :paths, :to => :config
+    delegate :engine_name, :namespaced?, :to => "self.class"
 
     def load_tasks
       super
@@ -138,6 +328,47 @@ module Rails
           require_dependency file.sub(matcher, '\1')
         end
       end
+    end
+
+    def railties
+      @railties ||= self.class::Railties.new(config)
+    end
+
+    def app
+      @app ||= begin
+        config.middleware = config.middleware.merge_into(default_middleware_stack)
+        config.middleware.build(endpoint)
+      end
+    end
+
+    def endpoint
+      self.class.endpoint || routes
+    end
+
+    def call(env)
+      app.call(env.merge!(env_config))
+    end
+
+    def env_config
+      @env_config ||= {
+        'action_dispatch.routes' => routes,
+        'action_dispatch.asset_path' => config.asset_path
+      }
+    end
+
+    def routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
+    end
+
+    def initializers
+      initializers = []
+      railties.all { |r| initializers += r.initializers }
+      initializers += super
+      initializers
+    end
+
+    def config
+      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
@@ -196,6 +427,27 @@ module Rails
       end
     end
 
+    initializer :load_environment_config, :before => :load_environment_hook do
+      environment = config.paths.config.environments.to_a.first
+      require environment if environment
+    end
+
+    initializer :append_asset_paths do
+      config.asset_path = "/#{engine_name}%s" unless config.asset_path
+
+      public_path = config.paths.public.to_a.first
+      if config.compiled_asset_path && File.exist?(public_path)
+        config.static_asset_paths[config.compiled_asset_path] = public_path
+      end
+    end
+
+    initializer :prepend_helpers_path do
+      unless namespaced?
+        config.helpers_paths = [] unless config.respond_to?(:helpers_paths)
+        config.helpers_paths = config.paths.app.helpers.to_a + config.helpers_paths
+      end
+    end
+
     initializer :load_config_initializers do
       paths.config.initializers.to_a.sort.each do |initializer|
         load(initializer)
@@ -208,6 +460,24 @@ module Rails
     end
 
   protected
+    def find_root_with_flag(flag, default=nil)
+      root_path = self.class.called_from
+
+      while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
+        parent = File.dirname(root_path)
+        root_path = parent != root_path && parent
+      end
+
+      root = File.exist?("#{root_path}/#{flag}") ? root_path : default
+      raise "Could not find root path for #{self}" unless root
+
+      Config::CONFIG['host_os'] =~ /mswin|mingw/ ?
+        Pathname.new(root).expand_path : Pathname.new(root).realpath
+    end
+
+    def default_middleware_stack
+      ActionDispatch::MiddlewareStack.new
+    end
 
     def _all_autoload_paths
       @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq

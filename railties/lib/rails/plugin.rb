@@ -18,6 +18,10 @@ module Rails
   # root during the boot process.
   #
   class Plugin < Engine
+    def self.global_plugins
+      @global_plugins ||= []
+    end
+
     def self.inherited(base)
       raise "You cannot inherit from Rails::Plugin"
     end
@@ -28,6 +32,11 @@ module Rails
         Dir["#{path}/*"].each do |plugin_path|
           plugin = new(plugin_path)
           next unless list.include?(plugin.name) || list.include?(:all)
+          if global_plugins.include?(plugin.name)
+            warn "WARNING: plugin #{plugin.name} from #{path} was not loaded. Plugin with the same name has been already loaded."
+            next
+          end
+          global_plugins << plugin.name
           plugins << plugin
         end
       end
@@ -38,6 +47,10 @@ module Rails
     end
 
     attr_reader :name, :path
+
+    def railtie_name
+      name.to_s
+    end
 
     def load_tasks
       super
@@ -78,6 +91,8 @@ module Rails
           ActiveSupport::Deprecation.warn "Use toplevel init.rb; rails/init.rb is deprecated: #{initrb}"
         end
         config = app.config
+        # TODO: think about evaling initrb in context of Engine (currently it's
+        # always evaled in context of Rails::Application)
         eval(File.read(initrb), binding, initrb)
       end
     end

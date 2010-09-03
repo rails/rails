@@ -158,10 +158,17 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              def #{selector}(options = nil)                                      # def hash_for_users_url(options = nil)
-                options ? #{options.inspect}.merge(options) : #{options.inspect}  #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
-              end                                                                 # end
-              protected :#{selector}                                              # protected :hash_for_users_url
+              def #{selector}(*args)
+                options = args.extract_options!
+
+                if args.any?
+                  options[:_positional_args] = args
+                  options[:_positional_keys] = #{route.segment_keys.inspect}
+                end
+
+                options ? #{options.inspect}.merge(options) : #{options.inspect}
+              end
+              protected :#{selector}
             END_EVAL
             helpers << selector
           end
@@ -185,21 +192,14 @@ module ActionDispatch
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
-                options =  #{hash_access_method}(args.extract_options!)
-
-                if args.any?
-                  options[:_positional_args] = args
-                  options[:_positional_keys] = #{route.segment_keys.inspect}
-                end
-
-                url_for(options)
+                url_for(#{hash_access_method}(*args))
               end
             END_EVAL
             helpers << selector
           end
       end
 
-      attr_accessor :set, :routes, :named_routes
+      attr_accessor :set, :routes, :named_routes, :default_scope
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
 
@@ -230,7 +230,11 @@ module ActionDispatch
         if block.arity == 1
           mapper.instance_exec(DeprecatedMapper.new(self), &block)
         else
-          mapper.instance_exec(&block)
+          if default_scope
+            mapper.with_default_scope(default_scope, &block)
+          else
+            mapper.instance_exec(&block)
+          end
         end
 
         finalize! unless @disable_clear_and_finalize
@@ -261,6 +265,31 @@ module ActionDispatch
         named_routes.install(destinations, regenerate_code)
       end
 
+      module MountedHelpers
+      end
+
+      def mounted_helpers(name = nil)
+        define_mounted_helper(name) if name
+        MountedHelpers
+      end
+
+      def define_mounted_helper(name)
+        return if MountedHelpers.method_defined?(name)
+
+        routes = self
+        MountedHelpers.class_eval do
+          define_method "_#{name}" do
+            RoutesProxy.new(routes, self._routes_context)
+          end
+        end
+
+        MountedHelpers.class_eval <<-RUBY
+          def #{name}
+            @#{name} ||= _#{name}
+          end
+        RUBY
+      end
+
       def url_helpers
         @url_helpers ||= begin
           routes = self
@@ -283,7 +312,7 @@ module ActionDispatch
               singleton_class.send(:define_method, :_routes) { routes }
             end
 
-            define_method(:_routes) { routes }
+            define_method(:_routes) { @_routes || routes }
           end
 
           helpers
@@ -303,10 +332,9 @@ module ActionDispatch
       end
 
       class Generator #:nodoc:
-        attr_reader :options, :recall, :set, :script_name, :named_route
+        attr_reader :options, :recall, :set, :named_route
 
         def initialize(options, recall, set, extras = false)
-          @script_name = options.delete(:script_name)
           @named_route = options.delete(:use_route)
           @options     = options.dup
           @recall      = recall.dup
@@ -401,7 +429,7 @@ module ActionDispatch
           return [path, params.keys] if @extras
 
           path << "?#{params.to_query}" if params.any?
-          "#{script_name}#{path}"
+          path
         rescue Rack::Mount::RoutingError
           raise_routing_error
         end
@@ -453,7 +481,11 @@ module ActionDispatch
         Generator.new(options, recall, self, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
+      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name]
+
+      def _generate_prefix(options = {})
+        nil
+      end
 
       def url_for(options)
         finalize!
@@ -464,7 +496,6 @@ module ActionDispatch
         rewritten_url = ""
 
         path_segments = options.delete(:_path_segments)
-
         unless options[:only_path]
           rewritten_url << (options[:protocol] || "http")
           rewritten_url << "://" unless rewritten_url.match("://")
@@ -476,9 +507,12 @@ module ActionDispatch
           rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
         end
 
+        script_name = options.delete(:script_name)
+        path = (script_name.blank? ? _generate_prefix(options) : script_name).to_s
+
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
-        path = generate(path_options, path_segments || {})
+        path << generate(path_options, path_segments || {})
 
         # ROUTES TODO: This can be called directly, so script_name should probably be set in the routes
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)

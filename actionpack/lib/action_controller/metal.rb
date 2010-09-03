@@ -52,7 +52,11 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    attr_internal :env
+    attr_internal_writer :env
+
+    def env
+      @_env ||= {}
+    end
 
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.

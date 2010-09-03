@@ -31,7 +31,7 @@ module TestUrlGeneration
     end
 
     test "the request's SCRIPT_NAME takes precedence over the routes'" do
-      get "/foo", {}, 'SCRIPT_NAME' => "/new"
+      get "/foo", {}, 'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes
       assert_equal "/new/foo", response.body
     end
 
@@ -41,3 +41,4 @@ module TestUrlGeneration
     end
   end
 end
+

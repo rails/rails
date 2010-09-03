@@ -2151,3 +2151,32 @@ private
     %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
   end
 end
+
+
+class TestDefaultScope < ActionController::IntegrationTest
+  module ::Blog
+    class PostsController < ActionController::Base
+      def index
+        render :text => "blog/posts#index"
+      end
+    end
+  end
+
+  DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new
+  DefaultScopeRoutes.default_scope = {:module => :blog}
+  DefaultScopeRoutes.draw do
+    resources :posts
+  end
+
+  def app
+    DefaultScopeRoutes
+  end
+
+  include DefaultScopeRoutes.url_helpers
+
+  def test_default_scope
+    get '/posts'
+    assert_equal "blog/posts#index", @response.body
+  end
+end
+

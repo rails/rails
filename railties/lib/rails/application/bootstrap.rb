@@ -6,10 +6,7 @@ module Rails
     module Bootstrap
       include Initializable
 
-      initializer :load_environment_config do
-        environment = config.paths.config.environments.to_a.first
-        require environment if environment
-      end
+      initializer :load_environment_hook do end
 
       initializer :load_active_support do
         require 'active_support/dependencies'

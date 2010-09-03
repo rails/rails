@@ -10,6 +10,55 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
+    def test_copying_migrations
+      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      @plugin.write "db/migrate/2_add_last_name_to_users.rb", <<-RUBY
+        class AddLastNameToUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      app_file "db/migrate/1_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration
+        end
+      RUBY
+
+      yaffle = plugin "acts_as_yaffle", "::LEVEL = config.log_level" do |plugin|
+        plugin.write "lib/acts_as_yaffle.rb", "class ActsAsYaffle; end"
+      end
+
+      yaffle.write "db/migrate/1_create_yaffles.rb", <<-RUBY
+        class CreateYaffles < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+
+      Dir.chdir(app_path) do
+        output = `rake db:copy_migrations FROM=bukkits`
+
+        assert File.exists?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
+        assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
+        assert_match /2_create_users/, output
+        assert_match /3_add_last_name_to_users/, output
+        assert_equal 3, Dir["#{app_path}/db/migrate/*.rb"].length
+
+        output = `rake db:copy_migrations`
+
+        assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.acts_as_yaffle.rb")
+        assert_match /4_create_yaffles/, output
+
+        migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
+        output = `rake db:copy_migrations`
+
+        assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
+        assert_match /No migrations were copied/, output
+      end
+    end
+
     def test_puts_its_lib_directory_on_load_path
       boot_rails
       require "another"

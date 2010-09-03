@@ -22,6 +22,10 @@ module ActionView
       include ActionDispatch::Routing::UrlFor
       include TagHelper
 
+      def _routes_context
+        controller
+      end
+
       # Need to map default url options to controller one.
       # def default_url_options(*args) #:nodoc:
       #   controller.send(:default_url_options, *args)

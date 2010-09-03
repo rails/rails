@@ -261,7 +261,11 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
+          options[:as] ||= app_name(app)
+
           match(path, options.merge(:to => app, :anchor => false, :format => false))
+
+          define_generate_prefix(app, options[:as])
           self
         end
 
@@ -269,6 +273,40 @@ module ActionDispatch
           @set.default_url_options = options
         end
         alias_method :default_url_options, :default_url_options=
+
+        def with_default_scope(scope, &block)
+          scope(scope) do
+            instance_exec(&block)
+          end
+        end
+
+        private
+          def app_name(app)
+            return unless app.respond_to?(:routes)
+
+            if app.respond_to?(:railtie_name)
+              app.railtie_name
+            else
+              class_name = app.class.is_a?(Class) ? app.name : app.class.name
+              ActiveSupport::Inflector.underscore(class_name).gsub("/", "_")
+            end
+          end
+
+          def define_generate_prefix(app, name)
+            return unless app.respond_to?(:routes)
+
+            _route = @set.named_routes.routes[name.to_sym]
+            _routes = @set
+            app.routes.define_mounted_helper(name)
+            app.routes.class_eval do
+              define_method :_generate_prefix do |options|
+                prefix_options = options.slice(*_route.segment_keys)
+                # we must actually delete prefix segment keys to avoid passing them to next url_for
+                _route.segment_keys.each { |k| options.delete(k) }
+                _routes.url_helpers.send("#{name}_path", prefix_options)
+              end
+            end
+          end
       end
 
       module HttpHelpers

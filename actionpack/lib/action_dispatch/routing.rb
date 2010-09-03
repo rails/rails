@@ -268,6 +268,7 @@ module ActionDispatch
     autoload :Mapper, 'action_dispatch/routing/mapper'
     autoload :Route, 'action_dispatch/routing/route'
     autoload :RouteSet, 'action_dispatch/routing/route_set'
+    autoload :RoutesProxy, 'action_dispatch/routing/routes_proxy'
     autoload :UrlFor, 'action_dispatch/routing/url_for'
     autoload :PolymorphicRoutes, 'action_dispatch/routing/polymorphic_routes'
 

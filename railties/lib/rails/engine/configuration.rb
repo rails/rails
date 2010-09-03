@@ -5,10 +5,13 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
+      attr_accessor :middleware, :plugins, :asset_path
 
       def initialize(root=nil)
         super()
         @root = root
+        @middleware = Rails::Configuration::MiddlewareStackProxy.new
+        @helpers_paths = []
       end
 
       def paths
@@ -26,9 +29,14 @@ module Rails
           paths.config.initializers "config/initializers", :glob => "**/*.rb"
           paths.config.locales      "config/locales",      :glob => "*.{rb,yml}"
           paths.config.routes       "config/routes.rb"
+          paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
           paths.public              "public"
           paths.public.javascripts  "public/javascripts"
           paths.public.stylesheets  "public/stylesheets"
+          paths.vendor              "vendor", :load_path => true
+          paths.vendor.plugins      "vendor/plugins"
+          paths.db                  "db"
+          paths.db.migrate          "db/migrate"
           paths
         end
       end
@@ -47,6 +55,10 @@ module Rails
 
       def autoload_paths
         @autoload_paths ||= paths.autoload_paths
+      end
+
+      def compiled_asset_path
+        asset_path % "" if asset_path
       end
     end
   end

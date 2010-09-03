@@ -83,3 +83,21 @@ begin
 ensure
   $stdout = original_stdout
 end
+
+class << Time
+  unless method_defined? :now_before_time_travel
+    alias_method :now_before_time_travel, :now
+  end
+
+  def now
+    (@now ||= nil) || now_before_time_travel
+  end
+
+  def travel_to(time, &block)
+    @now = time
+    block.call
+  ensure
+    @now = nil
+  end
+end
+

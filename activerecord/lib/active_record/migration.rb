@@ -383,6 +383,37 @@ module ActiveRecord
           connection.send(method, *arguments, &block)
         end
       end
+
+      def copy(destination, sources)
+        copied = []
+
+        sources.each do |scope, path|
+          destination_migrations = ActiveRecord::Migrator.migrations(destination)
+          source_migrations = ActiveRecord::Migrator.migrations(path)
+          last = destination_migrations.last
+
+          source_migrations.each do |migration|
+            next if destination_migrations.any? { |m| m.name == migration.name && m.scope == scope.to_s }
+
+            migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
+            last = migration
+
+            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
+            FileUtils.cp(migration.filename, new_path)
+            copied << new_path
+          end
+        end
+
+        copied
+      end
+
+      def next_migration_number(number)
+        if ActiveRecord::Base.timestamped_migrations
+          [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
+        else
+          "%.3d" % number
+        end
+      end
     end
   end
 
@@ -390,7 +421,7 @@ module ActiveRecord
   # until they are needed
   class MigrationProxy
 
-    attr_accessor :name, :version, :filename
+    attr_accessor :name, :version, :filename, :scope
 
     delegate :migrate, :announce, :write, :to=>:migration
 
@@ -409,6 +440,8 @@ module ActiveRecord
 
   class Migrator#:nodoc:
     class << self
+      attr_writer :migrations_path
+
       def migrate(migrations_path, target_version = nil)
         case
           when target_version.nil?
@@ -441,10 +474,6 @@ module ActiveRecord
         self.new(direction, migrations_path, target_version).run
       end
 
-      def migrations_path
-        'db/migrate'
-      end
-
       def schema_migrations_table_name
         Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
       end
@@ -466,6 +495,38 @@ module ActiveRecord
       def proper_table_name(name)
         # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
         name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+      end
+
+      def migrations_path
+        @migrations_path ||= 'db/migrate'
+      end
+
+      def migrations(path)
+        files = Dir["#{path}/[0-9]*_*.rb"]
+
+        migrations = files.inject([]) do |klasses, file|
+          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
+
+          raise IllegalMigrationNameError.new(file) unless version
+          version = version.to_i
+
+          if klasses.detect { |m| m.version == version }
+            raise DuplicateMigrationVersionError.new(version)
+          end
+
+          if klasses.detect { |m| m.name == name.camelize && m.scope == scope }
+            raise DuplicateMigrationNameError.new(name.camelize)
+          end
+
+          migration = MigrationProxy.new
+          migration.name     = name.camelize
+          migration.version  = version
+          migration.filename = file
+          migration.scope    = scope
+          klasses << migration
+        end
+
+        migrations.sort_by(&:version)
       end
 
       private
@@ -546,30 +607,7 @@ module ActiveRecord
 
     def migrations
       @migrations ||= begin
-        files = Dir["#{@migrations_path}/[0-9]*_*.rb"]
-
-        migrations = files.inject([]) do |klasses, file|
-          version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
-
-          raise IllegalMigrationNameError.new(file) unless version
-          version = version.to_i
-
-          if klasses.detect { |m| m.version == version }
-            raise DuplicateMigrationVersionError.new(version)
-          end
-
-          if klasses.detect { |m| m.name == name.camelize }
-            raise DuplicateMigrationNameError.new(name.camelize)
-          end
-
-          migration = MigrationProxy.new
-          migration.name     = name.camelize
-          migration.version  = version
-          migration.filename = file
-          klasses << migration
-        end
-
-        migrations = migrations.sort_by { |m| m.version }
+        migrations = self.class.migrations(@migrations_path)
         down? ? migrations.reverse : migrations
       end
     end
