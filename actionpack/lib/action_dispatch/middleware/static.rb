@@ -1,44 +1,43 @@
 require 'rack/utils'
 
 module ActionDispatch
-  class Static
-    class FileHandler
-      def initialize(at, root)
-        @at = at.chomp("/")
-        @file_server = ::Rack::File.new(root)
-      end
+  class FileHandler
+    def initialize(at, root)
+      @at, @root = at.chomp('/'), root.chomp('/')
+      @compiled_at = Regexp.compile(/^#{Regexp.escape(at)}/) unless @at.blank?
+      @compiled_root = Regexp.compile(/^#{Regexp.escape(root)}/)
+      @file_server = ::Rack::File.new(root)
 
-      def file_exist?(path)
-        (path = full_readable_path(path)) && File.file?(path)
-      end
-
-      def directory_exist?(path)
-        (path = full_readable_path(path)) && File.directory?(path)
-      end
-
-      def call(env)
-        env["PATH_INFO"].gsub!(/^#{@at}/, "")
-        @file_server.call(env)
-      end
-
-      private
-        def includes_path?(path)
-          @at == "" || path =~ /^#{@at}/
-        end
-
-        def full_readable_path(path)
-          return unless includes_path?(path)
-          path = path.gsub(/^#{@at}/, "")
-          File.join(@file_server.root, ::Rack::Utils.unescape(path))
-        end
+      ext = ::ActionController::Base.page_cache_extension
+      @ext = "{,#{ext},/index#{ext}}"
     end
 
+    def match?(path)
+      path = path.dup
+      if @compiled_at.blank? || path.sub!(@compiled_at, '')
+        full_path = File.join(@root, ::Rack::Utils.unescape(path))
+        paths = "#{full_path}#{@ext}"
+
+        matches = Dir[paths]
+        match = matches.detect { |m| File.file?(m) }
+        if match
+          match.sub!(@compiled_root, '')
+          match
+        end
+      end
+    end
+
+    def call(env)
+      @file_server.call(env)
+    end
+  end
+
+  class Static
     FILE_METHODS = %w(GET HEAD).freeze
 
     def initialize(app, roots)
       @app = app
-      roots = normalize_roots(roots)
-      @file_handlers = file_handlers(roots)
+      @file_handlers = create_file_handlers(roots)
     end
 
     def call(env)
@@ -46,14 +45,9 @@ module ActionDispatch
       method = env['REQUEST_METHOD']
 
       if FILE_METHODS.include?(method)
-        if file_handler = file_exist?(path)
-          return file_handler.call(env)
-        else
-          cached_path = directory_exist?(path) ? "#{path}/index" : path
-          cached_path += ::ActionController::Base.page_cache_extension
-
-          if file_handler = file_exist?(cached_path)
-            env['PATH_INFO'] = cached_path
+        @file_handlers.each do |file_handler|
+          if match = file_handler.match?(path)
+            env["PATH_INFO"] = match
             return file_handler.call(env)
           end
         end
@@ -63,22 +57,12 @@ module ActionDispatch
     end
 
     private
-      def file_exist?(path)
-        @file_handlers.detect { |f| f.file_exist?(path) }
-      end
+      def create_file_handlers(roots)
+        roots = { '' => roots } unless roots.is_a?(Hash)
 
-      def directory_exist?(path)
-        @file_handlers.detect { |f| f.directory_exist?(path) }
-      end
-
-      def normalize_roots(roots)
-        roots.is_a?(Hash) ? roots : { "/" => roots.chomp("/") }
-      end
-
-      def file_handlers(roots)
         roots.map do |at, root|
-          FileHandler.new(at, root)
-        end
+          FileHandler.new(at, root) if File.exist?(root)
+        end.compact
       end
   end
 end
