@@ -913,7 +913,7 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people/5", :method => :put)
     assert_equal("update", params[:action])
 
-    assert_raise(ActionController::RoutingError) {
+    assert_raise(ActionController::UnknownHttpMethod) {
       set.recognize_path("/people", :method => :bacon)
     }
 
@@ -978,7 +978,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get "people/:id" => "people#show", :as => "person"
       put "people/:id" => "people#update"
-      get "people/:id(.:_format)" => "people#show"
+      get "people/:id(.:format)" => "people#show"
     end
 
     params = set.recognize_path("/people/5", :method => :get)
@@ -991,7 +991,7 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people/5.png", :method => :get)
     assert_equal("show", params[:action])
     assert_equal("5", params[:id])
-    assert_equal("png", params[:_format])
+    assert_equal("png", params[:format])
   end
 
   def test_generate_with_default_action
