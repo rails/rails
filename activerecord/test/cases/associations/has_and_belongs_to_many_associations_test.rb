@@ -819,4 +819,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_queries(0) { david.projects.columns; david.projects.columns }
   end
 
+  def test_include_method_in_has_and_belongs_to_many_association_should_return_true_for_instance_added_with_build
+    project = Project.new
+    developer = project.developers.build
+    assert project.developers.include?(developer)
+  end
 end

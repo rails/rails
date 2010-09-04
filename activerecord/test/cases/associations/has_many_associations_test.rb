@@ -1221,5 +1221,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     EOF
   end
-end
 
+  def test_include_method_in_has_many_association_should_return_true_for_instance_added_with_build
+    post = Post.new
+    comment = post.comments.build
+    assert post.comments.include?(comment)
+  end
+end
