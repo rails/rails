@@ -1288,27 +1288,6 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
-  def test_route_requirement_generate_with_extended_syntax
-    set.draw do
-      match 'page/:name' => 'pages#show',
-        :constraints => {:name => / # Desperately overcommented regexp
-                                    ( #Either
-                                     david #The Creator
-                                    | #Or
-                                      jamis #The Deployer
-                                    )/x}
-    end
-
-    url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
-    assert_equal "/page/david", url
-    assert_raise ActionController::RoutingError do
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
-    end
-    assert_raise ActionController::RoutingError do
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
-    end
-  end
-
   def test_route_requirement_generate_with_xi_modifiers
     set.draw do
       match 'page/:name' => 'pages#show',
