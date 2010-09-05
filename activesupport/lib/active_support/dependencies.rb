@@ -64,8 +64,8 @@ module ActiveSupport #:nodoc:
     self.log_activity = false
 
     # The WatchStack keeps a stack of the modules being watched as files are loaded.
-    # If a file in the process of being loaded (parent.rb) triggers the load of 
-    # another file (child.rb) the stack will ensure that child.rb handles the new 
+    # If a file in the process of being loaded (parent.rb) triggers the load of
+    # another file (child.rb) the stack will ensure that child.rb handles the new
     # constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
@@ -641,7 +641,8 @@ module ActiveSupport #:nodoc:
       parent = Inflector.constantize(names * '::')
 
       log "removing constant #{const}"
-      constantize(const).before_remove_const if constantize(const).respond_to?(:before_remove_const)
+      constantized = constantize(const)
+      constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
       parent.instance_eval { remove_const to_remove }
 
       return true
