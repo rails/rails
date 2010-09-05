@@ -493,11 +493,9 @@ module ActiveRecord
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_not_new
 
-          _scope = self.construct_scope[:create]
-          csm = @reflection.klass.send(:current_scoped_methods)
-          options = (csm.blank? || !_scope.is_a?(Hash)) ? _scope : _scope.merge(csm.where_values_hash)
-
-          record = @reflection.klass.send(:with_scope, :create => options) do
+          scoped_where = scoped.where_values_hash
+          create_scope = scoped_where ? construct_scope[:create].merge(scoped_where) : construct_scope[:create]
+          record = @reflection.klass.send(:with_scope, :create => create_scope) do
             @reflection.build_association(attrs)
           end
           if block_given?
