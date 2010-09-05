@@ -1,5 +1,4 @@
 require 'open-uri'
-require 'active_support/deprecation'
 require 'rbconfig'
 
 module Rails
@@ -52,20 +51,6 @@ module Rails
       def gem(*args)
         options = args.extract_options!
         name, version = args
-
-        # Deal with deprecated options
-        { :env => :group, :only => :group,
-          :lib => :require, :require_as => :require }.each do |old, new|
-          next unless options[old]
-          options[new] = options.delete(old)
-          ActiveSupport::Deprecation.warn "#{old.inspect} option in gem is deprecated, use #{new.inspect} instead"
-        end
-
-        # Deal with deprecated source
-        if source = options.delete(:source)
-          ActiveSupport::Deprecation.warn ":source option in gem is deprecated, use add_source method instead"
-          add_source(source)
-        end
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
@@ -255,16 +240,6 @@ module Rails
       def capify!
         log :capify, ""
         in_root { run("#{extify(:capify)} .", :verbose => false) }
-      end
-
-      # Add Rails to /vendor/rails
-      #
-      # ==== Example
-      #
-      #   freeze!
-      #
-      def freeze!(args={})
-        ActiveSupport::Deprecation.warn "freeze! is deprecated since your rails app now comes bundled with Rails by default, please check your Gemfile"
       end
 
       # Make an entry in Rails routing file config/routes.rb
