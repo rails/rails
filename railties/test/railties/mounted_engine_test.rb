@@ -14,7 +14,7 @@ module ApplicationTests
       @plugin = engine "blog"
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match "/engine_route" => "application_generating#engine_route"
           match "/engine_route_in_view" => "application_generating#engine_route_in_view"
           match "/url_for_engine_route" => "application_generating#url_for_engine_route"

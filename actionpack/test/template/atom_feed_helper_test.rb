@@ -314,7 +314,7 @@ class AtomFeedTest < ActionController::TestCase
   private
     def with_restful_routing(resources)
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           resources(resources)
         end
         yield

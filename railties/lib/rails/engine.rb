@@ -399,17 +399,6 @@ module Rails
       end
     end
 
-    # DEPRECATED: Remove in 3.1
-    initializer :add_routing_namespaces do |app|
-      paths.app.controllers.to_a.each do |load_path|
-        load_path = File.expand_path(load_path)
-        Dir["#{load_path}/*/**/*_controller.rb"].collect do |path|
-          namespace = File.dirname(path).sub(/#{Regexp.escape(load_path)}\/?/, '')
-          app.routes.controller_namespaces << namespace unless namespace.empty?
-        end
-      end
-    end
-
     # I18n load paths are a special case since the ones added
     # later have higher priority.
     initializer :add_locales do

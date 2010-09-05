@@ -1120,7 +1120,7 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_location_object
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :customers
         match ':controller/:action'
       end

@@ -135,6 +135,11 @@ XML
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     @request.env['PATH_INFO'] = nil
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        match ':controller(/:action(/:id))'
+      end
+    end
   end
 
   def test_raw_post_handling
@@ -454,18 +459,26 @@ XML
 
   def test_assert_routing_with_method
     with_routing do |set|
-      set.draw { |map| map.resources(:content) }
+      set.draw { resources(:content) }
       assert_routing({ :method => 'post', :path => 'content' }, { :controller => 'content', :action => 'create' })
     end
   end
 
   def test_assert_routing_in_module
-    assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
+    with_routing do |set|
+      set.draw do
+        namespace :admin do
+          match 'user' => 'user#index'
+        end
+      end
+
+      assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
+    end
   end
 
   def test_assert_routing_with_glob
     with_routing do |set|
-      set.draw { |map| match('*path' => "pages#show") }
+      set.draw { match('*path' => "pages#show") }
       assert_routing('/company/about', { :controller => 'pages', :action => 'show', :path => 'company/about' })
     end
   end
@@ -487,7 +500,7 @@ XML
 
   def test_array_path_parameter_handled_properly
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         match 'file/*path', :to => 'test_test/test#test_params'
         match ':controller/:action'
       end
@@ -702,7 +715,7 @@ class NamedRoutesControllerTest < ActionController::TestCase
 
   def test_should_be_able_to_use_named_routes_before_a_request_is_done
     with_routing do |set|
-      set.draw { |map| resources :contents }
+      set.draw { resources :contents }
       assert_equal 'http://test.host/contents/new', new_content_url
       assert_equal 'http://test.host/contents/1', content_url(:id => 1)
     end

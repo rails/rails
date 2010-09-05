@@ -56,11 +56,9 @@ class ActionMailerUrlTest < ActionMailer::TestCase
   def test_signed_up_with_url
     UrlTestMailer.delivery_method = :test
 
-    assert_deprecated do
-      AppRoutes.draw do |map|
-        map.connect ':controller/:action/:id'
-        map.welcome 'welcome', :controller=>"foo", :action=>"bar"
-      end
+    AppRoutes.draw do
+      match ':controller(/:action(/:id))'
+      match '/welcome' => "foo#bar", :as => "welcome"
     end
 
     expected = new_mail

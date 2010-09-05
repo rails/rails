@@ -113,6 +113,15 @@ module ActionDispatch
             @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
+
+              requirements.each do |_, requirement|
+                if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
+                  raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+                end
+                if requirement.multiline?
+                  raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
+                end
+              end
             end
           end
 
@@ -443,11 +452,6 @@ module ActionDispatch
           options = args.extract_options!
           options = options.dup
 
-          if name_prefix = options.delete(:name_prefix)
-            options[:as] ||= name_prefix
-            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
-          end
-
           options[:path] = args.first if args.first.is_a?(String)
           recover = {}
 
@@ -616,9 +620,18 @@ module ActionDispatch
           end
 
           def actions
-            if only = @options[:only]
+            only, except = @options.values_at(:only, :except)
+            if only == :all || except == :none
+              only = nil
+              except = []
+            elsif only == :none || except == :all
+              only = []
+              except = nil
+            end
+
+            if only
               Array(only).map(&:to_sym)
-            elsif except = @options[:except]
+            elsif except
               default_actions - Array(except).map(&:to_sym)
             else
               default_actions
@@ -770,7 +783,7 @@ module ActionDispatch
           end
 
           resource_scope(Resource.new(resources.pop, options)) do
-            yield if block_given?
+            instance_eval(&block) if block_given?
 
             collection_scope do
               get  :index if parent_resource.actions.include?(:index)
@@ -892,6 +905,15 @@ module ActionDispatch
           if args.length > 1
             args.each { |path| match(path, options.dup) }
             return self
+          end
+
+          via = Array.wrap(options[:via]).map(&:to_sym)
+          if via.include?(:head)
+            raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
+          end
+
+          unless (invalid = via - HTTP_METHODS).empty?
+            raise ArgumentError, "Invalid HTTP method (#{invalid.join(', ')}) specified in :via"
           end
 
           on = options.delete(:on)
