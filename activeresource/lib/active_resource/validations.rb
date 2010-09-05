@@ -68,16 +68,8 @@ module ActiveResource
 
     # Validate a resource and save (POST) it to the remote web service.
     # If any local validations fail - the save (POST) will not be attempted.
-    def save_with_validation(options=nil)
-      perform_validation = case options
-        when Hash
-          options[:validate] != false
-        when NilClass
-          true
-        else
-          ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
-          options
-      end
+    def save_with_validation(options={})
+      perform_validation = options[:validate] != false
 
       # clear the remote validations so they don't interfere with the local
       # ones. Otherwise we get an endless loop and can never change the
