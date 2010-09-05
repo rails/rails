@@ -83,6 +83,7 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_with_precision
+    assert_equal("-111.235", number_with_precision(-111.2346))
     assert_equal("111.235", number_with_precision(111.2346))
     assert_equal("31.83", number_with_precision(31.825, :precision => 2))
     assert_equal("111.23", number_with_precision(111.2346, :precision => 2))
@@ -184,6 +185,7 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_to_human
+    assert_equal '-123', number_to_human(-123)
     assert_equal '0', number_to_human(0)
     assert_equal '123', number_to_human(123)
     assert_equal '1.23 Thousand', number_to_human(1234)
