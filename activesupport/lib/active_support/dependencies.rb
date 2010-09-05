@@ -650,7 +650,7 @@ module ActiveSupport #:nodoc:
 
     protected
       def log_call(*args)
-        if logger && log_activity
+        if log_activity?
           arg_str = args.collect { |arg| arg.inspect } * ', '
           /in `([a-z_\?\!]+)'/ =~ caller(1).first
           selector = $1 || '<unknown>'
@@ -659,9 +659,11 @@ module ActiveSupport #:nodoc:
       end
 
       def log(msg)
-        if logger && log_activity
-          logger.debug "Dependencies: #{msg}"
-        end
+        logger.debug "Dependencies: #{msg}" if log_activity?
+      end
+
+      def log_activity?
+        logger && log_activity
       end
   end
 end
