@@ -862,26 +862,10 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
-  def test_route_constraints_with_invalid_http_method_is_invalid
-    assert_raise ArgumentError do
-      set.draw do
-        match 'valid/route' => 'pages#show', :via => :invalid
-      end
-    end
-  end
-
   def test_route_constraints_with_options_method_condition_is_valid
     assert_nothing_raised do
       set.draw do
         match 'valid/route' => 'pages#show', :via => :options
-      end
-    end
-  end
-
-  def test_route_constraints_with_head_method_condition_is_invalid
-    assert_raise ArgumentError do
-      set.draw do
-        match 'valid/route' => 'pages#show', :via => :head
       end
     end
   end

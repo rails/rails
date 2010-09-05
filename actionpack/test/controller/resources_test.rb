@@ -301,28 +301,6 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  # def test_member_when_changed_default_restful_actions_and_path_names_not_specified
-  #   default_path_names = ActionController::Base.resources_path_names
-  #   ActionController::Base.resources_path_names = {:new => 'nuevo', :edit => 'editar'}
-  #
-  #   with_restful_routing :messages do
-  #     new_options = { :action => 'new', :controller => 'messages' }
-  #     new_path = "/messages/nuevo"
-  #     edit_options = { :action => 'edit', :id => '1', :controller => 'messages' }
-  #     edit_path = "/messages/1/editar"
-  #
-  #     assert_restful_routes_for :messages do |options|
-  #       assert_recognizes(options.merge(new_options), :path => new_path, :method => :get)
-  #     end
-  #
-  #     assert_restful_routes_for :messages do |options|
-  #       assert_recognizes(options.merge(edit_options), :path => edit_path, :method => :get)
-  #     end
-  #   end
-  # ensure
-  #   ActionController::Base.resources_path_names = default_path_names
-  # end
-
   def test_with_two_member_actions_with_same_method
     [:put, :post].each do |method|
       with_routing do |set|
@@ -680,32 +658,6 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_should_not_allow_invalid_head_method_for_member_routes
-    with_routing do |set|
-      assert_raise(ArgumentError) do
-        set.draw do
-          resources :messages do
-            match :something, :on => :member, :via => :head
-          end
-        end
-      end
-    end
-  end
-
-  def test_should_not_allow_invalid_http_methods_for_member_routes
-    with_routing do |set|
-      assert_raise(ArgumentError) do
-        set.draw do
-          resources :messages do
-            member do
-              match :something, :via => [:invalid, :get]
-            end
-          end
-        end
-      end
-    end
-  end
-
   def test_resource_action_separator
     with_routing do |set|
       set.draw do
@@ -1009,7 +961,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_collection_action
     with_routing do |set|
       set.draw do
-        resources :products, :except => :all do
+        resources :products, :only => [] do
           get :sale, :on => :collection
         end
       end
@@ -1025,7 +977,7 @@ class ResourcesTest < ActionController::TestCase
   def test_resource_has_only_member_action
     with_routing do |set|
       set.draw do
-        resources :products, :except => :all do
+        resources :products, :only => [] do
           get :preview, :on => :member
         end
       end
@@ -1041,7 +993,7 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_member_action
     with_routing do |set|
       set.draw do
-        resource :account, :except => :all do
+        resource :account, :only => [] do
           member do
             get :signup
           end

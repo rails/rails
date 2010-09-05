@@ -620,18 +620,9 @@ module ActionDispatch
           end
 
           def actions
-            only, except = @options.values_at(:only, :except)
-            if only == :all || except == :none
-              only = nil
-              except = []
-            elsif only == :none || except == :all
-              only = []
-              except = nil
-            end
-
-            if only
+            if only = @options[:only]
               Array(only).map(&:to_sym)
-            elsif except
+            elsif except = @options[:except]
               default_actions - Array(except).map(&:to_sym)
             else
               default_actions
@@ -783,7 +774,7 @@ module ActionDispatch
           end
 
           resource_scope(Resource.new(resources.pop, options)) do
-            instance_eval(&block) if block_given?
+            yield if block_given?
 
             collection_scope do
               get  :index if parent_resource.actions.include?(:index)
@@ -905,15 +896,6 @@ module ActionDispatch
           if args.length > 1
             args.each { |path| match(path, options.dup) }
             return self
-          end
-
-          via = Array.wrap(options[:via]).map(&:to_sym)
-          if via.include?(:head)
-            raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
-          end
-
-          unless (invalid = via - HTTP_METHODS).empty?
-            raise ArgumentError, "Invalid HTTP method (#{invalid.join(', ')}) specified in :via"
           end
 
           on = options.delete(:on)
