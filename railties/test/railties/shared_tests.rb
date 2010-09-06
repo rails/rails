@@ -38,7 +38,7 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       Dir.chdir(app_path) do
-        output = `rake db:copy_migrations FROM=bukkits`
+        output = `rake railties:copy_migrations FROM=bukkits`
 
         assert File.exists?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
         assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
@@ -46,13 +46,13 @@ module RailtiesTest
         assert_match /3_add_last_name_to_users/, output
         assert_equal 3, Dir["#{app_path}/db/migrate/*.rb"].length
 
-        output = `rake db:copy_migrations`
+        output = `rake railties:copy_migrations`
 
         assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.acts_as_yaffle.rb")
         assert_match /4_create_yaffles/, output
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `rake db:copy_migrations`
+        output = `rake railties:copy_migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
         assert_match /No migrations were copied/, output

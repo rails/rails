@@ -5,7 +5,6 @@ namespace :db do
     ActiveRecord::Migrator.migrations_path = Rails.application.config.paths.db.migrate.to_a.first
   end
 
-  desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
   task :copy_migrations => :load_config do
     to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
     railties = {}
@@ -500,6 +499,11 @@ namespace :db do
       ActiveRecord::Base.connection.execute "DELETE FROM #{session_table_name}"
     end
   end
+end
+
+namespace :railties do
+  desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
+  task :copy_migrations => 'db:copy_migrations'
 end
 
 task 'test:prepare' => 'db:test:prepare'
