@@ -53,24 +53,13 @@ module ActiveRecord
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
       output = super(context)
-
-      deprecated_callback_method(:validate)
-      deprecated_callback_method(:"validate_on_#{context}")
-
       errors.empty? && output
     end
 
   protected
 
     def perform_validations(options={})
-      perform_validation = case options
-      when Hash
-        options[:validate] != false
-      else
-        ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
-        options
-      end
-
+      perform_validation = options[:validate] != false
       if perform_validation
         valid?(options.is_a?(Hash) ? options[:context] : nil)
       else

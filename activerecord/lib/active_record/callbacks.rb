@@ -246,29 +246,12 @@ module ActiveRecord
       define_model_callbacks :save, :create, :update, :destroy
     end
 
-    module ClassMethods
-      def method_added(meth)
-        super
-        if CALLBACKS.include?(meth.to_sym)
-          ActiveSupport::Deprecation.warn("Base##{meth} has been deprecated, please use Base.#{meth} :method instead", caller[0,1])
-          send(meth.to_sym, meth.to_sym)
-        end
-      end
-    end
-
     def destroy #:nodoc:
       _run_destroy_callbacks { super }
     end
 
     def touch(*) #:nodoc:
       _run_touch_callbacks { super }
-    end
-
-    def deprecated_callback_method(symbol) #:nodoc:
-      if respond_to?(symbol, true)
-        ActiveSupport::Deprecation.warn("Overwriting #{symbol} in your models has been deprecated, please use Base##{symbol} :method_name instead")
-        send(symbol)
-      end
     end
 
   private

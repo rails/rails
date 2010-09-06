@@ -15,7 +15,6 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
@@ -316,18 +315,6 @@ module ActiveRecord #:nodoc:
     # a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
 
-    class << self
-      def reset_subclasses #:nodoc:
-        ActiveSupport::Deprecation.warn 'ActiveRecord::Base.reset_subclasses no longer does anything in Rails 3. It will be removed in the final release; please update your apps and plugins.', caller
-      end
-
-      def subclasses
-        descendants
-      end
-
-      deprecate :subclasses => :descendants
-    end
-
     ##
     # :singleton-method:
     # Contains the database configuration - as is typically stored in config/database.yml -
@@ -429,13 +416,6 @@ module ActiveRecord #:nodoc:
     self.default_scoping = []
 
     class << self # Class methods
-      def colorize_logging(*args)
-        ActiveSupport::Deprecation.warn "ActiveRecord::Base.colorize_logging and " <<
-          "config.active_record.colorize_logging are deprecated. Please use " <<
-          "ActiveRecord::LogSubscriber.colorize_logging or config.colorize_logging instead", caller
-      end
-      alias :colorize_logging= :colorize_logging
-
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :reorder, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
@@ -879,8 +859,8 @@ module ActiveRecord #:nodoc:
       # It is recommended to use block form of unscoped because chaining unscoped with <tt>named_scope</tt>
       # does not work. Assuming that <tt>published</tt> is a <tt>named_scope</tt> following two statements are same.
       #
-      # Post.unscoped.published 
-      # Post.published 
+      # Post.unscoped.published
+      # Post.published
       def unscoped #:nodoc:
         block_given? ? relation.scoping { yield } : relation
       end

@@ -120,11 +120,6 @@ module ActiveRecord
         singleton_class.send(:redefine_method, name, &scopes[name])
       end
 
-      def named_scope(*args, &block)
-        ActiveSupport::Deprecation.warn("Base.named_scope has been deprecated, please use Base.scope instead", caller)
-        scope(*args, &block)
-      end
-
     protected
 
       def valid_scope_name?(name)

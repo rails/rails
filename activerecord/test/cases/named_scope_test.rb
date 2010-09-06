@@ -394,10 +394,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
-  def test_deprecated_named_scope_method
-    assert_deprecated('named_scope has been deprecated') { Topic.named_scope :deprecated_named_scope }
-  end
-
   def test_named_scopes_on_relations
     # Topic.replied
     approved_topics = Topic.scoped.approved.order('id DESC')
