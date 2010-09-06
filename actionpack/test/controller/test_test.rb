@@ -674,13 +674,6 @@ XML
       assert_redirected_to 'created resource'
     end
   end
-
-  def test_binary_content_works_with_send_file
-    get :test_send_file
-    assert_deprecated do
-      assert_nothing_raised(NoMethodError) { @response.binary_content }
-    end
-  end
 end
 
 class InferringClassNameTest < ActionController::TestCase

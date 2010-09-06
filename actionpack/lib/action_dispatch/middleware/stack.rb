@@ -69,11 +69,6 @@ module ActionDispatch
       push(middleware)
     end
 
-    def active
-      ActiveSupport::Deprecation.warn "All middlewares in the chain are active since the laziness " <<
-        "was removed from the middleware stack", caller
-    end
-
     def build(app = nil, &block)
       app ||= block
       raise "MiddlewareStack#build requires an app" unless app

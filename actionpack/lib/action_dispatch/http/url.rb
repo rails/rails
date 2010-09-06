@@ -95,13 +95,6 @@ module ActionDispatch
         subdomains(tld_length).join('.')
       end
 
-      # Returns the request URI, accounting for server idiosyncrasies.
-      # WEBrick includes the full \URL. IIS leaves REQUEST_URI blank.
-      def request_uri
-        ActiveSupport::Deprecation.warn "Using #request_uri is deprecated. Use fullpath instead.", caller
-        fullpath
-      end
-
     private
 
       def named_host?(host)

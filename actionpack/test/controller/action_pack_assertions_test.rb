@@ -315,32 +315,21 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # check the empty flashing
   def test_flash_me_naked
     process :flash_me_naked
-    assert_deprecated do
-      assert !@response.has_flash?
-      assert !@response.has_flash_with_contents?
-    end
+    assert flash.empty?
   end
 
   # check if we have flash objects
   def test_flash_haves
     process :flash_me
-    assert_deprecated do
-      assert @response.has_flash?
-      assert @response.has_flash_with_contents?
-      assert @response.has_flash_object?('hello')
-    end
+    assert flash.any?
+    assert_present flash['hello']
   end
 
   # ensure we don't have flash objects
   def test_flash_have_nots
     process :nothing
-    assert_deprecated do
-      assert !@response.has_flash?
-      assert !@response.has_flash_with_contents?
-      assert_nil @response.flash['hello']
-    end
+    assert flash.empty?
   end
-
 
   # check if we were rendered by a file-based template?
   def test_rendered_action
@@ -393,12 +382,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_redirect_url_match
     process :redirect_external
     assert @response.redirect?
-    assert_deprecated do
-      assert @response.redirect_url_match?("rubyonrails")
-      assert @response.redirect_url_match?(/rubyonrails/)
-      assert !@response.redirect_url_match?("phpoffrails")
-      assert !@response.redirect_url_match?(/perloffrails/)
-    end
+    assert_match /rubyonrails/, @response.redirect_url
+    assert !/perloffrails/.match(@response.redirect_url)
   end
 
   # check for a redirection
