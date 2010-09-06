@@ -268,7 +268,7 @@ module ActionView
       # The +options+ hash accepts the same options as url_for.
       #
       # There are a few special +html_options+:
-      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>, 
+      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
@@ -594,11 +594,6 @@ module ActionView
           end
 
           confirm = html_options.delete("confirm")
-
-          if html_options.key?("popup")
-            ActiveSupport::Deprecation.warn(":popup has been deprecated", caller)
-          end
-
           method, href = html_options.delete("method"), html_options['href']
 
           add_confirm_to_attributes!(html_options, confirm) if confirm
