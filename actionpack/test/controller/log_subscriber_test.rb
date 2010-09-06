@@ -16,10 +16,6 @@ module Another
       send_data "cool data", :filename => "file.txt"
     end
 
-    def xfile_sender
-      send_file File.expand_path("company.rb", FIXTURE_LOAD_PATH), :x_sendfile => true
-    end
-
     def file_sender
       send_file File.expand_path("company.rb", FIXTURE_LOAD_PATH)
     end
@@ -126,15 +122,6 @@ class ACLogSubscriberTest < ActionController::TestCase
 
   def test_send_file
     get :file_sender
-    wait
-
-    assert_equal 3, logs.size
-    assert_match /Sent file/, logs[1]
-    assert_match /test\/fixtures\/company\.rb/, logs[1]
-  end
-
-  def test_send_xfile
-    assert_deprecated { get :xfile_sender }
     wait
 
     assert_equal 3, logs.size

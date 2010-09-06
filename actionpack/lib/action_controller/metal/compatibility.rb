@@ -5,19 +5,6 @@ module ActionController
     class ::ActionController::ActionControllerError < StandardError #:nodoc:
     end
 
-    module ClassMethods
-      # TODO Remove this after the old router map is removed.
-      def resource_action_separator
-        @resource_action_separator ||= "/"
-      end
-
-      # TODO Remove this after the old router map is removed.     
-      def resource_action_separator=(val)
-        ActiveSupport::Deprecation.warn "ActionController::Base.resource_action_separator is deprecated"
-        @resource_action_separator = val
-      end
-    end
-
     # Temporary hax
     included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound

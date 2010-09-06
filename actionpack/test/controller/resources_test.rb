@@ -658,36 +658,6 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_resource_action_separator
-    with_routing do |set|
-      set.draw do
-        scope '/threads/:thread_id' do
-          resources :messages, :as => :thread_messages do
-            get :search, :on => :collection
-            match :preview, :on => :new
-          end
-        end
-        scope '/admin' do
-          resource :account, :as => :admin_account do
-            get :login, :on => :member
-            match :preview, :on => :new
-          end
-        end
-      end
-
-      action_separator = ActionController::Base.resource_action_separator
-
-      assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
-      assert_named_route "/threads/1/messages#{action_separator}search", "search_thread_messages_path", {}
-      assert_named_route "/threads/1/messages/new", "new_thread_message_path", {}
-      assert_named_route "/threads/1/messages/new#{action_separator}preview", "preview_new_thread_message_path", {}
-      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
-      assert_named_route "/admin/account#{action_separator}login", "login_admin_account_path", {}
-      assert_named_route "/admin/account/new", "new_admin_account_path", {}
-      assert_named_route "/admin/account/new#{action_separator}preview", "preview_new_admin_account_path", {}
-    end
-  end
-
   def test_new_style_named_routes_for_resource
     with_routing do |set|
       set.draw do

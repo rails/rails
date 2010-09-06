@@ -58,16 +58,6 @@ module ActionController
     end
 
     module ClassMethods
-      def helpers_dir
-        ActiveSupport::Deprecation.warn "helpers_dir is deprecated, use helpers_path instead", caller
-        self.helpers_path
-      end
-
-      def helpers_dir=(value)
-        ActiveSupport::Deprecation.warn "helpers_dir= is deprecated, use helpers_path= instead", caller
-        self.helpers_path = Array.wrap(value)
-      end
-
       # Declares helper accessors for controller attributes. For example, the
       # following adds new +name+ and <tt>name=</tt> instance methods to a
       # controller and makes them available to the view:
@@ -87,7 +77,7 @@ module ActionController
 
       private
         # Overwrite modules_for_helpers to accept :all as argument, which loads
-        # all helpers in helpers_dir.
+        # all helpers in helpers_path.
         #
         # ==== Parameters
         # * <tt>args</tt> - A list of helpers

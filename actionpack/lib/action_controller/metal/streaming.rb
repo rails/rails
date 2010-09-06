@@ -69,10 +69,6 @@ module ActionController #:nodoc:
         options[:filename] ||= File.basename(path) unless options[:url_based_filename]
         send_file_headers! options
 
-        if options[:x_sendfile]
-          ActiveSupport::Deprecation.warn(":x_sendfile is no longer needed in send_file", caller)
-        end
-
         self.status = options[:status] || 200
         self.content_type = options[:content_type] if options.key?(:content_type)
         self.response_body = File.open(path, "rb")
@@ -119,10 +115,6 @@ module ActionController #:nodoc:
         options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
         [:type, :disposition].each do |arg|
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        if options.key?(:length)
-          ActiveSupport::Deprecation.warn("You do not need to provide the file's length", caller)
         end
 
         disposition = options[:disposition]
