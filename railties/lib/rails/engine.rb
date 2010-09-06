@@ -162,6 +162,16 @@ module Rails
   # With such config, asset paths will be automatically modified inside Engine:
   # image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
   #
+  # == Serving static files
+  #
+  # By default, rails use ActionDispatch::Static to serve static files in development mode. This is ok
+  # while you develop your application, but when you want to deploy it, assets from engine will not be served.
+  #
+  # You can fix it in one of two ways:
+  # * enable serving static files by setting config.serve_static_assets to true
+  # * symlink engines' public directories in application's public directory by running
+  #   `rake railties:create_symlinks`
+  #
   # == Engine name
   #
   # There are some places where engine's name is used.
