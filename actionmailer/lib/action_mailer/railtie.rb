@@ -21,7 +21,7 @@ module ActionMailer
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
-        include app.routes.mounted_helpers(:app)
+        include app.routes.mounted_helpers
         options.each { |k,v| send("#{k}=", v) }
       end
     end

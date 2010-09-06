@@ -262,7 +262,7 @@ module ActionDispatch
       module MountedHelpers
       end
 
-      def mounted_helpers(name = nil)
+      def mounted_helpers(name = :app)
         define_mounted_helper(name) if name
         MountedHelpers
       end

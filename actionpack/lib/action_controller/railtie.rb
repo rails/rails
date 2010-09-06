@@ -27,7 +27,7 @@ module ActionController
       options.page_cache_directory ||= paths.public.to_a.first
 
       ActiveSupport.on_load(:action_controller) do
-        include app.routes.mounted_helpers(:app)
+        include app.routes.mounted_helpers
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Paths.with(app)
         options.each { |k,v| send("#{k}=", v) }

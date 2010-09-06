@@ -72,7 +72,7 @@ module TestGenerationPrefix
 
     class ::InsideEngineGeneratingController < ActionController::Base
       include BlogEngine.routes.url_helpers
-      include RailsApplication.routes.mounted_helpers(:app)
+      include RailsApplication.routes.mounted_helpers
 
       def index
         render :text => posts_path
