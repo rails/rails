@@ -60,11 +60,7 @@ module ActiveRecord
 
     def perform_validations(options={})
       perform_validation = options[:validate] != false
-      if perform_validation
-        valid?(options.is_a?(Hash) ? options[:context] : nil)
-      else
-        true
-      end
+      perform_validation ? valid?(options[:context]) : true
     end
   end
 end
