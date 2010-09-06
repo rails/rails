@@ -16,6 +16,9 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/subscriber'
+require "models/pirate"
+require "models/bird"
+require "models/parrot"
 
 class IdentityMapTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -68,6 +71,35 @@ class IdentityMapTest < ActiveRecord::TestCase
     t1 = Topic.create("title" => "t1")
     t2 = Topic.find(t1.id)
     assert_same(t1, t2)
+  end
+
+  def test_loading_new_instance_should_not_update_dirty_attributes
+    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak.name = "Swistak Sreberkowiec"
+    assert_equal(["name"], swistak.changed)
+
+    s = Subscriber.find('swistak')
+
+    assert swistak.name_changed?
+    assert_equal("Swistak Sreberkowiec", swistak.name)
+  end
+
+  def test_loading_new_instance_should_remove_dirt
+    #assert_equal({'name' => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
+    #assert_equal("Swistak Sreberkowiec", swistak.name)
+  end
+
+  def test_has_many_associations
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.birds.create!(:name => 'Posideons Killer')
+    pirate.birds.create!(:name => 'Killer bandita Dionne')
+
+    posideons, killer = pirate.birds
+
+    pirate.reload
+
+    pirate.birds_attributes = [{ :id => posideons.id, :name => 'Grace OMalley' }]
+    assert_equal 'Grace OMalley', pirate.birds.send(:load_target).find { |r| r.id == posideons.id }.name
   end
 
 # Currently AR is not allowing changing primary key (see Persistence#update)

@@ -899,8 +899,9 @@ module ActiveRecord #:nodoc:
           record_id = sti_class.primary_key && record[sti_class.primary_key]
           if ActiveRecord::IdentityMap.enabled? && record_id
             if object = identity_map.get(sti_class.name, record_id)
-              object.instance_variable_get("@attributes").update(record)
               object.instance_variable_get("@attributes_cache").replace({})
+              object.instance_variable_get("@changed_attributes").update(record.slice(*object.changed))
+              object.instance_variable_get("@attributes").update(record.except(*object.changed))
             else
               object = instantiate_without_im(sti_class.allocate, record)
               identity_map.add(object)
