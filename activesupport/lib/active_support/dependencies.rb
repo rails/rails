@@ -28,13 +28,13 @@ module ActiveSupport #:nodoc:
     
     # Deprecated, use autoload_paths.
     def self.load_paths
-      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths is deprecated, please use autoload_paths instead", caller)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths is deprecated, please use config.autoload_paths instead", caller)
       autoload_paths
     end
 
     # Deprecated, use autoload_paths=.
     def self.load_paths=(paths)
-      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths= is deprecated, please use autoload_paths= instead", caller)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_paths= is deprecated, please use config.autoload_paths= instead", caller)
       self.autoload_paths = paths
     end
 
@@ -45,13 +45,13 @@ module ActiveSupport #:nodoc:
 
     # Deprecated, use autoload_once_paths.
     def self.load_once_paths
-      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_once_paths is deprecated and removed in Rails 3, please use autoload_once_paths instead", caller)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_once_paths is deprecated and removed in Rails 3, please use config.autoload_once_paths instead", caller)
       autoload_once_paths
     end
 
     # Deprecated, use autoload_once_paths=.
     def self.load_once_paths=(paths)
-      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_once_paths= is deprecated and removed in Rails 3, please use autoload_once_paths= instead", caller)
+      ActiveSupport::Deprecation.warn("ActiveSupport::Dependencies.load_once_paths= is deprecated and removed in Rails 3, please use config.autoload_once_paths= instead", caller)
       self.autoload_once_paths = paths
     end
 
