@@ -30,14 +30,14 @@ module Arel
       nil
     end
 
-    def join relation
+    def join relation, klass = Nodes::InnerJoin
       sm = SelectManager.new(@engine)
       case relation
       when String, Nodes::SqlLiteral
         raise if relation.blank?
         sm.from Nodes::StringJoin.new(self, relation)
       else
-        sm.from Nodes::InnerJoin.new(self, relation, nil)
+        sm.from klass.new(self, relation, nil)
       end
     end
 

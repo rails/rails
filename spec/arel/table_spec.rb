@@ -12,6 +12,20 @@ module Arel
           check @relation.joins(nil).should == nil
         end
       end
+
+      describe 'join' do
+        it 'takes a second argument for join type' do
+          right     = @relation.alias
+          predicate = @relation[:id].eq(right[:id])
+          mgr = @relation.join(right, Nodes::OuterJoin).on(predicate)
+
+          mgr.to_sql.should be_like %{
+           SELECT FROM "users"
+             OUTER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id"
+          }
+        end
+      end
     end
 
     describe 'alias' do
