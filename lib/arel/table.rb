@@ -38,7 +38,7 @@ module Arel
     end
 
     def order *expr
-      tm.order *expr
+      tm.order(*expr)
     end
 
     def where condition
