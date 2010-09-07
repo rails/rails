@@ -44,6 +44,7 @@ module Arel
         visit_edge o, "right"
       end
       alias :visit_Arel_Nodes_InnerJoin :visit_Arel_Nodes_StringJoin
+      alias :visit_Arel_Nodes_OuterJoin :visit_Arel_Nodes_StringJoin
 
       def visit_Arel_Nodes_InsertStatement o
         visit_edge o, "relation"
