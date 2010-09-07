@@ -23,6 +23,7 @@ module Rails
         @session_options = {}
         @time_zone = "UTC"
         @middleware = app_middleware
+        @asset_path = '/'
       end
 
       def asset_path=(value)
