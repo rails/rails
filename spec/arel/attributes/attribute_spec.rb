@@ -8,6 +8,13 @@ module Arel
           relation = Table.new(:users)
           relation[:id].count.should be_kind_of Nodes::Count
         end
+
+        it 'should take a distinct param' do
+          relation = Table.new(:users)
+          count = relation[:id].count(nil)
+          count.should be_kind_of Nodes::Count
+          count.distinct.should be_nil
+        end
       end
 
       describe '#eq' do

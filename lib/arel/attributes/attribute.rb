@@ -9,8 +9,8 @@ module Arel
         Nodes::In.new self, other
       end
 
-      def count
-        Nodes::Count.new [self]
+      def count distinct = false
+        Nodes::Count.new [self], distinct
       end
     end
 
