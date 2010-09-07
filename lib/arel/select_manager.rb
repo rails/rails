@@ -19,7 +19,11 @@ module Arel
     end
 
     def project *projections
-      @ctx.projections.concat projections
+      # FIXME: converting these to SQLLiterals is probably not good, but
+      # rails tests require it.
+      @ctx.projections.concat projections.map { |x|
+        String == x.class ? SqlLiteral.new(x) : x
+      }
       self
     end
 
