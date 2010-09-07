@@ -41,6 +41,10 @@ module Arel
       end
     end
 
+    def group *columns
+      tm.group(*columns)
+    end
+
     def order *expr
       tm.order(*expr)
     end

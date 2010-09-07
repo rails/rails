@@ -28,6 +28,15 @@ module Arel
       end
     end
 
+    describe 'group' do
+      it 'should create a group' do
+        manager = @relation.group @relation[:id]
+        manager.to_sql.should be_like %{
+          SELECT FROM "users" GROUP BY "users"."id"
+        }
+      end
+    end
+
     describe 'alias' do
       it 'should create a node that proxies to a table' do
         check @relation.aliases.should == []
