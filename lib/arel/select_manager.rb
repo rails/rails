@@ -15,6 +15,9 @@ module Arel
 
     def group *columns
       columns.each do |column|
+        # FIXME: backwards compat
+        column = Nodes::SqlLiteral.new(column) if String === column
+
         @ctx.groups.push Nodes::Group.new column
       end
       self

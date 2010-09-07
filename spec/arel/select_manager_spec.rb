@@ -154,6 +154,15 @@ module Arel
           SELECT FROM "users" GROUP BY "users"."id", "users"."name"
         }
       end
+
+      # FIXME: backwards compat
+      it 'makes strings literals' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.group 'foo'
+        manager.to_sql.should be_like %{ SELECT FROM "users" GROUP BY foo }
+      end
     end
 
     describe 'delete' do
