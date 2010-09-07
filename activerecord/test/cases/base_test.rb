@@ -909,9 +909,13 @@ class BasicsTest < ActiveRecord::TestCase
   MyObject = Struct.new :attribute1, :attribute2
 
   def test_serialized_attribute
+    Topic.serialize("content", MyObject)
+
     myobj = MyObject.new('value1', 'value2')
     topic = Topic.create("content" => myobj)
-    Topic.serialize("content", MyObject)
+    assert_equal(myobj, topic.content)
+
+    topic.reload
     assert_equal(myobj, topic.content)
   end
 
