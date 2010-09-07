@@ -588,7 +588,7 @@ module ActiveRecord #:nodoc:
       # Defines the column name for use with single table inheritance. Use
       # <tt>set_inheritance_column</tt> to set a different value.
       def inheritance_column
-        @inheritance_column ||= "type".freeze
+        @inheritance_column ||= "type"
       end
 
       # Lazy-set the sequence name to the connection's default.  This method
