@@ -18,6 +18,16 @@ module Arel
       self
     end
 
+    def join relation, klass = Nodes::InnerJoin
+      case relation
+      when String, Nodes::SqlLiteral
+        raise if relation.blank?
+        from Nodes::StringJoin.new(@ctx.froms.pop, relation)
+      else
+        from klass.new(@ctx.froms.pop, relation, nil)
+      end
+    end
+
     def project *projections
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.

@@ -28,6 +28,12 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_TableAlias o
+        visit_edge o, "name"
+        visit_edge o, "relation"
+        visit_edge o, "columns"
+      end
+
       def visit_Arel_Nodes_Count o
         visit_edge o, "expressions"
         visit_edge o, "distinct"
@@ -37,6 +43,7 @@ module Arel
         visit_edge o, "left"
         visit_edge o, "right"
       end
+      alias :visit_Arel_Nodes_InnerJoin :visit_Arel_Nodes_StringJoin
 
       def visit_Arel_Nodes_InsertStatement o
         visit_edge o, "relation"

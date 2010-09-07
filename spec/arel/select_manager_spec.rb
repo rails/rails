@@ -63,7 +63,23 @@ module Arel
         predicate = left[:id].eq(right[:id])
         manager   = Arel::SelectManager.new Table.engine
 
+        manager.from left
         manager.join(right).on(predicate)
+        manager.to_sql.should be_like %{
+           SELECT FROM "users"
+             INNER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id"
+        }
+      end
+
+      it 'takes a class' do
+        left      = Table.new :users
+        right     = left.alias
+        predicate = left[:id].eq(right[:id])
+        manager   = Arel::SelectManager.new Table.engine
+
+        manager.from left
+        manager.join(right, Nodes::OuterJoin).on(predicate)
         manager.to_sql.should be_like %{
            SELECT FROM "users"
              OUTER JOIN "users" "users_2"
