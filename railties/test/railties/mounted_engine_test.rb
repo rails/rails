@@ -70,14 +70,14 @@ module ApplicationTests
             end
 
             def generate_application_route
-              path = app.url_for(:controller => "/main",
+              path = main_app.url_for(:controller => "/main",
                                  :action => "index",
                                  :only_path => true)
               render :text => path
             end
 
             def application_route_in_view
-              render :inline => "<%= app.root_path %>"
+              render :inline => "<%= main_app.root_path %>"
             end
           end
         end
