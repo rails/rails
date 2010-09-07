@@ -3,6 +3,13 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#count' do
+        it 'should return a count node' do
+          relation = Table.new(:users)
+          relation[:id].count.should be_kind_of Nodes::Count
+        end
+      end
+
       describe '#eq' do
         it 'should return an equality node' do
           attribute = Attribute.new nil, nil, nil

@@ -8,6 +8,10 @@ module Arel
       def in other
         Nodes::In.new self, other
       end
+
+      def count
+        Nodes::Count.new [self]
+      end
     end
 
     class String  < Attribute; end
@@ -17,4 +21,6 @@ module Arel
     class Float   < Attribute; end
     class Integer < Attribute; end
   end
+
+  Attribute = Attributes::Attribute
 end

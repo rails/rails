@@ -64,7 +64,9 @@ module Arel
       end
 
       def visit_Arel_Nodes_Count o
-        "COUNT(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x| visit x }.join(', ')})"
+        "COUNT(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
+          visit x
+        }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
       def visit_Arel_Nodes_TableAlias o
