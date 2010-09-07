@@ -26,6 +26,10 @@ module Arel
       SelectManager.new(@engine).from(self)
     end
 
+    def joins manager
+      nil
+    end
+
     def join relation
       sm = SelectManager.new(@engine)
       case relation

@@ -6,6 +6,14 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'backwards compat' do
+      describe 'joins' do
+        it 'returns nil' do
+          check @relation.joins(nil).should == nil
+        end
+      end
+    end
+
     describe 'alias' do
       it 'should create a node that proxies to a table' do
         check @relation.aliases.should == []
