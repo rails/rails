@@ -228,7 +228,6 @@ module ActiveRecord
     private
 
     def build_joins(relation, joins)
-      joined_associations = []
       association_joins = []
 
       joins = @joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
@@ -259,11 +258,8 @@ module ActiveRecord
         end
       end
 
-      to_join.each do |tj|
-        unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] && ja[2] == tj[2] }
-          joined_associations << tj
-          relation = relation.join(tj[0], tj[1]).on(*tj[2])
-        end
+      to_join.uniq.each do |left, join_class, right|
+        relation = relation.join(left, join_class).on(*right)
       end
 
       relation.join(custom_joins)
