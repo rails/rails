@@ -29,12 +29,12 @@ module ActiveRecord
       relation
     end
 
-    def select(value = nil)
+    def select(value = Proc.new)
       if block_given?
-        to_a.select {|*block_args| yield(*block_args) }
+        to_a.select {|*block_args| value.call(*block_args) }
       else
         relation = clone
-        relation.select_values += [value] if value
+        relation.select_values += [value]
         relation
       end
     end

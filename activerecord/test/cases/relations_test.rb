@@ -465,6 +465,10 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_select_argument_error
+    assert_raises(ArgumentError) { Developer.select }
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
