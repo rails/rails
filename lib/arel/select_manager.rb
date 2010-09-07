@@ -19,6 +19,8 @@ module Arel
     end
 
     def join relation, klass = Nodes::InnerJoin
+      return self unless relation
+
       case relation
       when String, Nodes::SqlLiteral
         raise if relation.blank?

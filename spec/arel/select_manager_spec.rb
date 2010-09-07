@@ -86,6 +86,11 @@ module Arel
                ON "users"."id" = "users_2"."id"
         }
       end
+
+      it 'noops on nil' do
+        manager   = Arel::SelectManager.new Table.engine
+        check manager.join(nil).should == manager
+      end
     end
 
     describe 'joins' do
