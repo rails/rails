@@ -76,7 +76,9 @@ module ActiveRecord
       @records
     end
 
-    def as_json(options = nil) to_a end #:nodoc:
+    def as_json(options = nil) #:nodoc:
+      to_a.as_json(options)
+    end
 
     # Returns size of the records.
     def size

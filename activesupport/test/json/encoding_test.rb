@@ -108,9 +108,21 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
-  def test_exception_raised_when_encoding_circular_reference
+  def test_exception_raised_when_encoding_circular_reference_in_array
     a = [1]
     a << a
+    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+  end
+
+  def test_exception_raised_when_encoding_circular_reference_in_hash
+    a = { :name => 'foo' }
+    a[:next] = a
+    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+  end
+
+  def test_exception_raised_when_encoding_circular_reference_in_hash_inside_array
+    a = { :name => 'foo', :sub => [] }
+    a[:sub] << a
     assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
   end
 
@@ -151,6 +163,57 @@ class TestJSONEncoding < Test::Unit::TestCase
       ActiveSupport::JSON.encode(hash)
     end
   end
+
+  def test_hash_should_pass_encoding_options_to_children_in_as_json
+    person = {
+      :name => 'John',
+      :address => {
+        :city => 'London',
+        :country => 'UK'
+      }
+    }
+    json = person.as_json :only => [:address, :city]
+
+    assert_equal({ 'address' => { 'city' => 'London' }}, json)
+  end
+
+  def test_hash_should_pass_encoding_options_to_children_in_to_json
+    person = {
+      :name => 'John',
+      :address => {
+        :city => 'London',
+        :country => 'UK'
+      }
+    }
+    json = person.to_json :only => [:address, :city]
+
+    assert_equal(%({"address":{"city":"London"}}), json)
+  end
+
+  def test_array_should_pass_encoding_options_to_children_in_as_json
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.as_json :only => [:address, :city]
+    expected = [
+      { 'address' => { 'city' => 'London' }},
+      { 'address' => { 'city' => 'Paris' }}
+    ]
+
+    assert_equal(expected, json)
+  end
+
+  def test_array_should_pass_encoding_options_to_children_in_to_json
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.to_json :only => [:address, :city]
+
+    assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
+  end
+
 
   protected
 
