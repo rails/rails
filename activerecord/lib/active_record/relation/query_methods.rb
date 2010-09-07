@@ -274,10 +274,13 @@ module ActiveRecord
         @implicit_readonly = false
         # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
         # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
-        if selects.all? {|s| s.is_a?(String) || !s.is_a?(Arel::Expression) } && !(selects.last =~ /^COUNT\(/)
-          arel.project(*selects)
+        case select = selects.last
+        when Arel::Expression, Arel::SqlLiteral
+          arel.project(select)
+        when /^COUNT\(/
+          arel.project(Arel::SqlLiteral.new(select))
         else
-          arel.project(selects.last)
+          arel.project(*selects)
         end
       else
         arel.project(Arel::SqlLiteral.new(@klass.quoted_table_name + '.*'))
