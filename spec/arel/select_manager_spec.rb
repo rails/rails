@@ -82,7 +82,7 @@ module Arel
         manager.join(right, Nodes::OuterJoin).on(predicate)
         manager.to_sql.should be_like %{
            SELECT FROM "users"
-             OUTER JOIN "users" "users_2"
+             LEFT OUTER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
         }
       end
