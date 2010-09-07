@@ -54,8 +54,13 @@ module Arel
         [
           "SELECT #{o.projections.map { |x| visit x }.join ', '}",
           ("FROM #{o.froms.map { |x| visit x }.join ', ' }" unless o.froms.empty?),
-          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?)
+          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
+          ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?)
         ].compact.join ' '
+      end
+
+      def visit_Arel_Nodes_Group o
+        visit o.expr
       end
 
       def visit_Arel_Nodes_Count o

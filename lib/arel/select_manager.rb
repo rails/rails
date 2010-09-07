@@ -13,6 +13,13 @@ module Arel
       self
     end
 
+    def group *columns
+      columns.each do |column|
+        @ctx.groups.push Nodes::Group.new column
+      end
+      self
+    end
+
     def from table
       @ctx.froms << table
       self

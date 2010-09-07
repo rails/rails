@@ -128,6 +128,34 @@ module Arel
       end
     end
 
+    describe 'group' do
+      it 'takes an attribute' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.group table[:id]
+        manager.to_sql.should be_like %{
+          SELECT FROM "users" GROUP BY "users"."id"
+        }
+      end
+
+      it 'chains' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        check manager.group(table[:id]).should == manager
+      end
+
+      it 'takes multiple args' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.group table[:id], table[:name]
+        manager.to_sql.should be_like %{
+          SELECT FROM "users" GROUP BY "users"."id", "users"."name"
+        }
+      end
+    end
+
     describe 'delete' do
       it "copies from" do
         engine  = EngineProxy.new Table.engine
