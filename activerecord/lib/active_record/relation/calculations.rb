@@ -186,7 +186,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       column = if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(@klass.unscoped, column_name)
+        Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
         Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
       end
