@@ -37,6 +37,10 @@ module Arel
       end
     end
 
+    def order *expr
+      tm.order *expr
+    end
+
     def where condition
       tm.where condition
     end

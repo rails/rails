@@ -30,6 +30,13 @@ module Arel
       end
     end
 
+    describe 'order' do
+      it "should take an order" do
+        manager = @relation.order "foo"
+        manager.to_sql.should be_like %{ SELECT FROM "users" ORDER BY foo }
+      end
+    end
+
     describe 'take' do
       it "should add a limit" do
         manager = @relation.take 1
