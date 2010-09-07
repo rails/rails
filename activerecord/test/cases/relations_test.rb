@@ -680,19 +680,35 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_order_with_find_with_order
-    assert_equal 'zyke', Car.order('name desc').find(:first, :order => 'id').name
+    assert_equal 'zyke', CoolCar.order('name desc').find(:first, :order => 'id').name
+    assert_equal 'zyke', FastCar.order('name desc').find(:first, :order => 'id').name
   end
 
   def test_default_scope_order_with_named_scope_order
-    assert_equal 'zyke', Car.order_using_new_style.limit(1).first.name
-    assert_equal 'zyke', Car.order_using_old_style.limit(1).first.name
+    assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', CoolCar.order_using_old_style.limit(1).first.name
+    assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', FastCar.order_using_old_style.limit(1).first.name
   end
 
   def test_order_using_scoping
-    car = Car.order('id DESC').scoping do
-      Car.find(:first, :order => 'id asc')
+    car1 = CoolCar.order('id DESC').scoping do
+      CoolCar.find(:first, :order => 'id asc')
     end
-    assert_equal 'zyke', car.name
+    assert_equal 'zyke', car1.name
+
+    car2 = FastCar.order('id DESC').scoping do
+      FastCar.find(:first, :order => 'id asc')
+    end
+    assert_equal 'zyke', car2.name
+  end
+
+  def test_unscoped_block_style
+    assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name}
+    assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_old_style.limit(1).first.name}
+
+    assert_equal 'honda', FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name}
+    assert_equal 'honda', FastCar.unscoped { FastCar.order_using_old_style.limit(1).first.name}
   end
 
   def test_intersection_with_array
