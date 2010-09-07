@@ -211,7 +211,7 @@ module ActiveRecord
       select_statement = if operation == 'count' && column_name == :all
         "COUNT(*) AS count_all"
       else
-        Arel::Attribute.new(@klass.unscoped, column_name).send(operation).as(aggregate_alias).to_sql
+        Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias).to_sql
       end
 
       select_statement <<  ", #{group_field} AS #{group_alias}"
