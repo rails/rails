@@ -3,7 +3,4 @@ module Arel
     class InnerJoin < Arel::Nodes::Join
     end
   end
-
-  # FIXME: backwards compat
-  InnerJoin = Nodes::InnerJoin
 end
