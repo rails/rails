@@ -923,7 +923,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : unscoped.merge(options)
+          relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : options
           relation = scope.merge(relation) if scope
           relation
         end
