@@ -28,6 +28,11 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_Count o
+        visit_edge o, "expressions"
+        visit_edge o, "distinct"
+      end
+
       def visit_Arel_Nodes_StringJoin o
         visit_edge o, "left"
         visit_edge o, "right"
