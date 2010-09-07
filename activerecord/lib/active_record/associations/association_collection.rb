@@ -361,7 +361,7 @@ module ActiveRecord
                     else
                       f
                     end
-                  end + @target
+                  end + @target.find_all {|t| t.new_record?}
                 else
                   @target = find_target
                 end

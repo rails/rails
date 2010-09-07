@@ -12,6 +12,8 @@ class Company < AbstractCompany
   has_many :contracts
   has_many :developers, :through => :contracts
 
+  named_scope :with_oft_in_name, :conditions => "name LIKE '%oft%'"
+
   def arbitrary_method
     "I am Jack's profound disappointment"
   end

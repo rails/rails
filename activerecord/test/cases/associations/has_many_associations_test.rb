@@ -866,6 +866,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_firm).clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
   end
 
+  def test_destroy_all_with_creates_and_scope_that_doesnt_match_created_records
+    company = companies(:first_firm)
+    unloaded_client_matching_scope = companies(:second_client)
+    created_client_matching_scope = company.clients_of_firm.create!(:name => "Somesoft")
+    created_client_not_matching_scope = company.clients_of_firm.create!(:name => "OtherCo")
+    destroyed = company.clients_of_firm.with_oft_in_name.destroy_all
+    assert destroyed.include?(unloaded_client_matching_scope), "unloaded clients matching the scope destroy_all on should have been destroyed"
+    assert destroyed.include?(created_client_matching_scope), "loaded clients matching the scope destroy_all on should have been destroyed"
+    assert !destroyed.include?(created_client_not_matching_scope), "loaded clients not matching the scope destroy_all on should not have been destroyed"
+  end
+
   def test_dependence
     firm = companies(:first_firm)
     assert_equal 2, firm.clients.size
