@@ -203,7 +203,7 @@ module ApplicationTests
         assert_equal 'bar', last_response.body
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do |map|
+          AppTemplate::Application.routes.draw do
             match 'foo', :to => 'foo#baz'
           end
         RUBY
