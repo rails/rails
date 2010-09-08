@@ -287,7 +287,6 @@ module ActionController
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "CONTENT_LENGTH" => data ? data.length.to_s : nil,
-            "HTTP_COOKIE"    => encode_cookies,
             "HTTP_ACCEPT"    => accept,
 
             "rack.version"      => [0,1],
@@ -297,6 +296,8 @@ module ActionController
             "rack.multiprocess" => true,
             "rack.run_once"     => false
           )
+
+          env['HTTP_COOKIE'] = encode_cookies if cookies.any?
 
           (headers || {}).each do |key, value|
             key = key.to_s.upcase.gsub(/-/, "_")

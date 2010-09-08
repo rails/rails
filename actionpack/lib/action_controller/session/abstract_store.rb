@@ -188,7 +188,9 @@ module ActionController
             return response
           end
 
-          if (env["rack.request.cookie_hash"] && env["rack.request.cookie_hash"][@key] != sid) || options[:expire_after]
+          request_cookies = env["rack.request.cookie_hash"]
+
+          if (request_cookies.nil? || request_cookies[@key] != sid) || options[:expire_after]
             cookie = Rack::Utils.escape(@key) + '=' + Rack::Utils.escape(sid)
             cookie << "; domain=#{options[:domain]}" if options[:domain]
             cookie << "; path=#{options[:path]}" if options[:path]
