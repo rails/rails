@@ -73,21 +73,13 @@ module ActiveRecord
 
     def where(opts, *rest)
       relation = clone
-
-      if opts.present?
-        relation.where_values += build_where(opts, rest)
-      end
-
+      relation.where_values += build_where(opts, rest) unless opts.blank?
       relation
     end
 
     def having(*args)
       relation = clone
-
-      if args.present?
-        relation.having_values += build_where(*args)
-      end
-
+      relation.having_values += build_where(*args) unless args.blank?
       relation
     end
 
