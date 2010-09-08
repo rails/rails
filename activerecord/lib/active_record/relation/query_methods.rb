@@ -276,9 +276,11 @@ module ActiveRecord
     end
 
     def apply_modules(modules)
-      values = Array.wrap(modules)
-      @extensions += values unless values.blank?
-      values.each {|extension| extend(extension) }
+      if modules.present?
+        values = Array.wrap(modules)
+        @extensions += values
+        values.each {|extension| extend(extension) }
+      end
     end
 
     def reverse_sql_order(order_query)
