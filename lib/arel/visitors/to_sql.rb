@@ -1,3 +1,5 @@
+require 'bigdecimal'
+
 module Arel
   module Visitors
     class ToSql
@@ -137,6 +139,7 @@ module Arel
       def visit_Symbol o; quote(o) end
       def visit_Time o; quote(o) end
       def visit_Date o; quote(o) end
+      def visit_BigDecimal o; quote(o) end
 
       DISPATCH = {}
       def visit object
