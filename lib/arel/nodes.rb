@@ -5,6 +5,7 @@ require 'arel/nodes/and'
 
 require 'arel/nodes/in'
 require 'arel/nodes/count'
+require 'arel/nodes/sum'
 require 'arel/nodes/sql_literal'
 require 'arel/nodes/select_core'
 require 'arel/nodes/select_statement'

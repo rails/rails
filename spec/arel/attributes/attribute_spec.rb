@@ -3,6 +3,23 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#sum' do
+        it 'should create a SUM node' do
+          relation = Table.new(:users)
+          relation[:id].sum.should be_kind_of Nodes::Sum
+        end
+
+        # FIXME: backwards compat. Is this really necessary?
+        it 'should set the alias to "sum_id"' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id].sum
+          mgr.to_sql.should be_like %{
+            SELECT SUM("users"."id") AS sum_id
+            FROM "users"
+          }
+        end
+      end
+
       describe '#count' do
         it 'should return a count node' do
           relation = Table.new(:users)

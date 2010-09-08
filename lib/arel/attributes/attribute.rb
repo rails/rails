@@ -12,6 +12,10 @@ module Arel
       def count distinct = false
         Nodes::Count.new [self], distinct
       end
+
+      def sum
+        Nodes::Sum.new [self], Nodes::SqlLiteral.new('sum_id')
+      end
     end
 
     class String  < Attribute; end
