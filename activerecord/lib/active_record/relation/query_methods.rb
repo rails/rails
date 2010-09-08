@@ -74,8 +74,8 @@ module ActiveRecord
     def where(opts, *rest)
       relation = clone
 
-      if opts.present? && value = build_where(opts, rest)
-        relation.where_values += Array.wrap(value)
+      if opts.present?
+        relation.where_values += Array.wrap(build_where(opts, rest))
       end
 
       relation
@@ -84,8 +84,8 @@ module ActiveRecord
     def having(*args)
       relation = clone
 
-      if args.present? && value = build_where(*args)
-        relation.having_values += Array.wrap(value)
+      if args.present?
+        relation.having_values += Array.wrap(build_where(*args))
       end
 
       relation
