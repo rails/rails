@@ -8,8 +8,8 @@ module Arel
       @ctx    = @head.cores.last
     end
 
-    def on expr
-      @ctx.froms.last.constraint = Nodes::On.new(expr)
+    def on *exprs
+      @ctx.froms.last.constraint = Nodes::On.new(collapse(exprs))
       self
     end
 
@@ -88,6 +88,17 @@ module Arel
 
     def to_a
       raise NotImplementedError
+    end
+
+    private
+    def collapse exprs
+      return exprs.first if exprs.length == 1
+
+      right = exprs.pop
+      left  = exprs.pop
+
+      right = Nodes::And.new left, right
+      exprs.reverse.inject(right) { |memo,expr| Nodes::And.new(expr, memo) }
     end
   end
 end

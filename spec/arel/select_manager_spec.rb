@@ -56,6 +56,45 @@ module Arel
       end
     end
 
+    describe 'on' do
+      it 'takes two params' do
+        left      = Table.new :users
+        right     = left.alias
+        predicate = left[:id].eq(right[:id])
+        manager   = Arel::SelectManager.new Table.engine
+
+        manager.from left
+        manager.join(right).on(predicate, predicate)
+        manager.to_sql.should be_like %{
+           SELECT FROM "users"
+             INNER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id" AND
+               "users"."id" = "users_2"."id"
+        }
+      end
+
+      it 'takes three params' do
+        left      = Table.new :users
+        right     = left.alias
+        predicate = left[:id].eq(right[:id])
+        manager   = Arel::SelectManager.new Table.engine
+
+        manager.from left
+        manager.join(right).on(
+          predicate,
+          predicate,
+          left[:name].eq(right[:name])
+        )
+        manager.to_sql.should be_like %{
+           SELECT FROM "users"
+             INNER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id" AND
+               "users"."id" = "users_2"."id" AND
+               "users"."name" = "users_2"."name"
+        }
+      end
+    end
+
     describe 'join' do
       it 'responds to join' do
         left      = Table.new :users
