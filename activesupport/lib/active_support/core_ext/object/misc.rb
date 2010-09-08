@@ -38,7 +38,7 @@ class Object
   #  
   #  foo # => ['bar', 'baz']
   def returning(value)
-    ActiveSupport::Deprecation.warn('Object#returning has been deprecated in favor of Object#tap.', caller)
+    ActiveSupport::Deprecation.warn('Kernel#returning has been deprecated in favor of Object#tap.', caller)
     yield(value)
     value
   end
