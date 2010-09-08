@@ -321,7 +321,7 @@ module ActiveRecord
 
       if check_existing_record && (record = send(association_name)) &&
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
+        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
       elsif attributes['id']
         existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
@@ -399,11 +399,11 @@ module ActiveRecord
 
         elsif existing_records.count == 0 #Existing record but not yet associated
           existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
-          association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
+          association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded? && !call_reject_if(association_name, attributes)
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
 
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
+          association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded? && !call_reject_if(association_name, attributes)
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
 
         end

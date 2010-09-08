@@ -114,6 +114,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.ship_attributes = { :name => 'Hello Pearl' }
     assert_difference('Ship.count') { pirate.save! }
   end
+
+  def test_reject_if_with_a_proc_which_returns_true_always
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| true }
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    ship = pirate.create_ship(:name => 's1')
+    pirate.update_attributes({:ship_attributes => { :name => 's2', :id => ship.id } })
+    assert_equal 's1', ship.reload.name
+  end
+
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
