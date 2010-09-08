@@ -63,10 +63,8 @@ module ActiveRecord
     def joins(*args)
       relation = clone
 
-      if args.present?
-        args.flatten!
-        relation.joins_values += args if args.present?
-      end
+      args.flatten!
+      relation.joins_values += args unless args.blank?
 
       relation
     end
