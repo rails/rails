@@ -21,13 +21,13 @@ module ActiveRecord
 
     def eager_load(*args)
       relation = clone
-      relation.eager_load_values += args if args.present?
+      relation.eager_load_values += args unless args.blank?
       relation
     end
 
     def preload(*args)
       relation = clone
-      relation.preload_values += args if args.present?
+      relation.preload_values += args unless args.blank?
       relation
     end
 
@@ -43,19 +43,19 @@ module ActiveRecord
 
     def group(*args)
       relation = clone
-      relation.group_values += args.flatten if args.present?
+      relation.group_values += args.flatten unless args.blank?
       relation
     end
 
     def order(*args)
       relation = clone
-      relation.order_values += args.flatten if args.present?
+      relation.order_values += args.flatten unless args.blank?
       relation
     end
 
     def reorder(*args)
       relation = clone
-      if args.present?
+      unless args.blank?
         relation.order_values = args
         relation.reorder_flag = true
       end
@@ -285,7 +285,7 @@ module ActiveRecord
 
     def apply_modules(modules)
       values = Array.wrap(modules)
-      @extensions += values if values.present?
+      @extensions += values unless values.blank?
       values.each {|extension| extend(extension) }
     end
 
