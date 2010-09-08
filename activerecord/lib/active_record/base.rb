@@ -684,7 +684,7 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
+        @columns_hash ||= Hash[columns.map { |column| [column.name, column] }]
       end
 
       # Returns an array of column names as strings.
@@ -1813,10 +1813,7 @@ MSG
       end
 
       def quote_columns(quoter, hash)
-        hash.inject({}) do |quoted, (name, value)|
-          quoted[quoter.quote_column_name(name)] = value
-          quoted
-        end
+        Hash[hash.map { |name, value| [quoter.quote_column_name(name), value] }]
       end
 
       def quoted_comma_pair_list(quoter, hash)
