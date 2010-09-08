@@ -75,7 +75,7 @@ module ActiveRecord
       relation = clone
 
       if opts.present?
-        relation.where_values += Array.wrap(build_where(opts, rest))
+        relation.where_values += build_where(opts, rest)
       end
 
       relation
@@ -85,7 +85,7 @@ module ActiveRecord
       relation = clone
 
       if args.present?
-        relation.having_values += Array.wrap(build_where(*args))
+        relation.having_values += build_where(*args)
       end
 
       relation
@@ -216,12 +216,12 @@ module ActiveRecord
     def build_where(opts, other = [])
       case opts
       when String, Array
-        @klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))
+        [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
         PredicateBuilder.new(table.engine).build_from_hash(attributes, table)
       else
-        opts
+        [opts]
       end
     end
 
