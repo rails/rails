@@ -12,8 +12,10 @@ module ActiveRecord
     def includes(*args)
       args.reject! {|a| a.blank? }
 
+      return clone if args.empty?
+
       relation = clone
-      relation.includes_values = (relation.includes_values + args).flatten.uniq if args.present?
+      relation.includes_values = (relation.includes_values + args).flatten.uniq
       relation
     end
 
