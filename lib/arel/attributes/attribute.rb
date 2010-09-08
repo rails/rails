@@ -20,6 +20,10 @@ module Arel
       def maximum
         Nodes::Max.new [self], Nodes::SqlLiteral.new('max_id')
       end
+
+      def average
+        Nodes::Avg.new [self], Nodes::SqlLiteral.new('avg_id')
+      end
     end
 
     class String  < Attribute; end

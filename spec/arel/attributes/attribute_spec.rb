@@ -3,6 +3,23 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#average' do
+        it 'should create a AVG node' do
+          relation = Table.new(:users)
+          relation[:id].average.should be_kind_of Nodes::Avg
+        end
+
+        # FIXME: backwards compat. Is this really necessary?
+        it 'should set the alias to "avg_id"' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id].average
+          mgr.to_sql.should be_like %{
+            SELECT AVG("users"."id") AS avg_id
+            FROM "users"
+          }
+        end
+      end
+
       describe '#maximum' do
         it 'should create a MAX node' do
           relation = Table.new(:users)

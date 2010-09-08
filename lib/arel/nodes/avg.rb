@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class Sum < Arel::Nodes::Function
+    class Avg < Arel::Nodes::Function
     end
   end
 end
