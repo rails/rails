@@ -40,6 +40,11 @@ module Arel
       end
     end
 
+    def having expr
+      @ctx.having = Nodes::Having.new(expr)
+      self
+    end
+
     def project *projections
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.

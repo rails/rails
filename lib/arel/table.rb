@@ -61,6 +61,10 @@ module Arel
       tm.take amount
     end
 
+    def having expr
+      tm.having expr
+    end
+
     def columns
       @columns ||= @engine.connection.columns(@name, "#{@name} Columns").map do |column|
         Attributes.for(column).new self, column.name, column

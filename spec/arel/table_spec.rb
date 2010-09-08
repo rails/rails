@@ -6,6 +6,15 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'having' do
+      it 'adds a having clause' do
+        mgr = @relation.having @relation[:id].eq(10)
+        mgr.to_sql.should be_like %{
+         SELECT FROM "users" HAVING "users"."id" = 10
+        }
+      end
+    end
+
     describe 'backwards compat' do
       describe 'joins' do
         it 'returns nil' do
