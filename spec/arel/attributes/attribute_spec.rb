@@ -3,6 +3,23 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#maximum' do
+        it 'should create a MAX node' do
+          relation = Table.new(:users)
+          relation[:id].maximum.should be_kind_of Nodes::Max
+        end
+
+        # FIXME: backwards compat. Is this really necessary?
+        it 'should set the alias to "max_id"' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id].maximum
+          mgr.to_sql.should be_like %{
+            SELECT MAX("users"."id") AS max_id
+            FROM "users"
+          }
+        end
+      end
+
       describe '#sum' do
         it 'should create a SUM node' do
           relation = Table.new(:users)

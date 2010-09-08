@@ -76,6 +76,11 @@ module Arel
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
+      def visit_Arel_Nodes_Max o
+        "MAX(#{o.expressions.map { |x|
+          visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
+      end
+
       def visit_Arel_Nodes_TableAlias o
         "#{visit o.relation} #{quote_table_name o.name}"
       end
