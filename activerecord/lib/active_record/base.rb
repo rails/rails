@@ -1080,9 +1080,9 @@ module ActiveRecord #:nodoc:
 
           if method_scoping.is_a?(Hash)
             # Dup first and second level of hash (method and params).
-            method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-              hash[method] = (params == true) ? params : params.dup
-              hash
+            method_scoping = method_scoping.dup
+            method_scoping.each do |method, params|
+              method_scoping[method] = params.dup unless params == true
             end
 
             method_scoping.assert_valid_keys([ :find, :create ])
