@@ -620,6 +620,14 @@ class BaseTest < Test::Unit::TestCase
     assert_nil p.__send__(:id_from_response, resp)
   end
 
+  def test_load_attributes_from_response
+    p = Person.new
+    resp = ActiveResource::Response.new(nil)
+    resp['Content-Length'] = "100"
+    assert_nil p.__send__(:load_attributes_from_response, resp)
+  end
+
+
   def test_create_with_custom_prefix
     matzs_house = StreetAddress.new(:person_id => 1)
     matzs_house.save
