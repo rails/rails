@@ -54,7 +54,7 @@ module Arel
     end
 
     def project *things
-      tm.project *things
+      tm.project(*things)
     end
 
     def take amount
