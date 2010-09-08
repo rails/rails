@@ -196,14 +196,14 @@ module ActiveRecord
         end
       end
 
-      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) unless @having_values.empty?
+      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
       arel = arel.take(@limit_value) if @limit_value
       arel = arel.skip(@offset_value) if @offset_value
 
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) unless @group_values.empty?
+      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
-      arel = arel.order(*@order_values.uniq.select{|o| o.present?}) unless @order_values.empty?
+      arel = arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
 
       arel = build_select(arel, @select_values.uniq)
 
