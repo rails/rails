@@ -79,10 +79,12 @@ module Arel
     describe 'project' do
       it 'can project' do
         manager = @relation.project SqlLiteral.new '*'
-        manager.to_sql.should be_like %{
-          SELECT *
-          FROM "users"
-        }
+        manager.to_sql.should be_like %{ SELECT * FROM "users" }
+      end
+
+      it 'takes multiple parameters' do
+        manager = @relation.project SqlLiteral.new('*'), SqlLiteral.new('*')
+        manager.to_sql.should be_like %{ SELECT *, * FROM "users" }
       end
     end
 

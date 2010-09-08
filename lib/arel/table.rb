@@ -53,8 +53,8 @@ module Arel
       tm.where condition
     end
 
-    def project thing
-      tm.project thing
+    def project *things
+      tm.project *things
     end
 
     def take amount
