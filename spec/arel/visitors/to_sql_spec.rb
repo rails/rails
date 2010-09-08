@@ -8,6 +8,10 @@ module Arel
         @attr = Table.new(:users)[:id]
       end
 
+      it "should visit_Float" do
+        @visitor.accept 2.14
+      end
+
       it "should visit_BigDecimal" do
         @visitor.accept BigDecimal.new('2.14')
       end

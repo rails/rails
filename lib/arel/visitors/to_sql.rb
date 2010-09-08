@@ -154,6 +154,7 @@ module Arel
       def visit_Symbol o; quote(o) end
       def visit_Time o; quote(o) end
       def visit_Date o; quote(o) end
+      def visit_Float o; quote(o) end
       def visit_BigDecimal o; quote(o) end
 
       DISPATCH = {}
