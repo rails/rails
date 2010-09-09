@@ -35,6 +35,8 @@ module Arel
     end
 
     def join relation, klass = Nodes::InnerJoin
+      return tm unless relation
+
       sm = SelectManager.new(@engine)
       case relation
       when String, Nodes::SqlLiteral

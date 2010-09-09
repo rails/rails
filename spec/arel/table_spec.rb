@@ -23,6 +23,12 @@ module Arel
       end
 
       describe 'join' do
+        it 'noops on nil' do
+          mgr = @relation.join nil
+
+          mgr.to_sql.should be_like %{ SELECT FROM "users" }
+        end
+
         it 'takes a second argument for join type' do
           right     = @relation.alias
           predicate = @relation[:id].eq(right[:id])
