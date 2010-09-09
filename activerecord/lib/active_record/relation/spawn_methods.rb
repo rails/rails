@@ -97,22 +97,16 @@ module ActiveRecord
       return relation unless options
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)
+      finders = options.dup
+      finders.delete_if { |key, value| value.nil? }
 
-      [:joins, :select, :group, :having, :limit, :offset, :from, :lock].each do |finder|
-        if value = options[finder]
-          relation = relation.send(finder, value)
-        end
+      ([:joins, :select, :group, :order, :having, :limit, :offset, :from, :lock, :readonly] & finders.keys).each do |finder|
+        relation = relation.send(finder, finders[finder])
       end
 
-      relation = relation.readonly(options[:readonly]) if options.key? :readonly
-
-      [:group, :order].each do |finder|
-        relation.send("#{finder}_values=", relation.send("#{finder}_values") + Array.wrap(options[finder])) if options.has_key?(finder)
-      end
-
-      relation = relation.where(options[:conditions]) if options.has_key?(:conditions)
-      relation = relation.includes(options[:include]) if options.has_key?(:include)
-      relation = relation.extending(options[:extend]) if options.has_key?(:extend)
+      relation = relation.where(finders[:conditions]) if options.has_key?(:conditions)
+      relation = relation.includes(finders[:include]) if options.has_key?(:include)
+      relation = relation.extending(finders[:extend]) if options.has_key?(:extend)
 
       relation
     end
