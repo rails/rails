@@ -64,12 +64,12 @@ module ActiveRecord
     def except(*skips)
       result = self.class.new(@klass, table)
 
-      (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |method|
-        result.send(:"#{method}_values=", send(:"#{method}_values")) unless skips.include?(method)
+      ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) - skips).each do |method|
+        result.send(:"#{method}_values=", send(:"#{method}_values"))
       end
 
-      Relation::SINGLE_VALUE_METHODS.each do |method|
-        result.send(:"#{method}_value=", send(:"#{method}_value")) unless skips.include?(method)
+      (Relation::SINGLE_VALUE_METHODS - skips).each do |method|
+        result.send(:"#{method}_value=", send(:"#{method}_value"))
       end
 
       result
