@@ -699,5 +699,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'zyke', car.name
   end
 
+  def test_intersection_with_array
+    relation = Author.where(:name => "David")
+    rails_author = relation.first
 
+    assert_equal [rails_author], [rails_author] & relation
+    assert_equal [rails_author], relation & [rails_author]
+  end
 end
