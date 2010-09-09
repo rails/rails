@@ -78,14 +78,12 @@ module ActiveRecord
     def only(*onlies)
       result = self.class.new(@klass, table)
 
-      onlies.each do |only|
-        if (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).include?(only)
-          result.send(:"#{only}_values=", send(:"#{only}_values"))
-        elsif Relation::SINGLE_VALUE_METHODS.include?(only)
-          result.send(:"#{only}_value=", send(:"#{only}_value"))
-        else
-          raise "Invalid argument : #{only}"
-        end
+      ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) & onlies).each do |method|
+        result.send(:"#{method}_values=", send(:"#{method}_values"))
+      end
+
+      (Relation::SINGLE_VALUE_METHODS & onlies).each do |method|
+        result.send(:"#{method}_value=", send(:"#{method}_value"))
       end
 
       result
