@@ -26,6 +26,15 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'taken' do
+      it 'should return limit' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.take 10
+        check manager.taken.should == 10
+      end
+    end
+
     describe 'insert' do
       it 'uses the select FROM' do
         engine  = EngineProxy.new Table.engine

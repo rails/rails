@@ -8,8 +8,12 @@ module Arel
       @ctx    = @head.cores.last
     end
 
+    def taken
+      @head.limit
+    end
+
     def where_clauses
-      warn "STOP CALLING ME" if $VERBOSE
+      warn "where_clauses is deprecated" if $VERBOSE
       to_sql = Visitors::ToSql.new @engine
       @ctx.wheres.map { |c| to_sql.accept c }
     end
