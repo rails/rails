@@ -135,14 +135,13 @@ module ActiveRecord
     end
 
     def reverse_order
-      order_clause = arel.order_clauses.join(', ')
-      relation = except(:order)
+      order_clause = arel.order_clauses
 
-      order = order_clause.blank? ?
+      order = order_clause.empty? ?
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
-        reverse_sql_order(order_clause)
+        reverse_sql_order(order_clause).join(', ')
 
-      relation.order(Arel::SqlLiteral.new(order))
+      except(:order).order(Arel::SqlLiteral.new(order))
     end
 
     def arel
@@ -283,15 +282,15 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query.split(',').each { |s|
+      order_query.join(', ').split(',').collect { |s|
         if s.match(/\s(asc|ASC)$/)
-          s.gsub!(/\s(asc|ASC)$/, ' DESC')
+          s.gsub(/\s(asc|ASC)$/, ' DESC')
         elsif s.match(/\s(desc|DESC)$/)
-          s.gsub!(/\s(desc|DESC)$/, ' ASC')
+          s.gsub(/\s(desc|DESC)$/, ' ASC')
         else
-          s.concat(' DESC')
+          s + ' DESC'
         end
-      }.join(',')
+      }
     end
 
     def array_of_strings?(o)
