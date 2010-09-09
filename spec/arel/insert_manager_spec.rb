@@ -88,7 +88,7 @@ module Arel
         manager = Arel::InsertManager.new Table.engine
         manager.into table
 
-        manager.values  << 1
+        manager.values = Nodes::Values.new [1]
         manager.to_sql.should be_like %{
           INSERT INTO "users" VALUES (1)
         }
@@ -101,8 +101,7 @@ module Arel
         manager = Arel::InsertManager.new Table.engine
         manager.into table
 
-        manager.values  << 1
-        manager.values  << "aaron"
+        manager.values = Nodes::Values.new [1, 'aaron']
         manager.columns << table[:id]
         manager.columns << table[:name]
         manager.to_sql.should be_like %{

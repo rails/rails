@@ -37,11 +37,14 @@ module Arel
                 quote_column_name x.name
             }.join ', '})" unless o.columns.empty?),
 
-          ("VALUES (#{o.values.map { |value|
-            value ? visit(value) : 'NULL'
-          }.join ', '})" unless o.values.empty?),
-
+          (visit o.values if o.values),
         ].compact.join ' '
+      end
+
+      def visit_Arel_Nodes_Values o
+        "VALUES (#{o.expressions.map { |value|
+          value ? visit(value) : 'NULL'
+        }.join ', '})"
       end
 
       def visit_Arel_Nodes_SelectStatement o

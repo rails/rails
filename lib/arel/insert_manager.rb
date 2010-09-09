@@ -11,16 +11,23 @@ module Arel
     end
 
     def columns; @head.columns end
-    def values; @head.values end
+    def values= val; @head.values = val; end
 
     def insert fields
       return if fields.empty?
 
-      @head.relation ||= fields.first.first.relation
+      if String === fields
+        @head.values = SqlLiteral.new(fields)
+      else
+        @head.relation ||= fields.first.first.relation
 
-      fields.each do |column, value|
-        @head.columns << column
-        @head.values << value
+        values = []
+
+        fields.each do |column, value|
+          @head.columns << column
+          values << value
+        end
+        @head.values = Nodes::Values.new values
       end
     end
   end

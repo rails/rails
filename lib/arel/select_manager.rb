@@ -102,6 +102,14 @@ module Arel
       raise NotImplementedError
     end
 
+    # FIXME: this method should go away
+    def insert values
+      im = InsertManager.new @engine
+      im.into @ctx.froms.last
+      im.insert values
+      @engine.connection.insert im.to_sql
+    end
+
     private
     def collapse exprs
       return exprs.first if exprs.length == 1
