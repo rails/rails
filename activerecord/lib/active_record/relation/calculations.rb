@@ -175,7 +175,6 @@ module ActiveRecord
       end
 
       distinct = options[:distinct] || distinct
-      column_name = :all if column_name.blank? && operation == "count"
 
       if @group_values.any?
         return execute_grouped_calculation(operation, column_name)
