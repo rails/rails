@@ -1088,6 +1088,9 @@ module ActionController #:nodoc:
       #   redirect_to post_url(@post), :status => 301
       #   redirect_to :action=>'atom', :status => 302
       #
+      # The status code can either be a standard {HTTP Status code}[http://www.iana.org/assignments/http-status-codes] as an 
+      # integer, or a symbol representing the downcased, underscored and symbolized description.
+      #
       # It is also possible to assign a flash message as part of the redirection. There are two special accessors for commonly used the flash names
       # +alert+ and +notice+ as well as a general purpose +flash+ bucket.
       #
@@ -1097,8 +1100,7 @@ module ActionController #:nodoc:
       #   redirect_to post_url(@post), :status => 301, :flash => { :updated_post_id => @post.id }
       #   redirect_to { :action=>'atom' }, :alert => "Something serious happened"
       #
-      # When using <tt>redirect_to :back</tt>, if there is no referrer,
-      # RedirectBackError will be raised. You may specify some fallback
+      # When using <tt>redirect_to :back</tt>, if there is no referrer, RedirectBackError will be raised. You may specify some fallback
       # behavior for this case by rescuing RedirectBackError.
       def redirect_to(options = {}, response_status = {}) #:doc:
         raise ActionControllerError.new("Cannot redirect to nil!") if options.nil?
