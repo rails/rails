@@ -177,9 +177,9 @@ module ActiveRecord
       distinct = options[:distinct] || distinct
 
       if @group_values.any?
-        return execute_grouped_calculation(operation, column_name)
+        execute_grouped_calculation(operation, column_name)
       else
-        return execute_simple_calculation(operation, column_name, distinct)
+        execute_simple_calculation(operation, column_name, distinct)
       end
     end
 
