@@ -277,7 +277,7 @@ module ActiveRecord
 
     def apply_modules(modules)
       unless modules.empty?
-        @extensions.concat modules
+        @extensions += modules
         modules.each {|extension| extend(extension) }
       end
     end
