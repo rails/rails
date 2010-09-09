@@ -8,6 +8,12 @@ module Arel
       @ctx    = @head.cores.last
     end
 
+    def where_clauses
+      warn "STOP CALLING ME" if $VERBOSE
+      to_sql = Visitors::ToSql.new @engine
+      @ctx.wheres.map { |c| to_sql.accept c }
+    end
+
     def lock locking = true
       # FIXME: do we even need to store this?  If locking is +false+ shouldn't
       # we just remove the node from the AST?
