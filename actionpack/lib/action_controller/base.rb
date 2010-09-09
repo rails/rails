@@ -148,6 +148,8 @@ module ActionController
   #
   # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method which is then executed.
   #
+  # Learn more about <tt>redirect_to</tt> and what options you have in ActionController::Redirecting.
+  #
   # == Calling multiple redirects or renders
   #
   # An action may contain only a single render or a single redirect. Attempting to try to do either again will result in a DoubleRenderError:
