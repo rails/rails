@@ -130,7 +130,7 @@ module ActiveRecord
       modules << Module.new(&block) if block_given?
 
       relation = clone
-      relation.send(:apply_modules, *modules)
+      relation.send(:apply_modules, modules.flatten)
       relation
     end
 
@@ -276,10 +276,9 @@ module ActiveRecord
     end
 
     def apply_modules(modules)
-      if modules.present?
-        values = Array.wrap(modules)
-        @extensions += values
-        values.each {|extension| extend(extension) }
+      unless modules.empty?
+        @extensions.concat modules
+        modules.each {|extension| extend(extension) }
       end
     end
 
