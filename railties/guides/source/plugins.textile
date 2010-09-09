@@ -33,20 +33,20 @@ h3. Setup
 
 h4. Create the Basic Application
 
-The examples in this guide require that you have a working rails application.  To create a simple rails app execute:
+The examples in this guide require that you have a working rails application.  To create a simple one execute:
 
 <shell>
 gem install rails
-rails yaffle_guide
+rails new yaffle_guide
 cd yaffle_guide
 rails generate scaffold bird name:string
 rake db:migrate
 rails server
 </shell>
 
-Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails app before continuing.
+Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails application before continuing.
 
-NOTE: The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails app for other databases see the API docs.
+NOTE: The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails application for other databases see the API docs.
 
 
 h4. Generate the Plugin Skeleton
@@ -277,7 +277,7 @@ Now you are ready to test-drive your plugin!
 
 h3. Extending Core Classes
 
-This section will explain how to add a method to String that will be available anywhere in your rails app.
+This section will explain how to add a method to String that will be available anywhere in your rails application.
 
 In this example you will add a method to String named +to_squawk+.  To begin, create a new test file with a few assertions:
 
@@ -622,7 +622,7 @@ create_table :woodpeckers, :force => true do |t|
 end
 </ruby>
 
-Now your test should be passing, and you should be able to use the Woodpecker model from within your rails app, and any changes made to it are reflected immediately when running in development mode.
+Now your test should be passing, and you should be able to use the Woodpecker model from within your rails application, and any changes made to it are reflected immediately when running in development mode.
 
 h3. Controllers
 
@@ -734,7 +734,7 @@ h3. Routes
 
 In a standard 'routes.rb' file you use routes like 'map.connect' or 'map.resources'.  You can add your own custom routes from a plugin.  This section will describe how to add a custom method called that can be called with 'map.yaffles'.
 
-Testing routes from plugins is slightly different from testing routes in a standard rails app.  To begin, add a test like this:
+Testing routes from plugins is slightly different from testing routes in a standard rails application.  To begin, add a test like this:
 
 * *vendor/plugins/yaffle/test/routing_test.rb*
 
@@ -1385,7 +1385,7 @@ rake gem
 sudo gem install pkg/yaffle-0.0.1.gem
 </shell>
 
-To test this, create a new rails app, add +config.gem "yaffle"+ to +config/environment.rb+ and all of your plugin's functionality will be available to you.
+To test this, create a new rails application, add +config.gem "yaffle"+ to +config/environment.rb+ and all of your plugin's functionality will be available to you.
 
 h3. RDoc Documentation
 
