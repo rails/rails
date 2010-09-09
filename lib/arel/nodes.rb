@@ -4,6 +4,7 @@ require 'arel/nodes/or'
 require 'arel/nodes/and'
 
 require 'arel/nodes/in'
+require 'arel/nodes/lock'
 require 'arel/nodes/function'
 require 'arel/nodes/count'
 require 'arel/nodes/sum'

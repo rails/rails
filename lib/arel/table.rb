@@ -26,6 +26,10 @@ module Arel
       SelectManager.new(@engine).from(self)
     end
 
+    def from table
+      SelectManager.new(@engine).from table
+    end
+
     def joins manager
       nil
     end

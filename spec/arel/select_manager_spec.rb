@@ -25,6 +25,15 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'lock' do
+      # This should fail on other databases
+      it 'adds a lock node' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.lock.to_sql.should be_like %{ SELECT FROM "users" }
+      end
+    end
+
     describe 'order' do
       it 'generates order clauses' do
         table   = Table.new :users

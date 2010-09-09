@@ -48,7 +48,8 @@ module Arel
         [
           o.cores.map { |x| visit x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
-          ("LIMIT #{o.limit}" if o.limit)
+          ("LIMIT #{o.limit}" if o.limit),
+          (visit(o.lock) if o.lock),
         ].compact.join ' '
       end
 
@@ -64,6 +65,11 @@ module Arel
 
       def visit_Arel_Nodes_Having o
         "HAVING #{visit o.expr}"
+      end
+
+      # FIXME: this does nothing on SQLLite3, but should do things on other
+      # databases.
+      def visit_Arel_Nodes_Lock o
       end
 
       def visit_Arel_Nodes_Group o

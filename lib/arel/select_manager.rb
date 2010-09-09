@@ -8,6 +8,13 @@ module Arel
       @ctx    = @head.cores.last
     end
 
+    def lock locking = true
+      # FIXME: do we even need to store this?  If locking is +false+ shouldn't
+      # we just remove the node from the AST?
+      @head.lock = Nodes::Lock.new
+      self
+    end
+
     def on *exprs
       @ctx.froms.last.constraint = Nodes::On.new(collapse(exprs))
       self
