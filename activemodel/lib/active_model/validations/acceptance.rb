@@ -14,8 +14,6 @@ module ActiveModel
       end
 
       def setup(klass)
-        # Note: instance_methods.map(&:to_s) is important for 1.9 compatibility
-        # as instance_methods returns symbols unlike 1.8 which returns strings.
         attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
         attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
         klass.send(:attr_reader, *attr_readers)
