@@ -113,6 +113,10 @@ module Arel
         "#{visit o.left} >= #{visit o.right}"
       end
 
+      def visit_Arel_Nodes_GreaterThan o
+        "#{visit o.left} > #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_StringJoin o
         "#{visit o.left} #{visit o.right}"
       end

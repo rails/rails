@@ -3,6 +3,22 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#gt' do
+        it 'should create a GreaterThan node' do
+          relation = Table.new(:users)
+          relation[:id].gt(10).should be_kind_of Nodes::GreaterThan
+        end
+
+        it 'should generate >= in sql' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:id].gt(10)
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" WHERE "users"."id" > 10
+          }
+        end
+      end
+
       describe '#gteq' do
         it 'should create a GreaterThanOrEqual node' do
           relation = Table.new(:users)

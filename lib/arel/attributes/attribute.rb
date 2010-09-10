@@ -28,6 +28,10 @@ module Arel
       def gteq right
         Nodes::GreaterThanOrEqual.new self, right
       end
+
+      def gt right
+        Nodes::GreaterThan.new self, right
+      end
     end
 
     class String  < Attribute; end
