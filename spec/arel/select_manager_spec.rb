@@ -73,6 +73,16 @@ module Arel
       end
     end
 
+    describe 'orders' do
+      it 'returns order clauses' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        order = table[:id]
+        manager.order table[:id]
+        check manager.orders.should == [order]
+      end
+    end
+
     describe 'order' do
       it 'generates order clauses' do
         table   = Table.new :users

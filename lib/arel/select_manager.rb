@@ -89,6 +89,10 @@ module Arel
       self
     end
 
+    def orders
+      @head.orders
+    end
+
     def wheres
       Compatibility::Wheres.new @engine, @ctx.wheres
     end
