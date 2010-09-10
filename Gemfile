@@ -16,6 +16,7 @@ gem "horo",  ">= 1.0.2"
 # for perf tests
 gem "faker"
 gem "rbench"
+gem "addressable"
 
 # AS
 gem "memcache-client", ">= 1.8.5"
