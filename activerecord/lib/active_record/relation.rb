@@ -297,6 +297,16 @@ module ActiveRecord
       where(@klass.primary_key => id_or_array).delete_all
     end
 
+    def increment(id_or_array, attr_name, by = 1)
+      raise ArgumentError, "#{attr_name} is not a valid attribute" unless @klass.attribute_method?(attr_name.to_sym)
+      where(@klass.primary_key => id_or_array).update_all(["#{attr_name} = #{attr_name} + %d", by])
+    end
+
+    def decrement(id_or_array, attr_name, by = 1)
+      raise ArgumentError, "#{attr_name} is not a valid attribute" unless @klass.attribute_method?(attr_name.to_sym)
+      where(@klass.primary_key => id_or_array).update_all(["#{attr_name} = #{attr_name} - %d", by])
+    end
+
     def reload
       reset
       to_a # force reload
