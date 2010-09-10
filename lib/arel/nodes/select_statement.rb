@@ -2,13 +2,14 @@ module Arel
   module Nodes
     class SelectStatement
       attr_reader :cores
-      attr_accessor :limit, :orders, :lock
+      attr_accessor :limit, :orders, :lock, :offset
 
       def initialize cores = [SelectCore.new]
         @cores  = cores
         @orders = []
         @limit  = nil
         @lock   = nil
+        @offset = nil
       end
 
       def initialize_copy other

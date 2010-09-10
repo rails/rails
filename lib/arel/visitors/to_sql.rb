@@ -52,6 +52,7 @@ module Arel
           o.cores.map { |x| visit x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
           ("LIMIT #{o.limit}" if o.limit),
+          (visit(o.offset) if o.offset),
           (visit(o.lock) if o.lock),
         ].compact.join ' '
       end
@@ -68,6 +69,10 @@ module Arel
 
       def visit_Arel_Nodes_Having o
         "HAVING #{visit o.expr}"
+      end
+
+      def visit_Arel_Nodes_Offset o
+        "OFFSET #{visit o.value}"
       end
 
       # FIXME: this does nothing on SQLLite3, but should do things on other

@@ -26,6 +26,21 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'skip' do
+      it 'should add an offset' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.skip 10
+        mgr.to_sql.should be_like %{ SELECT FROM "users" OFFSET 10 }
+      end
+
+      it 'should chain' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.skip(10).to_sql.should be_like %{ SELECT FROM "users" OFFSET 10 }
+      end
+    end
+
     describe 'taken' do
       it 'should return limit' do
         table   = Table.new :users

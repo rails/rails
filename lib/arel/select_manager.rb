@@ -12,6 +12,11 @@ module Arel
       @head.limit
     end
 
+    def skip amount
+      @head.offset = Nodes::Offset.new(amount)
+      self
+    end
+
     def where_clauses
       warn "where_clauses is deprecated" if $VERBOSE
       to_sql = Visitors::ToSql.new @engine
