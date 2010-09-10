@@ -230,7 +230,7 @@ module ActiveRecord
     end
 
     def find_by_attributes(match, attributes, *args)
-      conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
+      conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
       result = where(conditions).send(match.finder)
 
       if match.bang? && result.blank?
