@@ -61,7 +61,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "Have a nice day", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
   end
-
+  
   def test_increment_attribute
     assert_equal 50, accounts(:signals37).credit_limit
     accounts(:signals37).increment! :credit_limit
@@ -69,6 +69,11 @@ class PersistencesTest < ActiveRecord::TestCase
 
     accounts(:signals37).increment(:credit_limit).increment!(:credit_limit)
     assert_equal 53, accounts(:signals37, :reload).credit_limit
+    
+    Account.increment(accounts(:signals37).id, :credit_limit)
+    assert_equal 54, accounts(:signals37).reload.credit_limit
+    
+    assert_raise(ArgumentError) { Account.increment(accounts(:signals37).id, :non_existing_attr) }
   end
 
   def test_increment_nil_attribute
@@ -84,8 +89,26 @@ class PersistencesTest < ActiveRecord::TestCase
 
     accounts(:signals37).increment(:credit_limit, 1).increment!(:credit_limit, 3)
     assert_equal 59, accounts(:signals37, :reload).credit_limit
+    
+    Account.increment(accounts(:signals37).id, :credit_limit, 10)
+    assert_equal 69, accounts(:signals37).reload.credit_limit
   end
 
+  def test_increment_many
+    assert_equal 50, accounts(:signals37).credit_limit
+    assert_equal 53, accounts(:odegy_account).credit_limit
+    
+    Account.increment([accounts(:signals37).id, accounts(:odegy_account).id], :credit_limit)
+    
+    assert_equal 51, accounts(:signals37).reload.credit_limit
+    assert_equal 54, accounts(:odegy_account).reload.credit_limit
+    
+    Account.increment([accounts(:signals37).id, accounts(:odegy_account).id], :credit_limit, 5)
+    
+    assert_equal 56, accounts(:signals37).reload.credit_limit
+    assert_equal 59, accounts(:odegy_account).reload.credit_limit
+  end
+  
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
@@ -122,6 +145,11 @@ class PersistencesTest < ActiveRecord::TestCase
 
     accounts(:signals37).decrement(:credit_limit).decrement!(:credit_limit)
     assert_equal 47, accounts(:signals37, :reload).credit_limit
+    
+    Account.decrement(accounts(:signals37).id, :credit_limit)
+    assert_equal 46, accounts(:signals37).reload.credit_limit
+    
+    assert_raise(ArgumentError) { Account.decrement(accounts(:signals37).id, :non_existing_attr) }
   end
 
   def test_decrement_attribute_by
@@ -131,6 +159,24 @@ class PersistencesTest < ActiveRecord::TestCase
 
     accounts(:signals37).decrement(:credit_limit, 1).decrement!(:credit_limit, 3)
     assert_equal 41, accounts(:signals37, :reload).credit_limit
+    
+    Account.decrement(accounts(:signals37).id, :credit_limit, 10)
+    assert_equal 31, accounts(:signals37).reload.credit_limit
+  end
+  
+  def test_decrement_many
+    assert_equal 50, accounts(:signals37).credit_limit
+    assert_equal 53, accounts(:odegy_account).credit_limit
+    
+    Account.decrement([accounts(:signals37).id, accounts(:odegy_account).id], :credit_limit)
+    
+    assert_equal 49, accounts(:signals37).reload.credit_limit
+    assert_equal 52, accounts(:odegy_account).reload.credit_limit
+    
+    Account.decrement([accounts(:signals37).id, accounts(:odegy_account).id], :credit_limit, 5)
+    
+    assert_equal 44, accounts(:signals37).reload.credit_limit
+    assert_equal 47, accounts(:odegy_account).reload.credit_limit
   end
 
   def test_create
