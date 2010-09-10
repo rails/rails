@@ -50,7 +50,7 @@ module ActiveRecord
     def find_in_batches(options = {})
       relation = self
 
-      if orders.present? || taken.present?
+      unless arel.orders.blank? && arel.taken.blank?
         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
