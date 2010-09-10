@@ -151,7 +151,8 @@ module Arel
 
       def visit_Arel_Nodes_Equality o
         right = o.right
-        right = right ? visit(right) : 'NULL'
+        # FIXME: maybe we should visit NilClass?
+        right = right.nil? ? 'NULL' : visit(right)
         "#{visit o.left} = #{right}"
       end
 
@@ -179,6 +180,7 @@ module Arel
       def visit_DateTime o; quote(o) end
       def visit_Float o; quote(o) end
       def visit_BigDecimal o; quote(o) end
+      def visit_FalseClass o; quote(o) end
 
       DISPATCH = {}
       def visit object

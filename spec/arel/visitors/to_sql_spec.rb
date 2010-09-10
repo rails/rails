@@ -8,6 +8,13 @@ module Arel
         @attr = Table.new(:users)[:id]
       end
 
+      describe 'equality' do
+        it 'should handle false' do
+          sql = @visitor.accept Nodes::Equality.new(false, false)
+          sql.should be_like %{ 'f' = 'f' }
+        end
+      end
+
       it "should visit_DateTime" do
         @visitor.accept DateTime.now
       end

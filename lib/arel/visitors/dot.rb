@@ -94,6 +94,7 @@ module Arel
       alias :visit_Time :visit_String
       alias :visit_NilClass :visit_String
       alias :visit_TrueClass :visit_String
+      alias :visit_FalseClass :visit_String
       alias :visit_Arel_SqlLiteral :visit_String
       alias :visit_Fixnum :visit_String
       alias :visit_Symbol :visit_String
