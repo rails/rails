@@ -25,7 +25,7 @@ conn[:socket] = Pathname.glob(%w[
   /tmp/mysql.sock
   /var/mysql/mysql.sock
   /var/run/mysqld/mysqld.sock
-]).find { |path| path.socket? }
+]).find { |path| path.socket? }.to_s
 
 ActiveRecord::Base.establish_connection(conn)
 
