@@ -159,11 +159,20 @@ module Arel
       def visit_Arel_Nodes_Equality o
         right = o.right
 
-        # FIXME: maybe we should visit NilClass?
         if right.nil?
           "#{visit o.left} IS NULL"
         else
           "#{visit o.left} = #{visit right}"
+        end
+      end
+
+      def visit_Arel_Nodes_NotEqual o
+        right = o.right
+
+        if right.nil?
+          "#{visit o.left} IS NOT NULL"
+        else
+          "#{visit o.left} != #{visit right}"
         end
       end
 

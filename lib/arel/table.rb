@@ -73,12 +73,12 @@ module Arel
 
     def columns
       @columns ||= @engine.connection.columns(@name, "#{@name} Columns").map do |column|
-        Attributes.for(column).new self, column.name, column
+        Attributes.for(column).new self, column.name.to_sym, column
       end
     end
 
     def [] name
-      name = name.to_s
+      name = name.to_sym
       columns.find { |column| column.name == name }
     end
   end

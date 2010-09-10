@@ -3,6 +3,31 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#not_eq' do
+        it 'should create a NotEqual node' do
+          relation = Table.new(:users)
+          relation[:id].not_eq(10).should be_kind_of Nodes::NotEqual
+        end
+
+        it 'should generate != in sql' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:id].not_eq(10)
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" WHERE "users"."id" != 10
+          }
+        end
+
+        it 'should handle nil' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:id].not_eq(nil)
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" WHERE "users"."id" IS NOT NULL
+          }
+        end
+      end
+
       describe '#gt' do
         it 'should create a GreaterThan node' do
           relation = Table.new(:users)

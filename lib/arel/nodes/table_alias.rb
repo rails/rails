@@ -12,7 +12,7 @@ module Arel
       end
 
       def [] name
-        name = name.to_s
+        name = name.to_sym
         columns.find { |column| column.name == name }
       end
     end

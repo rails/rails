@@ -8,6 +8,10 @@ module Arel
         def value
           visitor.accept self
         end
+
+        def name
+          super.to_sym
+        end
       end
 
       def initialize engine, collection

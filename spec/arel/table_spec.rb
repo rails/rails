@@ -120,7 +120,7 @@ module Arel
       it 'returns a list of columns' do
         columns = @relation.columns
         check columns.length.should == 2
-        columns.map { |x| x.name }.sort.should == %w{ name id }.sort
+        columns.map { |x| x.name.to_s }.sort.should == %w{ name id }.sort
       end
     end
 
@@ -136,7 +136,7 @@ module Arel
       describe 'when given a', Symbol do
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           column = @relation[:id]
-          check column.name.should == 'id'
+          check column.name.should == :id
           column.should be_kind_of Attributes::Integer
         end
       end

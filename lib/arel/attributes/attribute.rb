@@ -1,6 +1,10 @@
 module Arel
   module Attributes
     class Attribute < Struct.new :relation, :name, :column
+      def not_eq other
+        Nodes::NotEqual.new self, other
+      end
+
       def eq other
         Nodes::Equality.new self, other
       end
