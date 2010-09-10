@@ -24,6 +24,10 @@ module Arel
       def average
         Nodes::Avg.new [self], Nodes::SqlLiteral.new('avg_id')
       end
+
+      def gteq right
+        Nodes::GreaterThanOrEqual.new self, right
+      end
     end
 
     class String  < Attribute; end

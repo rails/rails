@@ -3,6 +3,22 @@ require 'spec_helper'
 module Arel
   module Attributes
     describe 'attribute' do
+      describe '#gteq' do
+        it 'should create a GreaterThanOrEqual node' do
+          relation = Table.new(:users)
+          relation[:id].gteq(10).should be_kind_of Nodes::GreaterThanOrEqual
+        end
+
+        it 'should generate >= in sql' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:id].gteq(10)
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" WHERE "users"."id" >= 10
+          }
+        end
+      end
+
       describe '#average' do
         it 'should create a AVG node' do
           relation = Table.new(:users)
