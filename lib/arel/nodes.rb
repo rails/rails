@@ -1,5 +1,6 @@
 require 'arel/nodes/binary'
 require 'arel/nodes/equality'
+require 'arel/nodes/assignment'
 require 'arel/nodes/or'
 require 'arel/nodes/and'
 require 'arel/nodes/greater_than'

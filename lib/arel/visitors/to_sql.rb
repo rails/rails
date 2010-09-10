@@ -149,11 +149,22 @@ module Arel
         "#{visit o.left} OR #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_Equality o
+      def visit_Arel_Nodes_Assignment o
         right = o.right
-        # FIXME: maybe we should visit NilClass?
+
         right = right.nil? ? 'NULL' : visit(right)
         "#{visit o.left} = #{right}"
+      end
+
+      def visit_Arel_Nodes_Equality o
+        right = o.right
+
+        # FIXME: maybe we should visit NilClass?
+        if right.nil?
+          "#{visit o.left} IS NULL"
+        else
+          "#{visit o.left} = #{visit right}"
+        end
       end
 
       def visit_Arel_Nodes_UnqualifiedColumn o

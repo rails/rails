@@ -26,7 +26,7 @@ module Arel
         @head.values = [values]
       else
         @head.values = values.map { |column,value|
-          Nodes::Equality.new(
+          Nodes::Assignment.new(
             Nodes::UnqualifiedColumn.new(column),
             value
           )
