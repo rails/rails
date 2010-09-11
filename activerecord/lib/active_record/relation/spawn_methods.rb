@@ -5,6 +5,7 @@ module ActiveRecord
     def merge(r)
       merged_relation = clone
       return merged_relation unless r
+      return to_a & r if r.is_a?(Array)
 
       Relation::ASSOCIATION_METHODS.each do |method|
         value = r.send(:"#{method}_values")
