@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'digest/sha1'
+require 'active_support/core_ext/string/strip'
 
 # common controller actions
 module RequestForgeryProtectionActions
@@ -16,7 +17,7 @@ module RequestForgeryProtectionActions
   end
 
   def meta
-    render :inline => "<%= csrf_meta_tag %>"
+    render :inline => "<%= csrf_meta_tags %>"
   end
 
   def rescue_action(e) raise e end
@@ -219,7 +220,10 @@ class RequestForgeryProtectionControllerTest < ActionController::TestCase
   test 'should emit a csrf-token meta tag' do
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token + '<=?')
     get :meta
-    assert_equal %(<meta name="csrf-param" content="authenticity_token"/>\n<meta name="csrf-token" content="cf50faa3fe97702ca1ae&lt;=?"/>), @response.body
+    assert_equal <<-METAS.strip_heredoc, @response.body
+      <meta name="csrf-param" content="authenticity_token"/>
+      <meta name="csrf-token" content="cf50faa3fe97702ca1ae&lt;=?"/>
+    METAS
   end
 end
 

@@ -17,11 +17,11 @@ module ActionController #:nodoc:
   # which will check the token and raise an ActionController::InvalidAuthenticityToken
   # if it doesn't match what was expected. A call to this method is generated for new
   # \Rails applications by default. You can customize the error message by editing
-  # public/422.html. 
+  # public/422.html.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
-  # <tt>csrf_meta_tag</tt> in the html +head+.
+  # <tt>csrf_meta_tags</tt> in the html +head+.
   #
   # Learn more about CSRF attacks and securing your application in the
   # {Ruby on Rails Security Guide}[http://guides.rubyonrails.org/security.html].

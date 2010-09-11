@@ -1,6 +1,6 @@
 *Rails 3.1.0 (unreleased)*
 
-* No changes
+* Renames csrf_meta_tag -> csrf_meta_tags, and aliases csrf_meta_tag for backwards compatibility. [fxn]
 
 
 *Rails 3.0.0 (August 29, 2010)*

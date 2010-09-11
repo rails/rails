@@ -211,7 +211,7 @@ module ApplicationTests
         protect_from_forgery
 
         def index
-          render :inline => "<%= csrf_meta_tag %>"
+          render :inline => "<%= csrf_meta_tags %>"
         end
       end
 
