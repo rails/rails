@@ -149,8 +149,16 @@ module ActionDispatch
     end
 
     # Which IP addresses are "trusted proxies" that can be stripped from
-    # the right-hand-side of X-Forwarded-For
-    TRUSTED_PROXIES = /^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
+    # the right-hand-side of X-Forwarded-For.
+    #
+    # http://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces.
+    TRUSTED_PROXIES = %r{
+      ^127\.0\.0\.1$                | # localhost
+      ^(10                          | # private IP 10.x.x.x
+        172\.(1[6-9]|2[0-9]|3[0-1]) | # private IP in the range 172.16.0.0 .. 172.31.255.255
+        192\.168                      # private IP 192.168.x.x
+       )\.
+    }x
 
     # Determines originating IP address.  REMOTE_ADDR is the standard
     # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
