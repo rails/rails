@@ -72,7 +72,7 @@ module TestGenerationPrefix
 
     class ::InsideEngineGeneratingController < ActionController::Base
       include BlogEngine.routes.url_helpers
-      include RailsApplication.routes.mounted_helpers(:app)
+      include RailsApplication.routes.mounted_helpers
 
       def index
         render :text => posts_path
@@ -83,9 +83,9 @@ module TestGenerationPrefix
       end
 
       def url_to_application
-        path = app.url_for( :controller => "outside_engine_generating",
-                            :action => "index",
-                            :only_path => true)
+        path = main_app.url_for(:controller => "outside_engine_generating",
+                                :action => "index",
+                                :only_path => true)
         render :text => path
       end
 

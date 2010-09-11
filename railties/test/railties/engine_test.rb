@@ -281,6 +281,34 @@ module RailtiesTest
       assert_equal expected, stripped_body
     end
 
+    test "default application's asset_path" do
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          match "/foo" => "foo#index"
+        end
+      RUBY
+
+      @plugin.write "app/controllers/foo_controller.rb", <<-RUBY
+        class FooController < ActionController::Base
+          def index
+          end
+        end
+      RUBY
+
+      @plugin.write "app/views/foo/index.html.erb", <<-RUBY
+        <%= compute_public_path("/foo", "") %>
+      RUBY
+
+      boot_rails
+
+      env = Rack::MockRequest.env_for("/foo")
+      response = Bukkits::Engine.call(env)
+      stripped_body = response[2].body.strip
+
+      expected =  "/bukkits/foo"
+      assert_equal expected, stripped_body
+    end
+
     test "engine's files are served via ActionDispatch::Static" do
       add_to_config "config.serve_static_assets = true"
 
@@ -437,7 +465,7 @@ module RailtiesTest
           end
 
           def routes_helpers_in_view
-            render :inline => "<%= foo_path %>, <%= app.bar_path %>"
+            render :inline => "<%= foo_path %>, <%= main_app.bar_path %>"
           end
 
           def polymorphic_path_without_namespace
