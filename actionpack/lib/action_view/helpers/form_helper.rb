@@ -306,11 +306,11 @@ module ActionView
           object = record_object
         when Array
           object = record.last
-          object_name = options[:as] || ActiveModel::Naming.singular(object)
+          object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!(record, options)
         else
           object = record
-          object_name = options[:as] || ActiveModel::Naming.singular(object)
+          object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!([object], options)
         end
 
