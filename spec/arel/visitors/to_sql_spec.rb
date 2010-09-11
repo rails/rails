@@ -23,6 +23,10 @@ module Arel
         @visitor.accept 2.14
       end
 
+      it "should visit_Hash" do
+        @visitor.accept({:a => 1})
+      end
+
       it "should visit_BigDecimal" do
         @visitor.accept BigDecimal.new('2.14')
       end
