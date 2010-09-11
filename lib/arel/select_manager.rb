@@ -30,6 +30,10 @@ module Arel
       self
     end
 
+    def locked
+      @head.lock
+    end
+
     def on *exprs
       @ctx.froms.last.constraint = Nodes::On.new(collapse(exprs))
       self
