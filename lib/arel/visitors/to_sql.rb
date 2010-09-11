@@ -194,6 +194,7 @@ module Arel
 
       def visit_TrueClass o; quote(o) end
       def visit_String o; quote(o) end
+      def visit_ActiveSupport_Multibyte_Chars o; quote(o) end if defined?(ActiveSupport)
       def visit_Symbol o; quote(o) end
       def visit_Time o; quote(o) end
       def visit_Date o; quote(o) end
