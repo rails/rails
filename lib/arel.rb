@@ -8,6 +8,7 @@ require 'arel/compatibility/wheres'
 #### these are deprecated
 # The Arel::Relation constant is referenced in Rails
 require 'arel/relation'
+require 'arel/expression'
 ####
 
 require 'arel/tree_manager'
@@ -21,7 +22,6 @@ require 'arel/nodes'
 require 'arel/deprecated'
 require 'arel/sql/engine'
 require 'arel/sql_literal'
-require 'arel/expression'
 ####
 
 require 'arel/visitors/to_sql'
