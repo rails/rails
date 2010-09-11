@@ -9,6 +9,15 @@ module Arel
     end
 
     describe 'insert' do
+      it "inserts false" do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new Table.engine
+        manager.insert [[table[:id], false]]
+        manager.to_sql.should be_like %{
+          INSERT INTO "users" ("id") VALUES ('f')
+        }
+      end
+
       it "inserts null" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine

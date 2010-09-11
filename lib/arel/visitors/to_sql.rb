@@ -43,7 +43,7 @@ module Arel
 
       def visit_Arel_Nodes_Values o
         "VALUES (#{o.expressions.map { |value|
-          value ? visit(value) : 'NULL'
+          value.nil? ? 'NULL' : visit(value)
         }.join ', '})"
       end
 
