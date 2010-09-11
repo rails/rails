@@ -218,11 +218,9 @@ module ApplicationTests
     test 'routes are loaded just after initialization' do
       require "#{app_path}/config/application"
 
-      ActiveSupport.on_load(:after_initialize) do
-        ::InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
-      end
-
       app_file 'config/routes.rb', <<-RUBY
+        InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
+
         AppTemplate::Application.routes.draw do
           match 'foo', :to => ::InitializeRackApp
         end
