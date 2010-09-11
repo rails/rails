@@ -461,8 +461,8 @@ class AssertSelectTest < ActionController::TestCase
 
     assert_select_rjs :remove, "test1"
 
-  rescue Assertion
-    assert_equal "No RJS statement that removes 'test1' was rendered.", $!.message
+  rescue Assertion => e
+    assert_equal "No RJS statement that removes 'test1' was rendered.", e.message
   end
 
   def test_assert_select_rjs_for_remove_ignores_block
@@ -493,8 +493,8 @@ class AssertSelectTest < ActionController::TestCase
 
     assert_select_rjs :show, "test1"
 
-  rescue Assertion
-    assert_equal "No RJS statement that shows 'test1' was rendered.", $!.message
+  rescue Assertion => e
+    assert_equal "No RJS statement that shows 'test1' was rendered.", e.message
   end
 
   def test_assert_select_rjs_for_show_ignores_block
@@ -525,8 +525,8 @@ class AssertSelectTest < ActionController::TestCase
 
     assert_select_rjs :hide, "test1"
 
-  rescue Assertion
-    assert_equal "No RJS statement that hides 'test1' was rendered.", $!.message
+  rescue Assertion => e
+    assert_equal "No RJS statement that hides 'test1' was rendered.", e.message
   end
 
   def test_assert_select_rjs_for_hide_ignores_block
@@ -557,8 +557,8 @@ class AssertSelectTest < ActionController::TestCase
 
     assert_select_rjs :toggle, "test1"
 
-  rescue Assertion
-    assert_equal "No RJS statement that toggles 'test1' was rendered.", $!.message
+  rescue Assertion => e
+    assert_equal "No RJS statement that toggles 'test1' was rendered.", e.message
   end
 
   def test_assert_select_rjs_for_toggle_ignores_block

@@ -45,8 +45,8 @@ namespace :db do
             # Create the SQLite database
             ActiveRecord::Base.establish_connection(config)
             ActiveRecord::Base.connection
-          rescue
-            $stderr.puts $!, *($!.backtrace)
+          rescue Exception => e
+            $stderr.puts e, *(e.backtrace)
             $stderr.puts "Couldn't create database for #{config.inspect}"
           end
         end
@@ -91,8 +91,8 @@ namespace :db do
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
           ActiveRecord::Base.establish_connection(config)
-        rescue
-          $stderr.puts $!, *($!.backtrace)
+        rescue Exception => e
+          $stderr.puts e, *(e.backtrace)
           $stderr.puts "Couldn't create database for #{config.inspect}"
         end
       end

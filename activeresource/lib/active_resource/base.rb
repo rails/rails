@@ -589,8 +589,8 @@ module ActiveResource
             def prefix(options={}) "#{prefix_call}" end
           RUBY_EVAL
         end
-      rescue
-        logger.error "Couldn't set prefix: #{$!}\n  #{code}" if logger
+      rescue Exception => e
+        logger.error "Couldn't set prefix: #{e}\n  #{code}" if logger
         raise
       end
 
