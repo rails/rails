@@ -25,6 +25,10 @@ module Arel
         Nodes::Max.new [self], Nodes::SqlLiteral.new('max_id')
       end
 
+      def minimum
+        Nodes::Min.new [self], Nodes::SqlLiteral.new('min_id')
+      end
+
       def average
         Nodes::Avg.new [self], Nodes::SqlLiteral.new('avg_id')
       end

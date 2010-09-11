@@ -94,6 +94,13 @@ module Arel
         end
       end
 
+      describe '#minimum' do
+        it 'should create a Min node' do
+          relation = Table.new(:users)
+          relation[:id].minimum.should be_kind_of Nodes::Min
+        end
+      end
+
       describe '#sum' do
         it 'should create a SUM node' do
           relation = Table.new(:users)

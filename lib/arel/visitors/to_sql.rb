@@ -100,6 +100,11 @@ module Arel
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
+      def visit_Arel_Nodes_Min o
+        "MIN(#{o.expressions.map { |x|
+          visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
+      end
+
       def visit_Arel_Nodes_Avg o
         "AVG(#{o.expressions.map { |x|
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
