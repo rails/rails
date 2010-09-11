@@ -61,8 +61,8 @@ module ActiveSupport
         store_class =
           begin
             require "active_support/cache/#{store}"
-          rescue LoadError
-            raise "Could not find cache store adapter for #{store} (#{$!})"
+          rescue LoadError => e
+            raise "Could not find cache store adapter for #{store} (#{e})"
           else
             ActiveSupport::Cache.const_get(store_class_name)
           end
