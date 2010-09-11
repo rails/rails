@@ -63,6 +63,8 @@ module Arel
     end
 
     def having expr
+      expr = Nodes::SqlLiteral.new(expr) if String === expr
+
       @ctx.having = Nodes::Having.new(expr)
       self
     end

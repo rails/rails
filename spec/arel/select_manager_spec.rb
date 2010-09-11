@@ -26,6 +26,17 @@ module Arel
   end
 
   describe 'select manager' do
+    describe 'backwards compatibility' do
+      describe '#having' do
+        it 'converts strings to SQLLiterals' do
+          table   = Table.new :users
+          mgr = table.from table
+          mgr.having 'foo'
+        mgr.to_sql.should be_like %{ SELECT FROM "users" HAVING foo }
+        end
+      end
+    end
+
     describe 'skip' do
       it 'should add an offset' do
         table   = Table.new :users
