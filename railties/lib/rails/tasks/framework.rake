@@ -60,7 +60,7 @@ namespace :rails do
 
     # desc "Update Prototype javascripts from your current rails install"
     task :javascripts do
-      invoke_from_app_generator :create_prototype_files
+      invoke_from_app_generator :create_javascript_files
     end
 
     # desc "Adds new scripts to the application script/ directory"

@@ -40,8 +40,10 @@ module <%= app_const_base %>
     # config.i18n.default_locale = :de
 
     # JavaScript files you want as :defaults (application.js is always included).
-<% if options[:skip_prototype] -%>
+<% if options[:skip_javascript] -%>
     config.action_view.javascript_expansions[:defaults] = %w()
+<% elsif options[:javascript] == 'jquery' -%>
+    config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
 <% else -%>
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
 <% end -%>
