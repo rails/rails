@@ -32,7 +32,7 @@ module Arel
           table   = Table.new :users
           mgr = table.from table
           mgr.having 'foo'
-        mgr.to_sql.should be_like %{ SELECT FROM "users" HAVING foo }
+          mgr.to_sql.should be_like %{ SELECT FROM "users" HAVING foo }
         end
       end
     end
