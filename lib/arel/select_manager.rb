@@ -50,6 +50,10 @@ module Arel
     end
 
     def from table
+      if String === table
+        return self if @ctx.froms.any? { |x| x.name.to_s == table }
+      end
+
       @ctx.froms << table
       self
     end

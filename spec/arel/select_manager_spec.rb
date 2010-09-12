@@ -27,6 +27,18 @@ module Arel
 
   describe 'select manager' do
     describe 'backwards compatibility' do
+      describe 'from' do
+        it 'ignores strings when table of same name exists' do
+          table   = Table.new :users
+          manager = Arel::SelectManager.new Table.engine
+
+          manager.from table
+          manager.from 'users'
+          manager.project table['id']
+          manager.to_sql.should be_like 'SELECT "users"."id" FROM "users"'
+        end
+      end
+
       describe '#having' do
         it 'converts strings to SQLLiterals' do
           table   = Table.new :users
