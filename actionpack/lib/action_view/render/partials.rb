@@ -71,6 +71,11 @@ module ActionView
   #
   # The :as option may be used when rendering partials.
   # 
+  # Also, you can specify a partial which will be render as a spacer between each element by passing partial name to
+  # +:spacer_template+. The following example will render "advertiser/_ad_divider.erb" between each ad partial.
+  #
+  #   <%= render :partial => "ad", :collection => @advertisements, :spacer_template => "ad_divider" %>
+  #
   # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
   # just keep domain objects, like Active Records, in there.
   #
