@@ -14,7 +14,10 @@ module Arel
       end
 
       def visit_Arel_Nodes_StringJoin o
-        visit o.right
+        [
+          (visit o.left if Nodes::Join === o.left),
+          visit(o.right)
+        ].join ' '
       end
 
       def visit_Arel_Nodes_OuterJoin o
