@@ -1,4 +1,7 @@
 class Object
+  ##
+  # :method: try
+  #
   # Invokes the method identified by the symbol +method+, passing it any arguments
   # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
   #
@@ -19,13 +22,8 @@ class Object
   #   Person.try(:find, 1)
   #   @people.try(:collect) {|p| p.name}
   #--
-  # This method definition below is for rdoc purposes only. The alias_method call
-  # below overrides it as an optimization since +try+ behaves like +Object#send+,
-  # unless called on +NilClass+.
-  def try(method, *args, &block)
-    send(method, *args, &block)
-  end
-  remove_method :try
+  # +try+ behaves like +Object#send+, unless called on +NilClass+.
+
   alias_method :try, :__send__
 end
 
