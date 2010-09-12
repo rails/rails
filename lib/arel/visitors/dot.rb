@@ -98,6 +98,7 @@ module Arel
       alias :visit_Arel_SqlLiteral :visit_String
       alias :visit_Fixnum :visit_String
       alias :visit_Symbol :visit_String
+      alias :visit_Arel_Nodes_SqlLiteral :visit_String
 
       def visit_Hash o
         o.each_with_index do |pair, i|

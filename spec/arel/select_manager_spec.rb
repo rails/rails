@@ -223,6 +223,15 @@ module Arel
         }
         check manager.joins(manager).should == manager.join_sql
       end
+
+      it 'returns string join sql' do
+        table   = Table.new :users
+        aliaz   = table.alias
+        manager = Arel::SelectManager.new Table.engine
+        manager.from Nodes::StringJoin.new(table, 'hello')
+        manager.join_sql.should be_like %{ 'hello' }
+        check manager.joins(manager).should == manager.join_sql
+      end
     end
 
     describe 'order_clauses' do

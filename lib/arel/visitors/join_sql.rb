@@ -13,6 +13,10 @@ module Arel
         o.froms.grep(Nodes::Join).map { |x| visit x }.join ', '
       end
 
+      def visit_Arel_Nodes_StringJoin o
+        visit o.right
+      end
+
       def visit_Arel_Nodes_OuterJoin o
         "OUTER JOIN #{visit o.right} #{visit o.constraint}"
       end
