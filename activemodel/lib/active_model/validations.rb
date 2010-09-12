@@ -100,7 +100,7 @@ module ActiveModel
       #     validate :must_be_friends
       #
       #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
@@ -114,7 +114,7 @@ module ActiveModel
       #     end
       #
       #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, ("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
