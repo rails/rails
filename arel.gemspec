@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/arel/version.rb', __FILE__)
+require 'arel/version'
 
 Gem::Specification.new do |s|
   s.name      = "arel"
