@@ -252,7 +252,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::OuterJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
         manager.join_sql.should be_like %{
-          OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
+          LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
         check manager.joins(manager).should == manager.join_sql
       end

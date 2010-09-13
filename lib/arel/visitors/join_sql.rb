@@ -21,7 +21,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_OuterJoin o
-        "OUTER JOIN #{visit o.right} #{visit o.constraint}"
+        "LEFT OUTER JOIN #{visit o.right} #{visit o.constraint}"
       end
 
       def visit_Arel_Nodes_InnerJoin o
