@@ -363,7 +363,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal post_tags, eager_post_tags
   end
 
-
+  def test_eager_with_has_many_through_association_with_order
+    author_comments = Author.find(authors(:david).id).comments_desc
+    eager_author_comments = Author.find(authors(:david).id, :include => :comments_desc).comments_desc
+    assert_equal eager_author_comments, author_comments
+  end
+  
   def test_eager_with_has_many_through_join_model_with_include
     author_comments = Author.find(authors(:david).id, :include => :comments_with_include).comments_with_include.to_a
     assert_no_queries do
