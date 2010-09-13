@@ -83,13 +83,13 @@ module ActiveSupport #:nodoc:
         super { |h,k| h[k] = [] }
       end
 
-      # return a list of new constants found since the last call to watch_modules
+      # return a list of new constants found since the last call to watch_namespaces
       def new_constants
         constants = []
 
         # Grab the list of namespaces that we're looking for new constants under
         @watching.last.each do |namespace|
-          # Retrieve the constants that were present under the namespace when watch_modules
+          # Retrieve the constants that were present under the namespace when watch_namespaces
           # was originally called
           original_constants = self[namespace].last
 
@@ -115,7 +115,7 @@ module ActiveSupport #:nodoc:
         end
         constants
       ensure
-        # A call to new_constants is always called after a call to watch_modules
+        # A call to new_constants is always called after a call to watch_namespaces
         pop_modules(@watching.pop)
       end
 
