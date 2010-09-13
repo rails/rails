@@ -320,22 +320,27 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          records.each do |record|
-            next if record.destroyed?
+          begin
+            records.each do |record|
+              next if record.destroyed?
 
-            if autosave && record.marked_for_destruction?
-              association.destroy(record)
-            elsif autosave != false && (@new_record_before_save || !record.persisted?)
-              if autosave
-                saved = association.send(:insert_record, record, false, false)
-              else
-                association.send(:insert_record, record)
+              if autosave && record.marked_for_destruction?
+                association.destroy(record)
+              elsif autosave != false && (@new_record_before_save || !record.persisted?)
+                if autosave
+                  saved = association.send(:insert_record, record, false, false)
+                else
+                  association.send(:insert_record, record)
+                end
+              elsif autosave
+                saved = record.save(:validate => false)
               end
-            elsif autosave
-              saved = record.save(:validate => false)
-            end
 
-            raise ActiveRecord::Rollback if saved == false
+              raise ActiveRecord::Rollback if saved == false
+            end
+          rescue
+            records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
+            raise
           end
         end
 
