@@ -328,15 +328,23 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/app.html")
       response = Rails.application.call(env)
-      assert_equal response[2].path, File.join(app_path, "public/app.html")
+      assert_equal rack_body(response[2]), rack_body(File.open(File.join(app_path, "public/app.html")))
 
       env = Rack::MockRequest.env_for("/bukkits/bukkits.html")
       response = Rails.application.call(env)
-      assert_equal response[2].path, File.join(@plugin.path, "public/bukkits.html")
+      assert_equal rack_body(response[2]), rack_body(File.open(File.join(@plugin.path, "public/bukkits.html")))
 
       env = Rack::MockRequest.env_for("/bukkits/file_from_app.html")
       response = Rails.application.call(env)
-      assert_equal response[2].path, File.join(app_path, "public/bukkits/file_from_app.html")
+      assert_equal rack_body(response[2]), rack_body(File.open(File.join(app_path, "public/bukkits/file_from_app.html")))
+    end
+
+    def rack_body(obj)
+      buffer = ""
+      obj.each do |part|
+        buffer << part
+      end
+      buffer
     end
 
     test "shared engine should include application's helpers and own helpers" do
@@ -570,7 +578,8 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/posts/new")
       response = AppTemplate::Application.call(env)
-      assert response[2].body =~ /name="post\[title\]"/
+      p rack_body(response[2])
+      assert rack_body(response[2]) =~ /name="post\[title\]"/
     end
 
     test "creating symlinks" do
