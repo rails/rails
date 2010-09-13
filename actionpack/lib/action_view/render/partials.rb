@@ -28,34 +28,33 @@ module ActionView
   #
   # == The :as and :object options
   #
-  # By default PartialRenderer uses the template name for the local name of the object passed into the template.
-  # These examples are effectively the same:
-  # 
-  #   <%= render :partial => "contract", :locals => { :contract  => @contract } %>
-  # 
+  # By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same
+  # name as the template. So, given
+  #
   #   <%= render :partial => "contract" %>
   #
-  # By specifying the :as option we can change the way the local variable is namedin the template.
-  # These examples are effectively the same:
-  # 
-  #   <%= render :partial => "contract", :as => :agreement
-  # 
-  #   <%= render :partial => "contract", :locals => { :agreement => @contract }
+  # within contract we'll get <tt>@contract</tt> in the local variable +contract+, as if we had written
   #
-  # The :object option can be used to directly specify which object is rendered into the partial.
+  #   <%= render :partial => "contract", :locals => { :contract  => @contract } %>
+  #
+  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
+  # wanted it to be +agreement+ instead of +contract+ we'd do:
+  #
+  #   <%= render :partial => "contract", :as => :agreement %>
+  #
+  # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
+  # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
   # 
-  # Revisiting a previous example we could have written this code.
+  # Revisiting a previous example we could have written this code:
   # 
   #   <%= render :partial => "account", :object => @buyer %>
   #
   #   <% for ad in @advertisements %>
   #     <%= render :partial => "ad", :object => ad %>
   #   <% end %>
-  # 
-  # The :object and :as options can be used together. We might have a partial which we have named genericly,
-  # such as 'form'. Using :object and :as together helps us.
-  # 
-  #   <%= render :partial => "form", :object => @contract, :as => :contract %>
+  #
+  # The <tt>:object</tt> and <tt>:as</tt> options can be used together.
+  #
   # == Rendering a collection of partials
   #
   # The example of partial use describes a familiar pattern where a template needs to iterate over an array and
