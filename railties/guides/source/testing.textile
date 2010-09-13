@@ -247,8 +247,7 @@ h4. Running Tests
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
 <shell>
-$ cd test
-$ ruby unit/post_test.rb
+$ ruby -Itest test/unit/post_test.rb
 
 Loaded suite unit/post_test
 Started
@@ -258,12 +257,12 @@ Finished in 0.023513 seconds.
 1 tests, 1 assertions, 0 failures, 0 errors
 </shell>
 
-This will run all the test methods from the test case.
+This will run all the test methods from the test case. Note that +test_helper.rb+ is in the +test+ directory, hence this directory needs to be added to the load path using the +-I+ switch.
 
 You can also run a particular test method from the test case by using the +-n+ switch with the +test method name+.
 
 <shell>
-$ ruby -Itest test/unit/post_test.rb -n test_the_truth
+$ ruby -Itest test/unit/post_test.rb -n test_truth
 
 Loaded suite unit/post_test
 Started
