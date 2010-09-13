@@ -43,6 +43,7 @@ module Arel
       columns.each do |column|
         # FIXME: backwards compat
         column = Nodes::SqlLiteral.new(column) if String === column
+        column = Nodes::SqlLiteral.new(column.to_s) if Symbol === column
 
         @ctx.groups.push Nodes::Group.new column
       end

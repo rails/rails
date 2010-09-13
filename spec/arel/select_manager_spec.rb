@@ -27,6 +27,18 @@ module Arel
 
   describe 'select manager' do
     describe 'backwards compatibility' do
+      describe 'group' do
+        it 'takes a symbol' do
+          table   = Table.new :users
+          manager = Arel::SelectManager.new Table.engine
+          manager.from table
+          manager.group :foo
+          manager.to_sql.should be_like %{
+          SELECT FROM "users" GROUP BY foo
+          }
+        end
+      end
+
       describe 'from' do
         it 'ignores strings when table of same name exists' do
           table   = Table.new :users
