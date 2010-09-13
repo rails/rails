@@ -1,7 +1,7 @@
 module Arel
   module Nodes
     class SelectCore
-      attr_reader :froms, :projections, :wheres, :groups
+      attr_accessor :froms, :projections, :wheres, :groups
       attr_accessor :having
 
       def initialize
