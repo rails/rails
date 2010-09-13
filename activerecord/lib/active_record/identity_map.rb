@@ -11,19 +11,19 @@ module ActiveRecord
         repositories[current_repository_name] ||= Weakling::WeakHash.new
       end
 
-      def with_repository(name = :default, &block)
+      def with_repository(name = :default)
         old_repository = self.current_repository_name
         self.current_repository_name = name
 
-        block.call(current)
+        yield if block_given?
       ensure
         self.current_repository_name = old_repository
       end
 
-      def without(&block)
+      def without
         old, self.enabled = self.enabled, false
 
-        block.call
+        yield if block_given?
       ensure
         self.enabled = old
       end
