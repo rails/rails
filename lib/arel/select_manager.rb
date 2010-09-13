@@ -95,7 +95,7 @@ module Arel
     def order *expr
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
       @head.orders.concat expr.map { |x|
-        String === x ? Nodes::SqlLiteral.new(x) : x
+        String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
     end

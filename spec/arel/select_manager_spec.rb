@@ -27,6 +27,19 @@ module Arel
 
   describe 'select manager' do
     describe 'backwards compatibility' do
+      describe 'order' do
+        it 'accepts symbols' do
+          table   = Table.new :users
+          manager = Arel::SelectManager.new Table.engine
+          manager.project SqlLiteral.new '*'
+          manager.from table
+          manager.order :foo
+          manager.to_sql.should be_like %{
+          SELECT * FROM "users" ORDER BY foo
+          }
+        end
+      end
+
       describe 'group' do
         it 'takes a symbol' do
           table   = Table.new :users
