@@ -253,4 +253,17 @@ module ActionView
       end
     end
   end
+
+  module AHelperWithInitialize
+    def initialize(*)
+      super
+      @called_initialize = true
+    end
+  end
+
+  class AHelperWithInitializeTest < ActionView::TestCase
+    test "the helper's initialize was actually called" do
+      assert @called_initialize
+    end
+  end
 end
