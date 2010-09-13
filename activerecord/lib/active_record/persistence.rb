@@ -66,7 +66,7 @@ module ActiveRecord
     def delete
       if persisted?
         self.class.delete(id)
-        IdentityMap.remove(self)
+        IdentityMap.remove(self) if IdentityMap.enabled?
       end
       @destroyed = true
       freeze
@@ -76,7 +76,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     def destroy
       if persisted?
-        IdentityMap.remove(self)
+        IdentityMap.remove(self) if IdentityMap.enabled?
         self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
       end
 
@@ -279,7 +279,7 @@ module ActiveRecord
 
       self.id ||= new_id
 
-      IdentityMap.add(self)
+      IdentityMap.add(self) if IdentityMap.enabled?
       @persisted = true
       id
     end
