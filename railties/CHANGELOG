@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added Rack::Cache to the default middleware stack
+
 * Engine is now rack application [Piotr Sarnacki]
 
 * Added middleware stack to Engine [Piotr Sarnacki]
