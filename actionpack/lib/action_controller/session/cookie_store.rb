@@ -101,8 +101,9 @@ module ActionController
 
         session_data = env[ENV_SESSION_KEY]
         options = env[ENV_SESSION_OPTIONS_KEY]
-
-        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.loaded? || options[:expire_after]
+        request = ActionController::Request.new(env)
+        
+        if !(options[:secure] && !request.ssl?) && (!session_data.is_a?(AbstractStore::SessionHash) || session_data.loaded? || options[:expire_after])
           session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.loaded?
 
           persistent_session_id!(session_data)

@@ -6,7 +6,6 @@ class CookieStoreTest < ActionController::IntegrationTest
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
   DispatcherApp = ActionController::Dispatcher.new
-  CookieStoreApp = ActionController::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
 
@@ -60,10 +59,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     end
 
     def rescue_action(e) raise end
-  end
-
-  def setup
-    @integration_session = open_session(CookieStoreApp)
   end
 
   def test_raises_argument_error_if_missing_session_key
@@ -149,6 +144,23 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_does_not_set_secure_cookies_over_http
+    with_test_route_set(:secure => true) do
+      get '/set_session_value'
+      assert_response :success
+      assert_equal nil, headers['Set-Cookie']
+    end
+  end
+
+  def test_does_set_secure_cookies_over_https
+    with_test_route_set(:secure => true) do
+      get '/set_session_value', nil, 'HTTPS' => 'on'
+      assert_response :success
+      assert_equal ["_myapp_session=#{response.body}; path=/; secure; HttpOnly"],
+        headers['Set-Cookie']
     end
   end
 
@@ -272,13 +284,17 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   private
-    def with_test_route_set
+    def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
           map.with_options :controller => "cookie_store_test/test" do |c|
             c.connect "/:action"
           end
         end
+        
+        options = { :key => SessionKey, :secret => SessionSecret }.merge!(options)
+        @integration_session = open_session(ActionController::Session::CookieStore.new(DispatcherApp, options))
+        
         yield
       end
     end

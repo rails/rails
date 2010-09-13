@@ -37,13 +37,6 @@ class MemCacheStoreTest < ActionController::IntegrationTest
 
   begin
     DispatcherApp = ActionController::Dispatcher.new
-    MemCacheStoreApp = ActionController::Session::MemCacheStore.new(
-                         DispatcherApp, :key => '_session_id')
-
-
-    def setup
-      @integration_session = open_session(MemCacheStoreApp)
-    end
 
     def test_setting_and_getting_session_value
       with_test_route_set do
@@ -177,13 +170,17 @@ class MemCacheStoreTest < ActionController::IntegrationTest
   end
 
   private
-    def with_test_route_set
+    def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
           map.with_options :controller => "mem_cache_store_test/test" do |c|
             c.connect "/:action"
           end
         end
+        
+        options = { :key => '_session_id' }.merge!(options)
+        @integration_session = open_session(ActionController::Session::MemCacheStore.new(DispatcherApp, options))
+        
         yield
       end
     end
