@@ -49,6 +49,15 @@ module Arel
       end
     end
 
+    describe 'initialize' do
+      it 'uses alias in sql' do
+        table   = Table.new :users, :engine => Table.engine, :as => 'foo'
+        mgr = table.from table
+        mgr.skip 10
+        mgr.to_sql.should be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
+      end
+    end
+
     describe 'skip' do
       it 'should add an offset' do
         table   = Table.new :users

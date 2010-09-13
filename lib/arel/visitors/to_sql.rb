@@ -139,7 +139,11 @@ module Arel
       end
 
       def visit_Arel_Table o
-        quote_table_name o.name
+        if o.table_alias
+          "#{quote_table_name o.name} #{quote_table_name o.table_alias}"
+        else
+          quote_table_name o.name
+        end
       end
 
       def visit_Arel_Nodes_In o
