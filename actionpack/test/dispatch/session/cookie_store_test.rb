@@ -105,6 +105,23 @@ class CookieStoreTest < ActionController::IntegrationTest
       assert_equal 'foo: nil', response.body
     end
   end
+  
+  def test_does_not_set_secure_cookies_over_http
+    with_test_route_set(:secure => true) do
+      get '/set_session_value'
+      assert_response :success
+      assert_equal nil, headers['Set-Cookie']
+    end
+  end
+  
+  def test_does_set_secure_cookies_over_https
+    with_test_route_set(:secure => true) do
+      get '/set_session_value', nil, 'HTTPS' => 'on'
+      assert_response :success
+      assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
+        headers['Set-Cookie']
+    end
+  end
 
   # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
   SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhciIIYmF6Og9zZXNzaW9uX2lkIiVjZThiMDc1MmE2YWI3YzdhZjNjZGI4YTgwZTZiOWU0Ng==--2bf3af1ae8bd4e52b9ac2099258ace0c380e601c"

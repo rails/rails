@@ -47,6 +47,11 @@ class CookiesTest < ActionController::TestCase
       cookies["user_name"] = { :value => "david", :httponly => true }
       head :ok
     end
+    
+    def authenticate_with_secure
+      cookies["user_name"] = { :value => "david", :secure => true }
+      head :ok
+    end
 
     def set_permanent_cookie
       cookies.permanent[:user_name] = "Jamie"
@@ -126,6 +131,12 @@ class CookiesTest < ActionController::TestCase
   def test_setting_cookie_with_http_only
     get :authenticate_with_http_only
     assert_cookie_header "user_name=david; path=/; HttpOnly"
+    assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+  
+  def test_setting_cookie_with_secure
+    get :authenticate_with_secure
+    assert_cookie_header "user_name=david; path=/; secure"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 

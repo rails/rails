@@ -152,6 +152,10 @@ module ActionDispatch
         options = env[ENV_SESSION_OPTIONS_KEY]
 
         if !session_data.is_a?(AbstractStore::SessionHash) || session_data.loaded? || options[:expire_after]
+          request = ActionDispatch::Request.new(env)
+
+          return response if (options[:secure] && !request.ssl?)
+
           session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.loaded?
 
           sid = options[:id] || generate_sid
@@ -165,7 +169,6 @@ module ActionDispatch
             cookie[:expires] = Time.now + options.delete(:expire_after)
           end
 
-          request = ActionDispatch::Request.new(env)
           set_cookie(request, cookie.merge!(options))
         end
 
