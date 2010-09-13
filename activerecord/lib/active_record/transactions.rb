@@ -247,6 +247,7 @@ module ActiveRecord
       remember_transaction_record_state
       yield
     rescue Exception
+      IdentityMap.remove(self) if IdentityMap.enabled?
       restore_transaction_record_state
       raise
     ensure
