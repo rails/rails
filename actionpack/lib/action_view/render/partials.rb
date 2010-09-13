@@ -69,10 +69,10 @@ module ActionView
   # iteration counter will automatically be made available to the template with a name of the form
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
   #
-  # The :as option may be used when rendering partials.
+  # The <tt>:as</tt> option may be used when rendering partials.
   # 
-  # Also, you can specify a partial which will be render as a spacer between each element by passing partial name to
-  # +:spacer_template+. The following example will render "advertiser/_ad_divider.erb" between each ad partial.
+  # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
+  # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
   #
   #   <%= render :partial => "ad", :collection => @advertisements, :spacer_template => "ad_divider" %>
   #
