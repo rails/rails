@@ -147,6 +147,9 @@ module Rails
 
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        require "action_dispatch/http/rack_cache" if config.action_dispatch.rack_cache
+
+        middleware.use ::Rack::Cache, config.action_dispatch.rack_cache if config.action_dispatch.rack_cache
         middleware.use ::ActionDispatch::Static, config.static_asset_paths if config.serve_static_assets
         middleware.use ::Rack::Lock if !config.allow_concurrency
         middleware.use ::Rack::Runtime
