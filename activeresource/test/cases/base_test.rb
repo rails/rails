@@ -475,6 +475,12 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/ann%20mary/addresses/ann%20mary.xml', StreetAddress.element_path(:'ann mary', 'person_id' => 'ann mary')
   end
 
+  def test_custom_element_path_without_parent_id
+    assert_raise ActiveResource::MissingPrefixParam do
+      assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1)
+    end
+  end
+
   def test_module_element_path
     assert_equal '/sounds/1.xml', Asset::Sound.element_path(1)
   end
@@ -560,6 +566,8 @@ class BaseTest < Test::Unit::TestCase
       assert_equal Set.new([:the_param1]), person_class.prefix_parameters
       person_class.prefix = "the_prefix/:the_param2"
       assert_equal Set.new([:the_param2]), person_class.prefix_parameters
+      person_class.prefix = "the_prefix/:the_param1/other_prefix/:the_param2"
+      assert_equal Set.new([:the_param2, :the_param1]), person_class.prefix_parameters
     end
   end
 
