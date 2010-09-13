@@ -39,9 +39,14 @@ module Arel
         visit_edge o, "distinct"
       end
 
+      def visit_Arel_Nodes_On o
+        visit_edge o, "expr"
+      end
+
       def visit_Arel_Nodes_StringJoin o
         visit_edge o, "left"
         visit_edge o, "right"
+        visit_edge o, "constraint"
       end
       alias :visit_Arel_Nodes_InnerJoin :visit_Arel_Nodes_StringJoin
       alias :visit_Arel_Nodes_OuterJoin :visit_Arel_Nodes_StringJoin
