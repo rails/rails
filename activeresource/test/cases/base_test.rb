@@ -475,7 +475,7 @@ class BaseTest < Test::Unit::TestCase
 
   def test_custom_element_path_without_required_prefix_param
     assert_raise ActiveResource::MissingPrefixParam do
-      assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1)
+      StreetAddress.element_path(1)
     end
   end
 
@@ -515,6 +515,12 @@ class BaseTest < Test::Unit::TestCase
 
   def test_custom_element_path_with_prefix_and_parameters
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, {:person_id => 1}, {:type => 'work'})
+  end
+
+  def test_custom_collection_path_without_required_prefix_param
+    assert_raise ActiveResource::MissingPrefixParam do
+      StreetAddress.collection_path
+    end
   end
 
   def test_custom_collection_path

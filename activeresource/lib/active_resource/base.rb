@@ -665,6 +665,7 @@ module ActiveResource
       #   # => /posts/5/comments.xml?active=1
       #
       def collection_path(prefix_options = {}, query_options = nil)
+        check_prefix_options(prefix_options)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
         "#{prefix(prefix_options)}#{collection_name}.#{format.extension}#{query_string(query_options)}"
       end
