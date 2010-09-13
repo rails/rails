@@ -475,7 +475,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/ann%20mary/addresses/ann%20mary.xml', StreetAddress.element_path(:'ann mary', 'person_id' => 'ann mary')
   end
 
-  def test_custom_element_path_without_parent_id
+  def test_custom_element_path_without_required_prefix_param
     assert_raise ActiveResource::MissingPrefixParam do
       assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1)
     end
