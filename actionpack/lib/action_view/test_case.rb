@@ -74,6 +74,11 @@ module ActionView
           @helper_class ||= determine_default_helper_class(name)
         end
 
+        def new(*)
+          include_helper_modules!
+          super
+        end
+
       private
 
         def include_helper_modules!
@@ -89,7 +94,6 @@ module ActionView
         @output_buffer = ActiveSupport::SafeBuffer.new
         @rendered = ''
 
-        self.class.send(:include_helper_modules!)
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!
       end
