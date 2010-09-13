@@ -166,6 +166,7 @@ module ActiveResource
   #   # GET http://api.people.com:3000/people/999.xml
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   #
+  #
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   #
@@ -193,6 +194,16 @@ module ActiveResource
   #   rescue ActiveResource::ResourceConflict, ActiveResource::ResourceInvalid
   #     redirect_to :action => 'new'
   #   end
+  #
+  # When a GET is requested for a nested resource and you don't provide the prefix_param
+  # an ActiveResource::MissingPrefixParam will be raised.
+  #
+  #  class Comment < ActiveResource::Base
+  #   self.site = "http://someip.com/posts/:post_id/"
+  #  end
+  #
+  #  Comment.find(1)
+  #  # => ActiveResource::MissingPrefixParam: post_id prefix_option is missing
   #
   # === Validation errors
   #
