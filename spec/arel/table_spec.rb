@@ -6,6 +6,12 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'primary_key' do
+      it 'should return an attribute' do
+        check @relation.primary_key.name.should == :id
+      end
+    end
+
     describe 'having' do
       it 'adds a having clause' do
         mgr = @relation.having @relation[:id].eq(10)

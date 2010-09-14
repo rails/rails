@@ -74,6 +74,17 @@ module Arel
       end
     end
 
+    describe 'clone' do
+      it 'creates new cores' do
+        table   = Table.new :users, :engine => Table.engine, :as => 'foo'
+        mgr = table.from table
+        m2 = mgr.clone
+        m2.project "foo"
+
+        check mgr.to_sql.should_not == m2.to_sql
+      end
+    end
+
     describe 'initialize' do
       it 'uses alias in sql' do
         table   = Table.new :users, :engine => Table.engine, :as => 'foo'
@@ -354,6 +365,34 @@ module Arel
     end
 
     describe 'update' do
+      it 'copies limits' do
+        engine  = EngineProxy.new Table.engine
+        table   = Table.new :users
+        manager = Arel::SelectManager.new engine
+        manager.from table
+        manager.take 1
+        manager.update(SqlLiteral.new('foo = bar'))
+
+        engine.executed.last.should be_like %{
+          UPDATE "users" SET foo = bar
+          WHERE "users"."id" IN (SELECT "users"."id" FROM "users" LIMIT 1)
+        }
+      end
+
+      it 'copies order' do
+        engine  = EngineProxy.new Table.engine
+        table   = Table.new :users
+        manager = Arel::SelectManager.new engine
+        manager.from table
+        manager.order :foo
+        manager.update(SqlLiteral.new('foo = bar'))
+
+        engine.executed.last.should be_like %{
+          UPDATE "users" SET foo = bar
+          WHERE "users"."id" IN (SELECT "users"."id" FROM "users" ORDER BY foo)
+        }
+      end
+
       it 'takes a string' do
         engine  = EngineProxy.new Table.engine
         table   = Table.new :users

@@ -7,12 +7,23 @@ module Arel
       um = UpdateManager.new @engine
 
       if Nodes::SqlLiteral === values
-        um.table @ctx.froms.last
+        relation = @ctx.froms.last
       else
-        um.table values.first.first.relation
+        relation = values.first.first.relation
       end
+      um.table relation
       um.set values
-      um.wheres = @ctx.wheres
+
+      if @head.orders.empty? && @head.limit.nil?
+        um.wheres = @ctx.wheres
+      else
+        head             = @head.clone
+        core             = head.cores.first
+        core.projections = [relation.primary_key]
+
+        um.wheres = [Nodes::In.new(relation.primary_key, [head])]
+      end
+
       @engine.connection.update um.to_sql, 'AREL'
     end
 

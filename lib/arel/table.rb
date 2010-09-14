@@ -14,11 +14,16 @@ module Arel
       @columns = nil
       @aliases = []
       @table_alias = nil
+      @primary_key = nil
 
       # Sometime AR sends an :as parameter to table, to let the table know that
       # it is an Alias.  We may want to override new, and return a TableAlias
       # node?
       @table_alias = engine[:as] if Hash === engine
+    end
+
+    def primary_key
+      @primary_key ||= self[@engine.connection.primary_key(name)]
     end
 
     def alias

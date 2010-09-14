@@ -41,6 +41,10 @@ module Arel
         ].compact.join ' '
       end
 
+      def visit_Arel_Nodes_Exists o
+        "EXISTS (#{visit o.select_stmt})"
+      end
+
       def visit_Arel_Nodes_Values o
         "VALUES (#{o.expressions.map { |value|
           value.nil? ? 'NULL' : visit(value)
