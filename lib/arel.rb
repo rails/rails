@@ -1,6 +1,7 @@
 require 'arel/crud'
 
 require 'arel/version'
+require 'arel/expressions'
 require 'arel/table'
 require 'arel/attributes'
 require 'arel/compatibility/wheres'
