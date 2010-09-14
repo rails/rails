@@ -2,6 +2,7 @@ module Arel
   module Nodes
     class TableAlias
       attr_reader :name, :relation, :columns
+      alias :table_alias :name
 
       def initialize name, relation
         @name     = name
