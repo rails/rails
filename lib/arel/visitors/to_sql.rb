@@ -46,8 +46,8 @@ module Arel
       end
 
       def visit_Arel_Nodes_Values o
-        "VALUES (#{o.expressions.map { |value|
-          value.nil? ? 'NULL' : visit(value)
+        "VALUES (#{o.expressions.zip(o.columns).map { |value, column|
+          quote(value, column && column.column)
         }.join ', '})"
       end
 

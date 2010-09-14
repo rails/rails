@@ -27,7 +27,7 @@ module Arel
           @head.columns << column
           values << value
         end
-        @head.values = Nodes::Values.new values
+        @head.values = Nodes::Values.new values, @head.columns
       end
     end
   end
