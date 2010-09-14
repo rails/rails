@@ -190,7 +190,8 @@ module Arel
       end
 
       def visit_Arel_Attributes_Attribute o
-        "#{quote_table_name o.relation.name}.#{quote_column_name o.name}"
+        join_name = o.relation.table_alias || o.relation.name
+        "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end
       alias :visit_Arel_Attributes_Integer :visit_Arel_Attributes_Attribute
       alias :visit_Arel_Attributes_String :visit_Arel_Attributes_Attribute
