@@ -92,7 +92,12 @@ module Arel
         visit_edge o, "left"
         visit_edge o, "right"
       end
-      alias :visit_Arel_Nodes_And :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_And                :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_Or                 :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_NotEqual           :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_GreaterThan        :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_GreaterThanOrEqual :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_Assignment         :visit_Arel_Nodes_Equality
 
       def visit_String o
         @node_stack.last.fields << o
