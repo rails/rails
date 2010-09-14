@@ -43,6 +43,10 @@ module Arel
         visit_edge o, "expr"
       end
 
+      def visit_Arel_Nodes_Values o
+        visit_edge o, "expressions"
+      end
+
       def visit_Arel_Nodes_StringJoin o
         visit_edge o, "left"
         visit_edge o, "right"
