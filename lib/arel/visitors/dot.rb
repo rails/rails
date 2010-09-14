@@ -66,6 +66,7 @@ module Arel
       def visit_Arel_Nodes_SelectStatement o
         visit_edge o, "cores"
         visit_edge o, "limit"
+        visit_edge o, "orders"
       end
 
       def visit_Arel_Nodes_UpdateStatement o
