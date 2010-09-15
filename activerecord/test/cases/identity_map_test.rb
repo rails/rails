@@ -85,8 +85,11 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_loading_new_instance_should_remove_dirt
-    #assert_equal({'name' => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
-    #assert_equal("Swistak Sreberkowiec", swistak.name)
+    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak.name = "Swistak Sreberkowiec"
+
+    assert_equal({'name' => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
+    assert_equal("Swistak Sreberkowiec", swistak.name)
   end
 
   def test_has_many_associations
