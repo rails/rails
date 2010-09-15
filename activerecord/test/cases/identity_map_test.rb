@@ -26,10 +26,13 @@ class IdentityMapTest < ActiveRecord::TestCase
     :posts, :tags, :taggings, :comments, :subscribers
 
   def test_find_id
-    assert_same(
-      Client.find(3),
-      Client.find(3)
-    )
+    assert_same(Client.find(3), Client.find(3))
+  end
+
+  def test_find_id_without_identity_map
+    IdentityMap.without do
+      assert_not_same(Client.find(3), Client.find(3))
+    end
   end
 
   def test_find_pkey
