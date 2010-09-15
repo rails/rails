@@ -17,15 +17,21 @@ module Arel
         [
           (visit o.left if Nodes::Join === o.left),
           visit(o.right)
-        ].join ' '
+        ].compact.join ' '
       end
 
       def visit_Arel_Nodes_OuterJoin o
-        "LEFT OUTER JOIN #{visit o.right} #{visit o.constraint}"
+        [
+          (visit o.left if Nodes::Join === o.left),
+          "LEFT OUTER JOIN #{visit o.right} #{visit o.constraint if o.constraint}"
+        ].compact.join ' '
       end
 
       def visit_Arel_Nodes_InnerJoin o
-        "INNER JOIN #{visit o.right} #{visit o.constraint if o.constraint}"
+        [
+          (visit o.left if Nodes::Join === o.left),
+          "INNER JOIN #{visit o.right} #{visit o.constraint if o.constraint}"
+        ].compact.join ' '
       end
     end
   end
