@@ -30,7 +30,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_find_id_without_identity_map
-    IdentityMap.without do
+    ActiveRecord::IdentityMap.without do
       assert_not_same(Client.find(3), Client.find(3))
     end
   end
@@ -247,4 +247,18 @@ class IdentityMapTest < ActiveRecord::TestCase
     Developer.joins(', projects').each { |d| assert d.readonly? }
     Developer.joins(', projects').readonly(false).each { |d| assert d.readonly? }
   end
+
+  def test_reload_object_if_save_failed
+    developer = Developer.first
+    developer.salary = 0
+
+    assert !developer.save
+
+    same_developer = Developer.first
+
+    assert_not_same  developer, same_developer
+    assert_not_equal 0, same_developer.salary
+    assert_not_equal developer.salary, same_developer.salary
+  end
+
 end

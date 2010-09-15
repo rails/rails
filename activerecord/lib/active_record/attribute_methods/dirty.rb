@@ -21,6 +21,8 @@ module ActiveRecord
         if status = super
           @previously_changed = changes
           @changed_attributes.clear
+        elsif IdentityMap.enabled?
+          IdentityMap.remove(self)
         end
         status
       end
