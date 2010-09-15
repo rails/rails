@@ -78,14 +78,23 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "schema should accept a simple hash" do
-    new_schema = {'age' => 'integer', 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
 
     assert_nothing_raised { Person.schema = new_schema }
     assert_equal new_schema, Person.schema
   end
 
   test "schema should accept a hash with simple values" do
-    new_schema = {'age' => 'integer', 'name' => 'string', 'height' => 'float', 'mydatetime' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     assert_nothing_raised { Person.schema = new_schema }
     assert_equal new_schema, Person.schema
@@ -109,7 +118,12 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "schema should accept nil and remove the schema" do
-    new_schema = {'age' => 'integer', 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
     assert_nothing_raised { Person.schema = new_schema }
     assert_equal new_schema, Person.schema # sanity check
 
@@ -120,7 +134,12 @@ class SchemaTest < ActiveModel::TestCase
 
 
   test "schema should be with indifferent access" do
-    new_schema = {:age => :integer, 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
     new_schema_syms = new_schema.keys
 
     assert_nothing_raised { Person.schema = new_schema }
@@ -156,7 +175,12 @@ class SchemaTest < ActiveModel::TestCase
 
   test "defining a schema should return it when asked" do
     assert Person.schema.blank?, "should have a blank class schema"
-    new_schema = {'name' => 'string', 'age' => 'integer', 'height' => 'float', 'weight' => 'float'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
     assert_nothing_raised {
       Person.schema = new_schema
       assert_equal new_schema, Person.schema, "should have saved the schema on the class"
@@ -167,7 +191,11 @@ class SchemaTest < ActiveModel::TestCase
   test "defining a schema, then fetching a model should still match the defined schema" do
     # sanity checks
     assert Person.schema.blank?, "should have a blank class schema"
-    new_schema = {'name' => 'string', 'age' => 'integer', 'height' => 'float', 'weight' => 'float'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     matz = Person.find(1)
     assert !matz.schema.blank?, "should have some sort of schema on an instance variable"
@@ -368,12 +396,16 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "setting schema should set known attributes on class and instance" do
-    new_schema = {'age' => 'integer', 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     assert_nothing_raised { Person.schema = new_schema }
 
-    assert_equal new_schema.keys, Person.known_attributes
-    assert_equal new_schema.keys, Person.new.known_attributes
+    assert_equal new_schema.keys.sort, Person.known_attributes.sort
+    assert_equal new_schema.keys.sort, Person.new.known_attributes.sort
   end
 
   test "known attributes on a fetched resource should return all the attributes of the instance" do
@@ -401,7 +433,11 @@ class SchemaTest < ActiveModel::TestCase
 
   test "setting schema then fetching should add schema attributes to the intance attributes" do
     # an attribute in common with fetched instance and one that isn't
-    new_schema = {'name' => 'string', 'my_strange_attribute' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     assert_nothing_raised { Person.schema = new_schema }
 
