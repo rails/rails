@@ -679,10 +679,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.order(Post.arel_table[:title]).all, Post.order("title").all
   end
 
-  def test_relations_limit_with_conditions_or_limit
-    assert_equal Post.limit(2).size, Post.limit(2).all.size
-  end
-
   def test_order_with_find_with_order
     assert_equal 'zyke', Car.order('name desc').find(:first, :order => 'id').name
   end

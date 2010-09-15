@@ -1,7 +1,19 @@
 *Rails 3.1.0 (unreleased)*
 
-* No changes
+* The following code:
 
+    Model.limit(10).scoping { Model.count }
+
+  now generates the following SQL:
+
+    SELECT COUNT(*) FROM models LIMIT 10
+
+  This may not return what you want.  Instead, you may with to do something
+  like this:
+
+    Model.limit(10).scoping { Model.all.size }
+
+  [Aaron Patterson]
 
 *Rails 3.0.0 (August 29, 2010)*
 
