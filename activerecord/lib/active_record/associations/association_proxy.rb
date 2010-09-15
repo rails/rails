@@ -110,6 +110,7 @@ module ActiveRecord
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
+        IdentityMap.remove(@target) if defined?(@target) && @target && IdentityMap.enabled?
         @target = nil
       end
 
