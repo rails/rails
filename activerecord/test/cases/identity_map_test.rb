@@ -274,4 +274,17 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_not_equal developer.salary, same_developer.salary
   end
 
+  def test_reload_object_if_update_attributes_fails
+    developer = Developer.first
+    developer.salary = 0
+
+    assert !developer.update_attributes(:salary => 0)
+
+    same_developer = Developer.first
+
+    assert_not_same  developer, same_developer
+    assert_not_equal 0, same_developer.salary
+    assert_not_equal developer.salary, same_developer.salary
+  end
+
 end
