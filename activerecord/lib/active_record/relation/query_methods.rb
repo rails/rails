@@ -222,7 +222,7 @@ module ActiveRecord
     def build_joins(relation, joins)
       association_joins = []
 
-      joins = @joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
+      joins = joins.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
 
       joins.each do |join|
         association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
