@@ -252,8 +252,11 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? and (@owner.persisted? || foreign_key_present)
-            @target = find_target
+          if !loaded? and (!@owner.persisted? || foreign_key_present)
+            if IdentityMap.enabled?
+              @target = IdentityMap.get(@reflection.class_name, @owner[@reflection.association_foreign_key])
+            end
+            @target ||= find_target
           end
 
           @loaded = true

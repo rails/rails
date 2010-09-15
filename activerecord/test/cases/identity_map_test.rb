@@ -287,4 +287,22 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_not_equal developer.salary, same_developer.salary
   end
 
+  def test_owner_object_is_associated_from_identity_map
+    post = Post.find(1)
+    comment = post.comments.first
+
+    assert_no_queries do
+      comment.post
+    end
+    assert_same post, comment.post
+  end
+
+  def test_associated_object_are_assigned_from_identity_map
+    post = Post.find(1)
+
+    post.comments.each do |comment|
+      assert_same post, comment.post
+      assert_equal post.object_id, comment.post.target.object_id
+    end
+  end
 end
