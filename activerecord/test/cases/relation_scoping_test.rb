@@ -161,7 +161,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_merge_inner_scope_has_priority
     Developer.limit(5).scoping do
       Developer.limit(10).scoping do
-        assert_equal 10, Developer.count
+        assert_equal 10, Developer.all.size
       end
     end
   end
