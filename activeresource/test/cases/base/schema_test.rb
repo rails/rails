@@ -8,57 +8,12 @@ require "fixtures/street_address"
 ########################################################################
 class SchemaTest < ActiveModel::TestCase
   def setup
-    @matz  = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
-    @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
-    @greg  = { :id => 3, :name => 'Greg' }.to_xml(:root => 'person')
-    @addy  = { :id => 1, :street => '12345 Street', :country => 'Australia' }.to_xml(:root => 'address')
-    @default_request_headers = { 'Content-Type' => 'application/xml' }
-    @rick = { :name => "Rick", :age => 25 }.to_xml(:root => "person")
-    @people = [{ :id => 1, :name => 'Matz' }, { :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @people_david = [{ :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @addresses = [{ :id => 1, :street => '12345 Street', :country => 'Australia' }].to_xml(:root => 'addresses')
-
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.xml",                {}, @matz
-      mock.get    "/people/2.xml",                {}, @david
-      mock.get    "/people/Greg.xml",             {}, @greg
-      mock.get    "/people/4.xml",                {'key' => 'value'}, nil, 404
-      mock.get    "/people/5.xml",                {}, @rick
-      mock.put    "/people/1.xml",                {}, nil, 204
-      mock.delete "/people/1.xml",                {}, nil, 200
-      mock.delete "/people/2.xml",                {}, nil, 400
-      mock.get    "/people/99.xml",               {}, nil, 404
-      mock.post   "/people.xml",                  {}, @rick, 201, 'Location' => '/people/5.xml'
-      mock.get    "/people.xml",                  {}, @people
-      mock.get    "/people/1/addresses.xml",      {}, @addresses
-      mock.get    "/people/1/addresses/1.xml",    {}, @addy
-      mock.get    "/people/1/addresses/2.xml",    {}, nil, 404
-      mock.get    "/people/2/addresses/1.xml",    {}, nil, 404
-      mock.get    "/people/Greg/addresses/1.xml", {}, @addy
-      mock.put    "/people/1/addresses/1.xml",    {}, nil, 204
-      mock.delete "/people/1/addresses/1.xml",    {}, nil, 200
-      mock.post   "/people/1/addresses.xml",      {}, nil, 201, 'Location' => '/people/1/addresses/5'
-      mock.get    "/people//addresses.xml",       {}, nil, 404
-      mock.get    "/people//addresses/1.xml",     {}, nil, 404
-      mock.put    "/people//addressaddresseses/1.xml",     {}, nil, 404
-      mock.delete "/people//addresses/1.xml",     {}, nil, 404
-      mock.post   "/people//addresses.xml",       {}, nil, 404
-      mock.head   "/people/1.xml",                {}, nil, 200
-      mock.head   "/people/Greg.xml",             {}, nil, 200
-      mock.head   "/people/99.xml",               {}, nil, 404
-      mock.head   "/people/1/addresses/1.xml",    {}, nil, 200
-      mock.head   "/people/1/addresses/2.xml",    {}, nil, 404
-      mock.head   "/people/2/addresses/1.xml",    {}, nil, 404
-      mock.head   "/people/Greg/addresses/1.xml", {}, nil, 200
-    end
-
-    Person.user = nil
-    Person.password = nil
+    setup_response # find me in abstract_unit
   end
+
   def teardown
     Person.schema = nil # hack to stop test bleedthrough...
   end
-
 
   #####################################################
   # Passing in a schema directly and returning it
