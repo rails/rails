@@ -219,7 +219,7 @@ class MethodScopingTest < ActiveRecord::TestCase
     new_comment = nil
 
     VerySpecialComment.send(:with_scope, :create => { :post_id => 1 }) do
-      assert_equal({:post_id => 1}, VerySpecialComment.scoped.send(:scope_for_create))
+      assert_equal({:post_id => 1, :type => 'VerySpecialComment' }, VerySpecialComment.scoped.send(:scope_for_create))
       new_comment = VerySpecialComment.create :body => "Wonderful world"
     end
 

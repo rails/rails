@@ -474,4 +474,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       Author.belongs_to :special_author_address, :dependent => :restrict
     end
   end
+
+  def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
+    new_firm = accounts(:signals37).build_firm(:name => 'Apple')
+    assert_equal new_firm.name, "Apple"
+  end
 end
