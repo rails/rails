@@ -211,7 +211,7 @@ module ActionView
       # If you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
-      #   <%= form_for(@post, :as => :client do |f| %>
+      #   <%= form_for(@post, :as => :client) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -228,8 +228,8 @@ module ActionView
       #    ...
       #   <% end %>
       #
-      # Where +@document = Document.find(params[:id])+ and
-      # +@comment = Comment.new+.
+      # Where <tt>@document = Document.find(params[:id])</tt> and
+      # <tt>@comment = Comment.new</tt>.
       #
       # === Unobtrusive JavaScript
       #
