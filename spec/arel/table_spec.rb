@@ -147,13 +147,6 @@ module Arel
         end
       end
 
-      describe 'when table does not exist' do
-        it 'returns nil' do
-          table = Table.new(:foooo)
-          table[:id].should be_nil
-        end
-      end
-
       ### FIXME: this seems like a bad requirement.
       #describe 'when given an', Attribute do
       #  it "returns the attribute if the attribute is within the relation" do

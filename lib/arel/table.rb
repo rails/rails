@@ -88,8 +88,6 @@ module Arel
     end
 
     def [] name
-      return nil unless @engine.connection.table_exists?(@name)
-
       name = name.to_sym
       columns.find { |column| column.name == name }
     end
