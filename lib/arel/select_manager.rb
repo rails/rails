@@ -143,8 +143,12 @@ module Arel
       right = exprs.pop
       left  = exprs.pop
 
+      right = Nodes::SqlLiteral.new(right) if String === right
+
       right = Nodes::And.new left, right
-      exprs.reverse.inject(right) { |memo,expr| Nodes::And.new(expr, memo) }
+      exprs.reverse.inject(right) { |memo,expr|
+        Nodes::And.new(expr, memo)
+      }
     end
   end
 end
