@@ -1255,4 +1255,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     EOF
   end
+
+  def test_attributes_are_being_set_when_initialized_from_has_many_association_with_where_clause
+    new_comment = posts(:welcome).comments.where(:body => "Some content").build
+    assert_equal new_comment.body, "Some content"
+  end
+
+  def test_attributes_are_being_set_when_initialized_from_has_many_association_with_multiple_where_clauses
+    new_comment = posts(:welcome).comments.where(:body => "Some content").where(:type => 'SpecialComment').build
+    assert_equal new_comment.body, "Some content"
+    assert_equal new_comment.type, "SpecialComment"
+    assert_equal new_comment.post_id, posts(:welcome).id
+  end
 end

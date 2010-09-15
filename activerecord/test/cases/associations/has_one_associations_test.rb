@@ -326,4 +326,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert       !account.new_record?
     assert_equal 500, account.credit_limit
   end
+
+  def test_attributes_are_being_set_when_initialized_from_has_one_association_with_where_clause
+    new_account = companies(:first_firm).build_account(:firm_name => 'Account')
+    assert_equal new_account.firm_name, "Account"
+  end
 end

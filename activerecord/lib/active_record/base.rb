@@ -1384,10 +1384,7 @@ MSG
 
         ensure_proper_type
 
-        if scope = self.class.send(:current_scoped_methods)
-          create_with = scope.scope_for_create
-          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
-        end
+        populate_with_current_scope_attributes
         self.attributes = attributes unless attributes.nil?
 
         result = yield self if block_given?
@@ -1416,10 +1413,7 @@ MSG
         @new_record = true
         ensure_proper_type
 
-        if scope = self.class.send(:current_scoped_methods)
-          create_with = scope.scope_for_create
-          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
-        end
+        populate_with_current_scope_attributes
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
@@ -1807,6 +1801,13 @@ MSG
       def object_from_yaml(string)
         return string unless string.is_a?(String) && string =~ /^---/
         YAML::load(string) rescue string
+      end
+
+      def populate_with_current_scope_attributes
+        if scope = self.class.send(:current_scoped_methods)
+          create_with = scope.scope_for_create
+          create_with.each { |att,value| self.respond_to?(:"#{att}=") && self.send("#{att}=", value) } if create_with
+        end
       end
   end
 
