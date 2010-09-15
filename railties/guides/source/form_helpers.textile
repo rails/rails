@@ -222,7 +222,7 @@ end
 The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks like this:
 
 <erb>
-<%= form_for :article, @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
+<%= form_for @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, :size => "60x12" %>
   <%= submit_tag "Create" %>
@@ -253,7 +253,7 @@ The helper methods called on the form builder are identical to the model object 
 You can create a similar binding without actually creating  +&lt;form&gt;+ tags with the +fields_for+ helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:
 
 <erb>
-<%= form_for :person, @person, :url => { :action => "create" } do |person_form| %>
+<%= form_for @person, :url => { :action => "create" } do |person_form| %>
   <%= person_form.text_field :name %>
   <%= fields_for @person.contact_detail do |contact_details_form| %>
     <%= contact_details_form.text_field :phone_number %>

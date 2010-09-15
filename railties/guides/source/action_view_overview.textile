@@ -654,7 +654,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 
 <ruby>
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
-<%= form_for :person, @person, :url => { :action => "create" } do |f| %>
+<%= form_for @person, :url => { :action => "create" } do |f| %>
   <%= f.text_field :first_name %>
   <%= f.text_field :last_name %>
   <%= submit_tag 'Create' %>
