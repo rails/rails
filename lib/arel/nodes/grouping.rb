@@ -1,11 +1,10 @@
 module Arel
   module Nodes
-    class Binary < Arel::Nodes::Node
-      attr_accessor :left, :right
+    class Grouping < Arel::Nodes::Node
+      attr_accessor :expr
 
-      def initialize left, right
-        @left  = left
-        @right = right
+      def initialize expression
+        @expr = expression
       end
 
       # FIXME: this method should go away.  I don't like people calling

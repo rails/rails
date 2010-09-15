@@ -34,8 +34,8 @@ module Arel
           left  = attr.eq(10)
           right = attr.eq(11)
           node  = left.or right
-          check node.left.should == left
-          check node.right.should == right
+          check node.expr.left.should == left
+          check node.expr.right.should == right
         end
       end
 

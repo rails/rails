@@ -84,6 +84,10 @@ module Arel
       def visit_Arel_Nodes_Lock o
       end
 
+      def visit_Arel_Nodes_Grouping o
+        "(#{visit o.expr})"
+      end
+
       def visit_Arel_Nodes_Group o
         visit o.expr
       end
