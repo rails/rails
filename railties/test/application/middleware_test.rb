@@ -19,6 +19,33 @@ module ApplicationTests
       boot!
 
       assert_equal [
+        "ActionDispatch::Static",
+        "Rack::Lock",
+        "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
+        "Rails::Rack::Logger",
+        "ActionDispatch::ShowExceptions",
+        "ActionDispatch::RemoteIp",
+        "Rack::Sendfile",
+        "ActionDispatch::Callbacks",
+        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
+        "ActiveRecord::QueryCache",
+        "ActionDispatch::Cookies",
+        "ActionDispatch::Session::CookieStore",
+        "ActionDispatch::Flash",
+        "ActionDispatch::ParamsParser",
+        "Rack::MethodOverride",
+        "ActionDispatch::Head",
+        "ActionDispatch::BestStandardsSupport"
+      ], middleware
+    end
+
+    test "Rack::Cache is present when action_controller.perform_caching is set" do
+      add_to_config "config.action_controller.perform_caching = true"
+
+      boot!
+
+      assert_equal [
         "Rack::Cache",
         "ActionDispatch::Static",
         "Rack::Lock",
@@ -82,24 +109,24 @@ module ApplicationTests
     test "insert middleware after" do
       add_to_config "config.middleware.insert_after ActionDispatch::Static, Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.third
+      assert_equal "Rack::Config", middleware.second
     end
 
     test "RAILS_CACHE does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
-      assert_equal "Rack::Runtime", middleware.fourth
+      assert_equal "Rack::Runtime", middleware.third
     end
 
     test "RAILS_CACHE does respond to middleware" do
       boot!
-      assert_equal "Rack::Runtime", middleware.fifth
+      assert_equal "Rack::Runtime", middleware.fourth
     end
 
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.second
+      assert_equal "Rack::Config", middleware.first
     end
 
     # x_sendfile_header middleware

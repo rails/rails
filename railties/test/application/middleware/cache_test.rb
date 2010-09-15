@@ -24,7 +24,7 @@ module ApplicationTests
     end
 
     def simple_controller
-      controller :foo, <<-RUBY
+      controller :expires, <<-RUBY
         class ExpiresController < ApplicationController
           def expires_header
             expires_in 10, :public => !params[:private]
@@ -53,6 +53,20 @@ module ApplicationTests
           match ':controller(/:action)'
         end
       RUBY
+    end
+
+    def test_cache_is_disabled_in_dev_mode
+      simple_controller
+      app("development")
+
+      get "/expires/expires_header"
+      assert_nil last_response.headers['X-Rack-Cache']
+
+      body = last_response.body
+
+      get "/expires/expires_header"
+      assert_nil last_response.headers['X-Rack-Cache']
+      assert_not_equal body, last_response.body
     end
 
     def test_cache_works_with_expires
