@@ -222,17 +222,12 @@ module Arel
       def visit_BigDecimal o; quote(o) end
       def visit_FalseClass o; quote(o) end
 
-      DISPATCH = {}
-      def visit object
-        send "visit_#{object.class.name.gsub('::', '_')}", object
-        #send DISPATCH[object.class], object
+      DISPATCH = Hash.new do |hash, klass|
+        hash[klass] = "visit_#{klass.name.gsub('::', '_')}"
       end
 
-      private_instance_methods(false).each do |method|
-        method = method.to_s
-        next unless method =~ /^visit_(.*)$/
-        const = $1.split('_').inject(Object) { |m,s| m.const_get s }
-        DISPATCH[const] = method
+      def visit object
+        send DISPATCH[object.class], object
       end
 
       def quote value, column = nil
