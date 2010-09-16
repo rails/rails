@@ -1,22 +1,10 @@
 require "isolation/abstract_unit"
 require "railties/shared_tests"
 require 'stringio'
+require 'active_support/core_ext/kernel/reporting'
 
 module RailtiesTest
   class EngineTest < Test::Unit::TestCase
-    # TODO: it's copied from generators/test_case, maybe make a module with such helpers?
-    def capture(stream)
-      begin
-        stream = stream.to_s
-        eval "$#{stream} = StringIO.new"
-        yield
-        result = eval("$#{stream}").string
-      ensure
-        eval("$#{stream} = #{stream.upcase}")
-      end
-
-      result
-    end
 
     include ActiveSupport::Testing::Isolation
     include SharedTests

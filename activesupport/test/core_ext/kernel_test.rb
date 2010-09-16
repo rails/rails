@@ -52,6 +52,11 @@ class KernelTest < Test::Unit::TestCase
     class << o; @x = 1; end
     assert_equal 1, o.class_eval { @x }
   end
+  
+  def test_capture
+    assert_equal 'STDERR', capture(:stderr) {$stderr.print 'STDERR'}
+    assert_equal 'STDOUT', capture(:stdout) {print 'STDOUT'}
+  end
 end
 
 class KernelSuppressTest < Test::Unit::TestCase
