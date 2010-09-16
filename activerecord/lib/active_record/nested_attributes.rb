@@ -323,7 +323,7 @@ module ActiveRecord
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
         assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
 
-      elsif attributes['id']
+      elsif not attributes['id'].blank?
         existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
         assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
         self.send(association_name.to_s+'=', existing_record)
