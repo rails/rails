@@ -7,7 +7,7 @@ module ActiveModel #:nodoc:
   # == Active Model Validator
   #
   # A simple base class that can be used along with
-  # +ActiveModel::Validations::ClassMethods.validates_with+
+  # ActiveModel::Validations::ClassMethods.validates_with
   #
   #   class Person
   #     include ActiveModel::Validations
@@ -42,7 +42,7 @@ module ActiveModel #:nodoc:
   #     end
   #   end
   #
-  # To cause a validation error, you must add to the <tt>record<tt>'s errors directly
+  # To cause a validation error, you must add to the <tt>record</tt>'s errors directly
   # from within the validators message
   #
   #   class MyValidator < ActiveModel::Validator
