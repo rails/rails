@@ -283,7 +283,7 @@ module ActiveRecord
           through_records.flatten!
         else
           options = {}
-          options[:include] = reflection.options[:include] || reflection.options[:source] if reflection.options[:conditions]
+          options[:include] = reflection.options[:include] || reflection.options[:source] if reflection.options[:conditions] || reflection.options[:order]
           options[:order] = reflection.options[:order]
           options[:conditions] = reflection.options[:conditions]
           records.first.class.preload_associations(records, through_association, options)
