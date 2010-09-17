@@ -27,7 +27,9 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes_reloader.paths << File.expand_path('../../info_routes.rb', __FILE__)
+          app.routes.append do
+            match '/rails/info/properties' => "rails/info#properties"
+          end
         end
       end
 

@@ -59,7 +59,6 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.app.controllers << builtin_controller if builtin_controller
           paths.config.database     "config/database.yml"
           paths.config.environment  "config/environment.rb"
           paths.lib.templates       "lib/templates"
@@ -99,10 +98,6 @@ module Rails
             :memory_store
           end
         end
-      end
-
-      def builtin_controller
-        File.expand_path('../info_routes', __FILE__) if Rails.env.development?
       end
 
       def log_level
