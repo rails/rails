@@ -6,8 +6,8 @@ module AbstractController
     class ControllerRenderer < AbstractController::Base
       include AbstractController::Rendering
 
-      def _prefix
-        "renderer"
+      def _prefixes
+        %w[renderer]
       end
 
       self.view_paths = [ActionView::FixtureResolver.new(

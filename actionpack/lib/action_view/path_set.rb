@@ -11,15 +11,19 @@ module ActionView #:nodoc:
     end
 
     def find(*args)
-      find_all(*args).first || raise(MissingTemplate.new(self, "#{args[1]}/#{args[0]}", args[3], args[2]))
+      template = find_all(*args).first
+      template or raise MissingTemplate.new(self, "{#{args[1].join(',')},}/#{args[0]}", args[3], args[2])
     end
 
-    def find_all(*args)
-      each do |resolver|
-        templates = resolver.find_all(*args)
-        return templates unless templates.empty?
+    def find_all(path, prefixes = [], *args)
+      templates = []
+      prefixes.each do |prefix|
+        each do |resolver|
+          templates << resolver.find_all(path, prefix, *args)
+        end
+        # return templates unless templates.flatten!.empty? XXX this was original behavior; turns this method into find_some, but probably makes it faster
       end
-      []
+      templates.flatten
     end
 
     def exists?(*args)

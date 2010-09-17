@@ -114,9 +114,17 @@ module AbstractController
       view_context.render(options)
     end
 
-    # The prefix used in render "foo" shortcuts.
-    def _prefix
-      controller_path
+    # The prefixes used in render "foo" shortcuts.
+    def _prefixes
+      prefixes = [controller_path]
+      parent_controller = self.class.superclass
+
+      until parent_controller.abstract?
+        prefixes << parent_controller.controller_path
+        parent_controller = parent_controller.superclass
+      end
+
+      prefixes
     end
 
     private
@@ -156,7 +164,7 @@ module AbstractController
       end
 
       if (options.keys & [:partial, :file, :template, :once]).empty?
-        options[:prefix] ||= _prefix
+        options[:prefixes] ||= _prefixes
       end
 
       options[:template] ||= (options[:action] || action_name).to_s
