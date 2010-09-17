@@ -242,12 +242,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts[0].author}
   end
 
-  # Second search should not change read only status for collection
-  def test_find_with_joins_option_implies_readonly
-    Developer.joins(', projects').each { |d| assert d.readonly? }
-    Developer.joins(', projects').readonly(false).each { |d| assert d.readonly? }
-  end
-
   def test_reload_object_if_save_failed
     developer = Developer.first
     developer.salary = 0
@@ -304,5 +298,31 @@ class IdentityMapTest < ActiveRecord::TestCase
       assert_same post, comment.post
       assert_equal post.object_id, comment.post.target.object_id
     end
+  end
+
+  def test_find_using_identity_map_respects_readonly_when_loading_associated_object_first
+    author  = Author.first
+    readonly_comment = author.readonly_comments.first
+
+    comment = Comment.first
+    assert !comment.readonly?
+
+    assert readonly_comment.readonly?
+
+    assert_raise(ActiveRecord::ReadOnlyRecord) {readonly_comment.save}
+    assert comment.save
+  end
+
+  def test_find_using_identity_map_respects_readonly
+    comment = Comment.first
+    assert !comment.readonly?
+
+    author  = Author.first
+    readonly_comment = author.readonly_comments.first
+
+    assert readonly_comment.readonly?
+
+    assert_raise(ActiveRecord::ReadOnlyRecord) {readonly_comment.save}
+    assert comment.save
   end
 end

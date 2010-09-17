@@ -61,7 +61,15 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+      readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+
+      @records = if readonly
+        IdentityMap.without do
+          eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+        end
+      else
+        eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+      end
 
       preload = @preload_values
       preload +=  @includes_values unless eager_loading?
@@ -69,7 +77,6 @@ module ActiveRecord
 
       # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
       # are JOINS and no explicit SELECT.
-      readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
       @records.each { |record| record.readonly! } if readonly
 
       @loaded = true
