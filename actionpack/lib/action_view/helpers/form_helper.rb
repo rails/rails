@@ -317,8 +317,11 @@ module ActionView
         options[:html] ||= {}
         options[:html][:remote] = options.delete(:remote)
 
-        output  = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
-        output << fields_for(object_name, object, options, &proc)
+        builder = instantiate_builder(object_name, object, options, &proc)
+        fields_for = capture(builder, &proc)
+        default_options = builder.multipart? ? { :multipart => true } : {}
+        output = form_tag(options.delete(:url) || {}, default_options.merge!(options.delete(:html) || {}))
+        output << fields_for
         output.safe_concat('</form>')
       end
 
@@ -529,22 +532,7 @@ module ActionView
       #     <% end %>
       #   <% end %>
       def fields_for(record, record_object = nil, options = nil, &block)
-        raise ArgumentError, "Missing block" unless block_given?
-
-        options, record_object = record_object, nil if record_object.is_a?(Hash)
-        options ||= {}
-
-        case record
-        when String, Symbol
-          object = record_object
-          object_name = record
-        else
-          object = record
-          object_name = ActiveModel::Naming.param_key(object)
-        end
-
-        builder = options[:builder] || ActionView::Base.default_form_builder
-        capture(builder.new(object_name, object, self, options, block), &block)
+        capture(instantiate_builder(record, record_object, options, &block), &block)
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -848,6 +836,27 @@ module ActionView
       def range_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("range", options)
       end
+
+      private
+
+        def instantiate_builder(record, record_object = nil, options = nil, &block)
+          raise ArgumentError, "Missing block" unless block_given?
+
+          options, record_object = record_object, nil if record_object.is_a?(Hash)
+          options ||= {}
+
+          case record
+          when String, Symbol
+            object = record_object
+            object_name = record
+          else
+            object = record
+            object_name = ActiveModel::Naming.param_key(object)
+          end
+
+          builder = options[:builder] || ActionView::Base.default_form_builder
+          builder.new(object_name, object, self, options, block)
+        end
     end
 
     module InstanceTagMethods #:nodoc:
@@ -1112,6 +1121,9 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
+      attr_reader :multipart
+      alias :multipart? :multipart
+
       def self.model_name
         @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
       end
@@ -1131,9 +1143,10 @@ module ActionView
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
           end
         end
+        @multipart = nil
       end
 
-      (field_helpers - %w(label check_box radio_button fields_for hidden_field)).each do |selector|
+      (field_helpers - %w(label check_box radio_button fields_for hidden_field file_field)).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
@@ -1197,6 +1210,10 @@ module ActionView
         @template.hidden_field(@object_name, method, objectify_options(options))
       end
 
+      def file_field(method, options = {})
+        @multipart = true
+        @template.file_field(@object_name, method, objectify_options(options))
+      end
       # Add the submit button for the given form. When no value is given, it checks
       # if the object is a new resource or not to create the proper label:
       #
