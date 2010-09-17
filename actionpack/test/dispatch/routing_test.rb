@@ -2152,6 +2152,39 @@ private
   end
 end
 
+class TestAppendingRoutes < ActionController::IntegrationTest
+  def simple_app(resp)
+    lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
+  end
+
+  setup do
+    s = self
+    @app = ActionDispatch::Routing::RouteSet.new
+    @app.append do
+      match '/hello'   => s.simple_app('fail')
+      match '/goodbye' => s.simple_app('goodbye')
+    end
+
+    @app.draw do
+      match '/hello' => s.simple_app('hello')
+    end
+  end
+
+  def test_goodbye_should_be_available
+    get '/goodbye'
+    assert_equal 'goodbye', @response.body
+  end
+
+  def test_hello_should_not_be_overwritten
+    get '/hello'
+    assert_equal 'hello', @response.body
+  end
+
+  def test_missing_routes_are_still_missing
+    get '/random'
+    assert_equal 404, @response.status
+  end
+end
 
 class TestDefaultScope < ActionController::IntegrationTest
   module ::Blog

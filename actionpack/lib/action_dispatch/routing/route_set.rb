@@ -217,27 +217,35 @@ module ActionDispatch
         self.valid_conditions.delete(:id)
         self.valid_conditions.push(:controller, :action)
 
+        @append = []
         @disable_clear_and_finalize = false
         clear!
       end
 
       def draw(&block)
         clear! unless @disable_clear_and_finalize
+        eval_block(block)
+        finalize! unless @disable_clear_and_finalize
 
+        nil
+      end
+
+      def append(&block)
+        @append << block
+      end
+
+      def eval_block(block)
         mapper = Mapper.new(self)
         if default_scope
           mapper.with_default_scope(default_scope, &block)
         else
           mapper.instance_exec(&block)
         end
-
-        finalize! unless @disable_clear_and_finalize
-
-        nil
       end
 
       def finalize!
         return if @finalized
+        @append.each { |blk| eval_block(blk) }
         @finalized = true
         @set.freeze
       end
