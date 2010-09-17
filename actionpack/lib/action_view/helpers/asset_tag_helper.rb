@@ -836,7 +836,7 @@ module ActionView
 
         def expand_javascript_sources(sources, recursive = false)
           if sources.include?(:all)
-            all_javascript_files = collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js')
+            all_javascript_files = (collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js') - ['application']) << 'application'
             ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
           else
             expanded_sources = sources.collect do |source|
