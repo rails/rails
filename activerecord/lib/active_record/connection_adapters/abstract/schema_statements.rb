@@ -363,8 +363,7 @@ module ActiveRecord
       def remove_index(table_name, options = {})
         index_name = index_name(table_name, options)
         unless index_name_exists?(table_name, index_name, true)
-          @logger.warn("Index name '#{index_name}' on table '#{table_name}' does not exist. Skipping.")
-          return
+          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
         end
         remove_index!(table_name, index_name)
       end
