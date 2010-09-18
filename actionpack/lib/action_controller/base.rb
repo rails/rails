@@ -95,7 +95,7 @@ module ActionController
   #
   #     config.action_controller.session_store = :active_record_store
   #
-  #   in your <tt>config/environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
+  #   in your <tt>config/environment.rb</tt> and run <tt>script/rails g session_migration</tt>.
   #
   # == Responses
   #
