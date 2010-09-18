@@ -103,9 +103,7 @@ To make it easy to organize your files and to make the plugin more compatible wi
 |-- lib
 |   |-- yaffle
 |   `-- yaffle.rb
-`-- rails
-    |
-    `-- init.rb
+`-- init.rb
 </shell>
 
 <ruby>
