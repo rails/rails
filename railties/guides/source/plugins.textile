@@ -39,6 +39,7 @@ The examples in this guide require that you have a working rails application.  T
 gem install rails
 rails new yaffle_guide
 cd yaffle_guide
+bundle install
 rails generate scaffold bird name:string
 rake db:migrate
 rails server
