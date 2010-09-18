@@ -260,8 +260,8 @@ module ActiveRecord
     def build_select(arel, selects)
       unless selects.empty?
         @implicit_readonly = false
-        # TODO: fix this ugly hack, we should refactor the callers to get an ARel compatible array.
-        # Before this change we were passing to ARel the last element only, and ARel is capable of handling an array
+        # TODO: fix this ugly hack, we should refactor the callers to get an Arel compatible array.
+        # Before this change we were passing to Arel the last element only, and Arel is capable of handling an array
         case select = selects.last
         when Arel::Expression, Arel::SqlLiteral
           arel.project(select)
