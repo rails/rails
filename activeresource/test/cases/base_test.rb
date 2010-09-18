@@ -5,6 +5,7 @@ require "fixtures/street_address"
 require "fixtures/sound"
 require "fixtures/beast"
 require "fixtures/proxy"
+require "fixtures/address"
 require 'active_support/json'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
@@ -1025,5 +1026,19 @@ class BaseTest < Test::Unit::TestCase
         assert_kind_of String, color
       end
     end
+  end
+
+  def test_with_custom_formatter
+    @addresses = [{:id => "1", :street => "1 Infinite Loop", :city => "Cupertino", :state => "CA"}].to_xml(:root => 'addresses')
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/addresses.xml", {}, @addresses, 200
+    end
+
+    # late bind the site
+    AddressResource.site = "http://localhost"
+    addresses = AddressResource.find(:all)
+
+    assert_equal "Cupertino, CA", addresses.first.city_state
   end
 end
