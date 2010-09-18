@@ -129,11 +129,11 @@ h4. Test Setup
 
 sqlite:
   :adapter: sqlite
-  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
+  :database: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
 
 sqlite3:
   :adapter: sqlite3
-  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
+  :database: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
 
 postgresql:
   :adapter: postgresql
