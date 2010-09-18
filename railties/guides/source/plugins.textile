@@ -254,16 +254,18 @@ You should see output like:
    -> 0.0220s
 -- create_table(:wickwalls, {:force=>true})
    -> 0.0077s
+-- create_table(:woodpeckers, {:force=>true})
+   -> 0.0069s
 -- initialize_schema_migrations_table()
    -> 0.0007s
--- assume_migrated_upto_version(0)
+-- assume_migrated_upto_version(0, "db/migrate")
    -> 0.0007s
 Loaded suite /opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader
 Started
 .
 Finished in 0.002236 seconds.
 
-1 test, 1 assertion, 0 failures, 0 errors
+1 test, 2 assertion, 0 failures, 0 errors, 0 skips
 </shell>
 
 By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in +database.yml+, pass the DB environment variable to rake:
