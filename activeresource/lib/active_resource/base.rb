@@ -678,7 +678,7 @@ module ActiveResource
       # Returns the new resource instance.
       #
       def build(attributes = {})
-        attrs = connection.get("#{new_element_path}").merge(attributes)
+        attrs = self.format.decode(connection.get("#{new_element_path}").body).merge(attributes)
         self.new(attrs)
       end
 
@@ -850,11 +850,11 @@ module ActiveResource
               instantiate_collection(get(from, options[:params]))
             when String
               path = "#{from}#{query_string(options[:params])}"
-              instantiate_collection(connection.get(path, headers) || [])
+              instantiate_collection(format.decode(connection.get(path, headers).body) || [])
             else
               prefix_options, query_options = split_options(options[:params])
               path = collection_path(prefix_options, query_options)
-              instantiate_collection( (connection.get(path, headers) || []), prefix_options )
+              instantiate_collection( (format.decode(connection.get(path, headers).body) || []), prefix_options )
             end
           rescue ActiveResource::ResourceNotFound
             # Swallowing ResourceNotFound exceptions and return nil - as per
@@ -870,7 +870,7 @@ module ActiveResource
             instantiate_record(get(from, options[:params]))
           when String
             path = "#{from}#{query_string(options[:params])}"
-            instantiate_record(connection.get(path, headers))
+            instantiate_record(format.decode(connection.get(path, headers).body))
           end
         end
 
@@ -878,7 +878,7 @@ module ActiveResource
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
-          instantiate_record(connection.get(path, headers), prefix_options)
+          instantiate_record(format.decode(connection.get(path, headers).body), prefix_options)
         end
 
         def instantiate_collection(collection, prefix_options = {})
