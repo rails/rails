@@ -128,26 +128,26 @@ h4. Test Setup
 # vendor/plugins/yaffle/test/database.yml
 
 sqlite:
-  :adapter: sqlite
-  :database: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
+  adapter: sqlite
+  database: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
 
 sqlite3:
-  :adapter: sqlite3
-  :database: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
+  adapter: sqlite3
+  database: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
 
 postgresql:
-  :adapter: postgresql
-  :username: postgres
-  :password: postgres
-  :database: yaffle_plugin_test
-  :min_messages: ERROR
+  adapter: postgresql
+  username: postgres
+  password: postgres
+  database: yaffle_plugin_test
+  min_messages: ERROR
 
 mysql:
-  :adapter: mysql
-  :host: localhost
-  :username: root
-  :password: password
-  :database: yaffle_plugin_test
+  adapter: mysql
+  host: localhost
+  username: root
+  password: password
+  database: yaffle_plugin_test
 </yaml>
 
 For this guide you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following:
