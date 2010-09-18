@@ -457,8 +457,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match '/cities', :to => 'countries#cities'
       end
 
-      match '/feeds/:service', :to => '/api/feeds#show', :as => :feed
-
       match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
@@ -2130,10 +2128,36 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
-  def test_controller_has_leading_slash_removed
-    get '/feeds/twitter.xml'
-    assert_equal 'api/feeds#show', @response.body
-    assert_equal '/feeds/twitter.xml', feed_path(:service => 'twitter', :format => 'xml')
+  def test_controller_name_with_leading_slash_raise_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/feeds/:service', :to => '/feeds#show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/feeds/:service', :controller => '/feeds', :action => 'show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/api/feeds/:service', :to => '/api/feeds#show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { resources :feeds, :controller => '/feeds' }
+      end
+    end
   end
 
 private
