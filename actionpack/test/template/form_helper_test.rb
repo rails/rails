@@ -640,6 +640,12 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_form_for_requires_block
+    assert_raises(ArgumentError) do
+      form_for(:post, @post, :html => { :id => 'create-post' })
+    end
+  end
+
   def test_form_for
     assert_deprecated do
       form_for(:post, @post, :html => { :id => 'create-post' }) do |f|

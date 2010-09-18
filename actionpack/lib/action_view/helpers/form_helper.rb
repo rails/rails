@@ -840,8 +840,6 @@ module ActionView
       private
 
         def instantiate_builder(record, record_object = nil, options = nil, &block)
-          raise ArgumentError, "Missing block" unless block_given?
-
           options, record_object = record_object, nil if record_object.is_a?(Hash)
           options ||= {}
 
