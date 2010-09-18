@@ -88,8 +88,24 @@ module Arel
     end
 
     def [] name
+      return nil unless table_exists?
+
       name = name.to_sym
       columns.find { |column| column.name == name }
+    end
+
+    private
+    def table_exists?
+      @table_exists ||= tables.key?(@name) || engine.connection.table_exists?(name)
+    end
+
+    def tables
+      self.class.table_cache(@engine)
+    end
+
+    @@table_cache = nil
+    def self.table_cache engine # :nodoc:
+      @@table_cache ||= Hash[engine.connection.tables.map { |x| [x,true] }]
     end
   end
 end
