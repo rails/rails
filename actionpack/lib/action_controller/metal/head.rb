@@ -22,7 +22,7 @@ module ActionController
       location = options.delete(:location)
 
       options.each do |key, value|
-        headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
+        headers[key.to_s.dasherize.split('-').each { |v| v[0] = v[0].chr.upcase }.join('-')] = value.to_s
       end
 
       self.status = status
