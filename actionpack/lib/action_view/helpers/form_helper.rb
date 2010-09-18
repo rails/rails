@@ -342,8 +342,8 @@ module ActionView
 
         options[:html] ||= {}
         options[:html].reverse_merge!(html_options)
-        options[:url] ||= options[:format] ? \
-          polymorphic_path(object_or_array, :format => options.delete(:format)) : \
+        options[:url] ||= options[:format] ?
+          polymorphic_path(object_or_array, :format => options.delete(:format)) :
           polymorphic_path(object_or_array)
       end
 

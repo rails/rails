@@ -729,7 +729,7 @@ EOF
     end
 
     def render_rjs(&block)
-      @controller.response_with &block
+      @controller.response_with(&block)
       get :rjs
     end
 
