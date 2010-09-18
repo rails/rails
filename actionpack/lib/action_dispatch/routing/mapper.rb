@@ -137,7 +137,7 @@ module ActionDispatch
               { }
             else
               if to.is_a?(String)
-                controller, action = to.sub(%r{\A/}, '').split('#')
+                controller, action = to.split('#')
               elsif to.is_a?(Symbol)
                 action = to.to_s
               end
@@ -147,6 +147,10 @@ module ActionDispatch
 
               unless controller.is_a?(Regexp) || to_shorthand
                 controller = [@scope[:module], controller].compact.join("/").presence
+              end
+
+              if controller.is_a?(String) && controller =~ %r{\A/}
+                raise ArgumentError, "controller name should not start with a slash"
               end
 
               controller = controller.to_s unless controller.is_a?(Regexp)
