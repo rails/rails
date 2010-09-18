@@ -863,9 +863,9 @@ module ActionView
 
       attr_reader :method_name, :object_name
 
-      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }.freeze
-      DEFAULT_RADIO_OPTIONS     = { }.freeze
-      DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }.freeze
+      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
+      DEFAULT_RADIO_OPTIONS     = { }
+      DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }
 
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
