@@ -97,6 +97,7 @@ def setup_response
     mock.put    "/people/1/addresses/1.xml",    {}, nil, 204
     mock.delete "/people/1/addresses/1.xml",    {}, nil, 200
     mock.post   "/people/1/addresses.xml",      {}, nil, 201, 'Location' => '/people/1/addresses/5'
+    mock.get    "/people/1/addresses/99.xml",   {}, nil, 404
     mock.get    "/people//addresses.xml",       {}, nil, 404
     mock.get    "/people//addresses/1.xml",     {}, nil, 404
     mock.put    "/people//addresses/1.xml",     {}, nil, 404
