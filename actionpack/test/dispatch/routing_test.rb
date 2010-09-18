@@ -457,6 +457,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match '/cities', :to => 'countries#cities'
       end
 
+      match '/feeds/:service', :to => '/api/feeds#show', :as => :feed
+
       match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
@@ -2126,6 +2128,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/lists/2/todos/1'
     assert_equal 'Not Found', @response.body
     assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
+  end
+
+  def test_controller_has_leading_slash_removed
+    get '/feeds/twitter.xml'
+    assert_equal 'api/feeds#show', @response.body
+    assert_equal '/feeds/twitter.xml', feed_path(:service => 'twitter', :format => 'xml')
   end
 
 private

@@ -137,7 +137,7 @@ module ActionDispatch
               { }
             else
               if to.is_a?(String)
-                controller, action = to.split('#')
+                controller, action = to.sub(%r{\A/}, '').split('#')
               elsif to.is_a?(Symbol)
                 action = to.to_s
               end
