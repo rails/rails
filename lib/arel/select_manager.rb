@@ -51,6 +51,7 @@ module Arel
     end
 
     def from table
+      table = Nodes::SqlLiteral.new(table) if String === table
       @ctx.froms = [table]
       self
     end

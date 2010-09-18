@@ -60,7 +60,7 @@ module Arel
           manager.from table
           manager.from 'users'
           manager.project table['id']
-          manager.to_sql.should be_like 'SELECT "users"."id" FROM \'users\''
+          manager.to_sql.should be_like 'SELECT "users"."id" FROM users'
         end
       end
 
