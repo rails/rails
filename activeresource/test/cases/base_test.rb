@@ -5,6 +5,8 @@ require "fixtures/street_address"
 require "fixtures/sound"
 require "fixtures/beast"
 require "fixtures/proxy"
+require "fixtures/address"
+require "fixtures/subscription_plan"
 require 'active_support/json'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
@@ -1033,5 +1035,52 @@ class BaseTest < Test::Unit::TestCase
         assert_kind_of String, color
       end
     end
+  end
+
+  def test_with_custom_formatter
+    @addresses = [{:id => "1", :street => "1 Infinite Loop", :city => "Cupertino", :state => "CA"}].to_xml(:root => 'addresses')
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/addresses.xml", {}, @addresses, 200
+    end
+
+    # late bind the site
+    AddressResource.site = "http://localhost"
+    addresses = AddressResource.find(:all)
+
+    assert_equal "Cupertino, CA", addresses.first.city_state
+  end
+
+  def test_create_with_custom_primary_key
+    silver_plan = {:code => "silver", :price => 5.00}.to_xml(:root => "plan")
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/plans.xml", {}, silver_plan, 201, 'Location' => '/plans/silver.xml'
+    end
+
+    plan = SubscriptionPlan.new(:code => "silver", :price => 5.00)
+    assert plan.new?
+
+    plan.save!
+    assert !plan.new?
+  end
+
+  def test_update_with_custom_primary_key
+    silver_plan = {:code => "silver", :price => 5.00}.to_xml(:root => "plan")
+    silver_plan_updated = {:code => "silver", :price => 10.00}.to_xml(:root => "plan")
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/plans/silver.xml", {}, silver_plan
+      mock.put "/plans/silver.xml", {}, silver_plan_updated, 201, 'Location' => '/plans/silver.xml'
+    end
+
+    plan = SubscriptionPlan.find("silver")
+    assert !plan.new?
+    assert 5.00, plan.price
+
+    # update price
+    plan.price = 10.00
+    plan.save!
+    assert 10.00, plan.price
   end
 end
