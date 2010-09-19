@@ -566,7 +566,6 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/posts/new")
       response = AppTemplate::Application.call(env)
-      p rack_body(response[2])
       assert rack_body(response[2]) =~ /name="post\[title\]"/
     end
 
