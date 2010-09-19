@@ -257,6 +257,21 @@ module Rails
   #
   # This code will use my_engine.user_path(@user) to generate proper route.
   #
+  # == Migrations & seed data
+  #
+  # Engines can have their own migrations. Default path for migrations is exactly the same
+  # as in application: db/migrate
+  #
+  # To use engine's migrations in application you can use rake task, which copies them to
+  # application's dir:
+  #
+  #   rake railties:copy_migrations
+  #
+  # If your engine has migrations, you may also want to prepare data for the database in
+  # seeds.rb file. You can load that data using load_seed method, e.g.
+  #
+  #   MyEngine::Engine.load_seed
+  #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
