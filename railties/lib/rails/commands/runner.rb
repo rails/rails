@@ -17,7 +17,7 @@ ARGV.clone.options do |opts|
   opts.separator ""
 
   opts.on("-h", "--help",
-          "Show this help message.") { $stderr.puts opts; exit }
+          "Show this help message.") { $stdout.puts opts; exit }
 
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
