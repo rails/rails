@@ -1,7 +1,6 @@
 require "isolation/abstract_unit"
 require "railties/shared_tests"
 require 'stringio'
-require 'active_support/core_ext/kernel/reporting'
 
 module RailtiesTest
   class EngineTest < Test::Unit::TestCase
