@@ -886,7 +886,7 @@ module ActiveResource
         end
 
         def instantiate_record(record, prefix_options = {})
-          new(record).tap do |resource|
+          new(record, true).tap do |resource|
             resource.prefix_options = prefix_options
           end
         end
@@ -959,9 +959,10 @@ module ActiveResource
     #
     #   my_other_course = Course.new(:name => "Philosophy: Reason and Being", :lecturer => "Ralph Cling")
     #   my_other_course.save
-    def initialize(attributes = {})
+    def initialize(attributes = {}, persisted = false)
       @attributes     = {}.with_indifferent_access
       @prefix_options = {}
+      @persisted = persisted
       load(attributes)
     end
 
@@ -1011,7 +1012,7 @@ module ActiveResource
     #   is_new.new? # => false
     #
     def new?
-      id.nil?
+      !persisted?
     end
     alias :new_record? :new?
 
@@ -1028,7 +1029,7 @@ module ActiveResource
     #   not_persisted.persisted? # => true
     #
     def persisted?
-      !new?
+      @persisted
     end
 
     # Gets the <tt>\id</tt> attribute of the resource.
@@ -1317,6 +1318,7 @@ module ActiveResource
       def load_attributes_from_response(response)
         if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
           load(self.class.format.decode(response.body))
+          @persisted = true
         end
       end
 

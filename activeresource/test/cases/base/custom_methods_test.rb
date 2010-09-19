@@ -91,7 +91,7 @@ class CustomMethodsTest < Test::Unit::TestCase
                    201, {'Location' => '/people/1/addresses/2.xml'}),
                  addy.post(:link)
 
-    matz = Person.new(:id => 1, :name => 'Matz')
+    matz = Person.find(1)
     assert_equal ActiveResource::Response.new(@matz, 201), matz.post(:register)
   end
 
