@@ -6,6 +6,7 @@ require "fixtures/sound"
 require "fixtures/beast"
 require "fixtures/proxy"
 require "fixtures/address"
+require "fixtures/subscription_plan"
 require 'active_support/json'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
@@ -1040,5 +1041,38 @@ class BaseTest < Test::Unit::TestCase
     addresses = AddressResource.find(:all)
 
     assert_equal "Cupertino, CA", addresses.first.city_state
+  end
+
+  def test_create_with_custom_primary_key
+    silver_plan = {:code => "silver", :price => 5.00}.to_xml(:root => "plan")
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/plans.xml", {}, silver_plan, 201, 'Location' => '/plans/silver.xml'
+    end
+
+    plan = SubscriptionPlan.new(:code => "silver", :price => 5.00)
+    assert plan.new?
+
+    plan.save!
+    assert !plan.new?
+  end
+
+  def test_update_with_custom_primary_key
+    silver_plan = {:code => "silver", :price => 5.00}.to_xml(:root => "plan")
+    silver_plan_updated = {:code => "silver", :price => 10.00}.to_xml(:root => "plan")
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/plans/silver.xml", {}, silver_plan
+      mock.put "/plans/silver.xml", {}, silver_plan_updated, 201, 'Location' => '/plans/silver.xml'
+    end
+
+    plan = SubscriptionPlan.find("silver")
+    assert !plan.new?
+    assert 5.00, plan.price
+
+    # update price
+    plan.price = 10.00
+    plan.save!
+    assert 10.00, plan.price
   end
 end
