@@ -19,8 +19,7 @@ module ApplicationTests
     end
 
     def test_should_include_runner_in_shebang_line_in_help
-      # redirect stderr to stdout as backticks don't capture stderr
-      assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner --help 2>&1` }
+      assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner --help` }
     end
 
     def test_should_run_ruby_statement
