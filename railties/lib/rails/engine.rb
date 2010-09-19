@@ -380,6 +380,15 @@ module Rails
       @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
     end
 
+    # Load data from db/seeds.rb file. It can be used in to load engines'
+    # seeds, e.g.:
+    #
+    # Blog::Engine.load_seed
+    def load_seed
+      seed_file = config.paths.db.seeds.to_a.first
+      load(seed_file) if File.exist?(seed_file)
+    end
+
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
       _all_load_paths.reverse_each do |path|

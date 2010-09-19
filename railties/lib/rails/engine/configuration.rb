@@ -37,6 +37,7 @@ module Rails
           paths.vendor.plugins      "vendor/plugins"
           paths.db                  "db"
           paths.db.migrate          "db/migrate"
+          paths.db.seeds            "db/seeds.rb"
           paths
         end
       end

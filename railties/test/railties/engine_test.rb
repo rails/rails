@@ -624,5 +624,24 @@ module RailtiesTest
         assert !File.exist?(File.join(app_path, 'public/bukkits'))
       end
     end
+
+    test "loading seed data" do
+      @plugin.write "db/seeds.rb", <<-RUBY
+        Bukkits::Engine.config.bukkits_seeds_loaded = true
+      RUBY
+
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.app_seeds_loaded = true
+      RUBY
+
+      boot_rails
+
+      Rails.application.load_seed
+      assert Rails.application.config.app_seeds_loaded
+      assert_raise(NoMethodError) do  Bukkits::Engine.config.bukkits_seeds_loaded end
+
+      Bukkits::Engine.load_seed
+      assert Bukkits::Engine.config.bukkits_seeds_loaded
+    end
   end
 end
