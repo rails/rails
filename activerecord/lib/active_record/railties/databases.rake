@@ -7,16 +7,8 @@ namespace :db do
 
   task :copy_migrations => :load_config do
     to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
-    railties = {}
-    Rails.application.railties.all do |railtie|
-      next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
-      if railtie.config.respond_to?(:paths) && railtie.config.paths.db
-        railties[railtie.railtie_name] = railtie.config.paths.db.migrate.to_a.first
-      end
-    end
-
-    copied = ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_path, railties)
+    copied = ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_path, railties_migrations(to_load))
 
     if copied.blank?
       puts "No migrations were copied, project is up to date."
@@ -163,6 +155,14 @@ namespace :db do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_path, ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+
+    uncopied = ActiveRecord::Migration.uncopied_migrations(ActiveRecord::Migrator.migrations_path, railties_migrations)
+    unless uncopied.blank?
+      puts "Warning: not copied migrations exist, you may want to copy them with `rake railties:copy_migrations`:\n"
+      uncopied.each do |scope, path, new_path|
+        puts "  #{scope}: #{path}"
+      end
+    end
   end
 
   namespace :migrate do
@@ -536,4 +536,17 @@ end
 
 def firebird_db_string(config)
   FireRuby::Database.db_string_for(config.symbolize_keys)
+end
+
+def railties_migrations(to_load = :all)
+  railties = {}
+  Rails.application.railties.all do |railtie|
+    next unless to_load == :all || to_load.include?(railtie.railtie_name)
+
+    if railtie.config.respond_to?(:paths) && railtie.config.paths.db
+      railties[railtie.railtie_name] = railtie.config.paths.db.migrate.to_a.first
+    end
+  end
+
+  railties
 end

@@ -384,8 +384,8 @@ module ActiveRecord
         end
       end
 
-      def copy(destination, sources)
-        copied = []
+      def uncopied_migrations(destination, sources)
+        migrations = []
 
         sources.each do |scope, path|
           destination_migrations = ActiveRecord::Migrator.migrations(destination)
@@ -399,9 +399,19 @@ module ActiveRecord
             last = migration
 
             new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
-            FileUtils.cp(migration.filename, new_path)
-            copied << new_path
+            migrations << [scope, migration.filename, new_path]
           end
+        end
+
+        migrations
+      end
+
+      def copy(destination, sources)
+        copied = []
+
+        uncopied_migrations(destination, sources).each do |scope, path, new_path|
+          FileUtils.cp(path, new_path)
+          copied << new_path
         end
 
         copied
