@@ -210,17 +210,18 @@ module Arel
       alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
       alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
 
-      def visit_TrueClass o; quote(o) end
       def visit_String o; quote(o) end
-      def visit_Hash o; quote(o) end
-      def visit_ActiveSupport_Multibyte_Chars o; quote(o) end
-      def visit_Symbol o; quote(o) end
-      def visit_Time o; quote(o) end
-      def visit_Date o; quote(o) end
-      def visit_DateTime o; quote(o) end
-      def visit_Float o; quote(o) end
-      def visit_BigDecimal o; quote(o) end
-      def visit_FalseClass o; quote(o) end
+
+      alias :visit_ActiveSupport_Multibyte_Chars :visit_String
+      alias :visit_BigDecimal :visit_String
+      alias :visit_Date :visit_String
+      alias :visit_DateTime :visit_String
+      alias :visit_FalseClass :visit_String
+      alias :visit_Float :visit_String
+      alias :visit_Hash :visit_String
+      alias :visit_Symbol :visit_String
+      alias :visit_Time :visit_String
+      alias :visit_TrueClass :visit_String
 
       DISPATCH = Hash.new do |hash, klass|
         hash[klass] = "visit_#{klass.name.gsub('::', '_')}"
