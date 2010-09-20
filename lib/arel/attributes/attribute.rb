@@ -12,10 +12,20 @@ module Arel
       end
 
       def in other
-        if Arel::SelectManager === other
-          other = other.to_a.map { |x| x.id }
+        case other
+        when Arel::SelectManager
+          Nodes::In.new self, other.to_a.map { |x| x.id }
+        when Range
+          if other.exclude_end?
+            left  = Nodes::GreaterThanOrEqual.new(self, other.min)
+            right = Nodes::LessThan.new(self, other.max + 1)
+            Nodes::And.new left, right
+          else
+            Nodes::Between.new(self, Nodes::And.new(other.min, other.max))
+          end
+        else
+          Nodes::In.new self, other
         end
-        Nodes::In.new self, other
       end
 
       def gteq right

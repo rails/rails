@@ -72,6 +72,20 @@ module Arel
             "users"."id" IN (NULL)
           }
         end
+
+        it 'can handle two dot ranges' do
+          node = @attr.in 1..3
+          @visitor.accept(node).should be_like %{
+            "users"."id" BETWEEN 1 AND 3
+          }
+        end
+
+        it 'can handle three dot ranges' do
+          node = @attr.in 1...3
+          @visitor.accept(node).should be_like %{
+            "users"."id" >= 1 AND "users"."id" < 3
+          }
+        end
       end
 
       describe 'Equality' do
