@@ -1,6 +1,7 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/kernel/reporting'
 require 'rails/generators'
 require 'fileutils'
 
@@ -64,25 +65,6 @@ module Rails
       def self.destination(path)
         self.destination_root = path
       end
-
-      # Captures the given stream and returns it:
-      #
-      #   stream = capture(:stdout){ puts "Cool" }
-      #   stream # => "Cool\n"
-      #
-      def capture(stream)
-        begin
-          stream = stream.to_s
-          eval "$#{stream} = StringIO.new"
-          yield
-          result = eval("$#{stream}").string
-        ensure
-          eval("$#{stream} = #{stream.upcase}")
-        end
-
-        result
-      end
-      alias :silence :capture
 
       # Asserts a given file exists. You need to supply an absolute path or a path relative
       # to the configured destination:

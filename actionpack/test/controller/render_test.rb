@@ -488,6 +488,10 @@ class TestController < ActionController::Base
     head :x_custom_header => "something"
   end
 
+  def head_with_www_authenticate_header
+    head 'WWW-Authenticate' => 'something'
+  end
+
   def head_with_status_code_first
     head :forbidden, :x_custom_header => "something"
   end
@@ -1136,6 +1140,13 @@ class RenderTest < ActionController::TestCase
     get :head_with_custom_header
     assert_blank @response.body
     assert_equal "something", @response.headers["X-Custom-Header"]
+    assert_response :ok
+  end
+
+  def test_head_with_www_authenticate_header
+    get :head_with_www_authenticate_header
+    assert_blank @response.body
+    assert_equal "something", @response.headers["WWW-Authenticate"]
     assert_response :ok
   end
 

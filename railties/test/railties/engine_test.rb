@@ -4,19 +4,6 @@ require 'stringio'
 
 module RailtiesTest
   class EngineTest < Test::Unit::TestCase
-    # TODO: it's copied from generators/test_case, maybe make a module with such helpers?
-    def capture(stream)
-      begin
-        stream = stream.to_s
-        eval "$#{stream} = StringIO.new"
-        yield
-        result = eval("$#{stream}").string
-      ensure
-        eval("$#{stream} = #{stream.upcase}")
-      end
-
-      result
-    end
 
     include ActiveSupport::Testing::Isolation
     include SharedTests
@@ -578,7 +565,6 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/posts/new")
       response = AppTemplate::Application.call(env)
-      p rack_body(response[2])
       assert rack_body(response[2]) =~ /name="post\[title\]"/
     end
 

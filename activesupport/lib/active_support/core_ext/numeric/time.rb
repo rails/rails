@@ -60,7 +60,7 @@ class Numeric
   alias :fortnight :fortnights
 
   # Reads best without arguments:  10.minutes.ago
-  def ago(time = ::Time.now)
+  def ago(time = ::Time.current)
     time - self
   end
 
@@ -68,7 +68,7 @@ class Numeric
   alias :until :ago
 
   # Reads best with argument:  10.minutes.since(time)
-  def since(time = ::Time.now)
+  def since(time = ::Time.current)
     time + self
   end
 

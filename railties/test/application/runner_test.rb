@@ -18,6 +18,10 @@ module ApplicationTests
       MODEL
     end
 
+    def test_should_include_runner_in_shebang_line_in_help
+      assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner --help` }
+    end
+
     def test_should_run_ruby_statement
       assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "puts User.count"` }
     end

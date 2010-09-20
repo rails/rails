@@ -640,6 +640,12 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_form_for_requires_block
+    assert_raises(ArgumentError) do
+      form_for(:post, @post, :html => { :id => 'create-post' })
+    end
+  end
+
   def test_form_for
     assert_deprecated do
       form_for(:post, @post, :html => { :id => 'create-post' }) do |f|
@@ -660,6 +666,24 @@ class FormHelperTest < ActionView::TestCase
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
       "<input name='commit' id='post_submit' type='submit' value='Create post' />" +
+      "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_file_field_generate_multipart
+    Post.send :attr_accessor, :file
+
+    assert_deprecated do
+      form_for(:post, @post, :html => { :id => 'create-post' }) do |f|
+        concat f.file_field(:file)
+      end
+    end
+
+    expected =
+      "<form accept-charset='UTF-8' action='/' id='create-post' method='post' enctype='multipart/form-data'>" +
+      snowman +
+      "<input name='post[file]' type='file' id='post_file' />" +
       "</form>"
 
     assert_dom_equal expected, output_buffer

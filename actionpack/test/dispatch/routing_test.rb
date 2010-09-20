@@ -2128,6 +2128,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
+  def test_controller_name_with_leading_slash_raise_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/feeds/:service', :to => '/feeds#show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/feeds/:service', :controller => '/feeds', :action => 'show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/api/feeds/:service', :to => '/api/feeds#show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { resources :feeds, :controller => '/feeds' }
+      end
+    end
+  end
+
 private
   def with_test_routes
     yield

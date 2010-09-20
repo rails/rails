@@ -17,13 +17,13 @@ ARGV.clone.options do |opts|
   opts.separator ""
 
   opts.on("-h", "--help",
-          "Show this help message.") { $stderr.puts opts; exit }
+          "Show this help message.") { $stdout.puts opts; exit }
 
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
     opts.separator "You can also use runner as a shebang line for your scripts like this:"
     opts.separator "-------------------------------------------------------------"
-    opts.separator "#!/usr/bin/env #{File.expand_path($0)}"
+    opts.separator "#!/usr/bin/env #{File.expand_path($0)} runner"
     opts.separator ""
     opts.separator "Product.find(:all).each { |p| p.price *= 2 ; p.save! }"
     opts.separator "-------------------------------------------------------------"

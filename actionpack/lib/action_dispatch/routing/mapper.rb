@@ -149,6 +149,10 @@ module ActionDispatch
                 controller = [@scope[:module], controller].compact.join("/").presence
               end
 
+              if controller.is_a?(String) && controller =~ %r{\A/}
+                raise ArgumentError, "controller name should not start with a slash"
+              end
+
               controller = controller.to_s unless controller.is_a?(Regexp)
               action     = action.to_s     unless action.is_a?(Regexp)
 

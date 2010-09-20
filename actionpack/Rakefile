@@ -18,7 +18,8 @@ Rake::TestTask.new(:test_action_pack) do |t|
   # this will not happen automatically and the tests (as a whole) will error
   t.test_files = Dir.glob('test/{abstract,controller,dispatch,template}/**/*_test.rb').sort
 
-  # t.warning = true
+  #t.warning = true
+  t.verbose = true
 end
 
 namespace :test do
