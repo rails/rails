@@ -211,12 +211,30 @@ module Rails
   #     end
   #   end
   #
-  # If engine is marked as namespaced, FooController has access only to helpers from engine and
+  # If engine is marked as isolated, FooController has access only to helpers from engine and
   # url_helpers from MyEngine::Engine.routes.
   #
+  # The next thing that changes in isolated engine is routes behaviour. Normally, when you namespace
+  # your controllers, you need to use scope or namespace method in routes. With isolated engine,
+  # the namespace is applied by default, so you can ignore it in routes. Further more, you don't need
+  # to use longer url helpers like "my_engine_articles_path". As the prefix is not set you can just use
+  # articles_path as you would normally do.
+  #
+  # To make that behaviour consistent with other parts of framework, isolated engine has influence also on
+  # ActiveModel::Naming. When you use namespaced model, like MyEngine::Article, it will normally
+  # use the prefix "my_engine". In isolated engine, the prefix will be ommited in most of the places,
+  # like url helpers or form fields.
+  #
+  #   polymorphic_url(MyEngine::Article.new) #=> "articles_path"
+  #
+  #   form_for(MyEngine::Article.new) do
+  #     text_field :title #=> <input type="text" name="article[title]" id="article_title" />
+  #   end
+  #
+  #
   # Additionaly namespaced engine will set its name according to namespace, so in that case:
-  # MyEngine::Engine.engine_name #=> "my_engine"
-  # and it will set MyEngine.table_name_prefix to "my_engine_"
+  # MyEngine::Engine.engine_name #=> "my_engine" and it will set MyEngine.table_name_prefix
+  # to "my_engine_".
   #
   # == Using Engine's routes outside Engine
   #
