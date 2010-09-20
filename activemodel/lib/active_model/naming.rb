@@ -31,7 +31,7 @@ module ActiveModel
                            @klass.respond_to?(:i18n_scope)
 
       defaults = @klass.lookup_ancestors.map do |klass|
-        klass.model_name.underscore.to_sym
+        klass.model_name.underscore.gsub('/','.').to_sym
       end
 
       defaults << options.delete(:default) if options[:default]

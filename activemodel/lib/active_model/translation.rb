@@ -43,8 +43,13 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
-      defaults = lookup_ancestors.map do |klass|
-        :"#{self.i18n_scope}.attributes.#{klass.model_name.underscore}.#{attribute}"
+      defaults = []
+      lookup_ancestors.each do |klass|
+        name = klass.model_name.underscore.split('/')
+        while name.size > 0
+          defaults << :"#{self.i18n_scope}.attributes.#{name * '.'}.#{attribute}"
+          name.pop
+        end
       end
 
       defaults << :"attributes.#{attribute}"
