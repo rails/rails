@@ -12,13 +12,17 @@ module Arel
       @head.limit
     end
 
+    def constraints
+      @ctx.wheres
+    end
+
     def skip amount
       @head.offset = Nodes::Offset.new(amount)
       self
     end
 
     def where_clauses
-      warn "where_clauses is deprecated" if $VERBOSE
+      #warn "where_clauses is deprecated" if $VERBOSE
       to_sql = Visitors::ToSql.new @engine
       @ctx.wheres.map { |c| to_sql.accept c }
     end
@@ -52,6 +56,18 @@ module Arel
 
     def from table
       table = Nodes::SqlLiteral.new(table) if String === table
+      # FIXME: this is a hack to support
+      # test_with_two_tables_in_from_without_getting_double_quoted
+      # from the AR tests.
+      unless @ctx.froms.empty?
+        source = @ctx.froms.first
+
+        if Nodes::SqlLiteral === table && Nodes::Join === source
+          source.left = table
+          table = source
+        end
+      end
+
       @ctx.froms = [table]
       self
     end
@@ -125,8 +141,22 @@ module Arel
       manager.join_sql
     end
 
-    def to_a
-      raise NotImplementedError
+    class Row < Struct.new(:data) # :nodoc:
+      def id
+        data['id']
+      end
+
+      def method_missing(name, *args)
+        name = name.to_s
+        return data[name] if data.key?(name)
+        super
+      end
+    end
+
+    def to_a # :nodoc:
+      warn "to_a is deprecated. Please remove it from #{caller[0]}"
+      # FIXME: I think `select` should be made public...
+      @engine.connection.send(:select, to_sql, 'AREL').map { |x| Row.new(x) }
     end
 
     # FIXME: this method should go away

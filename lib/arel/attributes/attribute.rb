@@ -12,6 +12,9 @@ module Arel
       end
 
       def in other
+        if Arel::SelectManager === other
+          other = other.to_a.map { |x| x.id }
+        end
         Nodes::In.new self, other
       end
 
