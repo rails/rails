@@ -65,6 +65,13 @@ module Arel
             "users"."id" IN (1, 2, 3)
           }
         end
+
+        it "should turn empty right to NULL" do
+          node = @attr.in []
+          @visitor.accept(node).should be_like %{
+            "users"."id" IN (NULL)
+          }
+        end
       end
 
       describe 'Equality' do

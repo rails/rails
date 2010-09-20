@@ -155,7 +155,9 @@ module Arel
       end
 
       def visit_Arel_Nodes_In o
-        "#{visit o.left} IN (#{o.right.map { |x| visit x }.join ', '})"
+        right = o.right
+        right = right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
+        "#{visit o.left} IN (#{right})"
       end
 
       def visit_Arel_Nodes_And o
