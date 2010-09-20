@@ -53,8 +53,8 @@ class DurationTest < ActiveSupport::TestCase
       flunk("no exception was raised")
     rescue ArgumentError => e
       assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
-    rescue Exception
-      flunk("ArgumentError should be raised, but we got #{$!.class} instead")
+    rescue Exception => e
+      flunk("ArgumentError should be raised, but we got #{e.class} instead")
     end
   end
 

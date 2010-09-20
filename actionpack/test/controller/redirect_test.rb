@@ -232,7 +232,7 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_record
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :workshops
         match ':controller/:action'
       end

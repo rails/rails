@@ -48,13 +48,13 @@ module ActiveRecord
     end
 
     def respond_to?(*args)
-      self.class.define_attribute_methods
+      self.class.define_attribute_methods unless self.class.attribute_methods_generated?
       super
     end
 
     protected
       def attribute_method?(attr_name)
-        attr_name == 'id' || attributes.include?(attr_name)
+        attr_name == 'id' || @attributes.include?(attr_name)
       end
   end
 end

@@ -42,10 +42,16 @@ module ContentType
 
   class ExplicitContentTypeTest < Rack::TestCase
     test "default response is HTML and UTF8" do
-      get "/content_type/base"
+      with_routing do |set|
+        set.draw do
+          match ':controller', :action => 'index'
+        end
 
-      assert_body "Hello world!"
-      assert_header "Content-Type", "text/html; charset=utf-8"
+        get "/content_type/base"
+
+        assert_body "Hello world!"
+        assert_header "Content-Type", "text/html; charset=utf-8"
+      end
     end
 
     test "setting the content type of the response directly on the response object" do

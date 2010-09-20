@@ -17,6 +17,11 @@ module ActiveRecord
         table = finder_class.unscoped
 
         table_name   = record.class.quoted_table_name
+
+        if value && record.class.serialized_attributes.key?(attribute.to_s)
+          value = YAML.dump value
+        end
+
         sql, params  = mount_sql_and_params(finder_class, table_name, attribute, value)
 
         relation = table.where(sql, *params)

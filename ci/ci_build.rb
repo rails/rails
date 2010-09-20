@@ -38,6 +38,7 @@ cd "#{root_dir}/activesupport" do
   # build_results[:activesupport_isolated] = rake 'test:isolated'
 end
 
+system "sudo rm -R #{root_dir}/railties/tmp"
 cd "#{root_dir}/railties" do
   puts
   puts "[CruiseControl] Building RailTies"

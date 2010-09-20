@@ -133,6 +133,18 @@ module ActionDispatch
           polymorphic_url(options)
         end
       end
+
+      protected
+        def _with_routes(routes)
+          old_routes, @_routes = @_routes, routes
+          yield
+        ensure
+          @_routes = old_routes
+        end
+
+        def _routes_context
+          self
+        end
     end
   end
 end

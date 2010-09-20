@@ -1,7 +1,12 @@
 *Rails 3.1.0 (unreleased)*
 
-* No changes
+* file_field automatically adds :multipart => true to the enclosing form. [Santiago Pastorino]
 
+* Renames csrf_meta_tag -> csrf_meta_tags, and aliases csrf_meta_tag for backwards compatibility. [fxn]
+
+* Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used
+  for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply
+  to the browser only.
 
 *Rails 3.0.0 (August 29, 2010)*
 

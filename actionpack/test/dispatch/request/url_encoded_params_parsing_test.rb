@@ -129,7 +129,7 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
   private
     def with_test_routing
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::UrlEncodedParamsParsingTest::TestController
         end
         yield

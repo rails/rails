@@ -113,6 +113,15 @@ module ActionDispatch
             @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
+
+              requirements.each do |_, requirement|
+                if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
+                  raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+                end
+                if requirement.multiline?
+                  raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
+                end
+              end
             end
           end
 
@@ -138,6 +147,10 @@ module ActionDispatch
 
               unless controller.is_a?(Regexp) || to_shorthand
                 controller = [@scope[:module], controller].compact.join("/").presence
+              end
+
+              if controller.is_a?(String) && controller =~ %r{\A/}
+                raise ArgumentError, "controller name should not start with a slash"
               end
 
               controller = controller.to_s unless controller.is_a?(Regexp)
@@ -261,7 +274,11 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
+          options[:as] ||= app_name(app)
+
           match(path, options.merge(:to => app, :anchor => false, :format => false))
+
+          define_generate_prefix(app, options[:as])
           self
         end
 
@@ -269,6 +286,40 @@ module ActionDispatch
           @set.default_url_options = options
         end
         alias_method :default_url_options, :default_url_options=
+
+        def with_default_scope(scope, &block)
+          scope(scope) do
+            instance_exec(&block)
+          end
+        end
+
+        private
+          def app_name(app)
+            return unless app.respond_to?(:routes)
+
+            if app.respond_to?(:railtie_name)
+              app.railtie_name
+            else
+              class_name = app.class.is_a?(Class) ? app.name : app.class.name
+              ActiveSupport::Inflector.underscore(class_name).gsub("/", "_")
+            end
+          end
+
+          def define_generate_prefix(app, name)
+            return unless app.respond_to?(:routes)
+
+            _route = @set.named_routes.routes[name.to_sym]
+            _routes = @set
+            app.routes.define_mounted_helper(name)
+            app.routes.class_eval do
+              define_method :_generate_prefix do |options|
+                prefix_options = options.slice(*_route.segment_keys)
+                # we must actually delete prefix segment keys to avoid passing them to next url_for
+                _route.segment_keys.each { |k| options.delete(k) }
+                _routes.url_helpers.send("#{name}_path", prefix_options)
+              end
+            end
+          end
       end
 
       module HttpHelpers
@@ -404,11 +455,6 @@ module ActionDispatch
         def scope(*args)
           options = args.extract_options!
           options = options.dup
-
-          if name_prefix = options.delete(:name_prefix)
-            options[:as] ||= name_prefix
-            ActiveSupport::Deprecation.warn ":name_prefix was deprecated in the new router syntax. Use :as instead.", caller
-          end
 
           options[:path] = args.first if args.first.is_a?(String)
           recover = {}

@@ -76,7 +76,9 @@ module ActiveRecord
       @records
     end
 
-    def as_json(options = nil) to_a end #:nodoc:
+    def as_json(options = nil) #:nodoc:
+      to_a.as_json(options)
+    end
 
     # Returns size of the records.
     def size
@@ -317,13 +319,9 @@ module ActiveRecord
     end
 
     def where_values_hash
-          Hash[@where_values.find_all { |w|
-            w.respond_to?(:operator) && w.operator == :==
-          }.map { |where|
-            [where.operand1.name,
-             where.operand2.respond_to?(:value) ?
-             where.operand2.value : where.operand2]
-        }]
+      Hash[@where_values.find_all {|w| w.respond_to?(:operator) && w.operator == :== }.map {|where|
+        [where.operand1.name, where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2]
+      }]
     end
 
     def scope_for_create

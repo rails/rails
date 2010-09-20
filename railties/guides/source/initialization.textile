@@ -848,7 +848,7 @@ h5. +require "active_record"+
 
 TODO: Why are +activesupport_path+ and +activemodel_path+ defined here?
 
-The first three requires require ActiveSupport, Active Model and ARel in that order:
+The first three requires require ActiveSupport, Active Model and Arel in that order:
 
 <ruby>
   require 'active_support'

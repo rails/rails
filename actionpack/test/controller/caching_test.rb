@@ -76,7 +76,7 @@ class PageCachingTest < ActionController::TestCase
 
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         match 'posts.:format', :to => 'posts#index', :as => :formatted_posts
         match '/', :to => 'posts#index', :as => :main
       end
@@ -452,7 +452,7 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_xml_version_of_resource_is_treated_as_different_cache
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         match ':controller(/:action(.:format))'
       end
 
@@ -637,7 +637,7 @@ class FragmentCachingTest < ActionController::TestCase
     @store.write('views/another_name', 'another_value')
     @store.write('views/primalgrasp', 'will not expire ;-)')
 
-    @controller.expire_fragment /name/
+    @controller.expire_fragment(/name/)
 
     assert_nil @store.read('views/name')
     assert_nil @store.read('views/another_name')
@@ -727,22 +727,22 @@ CACHED
   def test_fragment_caching_in_partials
     get :html_fragment_cached_with_partial
     assert_response :success
-    assert_match /Old fragment caching in a partial/, @response.body
+    assert_match(/Old fragment caching in a partial/, @response.body)
     assert_match "Old fragment caching in a partial", @store.read('views/test.host/functional_caching/html_fragment_cached_with_partial')
   end
 
   def test_render_inline_before_fragment_caching
     get :inline_fragment_cached
     assert_response :success
-    assert_match /Some inline content/, @response.body
-    assert_match /Some cached content/, @response.body
+    assert_match(/Some inline content/, @response.body)
+    assert_match(/Some cached content/, @response.body)
     assert_match "Some cached content", @store.read('views/test.host/functional_caching/inline_fragment_cached')
   end
 
   def test_fragment_caching_in_rjs_partials
     xhr :get, :js_fragment_cached_with_partial
     assert_response :success
-    assert_match /Old fragment caching in a partial/, @response.body
+    assert_match(/Old fragment caching in a partial/, @response.body)
     assert_match "Old fragment caching in a partial", @store.read('views/test.host/functional_caching/js_fragment_cached_with_partial')
   end
 

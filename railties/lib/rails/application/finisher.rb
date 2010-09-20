@@ -27,7 +27,9 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes_reloader.paths << File.expand_path('../../info_routes.rb', __FILE__)
+          app.routes.append do
+            match '/rails/info/properties' => "rails/info#properties"
+          end
         end
       end
 
@@ -44,6 +46,13 @@ module Rails
 
       initializer :finisher_hook do
         ActiveSupport.run_load_hooks(:after_initialize, self)
+      end
+
+      # Force routes to be loaded just at the end and add it to to_prepare callbacks
+      initializer :set_routes_reloader do |app|
+        reloader = lambda { app.routes_reloader.execute_if_updated }
+        reloader.call
+        ActionDispatch::Callbacks.to_prepare(&reloader)
       end
 
       # Disable dependency loading during request cycle

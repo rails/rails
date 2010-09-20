@@ -2128,6 +2128,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
+  def test_controller_name_with_leading_slash_raise_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/feeds/:service', :to => '/feeds#show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/feeds/:service', :controller => '/feeds', :action => 'show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/api/feeds/:service', :to => '/api/feeds#show' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { resources :feeds, :controller => '/feeds' }
+      end
+    end
+  end
+
 private
   def with_test_routes
     yield
@@ -2151,3 +2183,65 @@ private
     %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
   end
 end
+
+class TestAppendingRoutes < ActionController::IntegrationTest
+  def simple_app(resp)
+    lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
+  end
+
+  setup do
+    s = self
+    @app = ActionDispatch::Routing::RouteSet.new
+    @app.append do
+      match '/hello'   => s.simple_app('fail')
+      match '/goodbye' => s.simple_app('goodbye')
+    end
+
+    @app.draw do
+      match '/hello' => s.simple_app('hello')
+    end
+  end
+
+  def test_goodbye_should_be_available
+    get '/goodbye'
+    assert_equal 'goodbye', @response.body
+  end
+
+  def test_hello_should_not_be_overwritten
+    get '/hello'
+    assert_equal 'hello', @response.body
+  end
+
+  def test_missing_routes_are_still_missing
+    get '/random'
+    assert_equal 404, @response.status
+  end
+end
+
+class TestDefaultScope < ActionController::IntegrationTest
+  module ::Blog
+    class PostsController < ActionController::Base
+      def index
+        render :text => "blog/posts#index"
+      end
+    end
+  end
+
+  DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new
+  DefaultScopeRoutes.default_scope = {:module => :blog}
+  DefaultScopeRoutes.draw do
+    resources :posts
+  end
+
+  def app
+    DefaultScopeRoutes
+  end
+
+  include DefaultScopeRoutes.url_helpers
+
+  def test_default_scope
+    get '/posts'
+    assert_equal "blog/posts#index", @response.body
+  end
+end
+

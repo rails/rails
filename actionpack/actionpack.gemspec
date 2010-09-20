@@ -19,13 +19,15 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
 
-  s.add_dependency('activesupport', version)
-  s.add_dependency('activemodel',   version)
-  s.add_dependency('builder',       '~> 2.1.2')
-  s.add_dependency('i18n',          '~> 0.4.1')
-  s.add_dependency('rack',          '~> 1.2.1')
-  s.add_dependency('rack-test',     '~> 0.5.4')
-  s.add_dependency('rack-mount',    '~> 0.6.13')
-  s.add_dependency('tzinfo',        '~> 0.3.23')
-  s.add_dependency('erubis',        '~> 2.6.6')
+  s.add_dependency('activesupport',    version)
+  s.add_dependency('activemodel',      version)
+  s.add_dependency('rack-cache',       '~> 0.5.2')
+  s.add_dependency('rack-cache-purge', '~> 0.0.1')
+  s.add_dependency('builder',          '~> 2.1.2')
+  s.add_dependency('i18n',             '~> 0.4.1')
+  s.add_dependency('rack',             '~> 1.2.1')
+  s.add_dependency('rack-test',        '~> 0.5.4')
+  s.add_dependency('rack-mount',       '~> 0.6.13')
+  s.add_dependency('tzinfo',           '~> 0.3.23')
+  s.add_dependency('erubis',           '~> 2.6.6')
 end

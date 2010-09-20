@@ -66,16 +66,24 @@ module RenderText
     describe "Rendering text using render :text"
 
     test "rendering text from a action with default options renders the text with the layout" do
-      get "/render_text/simple"
-      assert_body "hello david"
-      assert_status 200
+      with_routing do |set|
+        set.draw { match ':controller', :action => 'index' }
+
+        get "/render_text/simple"
+        assert_body "hello david"
+        assert_status 200
+      end
     end
 
     test "rendering text from a action with default options renders the text without the layout" do
-      get "/render_text/with_layout"
+      with_routing do |set|
+        set.draw { match ':controller', :action => 'index' }
 
-      assert_body "hello david"
-      assert_status 200
+        get "/render_text/with_layout"
+
+        assert_body "hello david"
+        assert_status 200
+      end
     end
 
     test "rendering text, while also providing a custom status code" do

@@ -465,6 +465,10 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_select_argument_error
+    assert_raises(ArgumentError) { Developer.select }
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
@@ -643,6 +647,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.all, all_posts.all
   end
 
+  def test_only
+    relation = Post.where(:author_id => 1).order('id ASC').limit(1)
+    assert_equal [posts(:welcome)], relation.all
+
+    author_posts = relation.only(:where)
+    assert_equal Post.where(:author_id => 1).all, author_posts.all
+
+    all_posts = relation.only(:limit)
+    assert_equal Post.limit(1).all.first, all_posts.first
+  end
+
   def test_anonymous_extension
     relation = Post.where(:author_id => 1).order('id ASC').extending do
       def author
@@ -664,7 +679,43 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.order(Post.arel_table[:title]).all, Post.order("title").all
   end
 
-  def test_relations_limit_with_conditions_or_limit
-    assert_equal Post.limit(2).size, Post.limit(2).all.size
+  def test_order_with_find_with_order
+    assert_equal 'zyke', CoolCar.order('name desc').find(:first, :order => 'id').name
+    assert_equal 'zyke', FastCar.order('name desc').find(:first, :order => 'id').name
+  end
+
+  def test_default_scope_order_with_named_scope_order
+    assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', CoolCar.order_using_old_style.limit(1).first.name
+    assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', FastCar.order_using_old_style.limit(1).first.name
+  end
+
+  def test_order_using_scoping
+    car1 = CoolCar.order('id DESC').scoping do
+      CoolCar.find(:first, :order => 'id asc')
+    end
+    assert_equal 'zyke', car1.name
+
+    car2 = FastCar.order('id DESC').scoping do
+      FastCar.find(:first, :order => 'id asc')
+    end
+    assert_equal 'zyke', car2.name
+  end
+
+  def test_unscoped_block_style
+    assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name}
+    assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_old_style.limit(1).first.name}
+
+    assert_equal 'honda', FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name}
+    assert_equal 'honda', FastCar.unscoped { FastCar.order_using_old_style.limit(1).first.name}
+  end
+
+  def test_intersection_with_array
+    relation = Author.where(:name => "David")
+    rails_author = relation.first
+
+    assert_equal [rails_author], [rails_author] & relation
+    assert_equal [rails_author], relation & [rails_author]
   end
 end

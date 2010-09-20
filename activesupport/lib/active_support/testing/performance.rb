@@ -58,16 +58,16 @@ begin
           metric.send(mode) { __send__ @method_name }
         rescue ::Test::Unit::AssertionFailedError => e
           add_failure(e.message, e.backtrace)
-        rescue StandardError, ScriptError
-          add_error($!)
+        rescue StandardError, ScriptError => e
+          add_error(e)
         ensure
           begin
             teardown
             run_callbacks :teardown, :enumerator => :reverse_each
           rescue ::Test::Unit::AssertionFailedError => e
             add_failure(e.message, e.backtrace)
-          rescue StandardError, ScriptError
-            add_error($!)
+          rescue StandardError, ScriptError => e
+            add_error(e)
           end
         end
 

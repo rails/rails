@@ -61,7 +61,15 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
+      assert Foo.method_defined?(:main_app)
       assert_equal ["notify"], Foo.action_methods
+    end
+
+    # AD
+    test "action_dispatch extensions are applied to ActionDispatch" do
+      add_to_config "config.action_dispatch.tld_length = 2"
+      require "#{app_path}/config/environment"
+      assert_equal 2, ActionDispatch::Http::URL.tld_length
     end
 
     # AS

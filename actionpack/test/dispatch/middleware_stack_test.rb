@@ -4,6 +4,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   class FooMiddleware; end
   class BarMiddleware; end
   class BazMiddleware; end
+  class BlockMiddleware
+    attr_reader :block
+    def initialize(&block)
+      @block = block
+    end
+  end
 
   def setup
     @stack = ActionDispatch::MiddlewareStack.new
@@ -39,7 +45,16 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack.last.klass
     assert_equal([true, {:foo => "bar"}], @stack.last.args)
   end
-
+  
+  test "use should push middleware class with block arguments onto the stack" do
+    proc = Proc.new {}
+    assert_difference "@stack.size" do
+      @stack.use(BlockMiddleware, &proc)
+    end
+    assert_equal BlockMiddleware, @stack.last.klass
+    assert_equal proc, @stack.last.block
+  end
+  
   test "insert inserts middleware at the integer index" do
     @stack.insert(1, BazMiddleware)
     assert_equal BazMiddleware, @stack[1].klass

@@ -26,18 +26,17 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    test "Rails::Application.instance is nil until app is initialized" do
+    test "Rails.application is nil until app is initialized" do
       require 'rails'
-      assert_nil Rails::Application.instance
+      assert_nil Rails.application
       require "#{app_path}/config/environment"
-      assert_equal AppTemplate::Application.instance, Rails::Application.instance
+      assert_equal AppTemplate::Application.instance, Rails.application
     end
 
-    test "Rails::Application responds to all instance methods" do
+    test "Rails.application responds to all instance methods" do
       require "#{app_path}/config/environment"
-      assert_respond_to Rails::Application, :routes_reloader
-      assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
-      assert_equal Rails::Application.routes_reloader, AppTemplate::Application.routes_reloader
+      assert_respond_to Rails.application, :routes_reloader
+      assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
     test "Rails::Application responds to paths" do
@@ -123,22 +122,6 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert !ActionController.autoload?(:RecordIdentifier)
-    end
-
-    test "runtime error is raised if config.frameworks= is used" do
-      add_to_config "config.frameworks = []"
-
-      assert_raises RuntimeError do
-        require "#{app_path}/config/environment"
-      end
-    end
-
-    test "runtime error is raised if config.frameworks is used" do
-      add_to_config "config.frameworks -= []"
-
-      assert_raises RuntimeError do
-        require "#{app_path}/config/environment"
-      end
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -228,7 +211,7 @@ module ApplicationTests
         protect_from_forgery
 
         def index
-          render :inline => "<%= csrf_meta_tag %>"
+          render :inline => "<%= csrf_meta_tags %>"
         end
       end
 
@@ -276,6 +259,21 @@ module ApplicationTests
       res = last_response.body
       get "/"
       assert_not_equal res, last_response.body
+    end
+
+    test "config.asset_path is not passed through env" do
+      make_basic_app do |app|
+        app.config.asset_path = "/omg%s"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :inline => "<%= image_path('foo.jpg') %>"
+        end
+      end
+
+      get "/"
+      assert_equal "/omg/images/foo.jpg", last_response.body
     end
   end
 end

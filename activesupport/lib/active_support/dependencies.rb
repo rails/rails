@@ -64,8 +64,8 @@ module ActiveSupport #:nodoc:
     self.log_activity = false
 
     # The WatchStack keeps a stack of the modules being watched as files are loaded.
-    # If a file in the process of being loaded (parent.rb) triggers the load of 
-    # another file (child.rb) the stack will ensure that child.rb handles the new 
+    # If a file in the process of being loaded (parent.rb) triggers the load of
+    # another file (child.rb) the stack will ensure that child.rb handles the new
     # constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
@@ -83,13 +83,13 @@ module ActiveSupport #:nodoc:
         super { |h,k| h[k] = [] }
       end
 
-      # return a list of new constants found since the last call to watch_modules
+      # return a list of new constants found since the last call to watch_namespaces
       def new_constants
         constants = []
 
         # Grab the list of namespaces that we're looking for new constants under
         @watching.last.each do |namespace|
-          # Retrieve the constants that were present under the namespace when watch_modules
+          # Retrieve the constants that were present under the namespace when watch_namespaces
           # was originally called
           original_constants = self[namespace].last
 
@@ -115,7 +115,7 @@ module ActiveSupport #:nodoc:
         end
         constants
       ensure
-        # A call to new_constants is always called after a call to watch_modules
+        # A call to new_constants is always called after a call to watch_namespaces
         pop_modules(@watching.pop)
       end
 
@@ -641,7 +641,8 @@ module ActiveSupport #:nodoc:
       parent = Inflector.constantize(names * '::')
 
       log "removing constant #{const}"
-      constantize(const).before_remove_const if constantize(const).respond_to?(:before_remove_const)
+      constantized = constantize(const)
+      constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
       parent.instance_eval { remove_const to_remove }
 
       return true
@@ -649,7 +650,7 @@ module ActiveSupport #:nodoc:
 
     protected
       def log_call(*args)
-        if logger && log_activity
+        if log_activity?
           arg_str = args.collect { |arg| arg.inspect } * ', '
           /in `([a-z_\?\!]+)'/ =~ caller(1).first
           selector = $1 || '<unknown>'
@@ -658,9 +659,11 @@ module ActiveSupport #:nodoc:
       end
 
       def log(msg)
-        if logger && log_activity
-          logger.debug "Dependencies: #{msg}"
-        end
+        logger.debug "Dependencies: #{msg}" if log_activity?
+      end
+
+      def log_activity?
+        logger && log_activity
       end
   end
 end

@@ -26,6 +26,35 @@ module ActionView
   # This would first render "advertiser/_account.erb" with @buyer passed in as the local variable +account+, then
   # render "advertiser/_ad.erb" and pass the local variable +ad+ to the template for display.
   #
+  # == The :as and :object options
+  #
+  # By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same
+  # name as the template. So, given
+  #
+  #   <%= render :partial => "contract" %>
+  #
+  # within contract we'll get <tt>@contract</tt> in the local variable +contract+, as if we had written
+  #
+  #   <%= render :partial => "contract", :locals => { :contract  => @contract } %>
+  #
+  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
+  # wanted it to be +agreement+ instead of +contract+ we'd do:
+  #
+  #   <%= render :partial => "contract", :as => :agreement %>
+  #
+  # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
+  # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
+  # 
+  # Revisiting a previous example we could have written this code:
+  # 
+  #   <%= render :partial => "account", :object => @buyer %>
+  #
+  #   <% for ad in @advertisements %>
+  #     <%= render :partial => "ad", :object => ad %>
+  #   <% end %>
+  #
+  # The <tt>:object</tt> and <tt>:as</tt> options can be used together.
+  #
   # == Rendering a collection of partials
   #
   # The example of partial use describes a familiar pattern where a template needs to iterate over an array and
@@ -38,6 +67,13 @@ module ActionView
   # This will render "advertiser/_ad.erb" and pass the local variable +ad+ to the template for display. An
   # iteration counter will automatically be made available to the template with a name of the form
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
+  #
+  # The <tt>:as</tt> option may be used when rendering partials.
+  # 
+  # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
+  # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
+  #
+  #   <%= render :partial => "ad", :collection => @advertisements, :spacer_template => "ad_divider" %>
   #
   # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
   # just keep domain objects, like Active Records, in there.

@@ -257,53 +257,53 @@ module ActionView
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
-      # Returns an html script tag for each of the +sources+ provided. You
-      # can pass in the filename (.js extension is optional) of javascript files
-      # that exist in your public/javascripts directory for inclusion into the
+      # Returns an HTML script tag for each of the +sources+ provided. You
+      # can pass in the filename (.js extension is optional) of JavaScript files
+      # that exist in your <tt>public/javascripts</tt> directory for inclusion into the
       # current page or you can pass the full path relative to your document
-      # root. To include the Prototype and Scriptaculous javascript libraries in
+      # root. To include the Prototype and Scriptaculous JavaScript libraries in
       # your application, pass <tt>:defaults</tt> as the source. When using
-      # <tt>:defaults</tt>, if an application.js file exists in your public
-      # javascripts directory, it will be included as well. You can modify the
-      # html attributes of the script tag by passing a hash as the last argument.
+      # <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in
+      # <tt>public/javascripts</tt> it will be included as well. You can modify the
+      # HTML attributes of the script tag by passing a hash as the last argument.
       #
       # ==== Examples
       #   javascript_include_tag "xmlhr" # =>
-      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
+      #     <script type="text/javascript" src="/javascripts/xmlhr.js?1284139606"></script>
       #
       #   javascript_include_tag "xmlhr.js" # =>
-      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
+      #     <script type="text/javascript" src="/javascripts/xmlhr.js?1284139606"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
-      #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
-      #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
+      #     <script type="text/javascript" src="/javascripts/common.javascript?1284139606"></script>
+      #     <script type="text/javascript" src="/elsewhere/cools.js?1423139606"></script>
       #
       #   javascript_include_tag "http://www.railsapplication.com/xmlhr" # =>
-      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
+      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js?1284139606"></script>
       #
       #   javascript_include_tag "http://www.railsapplication.com/xmlhr.js" # =>
-      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
+      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js?1284139606"></script>
       #
       #   javascript_include_tag :defaults # =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js?1284139606"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
       #
       # * = The application.js file is only referenced if it exists
       #
       # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason
       # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
       #
-      # You can also include all javascripts in the javascripts directory using <tt>:all</tt> as the source:
+      # You can also include all javascripts in the +javascripts+ directory using <tt>:all</tt> as the source:
       #
       #   javascript_include_tag :all # =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js?1284139606"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script>
-      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
       #
       # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available to
       # all subsequently included files.
@@ -321,23 +321,23 @@ module ActionView
       #
       # ==== Examples
       #   javascript_include_tag :all, :cache => true # when config.perform_caching is false =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js?1284139606"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script>
-      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
       #
       #   javascript_include_tag :all, :cache => true # when config.perform_caching is true =>
-      #     <script type="text/javascript" src="/javascripts/all.js"></script>
+      #     <script type="text/javascript" src="/javascripts/all.js?1344139789"></script>
       #
       #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is false =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/cart.js"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js?1284139606"></script>
+      #     <script type="text/javascript" src="/javascripts/cart.js?1289139157"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js?1299139816"></script>
       #
       #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is true =>
-      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js?1299139816"></script>
       #
       # The <tt>:recursive</tt> option is also available for caching:
       #
@@ -727,6 +727,9 @@ module ActionView
 
           source += ".#{ext}" if rewrite_extension?(source, dir, ext)
           source  = "/#{dir}/#{source}" unless source[0] == ?/
+          if controller.respond_to?(:env) && controller.env["action_dispatch.asset_path"]
+            source = rewrite_asset_path(source, controller.env["action_dispatch.asset_path"])
+          end
           source = rewrite_asset_path(source, config.asset_path)
 
           has_request = controller.respond_to?(:request)
@@ -824,7 +827,7 @@ module ActionView
 
         def expand_javascript_sources(sources, recursive = false)
           if sources.include?(:all)
-            all_javascript_files = collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js')
+            all_javascript_files = (collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js') - ['application']) << 'application'
             ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
           else
             expanded_sources = sources.collect do |source|

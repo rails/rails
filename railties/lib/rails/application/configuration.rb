@@ -1,16 +1,13 @@
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/encoding'
 require 'rails/engine/configuration'
 
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      include ::Rails::Configuration::Deprecated
-
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
-                    :filter_parameters,  :log_level, :logger, :middleware,
-                    :plugins, :preload_frameworks, :reload_plugins,
+                    :filter_parameters,  :log_level, :logger,
+                    :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
 
@@ -26,6 +23,23 @@ module Rails
         @session_options = {}
         @time_zone = "UTC"
         @middleware = app_middleware
+        @asset_path = '/'
+      end
+
+      def asset_path=(value)
+        action_mailer.asset_path = value if respond_to?(:action_mailer) && action_mailer
+        action_controller.asset_path = value if respond_to?(:action_controller) && action_controller
+        super(value)
+      end
+
+      def asset_host=(value)
+        action_mailer.asset_host = value if action_mailer
+        action_controller.asset_host = value if action_controller
+        super(value)
+      end
+
+      def compiled_asset_path
+        "/"
       end
 
       def encoding=(value)
@@ -45,22 +59,12 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.app.controllers << builtin_controller if builtin_controller
           paths.config.database     "config/database.yml"
           paths.config.environment  "config/environment.rb"
-          paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
           paths.lib.templates       "lib/templates"
           paths.log                 "log/#{Rails.env}.log"
           paths.tmp                 "tmp"
           paths.tmp.cache           "tmp/cache"
-          paths.vendor              "vendor", :load_path => true
-          paths.vendor.plugins      "vendor/plugins"
-
-          if File.exists?("#{root}/test/mocks/#{Rails.env}")
-            ActiveSupport::Deprecation.warn "\"Rails.root/test/mocks/#{Rails.env}\" won't be added " <<
-              "automatically to load paths anymore in future releases"
-            paths.mocks_path  "test/mocks", :autoload => true, :glob => Rails.env
-          end
 
           paths
         end
@@ -94,10 +98,6 @@ module Rails
             :memory_store
           end
         end
-      end
-
-      def builtin_controller
-        File.expand_path('../info_routes', __FILE__) if Rails.env.development?
       end
 
       def log_level

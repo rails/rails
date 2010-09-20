@@ -25,7 +25,7 @@ conn[:socket] = Pathname.glob(%w[
   /tmp/mysql.sock
   /var/mysql/mysql.sock
   /var/run/mysqld/mysqld.sock
-]).find { |path| path.socket? }
+]).find { |path| path.socket? }.to_s
 
 ActiveRecord::Base.establish_connection(conn)
 
@@ -153,6 +153,23 @@ RBench.run(TIMES) do
 
   report 'Model.transaction' do
     ar { Exhibit.transaction { Exhibit.new } }
+  end
+
+  report 'Model.find(id)' do
+    id = Exhibit.first.id
+    ar { Exhibit.find(id) }
+  end
+
+  report 'Model.find_by_sql' do
+    ar { Exhibit.find_by_sql("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}").first }
+  end
+
+  report 'Model.log', (TIMES * 10) do
+    ar { Exhibit.connection.send(:log, "hello", "world") {} }
+  end
+
+  report 'AR.execute(query)', (TIMES / 2) do
+    ar { ActiveRecord::Base.connection.execute("Select * from exhibits where id = #{(rand * 1000 + 1).to_i}") }
   end
 
   summary 'Total'

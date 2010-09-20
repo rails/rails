@@ -14,9 +14,9 @@ module ActiveRecord
     #
     # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
     #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" 
+    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id"
     #   (rarely needed) or named associations in the same form used for the <tt>:include</tt> option, which will
-    #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records 
+    #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records
     #   will be returned read-only since they will have attributes that do not correspond to the table's columns.
     #   Pass <tt>:readonly => false</tt> to override.
     # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs.
@@ -175,18 +175,17 @@ module ActiveRecord
       end
 
       distinct = options[:distinct] || distinct
-      column_name = :all if column_name.blank? && operation == "count"
 
       if @group_values.any?
-        return execute_grouped_calculation(operation, column_name)
+        execute_grouped_calculation(operation, column_name)
       else
-        return execute_simple_calculation(operation, column_name, distinct)
+        execute_simple_calculation(operation, column_name, distinct)
       end
     end
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       column = if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(@klass.unscoped, column_name)
+        Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
         Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
       end
@@ -211,7 +210,7 @@ module ActiveRecord
       select_statement = if operation == 'count' && column_name == :all
         "COUNT(*) AS count_all"
       else
-        Arel::Attribute.new(@klass.unscoped, column_name).send(operation).as(aggregate_alias).to_sql
+        Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias).to_sql
       end
 
       select_statement <<  ", #{group_field} AS #{group_alias}"

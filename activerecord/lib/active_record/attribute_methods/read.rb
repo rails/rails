@@ -26,8 +26,7 @@ module ActiveRecord
         # Returns the attributes which are cached. By default time related columns
         # with datatype <tt>:datetime, :timestamp, :time, :date</tt> are cached.
         def cached_attributes
-          @cached_attributes ||=
-            columns.select{|c| attribute_types_cached_by_default.include?(c.type)}.map{|col| col.name}.to_set
+          @cached_attributes ||= columns.select { |c| cacheable_column?(c) }.map { |col| col.name }.to_set
         end
 
         # Returns +true+ if the provided attribute is being cached.
@@ -37,7 +36,7 @@ module ActiveRecord
 
         protected
           def define_method_attribute(attr_name)
-            if self.serialized_attributes[attr_name]
+            if serialized_attributes.include?(attr_name)
               define_read_method_for_serialized_attribute(attr_name)
             else
               define_read_method(attr_name.to_sym, attr_name, columns_hash[attr_name])
@@ -49,9 +48,14 @@ module ActiveRecord
           end
 
         private
+          def cacheable_column?(column)
+            serialized_attributes.include?(column.name) || attribute_types_cached_by_default.include?(column.type)
+          end
+
           # Define read method for serialized attribute.
           def define_read_method_for_serialized_attribute(attr_name)
-            generated_attribute_methods.module_eval("def #{attr_name}; unserialize_attribute('#{attr_name}'); end", __FILE__, __LINE__)
+            access_code = "@attributes_cache['#{attr_name}'] ||= unserialize_attribute('#{attr_name}')"
+            generated_attribute_methods.module_eval("def #{attr_name}; #{access_code}; end", __FILE__, __LINE__)
           end
 
           # Define an attribute reader method.  Cope with nil column.
@@ -66,13 +70,19 @@ module ActiveRecord
             if cache_attribute?(attr_name)
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
             end
-            generated_attribute_methods.module_eval("def #{symbol}; #{access_code}; end", __FILE__, __LINE__)
+            generated_attribute_methods.module_eval("def _#{symbol}; #{access_code}; end; alias #{symbol} _#{symbol}", __FILE__, __LINE__)
           end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
+        send "_#{attr_name}"
+      rescue NoMethodError
+        _read_attribute attr_name
+      end
+
+      def _read_attribute(attr_name)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id'
         if !(value = @attributes[attr_name]).nil?
@@ -85,14 +95,12 @@ module ActiveRecord
           else
             value
           end
-        else
-          nil
         end
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.
       def unserializable_attribute?(attr_name, column)
-        column.text? && self.class.serialized_attributes[attr_name]
+        column.text? && self.class.serialized_attributes.include?(attr_name)
       end
 
       # Returns the unserialized object of the attribute.

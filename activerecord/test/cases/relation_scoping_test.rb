@@ -161,7 +161,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_merge_inner_scope_has_priority
     Developer.limit(5).scoping do
       Developer.limit(10).scoping do
-        assert_equal 10, Developer.count
+        assert_equal 10, Developer.all.size
       end
     end
   end
@@ -390,6 +390,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_reordered_scope_overrides_default_scope_order
+    not_expected = DeveloperOrderedBySalary.first # Jamis -> name DESC
+    received = DeveloperOrderedBySalary.reordered_by_name.first # David -> name
+    assert not_expected.id != received.id
+  end
+
   def test_nested_exclusive_scope
     expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
@@ -398,8 +404,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_overwriting_default_scope
-    expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
+  def test_order_in_default_scope_should_prevail
+    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
   end

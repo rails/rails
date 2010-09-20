@@ -79,18 +79,16 @@ module ActiveModel
       #                    "title": "Welcome to the weblog"},
       #                   {"comments": [{"body": "Don't think too hard"}],
       #                    "title": "So I was thinking"}]}
-      def encode_json(encoder)
-        hash = serializable_hash(encoder.options)
+
+      def as_json(options = nil)
+        hash = serializable_hash(options)
+
         if include_root_in_json
-          custom_root = encoder.options && encoder.options[:root]
+          custom_root = options && options[:root]
           hash = { custom_root || self.class.model_name.element => hash }
         end
 
-        ActiveSupport::JSON.encode(hash)
-      end
-
-      def as_json(options = nil)
-        self
+        hash
       end
 
       def from_json(json)

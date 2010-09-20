@@ -1,7 +1,24 @@
 *Rails 3.1.0 (unreleased)*
 
-* No changes
+* Added Rack::Cache to the default middleware stack
 
+* Engine is now rack application [Piotr Sarnacki]
+
+* Added middleware stack to Engine [Piotr Sarnacki]
+
+* Engine can now load plugins [Piotr Sarnacki]
+
+* Engine can load its own environment file [Piotr Sarnacki]
+
+* Added helpers to call engines' route helpers from application and vice versa [Piotr Sarnacki]
+
+* Task for copying plugins' and engines' migrations to application's db/migrate directory [Piotr Sarnacki]
+
+* Changed ActionDispatch::Static to allow handling multiple directories [Piotr Sarnacki]
+
+* Added namespace() method to Engine, which sets Engine as isolated [Piotr Sarnacki]
+
+* Include all helpers from plugins and shared engines in application [Piotr Sarnacki]
 
 *Rails 3.0.0 (August 29, 2010)*
 

@@ -13,7 +13,7 @@ module ActionView
     module UrlHelper
       # This helper may be included in any class that includes the
       # URL helpers of a routes (routes.url_helpers). Some methods
-      # provided here will only work in the4 context of a request
+      # provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
 
@@ -21,6 +21,10 @@ module ActionView
 
       include ActionDispatch::Routing::UrlFor
       include TagHelper
+
+      def _routes_context
+        controller
+      end
 
       # Need to map default url options to controller one.
       # def default_url_options(*args) #:nodoc:
@@ -264,7 +268,7 @@ module ActionView
       # The +options+ hash accepts the same options as url_for.
       #
       # There are a few special +html_options+:
-      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>, 
+      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
@@ -590,11 +594,6 @@ module ActionView
           end
 
           confirm = html_options.delete("confirm")
-
-          if html_options.key?("popup")
-            ActiveSupport::Deprecation.warn(":popup has been deprecated", caller)
-          end
-
           method, href = html_options.delete("method"), html_options['href']
 
           add_confirm_to_attributes!(html_options, confirm) if confirm

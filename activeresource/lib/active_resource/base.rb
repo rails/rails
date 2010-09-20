@@ -589,8 +589,8 @@ module ActiveResource
             def prefix(options={}) "#{prefix_call}" end
           RUBY_EVAL
         end
-      rescue
-        logger.error "Couldn't set prefix: #{$!}\n  #{code}" if logger
+      rescue Exception => e
+        logger.error "Couldn't set prefix: #{e}\n  #{code}" if logger
         raise
       end
 
@@ -1318,7 +1318,7 @@ module ActiveResource
       end
 
       def load_attributes_from_response(response)
-        if response['Content-Length'] != "0" && response.body.strip.size > 0
+        if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
           load(self.class.format.decode(response.body))
         end
       end

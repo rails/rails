@@ -1,4 +1,5 @@
 require "active_support/inflector/methods"
+require "active_support/dependencies"
 
 module ActionDispatch
   class MiddlewareStack < Array
@@ -66,11 +67,6 @@ module ActionDispatch
     def use(*args, &block)
       middleware = self.class::Middleware.new(*args, &block)
       push(middleware)
-    end
-
-    def active
-      ActiveSupport::Deprecation.warn "All middlewares in the chain are active since the laziness " <<
-        "was removed from the middleware stack", caller
     end
 
     def build(app = nil, &block)

@@ -1,12 +1,47 @@
 require 'rack/utils'
 
 module ActionDispatch
+  class FileHandler
+    def initialize(at, root)
+      @at, @root = at.chomp('/'), root.chomp('/')
+      @compiled_at = Regexp.compile(/^#{Regexp.escape(at)}/) unless @at.blank?
+      @compiled_root = Regexp.compile(/^#{Regexp.escape(root)}/)
+      @file_server = ::Rack::File.new(root)
+    end
+
+    def match?(path)
+      path = path.dup
+      if @compiled_at.blank? || path.sub!(@compiled_at, '')
+        full_path = File.join(@root, ::Rack::Utils.unescape(path))
+        paths = "#{full_path}#{ext}"
+
+        matches = Dir[paths]
+        match = matches.detect { |m| File.file?(m) }
+        if match
+          match.sub!(@compiled_root, '')
+          match
+        end
+      end
+    end
+
+    def call(env)
+      @file_server.call(env)
+    end
+
+    def ext
+      @ext ||= begin
+        ext = ::ActionController::Base.page_cache_extension
+        "{,#{ext},/index#{ext}}"
+      end
+    end
+  end
+
   class Static
     FILE_METHODS = %w(GET HEAD).freeze
 
-    def initialize(app, root)
+    def initialize(app, roots)
       @app = app
-      @file_server = ::Rack::File.new(root)
+      @file_handlers = create_file_handlers(roots)
     end
 
     def call(env)
@@ -14,15 +49,10 @@ module ActionDispatch
       method = env['REQUEST_METHOD']
 
       if FILE_METHODS.include?(method)
-        if file_exist?(path)
-          return @file_server.call(env)
-        else
-          cached_path = directory_exist?(path) ? "#{path}/index" : path
-          cached_path += ::ActionController::Base.page_cache_extension
-
-          if file_exist?(cached_path)
-            env['PATH_INFO'] = cached_path
-            return @file_server.call(env)
+        @file_handlers.each do |file_handler|
+          if match = file_handler.match?(path)
+            env["PATH_INFO"] = match
+            return file_handler.call(env)
           end
         end
       end
@@ -31,14 +61,12 @@ module ActionDispatch
     end
 
     private
-      def file_exist?(path)
-        full_path = File.join(@file_server.root, ::Rack::Utils.unescape(path))
-        File.file?(full_path) && File.readable?(full_path)
-      end
+      def create_file_handlers(roots)
+        roots = { '' => roots } unless roots.is_a?(Hash)
 
-      def directory_exist?(path)
-        full_path = File.join(@file_server.root, ::Rack::Utils.unescape(path))
-        File.directory?(full_path) && File.readable?(full_path)
+        roots.map do |at, root|
+          FileHandler.new(at, root) if File.exist?(root)
+        end.compact
       end
   end
 end

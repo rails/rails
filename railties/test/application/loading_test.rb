@@ -42,6 +42,23 @@ class LoadingTest < Test::Unit::TestCase
     User
   end
 
+  test "load config/environments/environment before Bootstrap initializers" do
+    app_file "config/environments/development.rb", <<-RUBY
+      AppTemplate::Application.configure do
+        config.development_environment_loaded = true
+      end
+    RUBY
+
+    add_to_config <<-RUBY
+      config.before_initialize do
+        config.loaded = config.development_environment_loaded
+      end
+    RUBY
+
+    require "#{app_path}/config/environment"
+    assert ::AppTemplate::Application.config.loaded
+  end
+
   def test_descendants_are_cleaned_on_each_request_without_cache_classes
     add_to_config <<-RUBY
       config.cache_classes = false
@@ -53,7 +70,7 @@ class LoadingTest < Test::Unit::TestCase
     MODEL
 
     app_file 'config/routes.rb', <<-RUBY
-      AppTemplate::Application.routes.draw do |map|
+      AppTemplate::Application.routes.draw do
         match '/load',   :to => lambda { |env| [200, {}, Post.all] }
         match '/unload', :to => lambda { |env| [200, {}, []] }
       end
@@ -70,6 +87,11 @@ class LoadingTest < Test::Unit::TestCase
     assert_equal [Post], ActiveRecord::Base.descendants
     get "/unload"
     assert_equal [], ActiveRecord::Base.descendants
+  end
+
+  test "initialize_cant_be_called_twice" do
+    require "#{app_path}/config/environment"
+    assert_raise(RuntimeError) { ::AppTemplate::Application.initialize! }
   end
 
   protected

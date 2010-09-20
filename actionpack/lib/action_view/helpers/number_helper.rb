@@ -260,7 +260,7 @@ module ActionView
           if number == 0
             digits, rounded_number = 1, 0
           else
-            digits = (Math.log10(number) + 1).floor
+            digits = (Math.log10(number.abs) + 1).floor
             rounded_number = BigDecimal.new((number / 10 ** (digits - precision)).to_s).round.to_f * 10 ** (digits - precision)
           end
           precision = precision - digits
@@ -459,7 +459,7 @@ module ActionView
           raise ArgumentError, ":units must be a Hash or String translation scope."
         end.keys.map{|e_name| DECIMAL_UNITS.invert[e_name] }.sort_by{|e| -e}
 
-        number_exponent = Math.log10(number).floor
+        number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
         display_exponent = unit_exponents.find{|e| number_exponent >= e }
         number  /= 10 ** display_exponent
 

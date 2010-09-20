@@ -233,7 +233,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :items, :force => true do |t|
-    t.column :name, :integer
+    t.column :name, :string
   end
 
   create_table :inept_wizards, :force => true do |t|
@@ -343,8 +343,8 @@ ActiveRecord::Schema.define do
     t.decimal :my_house_population, :precision => 2, :scale => 0
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
     t.float   :temperature
-    # Oracle supports precision up to 38
-    if current_adapter?(:OracleAdapter)
+    # Oracle/SQLServer supports precision up to 38
+    if current_adapter?(:OracleAdapter,:SQLServerAdapter)
       t.decimal :atoms_in_universe, :precision => 38, :scale => 0
     else
       t.decimal :atoms_in_universe, :precision => 55, :scale => 0

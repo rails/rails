@@ -11,6 +11,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_match /TestUnit options:/, content
   end
 
+  def test_model_with_missing_attribute_type
+    content = capture(:stderr) { run_generator ["post", "title:string", "body"] }
+    assert_match /Missing type for attribute 'body'/, content
+    assert_match /Example: 'body:string' where string is the type/, content
+  end
+
   def test_invokes_default_orm
     run_generator
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
@@ -157,6 +163,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     run_generator ["Account"], :behavior => :revoke
     assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_existing_migration_is_removed_on_force
+    run_generator
+    old_migration = Dir["#{destination_root}/db/migrate/*_create_accounts.rb"].first
+    error = capture(:stderr) { run_generator ["Account", "--force"] }
+    assert_no_match /Another migration is already named create_foos/, error
+    assert_no_file old_migration
+    assert_migration 'db/migrate/create_accounts.rb'
   end
 
   def test_invokes_default_test_framework

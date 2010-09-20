@@ -40,6 +40,34 @@ module ApplicationTests
       ], middleware
     end
 
+    test "Rack::Cache is present when action_controller.perform_caching is set" do
+      add_to_config "config.action_controller.perform_caching = true"
+
+      boot!
+
+      assert_equal [
+        "Rack::Cache",
+        "ActionDispatch::Static",
+        "Rack::Lock",
+        "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
+        "Rails::Rack::Logger",
+        "ActionDispatch::ShowExceptions",
+        "ActionDispatch::RemoteIp",
+        "Rack::Sendfile",
+        "ActionDispatch::Callbacks",
+        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
+        "ActiveRecord::QueryCache",
+        "ActionDispatch::Cookies",
+        "ActionDispatch::Session::CookieStore",
+        "ActionDispatch::Flash",
+        "ActionDispatch::ParamsParser",
+        "Rack::MethodOverride",
+        "ActionDispatch::Head",
+        "ActionDispatch::BestStandardsSupport"
+      ], middleware
+    end
+
     test "removing Active Record omits its middleware" do
       use_frameworks []
       boot!

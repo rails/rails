@@ -123,10 +123,14 @@ module RenderTemplate
     describe "Rendering with :template using implicit or explicit layout"
 
     test "rendering with implicit layout" do
-      get "/render_template/with_layout"
+      with_routing do |set|
+        set.draw { match ':controller', :action => :index }
 
-      assert_body "Hello from basic.html.erb, I'm here!"
-      assert_status 200
+        get "/render_template/with_layout"
+
+        assert_body "Hello from basic.html.erb, I'm here!"
+        assert_status 200
+      end
     end
 
     test "rendering with layout => :true" do

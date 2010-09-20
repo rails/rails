@@ -42,7 +42,7 @@ class JustMeController < ActionController::Base
   def flash
     render :inline => "<h1><%= notice %></h1>"
   end
-  
+
   def lib
     render :inline => '<%= useful_function %>'
   end
@@ -176,17 +176,6 @@ class HelperTest < ActiveSupport::TestCase
 
     # fun/pdf_helper.rb
     assert methods.include?('foobar')
-  end
-
-  def test_deprecation
-    assert_deprecated do
-      ActionController::Base.helpers_dir = "some/foo/bar"
-    end
-    assert_deprecated do
-      assert_equal ["some/foo/bar"], ActionController::Base.helpers_dir
-    end
-  ensure
-    ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
   end
 
   private

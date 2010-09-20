@@ -427,7 +427,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
           include set.url_helpers
         end
 
-        set.draw do |map|
+        set.draw do
           match ':action', :to => controller
           get 'get/:action', :to => controller
         end

@@ -15,7 +15,6 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
@@ -316,18 +315,6 @@ module ActiveRecord #:nodoc:
     # a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
 
-    class << self
-      def reset_subclasses #:nodoc:
-        ActiveSupport::Deprecation.warn 'ActiveRecord::Base.reset_subclasses no longer does anything in Rails 3. It will be removed in the final release; please update your apps and plugins.', caller
-      end
-
-      def subclasses
-        descendants
-      end
-
-      deprecate :subclasses => :descendants
-    end
-
     ##
     # :singleton-method:
     # Contains the database configuration - as is typically stored in config/database.yml -
@@ -428,14 +415,12 @@ module ActiveRecord #:nodoc:
     class_inheritable_accessor :default_scoping, :instance_writer => false
     self.default_scoping = []
 
-    class << self # Class methods
-      def colorize_logging(*args)
-        ActiveSupport::Deprecation.warn "ActiveRecord::Base.colorize_logging and " <<
-          "config.active_record.colorize_logging are deprecated. Please use " <<
-          "ActiveRecord::LogSubscriber.colorize_logging or config.colorize_logging instead", caller
-      end
-      alias :colorize_logging= :colorize_logging
+    # Returns a hash of all the attributes that have been specified for serialization as
+    # keys and their class restriction as values.
+    class_attribute :serialized_attributes
+    self.serialized_attributes = {}
 
+    class << self # Class methods
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :reorder, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
@@ -546,12 +531,6 @@ module ActiveRecord #:nodoc:
         serialized_attributes[attr_name.to_s] = class_name
       end
 
-      # Returns a hash of all the attributes that have been specified for serialization as
-      # keys and their class restriction as values.
-      def serialized_attributes
-        read_inheritable_attribute(:attr_serialized) or write_inheritable_attribute(:attr_serialized, {})
-      end
-
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy
       # looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -608,7 +587,7 @@ module ActiveRecord #:nodoc:
       # Defines the column name for use with single table inheritance. Use
       # <tt>set_inheritance_column</tt> to set a different value.
       def inheritance_column
-        @inheritance_column ||= "type".freeze
+        @inheritance_column ||= "type"
       end
 
       # Lazy-set the sequence name to the connection's default.  This method
@@ -684,7 +663,7 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
+        @columns_hash ||= Hash[columns.map { |column| [column.name, column] }]
       end
 
       # Returns an array of column names as strings.
@@ -879,8 +858,8 @@ module ActiveRecord #:nodoc:
       # It is recommended to use block form of unscoped because chaining unscoped with <tt>named_scope</tt>
       # does not work. Assuming that <tt>published</tt> is a <tt>named_scope</tt> following two statements are same.
       #
-      # Post.unscoped.published 
-      # Post.published 
+      # Post.unscoped.published
+      # Post.published
       def unscoped #:nodoc:
         block_given? ? relation.scoping { yield } : relation
       end
@@ -943,7 +922,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : unscoped.merge(options)
+          relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : options
           relation = scope.merge(relation) if scope
           relation
         end
@@ -1100,9 +1079,9 @@ module ActiveRecord #:nodoc:
 
           if method_scoping.is_a?(Hash)
             # Dup first and second level of hash (method and params).
-            method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-              hash[method] = (params == true) ? params : params.dup
-              hash
+            method_scoping = method_scoping.dup
+            method_scoping.each do |method, params|
+              method_scoping[method] = params.dup unless params == true
             end
 
             method_scoping.assert_valid_keys([ :find, :create ])
@@ -1705,8 +1684,8 @@ MSG
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
               value = read_attribute(name)
 
-              if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
-                value = value.to_yaml
+              if value && self.class.serialized_attributes.key?(name)
+                value = YAML.dump value
               end
               attrs[self.class.arel_table[name]] = value
             end
@@ -1813,10 +1792,7 @@ MSG
       end
 
       def quote_columns(quoter, hash)
-        hash.inject({}) do |quoted, (name, value)|
-          quoted[quoter.quote_column_name(name)] = value
-          quoted
-        end
+        Hash[hash.map { |name, value| [quoter.quote_column_name(name), value] }]
       end
 
       def quoted_comma_pair_list(quoter, hash)

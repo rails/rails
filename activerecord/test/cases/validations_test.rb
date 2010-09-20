@@ -13,24 +13,6 @@ class ProtectedPerson < ActiveRecord::Base
   attr_protected :first_name
 end
 
-class DeprecatedPerson < ActiveRecord::Base
-  set_table_name 'people'
-
-  private
-
-  def validate
-    errors[:name] << "always invalid"
-  end
-
-  def validate_on_create
-    errors[:name] << "invalid on create"
-  end
-
-  def validate_on_update
-    errors[:name] << "invalid on update"
-  end
-end
-
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
 
@@ -141,14 +123,6 @@ class ValidationsTest < ActiveRecord::TestCase
     assert reply.save(:validate => false)
   end
 
-  def test_deprecated_create_without_validation
-    reply = WrongReply.new
-    assert !reply.save
-    assert_deprecated do
-      assert reply.save(false)
-    end
-  end
-
   def test_validates_acceptance_of_with_non_existant_table
     Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
 
@@ -168,23 +142,6 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_acceptance_of(:approved)
     topic = Topic.create("approved" => true)
     assert topic["approved"]
-  end
-
-  def test_validate_is_deprecated_on_create
-    p = DeprecatedPerson.new
-    assert_deprecated do
-      assert !p.valid?
-    end
-    assert_equal ["always invalid", "invalid on create"], p.errors[:name]
-  end
-
-  def test_validate_is_deprecated_on_update
-    p = DeprecatedPerson.new(:first_name => "David")
-    assert p.save(:validate => false)
-    assert_deprecated do
-      assert !p.valid?
-    end
-    assert_equal ["always invalid", "invalid on update"], p.errors[:name]
   end
 
   def test_validators

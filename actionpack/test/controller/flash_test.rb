@@ -255,7 +255,7 @@ class FlashIntegrationTest < ActionController::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => FlashIntegrationTest::TestController
         end
 

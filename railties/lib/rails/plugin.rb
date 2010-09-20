@@ -18,6 +18,10 @@ module Rails
   # root during the boot process.
   #
   class Plugin < Engine
+    def self.global_plugins
+      @global_plugins ||= []
+    end
+
     def self.inherited(base)
       raise "You cannot inherit from Rails::Plugin"
     end
@@ -28,6 +32,11 @@ module Rails
         Dir["#{path}/*"].each do |plugin_path|
           plugin = new(plugin_path)
           next unless list.include?(plugin.name) || list.include?(:all)
+          if global_plugins.include?(plugin.name)
+            warn "WARNING: plugin #{plugin.name} from #{path} was not loaded. Plugin with the same name has been already loaded."
+            next
+          end
+          global_plugins << plugin.name
           plugins << plugin
         end
       end
@@ -39,17 +48,8 @@ module Rails
 
     attr_reader :name, :path
 
-    def load_tasks
-      super
-      load_deprecated_tasks
-    end
-
-    def load_deprecated_tasks
-      tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"].sort
-      if tasks.any?
-        ActiveSupport::Deprecation.warn "Rake tasks in #{tasks.to_sentence} are deprecated. Use lib/tasks instead"
-        tasks.each { |ext| load(ext) }
-      end
+    def railtie_name
+      name.to_s
     end
 
     def initialize(root)
@@ -72,13 +72,12 @@ module Rails
     end
 
     initializer :load_init_rb, :before => :load_config_initializers do |app|
-      files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
-      if initrb = files.find { |path| File.file? path }
-        if initrb == files.first
-          ActiveSupport::Deprecation.warn "Use toplevel init.rb; rails/init.rb is deprecated: #{initrb}"
-        end
+      init_rb = File.expand_path("init.rb", root)
+      if File.file?(init_rb)
         config = app.config
-        eval(File.read(initrb), binding, initrb)
+        # TODO: think about evaling initrb in context of Engine (currently it's
+        # always evaled in context of Rails::Application)
+        eval(File.read(init_rb), binding, init_rb)
       end
     end
 

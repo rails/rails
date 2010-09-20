@@ -88,6 +88,44 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10) + 1.year
     assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10) + 1.year
   end
+
+  def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
+    Time.zone_default = nil
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal false, 5.since.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.local(2000,1,1,0,0,5), 5.since
+      # ago
+      assert_equal false, 5.ago.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.local(1999,12,31,23,59,55), 5.ago
+    end
+  end
+
+  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
+    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal true, 5.since.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.utc(2000,1,1,0,0,5), 5.since.time
+      assert_equal 'Eastern Time (US & Canada)', 5.since.time_zone.name
+      # ago
+      assert_equal true, 5.ago.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.utc(1999,12,31,23,59,55), 5.ago.time
+      assert_equal 'Eastern Time (US & Canada)', 5.ago.time_zone.name
+    end
+  ensure
+    Time.zone_default = nil
+  end
+
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
 
 class NumericExtDateTest < Test::Unit::TestCase

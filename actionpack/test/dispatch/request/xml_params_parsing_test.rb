@@ -96,7 +96,7 @@ class XmlParamsParsingTest < ActionController::IntegrationTest
   private
     def with_test_routing
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::XmlParamsParsingTest::TestController
         end
         yield

@@ -41,24 +41,6 @@ module Rails
     autoload :Railties,       'rails/application/railties'
 
     class << self
-      private :new
-
-      def configure(&block)
-        class_eval(&block)
-      end
-
-      def instance
-        if self == Rails::Application
-          if Rails.application
-            ActiveSupport::Deprecation.warn "Calling a method in Rails::Application is deprecated, " <<
-              "please call it directly in your application constant #{Rails.application.class.name}.", caller
-          end
-          Rails.application
-        else
-          @@instance ||= new
-        end
-      end
-
       def inherited(base)
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
@@ -66,19 +48,9 @@ module Rails
         Rails.application.add_lib_to_load_path!
         ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
-
-      def respond_to?(*args)
-        super || instance.respond_to?(*args)
-      end
-
-    protected
-
-      def method_missing(*args, &block)
-        instance.send(*args, &block)
-      end
     end
 
-    delegate :middleware, :to => :config
+    delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
@@ -108,14 +80,6 @@ module Rails
       super
     end
 
-    def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new
-    end
-
-    def railties
-      @railties ||= Railties.new(config)
-    end
-
     def routes_reloader
       @routes_reloader ||= ActiveSupport::FileUpdateChecker.new([]){ reload_routes! }
     end
@@ -131,7 +95,9 @@ module Rails
     end
 
     def initialize!
+      raise "Application has been already initialized." if @initialized
       run_initializers(self)
+      @initialized = true
       self
     end
 
@@ -156,38 +122,37 @@ module Rails
       self
     end
 
-    def app
-      @app ||= begin
-        config.middleware = config.middleware.merge_into(default_middleware_stack)
-        config.middleware.build(routes)
-      end
-    end
     alias :build_middleware_stack :app
 
-    def call(env)
-      app.call(env.reverse_merge!(env_defaults))
-    end
-
-    def env_defaults
-      @env_defaults ||= {
+    def env_config
+      @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
-        "action_dispatch.secret_token" => config.secret_token
-      }
+        "action_dispatch.secret_token" => config.secret_token,
+        "action_dispatch.asset_path" => nil
+      })
     end
 
     def initializers
       initializers = Bootstrap.initializers_for(self)
-      railties.all { |r| initializers += r.initializers }
       initializers += super
       initializers += Finisher.initializers_for(self)
       initializers
+    end
+
+    def config
+      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
   protected
 
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        middleware.use ::ActionDispatch::Static, paths.public.to_a.first if config.serve_static_assets
+        rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+
+        require "action_dispatch/http/rack_cache" if rack_cache
+
+        middleware.use ::Rack::Cache, rack_cache if rack_cache
+        middleware.use ::ActionDispatch::Static, config.static_asset_paths if config.serve_static_assets
         middleware.use ::Rack::Lock if !config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rails::Rack::Logger

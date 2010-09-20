@@ -36,6 +36,10 @@ module ActionView
     autoload :Context
     autoload :Template
     autoload :Helpers
+    autoload :Base
+    autoload :LookupContext
+    autoload :PathSet,        "action_view/paths"
+    autoload :TestCase,       "action_view/test_case"
 
     autoload_under "render" do
       autoload :Layouts
@@ -43,24 +47,25 @@ module ActionView
       autoload :Rendering
     end
 
-    autoload :Base
-    autoload :LookupContext
-    autoload :Resolver,           'action_view/template/resolver'
-    autoload :PathResolver,       'action_view/template/resolver'
-    autoload :FileSystemResolver, 'action_view/template/resolver'
-    autoload :PathSet,            'action_view/paths'
+    autoload_at "action_view/template/resolver" do
+      autoload :Resolver
+      autoload :PathResolver
+      autoload :FileSystemResolver
+    end
 
-    autoload :MissingTemplate,    'action_view/template/error'
-    autoload :ActionViewError,    'action_view/template/error'
-    autoload :EncodingError,      'action_view/template/error'
-    autoload :TemplateError,      'action_view/template/error'
-    autoload :WrongEncodingError, 'action_view/template/error'
+    autoload_at "action_view/template/error" do
+      autoload :MissingTemplate
+      autoload :ActionViewError
+      autoload :EncodingError
+      autoload :TemplateError
+      autoload :WrongEncodingError
+    end
 
-    autoload :TemplateHandler,   'action_view/template'
-    autoload :TemplateHandlers,  'action_view/template'
+    autoload_at "action_view/template" do
+      autoload :TemplateHandler
+      autoload :TemplateHandlers
+    end
   end
-
-  autoload :TestCase, 'action_view/test_case'
 
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end

@@ -59,12 +59,4 @@ class ActiveModelHelperTest < ActionView::TestCase
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc
   end
-
-  def test_deprecations
-    %w(input form error_messages_for error_message_on).each do |method|
-      assert_deprecated do
-        send(method, "post")
-      end
-    end
-  end
 end
