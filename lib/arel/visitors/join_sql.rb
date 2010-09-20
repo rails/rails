@@ -10,7 +10,7 @@ module Arel
     # compatibility with Arel V1.0
     class JoinSql < Arel::Visitors::ToSql
       def visit_Arel_Nodes_SelectCore o
-        o.froms.grep(Nodes::Join).map { |x| visit x }.join ', '
+        [o.froms].grep(Nodes::Join).map { |x| visit x }.join ', '
       end
 
       def visit_Arel_Nodes_StringJoin o

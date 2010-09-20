@@ -7,7 +7,7 @@ module Arel
       um = UpdateManager.new @engine
 
       if Nodes::SqlLiteral === values
-        relation = @ctx.froms.last
+        relation = @ctx.froms
       else
         relation = values.first.first.relation
       end
@@ -37,7 +37,7 @@ module Arel
     def delete
       dm = DeleteManager.new @engine
       dm.wheres = @ctx.wheres
-      dm.from @ctx.froms.last
+      dm.from @ctx.froms
       @engine.connection.delete dm.to_sql, 'AREL'
     end
   end

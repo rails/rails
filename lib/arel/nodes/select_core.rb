@@ -5,7 +5,7 @@ module Arel
       attr_accessor :having
 
       def initialize
-        @froms       = []
+        @froms       = nil
         @projections = []
         @wheres      = []
         @groups      = []
@@ -14,7 +14,7 @@ module Arel
 
       def initialize_copy other
         super
-        @froms       = @froms.clone
+        @froms       = @froms.clone if @froms
         @projections = @projections.clone
         @wheres      = @wheres.clone
         @group       = @groups.clone

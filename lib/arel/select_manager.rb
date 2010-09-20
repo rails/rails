@@ -39,7 +39,7 @@ module Arel
     end
 
     def on *exprs
-      @ctx.froms.last.constraint = Nodes::On.new(collapse(exprs))
+      @ctx.froms.constraint = Nodes::On.new(collapse(exprs))
       self
     end
 
@@ -59,8 +59,8 @@ module Arel
       # FIXME: this is a hack to support
       # test_with_two_tables_in_from_without_getting_double_quoted
       # from the AR tests.
-      unless @ctx.froms.empty?
-        source = @ctx.froms.first
+      if @ctx.froms
+        source = @ctx.froms
 
         if Nodes::SqlLiteral === table && Nodes::Join === source
           source.left = table
@@ -68,7 +68,7 @@ module Arel
         end
       end
 
-      @ctx.froms = [table]
+      @ctx.froms = table
       self
     end
 
@@ -78,9 +78,9 @@ module Arel
       case relation
       when String, Nodes::SqlLiteral
         raise if relation.blank?
-        from Nodes::StringJoin.new(@ctx.froms.pop, relation)
+        from Nodes::StringJoin.new(@ctx.froms, relation)
       else
-        from klass.new(@ctx.froms.pop, relation, nil)
+        from klass.new(@ctx.froms, relation, nil)
       end
     end
 
@@ -162,7 +162,7 @@ module Arel
     # FIXME: this method should go away
     def insert values
       im = InsertManager.new @engine
-      im.into @ctx.froms.last
+      im.into @ctx.froms
       im.insert values
       @engine.connection.insert im.to_sql
     end
