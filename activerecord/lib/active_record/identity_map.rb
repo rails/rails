@@ -29,15 +29,15 @@ module ActiveRecord
       end
 
       def get(class_name, primary_key)
-        current[[class_name, primary_key]]
+        current[[class_name, primary_key.to_s]]
       end
 
       def add(record)
-        current[[record.class.name, record.id]] = record
+        current[[record.class.name, record.id.to_s]] = record
       end
 
       def remove(record)
-        current.delete([record.class.name, record.id])
+        current.delete([record.class.name, record.id.to_s])
       end
 
       def clear
