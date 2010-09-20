@@ -317,8 +317,8 @@ module ActionView
         options[:html] ||= {}
         options[:html][:remote] = options.delete(:remote)
 
-        builder = instantiate_builder(object_name, object, options, &proc)
-        fields_for = capture(builder, &proc)
+        builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
+        fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { :multipart => true } : {}
         output = form_tag(options.delete(:url) || {}, default_options.merge!(options.delete(:html) || {}))
         output << fields_for
@@ -1119,8 +1119,13 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart
+      attr_reader :multipart, :parent_builder
       alias :multipart? :multipart
+
+      def multipart=(multipart)
+        @multipart = multipart
+        parent_builder.multipart = multipart if parent_builder
+      end
 
       def self.model_name
         @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
@@ -1133,6 +1138,7 @@ module ActionView
       def initialize(object_name, object, template, options, proc)
         @nested_child_index = {}
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
+        @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index) : {}
         if @object_name.to_s.match(/\[\]$/)
           if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
@@ -1166,10 +1172,9 @@ module ActionView
           index = ""
         end
 
-        if options[:builder]
-          args << {} unless args.last.is_a?(Hash)
-          args.last[:builder] ||= options[:builder]
-        end
+        args << {} unless args.last.is_a?(Hash)
+        args.last[:builder] ||= options[:builder]
+        args.last[:parent_builder] = self
 
         case record_or_name_or_array
         when String, Symbol
@@ -1209,7 +1214,7 @@ module ActionView
       end
 
       def file_field(method, options = {})
-        @multipart = true
+        self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))
       end
       # Add the submit button for the given form. When no value is given, it checks

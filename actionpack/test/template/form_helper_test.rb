@@ -689,6 +689,27 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_fields_for_with_file_field_generate_multipart
+    Comment.send :attr_accessor, :file
+
+    assert_deprecated do
+      form_for(:post, @post) do |f|
+        concat f.fields_for(:comment, @post) { |c|
+          concat c.file_field(:file)
+        }
+      end
+    end
+
+    expected =
+      "<form accept-charset='UTF-8' action='/' method='post' enctype='multipart/form-data'>" +
+      snowman +
+      "<input name='post[comment][file]' type='file' id='post_comment_file' />" +
+      "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+
   def test_form_for_with_format
     form_for(@post, :format => :json, :html => { :id => "edit_post_123", :class => "edit_post" }) do |f|
       concat f.label(:title)
