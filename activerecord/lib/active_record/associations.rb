@@ -2046,7 +2046,7 @@ module ActiveRecord
             end
 
             def extract_record(row)
-              column_names_with_alias.inject({}){|record, (cn, an)| record[cn] = row[an]; record}
+              Hash[column_names_with_alias.map{|cn, an| [cn, row[an]]}]
             end
 
             def record_id(row)
