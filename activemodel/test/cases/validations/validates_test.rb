@@ -111,4 +111,13 @@ class ValidatesTest < ActiveModel::TestCase
     person.valid?
     assert_equal ['Local validator please'], person.errors[:title]
   end
+
+  def test_validates_with_included_validator_and_wildcard_shortcut
+    # Shortcut for PersonWithValidator.validates :title, :like => { :with => "Mr." }
+    PersonWithValidator.validates :title, :like => "Mr."
+    person = PersonWithValidator.new
+    person.title = "Ms. Pacman"
+    person.valid?
+    assert_equal ['does not appear to be like Mr.'], person.errors[:title]
+  end
 end

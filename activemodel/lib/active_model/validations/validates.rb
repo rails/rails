@@ -55,14 +55,19 @@ module ActiveModel
       #     validates :name, :title => true
       #   end
       #
-      # The validators hash can also handle regular expressions, ranges and arrays:
+      # The validators hash can also handle regular expressions, ranges, 
+      # arrays and strings in shortcut form, e.g.
       #
       #   validates :email, :format => /@/
       #   validates :gender, :inclusion => %w(male female)
       #   validates :password, :length => 6..20
       #
-      # Finally, the options :if, :unless, :on, :allow_blank and :allow_nil can be given
-      # to one specific validator:
+      # When using shortcut form, ranges and arrays are passed to your
+      # validator's initializer as +options[:in]+ while other types including
+      # regular expressions and strings are passed as +options[:with]+
+      #
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+ and +:allow_nil+ can be given
+      # to one specific validator, as a hash:
       #
       #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
       #
@@ -99,10 +104,10 @@ module ActiveModel
           {}
         when Hash
           options
-        when Regexp
-          { :with => options }
         when Range, Array
           { :in => options }
+        else
+          { :with => options }
         end
       end
     end
