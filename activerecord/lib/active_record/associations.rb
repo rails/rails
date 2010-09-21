@@ -2213,8 +2213,9 @@ module ActiveRecord
                 first_key = second_key = nil
 
                 if through_reflection.options[:as] # has_many :through against a polymorphic join
-                  jt_foreign_key = through_reflection.options[:as].to_s + '_id'
-                  jt_as_extra = join_table[through_reflection.options[:as].to_s + '_type'].eq(parent.active_record.base_class.name)
+                  as_key         = through_reflection.options[:as].to_s
+                  jt_foreign_key = as_key + '_id'
+                  jt_as_extra    = join_table[as_key + '_type'].eq(parent.active_record.base_class.name)
                 else
                   jt_foreign_key = through_reflection.primary_key_name
                 end
