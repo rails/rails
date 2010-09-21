@@ -1,12 +1,14 @@
 module Arel
   module Nodes
     class UpdateStatement
-      attr_accessor :relation, :wheres, :values
+      attr_accessor :relation, :wheres, :values, :orders, :limit
 
       def initialize
         @relation = nil
         @wheres   = []
         @values   = []
+        @orders = []
+        @limit  = nil
       end
 
       def initialize_copy other

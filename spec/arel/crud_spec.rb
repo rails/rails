@@ -1,10 +1,13 @@
 module Arel
   class FakeCrudder < SelectManager
     class FakeEngine
-      attr_reader :calls
+      attr_reader :calls, :connection_pool, :spec, :config
 
       def initialize
         @calls = []
+        @connection_pool = self
+        @spec = self
+        @config =  { :adapter => 'sqlite3' }
       end
 
       def connection; self end

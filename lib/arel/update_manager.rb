@@ -5,6 +5,16 @@ module Arel
       @head = Nodes::UpdateStatement.new
     end
 
+    def take limit
+      @head.limit = limit
+      self
+    end
+
+    def order *expr
+      @head.orders = expr
+      self
+    end
+
     ###
     # UPDATE +table+
     def table table
@@ -33,6 +43,14 @@ module Arel
         }
       end
       self
+    end
+
+    def to_sql
+      viz = Visitors::ToSql.new @engine
+      unless @engine.connection_pool.spec.config[:adapter] == 'mysql'
+        viz.extend(Visitors::UpdateSql)
+      end
+      viz.accept @head
     end
   end
 end

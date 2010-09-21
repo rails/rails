@@ -13,16 +13,9 @@ module Arel
       end
       um.table relation
       um.set values
-
-      if @head.orders.empty? && @head.limit.nil?
-        um.wheres = @ctx.wheres
-      else
-        head             = @head.clone
-        core             = head.cores.first
-        core.projections = [relation.primary_key]
-
-        um.wheres = [Nodes::In.new(relation.primary_key, [head])]
-      end
+      um.take @head.limit
+      um.order(*@head.orders)
+      um.wheres = @ctx.wheres
 
       @engine.connection.update um.to_sql, 'AREL'
     end

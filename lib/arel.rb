@@ -26,6 +26,7 @@ require 'arel/sql_literal'
 ####
 
 require 'arel/visitors/to_sql'
+require 'arel/visitors/update_sql'
 require 'arel/visitors/join_sql'
 require 'arel/visitors/order_clauses'
 require 'arel/visitors/dot'

@@ -3,10 +3,16 @@ require 'spec_helper'
 module Arel
   class EngineProxy
     attr_reader :executed
+    attr_reader :connection_pool
+    attr_reader :spec
+    attr_reader :config
 
     def initialize engine
       @engine = engine
       @executed = []
+      @connection_pool = self
+      @spec = self
+      @config = { :adapter => 'sqlite3' }
     end
 
     def connection
