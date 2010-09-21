@@ -668,10 +668,12 @@ module ActionView
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("hidden", options)
       end
 
-      # Returns an file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
+      # Returns a file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
+      #
+      # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Examples
       #   file_field(:user, :avatar)
