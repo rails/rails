@@ -2107,8 +2107,13 @@ module ActiveRecord
             def association_join
               return @join if @join
 
-              aliased_table = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
-              parent_table = Arel::Table.new(parent.table_name, :as => parent.aliased_table_name, :engine => arel_engine)
+              aliased_table = Arel::Table.new(table_name, :as      => @aliased_table_name,
+                                                          :engine  => arel_engine,
+                                                          :columns => klass.columns)
+
+              parent_table = Arel::Table.new(parent.table_name, :as      => parent.aliased_table_name,
+                                                                :engine  => arel_engine,
+                                                                :columns => parent.active_record.columns)
 
               @join = case reflection.macro
               when :has_and_belongs_to_many
@@ -2191,7 +2196,9 @@ module ActiveRecord
             end
 
             def relation
-              aliased = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
+              aliased = Arel::Table.new(table_name, :as => @aliased_table_name,
+                                                    :engine => arel_engine,
+                                                    :columns => klass.columns)
 
               if reflection.macro == :has_and_belongs_to_many
                 [Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => arel_engine), aliased]

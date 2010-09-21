@@ -57,6 +57,15 @@ ActiveRecord::Base.connection.class.class_eval do
   alias_method_chain :execute, :query_record
 end
 
+ActiveRecord::Base.connection.extend Module.new {
+  attr_accessor :column_calls
+  def columns(*args)
+    @column_calls += 1
+    super
+  end
+}
+ActiveRecord::Base.connection.column_calls = 0
+
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods
     def try_to_load_dependency_with_silence(*args)
