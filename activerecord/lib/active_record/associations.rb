@@ -2221,13 +2221,13 @@ module ActiveRecord
 
                 case source_reflection.macro
                 when :has_many
+                  second_key  = options[:foreign_key] || primary_key
+
                   if source_reflection.options[:as]
                     first_key   = "#{source_reflection.options[:as]}_id"
-                    second_key  = options[:foreign_key] || primary_key
                     as_extra    = aliased_table["#{source_reflection.options[:as]}_type"].eq(source_reflection.active_record.base_class.name)
                   else
                     first_key   = through_reflection.klass.base_class.to_s.foreign_key
-                    second_key  = options[:foreign_key] || primary_key
                   end
 
                   unless through_reflection.klass.descends_from_active_record?
