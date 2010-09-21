@@ -1416,8 +1416,8 @@ module ActiveRecord
         include Module.new {
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def destroy                     # def destroy
-              super                         #   super
               #{reflection.name}.clear      #   posts.clear
+              super                         #   super
             end                             # end
           RUBY
         }

@@ -425,7 +425,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_removing_associations_on_destroy
     david = DeveloperWithBeforeDestroyRaise.find(1)
     assert !david.projects.empty?
-    assert_nothing_raised { david.destroy }
+    assert_raise(RuntimeError) { david.destroy }
     assert david.projects.empty?
     assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
   end
