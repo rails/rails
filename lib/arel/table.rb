@@ -10,16 +10,20 @@ module Arel
     def initialize name, engine = Table.engine
       @name    = name
       @engine  = engine
-      @engine  = engine[:engine] if Hash === engine
       @columns = nil
       @aliases = []
       @table_alias = nil
       @primary_key = nil
 
-      # Sometime AR sends an :as parameter to table, to let the table know that
-      # it is an Alias.  We may want to override new, and return a TableAlias
-      # node?
-      @table_alias = engine[:as] if Hash === engine
+      if Hash === engine
+        @engine  = engine[:engine] || Table.engine
+        @columns = attributes_for engine[:columns]
+
+        # Sometime AR sends an :as parameter to table, to let the table know
+        # that it is an Alias.  We may want to override new, and return a
+        # TableAlias node?
+        @table_alias = engine[:as]
+      end
     end
 
     def primary_key
@@ -82,9 +86,8 @@ module Arel
     end
 
     def columns
-      @columns ||= @engine.connection.columns(@name, "#{@name} Columns").map do |column|
-        Attributes.for(column).new self, column.name.to_sym, column
-      end
+      @columns ||=
+        attributes_for @engine.connection.columns(@name, "#{@name} Columns")
     end
 
     def [] name
@@ -95,6 +98,14 @@ module Arel
     end
 
     private
+    def attributes_for columns
+      return nil unless columns
+
+      columns.map do |column|
+        Attributes.for(column).new self, column.name.to_sym, column
+      end
+    end
+
     def table_exists?
       @table_exists ||= tables.key?(@name) || engine.connection.table_exists?(name)
     end

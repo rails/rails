@@ -71,6 +71,13 @@ module Arel
     end
 
     describe 'new' do
+      it 'takes :columns' do
+        columns = Table.engine.connection.columns("users")
+        @relation = Table.new(:users, :columns => columns)
+        check @relation.columns.first.name.should == :id
+        check @relation.engine.should == Table.engine
+      end
+
       it 'should accept an engine' do
         rel = Table.new :users, 'foo'
         check rel.engine.should == 'foo'
