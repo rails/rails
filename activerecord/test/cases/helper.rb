@@ -57,14 +57,17 @@ ActiveRecord::Base.connection.class.class_eval do
   alias_method_chain :execute, :query_record
 end
 
-ActiveRecord::Base.connection.extend Module.new {
+ActiveRecord::Base.connection.class.class_eval {
   attr_accessor :column_calls
-  def columns(*args)
+
+  def columns_with_calls(*args)
+    @column_calls ||= 0
     @column_calls += 1
-    super
+    columns_without_calls(*args)
   end
+
+  alias_method_chain :columns, :calls
 }
-ActiveRecord::Base.connection.column_calls = 0
 
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods
