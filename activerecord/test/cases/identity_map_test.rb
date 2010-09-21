@@ -126,20 +126,20 @@ class IdentityMapTest < ActiveRecord::TestCase
 #  end
 
   def test_changing_associations
-    t1 = Topic.create("title" => "t1")
-    t2 = Topic.create("title" => "t2")
-    r1 = Reply.new("title" => "r1", "content" => "r1")
+    post1 = Post.create("title" => "One post", "body" => "Posting...")
+    post2 = Post.create("title" => "Another post", "body" => "Posting... Again...")
+    comment = Comment.new("body" => "comment")
 
-    r1.topic = t1
-    assert r1.save
+    comment.post = post1
+    assert comment.save
 
-    assert_same(t1.replies.first, r1)
+    assert_same(post1.comments.first, comment)
 
-    r1.topic = t2
-    assert r1.save
+    comment.post = post2
+    assert comment.save
 
-    assert_same(t2.replies.first, r1)
-    assert_equal(0, t1.replies.size)
+    assert_same(post2.comments.first, comment)
+    assert_equal(0, post1.comments.size)
   end
 
   def test_im_with_polymorphic_has_many_going_through_join_model_with_custom_select_and_joins
