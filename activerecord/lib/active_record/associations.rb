@@ -2210,7 +2210,7 @@ module ActiveRecord
                                              :as     => aliased_join_table_name,
                                              :engine => arel_engine)
                 jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
-                first_key = second_key = as_extra = nil
+                first_key = second_key = nil
 
                 if through_reflection.options[:as] # has_many :through against a polymorphic join
                   jt_foreign_key = through_reflection.options[:as].to_s + '_id'
@@ -2225,7 +2225,6 @@ module ActiveRecord
 
                   if source_reflection.options[:as]
                     first_key   = "#{source_reflection.options[:as]}_id"
-                    as_extra    = aliased_table["#{source_reflection.options[:as]}_type"].eq(source_reflection.active_record.base_class.name)
                   else
                     first_key   = through_reflection.klass.base_class.to_s.foreign_key
                   end
