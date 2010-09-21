@@ -49,7 +49,7 @@ module ActiveRecord
 
     self.repositories ||= Hash.new
     self.current_repository_name ||= :default
-    self.enabled = true
+    self.enabled = false
 
     module InstanceMethods
 
