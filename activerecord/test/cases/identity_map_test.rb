@@ -284,14 +284,14 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_no_queries do
       comment.post
     end
-    assert_same post, comment.post
+    assert_same post, comment.post.target
   end
 
   def test_associated_object_are_assigned_from_identity_map
     post = Post.find(1)
 
     post.comments.each do |comment|
-      assert_same post, comment.post
+      assert_same post, comment.post.target
       assert_equal post.object_id, comment.post.target.object_id
     end
   end
