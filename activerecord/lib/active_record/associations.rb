@@ -2243,7 +2243,7 @@ module ActiveRecord
                 end
 
                 [
-                  [parent_table[parent.primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].reject{|x| x.blank? },
+                  [parent_table[parent.primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].compact,
                   aliased_table[first_key].eq(join_table[second_key])
                 ]
               elsif reflection.options[:as]
