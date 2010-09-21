@@ -44,6 +44,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert !authors(:mary).unique_categorized_posts.loaded?
   end
 
+  def test_column_caching
+    # pre-heat our cache
+    Post.arel_table.columns
+    Comment.columns
+
+    Post.connection.column_calls = 0
+    2.times { Post.joins(:comments).to_a }
+    assert_equal 0, Post.connection.column_calls
+  end
+
   def test_has_many_uniq_through_find
     assert_equal 1, authors(:mary).unique_categorized_posts.find(:all).size
   end
