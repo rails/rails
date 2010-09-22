@@ -42,7 +42,7 @@ module ActionController
         def #{method}(event)
           key_or_path = event.payload[:key] || event.payload[:path]
           human_name  = #{method.to_s.humanize.inspect}
-          info("\#{human_name} \#{key_or_path} (%.1fms)" % event.duration)
+          info("\#{human_name} \#{key_or_path} \#{"(%.1fms)" % event.duration}")
         end
       METHOD
     end
