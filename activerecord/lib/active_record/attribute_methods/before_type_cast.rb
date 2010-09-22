@@ -13,10 +13,7 @@ module ActiveRecord
 
       # Returns a hash of attributes before typecasting and deserialization.
       def attributes_before_type_cast
-        self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute_before_type_cast(name)
-          attrs
-        end
+        Hash[attribute_names.map { |name| [name, read_attribute_before_type_cast(name)] }]
       end
 
       private
