@@ -209,23 +209,20 @@ module ActiveRecord
         records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
-          through_reflection = reflections[options[:through]]
-          through_primary_key = through_reflection.primary_key_name
+
           unless through_records.empty?
+            through_reflection = reflections[options[:through]]
+            through_primary_key = through_reflection.primary_key_name
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             if through_reflection.macro == :belongs_to
-              rev_id_to_record_map = construct_id_map(records, through_primary_key).first
-              rev_primary_key = through_reflection.klass.primary_key
-              through_records.each do |through_record|
-                add_preloaded_record_to_collection(rev_id_to_record_map[through_record[rev_primary_key].to_s],
-                                                   reflection.name, through_record.send(source))
-              end
-            else
-              through_records.each do |through_record|
-                add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
-                                                   reflection.name, through_record.send(source))
-              end
+              id_to_record_map    = construct_id_map(records, through_primary_key).first
+              through_primary_key = through_reflection.klass.primary_key
+            end
+
+            through_records.each do |through_record|
+              add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
+                                                 reflection.name, through_record.send(source))
             end
           end
         else
