@@ -47,7 +47,7 @@ class CookiesTest < ActionController::TestCase
       cookies["user_name"] = { :value => "david", :httponly => true }
       head :ok
     end
-    
+
     def authenticate_with_secure
       cookies["user_name"] = { :value => "david", :secure => true }
       head :ok
@@ -133,7 +133,7 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=david; path=/; HttpOnly"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
-  
+
   def test_setting_cookie_with_secure
     get :authenticate_with_secure
     assert_cookie_header "user_name=david; path=/; secure"
@@ -169,8 +169,8 @@ class CookiesTest < ActionController::TestCase
 
   def test_permanent_cookie
     get :set_permanent_cookie
-    assert_match /Jamie/, @response.headers["Set-Cookie"]
-    assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]
+    assert_match(/Jamie/, @response.headers["Set-Cookie"])
+    assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
   end
 
   def test_signed_cookie
@@ -185,7 +185,7 @@ class CookiesTest < ActionController::TestCase
 
   def test_permanent_signed_cookie
     get :set_permanent_signed_cookie
-    assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]
+    assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
   end
 

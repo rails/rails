@@ -45,9 +45,9 @@ class RequestTest < ActiveSupport::TestCase
     e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
       request.remote_ip
     }
-    assert_match /IP spoofing attack/, e.message
-    assert_match /HTTP_X_FORWARDED_FOR="1.1.1.1"/, e.message
-    assert_match /HTTP_CLIENT_IP="2.2.2.2"/, e.message
+    assert_match(/IP spoofing attack/, e.message)
+    assert_match(/HTTP_X_FORWARDED_FOR="1.1.1.1"/, e.message)
+    assert_match(/HTTP_CLIENT_IP="2.2.2.2"/, e.message)
 
     # turn IP Spoofing detection off.
     # This is useful for sites that are aimed at non-IP clients.  The typical
