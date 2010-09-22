@@ -177,7 +177,7 @@ module ApplicationTests
       assert_equal 'admin::foo', last_response.body
     end
 
-    test "reloads appended route blocks" do
+    def test_reloads_appended_route_blocks
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
           match ':controller#:action'
@@ -186,7 +186,7 @@ module ApplicationTests
 
       add_to_config <<-R
         routes.append do
-          match '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, 'WIN'] }
+          match '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
         end
       R
 
