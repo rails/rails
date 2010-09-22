@@ -1976,22 +1976,23 @@ module ActiveRecord
             end
 
             def construct_association(record, join, row)
+              return if record.id.to_s != join.parent.record_id(row).to_s
+
               case join.reflection.macro
               when :has_many, :has_and_belongs_to_many
                 collection = record.send(join.reflection.name)
                 collection.loaded
 
-                return nil if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
+                return if row[join.aliased_primary_key].nil?
                 association = join.instantiate(row)
                 collection.target.push(association)
                 collection.__send__(:set_inverse_instance, association, record)
               when :has_one
-                return if record.id.to_s != join.parent.record_id(row).to_s
                 return if record.instance_variable_defined?("@#{join.reflection.name}")
                 association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
                 set_target_and_inverse(join, association, record)
               when :belongs_to
-                return if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
+                return if row[join.aliased_primary_key].nil?
                 association = join.instantiate(row)
                 set_target_and_inverse(join, association, record)
               else
