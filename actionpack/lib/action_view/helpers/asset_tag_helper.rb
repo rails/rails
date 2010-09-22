@@ -705,9 +705,15 @@ module ActionView
 
       private
 
-        def rewrite_extension?(source, dir, ext)
-          source_ext = File.extname(source)[1..-1]
-          ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
+        def rewrite_extension(source, dir, ext)
+          source_ext = File.extname(source)
+
+          if source_ext.empty?
+            "#{source}.#{ext}"
+          elsif ext != source_ext[1..-1]
+            with_ext = "#{source}.#{ext}"
+            with_ext if File.exist?(File.join(config.assets_dir, dir, with_ext))
+          end || source
         end
 
         def rewrite_host_and_protocol(source, has_request)
@@ -729,8 +735,8 @@ module ActionView
         def compute_public_path(source, dir, ext = nil, include_host = true)
           return source if is_uri?(source)
 
-          source += ".#{ext}" if rewrite_extension?(source, dir, ext)
-          source  = "/#{dir}/#{source}" unless source[0] == ?/
+          source = rewrite_extension(source, dir, ext) if ext
+          source = "/#{dir}/#{source}" unless source[0] == ?/
           if controller.respond_to?(:env) && controller.env["action_dispatch.asset_path"]
             source = rewrite_asset_path(source, controller.env["action_dispatch.asset_path"])
           end
