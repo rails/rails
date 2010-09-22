@@ -30,7 +30,7 @@ module ActionController
     #
     #
     # === Advanced \Basic example
-    # 
+    #
     # Here is a more advanced \Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
     # the regular HTML interface is protected by a session approach:
     #
@@ -98,7 +98,7 @@ module ActionController
     #   end
     #
     # === Notes
-    # 
+    #
     # The +authenticate_or_request_with_http_digest+ block must return the user's password
     # or the ha1 digest hash so the framework can appropriately hash to check the user's
     # credentials. Returning +nil+ will cause authentication to fail.
@@ -222,11 +222,10 @@ module ActionController
       end
 
       def decode_credentials(header)
-        header.to_s.gsub(/^Digest\s+/,'').split(',').inject({}) do |hash, pair|
+        Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          hash[key.strip.to_sym] = value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')
-          hash
-        end
+          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')]
+        end]
       end
 
       def authentication_header(controller, realm)

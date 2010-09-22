@@ -189,7 +189,7 @@ module ActionView
       end
 
       def _assigns
-        _instance_variables.map { |var| [ var[1..-1].to_sym, instance_variable_get(var)] }
+        _instance_variables.map { |var| [var[1..-1].to_sym, instance_variable_get(var)] }
       end
 
       def _routes
