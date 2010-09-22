@@ -179,9 +179,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Assignment o
-        right = o.right
-
-        right = right.nil? ? 'NULL' : visit(right)
+        right = quote(o.right, o.left.column)
         "#{visit o.left} = #{right}"
       end
 

@@ -5,6 +5,10 @@ module Arel
         @attribute = attribute
       end
 
+      def column
+        @attribute.column
+      end
+
       def name
         @attribute.name
       end
