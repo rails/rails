@@ -19,11 +19,11 @@ module ActiveRecord
         begin
           require 'mysql'
         rescue LoadError
-          raise "!!! Missing the mysql gem. Add it to your Gemfile: gem 'mysql', '2.8.1'"
+          raise "!!! Missing the mysql gem. Add it to your Gemfile: gem 'mysql2'"
         end
 
         unless defined?(Mysql::Result) && Mysql::Result.method_defined?(:each_hash)
-          raise "!!! Outdated mysql gem. Upgrade to 2.8.1 or later. In your Gemfile: gem 'mysql', '2.8.1'"
+          raise "!!! Outdated mysql gem. Upgrade to 2.8.1 or later. In your Gemfile: gem 'mysql', '2.8.1'. Or use gem 'mysql2'"
         end
       end
 
