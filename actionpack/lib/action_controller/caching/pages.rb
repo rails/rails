@@ -99,7 +99,7 @@ module ActionController #:nodoc:
 
         private
           def page_cache_file(path)
-            name = (path.empty? || path == "/") ? "/index" : URI.unescape(path.chomp('/'))
+            name = (path.empty? || path == "/") ? "/index" : uri_parser.unescape(path.chomp('/'))
             name << page_cache_extension unless (name.split('/').last || name).include? '.'
             return name
           end
@@ -110,6 +110,10 @@ module ActionController #:nodoc:
 
           def instrument_page_cache(name, path)
             ActiveSupport::Notifications.instrument("#{name}.action_controller", :path => path){ yield }
+          end
+
+          def uri_parser
+            @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
           end
       end
 

@@ -66,7 +66,11 @@ module ActionDispatch
         end
 
         def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+          params[@glob_param] = params[@glob_param].split('/').map { |v| uri_parser.unescape(v) }
+        end
+
+        def uri_parser
+          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
       end
 
@@ -543,7 +547,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
-              params[key] = URI.unescape(value)
+              params[key] = uri_parser.unescape(value)
             end
           end
 
@@ -560,6 +564,10 @@ module ActionDispatch
       end
 
       private
+        def uri_parser
+          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+        end
+
         def handle_positional_args(options)
           return unless args = options.delete(:_positional_args)
 

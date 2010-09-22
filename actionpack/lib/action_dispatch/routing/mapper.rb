@@ -395,10 +395,10 @@ module ActionDispatch
       #   namespace "admin" do
       #     resources :posts, :comments
       #   end
-      # 
+      #
       # This will create a number of routes for each of the posts and comments
       # controller. For Admin::PostsController, Rails will create:
-      # 
+      #
       #   GET	    /admin/photos
       #   GET	    /admin/photos/new
       #   POST	  /admin/photos
@@ -406,33 +406,33 @@ module ActionDispatch
       #   GET	    /admin/photos/1/edit
       #   PUT	    /admin/photos/1
       #   DELETE  /admin/photos/1
-      # 
+      #
       # If you want to route /photos (without the prefix /admin) to
       # Admin::PostsController, you could use
-      # 
+      #
       #   scope :module => "admin" do
       #     resources :posts, :comments
       #   end
       #
       # or, for a single case
-      # 
+      #
       #   resources :posts, :module => "admin"
-      # 
+      #
       # If you want to route /admin/photos to PostsController
       # (without the Admin:: module prefix), you could use
-      # 
+      #
       #   scope "/admin" do
       #     resources :posts, :comments
       #   end
       #
       # or, for a single case
-      # 
+      #
       #   resources :posts, :path => "/admin"
       #
       # In each of these cases, the named routes remain the same as if you did
       # not use scope. In the last case, the following paths map to
       # PostsController:
-      # 
+      #
       #   GET	    /admin/photos
       #   GET	    /admin/photos/new
       #   POST	  /admin/photos
