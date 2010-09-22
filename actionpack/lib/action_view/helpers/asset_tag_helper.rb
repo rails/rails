@@ -718,6 +718,10 @@ module ActionView
           "#{host}#{source}"
         end
 
+        def rewrite_relative_url_root(source, relative_url_root)
+          relative_url_root && !source.starts_with?("#{relative_url_root}/") ? "#{relative_url_root}#{source}" : source
+        end
+
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
@@ -733,9 +737,7 @@ module ActionView
           source = rewrite_asset_path(source, config.asset_path)
 
           has_request = controller.respond_to?(:request)
-          if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
-            source = "#{controller.config.relative_url_root}#{source}"
-          end
+          source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request && include_host
           source = rewrite_host_and_protocol(source, has_request) if include_host
 
           source
