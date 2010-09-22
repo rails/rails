@@ -1962,13 +1962,13 @@ module ActiveRecord
                     construct(parent, association, joins, row)
                   end
                 when Hash
-                  associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
+                  associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
                     join = joins.detect{|j| j.reflection.name.to_s == name.to_s && j.parent_table_name == parent.class.table_name }
                     raise(ConfigurationError, "No such association") if join.nil?
 
                     association = construct_association(parent, join, row)
                     joins.delete(join)
-                    construct(association, associations[name], joins, row) if association
+                    construct(association, assoc, joins, row) if association
                   end
                 else
                   raise ConfigurationError, associations.inspect
