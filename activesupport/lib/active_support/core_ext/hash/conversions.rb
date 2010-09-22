@@ -114,10 +114,7 @@ class Hash
             elsif value['type'] && value.size == 1 && !value['type'].is_a?(::Hash)
               nil
             else
-              xml_value = value.inject({}) do |h,(k,v)|
-                h[k] = typecast_xml_value(v)
-                h
-              end
+              xml_value = Hash[value.map { |k,v| [k, typecast_xml_value(v)] }]
 
               # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
               # how multipart uploaded files from HTML appear
@@ -136,10 +133,7 @@ class Hash
       def unrename_keys(params)
         case params.class.to_s
           when "Hash"
-            params.inject({}) do |h,(k,v)|
-              h[k.to_s.tr("-", "_")] = unrename_keys(v)
-              h
-            end
+            Hash[params.map { |k,v| [k.to_s.tr("-", "_"), unrename_keys(v)] } ]
           when "Array"
             params.map { |v| unrename_keys(v) }
           else
