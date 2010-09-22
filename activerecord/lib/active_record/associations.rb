@@ -1855,7 +1855,7 @@ module ActiveRecord
           end
 
           def join_associations
-            @joins[1..-1].to_a
+            @joins.last(@joins.length - 1)
           end
 
           def join_base
