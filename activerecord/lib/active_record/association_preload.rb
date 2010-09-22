@@ -296,9 +296,10 @@ module ActiveRecord
         options = reflection.options
         primary_key_name = reflection.primary_key_name
 
+        klasses_and_ids = {}
+
         if options[:polymorphic]
           polymorph_type = options[:foreign_type]
-          klasses_and_ids = {}
 
           # Construct a mapping from klass to a list of ids to load and a mapping of those ids back
           # to their parent_records
@@ -307,23 +308,20 @@ module ActiveRecord
               klass_id = record.send(primary_key_name)
               if klass_id
                 id_map = klasses_and_ids[klass] ||= {}
-                id_list_for_klass_id = (id_map[klass_id.to_s] ||= [])
-                id_list_for_klass_id << record
+                (id_map[klass_id.to_s] ||= []) << record
               end
             end
           end
-          klasses_and_ids = klasses_and_ids.to_a
         else
           id_map = {}
           records.each do |record|
             key = record.send(primary_key_name)
             (id_map[key.to_s] ||= []) << record if key
           end
-          klasses_and_ids = [[reflection.klass.name, id_map]]
+          klasses_and_ids[reflection.klass.name] = id_map unless id_map.empty?
         end
 
         klasses_and_ids.each do |klass_name, id_map|
-          next if id_map.empty?
           klass = klass_name.constantize
 
           table_name = klass.quoted_table_name
