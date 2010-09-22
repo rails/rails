@@ -279,10 +279,9 @@ module ActiveRecord
     # that a new instance, or one populated from a passed-in Hash, still has all the attributes
     # that instances loaded from the database would.
     def attributes_from_column_definition
-      self.class.columns.inject({}) do |attributes, column|
-        attributes[column.name] = column.default unless column.name == self.class.primary_key
-        attributes
-      end
+      Hash[self.class.columns.map do |column|
+        [column.name, column.default] unless column.name == self.class.primary_key
+      end]
     end
   end
 end
