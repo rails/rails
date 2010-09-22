@@ -140,10 +140,7 @@ module Rails
 
       lookup(lookups)
 
-      namespaces = subclasses.inject({}) do |hash, klass|
-        hash[klass.namespace] = klass
-        hash
-      end
+      namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
 
       lookups.each do |namespace|
         klass = namespaces[namespace]
