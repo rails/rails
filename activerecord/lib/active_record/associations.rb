@@ -1951,27 +1951,27 @@ module ActiveRecord
 
             def construct(parent, associations, joins, row)
               case associations
-                when Symbol, String
-                  join = joins.detect{|j| j.reflection.name.to_s == associations.to_s && j.parent_table_name == parent.class.table_name }
+              when Symbol, String
+                join = joins.detect{|j| j.reflection.name.to_s == associations.to_s && j.parent_table_name == parent.class.table_name }
+                raise(ConfigurationError, "No such association") if join.nil?
+
+                joins.delete(join)
+                construct_association(parent, join, row)
+              when Array
+                associations.each do |association|
+                  construct(parent, association, joins, row)
+                end
+              when Hash
+                associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
+                  join = joins.detect{|j| j.reflection.name.to_s == name.to_s && j.parent_table_name == parent.class.table_name }
                   raise(ConfigurationError, "No such association") if join.nil?
 
+                  association = construct_association(parent, join, row)
                   joins.delete(join)
-                  construct_association(parent, join, row)
-                when Array
-                  associations.each do |association|
-                    construct(parent, association, joins, row)
-                  end
-                when Hash
-                  associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
-                    join = joins.detect{|j| j.reflection.name.to_s == name.to_s && j.parent_table_name == parent.class.table_name }
-                    raise(ConfigurationError, "No such association") if join.nil?
-
-                    association = construct_association(parent, join, row)
-                    joins.delete(join)
-                    construct(association, assoc, joins, row) if association
-                  end
-                else
-                  raise ConfigurationError, associations.inspect
+                  construct(association, assoc, joins, row) if association
+                end
+              else
+                raise ConfigurationError, associations.inspect
               end
             end
 
