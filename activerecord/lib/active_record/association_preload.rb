@@ -325,8 +325,7 @@ module ActiveRecord
           klasses_and_ids = [[reflection.klass.name, id_map]]
         end
 
-        klasses_and_ids.each do |klass_and_id|
-          klass_name, id_map = *klass_and_id
+        klasses_and_ids.each do |klass_name, id_map|
           next if id_map.empty?
           klass = klass_name.constantize
 
