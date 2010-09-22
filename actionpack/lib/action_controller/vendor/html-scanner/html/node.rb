@@ -18,12 +18,12 @@ module HTML #:nodoc:
             hash[k] = Conditions.new(v)
           when :children
             hash[k] = v = keys_to_symbols(v)
-            v.each do |k,v2|
-              case k
+            v.each do |key,v2|
+              case key
                 when :count, :greater_than, :less_than
                   # keys are valid, and require no further processing
                 when :only
-                  v[k] = Conditions.new(v2)
+                  v[key] = Conditions.new(v2)
                 else
                   raise "illegal key #{k.inspect} => #{v2.inspect}"
               end
