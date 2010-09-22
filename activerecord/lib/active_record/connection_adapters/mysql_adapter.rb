@@ -19,7 +19,7 @@ module ActiveRecord
         begin
           require 'mysql'
         rescue LoadError
-          raise "!!! Missing the mysql gem. Add it to your Gemfile: gem 'mysql2'"
+          raise "!!! Missing the mysql2 gem. Add it to your Gemfile: gem 'mysql2'"
         end
 
         unless defined?(Mysql::Result) && Mysql::Result.method_defined?(:each_hash)
