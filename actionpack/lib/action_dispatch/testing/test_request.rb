@@ -66,7 +66,7 @@ module ActionDispatch
 
     def accept=(mime_types)
       @env.delete('action_dispatch.request.accepts')
-      @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
+      @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_type| mime_type.to_s }.join(",")
     end
 
     def cookies
