@@ -566,13 +566,8 @@ module ActionDispatch
           keys = options.delete(:_positional_keys)
           keys -= options.keys if args.size < keys.size - 1 # take format into account
 
-          args = args.zip(keys).inject({}) do |h, (v, k)|
-            h[k] = v
-            h
-          end
-
           # Tell url_for to skip default_url_options
-          options.merge!(args)
+          options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
         end
 
         def rewrite_authentication(options)
