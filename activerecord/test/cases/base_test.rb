@@ -659,6 +659,10 @@ class BasicsTest < ActiveRecord::TestCase
     cloned_topic.save
     assert !cloned_topic.new_record?
     assert_not_equal cloned_topic.id, topic.id
+
+    cloned_topic.reload
+    # FIXME: I think this is poor behavior, and will fix it with #5686
+    assert_equal 'ac', cloned_topic.title
   end
 
   def test_clone_with_aggregate_of_same_name_as_attribute
