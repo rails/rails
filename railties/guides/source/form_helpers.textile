@@ -549,7 +549,7 @@ will produce the same output if the current year is 2009 and the value chosen by
 
 h3. Uploading Files
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to "multipart/form-data". If you forget to do this the file will not be uploaded. This can be done by passing +:multi_part => true+ as an HTML option. This means that in the case of +form_tag+ it must be passed in the second options hash and in the case of +form_for+ inside the +:html+ hash.
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to "multipart/form-data". If you're using +form_for+ just using +file_field+ inside of it does the trick, but if you're using +form_tag+ +:multi_part => true+ must passed as an HTML option, in the second options hash. If you forget to do this the file will not be uploaded.
 
 The following two forms both upload a file.
 
@@ -558,7 +558,7 @@ The following two forms both upload a file.
   <%= file_field_tag 'picture' %>
 <% end %>
 
-<%= form_for @person, :html => {:multipart => true} do |f| %>
+<%= form_for @person do |f| %>
   <%= f.file_field :picture %>
 <% end %>
 </erb>
