@@ -317,10 +317,7 @@ module ActiveRecord
           id_map = {}
           records.each do |record|
             key = record.send(primary_key_name)
-            if key
-              mapped_records = (id_map[key.to_s] ||= [])
-              mapped_records << record
-            end
+            (id_map[key.to_s] ||= []) << record if key
           end
           klasses_and_ids = [[reflection.klass.name, id_map]]
         end
