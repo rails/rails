@@ -338,13 +338,12 @@ module ActiveRecord
 
       def uniq(collection = self)
         seen = Set.new
-        collection.inject([]) do |kept, record|
+        collection.map do |record|
           unless seen.include?(record.id)
-            kept << record
             seen << record.id
+            record
           end
-          kept
-        end
+        end.compact
       end
 
       # Replace this collection with +other_array+
