@@ -10,10 +10,7 @@ class Object
   #
   #   C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
   def instance_values #:nodoc:
-    instance_variables.inject({}) do |values, name|
-      values[name.to_s[1..-1]] = instance_variable_get(name)
-      values
-    end
+    Hash[instance_variables.map { |name| [name.to_s[1..-1], instance_variable_get(name)] }]
   end
 
   # Returns an array of instance variable names including "@". They are strings
