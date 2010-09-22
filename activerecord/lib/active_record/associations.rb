@@ -1841,7 +1841,7 @@ module ActiveRecord
             @reflections           = []
             @base_records_hash     = {}
             @base_records_in_order = []
-            @table_aliases         = Hash.new { |aliases, table| aliases[table] = 0 }
+            @table_aliases         = Hash.new(0)
             @table_aliases[base.table_name] = 1
             build(associations)
           end
