@@ -225,13 +225,11 @@ module ActiveRecord
         key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
       end
 
-      calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
-        key   = type_cast_calculated_value(row[group_alias], group_column)
-        key   = key_records[key] if associated
-        value = row[aggregate_alias]
-        all[key] = type_cast_calculated_value(value, column_for(column_name), operation)
-        all
-      end
+      ActiveSupport::OrderedHash[calculated_data.map do |row|
+        key = type_cast_calculated_value(row[group_alias], group_column)
+        key = key_records[key] if associated
+        [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
+      end]
     end
 
     # Converts the given keys to the value that the database adapter returns as
