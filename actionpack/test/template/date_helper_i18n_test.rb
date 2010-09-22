@@ -5,7 +5,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
   attr_reader :request
 
   def setup
-    @from = Time.mktime(2004, 6, 6, 21, 45, 0)
+    @from = Time.utc(2004, 6, 6, 21, 45, 0)
   end
 
   # distance_of_time_in_words

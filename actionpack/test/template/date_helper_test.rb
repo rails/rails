@@ -99,7 +99,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_distance_in_words
-    from = Time.mktime(2004, 6, 6, 21, 45, 0)
+    from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
   end
 
