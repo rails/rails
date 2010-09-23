@@ -2,32 +2,27 @@ require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   module Http
-    module UploadedFile
-      def self.extended(object)
-        object.class_eval do
-          attr_accessor :original_path, :content_type
-          alias_method :local_path, :path if method_defined?(:path)
+    class UploadedFile < Tempfile
+      attr_accessor :original_filename, :content_type, :tempfile, :headers
+
+      def initialize(hash)
+        @original_filename = hash[:filename]
+        @content_type      = hash[:type]
+        @headers           = hash[:head]
+
+        # To the untrained eye, this may appear as insanity. Given the alternatives,
+        # such as busting the method cache on every request or breaking backwards
+        # compatibility with is_a?(Tempfile), this solution is the best available
+        # option.
+        #
+        # TODO: Deprecate is_a?(Tempfile) and define a real API for this parameter
+        tempfile = hash[:tempfile]
+        tempfile.instance_variables.each do |ivar|
+          instance_variable_set(ivar, tempfile.instance_variable_get(ivar))
         end
       end
 
-      # Take the basename of the upload's original filename.
-      # This handles the full Windows paths given by Internet Explorer
-      # (and perhaps other broken user agents) without affecting
-      # those which give the lone filename.
-      # The Windows regexp is adapted from Perl's File::Basename.
-      def original_filename
-        unless defined? @original_filename
-          @original_filename =
-            unless original_path.blank?
-              if original_path =~ /^(?:.*[:\\\/])?(.*)/m
-                $1
-              else
-                File.basename original_path
-              end
-            end
-        end
-        @original_filename
-      end
+      alias local_path path
     end
 
     module Upload
@@ -35,11 +30,7 @@ module ActionDispatch
       # file upload hash with UploadedFile objects
       def normalize_parameters(value)
         if Hash === value && value.has_key?(:tempfile)
-          upload = value[:tempfile]
-          upload.extend(UploadedFile)
-          upload.original_path = value[:filename]
-          upload.content_type = value[:type]
-          upload
+          UploadedFile.new(value)
         else
           super
         end
