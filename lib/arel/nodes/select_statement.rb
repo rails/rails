@@ -14,7 +14,8 @@ module Arel
 
       def initialize_copy other
         super
-        @cores = @cores.map { |x| x.clone }
+        @cores  = @cores.map { |x| x.clone }
+        @orders = @orders.map { |x| x.clone }
       end
     end
   end
