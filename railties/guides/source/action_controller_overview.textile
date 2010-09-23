@@ -161,7 +161,7 @@ If you need a different session storage mechanism, you can change it in the +con
 <ruby>
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
-# (create the session table with "rake db:sessions:create")
+# (create the session table with "script/rails g session_migration")
 # YourApp::Application.config.session_store :active_record_store
 </ruby>
 

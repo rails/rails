@@ -39,10 +39,10 @@ You can also generate paths and URLs. If your application contains this code:
 </ruby>
 
 <erb>
-<%= link_to "Patient Record", patients_path(@patient.id) %>
+<%= link_to "Patient Record", patient_path(@patient) %>
 </erb>
 
-The router will generate the path +/patients/17+. This reduces the brittleness of your view and makes your code easier to understand.
+The router will generate the path +/patients/17+. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
 h3. Resource Routing: the Rails Default
 
@@ -91,7 +91,7 @@ Creating a resourceful route will also expose a number of helpers to the control
 
 * +photos_path+ returns +/photos+
 * +new_photo_path+ returns +/photos/new+
-* +edit_photo_path+ returns +/photos/edit+
+* +edit_photo_path+ returns +/photos/:id/edit+
 * +photo_path(id)+ returns +/photos/:id+ (for instance, +photo_path(10)+ returns +/photos/10+)
 
 Each of these helpers has a corresponding +_url+ helper (such as +photos_url+) which returns the same path prefixed with the current host, port and path prefix.
@@ -116,7 +116,7 @@ resources :videos
 
 h4. Singular Resources
 
-Sometimes, you have a resource that clients always look up without referencing an ID. A common example, +/profile+ always shows the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
+Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like +/profile+ to always show the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
 
 <ruby>
 match "profile" => "users#show"
@@ -370,7 +370,7 @@ When you set up a regular route, you supply a series of symbols that Rails maps 
 match ':controller(/:action(/:id))'
 </ruby>
 
-If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
+If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController#index+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
 
 h4. Dynamic Segments
 
@@ -434,7 +434,7 @@ You can specify a name for any route using the +:as+ option.
 match 'exit' => 'sessions#destroy', :as => :logout
 </ruby>
 
-This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/logout+
+This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
 
 h4. Segment Constraints
 

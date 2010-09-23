@@ -386,7 +386,7 @@ class SchemaTest < ActiveModel::TestCase
     assert_not_equal matz.known_attributes, rick.known_attributes, "should have had different known attributes too"
   end
 
-  test "setting schema then fetching should add schema attributes to the intance attributes" do
+  test "setting schema then fetching should add schema attributes to the instance attributes" do
     # an attribute in common with fetched instance and one that isn't
     new_schema = {'age' => 'integer', 'name' => 'string',
       'height' => 'float', 'bio' => 'text',
