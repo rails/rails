@@ -5,6 +5,8 @@ module Rails
   module Generators
     class NamedBase < Base
       argument :name, :type => :string
+      class_option :skip_namespace, :type => :boolean, :default => false,
+                                    :desc => "Skip namespace (affects only isolated applications)"
 
       def initialize(args, *options) #:nodoc:
         # Unfreeze name in case it's given as a frozen string
@@ -16,15 +18,69 @@ module Rails
 
       protected
 
-        attr_reader :class_path, :file_name
+        def indent(content, multiplier = 2)
+          spaces = " " * multiplier
+          content.each_line.map {|line| "#{spaces}#{line}" }.join("\n")
+        end
+
+        def wrap_with_namespace(content)
+          "module #{namespace.name}\n#{content}\nend\n"
+        end
+
+        def namespaced_template(source, *args, &block)
+          inside_namespace do
+            template(source, *args) do |content|
+              content = block.call(content) if block_given?
+              if namespace
+                content = indent(content)
+                content = wrap_with_namespace(content)
+              end
+              content
+            end
+          end
+        end
+
+        def inside_namespace
+          @inside_namespace = true if namespaced?
+          result = yield
+          @inside_namespace = false
+          result
+        end
+
+        def namespace
+          @namespace ||= if defined?(Rails) && Rails.application
+            Rails.application.parents.detect { |n| n.respond_to?(:_railtie) }
+          end
+        end
+
+        def namespaced?
+          !options[:skip_namespace] && !!namespace
+        end
+
+        def inside_namespace?
+          @inside_namespace
+        end
+
+        attr_reader :file_name
         alias :singular_name :file_name
 
         def file_path
           @file_path ||= (class_path + [file_name]).join('/')
         end
 
+        def class_path
+          inside_namespace? || !namespaced? ? @class_path : namespaced_class_path
+        end
+
+        def namespaced_class_path
+          @namespaced_class_path ||= begin
+            namespace_path = namespace.name.split("::").map {|m| m.underscore }
+            namespace_path + @class_path
+          end
+        end
+
         def class_name
-          @class_name ||= (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
         end
 
         def human_name
