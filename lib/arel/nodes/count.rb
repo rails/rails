@@ -1,7 +1,6 @@
 module Arel
   module Nodes
     class Count < Arel::Nodes::Function
-      include Arel::Expression
 
       attr_accessor :distinct
 
