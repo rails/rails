@@ -44,9 +44,5 @@ module Arel
       end
       self
     end
-
-    def to_sql
-      visitor.accept @head
-    end
   end
 end
