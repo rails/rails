@@ -257,17 +257,19 @@ module ActionDispatch
             end
           end
 
+          port = host.split(':')[1]
+
           env = {
             :method => method,
             :params => parameters,
 
             "SERVER_NAME"     => host.split(':')[0],
-            "SERVER_PORT"     => (https? ? "443" : "80"),
+            "SERVER_PORT"     => (port ? port : (https? ? "443" : "80")),
             "HTTPS"           => https? ? "on" : "off",
             "rack.url_scheme" => https? ? "https" : "http",
 
             "REQUEST_URI"    => path,
-            "HTTP_HOST"      => host,
+            "HTTP_HOST"      => [host, port].compact.join(':'),
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
