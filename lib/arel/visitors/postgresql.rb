@@ -31,7 +31,15 @@ module Arel
 
       def aliased_orders orders
         #orders = o.orders.map { |x| visit x }.join(', ').split(',')
-        (0...orders.size).map { |i| "id_list.alias_#{i}" }
+        list = []
+        orders.each_with_index do |o,i|
+          list <<
+            [
+              "id_list.alias_#{i}",
+              (o.index(/desc/i) && 'DESC')
+            ].compact.join(' ')
+        end
+        list
       end
     end
   end
