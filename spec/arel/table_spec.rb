@@ -87,6 +87,11 @@ module Arel
         rel = Table.new :users, :engine => 'foo'
         check rel.engine.should == 'foo'
       end
+
+      it 'ignores as if it equals name' do
+        rel = Table.new :users, :as => 'users'
+        rel.table_alias.should be_nil
+      end
     end
 
     describe 'order' do

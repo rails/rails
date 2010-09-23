@@ -22,7 +22,7 @@ module Arel
         # Sometime AR sends an :as parameter to table, to let the table know
         # that it is an Alias.  We may want to override new, and return a
         # TableAlias node?
-        @table_alias = engine[:as]
+        @table_alias = engine[:as] unless engine[:as].to_s == name.to_s
       end
     end
 
