@@ -662,7 +662,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     cloned_topic.reload
     # FIXME: I think this is poor behavior, and will fix it with #5686
-    assert_equal 'ac', cloned_topic.title
+    assert_equal({'a' => 'c'}.to_s, cloned_topic.title)
   end
 
   def test_clone_with_aggregate_of_same_name_as_attribute
