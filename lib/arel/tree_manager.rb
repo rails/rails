@@ -9,7 +9,7 @@ module Arel
       'mysql2'     => Arel::Visitors::MySQL,
     }
 
-    attr_accessor :visitor
+    attr_writer :visitor
 
     def initialize engine
       @engine  = engine
