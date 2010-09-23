@@ -12,7 +12,7 @@ module Arel
           sql = super(subquery)
           [
             "SELECT * FROM (#{sql}) AS id_list",
-            "ORDER BY #{o.orders.map { |x| visit x }.join(', ')}",
+            "ORDER BY #{aliased_orders(o.orders).join(', ')}",
             ("LIMIT #{o.limit}" if o.limit),
             (visit(o.offset) if o.offset),
           ].compact.join ' '
@@ -27,6 +27,11 @@ module Arel
             /DISTINCT ON/ === projection
           end
         end
+      end
+
+      def aliased_orders orders
+        #orders = o.orders.map { |x| visit x }.join(', ').split(',')
+        (0...orders.size).map { |i| "id_list.alias_#{i}" }
       end
     end
   end
