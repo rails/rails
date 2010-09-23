@@ -3,28 +3,15 @@ module Arel
     # FIXME: Remove this.
     include Arel::Relation
 
-    VISITORS = {
-      'postgresql' => Arel::Visitors::PostgreSQL,
-      'mysql'      => Arel::Visitors::MySQL,
-      'mysql2'     => Arel::Visitors::MySQL,
-    }
-
-    attr_writer :visitor
+    attr_accessor :visitor
 
     def initialize engine
       @engine  = engine
-      @visitor = nil
+      @visitor = Visitors.visitor_for @engine
     end
 
     def to_dot
       Visitors::Dot.new.accept @head
-    end
-
-    def visitor
-      return @visitor if @visitor
-      pool          = @engine.connection_pool
-      adapter       = pool.spec.config[:adapter]
-      @visitor = (VISITORS[adapter] || Visitors::ToSql).new(@engine)
     end
 
     def to_sql
