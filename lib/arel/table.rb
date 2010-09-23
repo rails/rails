@@ -37,11 +37,11 @@ module Arel
     end
 
     def tm
-      SelectManager.new(@engine).from(self)
+      SelectManager.new(@engine, self)
     end
 
     def from table
-      SelectManager.new(@engine).from table
+      SelectManager.new(@engine, table)
     end
 
     def joins manager

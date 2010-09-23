@@ -22,15 +22,25 @@ module Arel
       end
 
       def visit_Arel_Nodes_UpdateStatement o
+        if o.orders.empty? && o.limit.nil?
+          wheres = o.wheres
+        else
+          stmt             = Nodes::SelectStatement.new
+          core             = stmt.cores.first
+          core.froms       = o.relation
+          core.projections = [o.relation.primary_key]
+          stmt.limit       = o.limit
+          stmt.orders      = o.orders
+
+          wheres = [Nodes::In.new(o.relation.primary_key, [stmt])]
+        end
+
         [
           "UPDATE #{visit o.relation}",
           ("SET #{o.values.map { |value| visit value }.join ', '}" unless o.values.empty?),
-          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?),
-          ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
-          ("LIMIT #{o.limit}" if o.limit),
+          ("WHERE #{wheres.map { |x| visit x }.join ' AND '}" unless wheres.empty?)
         ].compact.join ' '
       end
-
       def visit_Arel_Nodes_InsertStatement o
         [
           "INSERT INTO #{visit o.relation}",

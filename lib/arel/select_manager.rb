@@ -2,10 +2,11 @@ module Arel
   class SelectManager < Arel::TreeManager
     include Arel::Crud
 
-    def initialize engine
-      super
+    def initialize engine, table = nil
+      super(engine)
       @head   = Nodes::SelectStatement.new
       @ctx    = @head.cores.last
+      from table
     end
 
     def taken

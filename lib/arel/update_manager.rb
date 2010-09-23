@@ -46,11 +46,7 @@ module Arel
     end
 
     def to_sql
-      viz = @visitor_klass.new @engine
-      unless @engine.connection_pool.spec.config[:adapter] =~ /^mysql/
-        viz.extend(Visitors::UpdateSql)
-      end
-      viz.accept @head
+      visitor.accept @head
     end
   end
 end

@@ -12,12 +12,7 @@ require 'arel/relation'
 require 'arel/expression'
 ####
 
-require 'arel/visitors/to_sql'
-require 'arel/visitors/postgresql'
-require 'arel/visitors/update_sql'
-require 'arel/visitors/join_sql'
-require 'arel/visitors/order_clauses'
-require 'arel/visitors/dot'
+require 'arel/visitors'
 
 require 'arel/tree_manager'
 require 'arel/insert_manager'

@@ -1,0 +1,6 @@
+require 'arel/visitors/to_sql'
+require 'arel/visitors/postgresql'
+require 'arel/visitors/mysql'
+require 'arel/visitors/join_sql'
+require 'arel/visitors/order_clauses'
+require 'arel/visitors/dot'
