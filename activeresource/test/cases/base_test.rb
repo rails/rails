@@ -1097,4 +1097,9 @@ class BaseTest < Test::Unit::TestCase
     plan.save!
     assert_equal 10.00, plan.price
   end
+  
+  def test_namespacing
+    sound = Asset::Sound.find(1)
+    assert_equal "Asset::Sound::Author", sound.author.class.to_s
+  end
 end

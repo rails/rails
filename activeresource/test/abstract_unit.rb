@@ -75,6 +75,10 @@ def setup_response
     </person>
   eof
 
+  @startup_sound = { 
+      :name => "Mac Startup Sound", :author => { :name => "Jim Reekes" } 
+    }.to_xml(:root => 'sound') 
+
   ActiveResource::HttpMock.respond_to do |mock|
     mock.get    "/people/1.xml",                {}, @matz
     mock.get    "/people/2.xml",                {}, @david
@@ -112,6 +116,8 @@ def setup_response
     mock.head   "/people/Greg/addresses/1.xml", {}, nil, 200
     # customer
     mock.get    "/customers/1.xml",             {}, @luis
+    # sound
+    mock.get    "/sounds/1.xml",                {}, @startup_sound
   end
 
   Person.user = nil

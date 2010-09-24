@@ -1374,8 +1374,9 @@ module ActiveResource
         namespaces = module_names[0, module_names.size-1].map do |module_name|
           receiver = receiver.const_get(module_name)
         end
-        if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(resource_name) }
-          return namespace.const_get(resource_name)
+        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
+          return namespace.const_get(*const_args)
         else
           raise NameError
         end
@@ -1391,8 +1392,9 @@ module ActiveResource
           self.class.const_get(resource_name)
         end
       rescue NameError
-        if self.class.const_defined?(resource_name)
-          resource = self.class.const_get(resource_name)
+        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        if self.class.const_defined?(*const_args)
+          resource = self.class.const_get(*const_args)
         else
           resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
         end
