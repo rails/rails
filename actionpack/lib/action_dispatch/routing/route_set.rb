@@ -161,6 +161,7 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
                 options = args.extract_options!
 
@@ -194,6 +195,7 @@ module ActionDispatch
             hash_access_method = hash_access_name(name, kind)
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
                 url_for(#{hash_access_method}(*args))
               end
