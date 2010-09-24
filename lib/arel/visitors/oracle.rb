@@ -4,7 +4,7 @@ module Arel
       private
 
       def visit_Arel_Nodes_SelectStatement o
-        order_hacks(o)
+        o = order_hacks(o)
 
         if o.limit && o.orders.empty? && !o.offset
           o.cores.last.wheres.push Nodes::LessThanOrEqual.new(
@@ -15,10 +15,10 @@ module Arel
         end
 
         if o.limit && o.offset
-          o = o.dup
-          limit = o.limit.to_i
-          offset = o.offset
-          o.limit = nil
+          o        = o.dup
+          limit    = o.limit.to_i
+          offset   = o.offset
+          o.limit  = nil
           o.offset = nil
           sql = super(o)
           return <<-eosql
@@ -32,8 +32,8 @@ module Arel
         end
 
         if o.limit && !o.orders.empty?
-          o = o.dup
-          limit = o.limit
+          o       = o.dup
+          limit   = o.limit
           o.limit = nil
           return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{limit}"
         end
@@ -48,18 +48,19 @@ module Arel
       ###
       # Hacks for the order clauses specific to Oracle
       def order_hacks o
-        return if o.orders.empty?
-        return unless o.cores.any? do |core|
+        return o if o.orders.empty?
+        return o unless o.cores.any? do |core|
           core.projections.any? do |projection|
             /DISTINCT.*FIRST_VALUE/ === projection
           end
         end
-        orders = o.orders
+        orders   = o.orders
         o.orders = []
         orders.each_with_index do |order, i|
           o.orders <<
             Nodes::SqlLiteral.new("alias_#{i}__ #{'DESC' if /\bdesc$/i === order}")
         end
+        o
       end
     end
   end
