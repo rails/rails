@@ -51,11 +51,6 @@ else
   task :default => :spec
 end
 
-desc 'Removes trailing whitespace'
-task :whitespace do
-  sh %{find . -name '*.rb' -exec sed -i '' 's/ *$//g' {} \\;}
-end
-
 desc "Build pkg/#{gemspec.full_name}.gem"
 task :build => "gemspec:validate" do
   sh %{gem build arel.gemspec}
