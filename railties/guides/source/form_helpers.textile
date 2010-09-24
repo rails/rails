@@ -31,17 +31,18 @@ When called without arguments like this, it creates a form element that has the 
 Sample output from +form_tag+:
 
 <html>
-<form action="/home/index" method="post">
+<form accept-charset="UTF-8" action="/home/index" method="post">
   <div style="margin:0;padding:0">
+    <input name="utf8" type="hidden" value="&#x2713;" />
     <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   </div>
   Form contents
 </form>
 </html>
 
-If you carefully observe this output, you can see that the helper generated something you didn't specify: a +div+ element with a hidden input inside. This is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled). You can read more about this in the "Ruby On Rails Security Guide":./security.html#_cross_site_reference_forgery_csrf.
+If you carefully observe this output, you can see that the helper generated something you didn't specify: a +div+ element with two hidden input elements inside. The first input element with name +utf8+ enforces browsers to properly respect your form's character encoding and is generated for all forms whether action is "get" or "post". Second input element with name +authenticity_token+ is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled). You can read more about this in the "Ruby On Rails Security Guide":./security.html#_cross_site_reference_forgery_csrf.
 
-NOTE: Throughout this guide, this +div+ with the hidden input will be stripped away to have clearer code samples.
+NOTE: Throughout this guide, this +div+ with the hidden input elements will be stripped away to have clearer code samples.
 
 h4. A Generic Search Form
 
@@ -71,7 +72,7 @@ TIP: +search_path+ can be a named route specified in "routes.rb": <br /><tt>map.
 The above view code will result in the following markup:
 
 <html>
-<form action="/search" method="get">
+<form accept-charset="UTF-8" action="/search" method="get">
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
   <input name="commit" type="submit" value="Search" />
@@ -90,14 +91,14 @@ As with the +link_to+ helper, the path argument doesn't have to be given a strin
 
 <ruby>
 form_tag(:controller => "people", :action => "search", :method => "get", :class => "nifty_form")
-# => <form action="/people/search?method=get&class=nifty_form" method="post">
+# => <form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">
 </ruby>
 
 Here you wanted to pass two hashes, but the Ruby interpreter sees only one hash, so Rails will construct a URL with extraneous parameters. The correct way of passing multiple hashes as arguments is to delimit the first hash (or both hashes) with curly brackets:
 
 <ruby>
 form_tag({:controller => "people", :action => "search"}, :method => "get", :class => "nifty_form")
-# => <form action="/people/search" method="get" class="nifty_form">
+# => <form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">
 </ruby>
 
 This is a common pitfall when using form helpers, since many of them accept multiple hashes. So in future, if a helper produces unexpected output, make sure that you have delimited the hash parameters properly.
@@ -239,7 +240,7 @@ There are a few things to note here:
 The resulting HTML is:
 
 <html>
-<form action="/articles/create" method="post" class="nifty_form">
+<form accept-charset="UTF-8" action="/articles/create" method="post" class="nifty_form">
   <input id="article_title" name="article[title]" size="30" type="text" />
   <textarea id="article_body" name="article[body]" cols="60" rows="12"></textarea>
   <input name="commit" type="submit" value="Create" />
@@ -264,7 +265,7 @@ You can create a similar binding without actually creating  +&lt;form&gt;+ tags 
 which produces the following output:
 
 <html>
-<form action="/people/create" class="new_person" id="new_person" method="post">
+<form accept-charset="UTF-8" action="/people/create" class="new_person" id="new_person" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
   <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
 </form>
@@ -334,9 +335,10 @@ form_tag(search_path, :method => "put")
 output:
 
 <html>
-<form action="/search" method="post">
+<form accept-charset="UTF-8" action="/search" method="post">
   <div style="margin:0;padding:0">
     <input name="_method" type="hidden" value="put" />
+    <input name="utf8" type="hidden" value="&#x2713;" />
     <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   </div>
   ...
@@ -633,7 +635,12 @@ action for a Person model, +params[:model]+ would usually be a hash of all the a
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name–value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
-TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example <tt> ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" # => {"name"=>"fred", "phone"=>"0123456789"} </tt>
+TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
+
+<ruby>
+ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" 
+# => {"name"=>"fred", "phone"=>"0123456789"}
+</ruby>
 
 h4. Basic Structures
 
@@ -709,7 +716,7 @@ You might want to render a form with a set of edit fields for each of a person's
 Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
 
 <html>
-<form action="/people/1" class="edit_person" id="edit_person_1" method="post">
+<form accept-charset="UTF-8" action="/people/1" class="edit_person" id="edit_person_1" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
   <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" />
   <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" />
