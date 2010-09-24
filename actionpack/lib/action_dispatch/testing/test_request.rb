@@ -13,6 +13,7 @@ module ActionDispatch
       env = Rails.application.env_config.merge(env) if defined?(Rails.application)
       super(DEFAULT_ENV.merge(env))
 
+      @cookies = nil
       self.host        = 'test.host'
       self.remote_addr = '0.0.0.0'
       self.user_agent  = 'Rails Testing'
