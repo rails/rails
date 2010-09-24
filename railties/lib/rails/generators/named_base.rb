@@ -66,7 +66,11 @@ module Rails
         end
 
         def class_path
-          inside_namespace? || !namespaced? ? @class_path : namespaced_class_path
+          inside_namespace? || !namespaced? ? regular_class_path : namespaced_class_path
+        end
+
+        def regular_class_path
+          @class_path
         end
 
         def namespaced_class_path

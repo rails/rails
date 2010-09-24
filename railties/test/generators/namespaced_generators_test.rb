@@ -73,6 +73,11 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
   arguments %w(Account name:string age:integer)
   tests Rails::Generators::ModelGenerator
 
+  def test_module_file_is_not_created
+    run_generator
+    assert_no_file "app/models/test_app.rb"
+  end
+
   def test_adds_namespace_to_model
     run_generator
     assert_file "app/models/test_app/account.rb", /module TestApp/, /  class Account < ActiveRecord::Base/
