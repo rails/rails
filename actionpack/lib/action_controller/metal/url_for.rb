@@ -6,6 +6,7 @@ module ActionController
 
     def url_options
       options = {}
+      @_routes ||= nil
       if _routes.equal?(env["action_dispatch.routes"])
         options[:script_name] = request.script_name.dup
       end
