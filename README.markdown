@@ -1,14 +1,18 @@
-## Abstract ##
+# ARel
+
+* http://github.com/rails/arel
+
+## DESCRIPTION
 
 Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be a framework framework; that is, you can build your own ORM with it, focusing on innovative object and collection modeling as opposed to database compatibility and query generation.
 
-## Status ##
+## Status
 
 For the moment, Arel uses ActiveRecord's connection adapters to connect to the various engines, connection pooling, perform quoting, and do type conversion. On the horizon is the use of DataObjects instead.
 
 The long term goal, following both LINQ and DataMapper, is to have Arel adapt to engines beyond RDBMS, including XML, IMAP, YAML, etc.
 
-## A Gentle Introduction ##
+## A Gentle Introduction
 
 Generating a query with ARel is simple. For example, in order to produce
 
@@ -29,7 +33,7 @@ In other words, Arel relations implement Ruby's Enumerable interface. Let's have
 
 As you can see, Arel converts the rows from the database into a hash, the values of which are sublimated to the appropriate Ruby primitive (integers, strings, and so forth).
 
-### More Sophisticated <strike>Queries</strike> Relations ###
+### More Sophisticated Queries
 
 Here is a whirlwind tour through the most common relational operators. These will probably cover 80% of all interaction with the database.
 
@@ -85,11 +89,11 @@ Finally, most operations take a block form. For example:
 
 This provides a (sometimes) convenient alternative syntax.
 
-### The Crazy Features ###
+### The Crazy Features
 
 The examples above are fairly simple and other libraries match or come close to matching the expressiveness of Arel (e.g., `Sequel` in Ruby).
 
-#### Complex Joins ####
+#### Complex Joins
 
 Where Arel really shines in its ability to handle complex joins and aggregations. As a first example, let's consider an "adjacency list", a tree represented in a table. Suppose we have a table `comments`, representing a threaded discussion:
 
@@ -124,7 +128,7 @@ Note that you do NOT want to do something like:
 
 This does NOT have the same meaning as the previous query, since the comments[:parent_id] reference is effectively ambiguous.
 
-#### Complex Aggregations ####
+#### Complex Aggregations
 
 My personal favorite feature of Arel, certainly the most difficult to implement, and possibly only of marginal value, is **closure under joining even in the presence of aggregations**. This is a feature where the Relational Algebra is fundamentally easier to use than SQL. Think of this as a preview of the kind of radical functionality that is to come, stuff no other "ORM" is doing.
 

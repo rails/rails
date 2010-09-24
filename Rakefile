@@ -1,18 +1,19 @@
 require "rubygems"
+gem 'hoe', '>= 2.1.0'
+require 'hoe'
 
-begin
-  require "spec/rake/spectask"
-rescue LoadError
-  desc "Run specs"
-  task(:spec) { $stderr.puts '`gem install rspec` to run specs' }
-else
-  Spec::Rake::SpecTask.new do |t|
-    t.spec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
-    t.libs << "spec"
-    t.warning = true
-    t.spec_files = FileList['spec/**/*_spec.rb']
-  end
+Hoe.plugin :gemspec # install hoe-gemspec
 
-  desc "Default task is to run specs"
-  task :default => :spec
+Hoe.spec 'arel' do
+  developer('Aaron Patterson', 'aaron@tenderlovemaking.com')
+  developer('Bryan Halmkamp', 'bryan@brynary.com')
+  developer('Emilio Tagua', 'miloops@gmail.com')
+  developer('Nick Kallen', 'nick@example.org') # FIXME: need Nick's email
+
+  self.readme_file      = 'README.markdown'
+  self.extra_rdoc_files = FileList['README.markdown']
+  self.testlib = :rspec
 end
+
+desc "Default task is to run specs"
+task :default => :spec
