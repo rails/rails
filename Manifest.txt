@@ -1,4 +1,5 @@
 History.txt
+MIT-LICENSE.txt
 Manifest.txt
 README.markdown
 Rakefile
