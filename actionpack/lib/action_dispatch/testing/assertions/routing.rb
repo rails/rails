@@ -148,6 +148,7 @@ module ActionDispatch
         old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
         if defined?(@controller) && @controller
           old_controller, @controller = @controller, @controller.clone
+          _routes = @routes
 
           # Unfortunately, there is currently an abstraction leak between AC::Base
           # and AV::Base which requires having the URL helpers in both AC and AV.
@@ -160,7 +161,6 @@ module ActionDispatch
             include _routes.url_helpers
           end
         end
-        _routes = @routes
         yield @routes
       ensure
         @routes = old_routes
