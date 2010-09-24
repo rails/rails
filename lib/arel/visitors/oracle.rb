@@ -54,11 +54,11 @@ module Arel
             /DISTINCT.*FIRST_VALUE/ === projection
           end
         end
-        orders   = o.orders
+        orders   = o.orders.map { |x| visit x }.join(', ').split(',')
         o.orders = []
         orders.each_with_index do |order, i|
           o.orders <<
-            Nodes::SqlLiteral.new("alias_#{i}__ #{'DESC' if /\bdesc$/i === order}")
+            Nodes::SqlLiteral.new("alias_#{i}__#{' DESC' if /\bdesc$/i === order}")
         end
         o
       end
