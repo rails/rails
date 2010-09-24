@@ -7,6 +7,18 @@ module Arel
         @visitor = Oracle.new Table.engine
       end
 
+      it 'modifies order when there is distinct and first value' do
+        # *sigh*
+        select = "DISTINCT foo.id, FIRST_VALUE(projects.name) OVER (foo) AS alias_0__"
+        stmt = Nodes::SelectStatement.new
+        stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
+        stmt.orders << Nodes::SqlLiteral.new('foo')
+        sql = @visitor.accept(stmt)
+        sql.should be_like %{
+          SELECT #{select} ORDER BY alias_0__
+        }
+      end
+
       describe 'Nodes::SelectStatement' do
         describe 'limit' do
           it 'adds a rownum clause' do
