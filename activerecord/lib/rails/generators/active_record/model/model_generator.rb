@@ -17,12 +17,12 @@ module ActiveRecord
       end
 
       def create_model_file
-        namespaced_template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
       end
 
       def create_module_file
         return if class_path.empty?
-        namespaced_template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
+        template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
       end
 
       hook_for :test_framework

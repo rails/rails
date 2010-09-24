@@ -17,6 +17,16 @@ module Rails
       end
 
       protected
+        def module_namespacing(&block)
+          inside_namespace do
+            content = capture(&block)
+            if namespaced?
+              content = indent(content)
+              content = wrap_with_namespace(content)
+            end
+            concat(content)
+          end
+        end
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
@@ -25,19 +35,6 @@ module Rails
 
         def wrap_with_namespace(content)
           "module #{namespace.name}\n#{content}\nend\n"
-        end
-
-        def namespaced_template(source, *args, &block)
-          inside_namespace do
-            template(source, *args) do |content|
-              content = block.call(content) if block_given?
-              if namespace
-                content = indent(content)
-                content = wrap_with_namespace(content)
-              end
-              content
-            end
-          end
         end
 
         def inside_namespace
