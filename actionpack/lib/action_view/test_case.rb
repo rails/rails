@@ -127,6 +127,7 @@ module ActionView
 
       def say_no_to_protect_against_forgery!
         _helpers.module_eval do
+          remove_method :protect_against_forgery? if method_defined?(:protect_against_forgery?)
           def protect_against_forgery?
             false
           end
