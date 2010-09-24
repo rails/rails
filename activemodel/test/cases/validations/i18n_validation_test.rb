@@ -55,6 +55,14 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["Person's name not found"], @person.errors.full_messages
   end
 
+  def test_errors_full_messages_translates_human_attribute_name_for_model_in_module_attributes
+    I18n.backend.store_translations('en', :activemodel => {:attributes => {:person_module => {:person => {:name => "Person in Module's name"}}}})
+    person = PersonModule::Person.new
+    person.errors.add(:name, 'not found')
+    PersonModule::Person.expects(:human_attribute_name).with(:name, :default => 'Name').returns("Person in Module's name")
+    assert_equal ["Person in Module's name not found"], person.errors.full_messages
+  end
+
   def test_errors_full_messages_uses_format
     I18n.backend.store_translations('en', :errors => {:format => "Field %{attribute} %{message}"})
     @person.errors.add('name', 'empty')
@@ -363,4 +371,15 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["I am a custom error"], @person.errors[:title]
   end
 
+  def test_model_with_module_i18n_scope
+      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person_module => {:person => {:blank => 'generic blank'}}}}}
+      PersonModule::Person.validates_presence_of :title
+      person = PersonModule::Person.new
+      person.valid?
+      assert_equal ['generic blank'], person.errors[:title]
+
+      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person_module => {:person => {:attributes => {:title => {:blank => 'title cannot be blank'}}}}}}}
+      person.valid?
+      assert_equal ['title cannot be blank'], person.errors[:title]
+  end
 end

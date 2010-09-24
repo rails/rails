@@ -2,7 +2,7 @@ require 'active_support/inflector'
 
 module ActiveModel
   class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path
+    attr_reader :singular, :plural, :element, :collection, :partial_path, :i18n_key
     alias_method :cache_key, :collection
 
     def initialize(klass)
@@ -14,6 +14,7 @@ module ActiveModel
       @human = ActiveSupport::Inflector.humanize(@element).freeze
       @collection = ActiveSupport::Inflector.tableize(self).freeze
       @partial_path = "#{@collection}/#{@element}".freeze
+      @i18n_key = ActiveSupport::Inflector.underscore(self).tr('/', '.').to_sym
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -27,7 +28,7 @@ module ActiveModel
                            @klass.respond_to?(:i18n_scope)
 
       defaults = @klass.lookup_ancestors.map do |klass|
-        klass.model_name.underscore.to_sym
+        klass.model_name.i18n_key
       end
 
       defaults << options.delete(:default) if options[:default]
@@ -50,6 +51,9 @@ module ActiveModel
   #
   #   BookCover.model_name        # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
+  #
+  #   BookCover.model_name.i18n_key              # => "book_cover"
+  #   BookModule::BookCover.model_name.i18n_key  # => "book_module.book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test.  So either extending the provided
