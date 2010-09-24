@@ -421,7 +421,7 @@ module ActionController
 
         @request.env.delete('PATH_INFO')
 
-        if @controller
+        if defined?(@controller) && @controller
           @controller.request = @request
           @controller.params = {}
         end
