@@ -39,7 +39,7 @@ class Hash
   #   { :name => "Rob", :age => "28" }.assert_valid_keys("name", "age") # => raises "ArgumentError: Unknown key(s): name, age"
   #   { :name => "Rob", :age => "28" }.assert_valid_keys(:name, :age) # => passes, raises nothing
   def assert_valid_keys(*valid_keys)
-    unknown_keys = keys - [valid_keys].flatten
+    unknown_keys = keys - valid_keys.flatten
     raise(ArgumentError, "Unknown key(s): #{unknown_keys.join(", ")}") unless unknown_keys.empty?
   end
 end
