@@ -2,7 +2,7 @@ require "rubygems"
 gem 'hoe', '>= 2.1.0'
 require 'hoe'
 
-Hoe.plugin :gemspec # install hoe-gemspec
+Hoe.plugin :gemspec # `gem install hoe-gemspec`
 
 Hoe.spec 'arel' do
   developer('Aaron Patterson', 'aaron@tenderlovemaking.com')
@@ -12,6 +12,7 @@ Hoe.spec 'arel' do
 
   self.readme_file      = 'README.markdown'
   self.extra_rdoc_files = FileList['README.markdown']
+  self.extra_dev_deps << ['rspec', '~> 1.3.0']
   self.testlib = :rspec
 end
 
