@@ -9,6 +9,7 @@ require 'arel/nodes/and'
 require 'arel/nodes/greater_than'
 require 'arel/nodes/greater_than_or_equal'
 require 'arel/nodes/less_than'
+require 'arel/nodes/less_than_or_equal'
 
 require 'arel/nodes/in'
 require 'arel/nodes/lock'

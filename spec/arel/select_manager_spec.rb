@@ -15,6 +15,10 @@ module Arel
       @config = { :adapter => 'sqlite3' }
     end
 
+    def with_connection
+      yield self
+    end
+
     def connection
       self
     end

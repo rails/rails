@@ -148,6 +148,10 @@ module Arel
         "#{visit o.left} > #{visit o.right}"
       end
 
+      def visit_Arel_Nodes_LessThanOrEqual o
+        "#{visit o.left} <= #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_LessThan o
         "#{visit o.left} < #{visit o.right}"
       end

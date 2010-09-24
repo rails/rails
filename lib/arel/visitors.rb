@@ -1,6 +1,7 @@
 require 'arel/visitors/to_sql'
 require 'arel/visitors/postgresql'
 require 'arel/visitors/mysql'
+require 'arel/visitors/oracle'
 require 'arel/visitors/join_sql'
 require 'arel/visitors/order_clauses'
 require 'arel/visitors/dot'
@@ -8,9 +9,10 @@ require 'arel/visitors/dot'
 module Arel
   module Visitors
     VISITORS = {
-      'postgresql' => Arel::Visitors::PostgreSQL,
-      'mysql'      => Arel::Visitors::MySQL,
-      'mysql2'     => Arel::Visitors::MySQL,
+      'postgresql'      => Arel::Visitors::PostgreSQL,
+      'mysql'           => Arel::Visitors::MySQL,
+      'mysql2'          => Arel::Visitors::MySQL,
+      'oracle_enhanced' => Arel::Visitors::Oracle,
     }
 
     ENGINE_VISITORS = Hash.new do |hash, engine|
