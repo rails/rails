@@ -723,7 +723,7 @@ scope(:path_names => { :new => "neu", :edit => "bearbeiten" }) do
 end
 </ruby>
 
-Rails now creates routes to the +CategoriesControlleR+.
+Rails now creates routes to the +CategoriesController+.
 
 |_.HTTP verb|_.Path                     |_.action |
 |GET        |/kategorien                |index    |
