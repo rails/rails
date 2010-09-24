@@ -25,6 +25,21 @@ module Arel
               SELECT * FROM (SELECT ORDER BY foo) WHERE ROWNUM <= 10
             }
           end
+
+          it 'creates a different subquery when there is an offset' do
+            stmt = Nodes::SelectStatement.new
+            stmt.limit = 10
+            stmt.offset = Nodes::Offset.new(10)
+            sql = @visitor.accept stmt
+            sql.should be_like %{
+              SELECT * FROM (
+                SELECT raw_sql_.*, rownum raw_rnum_
+                FROM (SELECT ) raw_sql_
+                WHERE rownum <= 20
+              )
+              WHERE raw_rnum_ > 10
+            }
+          end
         end
       end
     end
