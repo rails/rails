@@ -92,6 +92,8 @@ module ActiveSupport
                                                                                    #
           if private_method_defined?(#{original_method.inspect})                   # if private_method_defined?(:_unmemoized_mime_type)
             private #{symbol.inspect}                                              #   private :mime_type
+          elsif protected_method_defined?(#{original_method.inspect})              # elsif protected_method_defined?(:_unmemoized_mime_type)
+            protected #{symbol.inspect}                                            #   protected :mime_type
           end                                                                      # end
         EOS
       end
