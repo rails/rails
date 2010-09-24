@@ -60,7 +60,6 @@ lib/arel/sql_literal.rb
 lib/arel/table.rb
 lib/arel/tree_manager.rb
 lib/arel/update_manager.rb
-lib/arel/version.rb
 lib/arel/visitors.rb
 lib/arel/visitors/dot.rb
 lib/arel/visitors/join_sql.rb

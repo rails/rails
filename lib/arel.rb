@@ -1,6 +1,5 @@
 require 'arel/crud'
 
-require 'arel/version'
 require 'arel/expressions'
 require 'arel/table'
 require 'arel/attributes'
@@ -27,3 +26,6 @@ require 'arel/sql/engine'
 require 'arel/sql_literal'
 ####
 
+module Arel
+  VERSION = '1.0.1.beta.1'
+end
