@@ -71,6 +71,7 @@ module Arel
         visit_edge o, "cores"
         visit_edge o, "limit"
         visit_edge o, "orders"
+        visit_edge o, "offset"
       end
 
       def visit_Arel_Nodes_UpdateStatement o
