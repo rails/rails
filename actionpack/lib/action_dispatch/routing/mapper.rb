@@ -676,6 +676,7 @@ module ActionDispatch
           DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
 
           def initialize(entities, options)
+            @as         = nil
             @name       = entities.to_s
             @path       = (options.delete(:path) || @name).to_s
             @controller = (options.delete(:controller) || plural).to_s
