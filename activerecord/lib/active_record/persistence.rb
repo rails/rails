@@ -225,9 +225,8 @@ module ActiveRecord
     #   @brake.touch
     def touch(name = nil)
       attributes = timestamp_attributes_for_update_in_model
-      unless attributes.blank?
-        attributes << name if name
-
+      attributes << name if name
+      unless attributes.empty?
         current_time = current_time_from_proper_timezone
         changes = {}
 
