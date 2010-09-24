@@ -16,5 +16,3 @@ module TestApp
     config.root = File.dirname(__FILE__)
   end
 end
-
-Rails.application = TestApp::Application
