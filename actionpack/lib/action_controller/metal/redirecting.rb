@@ -88,7 +88,7 @@ module ActionController
           raise RedirectBackError unless refer = request.headers["Referer"]
           refer
         when Proc
-          _compute_redirect_to_location instance_eval(&options)
+          _compute_redirect_to_location options.call
         else
           url_for(options)
         end.gsub(/[\r\n]/, '')
