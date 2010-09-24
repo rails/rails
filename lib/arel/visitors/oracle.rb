@@ -15,11 +15,12 @@ module Arel
         end
 
         if o.limit && o.offset
+          o = o.dup
           limit = o.limit.to_i
           offset = o.offset
           o.limit = nil
           o.offset = nil
-          sql = super
+          sql = super(o)
           return <<-eosql
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
@@ -31,9 +32,10 @@ module Arel
         end
 
         if o.limit && !o.orders.empty?
+          o = o.dup
           limit = o.limit
           o.limit = nil
-          return "SELECT * FROM (#{super}) WHERE ROWNUM <= #{limit}"
+          return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{limit}"
         end
 
         super
