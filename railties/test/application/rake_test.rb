@@ -33,5 +33,10 @@ module ApplicationTests
 
       assert_match "SuperMiddleware", Dir.chdir(app_path){ `rake middleware` }
     end
+
+    def test_code_statistics_sanity
+      assert_match "Code LOC: 5     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        Dir.chdir(app_path){ `rake stats` }
+    end
   end
 end
