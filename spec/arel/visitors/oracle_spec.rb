@@ -15,6 +15,16 @@ module Arel
             sql = @visitor.accept stmt
             sql.should be_like %{ SELECT WHERE ROWNUM <= 10 }
           end
+
+          it 'creates a subquery when there is order_by' do
+            stmt = Nodes::SelectStatement.new
+            stmt.orders << Nodes::SqlLiteral.new('foo')
+            stmt.limit = 10
+            sql = @visitor.accept stmt
+            sql.should be_like %{
+              SELECT * FROM (SELECT ORDER BY foo) WHERE ROWNUM <= 10
+            }
+          end
         end
       end
     end
