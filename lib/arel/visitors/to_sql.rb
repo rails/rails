@@ -9,8 +9,10 @@ module Arel
       end
 
       def accept object
-        @connection = @engine.connection
-        visit object
+        @engine.connection_pool.with_connection do |conn|
+          @connection = conn
+          visit object
+        end
       end
 
       private

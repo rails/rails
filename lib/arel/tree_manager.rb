@@ -15,7 +15,7 @@ module Arel
     end
 
     def to_sql
-      visitor.accept @head
+      @visitor.accept @head
     end
 
     def initialize_copy other
