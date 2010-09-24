@@ -8,8 +8,6 @@ end
 
 gem "rails", :path => File.dirname(__FILE__)
 
-gem "thor", :git => "git://github.com/drogus/thor.git"
-
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 gem "rdoc",  ">= 2.5.10"
