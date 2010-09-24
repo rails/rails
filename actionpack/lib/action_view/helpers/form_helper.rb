@@ -1237,7 +1237,7 @@ module ActionView
       end
 
       def emitted_hidden_id?
-        @emitted_hidden_id
+        @emitted_hidden_id ||= nil
       end
 
       private
