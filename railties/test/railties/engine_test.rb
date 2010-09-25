@@ -663,5 +663,45 @@ module RailtiesTest
 
       assert_equal AppTemplate._railtie, AppTemplate::Engine
     end
+
+    test "properly reload routes" do
+      # when routes are inside application class definition
+      # they should not be reloaded when engine's routes
+      # file has changed
+      add_to_config <<-RUBY
+        routes do
+          mount lambda{|env| [200, {}, ["foo"]]} => "/foo"
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      FileUtils.rm(File.join(app_path, "config/routes.rb"))
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          mount lambda{|env| [200, {}, ["bar"]]} => "/bar"
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            namespace(Bukkits)
+          end
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      boot_rails
+
+      require "#{rails_root}/config/environment"
+      get "/foo"
+      assert_equal "foo", last_response.body
+
+      get "/bukkits/bar"
+      assert_equal "bar", last_response.body
+    end
   end
 end

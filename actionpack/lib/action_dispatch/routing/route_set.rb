@@ -1,6 +1,7 @@
 require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/hash/slice'
 
 module ActionDispatch
   module Routing

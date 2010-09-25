@@ -399,8 +399,10 @@ module Rails
       }
     end
 
-    def routes
+    def routes(&block)
       @routes ||= ActionDispatch::Routing::RouteSet.new
+      self.routes_draw_block = block if block_given?
+      @routes
     end
 
     def initializers
@@ -447,6 +449,7 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
+      app.routes_to_reload[self.routes] = routes_draw_block
       paths.config.routes.to_a.each do |route|
         app.routes_reloader.paths.unshift(route) if File.exists?(route)
       end
@@ -499,6 +502,8 @@ module Rails
     end
 
   protected
+    attr_accessor :routes_draw_block
+
     def find_root_with_flag(flag, default=nil)
       root_path = self.class.called_from
 
