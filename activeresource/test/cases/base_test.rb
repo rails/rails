@@ -1076,11 +1076,11 @@ class BaseTest < Test::Unit::TestCase
 
     plan = SubscriptionPlan.find("silver")
     assert !plan.new?
-    assert 5.00, plan.price
+    assert_equal 5.00, plan.price
 
     # update price
     plan.price = 10.00
     plan.save!
-    assert 10.00, plan.price
+    assert_equal 10.00, plan.price
   end
 end
