@@ -643,5 +643,25 @@ module RailtiesTest
       Bukkits::Engine.load_seed
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
+
+    test "using namespace more than once on one module should not overwrite _railtie method" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module AppTemplate
+          class Engine < ::Rails::Engine
+            namespace(AppTemplate)
+          end
+        end
+      RUBY
+
+      add_to_config "namespace AppTemplate"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do end
+      RUBY
+
+      boot_rails
+
+      assert_equal AppTemplate._railtie, AppTemplate::Engine
+    end
   end
 end

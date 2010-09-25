@@ -333,21 +333,22 @@ module Rails
       def namespace(mod)
         engine_name(generate_railtie_name(mod))
 
-        _railtie = self
         name = engine_name
-        mod.singleton_class.instance_eval do
-          define_method(:_railtie) do
-            _railtie
-          end
-
-          define_method(:table_name_prefix) do
-            "#{name}_"
-          end
-        end
-
         self.routes.default_scope = {:module => name}
-
         self.namespaced = true
+
+        unless mod.respond_to?(:_railtie)
+          _railtie = self
+          mod.singleton_class.instance_eval do
+            define_method(:_railtie) do
+              _railtie
+            end
+
+            define_method(:table_name_prefix) do
+              "#{name}_"
+            end
+         end
+        end
       end
 
       def namespaced?
