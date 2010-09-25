@@ -105,7 +105,7 @@ module ActionDispatch
           else        [ record_or_hash_or_array ]
         end
 
-        inflection = if options[:action].to_s == "new"
+        inflection = if options[:action] && options[:action].to_s == "new"
           args.pop
           :singular
         elsif (record.respond_to?(:persisted?) && !record.persisted?)
