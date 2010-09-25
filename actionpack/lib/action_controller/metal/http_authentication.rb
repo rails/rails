@@ -417,7 +417,7 @@ module ActionController
       #   Authorization: Token token="abc", nonce="def"
       # Then the returned token is "abc", and the options is {:nonce => "def"}
       #
-      # request - ActionController::Request instance with the current headers.
+      # request - ActionDispatch::Request instance with the current headers.
       #
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.

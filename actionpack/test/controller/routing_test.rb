@@ -10,12 +10,12 @@ class MilestonesController < ActionController::Base
   def rescue_action(e) raise e end
 end
 
-ROUTING = ActionController::Routing
+ROUTING = ActionDispatch::Routing
 
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   def setup
-    @set = ActionController::Routing::RouteSet.new
+    @set = ActionDispatch::Routing::RouteSet.new
     @set.draw do
       match ':controller/:action/:variable/*additional'
     end
@@ -71,7 +71,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
 
   def setup
-    @rs = ::ActionController::Routing::RouteSet.new
+    @rs = ::ActionDispatch::Routing::RouteSet.new
   end
 
   def teardown
@@ -103,7 +103,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
   def test_time_recognition
     # We create many routes to make situation more realistic
-    @rs = ::ActionController::Routing::RouteSet.new
+    @rs = ::ActionDispatch::Routing::RouteSet.new
     @rs.draw {
       root :to => "search#new", :as => "frontpage"
       resources :videos do
@@ -581,7 +581,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_routes_changed_correctly_after_clear
-    rs = ::ActionController::Routing::RouteSet.new
+    rs = ::ActionDispatch::Routing::RouteSet.new
     rs.draw do
       match 'ca' => 'ca#aa'
       match 'cb' => 'cb#ab'
@@ -1516,7 +1516,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     end
 
     match '/blog(/:year(/:month(/:day)))' => 'posts#show_date',
-      :constraints => { 
+      :constraints => {
         :year => /(19|20)\d\d/,
         :month => /[01]?\d/,
         :day => /[0-3]?\d/
@@ -1559,7 +1559,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   }
 
   def setup
-    @routes = ActionController::Routing::RouteSet.new
+    @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw(&Mapping)
   end
 

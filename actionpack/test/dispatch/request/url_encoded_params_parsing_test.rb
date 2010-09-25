@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
+class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters, :last_request_type

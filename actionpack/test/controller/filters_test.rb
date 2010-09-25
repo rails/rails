@@ -452,13 +452,14 @@ class FilterTest < ActionController::TestCase
       render :text => 'hello world'
     end
   end
+
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
   end
 
   def test_before_method_of_sweeper_should_always_return_true
-    sweeper =  ActionController::Caching::Sweeper.send(:new)
+    sweeper = ActionController::Caching::Sweeper.send(:new)
     assert sweeper.before(TestController.new)
   end
 

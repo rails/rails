@@ -124,7 +124,7 @@ module ActiveSupport
         match ':controller(/:action)'
       end
 
-      ActionController::IntegrationTest.app.routes.draw do
+      ActionDispatch::IntegrationTest.app.routes.draw do
         match ':controller(/:action)'
       end
     end
@@ -163,9 +163,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   setup do
     @routes = SharedTestRoutes
   end
-end
 
-class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use "ActionDispatch::ShowExceptions"
@@ -232,7 +230,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
 end
 
 # Temporary base class
-class Rack::TestCase < ActionController::IntegrationTest
+class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')

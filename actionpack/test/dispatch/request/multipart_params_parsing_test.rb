@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class MultipartParamsParsingTest < ActionController::IntegrationTest
+class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters

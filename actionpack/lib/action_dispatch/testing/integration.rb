@@ -385,7 +385,7 @@ module ActionDispatch
   #
   #   require "test_helper"
   #
-  #   class ExampleTest < ActionController::IntegrationTest
+  #   class ExampleTest < ActionDispatch::IntegrationTest
   #     fixtures :people
   #
   #     def test_login
@@ -409,7 +409,7 @@ module ActionDispatch
   #
   #   require "test_helper"
   #
-  #   class AdvancedTest < ActionController::IntegrationTest
+  #   class AdvancedTest < ActionDispatch::IntegrationTest
   #     fixtures :people, :rooms
   #
   #     def test_login_and_speak

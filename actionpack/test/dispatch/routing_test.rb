@@ -463,7 +463,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  class TestAltApp < ActionController::IntegrationTest
+  class TestAltApp < ActionDispatch::IntegrationTest
     class AltRequest
       def initialize(env)
         @env = env
@@ -2184,7 +2184,7 @@ private
   end
 end
 
-class TestAppendingRoutes < ActionController::IntegrationTest
+class TestAppendingRoutes < ActionDispatch::IntegrationTest
   def simple_app(resp)
     lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
   end
@@ -2218,7 +2218,7 @@ class TestAppendingRoutes < ActionController::IntegrationTest
   end
 end
 
-class TestDefaultScope < ActionController::IntegrationTest
+class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
       def index

@@ -14,7 +14,7 @@ module ActionDispatch
   end
 end
 
-class ShowExceptionsTest < ActionController::IntegrationTest
+class ShowExceptionsTest < ActionDispatch::IntegrationTest
   Boomer = lambda do |env|
     req = ActionDispatch::Request.new(env)
     case req.path

@@ -311,7 +311,7 @@ class RescueControllerTest < ActionController::TestCase
   end
 end
 
-class RescueTest < ActionController::IntegrationTest
+class RescueTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class RecordInvalid < StandardError
       def message

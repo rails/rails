@@ -1,1 +1,0 @@
-ActionController::PerformanceTest = ActionDispatch::PerformanceTest

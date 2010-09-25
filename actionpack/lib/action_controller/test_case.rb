@@ -200,7 +200,7 @@ module ActionController
 
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method. This should not be confused with
-  # integration tests (see ActionController::IntegrationTest), which are more like
+  # integration tests (see ActionDispatch::IntegrationTest), which are more like
   # "stories" that can involve multiple controllers and multiple actions (i.e. multiple
   # different HTTP requests).
   #
