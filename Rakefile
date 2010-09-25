@@ -15,6 +15,3 @@ Hoe.spec 'arel' do
   self.extra_dev_deps << ['rspec', '~> 1.3.0']
   self.testlib = :rspec
 end
-
-desc "Default task is to run specs"
-task :default => :spec
