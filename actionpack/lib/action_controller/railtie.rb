@@ -1,4 +1,3 @@
-require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
 require "action_view/railtie"

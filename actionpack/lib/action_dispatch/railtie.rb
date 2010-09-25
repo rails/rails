@@ -1,5 +1,4 @@
 require "action_dispatch"
-require "rails"
 
 module ActionDispatch
   class Railtie < Rails::Railtie
