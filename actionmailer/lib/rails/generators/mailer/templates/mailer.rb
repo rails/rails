@@ -1,3 +1,4 @@
+<% module_namespacing do -%>
 class <%= class_name %> < ActionMailer::Base
   default :from => "from@example.com"
 <% for action in actions -%>
@@ -14,3 +15,4 @@ class <%= class_name %> < ActionMailer::Base
   end
 <% end -%>
 end
+<% end -%>

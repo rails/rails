@@ -2,6 +2,7 @@ require 'generators/generators_test_helper'
 require 'rails/generators/rails/controller/controller_generator'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/rails/observer/observer_generator'
+require 'rails/generators/mailer/mailer_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   def setup
@@ -148,5 +149,56 @@ class NamespacedObserverGeneratorTest < NamespacedGeneratorTestCase
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/unit/test_app/account_observer_test.rb", /module TestApp/, /  class AccountObserverTest < ActiveSupport::TestCase/
+  end
+end
+
+class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
+  include GeneratorsTestHelper
+  arguments %w(notifier foo bar)
+  tests Rails::Generators::MailerGenerator
+
+  def test_mailer_skeleton_is_created
+    run_generator
+    assert_file "app/mailers/test_app/notifier.rb" do |mailer|
+      assert_match /module TestApp/, mailer
+      assert_match /class Notifier < ActionMailer::Base/, mailer
+      assert_match /default :from => "from@example.com"/, mailer
+    end
+  end
+
+  def test_mailer_with_i18n_helper
+    run_generator
+    assert_file "app/mailers/test_app/notifier.rb" do |mailer|
+      assert_match /en\.notifier\.foo\.subject/, mailer
+      assert_match /en\.notifier\.bar\.subject/, mailer
+    end
+  end
+
+  def test_invokes_default_test_framework
+    run_generator
+    assert_file "test/functional/test_app/notifier_test.rb" do |test|
+      assert_match /module TestApp/, test
+      assert_match /class NotifierTest < ActionMailer::TestCase/, test
+      assert_match /test "foo"/, test
+      assert_match /test "bar"/, test
+    end
+  end
+
+  def test_invokes_default_template_engine
+    run_generator
+    assert_file "app/views/test_app/notifier/foo.text.erb" do |view|
+      assert_match %r(app/views/test_app/notifier/foo\.text\.erb), view
+      assert_match /<%= @greeting %>/, view
+    end
+
+    assert_file "app/views/test_app/notifier/bar.text.erb" do |view|
+      assert_match %r(app/views/test_app/notifier/bar\.text\.erb), view
+      assert_match /<%= @greeting %>/, view
+    end
+  end
+
+  def test_invokes_default_template_engine_even_with_no_action
+    run_generator ["notifier"]
+    assert_file "app/views/test_app/notifier"
   end
 end
