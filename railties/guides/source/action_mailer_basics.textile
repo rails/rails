@@ -258,6 +258,19 @@ It is possible to send email to one or more recipients in one email (for e.g. in
   end
 </ruby>
 
+h5. Sending email with names
+
+Sometimes you wish to show the name of the person instead of just their email address when they receive the email. The trick to doing that is
+to format the email address in the format <tt>"Name &lt;email&gt;"</tt>.
+
+<ruby>
+  def welcome_email(user)
+    @user = user
+    email_with_name = "#{@user.name} <#{@user.email}>"
+    mail(:to => email_with_name,
+         :subject => "Welcome to My Awesome Site")
+  end
+</ruby>
 
 h4. Mailer Views
 
