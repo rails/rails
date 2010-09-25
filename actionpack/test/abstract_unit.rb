@@ -274,11 +274,27 @@ class Rack::TestCase < ActionController::IntegrationTest
   end
 end
 
-class ActionController::Base
-  def self.test_routes(&block)
-    routes = ActionDispatch::Routing::RouteSet.new
-    routes.draw(&block)
-    include routes.url_helpers
+module ActionController
+  class Base
+    include ActionController::Testing
+    # This stub emulates the Railtie including the URL helpers from a Rails application
+    include SharedTestRoutes.url_helpers
+
+    self.view_paths = FIXTURE_LOAD_PATH
+
+    def self.test_routes(&block)
+      routes = ActionDispatch::Routing::RouteSet.new
+      routes.draw(&block)
+      include routes.url_helpers
+    end
+  end
+
+  class TestCase
+    include ActionDispatch::TestProcess
+
+    setup do
+      @routes = SharedTestRoutes
+    end
   end
 end
 
@@ -292,28 +308,5 @@ module ActionView
     setup do
       @routes = SharedTestRoutes
     end
-  end
-end
-
-module ActionController
-  class Base
-    include ActionController::Testing
-  end
-
-  Base.view_paths = FIXTURE_LOAD_PATH
-
-  class TestCase
-    include ActionDispatch::TestProcess
-
-    setup do
-      @routes = SharedTestRoutes
-    end
-  end
-end
-
-# This stub emulates the Railtie including the URL helpers from a Rails application
-module ActionController
-  class Base
-    include SharedTestRoutes.url_helpers
   end
 end
