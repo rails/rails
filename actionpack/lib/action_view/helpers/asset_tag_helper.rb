@@ -813,7 +813,7 @@ module ActionView
           if asset_id.empty?
             source
           else
-            source + "?#{asset_id}"
+            "#{source}?#{asset_id}"
           end
         end
 
