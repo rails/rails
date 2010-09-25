@@ -42,6 +42,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   arguments [destination_root]
 
   def setup
+    Rails.application = TestApp::Application
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
@@ -56,6 +57,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def teardown
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    Rails.application = TestApp::Application.instance
   end
 
   def test_application_skeleton_is_created
@@ -268,6 +270,7 @@ class CustomAppGeneratorTest < Rails::Generators::TestCase
   arguments [destination_root]
 
   def setup
+    Rails.application = TestApp::Application
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
@@ -277,6 +280,7 @@ class CustomAppGeneratorTest < Rails::Generators::TestCase
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     Object.class_eval { remove_const :AppBuilder if const_defined?(:AppBuilder) }
+    Rails.application = TestApp::Application.instance
   end
 
   def test_builder_option_with_empty_app_builder
