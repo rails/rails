@@ -810,7 +810,7 @@ module ActionView
           end
 
           asset_id = rails_asset_id(source)
-          if asset_id.blank?
+          if asset_id.empty?
             source
           else
             source + "?#{asset_id}"
