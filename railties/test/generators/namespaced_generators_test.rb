@@ -26,7 +26,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_namespaced_controller_skeleton_is_created
     run_generator
     assert_file "app/controllers/test_app/account_controller.rb", /module TestApp/, /  class AccountController < ApplicationController/
-    assert_file "test/functional/test_app/account_controller_test.rb", /TestApp::AccountController/
+    assert_file "test/functional/test_app/account_controller_test.rb", /module TestApp/, /  class AccountControllerTest/
   end
 
   def test_skipping_namespace
@@ -43,7 +43,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_helpr_is_also_namespaced
     run_generator
     assert_file "app/helpers/test_app/account_helper.rb", /module TestApp/, /  module AccountHelper/
-    assert_file "test/unit/helpers/test_app/account_helper_test.rb", /TestApp::AccountHelper/
+    assert_file "test/unit/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
   end
 
   def test_invokes_default_test_framework
@@ -124,7 +124,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/test_app/account_test.rb", /class TestApp::AccountTest < ActiveSupport::TestCase/
+    assert_file "test/unit/test_app/account_test.rb", /module TestApp/, /class AccountTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/accounts.yml", /name: MyString/, /age: 1/
   end
 end
