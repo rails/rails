@@ -298,29 +298,24 @@ module ActionView
 
         options, record_object = record_object, nil if record_object.is_a?(Hash)
         options ||= {}
+        options[:html] ||= {}
 
         case record
         when String, Symbol
           ActiveSupport::Deprecation.warn("Using form_for(:name, @resource) is deprecated. Please use form_for(@resource, :as => :name) instead.", caller) if record_object
           object_name = record
           object = record_object
-        when Array
-          object = record.last
+        else
+          object = record.is_a?(Array) ? record.last : record
           object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!(record, options)
-        else
-          object = record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
-          apply_form_for_options!([object], options)
         end
 
-        options[:html] ||= {}
         options[:html][:remote] = options.delete(:remote)
-
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
         fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { :multipart => true } : {}
-        output = form_tag(options.delete(:url) || {}, default_options.merge!(options.delete(:html) || {}))
+        output = form_tag(options.delete(:url) || {}, default_options.merge!(options.delete(:html)))
         output << fields_for
         output.safe_concat('</form>')
       end
@@ -329,23 +324,18 @@ module ActionView
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
         object = convert_to_model(object)
 
-        html_options =
-          if object.respond_to?(:persisted?) && object.persisted?
-            { :class  => options[:as] ? "#{options[:as]}_edit" : dom_class(object, :edit),
-              :id => options[:as] ? "#{options[:as]}_edit" : dom_id(object, :edit),
-              :method => :put }
-          else
-            { :class  => options[:as] ? "#{options[:as]}_new" : dom_class(object, :new),
-              :id => options[:as] ? "#{options[:as]}_new" : dom_id(object),
-              :method => :post }
-          end
-
-        options[:html] ||= {}
+        as = options[:as]
+        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
+        html_options = { :class  => as ? "#{as}_#{action}" : dom_class(object, action),
+                         :id     => as ? "#{as}_#{action}" : dom_id(object, action),
+                         :method => method }
         options[:html].reverse_merge!(html_options)
+
         options[:url] ||= options[:format] ?
           polymorphic_path(object_or_array, :format => options.delete(:format)) :
           polymorphic_path(object_or_array)
       end
+      private :apply_form_for_options!
 
       # Creates a scope around a specific model object like form_for, but
       # doesn't create the form tags themselves. This makes fields_for suitable
