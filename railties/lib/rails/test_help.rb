@@ -1,6 +1,6 @@
 # Make double-sure the RAILS_ENV is not set to production,
 # so fixtures aren't loaded into that environment
-abort("Abort testing: Your Rails environment is not running in test mode!") if Rails.env.production?
+abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
