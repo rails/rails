@@ -304,7 +304,7 @@ module ActionView
           object_name = record
           object      = nil
         else
-          object = record.is_a?(Array) ? record.last : record
+          object      = record.is_a?(Array) ? record.last : record
           object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!(record, options)
         end
@@ -1171,17 +1171,14 @@ module ActionView
           if nested_attributes_association?(record_or_name_or_array)
             return fields_for_with_nested_attributes(record_or_name_or_array, args, block)
           else
-            name = "#{object_name}#{index}[#{record_or_name_or_array}]"
+            name = record_or_name_or_array
           end
-        when Array
-          object = record_or_name_or_array.last
-          name = "#{object_name}#{index}[#{ActiveModel::Naming.param_key(object)}]"
-          args.unshift(object)
         else
-          object = record_or_name_or_array
-          name = "#{object_name}#{index}[#{ActiveModel::Naming.param_key(object)}]"
+          object = record_or_name_or_array.is_a?(Array) ? record_or_name_or_array.last : record_or_name_or_array
+          name   = ActiveModel::Naming.param_key(object)
           args.unshift(object)
         end
+        name = "#{object_name}#{index}[#{name}]"
 
         @template.fields_for(name, *args, &block)
       end
@@ -1250,7 +1247,7 @@ module ActionView
         end
 
         def submit_default_value
-          object = @object.respond_to?(:to_model) ? @object.to_model : @object
+          object = convert_to_model(@object)
           key    = object ? (object.persisted? ? :update : :create) : :submit
 
           model = if object.class.respond_to?(:model_name)
@@ -1275,7 +1272,7 @@ module ActionView
           name = "#{object_name}[#{association_name}_attributes]"
           options = args.extract_options!
           association = args.shift
-          association = association.to_model if association.respond_to?(:to_model)
+          association = convert_to_model(association)
 
           if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
@@ -1296,7 +1293,7 @@ module ActionView
         end
 
         def fields_for_nested_model(name, object, options, block)
-          object = object.to_model if object.respond_to?(:to_model)
+          object = convert_to_model(object)
 
           if object.persisted?
             @template.fields_for(name, object, options) do |builder|
@@ -1311,6 +1308,10 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
+        end
+
+        def convert_to_model(object)
+          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end
