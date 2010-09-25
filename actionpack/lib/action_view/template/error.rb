@@ -62,7 +62,7 @@ module ActionView
       end
 
       def message
-        ActiveSupport::Deprecation.silence { original_exception.message }
+        original_exception.message
       end
 
       def sub_template_message
