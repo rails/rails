@@ -511,7 +511,7 @@ module ActionDispatch
         end
 
         script_name = options.delete(:script_name)
-        path = (script_name.blank? ? _generate_prefix(options) : script_name).to_s
+        path = (script_name.blank? ? _generate_prefix(options) : script_name.chomp('/')).to_s
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
