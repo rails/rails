@@ -17,13 +17,15 @@ module Rails
       end
 
       protected
+        attr_reader :file_name
+        alias :singular_name :file_name
+
+        # Wrap block with namespace of current application
+        # if namespace exists and is not skipped
         def module_namespacing(&block)
           inside_namespace do
             content = capture(&block)
-            if namespaced?
-              content = indent(content)
-              content = wrap_with_namespace(content)
-            end
+            content = wrap_with_namespace(content) if namespaced?
             concat(content)
           end
         end
@@ -34,14 +36,16 @@ module Rails
         end
 
         def wrap_with_namespace(content)
+          content = indent(content)
           "module #{namespace.name}\n#{content}\nend\n"
         end
 
         def inside_namespace
           @inside_namespace = true if namespaced?
           result = yield
-          @inside_namespace = false
           result
+        ensure
+          @inside_namespace = false
         end
 
         def namespace
@@ -57,9 +61,6 @@ module Rails
         def inside_namespace?
           @inside_namespace
         end
-
-        attr_reader :file_name
-        alias :singular_name :file_name
 
         def file_path
           @file_path ||= (class_path + [file_name]).join('/')
