@@ -91,6 +91,7 @@ class Comment
   attr_accessor :relevances
   def relevances_attributes=(attributes); end
 
+  attr_accessor :body
 end
 
 class Tag
