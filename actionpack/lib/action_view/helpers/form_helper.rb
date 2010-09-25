@@ -324,14 +324,13 @@ module ActionView
 
         as = options[:as]
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
-        html_options = { :class  => as ? "#{as}_#{action}" : dom_class(object, action),
-                         :id     => as ? "#{as}_#{action}" : dom_id(object, action),
-                         :method => method }
-        options[:html].reverse_merge!(html_options)
+        options[:html].reverse_merge!(
+          :class  => as ? "#{as}_#{action}" : dom_class(object, action),
+          :id     => as ? "#{as}_#{action}" : dom_id(object, action),
+          :method => method
+        )
 
-        options[:url] ||= options[:format] ?
-          polymorphic_path(object_or_array, :format => options.delete(:format)) :
-          polymorphic_path(object_or_array)
+        options[:url] ||= polymorphic_path(object_or_array, :format => options.delete(:format))
       end
       private :apply_form_for_options!
 
