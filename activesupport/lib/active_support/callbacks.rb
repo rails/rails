@@ -482,7 +482,7 @@ module ActiveSupport
             chain.delete_if {|c| c.matches?(type, filter) }
           end
 
-          options[:prepend] ? chain.unshift(*mapped) : chain.push(*mapped)
+          options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
         end
       end
 
