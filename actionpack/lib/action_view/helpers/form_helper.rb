@@ -293,18 +293,16 @@ module ActionView
       #
       # If you don't need to attach a form to a model instance, then check out
       # FormTagHelper#form_tag.
-      def form_for(record, record_object = nil, options = nil, &proc)
+      def form_for(record, options = nil, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 
-        options, record_object = record_object, nil if record_object.is_a?(Hash)
         options ||= {}
         options[:html] ||= {}
 
         case record
         when String, Symbol
-          ActiveSupport::Deprecation.warn("Using form_for(:name, @resource) is deprecated. Please use form_for(@resource, :as => :name) instead.", caller) if record_object
           object_name = record
-          object = record_object
+          object      = nil
         else
           object = record.is_a?(Array) ? record.last : record
           object_name = options[:as] || ActiveModel::Naming.param_key(object)

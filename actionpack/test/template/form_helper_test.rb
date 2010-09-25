@@ -816,16 +816,14 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_index
-    assert_deprecated do
-      form_for("post[]", @post) do |f|
-        concat f.label(:title)
-        concat f.text_field(:title)
-        concat f.text_area(:body)
-        concat f.check_box(:secret)
-      end
+    form_for(@post, :as => "post[]") do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
     end
 
-    expected = whole_form do
+    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
       "<label for='post_123_title'>Title</label>" +
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -837,15 +835,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_nil_index_option_override
-    assert_deprecated do
-      form_for("post[]", @post, :index => nil) do |f|
-        concat f.text_field(:title)
-        concat f.text_area(:body)
-        concat f.check_box(:secret)
-      end
+    form_for(@post, :as => "post[]", :index => nil) do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
     end
 
-    expected = whole_form do
+    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
       "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
       "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[][secret]' type='hidden' value='0' />" +
@@ -936,16 +932,14 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_nested_fields_for_with_nested_collections
-    assert_deprecated do
-      form_for('post[]', @post) do |f|
-        concat f.text_field(:title)
-        concat f.fields_for('comment[]', @comment) { |c|
-          concat c.text_field(:name)
-        }
-      end
+    form_for(@post, :as => 'post[]') do |f|
+      concat f.text_field(:title)
+      concat f.fields_for('comment[]', @comment) { |c|
+        concat c.text_field(:name)
+      }
     end
 
-    expected = whole_form do
+    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<input name='post[123][comment][][name]' size='30' type='text' id='post_123_comment__name' value='new comment' />"
     end
@@ -954,16 +948,14 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_nested_fields_for_with_index_and_parent_fields
-    assert_deprecated do
-      form_for('post', @post, :index => 1) do |c|
-        concat c.text_field(:title)
-        concat c.fields_for('comment', @comment, :index => 1) { |r|
-          concat r.text_field(:name)
-        }
-      end
+    form_for(@post, :index => 1) do |c|
+      concat c.text_field(:title)
+      concat c.fields_for('comment', @comment, :index => 1) { |r|
+        concat r.text_field(:name)
+      }
     end
 
-    expected = whole_form do
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
       "<input name='post[1][title]' size='30' type='text' id='post_1_title' value='Hello World' />" +
       "<input name='post[1][comment][1][name]' size='30' type='text' id='post_1_comment_1_name' value='new comment' />"
     end
@@ -1000,15 +992,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_nested_fields_for_with_auto_index
-    assert_deprecated do
-      form_for("post[]", @post) do |f|
-        concat f.fields_for(:comment, @post) { |c|
-          concat c.text_field(:title)
-        }
-      end
+    form_for(@post, :as => "post[]") do |f|
+      concat f.fields_for(:comment, @post) { |c|
+        concat c.text_field(:title)
+      }
     end
 
-    expected = whole_form do
+    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
       "<input name='post[123][comment][title]' size='30' type='text' id='post_123_comment_title' value='Hello World' />"
     end
 
@@ -1030,15 +1020,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_nested_fields_for_with_auto_index_on_both
-    assert_deprecated do
-      form_for("post[]", @post) do |f|
-        concat f.fields_for("comment[]", @post) { |c|
-          concat c.text_field(:title)
-        }
-      end
+    form_for(@post, :as => "post[]") do |f|
+      concat f.fields_for("comment[]", @post) { |c|
+        concat c.text_field(:title)
+      }
     end
 
-    expected = whole_form do
+    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
       "<input name='post[123][comment][123][title]' size='30' type='text' id='post_123_comment_123_title' value='Hello World' />"
     end
 
@@ -1046,27 +1034,25 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_nested_fields_for_with_index_and_auto_index
-    assert_deprecated do
-      output_buffer = form_for("post[]", @post) do |f|
-        concat f.fields_for(:comment, @post, :index => 5) { |c|
-          concat c.text_field(:title)
-        }
-      end
-
-      output_buffer << form_for(:post, @post, :index => 1) do |f|
-        concat f.fields_for("comment[]", @post) { |c|
-          concat c.text_field(:title)
-        }
-      end
-
-      expected =  whole_form do
-                    "<input name='post[123][comment][5][title]' size='30' type='text' id='post_123_comment_5_title' value='Hello World' />"
-                  end + whole_form do
-                    "<input name='post[1][comment][123][title]' size='30' type='text' id='post_1_comment_123_title' value='Hello World' />"
-                  end
-
-      assert_dom_equal expected, output_buffer
+    output_buffer = form_for(@post, :as => "post[]") do |f|
+      concat f.fields_for(:comment, @post, :index => 5) { |c|
+        concat c.text_field(:title)
+      }
     end
+
+    output_buffer << form_for(@post, :as => :post, :index => 1) do |f|
+      concat f.fields_for("comment[]", @post) { |c|
+        concat c.text_field(:title)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+      "<input name='post[123][comment][5][title]' size='30' type='text' id='post_123_comment_5_title' value='Hello World' />"
+    end + whole_form('/posts/123', 'post_edit', 'post_edit', 'put') do
+      "<input name='post[1][comment][123][title]' size='30' type='text' id='post_1_comment_123_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_nested_fields_for_with_a_new_record_on_a_nested_attributes_one_to_one_association
