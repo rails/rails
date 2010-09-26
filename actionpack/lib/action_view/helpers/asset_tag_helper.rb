@@ -718,7 +718,7 @@ module ActionView
 
         def rewrite_host_and_protocol(source, has_request)
           host = compute_asset_host(source)
-          if has_request && host.present? && !is_uri?(host)
+          if has_request && host && !is_uri?(host)
             host = "#{controller.request.protocol}#{host}"
           end
           "#{host}#{source}"
