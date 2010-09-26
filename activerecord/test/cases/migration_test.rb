@@ -91,7 +91,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # Oracle adapter is shortening index name when just column list is given
         unless current_adapter?(:OracleAdapter)
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-          assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
+          assert_nothing_raised { Person.connection.remove_index("people", :name => :index_people_on_last_name_and_first_name) }
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
           assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
         end

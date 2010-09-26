@@ -404,7 +404,7 @@ module ActiveRecord
       # as there's no way to determine the correct answer in that case.
       def index_name_exists?(table_name, index_name, default)
         return default unless respond_to?(:indexes)
-        indexes(table_name).detect { |i| i.name == index_name }
+        indexes(table_name).detect { |i| i.name == index_name.to_s }
       end
 
       # Returns a string of <tt>CREATE TABLE</tt> SQL statement(s) for recreating the
