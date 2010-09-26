@@ -91,16 +91,6 @@ end
 class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
 
-  class Developer
-    def name_before_type_cast
-      "David"
-    end
-
-    def name
-      "Santiago"
-    end
-  end
-
   def setup
     super
 
@@ -264,13 +254,6 @@ class FormHelperTest < ActionView::TestCase
     expected = '<input id="post_123_title" name="post[123][title]" size="30" type="text" value="Hello World" />'
     assert_equal expected, text_field(object_name, "title")
     assert_equal object_name, "post[]"
-  end
-
-  def test_text_field_from_a_user_defined_method
-    @developer = Developer.new
-    assert_dom_equal(
-      '<input id="developer_name" name="developer[name]" size="30" type="text" value="Santiago" />', text_field("developer", "name")
-    )
   end
 
   def test_hidden_field
