@@ -591,9 +591,9 @@ module ActionView
             html_options['data-remote'] = 'true'
           end
 
-          confirm = html_options.delete("confirm")
-          method, href = html_options.delete("method"), html_options['href']
 
+          confirm = html_options.delete('confirm')
+          method  = html_options.delete('method')
           add_confirm_to_attributes!(html_options, confirm) if confirm
           add_method_to_attributes!(html_options, method)   if method
 
