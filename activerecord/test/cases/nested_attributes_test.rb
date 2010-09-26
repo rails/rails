@@ -123,6 +123,14 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 's1', ship.reload.name
   end
 
+ def test_has_many_association_updating_a_single_record
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(:name => 'John')
+    interest = man.interests.create(:topic => 'photography')
+    man.update_attributes({:interests_attributes => {:topic => 'gardening', :id => interest.id}})
+    assert_equal 'gardening', interest.reload.topic
+  end
+
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
