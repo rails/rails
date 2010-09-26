@@ -83,14 +83,20 @@ class Author < ActiveRecord::Base
   has_many :author_favorites
   has_many :favorite_authors, :through => :author_favorites, :order => 'name'
 
-  has_many :tagging,  :through => :posts # through polymorphic has_one
-  has_many :taggings, :through => :posts, :source => :taggings # through polymorphic has_many
-  has_many :tags,     :through => :posts # through has_many :through
+  has_many :tagging,         :through => :posts # through polymorphic has_one
+  has_many :taggings,        :through => :posts, :source => :taggings # through polymorphic has_many
+  has_many :tags,            :through => :posts # through has_many :through (on source reflection + polymorphic)
+  has_many :distinct_tags,   :through => :posts, :source => :tags, :select => "DISTINCT tags.*", :order => "tags.name"
   has_many :post_categories, :through => :posts, :source => :categories
+
+  has_many :books
+  has_many :subscriptions,        :through => :books
+  has_many :subscribers,          :through => :subscriptions # through has_many :through (on through reflection)
+  has_many :distinct_subscribers, :through => :subscriptions, :source => :subscriber, :select => "DISTINCT subscribers.*", :order => "subscribers.nick"
 
   has_one :essay, :primary_key => :name, :as => :writer
 
-  belongs_to :author_address, :dependent => :destroy
+  belongs_to :author_address,       :dependent => :destroy
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
 
   scope :relation_include_posts, includes(:posts)

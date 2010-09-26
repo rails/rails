@@ -378,9 +378,9 @@ module ActiveRecord
           raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
         end
 
-        unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?
-          raise HasManyThroughSourceAssociationMacroError.new(self)
-        end
+        # unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?
+        #   raise HasManyThroughSourceAssociationMacroError.new(self)
+        # end
 
         check_validity_of_inverse!
       end

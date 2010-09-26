@@ -1,4 +1,5 @@
 require "active_record/associations/through_association_scope"
+require "active_record/associations/nested_has_many_through"
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
@@ -6,6 +7,7 @@ module ActiveRecord
   module Associations
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociationScope
+      include NestedHasManyThrough
 
       alias_method :new, :build
 

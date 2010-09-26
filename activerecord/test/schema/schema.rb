@@ -71,6 +71,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :books, :force => true do |t|
+    t.integer :author_id
     t.column :name, :string
   end
 
