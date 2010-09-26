@@ -264,7 +264,7 @@ module ActionDispatch
             :params => parameters,
 
             "SERVER_NAME"     => hostname,
-            "SERVER_PORT"     => port || https? ? "443" : "80",
+            "SERVER_PORT"     => port || (https? ? "443" : "80"),
             "HTTPS"           => https? ? "on" : "off",
             "rack.url_scheme" => https? ? "https" : "http",
 
