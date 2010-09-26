@@ -45,7 +45,7 @@ platforms :ruby do
   group :db do
     gem "pg", ">= 0.9.0"
     gem "mysql", ">= 2.8.1"
-    gem "mysql2", ">= 0.2.3"
+    gem "mysql2", ">= 0.2.4"
   end
 end
 
