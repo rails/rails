@@ -390,7 +390,7 @@ namespace :db do
         db_string = firebird_db_string(abcs[Rails.env])
         sh "isql -a #{db_string} > #{Rails.root}/db/#{Rails.env}_structure.sql"
       else
-        raise "Task not supported by '#{abcs["test"]["adapter"]}'"
+        raise "Task not supported by '#{abcs[Rails.env]["adapter"]}'"
       end
 
       if ActiveRecord::Base.connection.supports_migrations?
