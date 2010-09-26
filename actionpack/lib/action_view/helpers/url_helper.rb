@@ -95,7 +95,7 @@ module ActionView
       #   # => javascript:history.back()
       def url_for(options = {})
         options ||= {}
-        url = case options
+        case options
         when String
           options
         when Hash
@@ -106,8 +106,6 @@ module ActionView
         else
           polymorphic_path(options)
         end
-
-        url
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
