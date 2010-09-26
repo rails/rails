@@ -4,8 +4,10 @@ module Arel
   module Visitors
     class ToSql
       def initialize engine
-        @engine     = engine
-        @connection = nil
+        @engine         = engine
+        @connection     = nil
+        @quoted_tables  = {}
+        @quoted_columns = {}
       end
 
       def accept object
@@ -67,7 +69,7 @@ module Arel
 
       def visit_Arel_Nodes_SelectStatement o
         [
-          o.cores.map { |x| visit x }.join,
+          o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
           ("LIMIT #{o.limit}" if o.limit),
           (visit(o.offset) if o.offset),
@@ -262,11 +264,11 @@ module Arel
       end
 
       def quote_table_name name
-        @connection.quote_table_name name
+        @quoted_tables[name] ||= @connection.quote_table_name(name)
       end
 
       def quote_column_name name
-        @connection.quote_column_name name
+        @quoted_columns[name] ||= @connection.quote_column_name(name)
       end
     end
   end
