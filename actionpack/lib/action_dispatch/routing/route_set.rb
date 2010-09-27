@@ -5,6 +5,8 @@ require 'active_support/core_ext/object/to_query'
 module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
+      include ActionController::UriParser
+
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher #:nodoc:
@@ -67,10 +69,6 @@ module ActionDispatch
 
         def split_glob_param!(params)
           params[@glob_param] = params[@glob_param].split('/').map { |v| uri_parser.unescape(v) }
-        end
-
-        def uri_parser
-          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
       end
 

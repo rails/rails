@@ -141,6 +141,8 @@ module ActionController #:nodoc:
       end
 
       class ActionCachePath
+        include UriParser
+
         attr_reader :path, :extension
 
         # If +infer_extension+ is true, the cache path extension is looked up from the request's
@@ -162,10 +164,6 @@ module ActionController #:nodoc:
           path << 'index' if path[-1] == ?/
           path << ".#{extension}" if extension and !path.ends_with?(extension)
           uri_parser.unescape(path)
-        end
-
-        def uri_parser
-          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
       end
     end

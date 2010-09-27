@@ -8,6 +8,7 @@ module ActionController
   autoload :Caching
   autoload :Metal
   autoload :Middleware
+  autoload :UriParser
 
   autoload_under "metal" do
     autoload :Compatibility

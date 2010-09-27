@@ -129,10 +129,6 @@ module ActionController
       def self.new_escaped(strings)
         new strings.collect {|str| uri_parser.unescape str}
       end
-
-      def uri_parser
-        @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
-      end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})

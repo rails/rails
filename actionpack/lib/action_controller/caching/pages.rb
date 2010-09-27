@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'uri'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionController #:nodoc:
@@ -58,6 +57,8 @@ module ActionController #:nodoc:
       end
 
       module ClassMethods
+        include UriParser
+
         # Expires the page that was cached with the +path+ as a key. Example:
         #   expire_page "/lists/show"
         def expire_page(path)
