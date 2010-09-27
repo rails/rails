@@ -4,10 +4,12 @@ module ActiveResource
     def hash_options(association, resource)
       h = { :klass => klass_for(association, resource) }
       h[:host_klass]      = self
-      if association == :has_many
+      case association
+        when :has_many
         h[:association_col] = "#{h[:host_klass].to_s.downcase}_id".to_sym
-      else
-        h[:association_col] = "#{h[:klass].to_s.underscore}_id".to_sym
+
+        when :has_one
+        h[:association_col] = "#{h[:host_klass].to_s.underscore}_id".to_sym
       end
       h
     end
@@ -27,11 +29,9 @@ module ActiveResource
       #
       #----------------------------------------------------------------------#
       define_method(klass_name) do
-        resource_id = send(h[:association_col])
-
         if instance_variable_get("@#{resource}").nil?
           instance_variable_set("@#{resource}",
-                                h[:klass].find(resource_id) )
+                                h[:klass].find(:first, :params => { h[:association_col] => id }) )
         end
         return instance_variable_get("@#{resource}")
       end
