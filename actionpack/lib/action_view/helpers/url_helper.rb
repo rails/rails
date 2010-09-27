@@ -584,20 +584,24 @@ module ActionView
 
       private
         def convert_options_to_data_attributes(options, html_options)
-          html_options = {} if html_options.nil?
-          html_options = html_options.stringify_keys
+          if html_options.nil?
+            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
+          else
+            html_options = html_options.stringify_keys
+            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-          if (options.is_a?(Hash) && options.key?('remote') && options.delete('remote')) || (html_options.is_a?(Hash) && html_options.key?('remote') && html_options.delete('remote'))
-            html_options['data-remote'] = 'true'
+            confirm = html_options.delete('confirm')
+            method  = html_options.delete('method')
+
+            add_confirm_to_attributes!(html_options, confirm) if confirm
+            add_method_to_attributes!(html_options, method)   if method
+
+            html_options
           end
+        end
 
-
-          confirm = html_options.delete('confirm')
-          method  = html_options.delete('method')
-          add_confirm_to_attributes!(html_options, confirm) if confirm
-          add_method_to_attributes!(html_options, method)   if method
-
-          html_options
+        def link_to_remote_options?(options)
+          options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
         end
 
         def add_confirm_to_attributes!(html_options, confirm)
