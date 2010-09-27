@@ -8,25 +8,21 @@ module ActiveRecord
   # scope except that it's dynamic.
   class DynamicScopeMatch
     def self.match(method)
-      ds_match = self.new(method)
-      ds_match.scope ? ds_match : nil
+      ds_match = new(method)
+      ds_match.scope && ds_match
     end
 
     def initialize(method)
-      @scope = true
-      case method.to_s
-      when /^scoped_by_([_a-zA-Z]\w*)$/
+      @scope = nil
+      if method.to_s =~ /^scoped_by_([_a-zA-Z]\w*)$/
         names = $1
-      else
-        @scope = nil
+        @scope = true
       end
+
       @attribute_names = names && names.split('_and_')
     end
 
     attr_reader :scope, :attribute_names
-
-    def scope?
-      !@scope.nil?
-    end
+    alias :scope? :scope
   end
 end
