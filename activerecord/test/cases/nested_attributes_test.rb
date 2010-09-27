@@ -114,6 +114,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.ship_attributes = { :name => 'Hello Pearl' }
     assert_difference('Ship.count') { pirate.save! }
   end
+  
+  def test_has_many_association_updating_a_single_record
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(:name => 'John')
+    interest = man.interests.create(:topic => 'photography')
+    man.update_attributes({:interests_attributes => {:topic => 'gardening', :id => interest.id}})
+    assert_equal 'gardening', interest.reload.topic
+  end
+  
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
