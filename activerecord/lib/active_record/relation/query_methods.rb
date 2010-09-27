@@ -182,7 +182,7 @@ module ActiveRecord
         when Arel::SqlLiteral
           arel = arel.where(where)
         else
-          sql = where.is_a?(String) ? where : where.to_sql
+          sql = where.is_a?(String) ? where : where.to_sql(table.engine)
           arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
         end
       end
