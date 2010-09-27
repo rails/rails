@@ -443,7 +443,7 @@ module ActionDispatch
 
           return [path, params.keys] if @extras
 
-          path << "?#{params.to_query}" if params.any?
+          path << "?#{params.to_query}" unless params.empty?
           path
         rescue Rack::Mount::RoutingError
           raise_routing_error
