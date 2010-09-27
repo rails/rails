@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
 else
-  gem "arel", :git => "git://github.com/rails/arel.git"
+  gem "arel",  "~> 1.0.1"
 end
 
 gem "rails", :path => File.dirname(__FILE__)
