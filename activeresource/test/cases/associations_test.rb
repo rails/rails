@@ -1,6 +1,13 @@
 require 'abstract_unit'
 require "fixtures/project"
 
+class ProjectManager < ActiveResource::Base
+end
+
+class Project < ActiveResource::Base
+  has_one :project_manager
+end
+
 class AssociationsTest < Test::Unit::TestCase
 
   def setup
