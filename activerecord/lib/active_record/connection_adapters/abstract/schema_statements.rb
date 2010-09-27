@@ -327,14 +327,12 @@ module ActiveRecord
       #
       # Note: SQLite doesn't support index length
       def add_index(table_name, column_name, options = {})
-        options[:name] = options[:name].to_s if options.key?(:name)
-
         column_names = Array.wrap(column_name)
         index_name   = index_name(table_name, :column => column_names)
 
         if Hash === options # legacy support, since this param was a string
           index_type = options[:unique] ? "UNIQUE" : ""
-          index_name = options[:name] || index_name
+          index_name = options[:name].to_s if options.key?(:name)
         else
           index_type = options
         end
@@ -404,7 +402,8 @@ module ActiveRecord
       # as there's no way to determine the correct answer in that case.
       def index_name_exists?(table_name, index_name, default)
         return default unless respond_to?(:indexes)
-        indexes(table_name).detect { |i| i.name == index_name.to_s }
+        index_name = index_name.to_s
+        indexes(table_name).detect { |i| i.name == index_name }
       end
 
       # Returns a string of <tt>CREATE TABLE</tt> SQL statement(s) for recreating the
