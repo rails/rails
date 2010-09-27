@@ -366,6 +366,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find(1), Topic.find(2).topic
   end
 
+  def test_find_by_slug
+    assert_equal Topic.find('1-meowmeow'), Topic.find(1)
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
   end
