@@ -2,6 +2,14 @@
 class Project < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
 
+  #----------------------------------------------------------------------
+  # associations
+  #
+  has_one :project_manager
+
+  #----------------------------------------------------------------------
+  # validations
+  #
   validates_presence_of :name
   validate :description_greater_than_three_letters
 
@@ -18,6 +26,7 @@ class Project < ActiveResource::Base
   def name
     attributes['name'] || nil
   end
+
   def description
     attributes['description'] || nil
   end

@@ -17,6 +17,7 @@ require 'active_resource/connection'
 require 'active_resource/formats'
 require 'active_resource/schema'
 require 'active_resource/log_subscriber'
+require 'active_resource/associations'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
@@ -250,7 +251,7 @@ module ActiveResource
     # :singleton-method:
     # The logger for diagnosing and tracing Active Resource calls.
     cattr_accessor :logger
-
+    extend Associations
     class << self
       # Creates a schema for this resource - setting the attributes that are
       # known prior to fetching an instance from the remote system.
