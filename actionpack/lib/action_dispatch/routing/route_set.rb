@@ -318,7 +318,7 @@ module ActionDispatch
               singleton_class.send(:define_method, :_routes) { routes }
             end
 
-            define_method(:_routes) { @_routes || routes }
+            define_method(:_routes) { @_routes ||= nil; @_routes || routes }
           end
 
           helpers
