@@ -1014,8 +1014,9 @@ module ActiveRecord #:nodoc:
         end
 
         def all_attributes_exists?(attribute_names)
-          attribute_names = expand_attribute_names_for_aggregates(attribute_names)
-          attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
+          expand_attribute_names_for_aggregates(attribute_names).all? { |name|
+            column_methods_hash.include?(name.to_sym)
+          }
         end
 
       protected
