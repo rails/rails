@@ -10,26 +10,14 @@ class Project < ActiveResource::Base
   has_one :project_manager
 end
 
-@project = <<-eof.strip
-    <?xml version=\"1.0\" encoding=\"UTF-8\"?>
-    <project>
-      <id type=\"integer\">1</id>
-      <name>Rails</name>
-      <project_manager_id>5</project_manager_id>
-    </project>
-eof
-
-@project_manager = <<-eof.strip
-    <?xml version=\"1.0\" encoding=\"UTF-8\"?>
-    <project_manager>
-      <id type=\"integer\">5</id>
-      <name>David</name>
-    </project_manager>
-eof
+@project = { :id => 1, :name => "Rails"}
+@project_manager = {:id => 5, :name => "David", :project_id =>1}
+@project_managers = [@project_manager]
 
 ActiveResource::HttpMock.respond_to do |mock|
-  mock.get    "/projects/1.xml", {}, @project
-  mock.get    "/project_managers/5.xml", {}, @project_manager
+  mock.get    "/projects/1.xml", {}, @project.to_xml(:root => 'project')
+  mock.get    "/project_managers/5.xml", {}, @project_manager.to_xml(:root => 'project_manager')
+  mock.get    "/project_managers.xml?project_id=1", {}, @project_managers.to_xml
 end
 
 class AssociationsTest < Test::Unit::TestCase
