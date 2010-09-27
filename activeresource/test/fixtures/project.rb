@@ -3,11 +3,6 @@ class Project < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
 
   #----------------------------------------------------------------------
-  # associations
-  #
-  has_one :project_manager
-
-  #----------------------------------------------------------------------
   # validations
   #
   validates_presence_of :name
