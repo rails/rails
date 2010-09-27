@@ -35,7 +35,7 @@ module ActiveRecord
       undef_method :select_rows
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil, skip_logging = false)
+      def execute(sql, name = nil)
       end
       undef_method :execute
 
