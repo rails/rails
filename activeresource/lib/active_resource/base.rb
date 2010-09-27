@@ -166,6 +166,7 @@ module ActiveResource
   #   # GET http://api.people.com:3000/people/999.xml
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   #
+  #
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   #
@@ -193,6 +194,16 @@ module ActiveResource
   #   rescue ActiveResource::ResourceConflict, ActiveResource::ResourceInvalid
   #     redirect_to :action => 'new'
   #   end
+  #
+  # When a GET is requested for a nested resource and you don't provide the prefix_param
+  # an ActiveResource::MissingPrefixParam will be raised.
+  #
+  #  class Comment < ActiveResource::Base
+  #   self.site = "http://someip.com/posts/:post_id/"
+  #  end
+  #
+  #  Comment.find(1)
+  #  # => ActiveResource::MissingPrefixParam: post_id prefix_option is missing
   #
   # === Validation errors
   #
@@ -621,6 +632,8 @@ module ActiveResource
       #   # => /posts/5/comments/1.xml?active=1
       #
       def element_path(id, prefix_options = {}, query_options = nil)
+        check_prefix_options(prefix_options)
+
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
         "#{prefix(prefix_options)}#{collection_name}/#{URI.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
       end
@@ -663,6 +676,7 @@ module ActiveResource
       #   # => /posts/5/comments.xml?active=1
       #
       def collection_path(prefix_options = {}, query_options = nil)
+        check_prefix_options(prefix_options)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
         "#{prefix(prefix_options)}#{collection_name}.#{format.extension}#{query_string(query_options)}"
       end
@@ -842,6 +856,14 @@ module ActiveResource
       end
 
       private
+
+        def check_prefix_options(prefix_options)
+          p_options = HashWithIndifferentAccess.new(prefix_options)
+          prefix_parameters.each do |p|
+            raise(MissingPrefixParam, "#{p} prefix_option is missing") if p_options[p].blank?
+          end
+        end
+
         # Find every resource
         def find_every(options)
           begin
