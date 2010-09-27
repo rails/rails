@@ -35,8 +35,8 @@ end
 
 class Hash
   # Converts a hash into a string suitable for use as a URL query string. An optional <tt>namespace</tt> can be
-  # passed to enclose the param names (see example below). The keys in the query string are sorted lexicographically
-  # in ascending order.
+  # passed to enclose the param names (see example below). The string pairs "key=value" that conform the query
+  # string are sorted lexicographically in ascending order.
   #
   # ==== Examples
   #   { :name => 'David', :nationality => 'Danish' }.to_param # => "name=David&nationality=Danish"
