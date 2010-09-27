@@ -13,6 +13,12 @@ module Arel
           sql = @visitor.accept Nodes::Equality.new(false, false)
           sql.should be_like %{ 'f' = 'f' }
         end
+
+        it 'should use the column to quote' do
+          table = Table.new(:users)
+          sql = @visitor.accept Nodes::Equality.new(table[:id], '1-fooo')
+          sql.should be_like %{ "users"."id" = 1 }
+        end
       end
 
       it "should visit_DateTime" do
@@ -55,7 +61,9 @@ module Arel
       end
 
       it "should visit_TrueClass" do
-        @visitor.accept(@attr.eq(true)).should be_like %{ "users"."id" = 't' }
+        test = @attr.eq(true)
+        test.left.column.type = :boolean
+        @visitor.accept(test).should be_like %{ "users"."id" = 't' }
       end
 
       describe "Nodes::In" do
@@ -91,6 +99,7 @@ module Arel
       describe 'Equality' do
         it "should escape strings" do
           test = @attr.eq 'Aaron Patterson'
+          test.left.column.type = :string
           @visitor.accept(test).should be_like %{
             "users"."id" = 'Aaron Patterson'
           }

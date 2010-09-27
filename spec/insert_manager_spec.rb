@@ -37,7 +37,10 @@ module Arel
         manager = Arel::InsertManager.new Table.engine
 
         time = Time.now
-        manager.insert [[table[:id], time]]
+        attribute = table[:id]
+        attribute.column.type = :date
+
+        manager.insert [[attribute, time]]
         manager.to_sql.should be_like %{
           INSERT INTO "users" ("id") VALUES (#{Table.engine.connection.quote time})
         }

@@ -6,11 +6,13 @@ module Arel
       def initialize engine
         @engine         = engine
         @connection     = nil
+        @last_column    = []
         @quoted_tables  = {}
         @quoted_columns = {}
       end
 
       def accept object
+        @last_column = []
         @engine.connection_pool.with_connection do |conn|
           @connection = conn
           visit object
@@ -226,6 +228,7 @@ module Arel
       end
 
       def visit_Arel_Attributes_Attribute o
+        @last_column.push o.column
         join_name = o.relation.table_alias || o.relation.name
         "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end
@@ -238,7 +241,7 @@ module Arel
       alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
       alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
 
-      def visit_String o; quote(o) end
+      def visit_String o; quote(o, @last_column.pop) end
 
       alias :visit_ActiveSupport_Multibyte_Chars :visit_String
       alias :visit_BigDecimal :visit_String

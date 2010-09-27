@@ -39,6 +39,11 @@ module FakeRecord
     end
 
     def quote thing, column = nil
+      if column && column.type == :integer
+        return 'NULL' if thing.nil?
+        return thing.to_i
+      end
+
       case thing
       when true
         "'t'"
