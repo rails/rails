@@ -38,9 +38,9 @@ module ActionController
       end
     end
 
-    config.after_initialize do
+    initializer "action_controller.compile_config_methods" do
       ActiveSupport.on_load(:action_controller) do
-        config.crystalize! if config.respond_to?(:crystalize!)
+        config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
   end

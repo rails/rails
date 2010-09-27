@@ -10,12 +10,12 @@ module ActiveSupport
     extend ActiveSupport::Concern
 
     class Configuration < ActiveSupport::InheritableOptions
-      def crystalize!
-        self.class.crystalize!(keys.reject {|key| respond_to?(key)})
+      def compile_methods!
+        self.class.compile_methods!(keys.reject {|key| respond_to?(key)})
       end
 
       # compiles reader methods so we don't have to go through method_missing
-      def self.crystalize!(keys)
+      def self.compile_methods!(keys)
         keys.each do |key|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{key}; _get(#{key.inspect}); end
