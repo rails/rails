@@ -358,15 +358,6 @@ module ActiveRecord
         scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
-      elsif match = DynamicFinderMatch.match(method)
-        attributes = match.attribute_names
-        super unless @klass.send(:all_attributes_exists?, attributes)
-
-        if match.finder?
-          find_by_attributes(match, attributes, *args)
-        elsif match.instantiator?
-          find_or_instantiator_by_attributes(match, attributes, *args, &block)
-        end
       else
         super
       end

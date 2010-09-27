@@ -32,6 +32,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 5, Post.where(:id => post_authors).size
   end
 
+  def test_dynamic_finder
+    x = Post.where('author_id = ?', 1)
+    assert x.klass.respond_to?(:find_by_id), '@klass should handle dynamic finders'
+  end
+
   def test_multivalue_where
     posts = Post.where('author_id = ? AND id = ?', 1, 1)
     assert_equal 1, posts.to_a.size
