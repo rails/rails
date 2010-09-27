@@ -39,5 +39,9 @@ module ActiveSupport #:nodoc:
     def initialize(parent)
       super() { |h,k| parent[k] }
     end
+
+    def inheritable_copy
+      self.class.new(self)
+    end
   end
 end
