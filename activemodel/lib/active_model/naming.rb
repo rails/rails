@@ -73,8 +73,10 @@ module ActiveModel
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information.
     def model_name
-      namespace = self.parents.detect { |n| n.respond_to?(:_railtie) }
-      @_model_name ||= ActiveModel::Name.new(self, namespace)
+      @_model_name ||= begin
+        namespace = self.parents.detect { |n| n.respond_to?(:_railtie) }
+        ActiveModel::Name.new(self, namespace)
+      end
     end
 
     # Returns the plural class name of a record or class. Examples:

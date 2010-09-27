@@ -282,7 +282,7 @@ class HashExtTest < Test::Unit::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
 
-    assert_raise(ArgumentError, "Unknown key(s): failore") do
+    assert_raise(ArgumentError, "Unknown key: failore") do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end

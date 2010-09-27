@@ -334,6 +334,19 @@ module ActionDispatch
       end
 
       class Generator #:nodoc:
+        PARAMETERIZE = {
+          :parameterize => lambda do |name, value|
+            if name == :controller
+              value
+            elsif value.is_a?(Array)
+              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+            else
+              return nil unless param = value.to_param
+              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
+            end
+          end
+        }
+
         attr_reader :options, :recall, :set, :named_route
 
         def initialize(options, recall, set, extras = false)
@@ -422,7 +435,7 @@ module ActionDispatch
         end
 
         def generate
-          path, params = @set.set.generate(:path_info, named_route, options, recall, opts)
+          path, params = @set.set.generate(:path_info, named_route, options, recall, PARAMETERIZE)
 
           raise_routing_error unless path
 
@@ -430,24 +443,10 @@ module ActionDispatch
 
           return [path, params.keys] if @extras
 
-          path << "?#{params.to_query}" if params.any?
+          path << "?#{params.to_query}" unless params.empty?
           path
         rescue Rack::Mount::RoutingError
           raise_routing_error
-        end
-
-        def opts
-          parameterize = lambda do |name, value|
-            if name == :controller
-              value
-            elsif value.is_a?(Array)
-              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-            else
-              return nil unless param = value.to_param
-              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
-            end
-          end
-          {:parameterize => parameterize}
         end
 
         def raise_routing_error

@@ -705,17 +705,27 @@ module ActionView
 
       private
 
-        def rewrite_extension?(source, dir, ext)
-          source_ext = File.extname(source)[1..-1]
-          ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
+        def rewrite_extension(source, dir, ext)
+          source_ext = File.extname(source)
+
+          if source_ext.empty?
+            "#{source}.#{ext}"
+          elsif ext != source_ext[1..-1]
+            with_ext = "#{source}.#{ext}"
+            with_ext if File.exist?(File.join(config.assets_dir, dir, with_ext))
+          end || source
         end
 
         def rewrite_host_and_protocol(source, has_request)
           host = compute_asset_host(source)
-          if has_request && host.present? && !is_uri?(host)
+          if has_request && host && !is_uri?(host)
             host = "#{controller.request.protocol}#{host}"
           end
           "#{host}#{source}"
+        end
+
+        def rewrite_relative_url_root(source, relative_url_root)
+          relative_url_root && !source.starts_with?("#{relative_url_root}/") ? "#{relative_url_root}#{source}" : source
         end
 
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
@@ -725,17 +735,15 @@ module ActionView
         def compute_public_path(source, dir, ext = nil, include_host = true)
           return source if is_uri?(source)
 
-          source += ".#{ext}" if rewrite_extension?(source, dir, ext)
-          source  = "/#{dir}/#{source}" unless source[0] == ?/
+          source = rewrite_extension(source, dir, ext) if ext
+          source = "/#{dir}/#{source}" unless source[0] == ?/
           if controller.respond_to?(:env) && controller.env["action_dispatch.asset_path"]
             source = rewrite_asset_path(source, controller.env["action_dispatch.asset_path"])
           end
           source = rewrite_asset_path(source, config.asset_path)
 
           has_request = controller.respond_to?(:request)
-          if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
-            source = "#{controller.config.relative_url_root}#{source}"
-          end
+          source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request && include_host
           source = rewrite_host_and_protocol(source, has_request) if include_host
 
           source
@@ -802,10 +810,10 @@ module ActionView
           end
 
           asset_id = rails_asset_id(source)
-          if asset_id.blank?
+          if asset_id.empty?
             source
           else
-            source + "?#{asset_id}"
+            "#{source}?#{asset_id}"
           end
         end
 
