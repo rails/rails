@@ -66,7 +66,11 @@ module ActionDispatch
         end
 
         def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+          params[@glob_param] = params[@glob_param].split('/').map { |v| uri_parser.unescape(v) }
+        end
+
+        def uri_parser
+          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
       end
 
@@ -157,6 +161,7 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
                 options = args.extract_options!
 
@@ -190,6 +195,7 @@ module ActionDispatch
             hash_access_method = hash_access_name(name, kind)
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
                 url_for(#{hash_access_method}(*args))
               end
@@ -542,7 +548,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
-              params[key] = URI.unescape(value)
+              params[key] = uri_parser.unescape(value)
             end
           end
 
@@ -559,6 +565,10 @@ module ActionDispatch
       end
 
       private
+        def uri_parser
+          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+        end
+
         def handle_positional_args(options)
           return unless args = options.delete(:_positional_args)
 

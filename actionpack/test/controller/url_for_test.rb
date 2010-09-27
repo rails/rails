@@ -219,7 +219,7 @@ module AbstractController
 
       def test_hash_recursive_and_array_parameters
         url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :id => 101, :query => {:person => {:name => 'Bob', :position => ['prof', 'art director']}, :hobby => 'piercing'})
-        assert_match %r(^/c/a/101), url
+        assert_match(%r(^/c/a/101), url)
         params = extract_params(url)
         assert_equal params[0], { 'query[hobby]'              => 'piercing'     }.to_query
         assert_equal params[1], { 'query[person][name]'       => 'Bob'          }.to_query

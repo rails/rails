@@ -72,8 +72,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :show
     wait
     assert_equal 2, logs.size
-    assert_match /Completed/, logs.last
-    assert_match /200 OK/, logs.last
+    assert_match(/Completed/, logs.last)
+    assert_match(/200 OK/, logs.last)
   end
 
   def test_process_action_without_parameters
@@ -93,7 +93,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match /\(Views: [\d\.]+ms\)/, logs[1]
+    assert_match(/\(Views: [\d\.]+ms\)/, logs[1])
   end
 
   def test_process_action_with_filter_parameters
@@ -103,9 +103,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     params = logs[1]
-    assert_match /"amount"=>"\[FILTERED\]"/, params
-    assert_match /"lifo"=>"\[FILTERED\]"/, params
-    assert_match /"step"=>"1"/, params
+    assert_match(/"amount"=>"\[FILTERED\]"/, params)
+    assert_match(/"lifo"=>"\[FILTERED\]"/, params)
+    assert_match(/"step"=>"1"/, params)
   end
 
   def test_redirect_to
@@ -121,7 +121,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match /Sent data file\.txt/, logs[1]
+    assert_match(/Sent data file\.txt/, logs[1])
   end
 
   def test_send_file
@@ -129,8 +129,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match /Sent file/, logs[1]
-    assert_match /test\/fixtures\/company\.rb/, logs[1]
+    assert_match(/Sent file/, logs[1])
+    assert_match(/test\/fixtures\/company\.rb/, logs[1])
   end
 
   def test_with_fragment_cache
@@ -139,8 +139,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 4, logs.size
-    assert_match /Exist fragment\? views\/foo/, logs[1]
-    assert_match /Write fragment views\/foo/, logs[2]
+    assert_match(/Exist fragment\? views\/foo/, logs[1])
+    assert_match(/Write fragment views\/foo/, logs[2])
   ensure
     @controller.config.perform_caching = true
   end
@@ -163,8 +163,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match /Write page/, logs[1]
-    assert_match /\/index\.html/, logs[1]
+    assert_match(/Write page/, logs[1])
+    assert_match(/\/index\.html/, logs[1])
   ensure
     @controller.config.perform_caching = true
   end

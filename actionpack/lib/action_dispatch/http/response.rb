@@ -43,6 +43,7 @@ module ActionDispatch # :nodoc:
         @writer = lambda { |x| @body << x }
         @block = nil
         @length = 0
+        @_etag = nil
 
         @status, @header = status, header
         self.body = body

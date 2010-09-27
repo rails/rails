@@ -1216,14 +1216,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_index
-    with_test_routes do
-      assert_equal '/info', info_path
-      get '/info'
-      assert_equal 'projects#info', @response.body
-    end
-  end
-
   def test_match_shorthand_with_no_scope
     with_test_routes do
       assert_equal '/account/overview', account_overview_path

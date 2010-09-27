@@ -84,6 +84,7 @@ class Class
           val
         end
 
+        remove_method :#{name} if method_defined?(:#{name})
         def #{name}
           defined?(@#{name}) ? @#{name} : self.class.#{name}
         end

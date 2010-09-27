@@ -182,6 +182,7 @@ module ActionDispatch
         reset!
       end
 
+      remove_method :default_url_options
       def default_url_options
         { :host => host, :protocol => https? ? "https" : "http" }
       end
@@ -319,10 +320,10 @@ module ActionDispatch
       %w(get post put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
-          reset! unless @integration_session
+          reset! unless integration_session
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless %w(cookies assigns).include?(method)
-          @integration_session.__send__(method, *args).tap do
+          integration_session.__send__(method, *args).tap do
             copy_session_variables!
           end
         end
@@ -347,7 +348,7 @@ module ActionDispatch
       # Copy the instance variables from the current session instance into the
       # test instance.
       def copy_session_variables! #:nodoc:
-        return unless @integration_session
+        return unless integration_session
         %w(controller response request).each do |var|
           instance_variable_set("@#{var}", @integration_session.__send__(var))
         end
@@ -357,21 +358,26 @@ module ActionDispatch
       include ActionDispatch::Routing::UrlFor
 
       def url_options
-        reset! unless @integration_session
-        @integration_session.url_options
+        reset! unless integration_session
+        integration_session.url_options
       end
 
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
-        reset! unless @integration_session
-        if @integration_session.respond_to?(sym)
-          @integration_session.__send__(sym, *args, &block).tap do
+        reset! unless integration_session
+        if integration_session.respond_to?(sym)
+          integration_session.__send__(sym, *args, &block).tap do
             copy_session_variables!
           end
         else
           super
         end
       end
+
+      private
+        def integration_session
+          @integration_session ||= nil
+        end
     end
   end
 

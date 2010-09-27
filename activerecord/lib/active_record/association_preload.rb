@@ -321,14 +321,14 @@ module ActiveRecord
           klasses_and_ids[reflection.klass.name] = id_map unless id_map.empty?
         end
 
-        klasses_and_ids.each do |klass_name, id_map|
+        klasses_and_ids.each do |klass_name, _id_map|
           klass = klass_name.constantize
 
           table_name = klass.quoted_table_name
           primary_key = reflection.options[:primary_key] || klass.primary_key
           column_type = klass.columns.detect{|c| c.name == primary_key}.type
 
-          ids = id_map.keys.map do |id|
+          ids = _id_map.keys.map do |id|
             if column_type == :integer
               id.to_i
             elsif column_type == :float
@@ -343,7 +343,7 @@ module ActiveRecord
 
           associated_records = klass.unscoped.where([conditions, ids]).apply_finder_options(options.slice(:include, :select, :joins, :order)).to_a
 
-          set_association_single_records(id_map, reflection.name, associated_records, primary_key)
+          set_association_single_records(_id_map, reflection.name, associated_records, primary_key)
         end
       end
 

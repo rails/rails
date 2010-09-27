@@ -127,7 +127,11 @@ module ActionController
     class Result < ::Array #:nodoc:
       def to_s() join '/' end
       def self.new_escaped(strings)
-        new strings.collect {|str| URI.unescape str}
+        new strings.collect {|str| uri_parser.unescape str}
+      end
+
+      def uri_parser
+        @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
       end
     end
 
@@ -417,7 +421,7 @@ module ActionController
 
         @request.env.delete('PATH_INFO')
 
-        if @controller
+        if defined?(@controller) && @controller
           @controller.request = @request
           @controller.params = {}
         end

@@ -471,7 +471,7 @@ class SelectorTest < Test::Unit::TestCase
   end
 
 
-  def test_first_and_last
+  def test_only_child_and_only_type_first_and_last
     # Only child.
     parse(%Q{<table><tr></tr></table>})
     select("table:only-child")

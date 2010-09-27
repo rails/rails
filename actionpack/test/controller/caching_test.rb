@@ -728,7 +728,7 @@ CACHED
     get :html_fragment_cached_with_partial
     assert_response :success
     assert_match(/Old fragment caching in a partial/, @response.body)
-    assert_match "Old fragment caching in a partial", @store.read('views/test.host/functional_caching/html_fragment_cached_with_partial')
+    assert_match("Old fragment caching in a partial", @store.read('views/test.host/functional_caching/html_fragment_cached_with_partial'))
   end
 
   def test_render_inline_before_fragment_caching
@@ -736,14 +736,14 @@ CACHED
     assert_response :success
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
-    assert_match "Some cached content", @store.read('views/test.host/functional_caching/inline_fragment_cached')
+    assert_match("Some cached content", @store.read('views/test.host/functional_caching/inline_fragment_cached'))
   end
 
   def test_fragment_caching_in_rjs_partials
     xhr :get, :js_fragment_cached_with_partial
     assert_response :success
     assert_match(/Old fragment caching in a partial/, @response.body)
-    assert_match "Old fragment caching in a partial", @store.read('views/test.host/functional_caching/js_fragment_cached_with_partial')
+    assert_match("Old fragment caching in a partial", @store.read('views/test.host/functional_caching/js_fragment_cached_with_partial'))
   end
 
   def test_html_formatted_fragment_caching

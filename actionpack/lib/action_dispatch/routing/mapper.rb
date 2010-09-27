@@ -350,7 +350,7 @@ module ActionDispatch
           options = args.last.is_a?(Hash) ? args.pop : {}
 
           path      = args.shift || block
-          path_proc = path.is_a?(Proc) ? path : proc { |params| path % params }
+          path_proc = path.is_a?(Proc) ? path : proc { |params| params.empty? ? path : (path % params) }
           status    = options[:status] || 301
 
           lambda do |env|
@@ -395,10 +395,10 @@ module ActionDispatch
       #   namespace "admin" do
       #     resources :posts, :comments
       #   end
-      # 
+      #
       # This will create a number of routes for each of the posts and comments
       # controller. For Admin::PostsController, Rails will create:
-      # 
+      #
       #   GET	    /admin/photos
       #   GET	    /admin/photos/new
       #   POST	  /admin/photos
@@ -406,33 +406,33 @@ module ActionDispatch
       #   GET	    /admin/photos/1/edit
       #   PUT	    /admin/photos/1
       #   DELETE  /admin/photos/1
-      # 
+      #
       # If you want to route /photos (without the prefix /admin) to
       # Admin::PostsController, you could use
-      # 
+      #
       #   scope :module => "admin" do
       #     resources :posts, :comments
       #   end
       #
       # or, for a single case
-      # 
+      #
       #   resources :posts, :module => "admin"
-      # 
+      #
       # If you want to route /admin/photos to PostsController
       # (without the Admin:: module prefix), you could use
-      # 
+      #
       #   scope "/admin" do
       #     resources :posts, :comments
       #   end
       #
       # or, for a single case
-      # 
+      #
       #   resources :posts, :path => "/admin"
       #
       # In each of these cases, the named routes remain the same as if you did
       # not use scope. In the last case, the following paths map to
       # PostsController:
-      # 
+      #
       #   GET	    /admin/photos
       #   GET	    /admin/photos/new
       #   POST	  /admin/photos
@@ -676,6 +676,7 @@ module ActionDispatch
           DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
 
           def initialize(entities, options)
+            @as         = nil
             @name       = entities.to_s
             @path       = (options.delete(:path) || @name).to_s
             @controller = (options.delete(:controller) || plural).to_s
