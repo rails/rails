@@ -304,9 +304,9 @@ module ActionDispatch
             extend ActiveSupport::Concern
             include UrlFor
 
-            @routes = routes
+            @_routes = routes
             class << self
-              delegate :url_for, :to => '@routes'
+              delegate :url_for, :to => '@_routes'
             end
             extend routes.named_routes.module
 
@@ -318,7 +318,12 @@ module ActionDispatch
               singleton_class.send(:define_method, :_routes) { routes }
             end
 
-            define_method(:_routes) { @_routes ||= nil; @_routes || routes }
+            def initialize(*)
+              @_routes = nil
+              super
+            end
+
+            define_method(:_routes) { @_routes || routes }
           end
 
           helpers
