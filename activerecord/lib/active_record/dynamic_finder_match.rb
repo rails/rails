@@ -16,9 +16,9 @@ module ActiveRecord
       @instantiator = nil
 
       case method.to_s
-      when /^find_(all_by|last_by|by)_([_a-zA-Z]\w*)$/
-        @finder = :last if $1 == 'last_by'
-        @finder = :all if $1 == 'all_by'
+      when /^find_(all_|last_)?by_([_a-zA-Z]\w*)$/
+        @finder = :last if $1 == 'last_'
+        @finder = :all if $1 == 'all_'
         names = $2
       when /^find_by_([_a-zA-Z]\w*)\!$/
         @bang = true
