@@ -66,7 +66,7 @@ module FakeRecord
     attr_reader :spec
 
     def initialize
-      @spec = Spec.new('sqlite3')
+      @spec = Spec.new(:adapter => 'sqlite3')
     end
 
     def connection
