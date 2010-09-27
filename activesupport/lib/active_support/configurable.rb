@@ -30,7 +30,7 @@ module ActiveSupport
           superclass.config.inheritable_copy
         else
           # create a new "anonymous" class that will host the compiled reader methods
-          Class.new(Configuration).new({})
+          Class.new(Configuration).new
         end
       end
 

@@ -36,8 +36,12 @@ module ActiveSupport #:nodoc:
   end
 
   class InheritableOptions < OrderedOptions
-    def initialize(parent)
-      super() { |h,k| parent[k] }
+    def initialize(parent = nil)
+      if parent
+        super() { |h,k| parent[k] }
+      else
+        super()
+      end
     end
 
     def inheritable_copy
