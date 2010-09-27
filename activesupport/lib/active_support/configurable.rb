@@ -18,7 +18,7 @@ module ActiveSupport
       def self.crystalize!(keys)
         keys.each do |key|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{key}; self[#{key.inspect}]; end
+            def #{key}; _get(#{key.inspect}); end
           RUBY
         end
       end
