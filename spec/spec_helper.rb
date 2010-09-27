@@ -13,6 +13,6 @@ Spec::Runner.configure do |config|
   config.include Check
 
   config.before do
-    Arel::Table.engine = Arel::Sql::Engine.new(FakeRecord::Base)
+    Arel::Table.engine = Arel::Sql::Engine.new(FakeRecord::Base.new)
   end
 end

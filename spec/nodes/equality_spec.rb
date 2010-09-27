@@ -26,6 +26,24 @@ module Arel
             check left.right.should == left.operand2
           end
         end
+
+        describe 'to_sql' do
+          it 'takes an engine' do
+            engine = FakeRecord::Base.new
+            engine.connection.extend Module.new {
+              attr_accessor :quote_count
+              def quote(*args) @quote_count += 1; super; end
+              def quote_column_name(*args) @quote_count += 1; super; end
+              def quote_table_name(*args) @quote_count += 1; super; end
+            }
+            engine.connection.quote_count = 0
+
+            attr = Table.new(:users)[:id]
+            test = attr.eq(10)
+            test.to_sql engine
+            check engine.connection.quote_count.should == 2
+          end
+        end
       end
 
       describe 'or' do

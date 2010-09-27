@@ -63,14 +63,11 @@ module FakeRecord
     class Spec < Struct.new(:config)
     end
 
-    attr_reader :spec
+    attr_reader :spec, :connection
 
     def initialize
       @spec = Spec.new('sqlite3')
-    end
-
-    def connection
-      Connection.new
+      @connection = Connection.new
     end
 
     def with_connection
@@ -79,11 +76,13 @@ module FakeRecord
   end
 
   class Base
-    def self.connection_pool
-      ConnectionPool.new
+    attr_accessor :connection_pool
+
+    def initialize
+      @connection_pool = ConnectionPool.new
     end
 
-    def self.connection
+    def connection
       connection_pool.connection
     end
   end
