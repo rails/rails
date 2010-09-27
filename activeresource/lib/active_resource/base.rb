@@ -12,6 +12,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'set'
 require 'uri'
 
+require 'active_support/core_ext/uri'
 require 'active_resource/exceptions'
 require 'active_resource/connection'
 require 'active_resource/formats'
@@ -414,8 +415,8 @@ module ActiveResource
           @site = nil
         else
           @site = create_site_uri_from(site)
-          @user = uri_parser.unescape(@site.user) if @site.user
-          @password = uri_parser.unescape(@site.password) if @site.password
+          @user = URI.parser.unescape(@site.user) if @site.user
+          @password = URI.parser.unescape(@site.password) if @site.password
         end
       end
 
@@ -588,7 +589,7 @@ module ActiveResource
       # Default value is <tt>site.path</tt>.
       def prefix=(value = '/')
         # Replace :placeholders with '#{embedded options[:lookups]}'
-        prefix_call = value.gsub(/:\w+/) { |key| "\#{URI.escape options[#{key}].to_s}" }
+        prefix_call = value.gsub(/:\w+/) { |key| "\#{URI.parser.escape options[#{key}].to_s}" }
 
         # Clear prefix parameters in case they have been cached
         @prefix_parameters = nil
@@ -635,7 +636,7 @@ module ActiveResource
         check_prefix_options(prefix_options)
 
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{URI.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
+        "#{prefix(prefix_options)}#{collection_name}/#{URI.parser.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
       end
 
       # Gets the new element path for REST resources.
@@ -916,12 +917,12 @@ module ActiveResource
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : uri_parser.parse(site)
+          site.is_a?(URI) ? site.dup : URI.parser.parse(site)
         end
 
         # Accepts a URI and creates the proxy URI from that.
         def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : uri_parser.parse(proxy)
+          proxy.is_a?(URI) ? proxy.dup : URI.parser.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.
@@ -945,10 +946,6 @@ module ActiveResource
           end
 
           [ prefix_options, query_options ]
-        end
-
-        def uri_parser
-          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
     end
 
