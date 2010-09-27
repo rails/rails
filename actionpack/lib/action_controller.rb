@@ -8,7 +8,6 @@ module ActionController
   autoload :Caching
   autoload :Metal
   autoload :Middleware
-  autoload :UriParser
 
   autoload_under "metal" do
     autoload :Compatibility
@@ -73,4 +72,5 @@ require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/name_error'
+require 'active_support/core_ext/uri'
 require 'active_support/inflector'

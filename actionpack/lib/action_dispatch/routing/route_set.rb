@@ -5,8 +5,6 @@ require 'active_support/core_ext/object/to_query'
 module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
-      include ActionController::UriParser
-
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher #:nodoc:
@@ -68,7 +66,7 @@ module ActionDispatch
         end
 
         def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| uri_parser.unescape(v) }
+          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.parser.unescape(v) }
         end
       end
 
@@ -546,7 +544,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
-              params[key] = uri_parser.unescape(value)
+              params[key] = URI.parser.unescape(value)
             end
           end
 
@@ -563,10 +561,6 @@ module ActionDispatch
       end
 
       private
-        def uri_parser
-          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
-        end
-
         def handle_positional_args(options)
           return unless args = options.delete(:_positional_args)
 

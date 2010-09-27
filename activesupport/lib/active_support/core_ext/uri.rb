@@ -20,3 +20,11 @@ if RUBY_VERSION >= '1.9'
     end
   end
 end
+
+module URI
+  class << self
+    def parser
+      @parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+    end
+  end
+end
