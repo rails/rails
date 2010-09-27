@@ -87,6 +87,7 @@ module ActionController
       @_status = 200
       @_request = nil
       @_response = nil
+      @_routes = nil
       super
     end
 
