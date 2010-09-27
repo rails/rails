@@ -513,8 +513,8 @@ module ActionDispatch
           node.content.gsub(/<!\[CDATA\[(.*)(\]\]>)?/m) { Rack::Utils.escapeHTML($1) }
         end
 
-        selected = elements.map do |ele|
-          text = ele.children.select{ |c| not c.tag? }.map{ |c| fix_content[c] }.join
+        selected = elements.map do |_element|
+          text = _element.children.select{ |c| not c.tag? }.map{ |c| fix_content[c] }.join
           root = HTML::Document.new(CGI.unescapeHTML("<encoded>#{text}</encoded>")).root
           css_select(root, "encoded:root", &block)[0]
         end

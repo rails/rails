@@ -120,10 +120,10 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read cache control" do
-    resp = ActionDispatch::Response.new.tap { |_resp|
-      _resp.cache_control[:public] = true
-      _resp.etag = '123'
-      _resp.body = 'Hello'
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.etag = '123'
+      response.body = 'Hello'
     }
     resp.to_a
 
@@ -135,10 +135,10 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read charset and content type" do
-    resp = ActionDispatch::Response.new.tap { |_resp|
-      _resp.charset = 'utf-16'
-      _resp.content_type = Mime::XML
-      _resp.body = 'Hello'
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.charset = 'utf-16'
+      response.content_type = Mime::XML
+      response.body = 'Hello'
     }
     resp.to_a
 
