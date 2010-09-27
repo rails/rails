@@ -462,19 +462,23 @@ class HashExtToParamTests < Test::Unit::TestCase
     assert_equal '', {}.to_param
     assert_equal 'hello=world', { :hello => "world" }.to_param
     assert_equal 'hello=10', { "hello" => 10 }.to_param
-    assert_equal 'hello=world&say_bye=true', ActiveSupport::OrderedHash[:hello, "world", "say_bye", true].to_param
+    assert_equal 'hello=world&say_bye=true', {:hello => "world", "say_bye" => true}.to_param
   end
 
   def test_number_hash
-    assert_equal '10=20&30=40&50=60', ActiveSupport::OrderedHash[10, 20, 30, 40, 50, 60].to_param
+    assert_equal '10=20&30=40&50=60', {10 => 20, 30 => 40, 50 => 60}.to_param
   end
 
   def test_to_param_hash
-    assert_equal 'custom=param-1&custom2=param2-1', ActiveSupport::OrderedHash[ToParam.new('custom'), ToParam.new('param'), ToParam.new('custom2'), ToParam.new('param2')].to_param
+    assert_equal 'custom2=param2-1&custom=param-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
   end
 
   def test_to_param_hash_escapes_its_keys_and_values
     assert_equal 'param+1=A+string+with+%2F+characters+%26+that+should+be+%3F+escaped', { 'param 1' => 'A string with / characters & that should be ? escaped' }.to_param
+  end
+  
+  def test_to_param_orders_by_key_in_ascending_order
+    assert_equal 'a=2&b=1&c=0', ActiveSupport::OrderedHash[*%w(b 1 c 0 a 2)].to_param
   end
 end
 
