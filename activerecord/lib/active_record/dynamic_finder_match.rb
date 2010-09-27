@@ -6,8 +6,8 @@ module ActiveRecord
   #
   class DynamicFinderMatch
     def self.match(method)
-      df_match = self.new(method)
-      df_match.finder ? df_match : nil
+      df_match = new(method)
+      df_match.finder && df_match
     end
 
     def initialize(method)
@@ -35,11 +35,11 @@ module ActiveRecord
     attr_reader :finder, :attribute_names, :instantiator
 
     def finder?
-      !@finder.nil? && @instantiator.nil?
+      @finder && !@instantiator
     end
 
     def instantiator?
-      @finder == :first && !@instantiator.nil?
+      @finder == :first && @instantiator
     end
 
     def creator?
