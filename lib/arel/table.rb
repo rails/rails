@@ -36,10 +36,6 @@ module Arel
       end
     end
 
-    def tm
-      SelectManager.new(@engine, self)
-    end
-
     def from table
       SelectManager.new(@engine, table)
     end
@@ -49,7 +45,7 @@ module Arel
     end
 
     def join relation, klass = Nodes::InnerJoin
-      return tm unless relation
+      return select_manager unless relation
 
       sm = SelectManager.new(@engine)
       case relation
@@ -62,27 +58,27 @@ module Arel
     end
 
     def group *columns
-      tm.group(*columns)
+      select_manager.group(*columns)
     end
 
     def order *expr
-      tm.order(*expr)
+      select_manager.order(*expr)
     end
 
     def where condition
-      tm.where condition
+      select_manager.where condition
     end
 
     def project *things
-      tm.project(*things)
+      select_manager.project(*things)
     end
 
     def take amount
-      tm.take amount
+      select_manager.take amount
     end
 
     def having expr
-      tm.having expr
+      select_manager.having expr
     end
 
     def columns
@@ -98,6 +94,10 @@ module Arel
     end
 
     private
+    def select_manager
+      SelectManager.new(@engine, self)
+    end
+
     def attributes_for columns
       return nil unless columns
 
