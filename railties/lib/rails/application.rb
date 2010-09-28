@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/file_update_checker'
 require 'fileutils'
+require 'rails/routes_reloader'
 require 'rails/plugin'
 require 'rails/engine'
 
@@ -81,28 +82,7 @@ module Rails
     end
 
     def routes_reloader
-      @routes_reloader ||= ActiveSupport::FileUpdateChecker.new([]){ reload_routes! }
-    end
-
-    def reload_routes!
-      routes_to_reload.each do |_routes, draw_block|
-        _routes = self.routes
-        _routes.disable_clear_and_finalize = true
-        _routes.clear!
-        _routes.draw(&draw_block) if draw_block
-      end
-      routes_reloader.paths.each { |path| load(path) }
-      routes_to_reload.each do |_routes, draw_block|
-        ActiveSupport.on_load(:action_controller) { _routes.finalize! }
-      end
-    ensure
-      routes_to_reload.each do |_routes, draw_block|
-        _routes.disable_clear_and_finalize = false
-      end
-    end
-
-    def routes_to_reload
-      @routes_to_reload ||= {}
+      @routes_reloader ||= Rails::RoutesReloader.new
     end
 
     def initialize!

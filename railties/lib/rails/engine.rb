@@ -449,7 +449,7 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      app.routes_to_reload[self.routes] = routes_draw_block
+      app.routes_reloader.blocks[routes] = routes_draw_block
       paths.config.routes.to_a.each do |route|
         app.routes_reloader.paths.unshift(route) if File.exists?(route)
       end
