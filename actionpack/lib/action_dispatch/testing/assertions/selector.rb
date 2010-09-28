@@ -197,7 +197,7 @@ module ActionDispatch
           # This usually happens when passing a node/element that
           # happens to be nil.
           raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif @selected
+        elsif defined?(@selected) && @selected
           root = HTML::Node.new(nil)
           root.children.concat @selected
         else
