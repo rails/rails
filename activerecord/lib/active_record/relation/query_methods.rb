@@ -280,15 +280,9 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query.join(', ').split(',').collect { |s|
-        if s.match(/\s(asc|ASC)$/)
-          s.gsub(/\s(asc|ASC)$/, ' DESC')
-        elsif s.match(/\s(desc|DESC)$/)
-          s.gsub(/\s(desc|DESC)$/, ' ASC')
-        else
-          s + ' DESC'
-        end
-      }
+      order_query.join(', ').split(',').collect do |s|
+        s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+      end
     end
 
     def array_of_strings?(o)
