@@ -221,7 +221,7 @@ class TagNodeTest < Test::Unit::TestCase
     assert !m.match(:after => {:tag => "span", :attributes => {:k => true}})
   end
 
-  def test_to_s
+  def test_tag_to_s
     t = tag("<b x='foo'>")
     tag("hello", t)
     tag("<hr />", t)
