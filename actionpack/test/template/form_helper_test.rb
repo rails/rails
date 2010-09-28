@@ -106,7 +106,6 @@ class FormHelperTest < ActionView::TestCase
     if object.is_a?(Hash) && object[:use_route].blank? && object[:controller].blank?
       object.merge!(:controller => "main", :action => "index")
     end
-    object
     super
   end
 
@@ -269,7 +268,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, hidden_field("post", "title", :value => nil)
   end
 
-  def test_text_field_with_options
+  def test_hidden_field_with_options
     assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
       hidden_field("post", "title", :value => "Something Else")
   end
