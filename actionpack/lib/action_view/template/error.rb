@@ -52,6 +52,7 @@ module ActionView
 
       def initialize(template, assigns, original_exception)
         @template, @assigns, @original_exception = template, assigns.dup, original_exception
+        @sub_templates = nil
         @backtrace = original_exception.backtrace
       end
 
