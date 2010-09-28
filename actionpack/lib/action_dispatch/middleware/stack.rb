@@ -41,9 +41,8 @@ module ActionDispatch
       end
     end
 
-    def initialize(*args, &block)
-      super(*args)
-      block.call(self) if block_given?
+    def initialize(*args)
+      yield(self) if block_given?
     end
 
     def insert(index, *args, &block)
