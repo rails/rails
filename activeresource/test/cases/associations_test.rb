@@ -10,29 +10,41 @@ class Project < ActiveResource::Base
   has_one :project_manager
 end
 
-@project = { :id => 1, :name => "Rails"}
-@project_manager = {:id => 5, :name => "David", :project_id =>1}
+@project          = { :id => 1, :name => "Rails"}
+@other_project    = { :id => 2, :name => "Ruby"}
+@project_manager  = {:id => 5, :name => "David", :project_id =>1}
 @project_managers = [@project_manager]
 
 ActiveResource::HttpMock.respond_to do |mock|
   mock.get    "/projects/1.xml", {}, @project.to_xml(:root => 'project')
+  mock.get    "/projects/2.xml", {}, @other_project.to_xml(:root => 'project')
   mock.get    "/project_managers/5.xml", {}, @project_manager.to_xml(:root => 'project_manager')
   mock.get    "/project_managers.xml?project_id=1", {}, @project_managers.to_xml
+  mock.get    "/project_managers.xml?project_id=2", {}, [].to_xml
 end
 
 class AssociationsTest < Test::Unit::TestCase
 
   def setup
-    @project = Project.find(1)
+    @project         = Project.find(1)
     @project_manager = ProjectManager.find(5)
+    @other_project   = Project.find(2)
   end
+
+  #----------------------------------------------------------------------
+  # has_one association
+  #----------------------------------------------------------------------
 
   def test_has_one_should_add_a_resource_accessor
     assert @project.respond_to? :project_manager
+  end
 
-    # should return the associated project_manager
+  def test_accessor_should_return_the_associated_project_manager
     assert_equal @project_manager, @project.project_manager
   end
 
+  def test_accessor_should_return_nil_when_the_does_not_has_an_associated_resource
+    assert_nil @other_project.project_manager
+  end
 end
 
