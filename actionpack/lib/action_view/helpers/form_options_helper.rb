@@ -395,12 +395,12 @@ module ActionView
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
-        collection.inject("") do |options_for_select, group|
+        collection.map do |group|
           group_label_string = eval("group.#{group_label_method}")
-          options_for_select += "<optgroup label=\"#{html_escape(group_label_string)}\">"
-          options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
-          options_for_select += '</optgroup>'
-        end.html_safe
+          "<optgroup label=\"#{html_escape(group_label_string)}\">" +
+            options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key) +
+            '</optgroup>'
+        end.join.html_safe
       end
 
       # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but
