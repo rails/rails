@@ -24,6 +24,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def setup
     @controller = TestController.new
+    @integration_session = nil
   end
 
   def test_check_parameters

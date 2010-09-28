@@ -120,6 +120,7 @@ class RenderOtherTest < ActionController::TestCase
 
     private
       def default_render
+        @alternate_default_render ||= nil
         if @alternate_default_render
           @alternate_default_render.call
         else
