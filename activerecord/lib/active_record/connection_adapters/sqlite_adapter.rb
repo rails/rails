@@ -360,7 +360,7 @@ module ActiveRecord
         end
 
         def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
-          column_mappings = Hash[*columns.map {|name| [name, name]}.flatten]
+          column_mappings = Hash[columns.map {|name| [name, name]}]
           rename.inject(column_mappings) {|map, a| map[a.last] = a.first; map}
           from_columns = columns(from).collect {|col| col.name}
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
