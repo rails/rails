@@ -71,7 +71,7 @@ class PrototypeHelperBaseTest < ActionView::TestCase
     end
 
     def create_generator
-      block = Proc.new { |*args| yield *args if block_given? }
+      block = Proc.new { |*args| yield(*args) if block_given? }
       JavaScriptGenerator.new self, &block
     end
 end
