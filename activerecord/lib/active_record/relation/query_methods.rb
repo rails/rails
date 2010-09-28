@@ -36,7 +36,7 @@ module ActiveRecord
         to_a.select {|*block_args| value.call(*block_args) }
       else
         relation = clone
-        relation.select_values += [value]
+        relation.select_values += Array.wrap(value)
         relation
       end
     end
