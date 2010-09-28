@@ -264,8 +264,6 @@ module ActiveRecord
         case select = selects.last
         when Arel::Expression, Arel::SqlLiteral
           arel.project(select)
-        when /^COUNT\(/
-          arel.project(Arel::SqlLiteral.new(select))
         else
           arel.project(*selects)
         end
