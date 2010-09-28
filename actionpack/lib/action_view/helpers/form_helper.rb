@@ -991,7 +991,11 @@ module ActionView
       end
 
       def object
-        @object || @template_object.instance_variable_get("@#{@object_name}")
+        if @object
+          @object
+        elsif @template_object.instance_variable_defined?("@#{@object_name}")
+          @template_object.instance_variable_get("@#{@object_name}")
+        end
       rescue NameError
         # As @object_name may contain the nested syntax (item[subobject]) we
         # need to fallback to nil.
