@@ -163,9 +163,17 @@ module Arel
     # FIXME: this method should go away
     def insert values
       im = InsertManager.new @engine
-      im.into @ctx.froms
+      table = @ctx.froms
+      primary_key_name = (primary_key = table.primary_key) && primary_key.name
+      # FIXME: in AR tests values sometimes were Array and not Hash therefore is_a?(Hash) check is added
+      primary_key_value = primary_key && values.is_a?(Hash) && values[primary_key]
+      im.into table
       im.insert values
-      @engine.connection.insert im.to_sql
+      # Oracle adapter needs primary key name to generate RETURNING ... INTO ... clause
+      # for tables which assign primary key value using trigger.
+      # RETURNING ... INTO ... clause will be added only if primary_key_value is nil
+      # therefore it is necessary to pass primary key value as well
+      @engine.connection.insert im.to_sql, 'AREL', primary_key_name, primary_key_value
     end
 
     private

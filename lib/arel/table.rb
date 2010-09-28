@@ -27,7 +27,11 @@ module Arel
     end
 
     def primary_key
-      @primary_key ||= self[@engine.connection.primary_key(name)]
+      @primary_key ||= begin
+        primary_key_name = @engine.connection.primary_key(name)
+        # some tables might be without primary key
+        primary_key_name && self[primary_key_name]
+      end
     end
 
     def alias
