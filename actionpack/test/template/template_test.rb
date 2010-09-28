@@ -6,6 +6,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   class Context
     def initialize
       @output_buffer = "original"
+      @_virtual_path = nil
     end
 
     def hello
