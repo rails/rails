@@ -191,7 +191,11 @@ module ActiveRecord
       end
 
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = except(:order).select(operation == 'count' ? column.count(distinct) : column.send(operation))
+      relation = except(:order)
+      select_value = operation == 'count' ? column.count(distinct) : column.send(operation)
+
+      relation.select_values = [select_value]
+
       type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
     end
 
