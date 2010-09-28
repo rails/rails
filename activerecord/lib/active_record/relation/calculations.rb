@@ -215,7 +215,8 @@ module ActiveRecord
 
       select_statement <<  "#{group_field} AS #{group_alias}"
 
-      relation = except(:group).select(select_statement).group(group)
+      relation = except(:group).group(group)
+      relation.select_values = select_statement
 
       calculated_data = @klass.connection.select_all(relation.to_sql)
 
