@@ -361,7 +361,7 @@ module ActiveRecord
 
         def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
           column_mappings = Hash[columns.map {|name| [name, name]}]
-          rename.inject(column_mappings) {|map, a| map[a.last] = a.first; map}
+          rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect {|col| col.name}
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
