@@ -6,30 +6,33 @@ module ActiveRecord
   #
   class DynamicFinderMatch
     def self.match(method)
-      df_match = new(method)
-      df_match.finder && df_match
-    end
-
-    def initialize(method)
-      @finder = :first
-      @bang   = false
-      @instantiator = nil
+      finder       = :first
+      bang         = false
+      instantiator = nil
 
       case method.to_s
       when /^find_(all_|last_)?by_([_a-zA-Z]\w*)$/
-        @finder = :last if $1 == 'last_'
-        @finder = :all if $1 == 'all_'
+        finder = :last if $1 == 'last_'
+        finder = :all if $1 == 'all_'
         names = $2
       when /^find_by_([_a-zA-Z]\w*)\!$/
-        @bang = true
+        bang = true
         names = $1
       when /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
-        @instantiator = $1 == 'initialize' ? :new : :create
+        instantiator = $1 == 'initialize' ? :new : :create
         names = $2
       else
-        @finder = nil
+        return nil
       end
-      @attribute_names = names && names.split('_and_')
+
+      new(finder, instantiator, bang, names.split('_and_'))
+    end
+
+    def initialize(finder, instantiator, bang, attribute_names)
+      @finder          = finder
+      @instantiator    = instantiator
+      @bang            = bang
+      @attribute_names = attribute_names
     end
 
     attr_reader :finder, :attribute_names, :instantiator
