@@ -49,40 +49,39 @@ module Arel
     end
 
     def join relation, klass = Nodes::InnerJoin
-      return select_manager unless relation
+      return from(self) unless relation
 
-      sm = SelectManager.new(@engine)
       case relation
       when String, Nodes::SqlLiteral
         raise if relation.blank?
-        sm.from Nodes::StringJoin.new(self, relation)
+        from Nodes::StringJoin.new(self, relation)
       else
-        sm.from klass.new(self, relation, nil)
+        from klass.new(self, relation, nil)
       end
     end
 
     def group *columns
-      select_manager.group(*columns)
+      from(self).group(*columns)
     end
 
     def order *expr
-      select_manager.order(*expr)
+      from(self).order(*expr)
     end
 
     def where condition
-      select_manager.where condition
+      from(self).where condition
     end
 
     def project *things
-      select_manager.project(*things)
+      from(self).project(*things)
     end
 
     def take amount
-      select_manager.take amount
+      from(self).take amount
     end
 
     def having expr
-      select_manager.having expr
+      from(self).having expr
     end
 
     def columns
@@ -98,7 +97,7 @@ module Arel
     end
 
     def select_manager
-      SelectManager.new(@engine, self)
+      SelectManager.new(@engine)
     end
 
     private

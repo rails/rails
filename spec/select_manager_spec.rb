@@ -299,6 +299,11 @@ module Arel
         manager.join_sql.should be_like %{ 'hello' }
         check manager.joins(manager).should == manager.join_sql
       end
+
+      it 'returns nil join sql' do
+        manager = Arel::SelectManager.new Table.engine
+        manager.join_sql.should be_nil
+      end
     end
 
     describe 'order_clauses' do

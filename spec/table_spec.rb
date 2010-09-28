@@ -12,6 +12,13 @@ module Arel
       end
     end
 
+    describe 'select_manager' do
+      it 'should return an empty select manager' do
+        sm = @relation.select_manager
+        sm.to_sql.should be_like 'SELECT'
+      end
+    end
+
     describe 'having' do
       it 'adds a having clause' do
         mgr = @relation.having @relation[:id].eq(10)

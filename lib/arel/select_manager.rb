@@ -128,6 +128,8 @@ module Arel
     end
 
     def join_sql
+      return nil unless @ctx.froms
+
       viz = Visitors::JoinSql.new @engine
       Nodes::SqlLiteral.new viz.accept @ctx
     end
