@@ -123,10 +123,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def with_external_encoding(encoding)
-      old, Encoding.default_external = Encoding.default_external, encoding
+      old = Encoding.default_external
+      silence_warnings { Encoding.default_external = encoding }
       yield
     ensure
-      Encoding.default_external = old
+      silence_warnings { Encoding.default_external = old }
     end
 
     def test_render_inline_safebuffer_should_not_raise_error
