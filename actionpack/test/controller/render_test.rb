@@ -1027,7 +1027,7 @@ class RenderTest < ActionController::TestCase
     assert_equal " ", @response.body
   end
 
-  def test_render_to_string
+  def test_render_to_string_not_deprecated
     assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
