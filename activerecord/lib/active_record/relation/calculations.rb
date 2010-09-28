@@ -208,12 +208,12 @@ module ActiveRecord
       aggregate_alias = column_alias_for(operation, column_name)
 
       select_statement = if operation == 'count' && column_name == :all
-        "COUNT(*) AS count_all"
+        ["COUNT(*) AS count_all"]
       else
-        Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias).to_sql
+        [Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias)]
       end
 
-      select_statement <<  ", #{group_field} AS #{group_alias}"
+      select_statement <<  "#{group_field} AS #{group_alias}"
 
       relation = except(:group).select(select_statement).group(group)
 
