@@ -25,13 +25,14 @@ module ActiveResource
       klass_name = opts[:class_name].nil? ? resource : opts[:class_name]
 
       #----------------------------------------------------------------------#
-      # Define accessor method for resource
+      #   Define accessor method for resource
       #
       #----------------------------------------------------------------------#
       define_method(klass_name) do
-        if instance_variable_get("@#{resource}").nil?
+        if  !instance_variable_defined?("@#{resource}") ||
+              instance_variable_get("@#{resource}").nil?
           instance_variable_set("@#{resource}",
-                                h[:klass].find(:first, :params => { h[:association_col] => id }) )
+               h[:klass].find(:first, :params => { h[:association_col] => id }))
         end
         return instance_variable_get("@#{resource}")
       end
