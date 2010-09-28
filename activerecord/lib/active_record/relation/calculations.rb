@@ -222,7 +222,7 @@ module ActiveRecord
       if association
         key_ids     = calculated_data.collect { |row| row[group_alias] }
         key_records = association.klass.base_class.find(key_ids)
-        key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
+        key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
       ActiveSupport::OrderedHash[calculated_data.map do |row|
