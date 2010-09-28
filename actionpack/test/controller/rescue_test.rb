@@ -3,10 +3,12 @@ require 'abstract_unit'
 module ActionDispatch
   class ShowExceptions
     private
+      remove_method :public_path
       def public_path
         "#{FIXTURE_LOAD_PATH}/public"
       end
 
+      remove_method :logger
       # Silence logger
       def logger
         nil
