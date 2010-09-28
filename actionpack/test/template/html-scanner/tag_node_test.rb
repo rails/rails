@@ -55,7 +55,7 @@ class TagNodeTest < Test::Unit::TestCase
 
   def test_to_s
     node = tag("<a b=c d='f' g=\"h 'i'\" />")
-    assert_equal %(<a b='c' d='f' g='h \\'i\\'' />), node.to_s
+    assert_equal %(<a b="c" d="f" g="h 'i'" />), node.to_s
   end
 
   def test_tag
