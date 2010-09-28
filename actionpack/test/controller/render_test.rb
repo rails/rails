@@ -327,6 +327,7 @@ class TestController < ActionController::Base
   end
 
   def default_render
+    @alternate_default_render ||= nil
     if @alternate_default_render
       @alternate_default_render.call
     else
