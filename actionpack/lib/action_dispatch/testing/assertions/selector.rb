@@ -187,6 +187,7 @@ module ActionDispatch
       def assert_select(*args, &block)
         # Start with optional element followed by mandatory selector.
         arg = args.shift
+        @selected ||= nil
 
         if arg.is_a?(HTML::Node)
           # First argument is a node (tag or text, but also HTML root),
@@ -197,7 +198,7 @@ module ActionDispatch
           # This usually happens when passing a node/element that
           # happens to be nil.
           raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif defined?(@selected) && @selected
+        elsif @selected
           root = HTML::Node.new(nil)
           root.children.concat @selected
         else

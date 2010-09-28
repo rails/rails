@@ -66,7 +66,7 @@ module AbstractController
     attr_writer :view_context_class
 
     def view_context_class
-      @view_context_class || self.class.view_context_class
+      (@view_context_class ||= nil) || self.class.view_context_class
     end
 
     def initialize(*)
