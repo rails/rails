@@ -6,18 +6,22 @@ class CaptureController < ActionController::Base
   def self.controller_path; "test"; end
 
   def content_for
+    @title = nil
     render :layout => "talk_from_action"
   end
 
   def content_for_with_parameter
+    @title = nil
     render :layout => "talk_from_action"
   end
 
   def content_for_concatenated
+    @title = nil
     render :layout => "talk_from_action"
   end
 
   def non_erb_block_content_for
+    @title = nil
     render :layout => "talk_from_action"
   end
 
