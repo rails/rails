@@ -36,6 +36,20 @@ module ActiveResource
         end
         return instance_variable_get("@#{resource}")
       end
+
+    #----------------------------------------------------------------------#
+    # Define writter method for resource
+    #
+    #----------------------------------------------------------------------#
+    define_method("#{klass_name}=") do |new_resource|
+      if send(resource).blank?
+        new_resource.send("#{h[:association_col]}=", id)
+        new_resource.save
+        instance_variable_set("@#{resource}", new_resource)
+      else
+        instance_variable_get("@#{resource}").send(:update_attribute, h[:association_col], id)
+      end
+    end
     end
 
   end
