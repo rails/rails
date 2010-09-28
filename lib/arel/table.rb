@@ -97,10 +97,11 @@ module Arel
       columns.find { |column| column.name == name }
     end
 
-    private
     def select_manager
       SelectManager.new(@engine, self)
     end
+
+    private
 
     def attributes_for columns
       return nil unless columns

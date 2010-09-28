@@ -32,6 +32,7 @@ module Arel
       it 'should call insert on the connection' do
         table = Table.new :users
         fc = FakeCrudder.new
+        fc.from table
         fc.insert [[table[:id], 'foo']]
         fc.engine.calls.find { |method, _|
           method == :insert

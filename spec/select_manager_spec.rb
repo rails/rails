@@ -27,7 +27,7 @@ module Arel
     def quote_column_name thing; @engine.connection.quote_column_name thing end
     def quote thing, column; @engine.connection.quote thing, column end
 
-    def execute sql, name = nil
+    def execute sql, name = nil, *args
       @executed << sql
     end
     alias :update :execute
