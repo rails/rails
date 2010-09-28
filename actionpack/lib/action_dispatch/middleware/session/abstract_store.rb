@@ -102,8 +102,8 @@ module ActionDispatch
 
         def destroy
           clear
-          @by.send(:destroy, @env) if @by
-          @env[ENV_SESSION_OPTIONS_KEY][:id] = nil if @env && @env[ENV_SESSION_OPTIONS_KEY]
+          @by.send(:destroy, @env) if defined?(@by) && @by
+          @env[ENV_SESSION_OPTIONS_KEY][:id] = nil if defined?(@env) && @env && @env[ENV_SESSION_OPTIONS_KEY]
           @loaded = false
         end
 
