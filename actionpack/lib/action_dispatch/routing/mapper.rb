@@ -62,7 +62,6 @@ module ActionDispatch
             if using_match_shorthand?(path_without_format, @options)
               to_shorthand    = @options[:to].blank?
               @options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
-              @options[:as] ||= Mapper.normalize_name(path_without_format)
             end
 
             @options.merge!(default_controller_and_action(to_shorthand))
@@ -924,9 +923,14 @@ module ActionDispatch
 
           if action.to_s =~ /^[\w\/]+$/
             options[:action] ||= action unless action.to_s.include?("/")
-            options[:as] = name_for_action(action, options[:as])
           else
-            options[:as] = name_for_action(options[:as])
+            action = nil
+          end
+
+          if options.key?(:as) && !options[:as]
+            options.delete(:as)
+          else
+            options[:as] = name_for_action(options[:as], action)
           end
 
           super(path, options)
@@ -1092,18 +1096,16 @@ module ActionDispatch
             path || @scope[:path_names][name.to_sym] || name.to_s
           end
 
-          def prefix_name_for_action(action, as)
-            if as.present?
+          def prefix_name_for_action(as, action)
+            if as
               as.to_s
-            elsif as
-              nil
             elsif !canonical_action?(action, @scope[:scope_level])
               action.to_s
             end
           end
 
-          def name_for_action(action, as=nil)
-            prefix = prefix_name_for_action(action, as)
+          def name_for_action(as, action)
+            prefix = prefix_name_for_action(as, action)
             prefix = Mapper.normalize_name(prefix) if prefix
             name_prefix = @scope[:as]
 
@@ -1127,7 +1129,8 @@ module ActionDispatch
               [name_prefix, member_name, prefix]
             end
 
-            name.select(&:present?).join("_").presence
+            candidate = name.select(&:present?).join("_").presence
+            candidate unless as.nil? && @set.routes.map(&:name).include?(candidate)
           end
       end
 
