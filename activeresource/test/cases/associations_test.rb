@@ -18,6 +18,7 @@ end
 @project_managers = [@project_manager]
 
 ActiveResource::HttpMock.respond_to do |mock|
+  mock.get    "/projects/.xml", {}, @project.to_xml(:root => 'project')
   mock.get    "/projects/1.xml", {}, @project.to_xml(:root => 'project')
   mock.get    "/projects/2.xml", {}, @other_project.to_xml(:root => 'project')
   mock.get    "/project_managers/5.xml", {}, @project_manager.to_xml(:root => 'project_manager')
@@ -69,5 +70,8 @@ class AssociationsTest < Test::Unit::TestCase
     assert_equal @project, @project_manager.project
   end
 
+  def test_belongs_to_accessor_should_return_nil_when_the_does_not_has_an_associated_resource
+    assert_nil @other_project_manager.project
+  end
 end
 
