@@ -117,6 +117,7 @@ module Arel
         visit_edge o, "name"
       end
       alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
+      alias :visit_Arel_Attributes_Float :visit_Arel_Attribute
       alias :visit_Arel_Attributes_String :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
