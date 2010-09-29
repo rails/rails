@@ -3,6 +3,7 @@ require "fixtures/project"
 
 class ProjectManager < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
+  belongs_to :project
 end
 
 class Project < ActiveResource::Base
@@ -54,6 +55,14 @@ class AssociationsTest < Test::Unit::TestCase
   def test_should_assign_a_new_project_manager
     @other_project.project_manager = @other_project_manager
     assert_equal @other_project.id, @other_project_manager.project_id
+  end
+
+  #----------------------------------------------------------------------
+  # belogns_to association
+  #----------------------------------------------------------------------
+
+  def test_belogns_to_should_add_a_resource_accessor
+    assert @project_manager.respond_to? :project
   end
 end
 
