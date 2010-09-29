@@ -7,9 +7,9 @@ module ActiveResource
     end
 
     module InstanceMethods
-      def set_resource_instance_variable(resource)
+      def set_resource_instance_variable(resource, default_value = nil)
         if !instance_variable_defined?("@#{resource}") ||
-            instance_variable_get("@#{resource}").nil?
+            instance_variable_get("@#{resource}").blank?
           instance_variable_set("@#{resource}", yield)
         end
         instance_variable_get("@#{resource}")
@@ -20,7 +20,8 @@ module ActiveResource
 
       def hash_options(association, resource)
         h = { :klass => klass_for(association, resource) }
-        h[:host_klass]      = self
+        h[:host_klass] = self
+
         case association
         when :belongs_to
           h[:association_col] = "#{h[:klass].to_s.underscore}_id".to_sym
@@ -33,6 +34,8 @@ module ActiveResource
       def klass_for(association, resource)
         resource = resource.to_s
         resource = resource.singularize if association == :has_many
+
+        # FIXME constantize only when use it
         resource.camelize.constantize
       end
 
@@ -80,6 +83,22 @@ module ActiveResource
         end
       end
 
+      def has_many(resource, opts = {})
+        h  = hash_options(:has_many, resource)
+        klass_name = opts[:class_name].nil? ? resource : opts[:class_name]
+
+        #----------------------------------------------------------------------#
+        #   Define accessor method for resource
+        #
+        #----------------------------------------------------------------------#
+        define_method(klass_name) do
+          set_resource_instance_variable(resource) do
+            h[:klass].find(:all, :params => { h[:association_col] => id })
+          end
+        end
+      end
+
     end
   end
+
 end

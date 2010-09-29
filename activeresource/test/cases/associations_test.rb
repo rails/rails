@@ -1,6 +1,10 @@
 require 'abstract_unit'
 require "fixtures/project"
 
+class Milestone < ActiveResource::Base
+  self.site = "http://37s.sunrise.i:3000"
+end
+
 class ProjectManager < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
   belongs_to :project
@@ -9,7 +13,9 @@ end
 class Project < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
   has_one :project_manager
+  has_many :milestones
 end
+
 
 @project          = { :id => 1, :name => "Rails"}
 @other_project    = { :id => 2, :name => "Ruby"}
@@ -72,6 +78,14 @@ class AssociationsTest < Test::Unit::TestCase
 
   def test_belongs_to_accessor_should_return_nil_when_the_does_not_has_an_associated_resource
     assert_nil @other_project_manager.project
+  end
+
+  #----------------------------------------------------------------------
+  # has_many association
+  #----------------------------------------------------------------------
+
+  def test_has_many_should_add_a_resource_accessor
+    assert @project.respond_to? :milestones
   end
 end
 
