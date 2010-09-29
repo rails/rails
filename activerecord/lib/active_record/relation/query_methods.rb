@@ -176,11 +176,10 @@ module ActiveRecord
 
       (@where_values - ['']).uniq.each do |where|
         case where
-        when Arel::SqlLiteral
-          arel = arel.where(where)
+        when String
+          arel = arel.where(Arel.sql("(#{where})"))
         else
-          sql = where.is_a?(String) ? where : where.to_sql(table.engine)
-          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
+          arel = arel.where(Arel::Nodes::Grouping.new(where))
         end
       end
 
