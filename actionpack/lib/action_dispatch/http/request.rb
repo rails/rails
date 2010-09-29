@@ -54,11 +54,7 @@ module ActionDispatch
     # the application should use), this \method returns the overridden
     # value, not the original.
     def request_method
-      @request_method ||= begin
-        method = env["REQUEST_METHOD"]
-        HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-        method
-      end
+      @request_method ||= check_method(env["REQUEST_METHOD"])
     end
 
     # Returns a symbol form of the #request_method
@@ -70,11 +66,7 @@ module ActionDispatch
     # even if it was overridden by middleware. See #request_method for
     # more information.
     def method
-      @method ||= begin
-        method = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-        HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-        method
-      end
+      @method ||= check_method(env["rack.methodoverride.original_method"] || env['REQUEST_METHOD'])
     end
 
     # Returns a symbol form of the #method
@@ -245,6 +237,13 @@ module ActionDispatch
     # True if the request came from localhost, 127.0.0.1.
     def local?
       LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
+    end
+
+    private
+
+    def check_method(name)
+      HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      name
     end
   end
 end
