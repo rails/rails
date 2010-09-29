@@ -24,12 +24,13 @@ module ActiveResource
 
         case association
         when :has_many
-          o[:association_col] = "#{o[:host_klass].to_s.singularize.underscore}_id".to_sym
+          o[:association_col] = o[:host_klass].to_s.singularize
         when :belongs_to
-          o[:association_col] = "#{o[:klass].underscore}_id".to_sym
+          o[:association_col] = o[:klass]
         when :has_one
-          o[:association_col] = "#{o[:host_klass].to_s.underscore}_id".to_sym
+          o[:association_col] = o[:host_klass].to_s
         end
+        o[:association_col] = "#{o[:association_col].underscore}_id".to_sym
         o
       end
 
