@@ -347,7 +347,7 @@ module AbstractController
       begin
         layout_name = _layout if action_has_layout?
       rescue NameError => e
-        raise e.class, "Could not render layout: #{e.message}"
+        raise e, "Could not render layout: #{e.message}"
       end
 
       if require_layout && action_has_layout? && !layout_name
