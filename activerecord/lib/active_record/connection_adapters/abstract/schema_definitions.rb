@@ -318,21 +318,13 @@ module ActiveRecord
         @base = base
       end
 
-      #Handles non supported datatypes - e.g. XML
-      def method_missing(symbol, *args)
-        if symbol.to_s == 'xml'
-          xml_column_fallback(args)
-        else
-          super
-        end
-      end
+      def xml(*args)
+        raise NotImplementedError unless %w{
+          sqlite mysql mysql2
+        }.include? @base.adapter_name.downcase
 
-      def xml_column_fallback(*args)
-        case @base.adapter_name.downcase
-        when 'sqlite', 'mysql'
-          options = args.extract_options!
-          column(args[0], :text, options)
-        end
+        options = args.extract_options!
+        column(args[0], :text, options)
       end
 
       # Appends a primary key definition to the table definition.

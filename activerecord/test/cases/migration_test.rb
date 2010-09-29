@@ -1588,11 +1588,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLiteAdapter) || current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+      def test_xml_creates_xml_column
+        type = current_adapter?(:PostgreSQLAdapter) ? 'xml' : :text
+
+        with_new_table do |t|
+          t.expects(:column).with(:data, type, {})
+          t.xml :data
+        end
+      end
+    else
       def test_xml_creates_xml_column
         with_new_table do |t|
-          t.expects(:column).with(:data, 'xml', {})
-          t.xml :data
+          assert_raises(NotImplementedError) do
+            t.xml :data
+          end
         end
       end
     end
