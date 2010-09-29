@@ -33,6 +33,8 @@ ActiveResource::HttpMock.respond_to do |mock|
   mock.get    "/project_managers.xml?project_id=1", {}, @project_managers.to_xml
   mock.get    "/project_managers.xml?project_id=2", {}, [].to_xml
   mock.get    "/milestones.xml", {}, [@milestone].to_xml
+  mock.get    "/milestones.xml?project_id=2", {}, [].to_xml
+  mock.get    "/milestones.xml?project_id=1", {}, [@milestone].to_xml
   mock.put    "/project_managers/6.xml", {}, nil, 204
 end
 
@@ -98,6 +100,10 @@ class AssociationsTest < Test::Unit::TestCase
 
   def test_has_many_accessor_should_return_the_an_array_with_the_associated_milestones
     assert_equal [@milestone], @project.milestones
+  end
+
+  def test_has_many_accessor_should_return_the_an_empty_array_when_it_does_not_has_milestones
+    assert_equal [], @other_project.milestones
   end
 end
 
