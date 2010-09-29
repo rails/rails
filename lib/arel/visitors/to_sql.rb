@@ -202,8 +202,9 @@ module Arel
 
       def visit_Arel_Nodes_NotIn o
         right = o.right
-        right = right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
-        "#{visit o.left} NOT IN (#{right})"
+        "#{visit o.left} NOT IN (#{
+          right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
+        })"
       end
 
       def visit_Arel_Nodes_And o
