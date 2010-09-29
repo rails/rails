@@ -61,7 +61,9 @@ module ActiveResource
       define_method(klass_name) do
         if  !instance_variable_defined?("@#{resource}") ||
             instance_variable_get("@#{resource}").nil?
-          instance_variable_set("@#{resource}", h[:klass].find(send h[:association_col]))
+          association_col = send h[:association_col]
+          return nil if association_col.nil?
+          instance_variable_set("@#{resource}", h[:klass].find(association_col))
         end
         return instance_variable_get("@#{resource}")
       end
