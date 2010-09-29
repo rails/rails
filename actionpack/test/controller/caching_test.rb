@@ -185,6 +185,7 @@ class ActionCachingTestController < CachingController
 
   def with_layout
     @cache_this = MockTime.now.to_f.to_s
+    @title = nil
     render :text => @cache_this, :layout => true
   end
 

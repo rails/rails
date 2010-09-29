@@ -669,7 +669,7 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( ensure_login find_user ), assigns["ran_filter"]
 
     test_process(ConditionalSkippingController, "login")
-    assert_nil @controller.instance_variable_get("@ran_after_filter")
+    assert !@controller.instance_variable_defined?("@ran_after_filter")
     test_process(ConditionalSkippingController, "change_password")
     assert_equal %w( clean_up ), @controller.instance_variable_get("@ran_after_filter")
   end

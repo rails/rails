@@ -313,7 +313,7 @@ module ActionDispatch
             # Yes plz - JP
             included do
               routes.install_helpers(self)
-              singleton_class.send(:define_method, :_routes) { routes }
+              singleton_class.send(:redefine_method, :_routes) { routes }
             end
 
             define_method(:_routes) { @_routes || routes }

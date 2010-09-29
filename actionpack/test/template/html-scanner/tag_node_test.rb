@@ -55,7 +55,7 @@ class TagNodeTest < Test::Unit::TestCase
 
   def test_to_s
     node = tag("<a b=c d='f' g=\"h 'i'\" />")
-    assert_equal %(<a b='c' d='f' g='h \\'i\\'' />), node.to_s
+    assert_equal %(<a b="c" d="f" g="h 'i'" />), node.to_s
   end
 
   def test_tag
@@ -221,7 +221,7 @@ class TagNodeTest < Test::Unit::TestCase
     assert !m.match(:after => {:tag => "span", :attributes => {:k => true}})
   end
 
-  def test_to_s
+  def test_tag_to_s
     t = tag("<b x='foo'>")
     tag("hello", t)
     tag("<hr />", t)

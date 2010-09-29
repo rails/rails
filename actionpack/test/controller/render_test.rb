@@ -276,6 +276,7 @@ class TestController < ActionController::Base
 
   # :ported:
   def builder_layout_test
+    @name = nil
     render :action => "hello", :layout => "layouts/builder"
   end
 
@@ -327,6 +328,7 @@ class TestController < ActionController::Base
   end
 
   def default_render
+    @alternate_default_render ||= nil
     if @alternate_default_render
       @alternate_default_render.call
     else
@@ -339,14 +341,17 @@ class TestController < ActionController::Base
   end
 
   def layout_test_with_different_layout
+    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_string_action
+    @variable_for_layout = nil
     render "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_symbol_action
+    @variable_for_layout = nil
     render :hello_world, :layout => "standard"
   end
 
@@ -355,6 +360,7 @@ class TestController < ActionController::Base
   end
 
   def layout_overriding_layout
+    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
@@ -643,6 +649,7 @@ class TestController < ActionController::Base
   private
 
     def determine_layout
+      @variable_for_layout ||= nil
       case action_name
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
@@ -1020,7 +1027,7 @@ class RenderTest < ActionController::TestCase
     assert_equal " ", @response.body
   end
 
-  def test_render_to_string
+  def test_render_to_string_not_deprecated
     assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end

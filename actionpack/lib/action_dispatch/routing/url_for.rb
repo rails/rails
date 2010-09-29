@@ -136,6 +136,7 @@ module ActionDispatch
 
       protected
         def _with_routes(routes)
+          @_routes ||= nil
           old_routes, @_routes = @_routes, routes
           yield
         ensure

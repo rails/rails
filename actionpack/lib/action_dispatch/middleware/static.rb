@@ -7,6 +7,7 @@ module ActionDispatch
       @compiled_at = Regexp.compile(/^#{Regexp.escape(at)}/) unless @at.blank?
       @compiled_root = Regexp.compile(/^#{Regexp.escape(root)}/)
       @file_server = ::Rack::File.new(root)
+      @compiled_at ||= nil
     end
 
     def match?(path)

@@ -308,7 +308,7 @@ module ActionDispatch
       include ActionDispatch::Assertions
 
       def app
-        @app
+        @app ||= nil
       end
 
       # Reset the current session. This is useful for testing multiple sessions

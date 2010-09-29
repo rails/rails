@@ -345,6 +345,7 @@ module AbstractController
     # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
+        @_layout ||= nil
         layout_name = _layout if action_has_layout?
       rescue NameError => e
         raise NoMethodError,

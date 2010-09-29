@@ -18,6 +18,7 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses a strict rack.input" do
     class Linted
+      undef call if method_defined?(:call)
       def call(env)
         bar = env['action_dispatch.request.request_parameters']['foo']
         result = "<ok>#{bar}</ok>"

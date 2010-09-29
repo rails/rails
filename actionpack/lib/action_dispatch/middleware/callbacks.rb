@@ -19,9 +19,11 @@ module ActionDispatch
     # replace the existing callback. Passing an identifier is a suggested
     # practice if the code adding a preparation block may be reloaded.
     def self.to_prepare(*args, &block)
-      if args.first.is_a?(Symbol) && block_given?
-        define_method :"__#{args.first}", &block
-        set_callback(:prepare, :"__#{args.first}")
+      first_arg = args.first
+      if first_arg.is_a?(Symbol) && block_given?
+        remove_method :"__#{first_arg}" if method_defined?(:"__#{first_arg}")
+        define_method :"__#{first_arg}", &block
+        set_callback(:prepare, :"__#{first_arg}")
       else
         set_callback(:prepare, *args, &block)
       end

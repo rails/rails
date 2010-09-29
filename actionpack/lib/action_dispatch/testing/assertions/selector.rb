@@ -67,7 +67,7 @@ module ActionDispatch
           arg = args.shift
         elsif arg == nil
           raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif @selected
+        elsif defined?(@selected) && @selected
           matches = []
 
           @selected.each do |selected|
@@ -187,6 +187,7 @@ module ActionDispatch
       def assert_select(*args, &block)
         # Start with optional element followed by mandatory selector.
         arg = args.shift
+        @selected ||= nil
 
         if arg.is_a?(HTML::Node)
           # First argument is a node (tag or text, but also HTML root),
@@ -442,6 +443,7 @@ module ActionDispatch
           assert_block("") { true } # to count the assertion
           if block_given? && !([:remove, :show, :hide, :toggle].include? rjs_type)
             begin
+              @selected ||= nil
               in_scope, @selected = @selected, matches
               yield matches
             ensure

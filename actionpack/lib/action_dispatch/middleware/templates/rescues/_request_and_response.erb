@@ -14,7 +14,7 @@
 
   def debug_hash(hash)
     hash.sort_by { |k, v| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
-  end
+  end unless self.class.method_defined?(:debug_hash)
 %>
 
 <h2 style="margin-top: 30px">Request</h2>
@@ -28,4 +28,4 @@
 
 
 <h2 style="margin-top: 30px">Response</h2>
-<p><b>Headers</b>: <pre><%=h @response ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre></p>
+<p><b>Headers</b>: <pre><%=h defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre></p>

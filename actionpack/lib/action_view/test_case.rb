@@ -137,8 +137,10 @@ module ActionView
       def make_test_case_available_to_view!
         test_case_instance = self
         _helpers.module_eval do
-          define_method(:_test_case) { test_case_instance }
-          private :_test_case
+          unless private_method_defined?(:_test_case)
+            define_method(:_test_case) { test_case_instance }
+            private :_test_case
+          end
         end
       end
 
