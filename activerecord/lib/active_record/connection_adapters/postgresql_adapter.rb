@@ -315,19 +315,22 @@ module ActiveRecord
       def quote(value, column = nil) #:nodoc:
         return super unless column
 
-        if value.kind_of?(String) && column.sql_type == 'bytea'
-          "'#{escape_bytea(value)}'"
-        elsif value.kind_of?(String) && column.sql_type == 'xml'
-          "xml '#{quote_string(value)}'"
-        elsif value.kind_of?(Numeric) && column.sql_type == 'money'
+        case value
+        when Numeric
+          return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
           "'#{value}'"
-        elsif value.kind_of?(String) && column.sql_type =~ /^bit/
-          case value
-          when /^[01]*$/
-            "B'#{value}'" # Bit-string notation
-          when /^[0-9A-F]*$/i
-            "X'#{value}'" # Hexadecimal notation
+        when String
+          case column.sql_type
+          when 'bytea' then "'#{escape_bytea(value)}'"
+          when 'xml'   then "xml '#{quote_string(value)}'"
+          when /^bit/
+            case value
+            when /^[01]*$/      then "B'#{value}'" # Bit-string notation
+            when /^[0-9A-F]*$/i then "X'#{value}'" # Hexadecimal notation
+            end
+          else
+            super
           end
         else
           super
