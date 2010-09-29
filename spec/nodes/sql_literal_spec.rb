@@ -1,6 +1,13 @@
 module Arel
   module Nodes
     describe 'sql literal' do
+      describe 'sql' do
+        it 'makes a sql literal node' do
+          sql = Arel.sql 'foo'
+          sql.should be_kind_of Arel::Nodes::SqlLiteral
+        end
+      end
+
       describe 'count' do
         it 'makes a count node' do
           node = SqlLiteral.new('*').count

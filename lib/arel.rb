@@ -30,6 +30,8 @@ module Arel
   VERSION = '2.0.0.dev'
 end
 
-def sql raw_sql
-  Arel::Nodes::SqlLiteral.new raw_sql
+module Arel
+  def self.sql raw_sql
+    Arel::Nodes::SqlLiteral.new raw_sql
+  end
 end
