@@ -157,7 +157,7 @@ module ActiveRecord
         @implicit_readonly = true
 
         case join
-        when Hash, Array, Symbol
+        when Array
           if array_of_strings?(join)
             join = Arel::SqlLiteral.new(join.join(' '))
           end
