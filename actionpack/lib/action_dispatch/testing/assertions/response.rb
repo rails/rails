@@ -81,7 +81,7 @@ module ActionDispatch
 
         def normalize_argument_to_redirection(fragment)
           case fragment
-          when %r{^\w[\w\d+.-]*:.*}
+          when %r{^\w[A-Za-z\d+.-]*:.*}
             fragment
           when String
             @request.protocol + @request.host_with_port + fragment
