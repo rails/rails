@@ -38,6 +38,13 @@ module Arel
         visit_edge o, "columns"
       end
 
+      def visit_Arel_Nodes_Sum o
+        visit_edge o, "expressions"
+        visit_edge o, "alias"
+      end
+      alias :visit_Arel_Nodes_Max :visit_Arel_Nodes_Sum
+      alias :visit_Arel_Nodes_Avg :visit_Arel_Nodes_Sum
+
       def visit_Arel_Nodes_Count o
         visit_edge o, "expressions"
         visit_edge o, "distinct"
@@ -54,10 +61,27 @@ module Arel
       def visit_Arel_Nodes_StringJoin o
         visit_edge o, "left"
         visit_edge o, "right"
+      end
+
+      def visit_Arel_Nodes_InnerJoin o
+        visit_edge o, "left"
+        visit_edge o, "right"
         visit_edge o, "constraint"
       end
-      alias :visit_Arel_Nodes_InnerJoin :visit_Arel_Nodes_StringJoin
-      alias :visit_Arel_Nodes_OuterJoin :visit_Arel_Nodes_StringJoin
+      alias :visit_Arel_Nodes_OuterJoin :visit_Arel_Nodes_InnerJoin
+
+      def visit_Arel_Nodes_DeleteStatement o
+        visit_edge o, "relation"
+        visit_edge o, "wheres"
+      end
+
+      def visit_Arel_Nodes_UnqualifiedColumn o
+        visit_edge o, "attribute"
+      end
+
+      def visit_Arel_Nodes_Offset o
+        visit_edge o, "value"
+      end
 
       def visit_Arel_Nodes_InsertStatement o
         visit_edge o, "relation"
@@ -109,16 +133,26 @@ module Arel
       alias :visit_Arel_Nodes_GreaterThanOrEqual :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_Assignment         :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_In                 :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_LessThan           :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_LessThanOrEqual    :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_Between            :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_NotIn              :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_DoesNotMatch       :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_Matches            :visit_Arel_Nodes_Equality
 
       def visit_String o
         @node_stack.last.fields << o
       end
       alias :visit_Time :visit_String
+      alias :visit_Date :visit_String
+      alias :visit_DateTime :visit_String
       alias :visit_NilClass :visit_String
       alias :visit_TrueClass :visit_String
       alias :visit_FalseClass :visit_String
       alias :visit_Arel_SqlLiteral :visit_String
       alias :visit_Fixnum :visit_String
+      alias :visit_BigDecimal :visit_String
+      alias :visit_Float :visit_String
       alias :visit_Symbol :visit_String
       alias :visit_Arel_Nodes_SqlLiteral :visit_String
 

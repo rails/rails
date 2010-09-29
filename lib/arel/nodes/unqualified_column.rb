@@ -1,6 +1,8 @@
 module Arel
   module Nodes
     class UnqualifiedColumn
+      attr_accessor :attribute
+
       def initialize attribute
         @attribute = attribute
       end

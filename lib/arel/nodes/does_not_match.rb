@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class DoesNotMatch < Binary
+    class DoesNotMatch < Arel::Nodes::Binary
     end
   end
 end
