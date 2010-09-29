@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 module Arel
   class FakeCrudder < SelectManager
     class FakeEngine
