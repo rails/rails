@@ -394,7 +394,7 @@ module ActionController
         parameters ||= {}
         @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
 
-        @request.session = ActionController::TestSession.new(session) unless session.nil?
+        @request.session = ActionController::TestSession.new(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
         @request.session["flash"].sweep
 
