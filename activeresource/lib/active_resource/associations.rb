@@ -23,8 +23,10 @@ module ActiveResource
         o[:host_klass] = self
 
         case association
+        when :has_many
+          o[:association_col] = "#{o[:host_klass].to_s.singularize.underscore}_id".to_sym
         when :belongs_to
-          o[:association_col] = "#{o[:klass].constantize.to_s.underscore}_id".to_sym
+          o[:association_col] = "#{o[:klass].underscore}_id".to_sym
         when :has_one
           o[:association_col] = "#{o[:host_klass].to_s.underscore}_id".to_sym
         end
