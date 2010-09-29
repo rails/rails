@@ -101,14 +101,6 @@ module ActionView
     attr_reader :source, :identifier, :handler, :virtual_path, :formats,
                 :original_encoding
 
-    Finalizer = proc do |method_name, mod|
-      proc do
-        mod.module_eval do
-          remove_possible_method method_name
-        end
-      end
-    end
-
     def initialize(source, identifier, handler, details)
       @source             = source
       @identifier         = identifier
@@ -253,7 +245,6 @@ module ActionView
 
         begin
           mod.module_eval(source, identifier, 0)
-          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
 
           method_name
         rescue Exception => e # errors from template code
