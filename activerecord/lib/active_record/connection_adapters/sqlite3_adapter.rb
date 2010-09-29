@@ -26,7 +26,7 @@ module ActiveRecord
         :results_as_hash => true
       )
 
-      db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
+      db.busy_timeout(config[:timeout]) if config[:timeout]
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     end
