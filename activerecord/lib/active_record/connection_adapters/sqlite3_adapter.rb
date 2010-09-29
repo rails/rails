@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/sqlite_adapter'
+require 'sqlite3'
 
 module ActiveRecord
   class Base
@@ -18,10 +19,6 @@ module ActiveRecord
 
       unless 'sqlite3' == config[:adapter]
         raise ArgumentError, 'adapter name should be "sqlite3"'
-      end
-
-      unless self.class.const_defined?(:SQLite3)
-        require_library_or_gem(config[:adapter])
       end
 
       db = SQLite3::Database.new(
