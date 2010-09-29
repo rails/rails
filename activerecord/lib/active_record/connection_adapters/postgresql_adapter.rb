@@ -1,20 +1,19 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
+require 'pg'
 
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.postgresql_connection(config) # :nodoc:
-      require 'pg'
-
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
       username = config[:username].to_s if config[:username]
       password = config[:password].to_s if config[:password]
 
-      if config.has_key?(:database)
+      if config.key?(:database)
         database = config[:database]
       else
         raise ArgumentError, "No database specified. Missing argument: database."
@@ -191,10 +190,10 @@ module ActiveRecord
         end
       end
 
-      ADAPTER_NAME = 'PostgreSQL'.freeze
+      ADAPTER_NAME = 'PostgreSQL'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "serial primary key".freeze,
+        :primary_key => "serial primary key",
         :string      => { :name => "character varying", :limit => 255 },
         :text        => { :name => "text" },
         :integer     => { :name => "integer" },
