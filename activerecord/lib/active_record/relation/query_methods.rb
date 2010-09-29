@@ -175,12 +175,8 @@ module ActiveRecord
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
       (@where_values - ['']).uniq.each do |where|
-        case where
-        when String
-          arel = arel.where(Arel.sql("(#{where})"))
-        else
-          arel = arel.where(Arel::Nodes::Grouping.new(where))
-        end
+        where = Arel.sql(where) if String === where
+        arel = arel.where(Arel::Nodes::Grouping.new(where))
       end
 
       arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
