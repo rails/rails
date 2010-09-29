@@ -33,8 +33,13 @@ when 'console'
   Rails::Console.start(Rails.application)
 
 when 'server'
+  # try to guess application's path if there is no config.ru file in current dir
+  # it allows to run script/rails server from other directories
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
+
   require 'rails/commands/server'
   Rails::Server.new.tap { |server|
+    # we need to require application after the server sets environment
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
