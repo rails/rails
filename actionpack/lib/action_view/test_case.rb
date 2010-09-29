@@ -20,12 +20,12 @@ module ActionView
       end
 
       def initialize
+        super
         self.class.controller_path = ""
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
 
         @request.env.delete('PATH_INFO')
-
         @params = {}
       end
     end
@@ -156,15 +156,15 @@ module ActionView
       # The instance of ActionView::Base that is used by +render+.
       def view
         @view ||= begin
-                     view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
-                     view.singleton_class.send :include, _helpers
-                     view.singleton_class.send :include, @controller._routes.url_helpers
-                     view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
-                     view.extend(Locals)
-                     view.locals = self.locals
-                     view.output_buffer = self.output_buffer
-                     view
-                   end
+          view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
+          view.singleton_class.send :include, _helpers
+          view.singleton_class.send :include, @controller._routes.url_helpers
+          view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
+          view.extend(Locals)
+          view.locals = self.locals
+          view.output_buffer = self.output_buffer
+          view
+        end
       end
 
       alias_method :_view, :view
@@ -201,7 +201,7 @@ module ActionView
 
       def method_missing(selector, *args)
         if @controller.respond_to?(:_routes) &&
-        @controller._routes.named_routes.helpers.include?(selector)
+          @controller._routes.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super

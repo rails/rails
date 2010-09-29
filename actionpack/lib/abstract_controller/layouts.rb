@@ -345,11 +345,9 @@ module AbstractController
     # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
-        @_layout ||= nil
         layout_name = _layout if action_has_layout?
       rescue NameError => e
-        raise NoMethodError,
-          "You specified #{@_layout.inspect} as the layout, but no such method was found"
+        raise e.class, "Coult not render layout: #{e.message}"
       end
 
       if require_layout && action_has_layout? && !layout_name

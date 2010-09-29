@@ -850,7 +850,7 @@ module ActionView
       extend ActiveSupport::Concern
       include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
 
-      attr_reader :method_name, :object_name
+      attr_reader :object, :method_name, :object_name
 
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
       DEFAULT_RADIO_OPTIONS     = { }
@@ -859,14 +859,9 @@ module ActionView
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
         @template_object = template_object
-        @object = object
-        if @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
-          if (object ||= @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
-            @auto_index = object.to_param
-          else
-            raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
-          end
-        end
+        @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
+        @object = retrieve_object(object)
+        @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
       end
 
       def to_label_tag(text = nil, options = {}, &block)
@@ -990,16 +985,24 @@ module ActionView
         content_tag(tag_name, value(object), options)
       end
 
-      def object
-        if @object
-          @object
+      def retrieve_object(object)
+        if object
+          object
         elsif @template_object.instance_variable_defined?("@#{@object_name}")
           @template_object.instance_variable_get("@#{@object_name}")
         end
       rescue NameError
-        # As @object_name may contain the nested syntax (item[subobject]) we
-        # need to fallback to nil.
+        # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
         nil
+      end
+
+      def retrieve_autoindex(pre_match)
+        object = self.object || @template_object.instance_variable_get("@#{pre_match}")
+        if object && object.respond_to?(:to_param)
+          object.to_param
+        else
+          raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
+        end
       end
 
       def value(object)

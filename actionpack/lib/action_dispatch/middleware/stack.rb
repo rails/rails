@@ -41,7 +41,11 @@ module ActionDispatch
       end
     end
 
+    # Use this instead of super to work around a warning.
+    alias :array_initialize :initialize
+
     def initialize(*args)
+      array_initialize(*args)
       yield(self) if block_given?
     end
 

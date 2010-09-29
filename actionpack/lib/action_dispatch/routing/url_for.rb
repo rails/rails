@@ -98,6 +98,11 @@ module ActionDispatch
         end
       end
 
+      def initialize(*)
+        @_routes = nil
+        super
+      end
+
       def url_options
         default_url_options
       end
@@ -136,7 +141,6 @@ module ActionDispatch
 
       protected
         def _with_routes(routes)
-          @_routes ||= nil
           old_routes, @_routes = @_routes, routes
           yield
         ensure
