@@ -80,6 +80,17 @@ module ActiveResource
           return nil if association_col.nil?
           set_resource_instance_variable(resource){ h[:klass].find(association_col) }
         end
+
+        #----------------------------------------------------------------------#
+        # Define writter method for resource
+        #
+        #----------------------------------------------------------------------#
+        define_method("#{klass_name}=") do |new_resource|
+          if send(h[:association_col]) != new_resource.id
+            send(:update_attribute, h[:association_col], new_resource.id)
+          end
+          instance_variable_set("@#{resource}", new_resource)
+        end
       end
 
       def has_many(resource, opts = {})
