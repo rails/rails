@@ -24,6 +24,7 @@ module Rails
         @time_zone = "UTC"
         @middleware = app_middleware
         @asset_path = '/'
+        @generators = app_generators
       end
 
       def asset_path=(value)

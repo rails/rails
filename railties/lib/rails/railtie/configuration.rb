@@ -17,6 +17,19 @@ module Rails
         @@app_middleware ||= Rails::Configuration::MiddlewareStackProxy.new
       end
 
+      # This allows you to modify application's generators from Railties.
+      #
+      # Values set on app_generators will become defaults for applicaiton, unless
+      # application overwrites them.
+      def app_generators
+        @@app_generators ||= Rails::Configuration::Generators.new
+        if block_given?
+          yield @@app_generators
+        else
+          @@app_generators
+        end
+      end
+
       # Holds generators configuration:
       #
       #   config.generators do |g|
@@ -30,11 +43,11 @@ module Rails
       #   config.generators.colorize_logging = false
       #
       def generators
-        @@generators ||= Rails::Configuration::Generators.new
+        @generators ||= Rails::Configuration::Generators.new
         if block_given?
-          yield @@generators
+          yield @generators
         else
-          @@generators
+          @generators
         end
       end
 

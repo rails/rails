@@ -703,5 +703,44 @@ module RailtiesTest
       get "/bukkits/bar"
       assert_equal "bar", last_response.body
     end
+
+    test "setting generators for engine and overriding app generator's" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            config.generators do |g|
+              g.orm             :datamapper
+              g.template_engine :haml
+              g.test_framework  :rspec
+            end
+
+            config.app_generators do |g|
+              g.orm             :mongoid
+              g.template_engine :liquid
+              g.test_framework  :shoulda
+            end
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.generators do |g|
+          g.test_framework  :test_unit
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      app_generators = Rails.application.config.generators.options[:rails]
+      assert_equal :mongoid  , app_generators[:orm]
+      assert_equal :liquid   , app_generators[:template_engine]
+      assert_equal :test_unit, app_generators[:test_framework]
+
+      generators = Bukkits::Engine.config.generators.options[:rails]
+      assert_equal :datamapper, generators[:orm]
+      assert_equal :haml      , generators[:template_engine]
+      assert_equal :rspec     , generators[:test_framework]
+    end
   end
 end
