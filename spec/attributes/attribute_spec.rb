@@ -142,6 +142,22 @@ module Arel
         end
       end
 
+      describe '#eq_any' do
+        it 'should create a Grouping node' do
+          relation = Table.new(:users)
+          relation[:id].eq_any([1,2]).should be_kind_of Nodes::Grouping
+        end
+
+        it 'should generate multiple ORs in sql' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:id].eq_any([1,2])
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" WHERE ("users"."id" = 1 OR "users"."id" = 2)
+          }
+        end
+      end
+
       describe '#in' do
         it 'can be constructed with a list' do
         end

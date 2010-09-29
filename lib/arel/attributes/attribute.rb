@@ -11,6 +11,14 @@ module Arel
         Nodes::Equality.new self, other
       end
 
+      def eq_any others
+        first = Nodes::Equality.new self, others.shift
+
+        Nodes::Grouping.new others.inject(first) { |memo,expr|
+          Nodes::Or.new(memo, Nodes::Equality.new(self, expr))
+        }
+      end
+
       def in other
         case other
         when Arel::SelectManager
