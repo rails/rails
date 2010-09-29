@@ -21,6 +21,14 @@ module Arel
         end
       end
 
+      def visit_Arel_Nodes_Matches o
+        "#{visit o.left} ILIKE #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_DoesNotMatch o
+        "#{visit o.left} NOT ILIKE #{visit o.right}"
+      end
+
       def using_distinct_on?(o)
         o.cores.any? do |core|
           core.projections.any? do |projection|
