@@ -441,9 +441,8 @@ module ActionController
       #
       # Returns String.
       def encode_credentials(token, options = {})
-        values = ["token=#{token.to_s.inspect}"]
-        options.each do |key, value|
-          values << "#{key}=#{value.to_s.inspect}"
+        values = ["token=#{token.to_s.inspect}"] + options.map do |key, value|
+          "#{key}=#{value.to_s.inspect}"
         end
         "Token #{values * ", "}"
       end
