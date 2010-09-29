@@ -44,15 +44,15 @@ class AssociationsTest < Test::Unit::TestCase
     assert @project.respond_to? :project_manager
   end
 
-  def test_accessor_should_return_the_associated_project_manager
+  def test_has_one_accessor_should_return_the_associated_project_manager
     assert_equal @project_manager, @project.project_manager
   end
 
-  def test_accessor_should_return_nil_when_the_does_not_has_an_associated_resource
+  def test_has_one_accessor_should_return_nil_when_the_does_not_has_an_associated_resource
     assert_nil @other_project.project_manager
   end
 
-  def test_should_assign_a_new_project_manager
+  def test_has_one_should_assign_a_new_project_manager
     @other_project.project_manager = @other_project_manager
     assert_equal @other_project.id, @other_project_manager.project_id
   end
@@ -61,8 +61,13 @@ class AssociationsTest < Test::Unit::TestCase
   # belogns_to association
   #----------------------------------------------------------------------
 
-  def test_belogns_to_should_add_a_resource_accessor
+  def test_belongs_to_should_add_a_resource_accessor
     assert @project_manager.respond_to? :project
   end
+
+  def test_belongs_to_accessor_should_return_the_associated_project
+    assert_equal @project, @project_manager.project
+  end
+
 end
 
