@@ -365,7 +365,7 @@ module ActionView
       #   <% end %>
       def current_cycle(name = "default")
         cycle = get_cycle(name)
-        cycle.current_value unless cycle.nil?
+        cycle.current_value if cycle
       end
 
       # Resets a cycle so that it starts from the first element the next time
