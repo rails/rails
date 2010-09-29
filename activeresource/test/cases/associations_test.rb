@@ -59,7 +59,7 @@ class AssociationsTest < Test::Unit::TestCase
     assert_nil @other_project.project_manager
   end
 
-  def test_has_one_should_assign_a_new_project_manager
+  def test_has_one_should_assign_a_new_project_manager_when_it_does_not_has_a_project_manager
     @other_project.project_manager = @other_project_manager
     assert_equal @other_project.id, @other_project_manager.project_id
   end
@@ -78,6 +78,11 @@ class AssociationsTest < Test::Unit::TestCase
 
   def test_belongs_to_accessor_should_return_nil_when_the_does_not_has_an_associated_resource
     assert_nil @other_project_manager.project
+  end
+
+  def test_has_one_should_assign_a_new_project_manager_when_it_does_not_has_a_project_manager
+    @other_project_manager.project = @other_project
+    assert_equal @other_project_manager.project_id, @other_project.id
   end
 
   #----------------------------------------------------------------------
