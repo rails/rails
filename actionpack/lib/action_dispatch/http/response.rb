@@ -43,7 +43,6 @@ module ActionDispatch # :nodoc:
         @writer = lambda { |x| @body << x }
         @block = nil
         @length = 0
-        @_etag = nil
 
         @status, @header = status, header
         self.body = body
@@ -141,7 +140,6 @@ module ActionDispatch # :nodoc:
       assign_default_content_type_and_charset!
       handle_conditional_get!
       self["Set-Cookie"] = self["Set-Cookie"].join("\n") if self["Set-Cookie"].respond_to?(:join)
-      self["ETag"]       = @_etag if @_etag
       super
     end
 
