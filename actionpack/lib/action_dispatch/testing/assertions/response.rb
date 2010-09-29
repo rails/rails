@@ -84,11 +84,7 @@ module ActionDispatch
           when %r{^\w[\w\d+.-]*:.*}
             fragment
           when String
-            if fragment =~ %r{^\w[\w\d+.-]*:.*}
-              fragment
-            else
-              @request.protocol + @request.host_with_port + fragment
-            end
+            @request.protocol + @request.host_with_port + fragment
           when :back
             raise RedirectBackError unless refer = @request.headers["Referer"]
             refer
