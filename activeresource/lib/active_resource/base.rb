@@ -251,7 +251,7 @@ module ActiveResource
     # :singleton-method:
     # The logger for diagnosing and tracing Active Resource calls.
     cattr_accessor :logger
-    extend Associations
+    include Associations
     class << self
       # Creates a schema for this resource - setting the attributes that are
       # known prior to fetching an instance from the remote system.
