@@ -71,6 +71,16 @@ module Arel
             }
           end
 
+          it 'creates a subquery when there is DISTINCT' do
+            stmt = Nodes::SelectStatement.new
+            stmt.cores.first.projections << Nodes::SqlLiteral.new('DISTINCT id')
+            stmt.limit = 10
+            sql = @visitor.accept stmt
+            sql.should be_like %{
+              SELECT * FROM (SELECT DISTINCT id) WHERE ROWNUM <= 10
+            }
+          end
+
           it 'creates a different subquery when there is an offset' do
             stmt = Nodes::SelectStatement.new
             stmt.limit = 10

@@ -6,7 +6,9 @@ module Arel
       def visit_Arel_Nodes_SelectStatement o
         o = order_hacks(o)
 
-        if o.limit && o.orders.empty? && !o.offset
+        # if need to select first records without ORDER BY and GROUP BY and without DISTINCT
+        # then can use simple ROWNUM in WHERE clause
+        if o.limit && o.orders.empty? && !o.offset && o.cores.first.projections.first !~ /^DISTINCT /
           o.cores.last.wheres.push Nodes::LessThanOrEqual.new(
             Nodes::SqlLiteral.new('ROWNUM'), o.limit
           )
@@ -31,7 +33,7 @@ module Arel
           eosql
         end
 
-        if o.limit && !o.orders.empty?
+        if o.limit
           o       = o.dup
           limit   = o.limit
           o.limit = nil
