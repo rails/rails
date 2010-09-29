@@ -94,6 +94,21 @@ module Arel
             "users"."id" >= 1 AND "users"."id" < 3
           }
         end
+
+        it 'uses the same column for escaping values' do
+          visitor = Class.new(ToSql) do
+            attr_accessor :expected
+
+            def quote value, column = nil
+              raise unless column == expected
+              super
+            end
+          end
+          in_node = Nodes::In.new @attr, %w{ a b c }
+          visitor = visitor.new(Table.engine)
+          visitor.expected = @attr.column
+          lambda { visitor.accept(in_node) }.should_not raise_error
+        end
       end
 
       describe 'Equality' do

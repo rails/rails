@@ -28,6 +28,10 @@ module Arel
       end
 
       private
+      def visit_Arel_Nodes_Grouping o
+        visit_edge o, "expr"
+      end
+
       def visit_Arel_Nodes_TableAlias o
         visit_edge o, "name"
         visit_edge o, "relation"
@@ -104,6 +108,7 @@ module Arel
       alias :visit_Arel_Nodes_GreaterThan        :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_GreaterThanOrEqual :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_Assignment         :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_In                 :visit_Arel_Nodes_Equality
 
       def visit_String o
         @node_stack.last.fields << o
