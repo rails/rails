@@ -161,6 +161,14 @@ module Arel
         "#{visit o.left} < #{visit o.right}"
       end
 
+      def visit_Arel_Nodes_Matches o
+        "#{visit o.left} LIKE #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_DoesNotMatch o
+        "#{visit o.left} NOT LIKE #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_StringJoin o
         "#{visit o.left} #{visit o.right}"
       end
@@ -189,6 +197,12 @@ module Arel
         right = o.right
         right = right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
         "#{visit o.left} IN (#{right})"
+      end
+
+      def visit_Arel_Nodes_NotIn o
+        right = o.right
+        right = right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
+        "#{visit o.left} NOT IN (#{right})"
       end
 
       def visit_Arel_Nodes_And o
