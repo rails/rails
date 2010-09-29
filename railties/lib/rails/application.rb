@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/file_update_checker'
 require 'fileutils'
-require 'rails/routes_reloader'
 require 'rails/plugin'
 require 'rails/engine'
 
@@ -40,6 +39,7 @@ module Rails
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
+    autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
       def inherited(base)
@@ -82,7 +82,7 @@ module Rails
     end
 
     def routes_reloader
-      @routes_reloader ||= Rails::RoutesReloader.new
+      @routes_reloader ||= RoutesReloader.new
     end
 
     def initialize!
