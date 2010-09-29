@@ -27,12 +27,6 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    class TableDefinition
-      def xml(*args)
-        options = args.extract_options!
-        column(args[0], 'xml', options)
-      end
-    end
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       # Instantiates a new PostgreSQL column definition in a table.
@@ -192,6 +186,13 @@ module ActiveRecord
     # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock;
     #   otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def xml(*args)
+          options = args.extract_options!
+          column(args[0], 'xml', options)
+        end
+      end
+
       ADAPTER_NAME = 'PostgreSQL'.freeze
 
       NATIVE_DATABASE_TYPES = {
@@ -1024,6 +1025,10 @@ module ActiveRecord
             [match_data[1], (rest.length > 0 ? rest : nil)]
           end
         end
+
+      def table_definition
+        TableDefinition.new(self)
+      end
     end
   end
 end

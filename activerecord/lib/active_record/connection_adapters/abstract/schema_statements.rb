@@ -151,10 +151,10 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        table_definition = TableDefinition.new(self)
-        table_definition.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+        td = table_definition
+        td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        yield table_definition if block_given?
+        yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
@@ -162,7 +162,7 @@ module ActiveRecord
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
         create_sql << "#{quote_table_name(table_name)} ("
-        create_sql << table_definition.to_sql
+        create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
       end
@@ -534,6 +534,11 @@ module ActiveRecord
         def options_include_default?(options)
           options.include?(:default) && !(options[:null] == false && options[:default].nil?)
         end
+
+      private
+      def table_definition
+        TableDefinition.new(self)
+      end
     end
   end
 end
