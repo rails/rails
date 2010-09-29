@@ -159,14 +159,13 @@ module ActiveRecord
         case join
         when Hash, Array, Symbol
           if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel.join(Arel::SqlLiteral.new(join_string))
+            join = Arel::SqlLiteral.new(join.join(' '))
           end
         when String
-          arel.join(Arel::SqlLiteral.new(join))
-        else
-          arel.join(join)
+          join = Arel::SqlLiteral.new(join)
         end
+
+        arel.join(join)
       end
 
       arel.joins(arel)
