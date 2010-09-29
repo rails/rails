@@ -79,7 +79,6 @@ module ActiveResource
           association_col = send h[:association_col]
           return nil if association_col.nil?
           set_resource_instance_variable(resource){ h[:klass].find(association_col) }
-          instance_variable_set("@#{resource}", h[:klass].find(association_col))
         end
       end
 
