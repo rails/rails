@@ -1,10 +1,6 @@
 require 'abstract_unit'
 require "fixtures/project"
 
-class Milestone < ActiveResource::Base
-  self.site = "http://37s.sunrise.i:3000"
-end
-
 class ProjectManager < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
   belongs_to :project
@@ -16,6 +12,9 @@ class Project < ActiveResource::Base
   has_many :milestones
 end
 
+class Milestone < ActiveResource::Base
+  self.site = "http://37s.sunrise.i:3000"
+end
 
 @project          = { :id => 1, :name => "Rails"}
 @other_project    = { :id => 2, :name => "Ruby"}

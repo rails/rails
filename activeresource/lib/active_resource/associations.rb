@@ -24,7 +24,7 @@ module ActiveResource
 
         case association
         when :belongs_to
-          o[:association_col] = "#{o[:klass].to_s.underscore}_id".to_sym
+          o[:association_col] = "#{o[:klass].constantize.to_s.underscore}_id".to_sym
         when :has_one
           o[:association_col] = "#{o[:host_klass].to_s.underscore}_id".to_sym
         end
@@ -34,9 +34,7 @@ module ActiveResource
       def klass_for(association, resource)
         resource = resource.to_s
         resource = resource.singularize if association == :has_many
-
-        # FIXME constantize only when use it
-        resource.camelize.constantize
+        resource.camelize
       end
 
       #######################################################################
@@ -52,7 +50,7 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method(resource) do
           set_resource_instance_variable(resource) do
-            o[:klass].find(:first, :params => { o[:association_col] => id })
+            o[:klass].constantize.find(:first, :params => { o[:association_col] => id })
           end
         end
 
@@ -84,7 +82,7 @@ module ActiveResource
         define_method(resource) do
           association_col = send o[:association_col]
           return nil if association_col.nil?
-          set_resource_instance_variable(resource){ o[:klass].find(association_col) }
+          set_resource_instance_variable(resource){ o[:klass].constantize.find(association_col) }
         end
 
         #----------------------------------------------------------------------#
@@ -112,7 +110,7 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method(resource) do
           set_resource_instance_variable(resource) do
-            o[:klass].find(:all, :params => { o[:association_col] => id })
+            o[:klass].constantize.find(:all, :params => { o[:association_col] => id })
           end
         end
       end
