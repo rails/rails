@@ -314,6 +314,7 @@ class FilterTest < ActionController::TestCase
 
     def initialize
       @@execution_log = ""
+      super()
     end
 
     before_filter { |c| c.class.execution_log << " before procfilter "  }

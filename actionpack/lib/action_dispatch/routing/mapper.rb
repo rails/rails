@@ -349,7 +349,7 @@ module ActionDispatch
           options = args.last.is_a?(Hash) ? args.pop : {}
 
           path      = args.shift || block
-          path_proc = path.is_a?(Proc) ? path : proc { |params| params.empty? ? path : (path % params) }
+          path_proc = path.is_a?(Proc) ? path : proc { |params| (params.empty? || !path.match(/%{\w*}/)) ? path : (path % params) }
           status    = options[:status] || 301
 
           lambda do |env|
