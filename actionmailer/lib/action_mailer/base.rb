@@ -421,11 +421,8 @@ module ActionMailer #:nodoc:
       end
 
       def method_missing(method, *args) #:nodoc:
-        if action_methods.include?(method.to_s)
-          new(method, *args).message
-        else
-          super
-        end
+        return super unless respond_to?(method)
+        new(method, *args).message
       end
     end
 
