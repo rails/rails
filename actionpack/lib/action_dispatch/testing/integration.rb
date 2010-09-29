@@ -171,7 +171,7 @@ module ActionDispatch
 
       # Create and initialize a new Session instance.
       def initialize(app)
-        super
+        super()
         @app = app
 
         # If the app is a Rails app, make url_helpers available on the session
