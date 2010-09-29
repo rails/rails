@@ -18,17 +18,17 @@ module ActiveResource
 
     module ClassMethods
 
-      def hash_options(association, resource)
-        h = { :klass => klass_for(association, resource) }
-        h[:host_klass] = self
+      def options(association, resource)
+        o = { :klass => klass_for(association, resource) }
+        o[:host_klass] = self
 
         case association
         when :belongs_to
-          h[:association_col] = "#{h[:klass].to_s.underscore}_id".to_sym
+          o[:association_col] = "#{o[:klass].to_s.underscore}_id".to_sym
         when :has_one
-          h[:association_col] = "#{h[:host_klass].to_s.underscore}_id".to_sym
+          o[:association_col] = "#{o[:host_klass].to_s.underscore}_id".to_sym
         end
-        h
+        o
       end
 
       def klass_for(association, resource)
@@ -44,7 +44,7 @@ module ActiveResource
       #
 
       def has_one(resource, opts = {})
-        h  = hash_options(:has_one, resource)
+        o  = options(:has_one, resource)
 
         #----------------------------------------------------------------------#
         #   Define accessor method for resource
@@ -52,7 +52,7 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method(resource) do
           set_resource_instance_variable(resource) do
-            h[:klass].find(:first, :params => { h[:association_col] => id })
+            o[:klass].find(:first, :params => { o[:association_col] => id })
           end
         end
 
@@ -62,10 +62,10 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method("#{resource}=") do |new_resource|
           if send(resource).blank?
-            new_resource.send("#{h[:association_col]}=", id)
+            new_resource.send("#{o[:association_col]}=", id)
             instance_variable_set("@#{resource}", new_resource.save)
           else
-            instance_variable_get("@#{resource}").send(:update_attribute, h[:association_col], id)
+            instance_variable_get("@#{resource}").send(:update_attribute, o[:association_col], id)
           end
         end
       end
@@ -75,16 +75,16 @@ module ActiveResource
       #
 
       def belongs_to(resource, opts = {})
-        h  = hash_options(:belongs_to, resource)
+        o  = options(:belongs_to, resource)
 
         #----------------------------------------------------------------------#
         #   Define accessor method for resource
         #
         #----------------------------------------------------------------------#
         define_method(resource) do
-          association_col = send h[:association_col]
+          association_col = send o[:association_col]
           return nil if association_col.nil?
-          set_resource_instance_variable(resource){ h[:klass].find(association_col) }
+          set_resource_instance_variable(resource){ o[:klass].find(association_col) }
         end
 
         #----------------------------------------------------------------------#
@@ -92,8 +92,8 @@ module ActiveResource
         #
         #----------------------------------------------------------------------#
         define_method("#{resource}=") do |new_resource|
-          if send(h[:association_col]) != new_resource.id
-            send(:update_attribute, h[:association_col], new_resource.id)
+          if send(o[:association_col]) != new_resource.id
+            send(:update_attribute, o[:association_col], new_resource.id)
           end
           instance_variable_set("@#{resource}", new_resource)
         end
@@ -104,7 +104,7 @@ module ActiveResource
       #
 
       def has_many(resource, opts = {})
-        h  = hash_options(:has_many, resource)
+        o  = options(:has_many, resource)
 
         #----------------------------------------------------------------------#
         #   Define accessor method for resource
@@ -112,7 +112,7 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method(resource) do
           set_resource_instance_variable(resource) do
-            h[:klass].find(:all, :params => { h[:association_col] => id })
+            o[:klass].find(:all, :params => { o[:association_col] => id })
           end
         end
       end
