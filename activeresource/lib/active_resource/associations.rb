@@ -91,7 +91,7 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method("#{resource}=") do |new_resource|
           if send(o[:association_col]) != new_resource.id
-            send(:update_attribute, o[:association_col], new_resource.id)
+            send "#{o[:association_col]}=", new_resource.id
           end
           instance_variable_set("@#{resource}", new_resource)
         end
