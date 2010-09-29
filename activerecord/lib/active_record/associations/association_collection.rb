@@ -381,7 +381,8 @@ module ActiveRecord
             return find(:first, :conditions => args.first) || create(args.first)
           when /^find_or_create_by_(.*)$/
             rest = $1
-            return  send("find_by_#{rest}", *args) ||
+            find_args = pull_finder_args_from(DynamicFinderMatch.match(method).attribute_names, *args)
+            return  send("find_by_#{rest}", find_args) ||
                     method_missing("create_by_#{rest}", *args)
           when /^create_by_(.*)$/
             return create($1.split('_and_').zip(args).inject({}) { |h,kv| k,v=kv ; h[k] = v ; h })
@@ -448,6 +449,25 @@ module ActiveRecord
         end
 
       private
+        # Separate the "finder" args from the "create" args given to a
+        # find_or_create_by_ call.  Returns an array with the
+        # parameter values in the same order as the keys in the
+        # "names" array.  This code was based on code in base.rb's
+        # method_missing method.
+        def pull_finder_args_from(names, *args)
+          attributes = names.collect { |name| name.intern }
+          attribute_hash = {}
+          args.each_with_index do |arg, i|
+            if arg.is_a?(Hash)
+              attribute_hash.merge! arg
+            else
+              attribute_hash[attributes[i]] = arg
+            end
+          end
+          attribute_hash = attribute_hash.with_indifferent_access
+          attributes.collect { |attr| attribute_hash[attr] }
+        end
+
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_not_new

@@ -65,6 +65,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal person, person.readers.first.person
   end
 
+  def test_find_or_create_by_with_additional_parameters
+    post = Post.create! :title => 'test_find_or_create_by_with_additional_parameters', :body => 'this is the body'
+    comment = post.comments.create! :body => 'test comment body', :type => 'test'
+
+    assert_equal comment, post.comments.find_or_create_by_body('test comment body')
+
+    post.comments.find_or_create_by_body(:body => 'other test comment body', :type => 'test')
+    assert_equal 2, post.comments.count
+    assert_equal 2, post.comments.length
+    post.comments.find_or_create_by_body('other other test comment body', :type => 'test')
+    assert_equal 3, post.comments.count
+    assert_equal 3, post.comments.length
+    post.comments.find_or_create_by_body_and_type('3rd test comment body', 'test')
+    assert_equal 4, post.comments.count
+    assert_equal 4, post.comments.length
+  end
+
   def test_find_or_create
     person = Person.create! :first_name => 'tenderlove'
     post   = Post.find :first
