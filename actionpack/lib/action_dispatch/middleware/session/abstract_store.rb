@@ -165,7 +165,7 @@ module ActionDispatch
           return response unless value
 
           cookie = { :value => value }
-          unless options[:expire_after].nil?
+          if options[:expire_after]
             cookie[:expires] = Time.now + options.delete(:expire_after)
           end
 
