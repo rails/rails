@@ -39,6 +39,10 @@ module ActiveResource
         resource.camelize.constantize
       end
 
+      #######################################################################
+      # has_one association
+      #
+
       def has_one(resource, opts = {})
         h  = hash_options(:has_one, resource)
         klass_name = opts[:class_name].nil? ? resource : opts[:class_name]
@@ -67,6 +71,10 @@ module ActiveResource
         end
       end
 
+      #######################################################################
+      # belongs_to association
+      #
+
       def belongs_to(resource, opts = {})
         h  = hash_options(:belongs_to, resource)
         klass_name = opts[:class_name].nil? ? resource : opts[:class_name]
@@ -92,6 +100,10 @@ module ActiveResource
           instance_variable_set("@#{resource}", new_resource)
         end
       end
+
+      #######################################################################
+      # has_many association
+      #
 
       def has_many(resource, opts = {})
         h  = hash_options(:has_many, resource)
