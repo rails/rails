@@ -423,14 +423,13 @@ module ActionController
       # Returns nil if no token is found.
       def token_and_options(request)
         if header = request.authorization.to_s[/^Token (.*)/]
-          values = $1.split(',').
-            inject({}) do |memo, value|
-              value.strip!                      # remove any spaces between commas and values
-              key, value = value.split(/\=\"?/) # split key=value pairs
-              value.chomp!('"')                 # chomp trailing " in value
-              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-              memo.update(key => value)
-            end
+          values = Hash[$1.split(',').map do |value|
+            value.strip!                      # remove any spaces between commas and values
+            key, value = value.split(/\=\"?/) # split key=value pairs
+            value.chomp!('"')                 # chomp trailing " in value
+            value.gsub!(/\\\"/, '"')          # unescape remaining quotes
+            [key, value]
+          end]
           [values.delete("token"), values.with_indifferent_access]
         end
       end
