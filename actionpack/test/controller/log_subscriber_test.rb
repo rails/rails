@@ -23,7 +23,7 @@ module Another
     def with_fragment_cache
       render :inline => "<%= cache('foo'){ 'bar' } %>"
     end
-    
+
     def with_fragment_cache_and_percent_in_key
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
