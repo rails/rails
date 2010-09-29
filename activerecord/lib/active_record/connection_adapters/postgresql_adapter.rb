@@ -315,7 +315,7 @@ module ActiveRecord
       def quote(value, column = nil) #:nodoc:
         return super unless column
 
-        if value.kind_of?(String) && column.type == :binary
+        if value.kind_of?(String) && column.sql_type == 'bytea'
           "'#{escape_bytea(value)}'"
         elsif value.kind_of?(String) && column.sql_type == 'xml'
           "xml '#{quote_string(value)}'"
