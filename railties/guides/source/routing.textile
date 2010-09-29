@@ -161,15 +161,15 @@ end
 This will create a number of routes for each of the +posts+ and +comments+ controller. For +Admin::PostsController+, Rails will create:
 
 |_. Verb |_.Path               |_.action |_. helper                  |
-|GET     |/admin/photos        |index    | admin_photos_path         |
-|GET     |/admin/photos/new    |new      | new_admin_photos_path     |
-|POST    |/admin/photos        |create   | admin_photos_path         |
-|GET     |/admin/photos/1      |show     | admin_photo_path(id)      |
-|GET     |/admin/photos/1/edit |edit     | edit_admin_photo_path(id) |
-|PUT     |/admin/photos/1      |update   | admin_photo_path(id)      |
-|DELETE  |/admin/photos/1      |destroy  | admin_photo_path(id)      |
+|GET     |/admin/posts        |index    | admin_posts_path         |
+|GET     |/admin/posts/new    |new      | new_admin_posts_path     |
+|POST    |/admin/posts        |create   | admin_posts_path         |
+|GET     |/admin/posts/1      |show     | admin_post_path(id)      |
+|GET     |/admin/posts/1/edit |edit     | edit_admin_post_path(id) |
+|PUT     |/admin/posts/1      |update   | admin_post_path(id)      |
+|DELETE  |/admin/posts/1      |destroy  | admin_post_path(id)      |
 
-If you want to route +/photos+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
+If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
 
 <ruby>
 scope :module => "admin" do
@@ -183,7 +183,7 @@ or, for a single case
 resources :posts, :module => "admin"
 </ruby>
 
-If you want to route +/admin/photos+ to +PostsController+ (without the +Admin::+ module prefix), you could use
+If you want to route +/admin/posts+ to +PostsController+ (without the +Admin::+ module prefix), you could use
 
 <ruby>
 scope "/admin" do
@@ -200,13 +200,13 @@ resources :posts, :path => "/admin"
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
 
 |_. Verb |_.Path               |_.action |_. helper            |
-|GET     |/admin/photos        |index    | photos_path         |
-|GET     |/admin/photos/new    |new      | photos_path         |
-|POST    |/admin/photos        |create   | photos_path         |
-|GET     |/admin/photos/1      |show     | photo_path(id)      |
-|GET     |/admin/photos/1/edit |edit     | edit_photo_path(id) |
-|PUT     |/admin/photos/1      |update   | photo_path(id)      |
-|DELETE  |/admin/photos/1      |destroy  | photo_path(id)      |
+|GET     |/admin/posts        |index    | posts_path         |
+|GET     |/admin/posts/new    |new      | posts_path         |
+|POST    |/admin/posts        |create   | posts_path         |
+|GET     |/admin/posts/1      |show     | post_path(id)      |
+|GET     |/admin/posts/1/edit |edit     | edit_post_path(id) |
+|PUT     |/admin/posts/1      |update   | post_path(id)      |
+|DELETE  |/admin/posts/1      |destroy  | post_path(id)      |
 
 h4. Nested Resources
 
@@ -589,7 +589,7 @@ The +:controller+ option lets you explicitly specify a controller to use for the
 resources :photos, :controller => "images"
 </ruby>
 
-will recognize incoming paths beginning with +/photo+ but route to the +Images+ controller:
+will recognize incoming paths beginning with +/photos+ but route to the +Images+ controller:
 
 |_. Verb |_.Path         |_.action |
 |GET     |/photos        |index    |
@@ -723,7 +723,7 @@ scope(:path_names => { :new => "neu", :edit => "bearbeiten" }) do
 end
 </ruby>
 
-Rails now creates routes to the +CategoriesControlleR+.
+Rails now creates routes to the +CategoriesController+.
 
 |_.HTTP verb|_.Path                     |_.action |
 |GET        |/kategorien                |index    |
@@ -788,7 +788,7 @@ TIP: You'll find that the output from +rake routes+ is much more readable if you
 
 h4. Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionController/Assertions/RoutingAssertions.html designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html designed to make testing routes simpler:
 
 * +assert_generates+
 * +assert_recognizes+

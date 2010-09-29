@@ -30,7 +30,7 @@ Now, suppose we wanted to add a new order for an existing customer. We'd need to
 Or consider deleting a customer, and ensuring that all of its orders get deleted as well:
 
 <ruby>
-@orders = Order.find_all_by_customer_id(@customer.id)
+@orders = Order.where(:customer_id => @customer.id)
 @orders.each do |order|
   order.destroy
 end
@@ -550,7 +550,7 @@ build_customer
 create_customer
 </ruby>
 
-h6. <tt>_association_(force_reload = false)</tt>
+h6(#belongs_to-association). <tt>_association_(force_reload = false)</tt>
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
 
@@ -560,7 +560,7 @@ The <tt><em>association</em></tt> method returns the associated object, if any. 
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass +true+ as the +force_reload+ argument.
 
-h6. <tt>_association_=(associate)</tt>
+h6(#belongs_to-association_equal). <tt>_association_=(associate)</tt>
 
 The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
@@ -637,7 +637,7 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:counter_cache+
+h6(#belongs_to-counter_cache). +:counter_cache+
 
 The +:counter_cache+ option can be used to make finding the number of belonging objects more efficient. Consider these models:
 
@@ -733,7 +733,7 @@ end
 
 NOTE: There's no need to use +:include+ for immediate associations - that is, if you have +Order belongs_to :customer+, then the customer is eager-loaded automatically when it's needed.
 
-h6. +:polymorphic+
+h6(#belongs_to-polymorphic). +:polymorphic+
 
 Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
@@ -747,7 +747,7 @@ The +:select+ option lets you override the SQL +SELECT+ clause that is used to r
 
 TIP: If you set the +:select+ option on a +belongs_to+ association, you should also set the +foreign_key+ option to guarantee the correct results.
 
-h6. +:touch+
+h6(#belongs_to-touch). +:touch+
 
 If you set the +:touch+ option to +:true+, then the +updated_at+ or +updated_on+ timestamp on the associated object will be set to the current time whenever this object is saved or destroyed:
 
@@ -817,7 +817,7 @@ build_account
 create_account
 </ruby>
 
-h6. <tt><em>association</em>(force_reload = false)</tt>
+h6(#has_one-association). <tt><em>association</em>(force_reload = false)</tt>
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
 
@@ -827,7 +827,7 @@ The <tt><em>association</em></tt> method returns the associated object, if any. 
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass +true+ as the +force_reload+ argument.
 
-h6. <tt><em>association</em>=(associate)</tt>
+h6(#has_one-association_equal). <tt><em>association</em>=(associate)</tt>
 
 The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object's foreign key to the same value.
 
@@ -1029,6 +1029,7 @@ When you declare a +has_many+ association, the declaring class automatically gai
 * <tt><em>collection</em>.empty?</tt>
 * <tt><em>collection</em>.size</tt>
 * <tt><em>collection</em>.find(...)</tt>
+* <tt><em>collection</em>.where(...)</tt>
 * <tt><em>collection</em>.exists?(...)</tt>
 * <tt><em>collection</em>.build(attributes = {}, ...)</tt>
 * <tt><em>collection</em>.create(attributes = {})</tt>
@@ -1054,6 +1055,7 @@ orders.clear
 orders.empty?
 orders.size
 orders.find(...)
+orders.where(...)
 orders.exists?(...)
 orders.build(attributes = {}, ...)
 orders.create(attributes = {})
@@ -1083,10 +1085,10 @@ The <tt><em>collection</em>.delete</tt> method removes one or more objects from 
 @customer.orders.delete(@order1)
 </ruby>
 
-WARNING: Objects will be in addition destroyed if they're associated with +:dependent => :destroy+, and deleted if they're associated with +:dependent => :delete_all+.
+WARNING: Additionally, objects will be destroyed if they're associated with +:dependent => :destroy+, and deleted if they're associated with +:dependent => :delete_all+.
 
 
-h6(#has_many-collection_equal). <tt><em>collection</em>=objects</tt>
+h6(#has_many-collection-equal). <tt><em>collection</em>=objects</tt>
 
 The <tt><em>collection</em>=</tt> method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
@@ -1102,11 +1104,11 @@ h6(#has_many-collection_singular_ids_ids). <tt><em>collection_singular</em>_ids=
 
 The <tt><em>collection_singular</em>_ids=</tt> method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
-h6(#has_many-collection_clear). <tt><em>collection</em>.clear</tt>
+h6(#has_many-collection-clear). <tt><em>collection</em>.clear</tt>
 
 The <tt><em>collection</em>.clear</tt> method removes every object from the collection. This destroys the associated objects if they are associated with +:dependent => :destroy+, deletes them directly from the database if +:dependent => :delete_all+, and otherwise sets their foreign keys to +NULL+.
 
-h6. <tt><em>collection</em>.empty?</tt>
+h6(#has_many-collection-empty). <tt><em>collection</em>.empty?</tt>
 
 The <tt><em>collection</em>.empty?</tt> method returns +true+ if the collection does not contain any associated objects.
 
@@ -1116,7 +1118,7 @@ The <tt><em>collection</em>.empty?</tt> method returns +true+ if the collection 
 <% end %>
 </ruby>
 
-h6. <tt><em>collection</em>.size</tt>
+h6(#has_many-collection-size). <tt><em>collection</em>.size</tt>
 
 The <tt><em>collection</em>.size</tt> method returns the number of objects in the collection.
 
@@ -1124,7 +1126,7 @@ The <tt><em>collection</em>.size</tt> method returns the number of objects in th
 @order_count = @customer.orders.size
 </ruby>
 
-h6. <tt><em>collection</em>.find(...)</tt>
+h6(#has_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+.
 
@@ -1132,11 +1134,22 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
 @open_orders = @customer.orders.find(:all, :conditions => "open = 1")
 </ruby>
 
-h6. <tt><em>collection</em>.exists?(...)</tt>
+NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
+
+h6(#has_many-collection-where). <tt><em>collection</em>.where(...)</tt>
+
+The <tt><em>collection</em>.where</tt> method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
+
+<ruby>
+@open_orders = @customer.orders.where(:open => true) # No query yet
+@open_order = @open_orders.first # Now the database will be queried
+</ruby>
+
+h6(#has_many-collection-exists). <tt><em>collection</em>.exists?(...)</tt>
 
 The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
-h6(#has_many_collection_build). <tt><em>collection</em>.build(attributes = {}, ...)</tt>
+h6(#has_many-collection-build). <tt><em>collection</em>.build(attributes = {}, ...)</tt>
 
 The <tt><em>collection</em>.build</tt> method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
@@ -1145,7 +1158,7 @@ The <tt><em>collection</em>.build</tt> method returns one or more new objects of
   :order_number => "A12345")
 </ruby>
 
-h6. <tt><em>collection</em>.create(attributes = {})</tt>
+h6(#has_many-collection-create). <tt><em>collection</em>.create(attributes = {})</tt>
 
 The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and the associated object _will_ be saved (assuming that it passes any validations).
 
@@ -1193,7 +1206,7 @@ h6(#has_many-as). +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association, as discussed <a href="#polymorphic-associations">earlier in this guide</a>.
 
-h6. +:autosave+
+h6(#has_many-autosave). +:autosave+
 
 If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
@@ -1439,11 +1452,12 @@ When you declare a +has_and_belongs_to_many+ association, the declaring class au
 * <tt><em>collection</em>.empty?</tt>
 * <tt><em>collection</em>.size</tt>
 * <tt><em>collection</em>.find(...)</tt>
+* <tt><em>collection</em>.where(...)</tt>
 * <tt><em>collection</em>.exists?(...)</tt>
 * <tt><em>collection</em>.build(attributes = {})</tt>
 * <tt><em>collection</em>.create(attributes = {})</tt>
 
-In all of these methods, <tt><em>collection</em></tt> is replaced with the symbol passed as the first argument to +has_and_belongs_to_many+, and <tt><em>collection_singular</em></tt> is replaced with the singularized version of that symbol.. For example, given the declaration:
+In all of these methods, <tt><em>collection</em></tt> is replaced with the symbol passed as the first argument to +has_and_belongs_to_many+, and <tt><em>collection_singular</em></tt> is replaced with the singularized version of that symbol. For example, given the declaration:
 
 <ruby>
 class Part < ActiveRecord::Base
@@ -1464,6 +1478,7 @@ assemblies.clear
 assemblies.empty?
 assemblies.size
 assemblies.find(...)
+assemblies.where(...)
 assemblies.exists?(...)
 assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
@@ -1476,7 +1491,7 @@ If the join table for a +has_and_belongs_to_many+ association has additional col
 WARNING: The use of extra attributes on the join table in a +has_and_belongs_to_many+ association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a +has_many :through+ association instead of +has_and_belongs_to_many+.
 
 
-h6. <tt><em>collection</em>(force_reload = false)</tt>
+h6(#has_and_belongs_to_many-collection). <tt><em>collection</em>(force_reload = false)</tt>
 
 The <tt><em>collection</em></tt> method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
@@ -1484,7 +1499,7 @@ The <tt><em>collection</em></tt> method returns an array of all of the associate
 @assemblies = @part.assemblies
 </ruby>
 
-h6. <tt><em>collection</em><<(object, ...)</tt>
+h6(#has_and_belongs_to_many-collection-lt_lt). <tt><em>collection</em><<(object, ...)</tt>
 
 The <tt><em>collection</em><<</tt> method adds one or more objects to the collection by creating records in the join table.
 
@@ -1494,7 +1509,7 @@ The <tt><em>collection</em><<</tt> method adds one or more objects to the collec
 
 NOTE: This method is aliased as <tt><em>collection</em>.concat</tt> and <tt><em>collection</em>.push</tt>.
 
-h6. <tt><em>collection</em>.delete(object, ...)</tt>
+h6(#has_and_belongs_to_many-collection-delete). <tt><em>collection</em>.delete(object, ...)</tt>
 
 The <tt><em>collection</em>.delete</tt> method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
@@ -1502,11 +1517,11 @@ The <tt><em>collection</em>.delete</tt> method removes one or more objects from 
 @part.assemblies.delete(@assembly1)
 </ruby>
 
-h6. <tt><em>collection</em>=objects</tt>
+h6(#has_and_belongs_to_many-collection-equal). <tt><em>collection</em>=objects</tt>
 
 The <tt><em>collection</em>=</tt> method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
-h6. <tt><em>collection_singular</em>_ids</tt>
+h6(#has_and_belongs_to_many-collection_singular). <tt><em>collection_singular</em>_ids</tt>
 
 The <tt><em>collection_singular</em>_ids</tt> method returns an array of the ids of the objects in the collection.
 
@@ -1514,11 +1529,11 @@ The <tt><em>collection_singular</em>_ids</tt> method returns an array of the ids
 @assembly_ids = @part.assembly_ids
 </ruby>
 
-h6. <tt><em>collection_singular</em>_ids=ids</tt>
+h6(#has_and_belongs_to_many-collection_singular_ids_ids). <tt><em>collection_singular</em>_ids=ids</tt>
 
 The <tt><em>collection_singular</em>_ids=</tt> method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
-h6. <tt><em>collection</em>.clear</tt>
+h6(#has_and_belongs_to_many-collection-clear). <tt><em>collection</em>.clear</tt>
 
 The <tt><em>collection</em>.clear</tt> method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
 
@@ -1547,6 +1562,16 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
 <ruby>
 @new_assemblies = @part.assemblies.find(:all,
   :conditions => ["created_at > ?", 2.days.ago])
+</ruby>
+
+NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
+
+h6(#has_and_belongs_to_many-collection-where). <tt><em>collection</em>.where(...)</tt>
+
+The <tt><em>collection</em>.where</tt> method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed. It also adds the additional condition that the object must be in the collection.
+
+<ruby>
+@new_assemblies = @part.assemblies.where("created_at > ?", 2.days.ago)
 </ruby>
 
 h6(#has_and_belongs_to_many-collection-exists). <tt><em>collection</em>.exists?(...)</tt>
@@ -1605,7 +1630,7 @@ The +has_and_belongs_to_many+ association supports these options:
 * +:uniq+
 * +:validate+
 
-h6. +:association_foreign_key+
+h6(#has_and_belongs_to_many-association_foreign_key). +:association_foreign_key+
 
 By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
 
@@ -1661,7 +1686,7 @@ Normally Rails automatically generates the proper SQL to count the association m
 
 NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
 
-h6. +:delete_sql+
+h6(#has_and_belongs_to_many-delete_sql). +:delete_sql+
 
 Normally Rails automatically generates the proper SQL to remove links between the associated classes. With the +:delete_sql+ option, you can specify a complete SQL statement to delete them yourself.
 
@@ -1699,11 +1724,11 @@ h6(#has_and_belongs_to_many-include). +:include+
 
 You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used.
 
-h6. +:insert_sql+
+h6(#has_and_belongs_to_many-insert_sql). +:insert_sql+
 
 Normally Rails automatically generates the proper SQL to create links between the associated classes. With the +:insert_sql+ option, you can specify a complete SQL statement to insert them yourself.
 
-h6. +:join_table+
+h6(#has_and_belongs_to_many-join_table). +:join_table+
 
 If the default name of the join table, based on lexical ordering, is not what you want, you can use the +:join_table+ option to override the default.
 
@@ -1821,7 +1846,7 @@ If you have an extension that should be shared by many associations, you can use
 <ruby>
 module FindRecentExtension
   def find_recent
-    find(:all, :conditions => ["created_at > ?", 5.days.ago])
+    where("created_at > ?", 5.days.ago)
   end
 end
 
