@@ -43,6 +43,7 @@ module ActiveSupport
   autoload :FileUpdateChecker
   autoload :LogSubscriber
   autoload :Notifications
+  autoload :VERSION
 
   # TODO: Narrow this list down
   eager_autoload do
