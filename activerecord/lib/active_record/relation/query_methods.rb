@@ -158,11 +158,9 @@ module ActiveRecord
 
         case join
         when Array
-          if array_of_strings?(join)
-            join = Arel::SqlLiteral.new(join.join(' '))
-          end
+          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
         when String
-          join = Arel::SqlLiteral.new(join)
+          join = Arel.sql(join)
         end
 
         arel.join(join)
