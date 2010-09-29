@@ -82,6 +82,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 4, post.comments.length
   end
 
+  def test_find_or_create_by_with_block
+    post = Post.create! :title => 'test_find_or_create_by_with_additional_parameters', :body => 'this is the body'
+    comment = post.comments.find_or_create_by_body('other test comment body') { |comment| comment.type = 'test' }
+    assert_equal 'test', comment.type
+  end
+
   def test_find_or_create
     person = Person.create! :first_name => 'tenderlove'
     post   = Post.find :first
