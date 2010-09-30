@@ -39,6 +39,7 @@ module Rails
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
+    autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
       def inherited(base)
@@ -81,17 +82,7 @@ module Rails
     end
 
     def routes_reloader
-      @routes_reloader ||= ActiveSupport::FileUpdateChecker.new([]){ reload_routes! }
-    end
-
-    def reload_routes!
-      _routes = self.routes
-      _routes.disable_clear_and_finalize = true
-      _routes.clear!
-      routes_reloader.paths.each { |path| load(path) }
-      ActiveSupport.on_load(:action_controller) { _routes.finalize! }
-    ensure
-      _routes.disable_clear_and_finalize = false
+      @routes_reloader ||= RoutesReloader.new
     end
 
     def initialize!

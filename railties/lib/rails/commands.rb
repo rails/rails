@@ -11,7 +11,17 @@ command = ARGV.shift
 command = aliases[command] || command
 
 case command
-when 'generate', 'destroy', 'plugin', 'benchmarker', 'profiler'
+when 'generate', 'destroy', 'plugin'
+  require APP_PATH
+  Rails.application.require_environment!
+
+  if defined?(ENGINE_PATH)
+    engine = Rails.application.railties.engines.find { |r| r.root.to_s == ENGINE_PATH }
+    Rails.application = engine
+  end
+  require "rails/commands/#{command}"
+
+when 'benchmarker', 'profiler'
   require APP_PATH
   Rails.application.require_environment!
   require "rails/commands/#{command}"
@@ -23,8 +33,13 @@ when 'console'
   Rails::Console.start(Rails.application)
 
 when 'server'
+  # try to guess application's path if there is no config.ru file in current dir
+  # it allows to run script/rails server from other directories
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
+
   require 'rails/commands/server'
   Rails::Server.new.tap { |server|
+    # we need to require application after the server sets environment
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start

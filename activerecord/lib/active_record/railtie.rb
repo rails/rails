@@ -13,7 +13,7 @@ module ActiveRecord
   class Railtie < Rails::Railtie
     config.active_record = ActiveSupport::OrderedOptions.new
 
-    config.generators.orm :active_record, :migration => true,
+    config.app_generators.orm :active_record, :migration => true,
                                           :timestamps => true
 
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",

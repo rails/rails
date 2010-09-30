@@ -333,21 +333,22 @@ module Rails
       def namespace(mod)
         engine_name(generate_railtie_name(mod))
 
-        _railtie = self
         name = engine_name
-        mod.singleton_class.instance_eval do
-          define_method(:_railtie) do
-            _railtie
-          end
-
-          define_method(:table_name_prefix) do
-            "#{name}_"
-          end
-        end
-
         self.routes.default_scope = {:module => name}
-
         self.namespaced = true
+
+        unless mod.respond_to?(:_railtie)
+          _railtie = self
+          mod.singleton_class.instance_eval do
+            define_method(:_railtie) do
+              _railtie
+            end
+
+            define_method(:table_name_prefix) do
+              "#{name}_"
+            end
+         end
+        end
       end
 
       def namespaced?
@@ -398,8 +399,10 @@ module Rails
       }
     end
 
-    def routes
+    def routes(&block)
       @routes ||= ActionDispatch::Routing::RouteSet.new
+      self.routes_draw_block = block if block_given?
+      @routes
     end
 
     def initializers
@@ -446,6 +449,7 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
+      app.routes_reloader.blocks[routes] = routes_draw_block
       paths.config.routes.to_a.each do |route|
         app.routes_reloader.paths.unshift(route) if File.exists?(route)
       end
@@ -498,6 +502,8 @@ module Rails
     end
 
   protected
+    attr_accessor :routes_draw_block
+
     def find_root_with_flag(flag, default=nil)
       root_path = self.class.called_from
 
