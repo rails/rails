@@ -227,7 +227,7 @@ module ActiveRecord #:nodoc:
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         type = @serializable.class.serialized_attributes.has_key?(name) ?
-          super : @serializable.class.columns_hash[name].type
+          super : @serializable.class.columns_hash[name].class
 
         case type
         when :text
