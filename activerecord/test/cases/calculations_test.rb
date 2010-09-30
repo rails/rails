@@ -281,7 +281,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_field_in_joined_table_with_group_by
-    c = Account.count('companies.id', :group => :firm_id, :joins => :firm)
+    c = Account.count('companies.id', :group => 'accounts.firm_id', :joins => :firm)
 
     [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
   end
