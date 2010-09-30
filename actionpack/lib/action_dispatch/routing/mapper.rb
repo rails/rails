@@ -1087,7 +1087,7 @@ module ActionDispatch
             end
 
             candidate = name.select(&:present?).join("_").presence
-            candidate unless as.nil? && @set.routes.map(&:name).include?(candidate)
+            candidate unless as.nil? && @set.routes.find { |r| r.name == candidate }
           end
       end
 
