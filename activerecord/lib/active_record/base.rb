@@ -890,7 +890,7 @@ module ActiveRecord #:nodoc:
         end
 
         def find_sti_class(type_name)
-          if type_name.blank? || !columns_hash.include?(inheritance_column)
+          if type_name.nil? || !columns_hash.include?(inheritance_column)
             self
           else
             begin
