@@ -1123,6 +1123,10 @@ module ActionView
         parent_builder.multipart = multipart if parent_builder
       end
 
+      def model_name
+        self.class.model_name
+      end
+
       def self.model_name
         @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
       end
@@ -1256,8 +1260,8 @@ module ActionView
           object = convert_to_model(@object)
           key    = object ? (object.persisted? ? :update : :create) : :submit
 
-          model = if object.class.respond_to?(:model_name)
-            object.class.model_name.human
+          model = if object.respond_to?(:model_name)
+            object.model_name.human
           else
             @object_name.to_s.humanize
           end
