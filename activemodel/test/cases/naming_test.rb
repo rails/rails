@@ -74,6 +74,14 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
   def test_recognizing_namespace
     assert_equal 'Post', Blog::Post.model_name.instance_variable_get("@unnamespaced")
   end
+
+  def test_instance_model_name
+    auto = Automobile.new
+    auto.make = 'MINI'
+    auto.model = 'Cooper'
+    assert_equal 'automobiles', Automobile.model_name.plural
+    assert_equal 'mini_coopers', auto.model_name.plural
+  end
 end
 
 class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
