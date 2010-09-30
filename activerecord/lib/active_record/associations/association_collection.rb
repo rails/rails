@@ -363,6 +363,7 @@ module ActiveRecord
 
       def include?(record)
         return false unless record.is_a?(@reflection.klass)
+        return include_in_memory?(record) if record.new_record?
         load_target if @reflection.options[:finder_sql] && !loaded?
         return @target.include?(record) if loaded?
         exists?(record)
@@ -553,6 +554,18 @@ module ActiveRecord
         def fetch_first_or_last_using_find?(args)
           args.first.kind_of?(Hash) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
                                          @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
+        end
+
+        def include_in_memory?(record)
+          if @reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
+            @owner.send(proxy_reflection.through_reflection.name.to_sym).map do |source|
+              source_reflection_target = source.send(proxy_reflection.source_reflection.name)
+              return true if source_reflection_target.respond_to?(:include?) ? source_reflection_target.include?(record) : source_reflection_target == record
+            end
+            false
+          else
+            @target.include?(record)
+          end
         end
     end
   end
