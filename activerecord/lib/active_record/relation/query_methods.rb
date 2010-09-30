@@ -196,6 +196,8 @@ module ActiveRecord
       arel
     end
 
+    private
+
     def build_where(opts, other = [])
       case opts
       when String, Array
@@ -207,8 +209,6 @@ module ActiveRecord
         [opts]
       end
     end
-
-    private
 
     def build_joins(relation, joins)
       association_joins = []
