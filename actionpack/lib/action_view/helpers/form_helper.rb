@@ -305,7 +305,7 @@ module ActionView
           object      = nil
         else
           object      = record.is_a?(Array) ? record.last : record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          object_name = options[:as] || ActiveModel::Naming.param_key(convert_to_model(object))
           apply_form_for_options!(record, options)
         end
 

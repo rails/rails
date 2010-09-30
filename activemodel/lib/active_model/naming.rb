@@ -92,7 +92,7 @@ module ActiveModel
     #   ActiveModel::Naming.plural(post)             # => "posts"
     #   ActiveModel::Naming.plural(Highrise::Person) # => "highrise_people"
     def self.plural(record_or_class)
-      record_or_class.model_name.plural
+      model_name_from_record_or_class(record_or_class).plural
     end
 
     # Returns the singular class name of a record or class. Examples:
@@ -100,7 +100,7 @@ module ActiveModel
     #   ActiveModel::Naming.singular(post)             # => "post"
     #   ActiveModel::Naming.singular(Highrise::Person) # => "highrise_person"
     def self.singular(record_or_class)
-      record_or_class.model_name.singular
+      model_name_from_record_or_class(record_or_class).singular
     end
 
     # Identifies whether the class name of a record or class is uncountable. Examples:
@@ -120,7 +120,7 @@ module ActiveModel
     # For shared engine:
     # ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
     def self.route_key(record_or_class)
-      record_or_class.model_name.route_key
+      model_name_from_record_or_class(record_or_class).route_key
     end
 
     # Returns string to use for params names. It differs for
@@ -132,8 +132,19 @@ module ActiveModel
     # For shared engine:
     # ActiveModel::Naming.param_key(Blog::Post) #=> blog_post
     def self.param_key(record_or_class)
-      record_or_class.model_name.param_key
+      model_name_from_record_or_class(record_or_class).param_key
     end
+
+    private
+      def self.model_name_from_record_or_class(record_or_class)
+        if record_or_class.is_a?(Class) || record_or_class.respond_to?(:model_name)
+          record_or_class
+        elsif record_or_class.respond_to?(:to_model)
+          record_or_class.to_model
+        else
+          record_or_class.class
+        end.model_name
+      end
   end
 
 end
