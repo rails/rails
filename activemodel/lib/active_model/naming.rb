@@ -70,6 +70,14 @@ module ActiveModel
   # is required to pass the Active Model Lint test.  So either extending the provided
   # method below, or rolling your own is required..
   module Naming
+    def self.extended(base)
+      base.class_eval do
+        def model_name
+          self.class.model_name
+        end
+      end
+    end
+
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information.
     def model_name
@@ -84,7 +92,7 @@ module ActiveModel
     #   ActiveModel::Naming.plural(post)             # => "posts"
     #   ActiveModel::Naming.plural(Highrise::Person) # => "highrise_people"
     def self.plural(record_or_class)
-      model_name_from_record_or_class(record_or_class).plural
+      record_or_class.model_name.plural
     end
 
     # Returns the singular class name of a record or class. Examples:
@@ -92,7 +100,7 @@ module ActiveModel
     #   ActiveModel::Naming.singular(post)             # => "post"
     #   ActiveModel::Naming.singular(Highrise::Person) # => "highrise_person"
     def self.singular(record_or_class)
-      model_name_from_record_or_class(record_or_class).singular
+      record_or_class.model_name.singular
     end
 
     # Identifies whether the class name of a record or class is uncountable. Examples:
@@ -112,7 +120,7 @@ module ActiveModel
     # For shared engine:
     # ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
     def self.route_key(record_or_class)
-      model_name_from_record_or_class(record_or_class).route_key
+      record_or_class.model_name.route_key
     end
 
     # Returns string to use for params names. It differs for
@@ -124,13 +132,8 @@ module ActiveModel
     # For shared engine:
     # ActiveModel::Naming.param_key(Blog::Post) #=> blog_post
     def self.param_key(record_or_class)
-      model_name_from_record_or_class(record_or_class).param_key
+      record_or_class.model_name.param_key
     end
-
-    private
-      def self.model_name_from_record_or_class(record_or_class)
-        (record_or_class.is_a?(Class) ? record_or_class : record_or_class.class).model_name
-      end
   end
 
 end

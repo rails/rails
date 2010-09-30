@@ -69,9 +69,21 @@ module ActiveModel
       # Model.model_name must return a string with some convenience methods as
       # :human and :partial_path. Check ActiveModel::Naming for more information.
       #
+      # An instance method, Model#model_name must also exist. It's perfectly acceptable
+      # for this method to call self.class.model_name, but it may be that certain
+      # instances would like to override values of the class-level model_name, such as
+      # with a search model that wraps another model, for instance.
       def test_model_naming
-        assert model.class.respond_to?(:model_name), "The model should respond to model_name"
+        assert model.class.respond_to?(:model_name), "The model class should respond to model_name"
         model_name = model.class.model_name
+        assert_kind_of String, model_name
+        assert_kind_of String, model_name.human
+        assert_kind_of String, model_name.partial_path
+        assert_kind_of String, model_name.singular
+        assert_kind_of String, model_name.plural
+
+        assert model.respond_to?(:model_name), "The model instance should respond to model_name"
+        model_name = model.model_name
         assert_kind_of String, model_name
         assert_kind_of String, model_name.human
         assert_kind_of String, model_name.partial_path

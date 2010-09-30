@@ -85,7 +85,7 @@ module ActiveModel
 
         if include_root_in_json
           custom_root = options && options[:root]
-          hash = { custom_root || self.class.model_name.element => hash }
+          hash = { custom_root || self.model_name.element => hash }
         end
 
         hash
