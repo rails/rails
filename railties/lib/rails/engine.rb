@@ -47,6 +47,26 @@ module Rails
   #     end
   #   end
   #
+  # == Generators
+  #
+  # You can set up generators for engine with config.generators method:
+  #
+  #   class MyEngine < Rails::Engine
+  #     config.generators do |g|
+  #       g.orm             :active_record
+  #       g.template_engine :erb
+  #       g.test_framework  :test_unit
+  #     end
+  #   end
+  #
+  # You can also set generators for application by using config.app_generators:
+  #
+  #   class MyEngine < Rails::Engine
+  #     # note that you can also pass block to app_generators in the same way you
+  #     # can pass it to generators method
+  #     config.app_generators.orm :datamapper
+  #   end
+  #
   # == Paths
   #
   # Since Rails 3.0, both your Application and Engines do not have hardcoded paths.
