@@ -108,7 +108,7 @@ namespace :db do
           end
         end
       when 'postgresql'
-        @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
+        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
