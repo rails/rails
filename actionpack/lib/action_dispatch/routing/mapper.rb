@@ -345,10 +345,10 @@ module ActionDispatch
         # Redirect any path to another path:
         #
         #   match "/stories" => redirect("/posts")
-        def redirect(*args, &block)
+        def redirect(*args)
           options = args.last.is_a?(Hash) ? args.pop : {}
 
-          path      = args.shift || block
+          path      = args.shift || Proc.new
           path_proc = path.is_a?(Proc) ? path : proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
           status    = options[:status] || 301
 
