@@ -27,7 +27,7 @@ invoke  test_unit
 create    test/functional/user_mailer_test.rb
 </shell>
 
-So we got the mailer, the fixtures, and the tests.
+So we got the mailer, the views, and the tests.
 
 h5. Edit the Mailer
 
@@ -198,7 +198,7 @@ Adding attachments has been simplified in Action Mailer 3.0.
 attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
 </ruby>
 
-NOTE: Mail will automatically Base64 encode an attachment, if you want something different, pre encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
+NOTE: Mail will automatically Base64 encode an attachment, if you want something different, pre-encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
 
 * Pass the file name and specify headers and content and Action Mailer and Mail will use the settings you pass in.
 
@@ -247,7 +247,7 @@ h5. Sending Email To Multiple Recipients
 It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The <tt>to:</tt> key however expects a string so you have join the list of recipients using a comma.
 
 <ruby>
-  Class AdminMailer < ActionMailer::Base
+  class AdminMailer < ActionMailer::Base
     default :to => Admin.all.map(&:email).join(", "),
             :from => "notification@example.com"
   
@@ -403,7 +403,7 @@ The above will send a multipart email with an attachment, properly nested with t
 
 h3. Receiving Emails
 
-Receiving and parsing emails with Action Mailer can be a rather complex endeavour. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need:
+Receiving and parsing emails with Action Mailer can be a rather complex endeavour. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need to:
 
 * Implement a +receive+ method in your mailer.
 
@@ -509,3 +509,5 @@ In the test we send the email and store the returned object in the +email+ varia
 h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/25
+
+* September 30, 2010: Fixed typos. "Jaime Iniesta":http://jaimeiniesta.com
