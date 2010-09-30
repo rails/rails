@@ -183,12 +183,16 @@ module ActiveRecord
       end
     end
 
-    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-      column = if @klass.column_names.include?(column_name.to_s)
+    def aggregate_column(column_name)
+      if @klass.column_names.include?(column_name.to_s)
         Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
-        Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
+        Arel.sql(column_name == :all ? "*" : column_name.to_s)
       end
+    end
+
+    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
+      column = aggregate_column(column_name)
 
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = except(:order)
@@ -209,18 +213,17 @@ module ActiveRecord
 
       group = @klass.connection.adapter_name == 'FrontBase' ? group_alias : group_field
 
-      aggregate_alias = column_alias_for(operation, column_name)
-
-      select_statement = if operation == 'count' && column_name == :all
-        ["COUNT(*) AS count_all"]
+      if operation == 'count' && column_name == :all
+        aggregate_alias = 'count_all'
       else
-        [Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias)]
+        aggregate_alias = column_alias_for(operation, column_name)
       end
 
-      select_statement <<  "#{group_field} AS #{group_alias}"
-
       relation = except(:group).group(group)
-      relation.select_values = select_statement
+      relation.select_values = [
+        aggregate_column(column_name).send(operation).as(aggregate_alias),
+        "#{group_field} AS #{group_alias}"
+      ]
 
       calculated_data = @klass.connection.select_all(relation.to_sql)
 
