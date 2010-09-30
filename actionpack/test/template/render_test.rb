@@ -129,6 +129,10 @@ module RenderTestCases
     assert_equal "Hello: david", @view.render(:partial => "test/customer", :object => Customer.new("david"))
   end
 
+  def test_render_object_with_array
+    assert_equal "[1, 2, 3]", @view.render(:partial => "test/object_inspector", :object => [1, 2, 3])
+  end
+
   def test_render_partial_collection
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end

@@ -237,7 +237,7 @@ module ActionView
         else
           @object = partial
 
-          if @collection = collection
+          if @collection = collection_from_object || collection
             paths = @collection_paths = @collection.map { |o| partial_path(o) }
             @path = paths.uniq.size == 1 ? paths.first : nil
           else
@@ -336,10 +336,14 @@ module ActionView
     private
 
       def collection
+        if @options.key?(:collection)
+          @options[:collection] || []
+        end
+      end
+
+      def collection_from_object
         if @object.respond_to?(:to_ary)
           @object
-        elsif @options.key?(:collection)
-          @options[:collection] || []
         end
       end
 
