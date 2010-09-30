@@ -107,6 +107,10 @@ module Arel
         "(#{visit o.expr})"
       end
 
+      def visit_Arel_Nodes_Ordering o
+        "#{visit o.expr} #{o.descending? ? 'DESC' : 'ASC'}"
+      end
+
       def visit_Arel_Nodes_Group o
         visit o.expr
       end

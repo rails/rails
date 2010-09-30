@@ -32,6 +32,11 @@ module Arel
         visit_edge o, "expr"
       end
 
+      def visit_Arel_Nodes_Ordering o
+        visit_edge o, "expr"
+        visit_edge o, "direction"
+      end
+
       def visit_Arel_Nodes_TableAlias o
         visit_edge o, "name"
         visit_edge o, "relation"

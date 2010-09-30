@@ -66,6 +66,15 @@ module Arel
         @visitor.accept(test).should be_like %{ "users"."id" = 't' }
       end
 
+      describe "Nodes::Ordering" do
+        it "should know how to visit" do
+          node = @attr.desc
+          @visitor.accept(node).should be_like %{
+            "users"."id" DESC
+          }
+        end
+      end
+
       describe "Nodes::In" do
         it "should know how to visit" do
           node = @attr.in [1, 2, 3]

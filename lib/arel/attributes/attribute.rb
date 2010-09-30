@@ -151,6 +151,14 @@ module Arel
         grouping_all :lteq, others
       end
 
+      def asc
+        Nodes::Ordering.new self, :asc
+      end
+
+      def desc
+        Nodes::Ordering.new self, :desc
+      end
+
       private
 
       def grouping_any method_id, others

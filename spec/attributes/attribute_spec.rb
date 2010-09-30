@@ -601,6 +601,38 @@ module Arel
           }
         end
       end
+
+      describe '#asc' do
+        it 'should create an Ordering node' do
+          relation = Table.new(:users)
+          relation[:id].asc.should be_kind_of Nodes::Ordering
+        end
+
+        it 'should generate ASC in sql' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.order relation[:id].asc
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" ORDER BY "users"."id" ASC
+          }
+        end
+      end
+
+      describe '#desc' do
+        it 'should create an Ordering node' do
+          relation = Table.new(:users)
+          relation[:id].desc.should be_kind_of Nodes::Ordering
+        end
+
+        it 'should generate DESC in sql' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.order relation[:id].desc
+          mgr.to_sql.should be_like %{
+            SELECT "users"."id" FROM "users" ORDER BY "users"."id" DESC
+          }
+        end
+      end
     end
 
     describe 'equality' do

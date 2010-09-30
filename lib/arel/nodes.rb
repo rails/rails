@@ -15,6 +15,7 @@ require 'arel/nodes/does_not_match'
 
 require 'arel/nodes/in'
 require 'arel/nodes/not_in'
+require 'arel/nodes/ordering'
 require 'arel/nodes/lock'
 require 'arel/nodes/function'
 require 'arel/nodes/count'
