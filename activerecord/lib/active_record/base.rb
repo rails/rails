@@ -884,13 +884,9 @@ module ActiveRecord #:nodoc:
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
         def instantiate(record)
-          find_sti_class(record[inheritance_column]).allocate.instance_eval do
-            @attributes, @attributes_cache, @previously_changed, @changed_attributes = record, {}, {}, {}
-            @new_record = @readonly = @destroyed = @marked_for_destruction = false
-            _run_find_callbacks
-            _run_initialize_callbacks
-            self
-          end
+          model = find_sti_class(record[inheritance_column]).allocate
+          model.init_with('attributes' => record)
+          model
         end
 
         def find_sti_class(type_name)
@@ -1414,6 +1410,24 @@ MSG
         ensure_proper_type
 
         populate_with_current_scope_attributes
+      end
+
+      # Initialize an empty model object from +coder+.  +coder+ must contain
+      # the attributes necessary for initializing an empty model object.  For
+      # example:
+      #
+      #   class Post < ActiveRecord::Base
+      #   end
+      #
+      #   post = Post.allocate
+      #   post.init_with('attributes' => { 'title' => 'hello world' })
+      #   post.title # => 'hello world'
+      def init_with(coder)
+        @attributes = coder['attributes']
+        @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
+        @new_record = @readonly = @destroyed = @marked_for_destruction = false
+        _run_find_callbacks
+        _run_initialize_callbacks
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
