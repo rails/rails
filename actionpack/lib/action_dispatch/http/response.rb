@@ -140,7 +140,6 @@ module ActionDispatch # :nodoc:
       assign_default_content_type_and_charset!
       handle_conditional_get!
       self["Set-Cookie"] = self["Set-Cookie"].join("\n") if self["Set-Cookie"].respond_to?(:join)
-      self["ETag"]       = @_etag if @_etag
       super
     end
 

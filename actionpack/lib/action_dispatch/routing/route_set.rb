@@ -1,6 +1,7 @@
 require 'rack/mount'
 require 'forwardable'
 require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/hash/slice'
 
 module ActionDispatch
   module Routing
@@ -66,7 +67,7 @@ module ActionDispatch
         end
 
         def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.parser.unescape(v) }
         end
       end
 
@@ -157,6 +158,7 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
                 options = args.extract_options!
 
@@ -190,6 +192,7 @@ module ActionDispatch
             hash_access_method = hash_access_name(name, kind)
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
                 url_for(#{hash_access_method}(*args))
               end
@@ -300,9 +303,9 @@ module ActionDispatch
             extend ActiveSupport::Concern
             include UrlFor
 
-            @routes = routes
+            @_routes = routes
             class << self
-              delegate :url_for, :to => '@routes'
+              delegate :url_for, :to => '@_routes'
             end
             extend routes.named_routes.module
 
@@ -311,7 +314,7 @@ module ActionDispatch
             # Yes plz - JP
             included do
               routes.install_helpers(self)
-              singleton_class.send(:define_method, :_routes) { routes }
+              singleton_class.send(:redefine_method, :_routes) { routes }
             end
 
             define_method(:_routes) { @_routes || routes }
@@ -334,6 +337,19 @@ module ActionDispatch
       end
 
       class Generator #:nodoc:
+        PARAMETERIZE = {
+          :parameterize => lambda do |name, value|
+            if name == :controller
+              value
+            elsif value.is_a?(Array)
+              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+            else
+              return nil unless param = value.to_param
+              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
+            end
+          end
+        }
+
         attr_reader :options, :recall, :set, :named_route
 
         def initialize(options, recall, set, extras = false)
@@ -422,7 +438,7 @@ module ActionDispatch
         end
 
         def generate
-          path, params = @set.set.generate(:path_info, named_route, options, recall, opts)
+          path, params = @set.set.generate(:path_info, named_route, options, recall, PARAMETERIZE)
 
           raise_routing_error unless path
 
@@ -430,24 +446,10 @@ module ActionDispatch
 
           return [path, params.keys] if @extras
 
-          path << "?#{params.to_query}" if params.any?
+          path << "?#{params.to_query}" unless params.empty?
           path
         rescue Rack::Mount::RoutingError
           raise_routing_error
-        end
-
-        def opts
-          parameterize = lambda do |name, value|
-            if name == :controller
-              value
-            elsif value.is_a?(Array)
-              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-            else
-              return nil unless param = value.to_param
-              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
-            end
-          end
-          {:parameterize => parameterize}
         end
 
         def raise_routing_error
@@ -510,7 +512,7 @@ module ActionDispatch
         end
 
         script_name = options.delete(:script_name)
-        path = (script_name.blank? ? _generate_prefix(options) : script_name).to_s
+        path = (script_name.blank? ? _generate_prefix(options) : script_name.chomp('/')).to_s
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
@@ -543,7 +545,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
-              params[key] = URI.unescape(value)
+              params[key] = URI.parser.unescape(value)
             end
           end
 

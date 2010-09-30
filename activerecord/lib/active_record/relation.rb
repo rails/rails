@@ -326,7 +326,11 @@ module ActiveRecord
 
     def scope_for_create
       @scope_for_create ||= begin
-        @create_with_value || where_values_hash
+        if @create_with_value
+          @create_with_value.reverse_merge(where_values_hash)
+        else
+          where_values_hash
+        end
       end
     end
 
@@ -358,15 +362,6 @@ module ActiveRecord
         scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
-      elsif match = DynamicFinderMatch.match(method)
-        attributes = match.attribute_names
-        super unless @klass.send(:all_attributes_exists?, attributes)
-
-        if match.finder?
-          find_by_attributes(match, attributes, *args)
-        elsif match.instantiator?
-          find_or_instantiator_by_attributes(match, attributes, *args, &block)
-        end
       else
         super
       end

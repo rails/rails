@@ -643,5 +643,104 @@ module RailtiesTest
       Bukkits::Engine.load_seed
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
+
+    test "using namespace more than once on one module should not overwrite _railtie method" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module AppTemplate
+          class Engine < ::Rails::Engine
+            namespace(AppTemplate)
+          end
+        end
+      RUBY
+
+      add_to_config "namespace AppTemplate"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do end
+      RUBY
+
+      boot_rails
+
+      assert_equal AppTemplate._railtie, AppTemplate::Engine
+    end
+
+    test "properly reload routes" do
+      # when routes are inside application class definition
+      # they should not be reloaded when engine's routes
+      # file has changed
+      add_to_config <<-RUBY
+        routes do
+          mount lambda{|env| [200, {}, ["foo"]]} => "/foo"
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      FileUtils.rm(File.join(app_path, "config/routes.rb"))
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          mount lambda{|env| [200, {}, ["bar"]]} => "/bar"
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            namespace(Bukkits)
+          end
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      boot_rails
+
+      require "#{rails_root}/config/environment"
+      get "/foo"
+      assert_equal "foo", last_response.body
+
+      get "/bukkits/bar"
+      assert_equal "bar", last_response.body
+    end
+
+    test "setting generators for engine and overriding app generator's" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            config.generators do |g|
+              g.orm             :datamapper
+              g.template_engine :haml
+              g.test_framework  :rspec
+            end
+
+            config.app_generators do |g|
+              g.orm             :mongoid
+              g.template_engine :liquid
+              g.test_framework  :shoulda
+            end
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.generators do |g|
+          g.test_framework  :test_unit
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      app_generators = Rails.application.config.generators.options[:rails]
+      assert_equal :mongoid  , app_generators[:orm]
+      assert_equal :liquid   , app_generators[:template_engine]
+      assert_equal :test_unit, app_generators[:test_framework]
+
+      generators = Bukkits::Engine.config.generators.options[:rails]
+      assert_equal :datamapper, generators[:orm]
+      assert_equal :haml      , generators[:template_engine]
+      assert_equal :rspec     , generators[:test_framework]
+    end
   end
 end

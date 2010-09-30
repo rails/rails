@@ -769,13 +769,13 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 
 h3. Dynamic Finders
 
-For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have also have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+.
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+ methods.
 
-You can do +find_last_by_*+ methods too which will find the last record matching your argument.
+You can also use +find_last_by_*+ methods which will find the last record matching your argument.
 
 You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
-If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_first_name_and_locked("Ryan", true)+.
+If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields. For example, +Client.find_by_first_name_and_locked("Ryan", true)+.
 
 
 There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will first perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:

@@ -32,6 +32,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_to_path() redirect_to '/some/path' end
 
+  def redirect_invalid_external_route() redirect_to 'ht_tp://www.rubyonrails.org' end
+
   def redirect_to_named_route() redirect_to route_one_url end
 
   def redirect_external() redirect_to "http://www.rubyonrails.org"; end
@@ -234,13 +236,13 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_template_objects_exist
     process :assign_this
-    assert !@controller.instance_variable_get(:"@hi")
+    assert !@controller.instance_variable_defined?(:"@hi")
     assert @controller.instance_variable_get(:"@howdy")
   end
 
   def test_template_objects_missing
     process :nothing
-    assert_nil @controller.instance_variable_get(:@howdy)
+    assert !@controller.instance_variable_defined?(:@howdy)
   end
 
   def test_empty_flash
@@ -314,7 +316,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_redirect_url_match
     process :redirect_external
     assert @response.redirect?
-    assert_match /rubyonrails/, @response.redirect_url
+    assert_match(/rubyonrails/, @response.redirect_url)
     assert !/perloffrails/.match(@response.redirect_url)
   end
 
@@ -366,6 +368,11 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_redirected_to 'some/path'
     end
+  end
+
+  def test_redirect_invalid_external_route
+    process :redirect_invalid_external_route
+    assert_redirected_to "http://test.hostht_tp://www.rubyonrails.org"
   end
 
   def test_redirected_to_url_full_url

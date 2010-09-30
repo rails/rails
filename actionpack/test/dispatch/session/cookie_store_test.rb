@@ -279,7 +279,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_session_store_with_explicit_domain
     with_test_route_set(:domain => "example.es") do
       get '/set_session_value'
-      assert_match /domain=example\.es/, headers['Set-Cookie']
+      assert_match(/domain=example\.es/, headers['Set-Cookie'])
       headers['Set-Cookie']
     end
   end

@@ -69,6 +69,24 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_use_table_engine_for_quoting_where
+    relation = Topic.where(Topic.arel_table[:id].eq(1))
+    engine = relation.table.engine
+
+    fakepool = Class.new(Struct.new(:spec)) {
+      def with_connection; yield self; end
+      def connection_pool; self; end
+      def quote_table_name(*args); raise "lol quote_table_name"; end
+    }
+
+    relation.table.engine = fakepool.new(engine.connection_pool.spec)
+
+    error = assert_raises(RuntimeError) { relation.to_a }
+    assert_match('lol', error.message)
+  ensure
+    relation.table.engine = engine
+  end
+
   def test_preserving_time_objects
     assert_kind_of(
       Time, Topic.find(1).bonus_time,
@@ -364,6 +382,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_equality
     assert_equal Topic.find(1), Topic.find(2).topic
+  end
+
+  def test_find_by_slug
+    assert_equal Topic.find('1-meowmeow'), Topic.find(1)
   end
 
   def test_equality_of_new_records

@@ -242,6 +242,36 @@ end
                                             :class => 'photos' %>
 </erb>
 
+h5. Sending Email To Multiple Recipients
+
+It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The <tt>to:</tt> key however expects a string so you have join the list of recipients using a comma.
+
+<ruby>
+  Class AdminMailer < ActionMailer::Base
+    default :to => Admin.all.map(&:email).join(", "),
+            :from => "notification@example.com"
+  
+    def new_registration(user)
+      @user = user
+      mail(:subject => "New User Signup: #{@user.email}")
+    end
+  end
+</ruby>
+
+h5. Sending Email With Name
+
+Sometimes you wish to show the name of the person instead of just their email address when they receive the email. The trick to doing that is
+to format the email address in the format <tt>"Name &lt;email&gt;"</tt>.
+
+<ruby>
+  def welcome_email(user)
+    @user = user
+    email_with_name = "#{@user.name} <#{@user.email}>"
+    mail(:to => email_with_name,
+         :subject => "Welcome to My Awesome Site")
+  end
+</ruby>
+
 h4. Mailer Views
 
 Mailer views are located in the +app/views/name_of_mailer_class+ directory. The specific mailer view is known to the class because it's name is the same as the mailer method. So for example, in our example from above, our mailer view for the +welcome_email+ method will be in +app/views/user_mailer/welcome_email.html.erb+ for the HTML version and +welcome_email.text.erb+ for the plain text version.

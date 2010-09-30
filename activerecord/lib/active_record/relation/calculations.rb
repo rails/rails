@@ -191,7 +191,11 @@ module ActiveRecord
       end
 
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = except(:order).select(operation == 'count' ? column.count(distinct) : column.send(operation))
+      relation = except(:order)
+      select_value = operation == 'count' ? column.count(distinct) : column.send(operation)
+
+      relation.select_values = [select_value]
+
       type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
     end
 
@@ -208,21 +212,22 @@ module ActiveRecord
       aggregate_alias = column_alias_for(operation, column_name)
 
       select_statement = if operation == 'count' && column_name == :all
-        "COUNT(*) AS count_all"
+        ["COUNT(*) AS count_all"]
       else
-        Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias).to_sql
+        [Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias)]
       end
 
-      select_statement <<  ", #{group_field} AS #{group_alias}"
+      select_statement <<  "#{group_field} AS #{group_alias}"
 
-      relation = except(:group).select(select_statement).group(group)
+      relation = except(:group).group(group)
+      relation.select_values = select_statement
 
       calculated_data = @klass.connection.select_all(relation.to_sql)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_alias] }
         key_records = association.klass.base_class.find(key_ids)
-        key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
+        key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
       ActiveSupport::OrderedHash[calculated_data.map do |row|

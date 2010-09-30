@@ -29,7 +29,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered test\/hello_world\.erb/, @logger.logged(:info).last
+    assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
   end
 
   def test_render_text_template
@@ -37,7 +37,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered text template/, @logger.logged(:info).last
+    assert_match(/Rendered text template/, @logger.logged(:info).last)
   end
 
   def test_render_inline_template
@@ -45,7 +45,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered inline template/, @logger.logged(:info).last
+    assert_match(/Rendered inline template/, @logger.logged(:info).last)
   end
 
   def test_render_partial_template
@@ -53,7 +53,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered test\/_customer.erb/, @logger.logged(:info).last
+    assert_match(/Rendered test\/_customer.erb/, @logger.logged(:info).last)
   end
 
   def test_render_partial_with_implicit_path
@@ -62,7 +62,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last
+    assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last)
   end
 
   def test_render_collection_template
@@ -70,7 +70,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered test\/_customer.erb/, @logger.logged(:info).last
+    assert_match(/Rendered test\/_customer.erb/, @logger.logged(:info).last)
   end
 
   def test_render_collection_with_implicit_path
@@ -79,7 +79,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last
+    assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last)
   end
 
   def test_render_collection_template_without_path
@@ -88,6 +88,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_match /Rendered collection/, @logger.logged(:info).last
+    assert_match(/Rendered collection/, @logger.logged(:info).last)
   end
 end

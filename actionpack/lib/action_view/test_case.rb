@@ -20,12 +20,12 @@ module ActionView
       end
 
       def initialize
+        super
         self.class.controller_path = ""
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
 
         @request.env.delete('PATH_INFO')
-
         @params = {}
       end
     end
@@ -127,6 +127,7 @@ module ActionView
 
       def say_no_to_protect_against_forgery!
         _helpers.module_eval do
+          remove_method :protect_against_forgery? if method_defined?(:protect_against_forgery?)
           def protect_against_forgery?
             false
           end
@@ -136,8 +137,10 @@ module ActionView
       def make_test_case_available_to_view!
         test_case_instance = self
         _helpers.module_eval do
-          define_method(:_test_case) { test_case_instance }
-          private :_test_case
+          unless private_method_defined?(:_test_case)
+            define_method(:_test_case) { test_case_instance }
+            private :_test_case
+          end
         end
       end
 
@@ -153,15 +156,15 @@ module ActionView
       # The instance of ActionView::Base that is used by +render+.
       def view
         @view ||= begin
-                     view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
-                     view.singleton_class.send :include, _helpers
-                     view.singleton_class.send :include, @controller._routes.url_helpers
-                     view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
-                     view.extend(Locals)
-                     view.locals = self.locals
-                     view.output_buffer = self.output_buffer
-                     view
-                   end
+          view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
+          view.singleton_class.send :include, _helpers
+          view.singleton_class.send :include, @controller._routes.url_helpers
+          view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
+          view.extend(Locals)
+          view.locals = self.locals
+          view.output_buffer = self.output_buffer
+          view
+        end
       end
 
       alias_method :_view, :view
@@ -198,7 +201,7 @@ module ActionView
 
       def method_missing(selector, *args)
         if @controller.respond_to?(:_routes) &&
-        @controller._routes.named_routes.helpers.include?(selector)
+          @controller._routes.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super

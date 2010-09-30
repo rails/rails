@@ -41,9 +41,12 @@ module ActionDispatch
       end
     end
 
-    def initialize(*args, &block)
-      super(*args)
-      block.call(self) if block_given?
+    # Use this instead of super to work around a warning.
+    alias :array_initialize :initialize
+
+    def initialize(*args)
+      array_initialize(*args)
+      yield(self) if block_given?
     end
 
     def insert(index, *args, &block)

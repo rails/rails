@@ -88,7 +88,7 @@ else
     )
   end
 
-  mysqldump_bin = %w[mysqldump mysqldump5].select { |bin| `which #{bin}`.length > 0 }
+  mysqldump_bin = %w[mysqldump mysqldump5].detect { |bin| `which #{bin}`.length > 0 }
   `#{mysqldump_bin} -u #{conn[:username]} #{"-p#{conn[:password]}" unless conn[:password].blank?} #{conn[:database]} exhibits users > #{sqlfile}`
 end
 

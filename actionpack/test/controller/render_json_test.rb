@@ -9,6 +9,10 @@ class RenderJsonTest < ActionController::TestCase
       hash.except!(*options[:except]) if options[:except]
       hash
     end
+
+    def to_json(options = {})
+      super :except => [:c, :e]
+    end
   end
 
   class TestController < ActionController::Base
@@ -48,6 +52,10 @@ class RenderJsonTest < ActionController::TestCase
 
     def render_json_with_extra_options
       render :json => JsonRenderable.new, :except => [:c, :e]
+    end
+
+    def render_json_without_options
+      render :json => JsonRenderable.new
     end
   end
 
@@ -108,5 +116,10 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_with_extra_options
     assert_equal '{"a":"b"}', @response.body
     assert_equal 'application/json', @response.content_type
+  end
+
+  def test_render_json_calls_to_json_from_object
+    get :render_json_without_options
+    assert_equal '{"a":"b"}', @response.body
   end
 end

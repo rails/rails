@@ -377,7 +377,12 @@ module ActiveRecord
       end
 
       if attributes_collection.is_a? Hash
-        attributes_collection = attributes_collection.sort_by { |index, _| index.to_i }.map { |_, attributes| attributes }
+        keys = attributes_collection.keys
+        attributes_collection = if keys.include?('id') || keys.include?(:id)
+          Array.wrap(attributes_collection)
+        else
+          attributes_collection.sort_by { |i, _| i.to_i }.map { |_, attributes| attributes }
+        end
       end
 
       association = send(association_name)

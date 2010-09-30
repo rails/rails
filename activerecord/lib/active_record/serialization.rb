@@ -45,7 +45,7 @@ module ActiveRecord #:nodoc:
             send(association)
           end
 
-          unless records.nil?
+          if records
             association_options = include_has_options ? include_associations[association] : base_only_or_except
             opts = options.merge(association_options)
             yield(association, records, opts)

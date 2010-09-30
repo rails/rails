@@ -1,7 +1,6 @@
 module AbstractController
   module UrlFor
     extend ActiveSupport::Concern
-
     include ActionDispatch::Routing::UrlFor
 
     def _routes

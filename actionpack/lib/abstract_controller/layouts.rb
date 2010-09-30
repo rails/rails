@@ -347,8 +347,7 @@ module AbstractController
       begin
         layout_name = _layout if action_has_layout?
       rescue NameError => e
-        raise NoMethodError,
-          "You specified #{@_layout.inspect} as the layout, but no such method was found"
+        raise e, "Could not render layout: #{e.message}"
       end
 
       if require_layout && action_has_layout? && !layout_name

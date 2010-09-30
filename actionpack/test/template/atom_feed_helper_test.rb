@@ -203,7 +203,7 @@ class AtomFeedTest < ActionController::TestCase
   def test_feed_should_use_default_language_if_none_is_given
     with_restful_routing(:scrolls) do
       get :index, :id => "defaults"
-      assert_match %r{xml:lang="en-US"}, @response.body
+      assert_match(%r{xml:lang="en-US"}, @response.body)
     end
   end
 

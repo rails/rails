@@ -39,7 +39,7 @@ module ActiveRecord
         def set_inverse_instance(record, instance)
           return if record.nil? || !we_can_set_the_inverse_on_this?(record)
           inverse_relationship = @reflection.polymorphic_inverse_of(record.class)
-          unless inverse_relationship.nil?
+          if inverse_relationship
             record.send(:"set_#{inverse_relationship.name}_target", instance)
           end
         end

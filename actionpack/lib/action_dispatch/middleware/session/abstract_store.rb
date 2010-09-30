@@ -102,8 +102,8 @@ module ActionDispatch
 
         def destroy
           clear
-          @by.send(:destroy, @env) if @by
-          @env[ENV_SESSION_OPTIONS_KEY][:id] = nil if @env && @env[ENV_SESSION_OPTIONS_KEY]
+          @by.send(:destroy, @env) if defined?(@by) && @by
+          @env[ENV_SESSION_OPTIONS_KEY][:id] = nil if defined?(@env) && @env && @env[ENV_SESSION_OPTIONS_KEY]
           @loaded = false
         end
 
@@ -165,7 +165,7 @@ module ActionDispatch
           return response unless value
 
           cookie = { :value => value }
-          unless options[:expire_after].nil?
+          if options[:expire_after]
             cookie[:expires] = Time.now + options.delete(:expire_after)
           end
 

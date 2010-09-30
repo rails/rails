@@ -12,6 +12,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'set'
 require 'uri'
 
+require 'active_support/core_ext/uri'
 require 'active_resource/exceptions'
 require 'active_resource/connection'
 require 'active_resource/formats'
@@ -166,6 +167,7 @@ module ActiveResource
   #   # GET http://api.people.com:3000/people/999.xml
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   #
+  #
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   #
@@ -193,6 +195,16 @@ module ActiveResource
   #   rescue ActiveResource::ResourceConflict, ActiveResource::ResourceInvalid
   #     redirect_to :action => 'new'
   #   end
+  #
+  # When a GET is requested for a nested resource and you don't provide the prefix_param
+  # an ActiveResource::MissingPrefixParam will be raised.
+  #
+  #  class Comment < ActiveResource::Base
+  #   self.site = "http://someip.com/posts/:post_id/"
+  #  end
+  #
+  #  Comment.find(1)
+  #  # => ActiveResource::MissingPrefixParam: post_id prefix_option is missing
   #
   # === Validation errors
   #
@@ -403,8 +415,8 @@ module ActiveResource
           @site = nil
         else
           @site = create_site_uri_from(site)
-          @user = uri_parser.unescape(@site.user) if @site.user
-          @password = uri_parser.unescape(@site.password) if @site.password
+          @user = URI.parser.unescape(@site.user) if @site.user
+          @password = URI.parser.unescape(@site.password) if @site.password
         end
       end
 
@@ -577,7 +589,7 @@ module ActiveResource
       # Default value is <tt>site.path</tt>.
       def prefix=(value = '/')
         # Replace :placeholders with '#{embedded options[:lookups]}'
-        prefix_call = value.gsub(/:\w+/) { |key| "\#{URI.escape options[#{key}].to_s}" }
+        prefix_call = value.gsub(/:\w+/) { |key| "\#{URI.parser.escape options[#{key}].to_s}" }
 
         # Clear prefix parameters in case they have been cached
         @prefix_parameters = nil
@@ -621,8 +633,10 @@ module ActiveResource
       #   # => /posts/5/comments/1.xml?active=1
       #
       def element_path(id, prefix_options = {}, query_options = nil)
+        check_prefix_options(prefix_options)
+
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{URI.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
+        "#{prefix(prefix_options)}#{collection_name}/#{URI.parser.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
       end
 
       # Gets the new element path for REST resources.
@@ -663,6 +677,7 @@ module ActiveResource
       #   # => /posts/5/comments.xml?active=1
       #
       def collection_path(prefix_options = {}, query_options = nil)
+        check_prefix_options(prefix_options)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
         "#{prefix(prefix_options)}#{collection_name}.#{format.extension}#{query_string(query_options)}"
       end
@@ -842,6 +857,14 @@ module ActiveResource
       end
 
       private
+
+        def check_prefix_options(prefix_options)
+          p_options = HashWithIndifferentAccess.new(prefix_options)
+          prefix_parameters.each do |p|
+            raise(MissingPrefixParam, "#{p} prefix_option is missing") if p_options[p].blank?
+          end
+        end
+
         # Find every resource
         def find_every(options)
           begin
@@ -894,12 +917,12 @@ module ActiveResource
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : uri_parser.parse(site)
+          site.is_a?(URI) ? site.dup : URI.parser.parse(site)
         end
 
         # Accepts a URI and creates the proxy URI from that.
         def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : uri_parser.parse(proxy)
+          proxy.is_a?(URI) ? proxy.dup : URI.parser.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.
@@ -923,10 +946,6 @@ module ActiveResource
           end
 
           [ prefix_options, query_options ]
-        end
-
-        def uri_parser
-          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
     end
 
@@ -1352,8 +1371,9 @@ module ActiveResource
         namespaces = module_names[0, module_names.size-1].map do |module_name|
           receiver = receiver.const_get(module_name)
         end
-        if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(resource_name) }
-          return namespace.const_get(resource_name)
+        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
+          return namespace.const_get(*const_args)
         else
           raise NameError
         end
@@ -1369,8 +1389,9 @@ module ActiveResource
           self.class.const_get(resource_name)
         end
       rescue NameError
-        if self.class.const_defined?(resource_name)
-          resource = self.class.const_get(resource_name)
+        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        if self.class.const_defined?(*const_args)
+          resource = self.class.const_get(*const_args)
         else
           resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
         end

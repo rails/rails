@@ -36,7 +36,7 @@ module ActiveRecord
         to_a.select {|*block_args| value.call(*block_args) }
       else
         relation = clone
-        relation.select_values += [value]
+        relation.select_values += Array.wrap(value)
         relation
       end
     end
@@ -135,14 +135,13 @@ module ActiveRecord
     end
 
     def reverse_order
-      order_clause = arel.order_clauses.join(', ')
-      relation = except(:order)
+      order_clause = arel.order_clauses
 
-      order = order_clause.blank? ?
+      order = order_clause.empty? ?
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
-        reverse_sql_order(order_clause)
+        reverse_sql_order(order_clause).join(', ')
 
-      relation.order(Arel::SqlLiteral.new(order))
+      except(:order).order(Arel::SqlLiteral.new(order))
     end
 
     def arel
@@ -150,7 +149,7 @@ module ActiveRecord
     end
 
     def custom_join_sql(*joins)
-      arel = table
+      arel = table.select_manager
 
       joins.each do |join|
         next if join.blank?
@@ -158,16 +157,13 @@ module ActiveRecord
         @implicit_readonly = true
 
         case join
-        when Hash, Array, Symbol
-          if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel = arel.join(Arel::SqlLiteral.new(join_string))
-          end
+        when Array
+          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
         when String
-          arel = arel.join(Arel::SqlLiteral.new(join))
-        else
-          arel = arel.join(join)
+          join = Arel.sql(join)
         end
+
+        arel.join(join)
       end
 
       arel.joins(arel)
@@ -179,13 +175,8 @@ module ActiveRecord
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
       (@where_values - ['']).uniq.each do |where|
-        case where
-        when Arel::SqlLiteral
-          arel = arel.where(where)
-        else
-          sql = where.is_a?(String) ? where : where.to_sql
-          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
-        end
+        where = Arel.sql(where) if String === where
+        arel = arel.where(Arel::Nodes::Grouping.new(where))
       end
 
       arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
@@ -260,16 +251,7 @@ module ActiveRecord
     def build_select(arel, selects)
       unless selects.empty?
         @implicit_readonly = false
-        # TODO: fix this ugly hack, we should refactor the callers to get an Arel compatible array.
-        # Before this change we were passing to Arel the last element only, and Arel is capable of handling an array
-        case select = selects.last
-        when Arel::Expression, Arel::SqlLiteral
-          arel.project(select)
-        when /^COUNT\(/
-          arel.project(Arel::SqlLiteral.new(select))
-        else
-          arel.project(*selects)
-        end
+        arel.project(*selects)
       else
         arel.project(Arel::SqlLiteral.new(@klass.quoted_table_name + '.*'))
       end
@@ -283,15 +265,9 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query.split(',').each { |s|
-        if s.match(/\s(asc|ASC)$/)
-          s.gsub!(/\s(asc|ASC)$/, ' DESC')
-        elsif s.match(/\s(desc|DESC)$/)
-          s.gsub!(/\s(desc|DESC)$/, ' ASC')
-        else
-          s.concat(' DESC')
-        end
-      }.join(',')
+      order_query.join(', ').split(',').collect do |s|
+        s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+      end
     end
 
     def array_of_strings?(o)

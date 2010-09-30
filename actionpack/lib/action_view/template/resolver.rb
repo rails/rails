@@ -6,6 +6,7 @@ module ActionView
   # = Action View Resolver
   class Resolver
     def initialize
+      @path = nil
       @cached = Hash.new { |h1,k1| h1[k1] =
         Hash.new { |h2,k2| h2[k2] = Hash.new { |h3, k3| h3[k3] = {} } } }
     end

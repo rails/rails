@@ -9,9 +9,29 @@ module ActiveSupport
   module Configurable
     extend ActiveSupport::Concern
 
+    class Configuration < ActiveSupport::InheritableOptions
+      def compile_methods!
+        self.class.compile_methods!(keys.reject {|key| respond_to?(key)})
+      end
+
+      # compiles reader methods so we don't have to go through method_missing
+      def self.compile_methods!(keys)
+        keys.each do |key|
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def #{key}; _get(#{key.inspect}); end
+          RUBY
+        end
+      end
+    end
+
     module ClassMethods
       def config
-        @_config ||= ActiveSupport::InheritableOptions.new(superclass.respond_to?(:config) ? superclass.config : {})
+        @_config ||= if superclass.respond_to?(:config)
+          superclass.config.inheritable_copy
+        else
+          # create a new "anonymous" class that will host the compiled reader methods
+          Class.new(Configuration).new
+        end
       end
 
       def configure
@@ -48,7 +68,7 @@ module ActiveSupport
     #   user.config.level          # => 1
     # 
     def config
-      @_config ||= ActiveSupport::InheritableOptions.new(self.class.config)
+      @_config ||= self.class.config.inheritable_copy
     end
   end
 end

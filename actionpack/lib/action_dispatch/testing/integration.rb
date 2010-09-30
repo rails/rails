@@ -171,6 +171,7 @@ module ActionDispatch
 
       # Create and initialize a new Session instance.
       def initialize(app)
+        super()
         @app = app
 
         # If the app is a Rails app, make url_helpers available on the session
@@ -182,6 +183,7 @@ module ActionDispatch
         reset!
       end
 
+      remove_method :default_url_options
       def default_url_options
         { :host => host, :protocol => https? ? "https" : "http" }
       end
@@ -257,19 +259,19 @@ module ActionDispatch
             end
           end
 
-          port = host.split(':')[1]
+          hostname, port = host.split(':')
 
           env = {
             :method => method,
             :params => parameters,
 
-            "SERVER_NAME"     => host.split(':')[0],
-            "SERVER_PORT"     => (port ? port : (https? ? "443" : "80")),
+            "SERVER_NAME"     => hostname,
+            "SERVER_PORT"     => port || (https? ? "443" : "80"),
             "HTTPS"           => https? ? "on" : "off",
             "rack.url_scheme" => https? ? "https" : "http",
 
             "REQUEST_URI"    => path,
-            "HTTP_HOST"      => [host, port].compact.join(':'),
+            "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
@@ -307,7 +309,7 @@ module ActionDispatch
       include ActionDispatch::Assertions
 
       def app
-        @app
+        @app ||= nil
       end
 
       # Reset the current session. This is useful for testing multiple sessions
@@ -319,10 +321,10 @@ module ActionDispatch
       %w(get post put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
-          reset! unless @integration_session
+          reset! unless integration_session
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless %w(cookies assigns).include?(method)
-          @integration_session.__send__(method, *args).tap do
+          integration_session.__send__(method, *args).tap do
             copy_session_variables!
           end
         end
@@ -347,7 +349,7 @@ module ActionDispatch
       # Copy the instance variables from the current session instance into the
       # test instance.
       def copy_session_variables! #:nodoc:
-        return unless @integration_session
+        return unless integration_session
         %w(controller response request).each do |var|
           instance_variable_set("@#{var}", @integration_session.__send__(var))
         end
@@ -357,21 +359,26 @@ module ActionDispatch
       include ActionDispatch::Routing::UrlFor
 
       def url_options
-        reset! unless @integration_session
-        @integration_session.url_options
+        reset! unless integration_session
+        integration_session.url_options
       end
 
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
-        reset! unless @integration_session
-        if @integration_session.respond_to?(sym)
-          @integration_session.__send__(sym, *args, &block).tap do
+        reset! unless integration_session
+        if integration_session.respond_to?(sym)
+          integration_session.__send__(sym, *args, &block).tap do
             copy_session_variables!
           end
         else
           super
         end
       end
+
+      private
+        def integration_session
+          @integration_session ||= nil
+        end
     end
   end
 

@@ -68,7 +68,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
-    assert ('a' * 20480) == file.read
+    assert_equal(('a' * 20480), file.read)
   end
 
   test "parses binary file" do

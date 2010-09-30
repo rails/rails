@@ -209,8 +209,7 @@ module ActionView #:nodoc:
         @_request = controller.request if controller.respond_to?(:request)
       end
 
-      config = controller && controller.respond_to?(:config) ? controller.config : {}
-      @_config = ActiveSupport::InheritableOptions.new(config)
+      @_config = controller && controller.respond_to?(:config) ? controller.config.inheritable_copy : {}
 
       @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil

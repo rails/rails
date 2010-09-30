@@ -214,7 +214,7 @@ module ActionController
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
         credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password, password_is_ha1)
-        "Digest " + credentials.sort_by {|x| x[0].to_s }.inject([]) {|a, v| a << "#{v[0]}='#{v[1]}'" }.join(', ')
+        "Digest " + credentials.sort_by {|x| x[0].to_s }.map {|v| "#{v[0]}='#{v[1]}'" }.join(', ')
       end
 
       def decode_credentials_header(request)
@@ -423,14 +423,13 @@ module ActionController
       # Returns nil if no token is found.
       def token_and_options(request)
         if header = request.authorization.to_s[/^Token (.*)/]
-          values = $1.split(',').
-            inject({}) do |memo, value|
-              value.strip!                      # remove any spaces between commas and values
-              key, value = value.split(/\=\"?/) # split key=value pairs
-              value.chomp!('"')                 # chomp trailing " in value
-              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-              memo.update(key => value)
-            end
+          values = Hash[$1.split(',').map do |value|
+            value.strip!                      # remove any spaces between commas and values
+            key, value = value.split(/\=\"?/) # split key=value pairs
+            value.chomp!('"')                 # chomp trailing " in value
+            value.gsub!(/\\\"/, '"')          # unescape remaining quotes
+            [key, value]
+          end]
           [values.delete("token"), values.with_indifferent_access]
         end
       end
@@ -442,9 +441,8 @@ module ActionController
       #
       # Returns String.
       def encode_credentials(token, options = {})
-        values = ["token=#{token.to_s.inspect}"]
-        options.each do |key, value|
-          values << "#{key}=#{value.to_s.inspect}"
+        values = ["token=#{token.to_s.inspect}"] + options.map do |key, value|
+          "#{key}=#{value.to_s.inspect}"
         end
         "Token #{values * ", "}"
       end

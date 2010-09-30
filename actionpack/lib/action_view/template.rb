@@ -101,6 +101,8 @@ module ActionView
     attr_reader :source, :identifier, :handler, :virtual_path, :formats,
                 :original_encoding
 
+    # This finalizer is needed (and exactly with a proc inside another proc)
+    # otherwise templates leak in development.
     Finalizer = proc do |method_name, mod|
       proc do
         mod.module_eval do
