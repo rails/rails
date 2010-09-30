@@ -1055,7 +1055,7 @@ module ActionView
 
       private
         def add_default_name_and_id_for_value(tag_value, options)
-          if tag_value
+          unless tag_value.nil?
             pretty_tag_value = tag_value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
             specified_id = options["id"]
             add_default_name_and_id(options)
