@@ -22,7 +22,7 @@ end
 @other_project_manager  = {:id => 6, :name => "John", :project_id => nil}
 @project_managers = [@project_manager]
 @milestone        = { :id => 1, :title => "pre", :project_id => nil}
-@other_milestone  = { :id => 2, :title => "rc", :project_id => nil}
+@other_milestone  = { :id => 2, :title => "rc other", :project_id => nil}
 
 ActiveResource::HttpMock.respond_to do |mock|
   mock.get    "/projects/.xml", {}, @project.to_xml(:root => 'project')
