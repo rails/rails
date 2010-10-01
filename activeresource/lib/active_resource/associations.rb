@@ -121,6 +121,7 @@ module ActiveResource
           def collection.<<(member)
             member.#{o[:association_col]} = #{id}
             member.save
+            super(member)
           end"
 
           instance_eval "
@@ -133,6 +134,7 @@ module ActiveResource
           instance_eval "
           def collection.clear
             self.each{|member| delete(member)}
+            super
           end"
 
           collection
