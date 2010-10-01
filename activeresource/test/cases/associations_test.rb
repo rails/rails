@@ -128,5 +128,17 @@ class AssociationsTest < Test::Unit::TestCase
 
     assert_equal [], @project.milestones
   end
+
+  def test_has_many_accessor_should_return_the_new_array_after_assign
+    @project.milestones = [@other_milestone]
+    assert_equal [@other_milestone], @project.milestones
+
+    @project.milestones = []
+    assert_equal [], @project.milestones
+
+    @project.milestones = [@milestone, @other_milestone]
+    assert_equal [@milestone, @other_milestone], @project.milestones
+  end
+
 end
 
