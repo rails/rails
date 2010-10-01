@@ -115,7 +115,7 @@ module ActiveResource
           collection = o[:klass].constantize.find(:all,
                        :params => { o[:association_col] => id })
 
-          eval "
+          instance_eval "
           def collection.<<(member)
             member.send(:#{o[:association_col]}=, #{id})
             member.save
