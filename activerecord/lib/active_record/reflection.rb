@@ -352,6 +352,21 @@ module ActiveRecord
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])
       end
+      
+      # A :through reflection may have a :through reflection itself. This method returns the through
+      # reflection which is furthest away, i.e. the last in the chain, so the first which does not
+      # have its own :through reflection.
+      def final_through_reflection
+        @final_through_reflection ||= begin
+          reflection = through_reflection
+          
+          while reflection.through_reflection
+            reflection = reflection.through_reflection
+          end
+          
+          reflection
+        end
+      end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:
       #

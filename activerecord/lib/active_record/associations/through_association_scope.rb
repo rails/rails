@@ -19,8 +19,8 @@ module ActiveRecord
 
       # Build SQL conditions from attributes, qualified by table name.
       def construct_conditions
-        table_name = @reflection.through_reflection.quoted_table_name
-        conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
+        table_name = @reflection.final_through_reflection.quoted_table_name
+        conditions = construct_quoted_owner_attributes(@reflection.final_through_reflection).map do |attr, value|
           "#{table_name}.#{attr} = #{value}"
         end
         conditions << sql_conditions if sql_conditions
@@ -49,35 +49,48 @@ module ActiveRecord
         distinct = "DISTINCT " if @reflection.options[:uniq]
         selected = custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
       end
-
+      
       def construct_joins(custom_joins = nil)
+        "#{construct_through_joins(@reflection)} #{@reflection.options[:joins]} #{custom_joins}"
+      end
+
+      def construct_through_joins(reflection)
         polymorphic_join = nil
-        if @reflection.source_reflection.macro == :belongs_to
-          reflection_primary_key = @reflection.klass.primary_key
-          source_primary_key     = @reflection.source_reflection.primary_key_name
-          if @reflection.options[:source_type]
+        if reflection.source_reflection.macro == :belongs_to
+          reflection_primary_key = reflection.klass.primary_key
+          source_primary_key     = reflection.source_reflection.primary_key_name
+          if reflection.options[:source_type]
             polymorphic_join = "AND %s.%s = %s" % [
-              @reflection.through_reflection.quoted_table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
-              @owner.class.quote_value(@reflection.options[:source_type])
+              reflection.through_reflection.quoted_table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
+              @owner.class.quote_value(reflection.options[:source_type])
             ]
           end
         else
-          reflection_primary_key = @reflection.source_reflection.primary_key_name
-          source_primary_key     = @reflection.through_reflection.klass.primary_key
-          if @reflection.source_reflection.options[:as]
+          reflection_primary_key = reflection.source_reflection.primary_key_name
+          source_primary_key     = reflection.through_reflection.klass.primary_key
+          if reflection.source_reflection.options[:as]
             polymorphic_join = "AND %s.%s = %s" % [
-              @reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
-              @owner.class.quote_value(@reflection.through_reflection.klass.name)
+              reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
+              @owner.class.quote_value(reflection.through_reflection.klass.name)
             ]
           end
         end
 
-        "INNER JOIN %s ON %s.%s = %s.%s %s #{@reflection.options[:joins]} #{custom_joins}" % [
-          @reflection.through_reflection.quoted_table_name,
-          @reflection.quoted_table_name, reflection_primary_key,
-          @reflection.through_reflection.quoted_table_name, source_primary_key,
+        joins = "INNER JOIN %s ON %s.%s = %s.%s %s" % [
+          reflection.through_reflection.quoted_table_name,
+          reflection.quoted_table_name, reflection_primary_key,
+          reflection.through_reflection.quoted_table_name, source_primary_key,
           polymorphic_join
         ]
+        
+        # If the reflection we are going :through goes itself :through another reflection, then
+        # we must recursively get the joins to make that happen too.
+        if reflection.through_reflection.through_reflection
+          joins << " "
+          joins << construct_through_joins(reflection.through_reflection)
+        end
+        
+        joins
       end
 
       # Construct attributes for associate pointing to owner.
