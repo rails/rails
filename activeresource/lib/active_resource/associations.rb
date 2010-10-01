@@ -8,8 +8,7 @@ module ActiveResource
 
     module InstanceMethods
       def set_resource_instance_variable(resource, default_value = nil)
-        if !instance_variable_defined?("@#{resource}") ||
-            instance_variable_get("@#{resource}").blank?
+        if !instance_variable_defined?("@#{resource}")
           instance_variable_set("@#{resource}", yield)
         end
         instance_variable_get("@#{resource}")
@@ -112,8 +111,11 @@ module ActiveResource
         #
         #----------------------------------------------------------------------#
         define_method(resource) do
-          collection = o[:klass].constantize.find(:all,
-                       :params => { o[:association_col] => id })
+
+          collection = set_resource_instance_variable(resource) {
+            o[:klass].constantize.find(:all,
+            :params => { o[:association_col] => id }) || []
+          }
 
           instance_eval "
           def collection.<<(member)
@@ -125,11 +127,15 @@ module ActiveResource
           def collection.delete(member)
             member.#{o[:association_col]} = nil
             member.save
+            super(member)
           end"
 
-          set_resource_instance_variable(resource) do
-            collection
-          end
+          instance_eval "
+          def collection.clear
+            self.each{|member| delete(member)}
+          end"
+
+          collection
         end
       end
 

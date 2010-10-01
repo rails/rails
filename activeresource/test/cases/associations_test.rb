@@ -37,6 +37,7 @@ ActiveResource::HttpMock.respond_to do |mock|
   mock.get    "/milestones.xml?project_id=1", {}, [@milestone].to_xml
   mock.put    "/project_managers/6.xml", {}, nil, 204
   mock.put    "/milestones/2.xml", {}, nil, 204
+  mock.put    "/milestones/1.xml", {}, nil, 204
   mock.get    "/milestones/1.xml", {}, @milestone.to_xml(:root => 'milestone')
   mock.get    "/milestones/2.xml", {}, @other_milestone.to_xml(:root => 'milestone')
 end
@@ -119,6 +120,13 @@ class AssociationsTest < Test::Unit::TestCase
     @project.milestones << @other_milestone
     @project.milestones.delete(@other_milestone)
     assert_nil @other_milestone.project_id
+  end
+
+  def test_has_many_accessor_should_return_the_an_empty_array_after_clear
+    @project.milestones << @other_milestone
+    @project.milestones.clear
+
+    assert_equal [], @project.milestones
   end
 end
 
