@@ -115,5 +115,10 @@ class AssociationsTest < Test::Unit::TestCase
     assert_equal @other_milestone.project_id, @project.id
   end
 
+  def test_has_many_accessor_should_return_the_an_array_without_including_the_deleted_obj
+    @project.milestones << @other_milestone
+    @project.milestones.delete(@other_milestone)
+    assert_nil @other_milestone.project_id
+  end
 end
 

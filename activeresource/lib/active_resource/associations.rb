@@ -121,6 +121,12 @@ module ActiveResource
             member.save
           end"
 
+          instance_eval "
+          def collection.delete(member)
+            member.#{o[:association_col]} = nil
+            member.save
+          end"
+
           set_resource_instance_variable(resource) do
             collection
           end
