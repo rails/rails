@@ -117,7 +117,7 @@ module ActiveResource
 
           instance_eval "
           def collection.<<(member)
-            member.send(:#{o[:association_col]}=, #{id})
+            member.#{o[:association_col]} = #{id}
             member.save
           end"
 
