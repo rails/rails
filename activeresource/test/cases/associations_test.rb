@@ -114,5 +114,6 @@ class AssociationsTest < Test::Unit::TestCase
     @project.milestones << @other_milestone
     assert_equal @other_milestone.project_id, @project.id
   end
+
 end
 
