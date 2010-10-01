@@ -22,11 +22,11 @@ end
 @other_project_manager  = {:id => 6, :name => "John", :project_id => nil}
 @project_managers = [@project_manager]
 @milestone        = { :id => 1, :title => "pre", :project_id => nil}
+@other_milestone  = { :id => 2, :title => "rc", :project_id => nil}
 
 ActiveResource::HttpMock.respond_to do |mock|
   mock.get    "/projects/.xml", {}, @project.to_xml(:root => 'project')
   mock.get    "/projects/1.xml", {}, @project.to_xml(:root => 'project')
-  mock.get    "/milestones/1.xml", {}, @milestone.to_xml(:root => 'milestone')
   mock.get    "/projects/2.xml", {}, @other_project.to_xml(:root => 'project')
   mock.get    "/project_managers/5.xml", {}, @project_manager.to_xml(:root => 'project_manager')
   mock.get    "/project_managers/6.xml", {}, @other_project_manager.to_xml(:root => 'project_manager')
@@ -36,6 +36,9 @@ ActiveResource::HttpMock.respond_to do |mock|
   mock.get    "/milestones.xml?project_id=2", {}, [].to_xml
   mock.get    "/milestones.xml?project_id=1", {}, [@milestone].to_xml
   mock.put    "/project_managers/6.xml", {}, nil, 204
+  mock.put    "/milestones/2.xml", {}, nil, 204
+  mock.get    "/milestones/1.xml", {}, @milestone.to_xml(:root => 'milestone')
+  mock.get    "/milestones/2.xml", {}, @other_milestone.to_xml(:root => 'milestone')
 end
 
 class AssociationsTest < Test::Unit::TestCase
@@ -46,6 +49,7 @@ class AssociationsTest < Test::Unit::TestCase
     @project_manager = ProjectManager.find(5)
     @other_project_manager = ProjectManager.find(6)
     @milestone       = Milestone.find(1)
+    @other_milestone = Milestone.find(2)
   end
 
   #----------------------------------------------------------------------
@@ -104,6 +108,11 @@ class AssociationsTest < Test::Unit::TestCase
 
   def test_has_many_accessor_should_return_the_an_empty_array_when_it_does_not_has_milestones
     assert_equal [], @other_project.milestones
+  end
+
+  def test_has_many_accessor_should_return_the_an_array_including_the_added_obj
+    @project.milestones << @other_milestone
+    assert_equal @other_milestone.project_id, @project.id
   end
 end
 

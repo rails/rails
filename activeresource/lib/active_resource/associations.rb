@@ -112,8 +112,17 @@ module ActiveResource
         #
         #----------------------------------------------------------------------#
         define_method(resource) do
+          collection = o[:klass].constantize.find(:all,
+                       :params => { o[:association_col] => id })
+
+          eval "
+          def collection.<<(member)
+            member.send(:#{o[:association_col]}=, #{id})
+            member.save
+          end"
+
           set_resource_instance_variable(resource) do
-            o[:klass].constantize.find(:all, :params => { o[:association_col] => id })
+            collection
           end
         end
       end
