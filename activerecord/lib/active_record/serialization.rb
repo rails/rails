@@ -22,7 +22,7 @@ module ActiveRecord #:nodoc:
     end
 
     private
-      # Add associations specified via the <tt>:includes</tt> option.
+      # Add associations specified via the <tt>:include</tt> option.
       #
       # Expects a block that takes as arguments:
       #   +association+ - name of the association
