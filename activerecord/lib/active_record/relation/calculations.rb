@@ -177,7 +177,7 @@ module ActiveRecord
       distinct = options[:distinct] || distinct
 
       if @group_values.any?
-        execute_grouped_calculation(operation, column_name)
+        execute_grouped_calculation(operation, column_name, distinct)
       else
         execute_simple_calculation(operation, column_name, distinct)
       end
@@ -191,19 +191,23 @@ module ActiveRecord
       end
     end
 
+    def operation_over_aggregate_column(column, operation, distinct)
+      operation == 'count' ? column.count(distinct) : column.send(operation)
+    end
+
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       column = aggregate_column(column_name)
 
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = except(:order)
-      select_value = operation == 'count' ? column.count(distinct) : column.send(operation)
+      select_value = operation_over_aggregate_column(column, operation, distinct)
 
       relation.select_values = [select_value]
 
       type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
     end
 
-    def execute_grouped_calculation(operation, column_name) #:nodoc:
+    def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
       group_attr      = @group_values.first
       association     = @klass.reflect_on_association(group_attr.to_sym)
       associated      = association && association.macro == :belongs_to # only count belongs_to associations
@@ -221,7 +225,7 @@ module ActiveRecord
 
       relation = except(:group).group(group)
       relation.select_values = [
-        aggregate_column(column_name).send(operation).as(aggregate_alias),
+        operation_over_aggregate_column(aggregate_column(column_name), operation, distinct).as(aggregate_alias),
         "#{group_field} AS #{group_alias}"
       ]
 
