@@ -11,34 +11,6 @@ module ApplicationTests
       extend Rack::Test::Methods
     end
 
-    def app(env = "production")
-      old_env = ENV["RAILS_ENV"]
-
-      @app ||= begin
-        ENV["RAILS_ENV"] = env
-        require "#{app_path}/config/environment"
-        Rails.application
-      end
-    ensure
-      ENV["RAILS_ENV"] = old_env
-    end
-
-    def simple_controller
-      controller :foo, <<-RUBY
-        class FooController < ApplicationController
-          def index
-            render :text => "foo"
-          end
-        end
-      RUBY
-
-      app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
-        end
-      RUBY
-    end
-
     test "rails/info/properties in development" do
       app("development")
       get "/rails/info/properties"
@@ -56,21 +28,6 @@ module ApplicationTests
 
       get '/foo'
       assert_equal 'foo', last_response.body
-    end
-
-    test "simple controller in production mode returns best standards" do
-      simple_controller
-
-      get '/foo'
-      assert_equal "IE=Edge,chrome=1", last_response.headers["X-UA-Compatible"]
-    end
-
-    test "simple controller in development mode leaves out Chrome" do
-      simple_controller
-      app("development")
-
-      get "/foo"
-      assert_equal "IE=Edge", last_response.headers["X-UA-Compatible"]
     end
 
     test "simple controller with helper" do
@@ -177,7 +134,7 @@ module ApplicationTests
       assert_equal 'admin::foo', last_response.body
     end
 
-    def test_reloads_appended_route_blocks
+    test "routes appending blocks" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
           match ':controller#:action'
@@ -246,10 +203,13 @@ module ApplicationTests
     test 'routes are loaded just after initialization' do
       require "#{app_path}/config/application"
 
-      app_file 'config/routes.rb', <<-RUBY
-        InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
+      # Create the rack app just inside after initialize callback
+      ActiveSupport.on_load(:after_initialize) do
+        ::InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
+      end
 
-        AppTemplate::Application.routes.draw do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => ::InitializeRackApp
         end
       RUBY
@@ -258,7 +218,7 @@ module ApplicationTests
       assert_equal "InitializeRackApp", last_response.body
     end
 
-    test 'resource routing with irrigular inflection' do
+    test 'resource routing with irregular inflection' do
       app_file 'config/initializers/inflection.rb', <<-RUBY
         ActiveSupport::Inflector.inflections do |inflect|
           inflect.irregular 'yazi', 'yazilar'
