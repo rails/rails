@@ -761,6 +761,20 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   end
+  
+  def test_form_for_with_search_field
+    # Test case for bug which would emit an "object" attribute
+    # when used with form_for using a search_field form helper
+    form_for(Post.new, :url => "/search", :html => { :id => 'search-post' }) do |f|
+      concat f.search_field(:title)
+    end
+
+    expected =  whole_form("/search", "search-post", "new_post") do
+      "<input name='post[title]' size='30' type='search' id='post_title' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
 
   def test_form_for_with_remote
     form_for(@post, :url => '/', :remote => true, :html => { :id => 'create-post', :method => :put }) do |f|
@@ -1737,4 +1751,5 @@ class FormHelperTest < ActionView::TestCase
     def protect_against_forgery?
       false
     end
+
 end
