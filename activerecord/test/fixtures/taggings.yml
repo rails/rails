@@ -26,3 +26,15 @@ godfather:
 orphaned:
   id: 5
   tag_id: 1
+
+misc_post_by_bob:
+  id: 6
+  tag_id: 2
+  taggable_id: 8
+  taggable_type: Post
+
+misc_post_by_mary:
+  id: 7
+  tag_id: 2
+  taggable_id: 9
+  taggable_type: Post

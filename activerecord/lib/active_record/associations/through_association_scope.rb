@@ -22,9 +22,8 @@ module ActiveRecord
       # Build SQL conditions from attributes, qualified by table name.
       def construct_conditions
         reflection = @reflection.through_reflection_chain.last
-        table_name = reflection.quoted_table_name
         conditions = construct_quoted_owner_attributes(reflection).map do |attr, value|
-          "#{table_name}.#{attr} = #{value}"
+          "#{table_aliases[reflection]}.#{attr} = #{value}"
         end
         conditions << sql_conditions if sql_conditions
         "(" + conditions.join(') AND (') + ")"
@@ -67,21 +66,23 @@ module ActiveRecord
           polymorphic_join  = nil
           
           case
-            when left.options[:as]
+            when left.source_reflection.nil?
               left_primary_key  = left.primary_key_name
               right_primary_key = right.klass.primary_key
               
-              polymorphic_join = "AND %s.%s = %s" % [
-                left.quoted_table_name, "#{left.options[:as]}_type",
-                @owner.class.quote_value(right.klass.name)
-              ]
+              if left.options[:as]
+                polymorphic_join = "AND %s.%s = %s" % [
+                  table_aliases[left], "#{left.options[:as]}_type",
+                  @owner.class.quote_value(right.klass.name)
+                ]
+              end
             when left.source_reflection.macro == :belongs_to
               left_primary_key  = left.klass.primary_key
               right_primary_key = left.source_reflection.primary_key_name
               
               if left.options[:source_type]
                 polymorphic_join = "AND %s.%s = %s" % [
-                  right.quoted_table_name,
+                  table_aliases[right],
                   left.source_reflection.options[:foreign_type].to_s,
                   @owner.class.quote_value(left.options[:source_type])
                 ]
@@ -92,22 +93,45 @@ module ActiveRecord
               
               if left.source_reflection.options[:as]
                 polymorphic_join = "AND %s.%s = %s" % [
-                  left.quoted_table_name,
+                  table_aliases[left],
                   "#{left.source_reflection.options[:as]}_type",
                   @owner.class.quote_value(right.klass.name)
                 ]
               end
           end
           
+          if right.quoted_table_name == table_aliases[right]
+            table = right.quoted_table_name
+          else
+            table = "#{right.quoted_table_name} #{table_aliases[right]}"
+          end
+          
           joins << "INNER JOIN %s ON %s.%s = %s.%s %s" % [
-            right.quoted_table_name,
-            left.quoted_table_name,  left_primary_key,
-            right.quoted_table_name, right_primary_key,
+            table,
+            table_aliases[left],  left_primary_key,
+            table_aliases[right], right_primary_key,
             polymorphic_join
           ]
         end
         
-        joins
+        joins.join(" ")
+      end
+
+      def table_aliases
+        @table_aliases ||= begin
+          tally = {}
+          @reflection.through_reflection_chain.inject({}) do |aliases, reflection|
+            if tally[reflection.table_name].nil?
+              tally[reflection.table_name] = 1
+              aliases[reflection] = reflection.quoted_table_name
+            else
+              tally[reflection.table_name] += 1
+              aliased_table_name = reflection.table_name + "_#{tally[reflection.table_name]}"
+              aliases[reflection] = reflection.klass.connection.quote_table_name(aliased_table_name)
+            end
+            aliases
+          end
+        end
       end
 
       # Construct attributes for associate pointing to owner.

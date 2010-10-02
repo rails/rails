@@ -50,3 +50,17 @@ eager_other:
   title: eager loading with OR'd conditions
   body: hello
   type: Post
+
+misc_by_bob:
+  id: 8
+  author_id: 3
+  title: misc post by bob
+  body: hello
+  type: Post
+
+misc_by_mary:
+  id: 9
+  author_id: 2
+  title: misc post by mary
+  body: hello
+  type: Post

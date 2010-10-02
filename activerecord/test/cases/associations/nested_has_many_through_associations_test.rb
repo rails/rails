@@ -40,4 +40,9 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second)], author.distinct_subscribers
   end
+  
+  def test_nested_has_many_through_with_a_table_referenced_multiple_times
+    author = authors(:bob)
+    assert_equal [posts(:misc_by_bob), posts(:misc_by_mary)], author.similar_posts.sort_by(&:id)
+  end
 end
