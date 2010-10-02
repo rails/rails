@@ -1,3 +1,5 @@
+# TODO: Remove in the end, when its functionality is fully integrated in ThroughAssociationScope.
+
 module ActiveRecord
   module Associations
     module NestedHasManyThrough

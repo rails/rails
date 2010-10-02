@@ -7,7 +7,6 @@ module ActiveRecord
   module Associations
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociationScope
-      # include NestedHasManyThrough
 
       alias_method :new, :build
 

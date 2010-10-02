@@ -131,6 +131,14 @@ module ActiveRecord
         @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
       end
 
+      # TODO: Remove these in the final patch. I am just using them for debugging etc.
+      def inspect
+        "#<#{code_name}>"
+      end
+      def code_name
+        "#{active_record.name}.#{macro} :#{name}"
+      end
+
       private
         def derive_class_name
           name.to_s.camelize
@@ -241,6 +249,10 @@ module ActiveRecord
       def through_reflection
         false
       end
+      
+      def through_reflection_chain
+        [self]
+      end
 
       def through_reflection_primary_key_name
       end
@@ -304,6 +316,16 @@ module ActiveRecord
       def belongs_to?
         macro == :belongs_to
       end
+      
+      # TODO: Remove for final patch. Just here for debugging.
+      def inspect
+        str = "#<#{code_name}, @source_reflection="
+        str << (source_reflection.respond_to?(:code_name) ? source_reflection.code_name : source_reflection.inspect)
+        str << ", @through_reflection="
+        str << (through_reflection.respond_to?(:code_name) ? through_reflection.code_name : through_reflection.inspect)
+        str << ">"
+        str
+      end
 
       private
         def derive_class_name
@@ -353,18 +375,24 @@ module ActiveRecord
         @through_reflection ||= active_record.reflect_on_association(options[:through])
       end
       
-      # A :through reflection may have a :through reflection itself. This method returns the through
-      # reflection which is furthest away, i.e. the last in the chain, so the first which does not
-      # have its own :through reflection.
-      def final_through_reflection
-        @final_through_reflection ||= begin
-          reflection = through_reflection
-          
-          while reflection.through_reflection
-            reflection = reflection.through_reflection
+      # TODO: Documentation
+      def through_reflection_chain
+        @through_reflection_chain ||= begin
+          if source_reflection.through_reflection
+            # If the source reflection goes through another reflection, then the chain must start
+            # by getting us to the source reflection.
+            chain = source_reflection.through_reflection_chain
+          else
+            # If the source reflection does not go through another reflection, then we can get
+            # to this reflection directly, and so start the chain here
+            chain = [self]
           end
           
-          reflection
+          # Recursively build the rest of the chain
+          chain += through_reflection.through_reflection_chain
+          
+          # Finally return the completed chain
+          chain
         end
       end
 
@@ -393,6 +421,8 @@ module ActiveRecord
           raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
         end
 
+        # TODO: Presumably remove the HasManyThroughSourceAssociationMacroError class and delete these lines.
+        # Think about whether there are any cases which should still be disallowed.
         # unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?
         #   raise HasManyThroughSourceAssociationMacroError.new(self)
         # end

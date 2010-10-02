@@ -1,3 +1,5 @@
+require 'enumerator'
+
 module ActiveRecord
   # = Active Record Through Association Scope
   module Associations
@@ -19,8 +21,9 @@ module ActiveRecord
 
       # Build SQL conditions from attributes, qualified by table name.
       def construct_conditions
-        table_name = @reflection.final_through_reflection.quoted_table_name
-        conditions = construct_quoted_owner_attributes(@reflection.final_through_reflection).map do |attr, value|
+        reflection = @reflection.through_reflection_chain.last
+        table_name = reflection.quoted_table_name
+        conditions = construct_quoted_owner_attributes(reflection).map do |attr, value|
           "#{table_name}.#{attr} = #{value}"
         end
         conditions << sql_conditions if sql_conditions
@@ -51,43 +54,57 @@ module ActiveRecord
       end
       
       def construct_joins(custom_joins = nil)
-        "#{construct_through_joins(@reflection)} #{@reflection.options[:joins]} #{custom_joins}"
+        # puts @reflection.through_reflection_chain.map(&:inspect)
+        
+        "#{construct_through_joins} #{@reflection.options[:joins]} #{custom_joins}"
       end
 
-      def construct_through_joins(reflection)
-        polymorphic_join = nil
-        if reflection.source_reflection.macro == :belongs_to
-          reflection_primary_key = reflection.klass.primary_key
-          source_primary_key     = reflection.source_reflection.primary_key_name
-          if reflection.options[:source_type]
-            polymorphic_join = "AND %s.%s = %s" % [
-              reflection.through_reflection.quoted_table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
-              @owner.class.quote_value(reflection.options[:source_type])
-            ]
-          end
-        else
-          reflection_primary_key = reflection.source_reflection.primary_key_name
-          source_primary_key     = reflection.through_reflection.klass.primary_key
-          if reflection.source_reflection.options[:as]
-            polymorphic_join = "AND %s.%s = %s" % [
-              reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
-              @owner.class.quote_value(reflection.through_reflection.klass.name)
-            ]
-          end
-        end
-
-        joins = "INNER JOIN %s ON %s.%s = %s.%s %s" % [
-          reflection.through_reflection.quoted_table_name,
-          reflection.quoted_table_name, reflection_primary_key,
-          reflection.through_reflection.quoted_table_name, source_primary_key,
-          polymorphic_join
-        ]
+      def construct_through_joins
+        joins = []
         
-        # If the reflection we are going :through goes itself :through another reflection, then
-        # we must recursively get the joins to make that happen too.
-        if reflection.through_reflection.through_reflection
-          joins << " "
-          joins << construct_through_joins(reflection.through_reflection)
+        # Iterate over each pair in the through reflection chain, joining them together
+        @reflection.through_reflection_chain.each_cons(2) do |left, right|
+          polymorphic_join  = nil
+          
+          case
+            when left.options[:as]
+              left_primary_key  = left.primary_key_name
+              right_primary_key = right.klass.primary_key
+              
+              polymorphic_join = "AND %s.%s = %s" % [
+                left.quoted_table_name, "#{left.options[:as]}_type",
+                @owner.class.quote_value(right.klass.name)
+              ]
+            when left.source_reflection.macro == :belongs_to
+              left_primary_key  = left.klass.primary_key
+              right_primary_key = left.source_reflection.primary_key_name
+              
+              if left.options[:source_type]
+                polymorphic_join = "AND %s.%s = %s" % [
+                  right.quoted_table_name,
+                  left.source_reflection.options[:foreign_type].to_s,
+                  @owner.class.quote_value(left.options[:source_type])
+                ]
+              end
+            else
+              left_primary_key  = left.source_reflection.primary_key_name
+              right_primary_key = right.klass.primary_key
+              
+              if left.source_reflection.options[:as]
+                polymorphic_join = "AND %s.%s = %s" % [
+                  left.quoted_table_name,
+                  "#{left.source_reflection.options[:as]}_type",
+                  @owner.class.quote_value(right.klass.name)
+                ]
+              end
+          end
+          
+          joins << "INNER JOIN %s ON %s.%s = %s.%s %s" % [
+            right.quoted_table_name,
+            left.quoted_table_name,  left_primary_key,
+            right.quoted_table_name, right_primary_key,
+            polymorphic_join
+          ]
         end
         
         joins

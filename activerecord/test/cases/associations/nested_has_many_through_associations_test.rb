@@ -21,23 +21,23 @@ require 'models/subscription'
 class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings
 
-#  def test_has_many_through_a_has_many_through_association_on_source_reflection
-#    author = authors(:david)
-#    assert_equal [tags(:general), tags(:general)], author.tags
-#  end
+  def test_has_many_through_a_has_many_through_association_on_source_reflection
+    author = authors(:david)
+    assert_equal [tags(:general), tags(:general)], author.tags
+  end
 
   def test_has_many_through_a_has_many_through_association_on_through_reflection
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], author.subscribers
   end
 
-#  def test_distinct_has_many_through_a_has_many_through_association_on_source_reflection
-#    author = authors(:david)
-#    assert_equal [tags(:general)], author.distinct_tags
-#  end
+  def test_distinct_has_many_through_a_has_many_through_association_on_source_reflection
+    author = authors(:david)
+    assert_equal [tags(:general)], author.distinct_tags
+  end
 
-#  def test_distinct_has_many_through_a_has_many_through_association_on_through_reflection
-#    author = authors(:david)
-#    assert_equal [subscribers(:first), subscribers(:second)], author.distinct_subscribers
-#  end
+  def test_distinct_has_many_through_a_has_many_through_association_on_through_reflection
+    author = authors(:david)
+    assert_equal [subscribers(:first), subscribers(:second)], author.distinct_subscribers
+  end
 end
