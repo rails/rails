@@ -4,14 +4,36 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :middleware, :plugins, :asset_path
+      attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
+      attr_accessor :plugins, :asset_path
 
       def initialize(root=nil)
         super()
         @root = root
-        @middleware = Rails::Configuration::MiddlewareStackProxy.new
         @helpers_paths = []
+      end
+
+      # Returns the middleware stack for the engine.
+      def middleware
+        @middleware ||= Rails::Configuration::MiddlewareStackProxy.new
+      end
+
+      # Holds generators configuration:
+      #
+      #   config.generators do |g|
+      #     g.orm             :datamapper, :migration => true
+      #     g.template_engine :haml
+      #     g.test_framework  :rspec
+      #   end
+      #
+      # If you want to disable color in console, do:
+      #
+      #   config.generators.colorize_logging = false
+      #
+      def generators #:nodoc
+        @generators ||= Rails::Configuration::Generators.new
+        yield(@generators) if block_given?
+        @generators
       end
 
       def paths
