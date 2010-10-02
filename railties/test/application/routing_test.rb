@@ -209,13 +209,20 @@ module ApplicationTests
       end
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match 'foo', :to => ::InitializeRackApp
         end
       RUBY
 
       get '/foo'
       assert_equal "InitializeRackApp", last_response.body
+    end
+
+    test 'reload_routes! is part of Rails.application API' do
+      app("development")
+      assert_nothing_raised do
+        Rails.application.reload_routes!
+      end
     end
 
     test 'resource routing with irregular inflection' do

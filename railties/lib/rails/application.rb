@@ -81,6 +81,10 @@ module Rails
       super
     end
 
+    def reload_routes!
+      routes_reloader.reload!
+    end
+
     def routes_reloader
       @routes_reloader ||= RoutesReloader.new
     end
