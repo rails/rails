@@ -1,17 +1,5 @@
 require 'abstract_unit'
-
-class Comment
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-
-  attr_reader :id
-  def to_key; id ? [id] : nil end
-  def save; @id = 1 end
-  def new_record?; @id.nil? end
-  def name
-    @id.nil? ? 'new comment' : "comment ##{@id}"
-  end
-end
+require 'controller/fake_models'
 
 class Sheep
   extend ActiveModel::Naming
