@@ -116,6 +116,14 @@ module ActionView
     end
   end
 
+  class AssignsTest < ActionView::TestCase
+    test "_assigns returns a Hash of local ivars" do
+      @a = 'b'
+      @c = 'd'
+      assert_equal({:a => 'b', :c => 'd'}, _assigns)
+    end
+  end
+
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
