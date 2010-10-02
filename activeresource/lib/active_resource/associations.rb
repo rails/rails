@@ -144,7 +144,11 @@ module ActiveResource
           collection = send(resource)
           to_remove  = collection - new_collection
           to_remove.each{|m| collection.delete(m)}
-          instance_variable_set("@#{resource}", new_collection)
+
+          # FIXME should call the old clear
+          collection.clear
+          # FIXME Is this needed?
+          collection.concat new_collection
         end
       end
 
