@@ -1,19 +1,5 @@
 require 'abstract_unit'
 
-module ActionDispatch
-  class ShowExceptions
-    private
-      def public_path
-        "#{FIXTURE_LOAD_PATH}/public"
-      end
-
-      # Silence logger
-      def logger
-        nil
-      end
-  end
-end
-
 class ShowExceptionsTest < ActionDispatch::IntegrationTest
   Boomer = lambda do |env|
     req = ActionDispatch::Request.new(env)
