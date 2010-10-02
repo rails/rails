@@ -14,6 +14,8 @@ module Rails
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
 
+      alias :generators :app_generators
+
       def initialize(*)
         super
         self.encoding = "utf-8"

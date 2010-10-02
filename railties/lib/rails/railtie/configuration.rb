@@ -18,7 +18,7 @@ module Rails
 
       # Holds generators configuration:
       #
-      #   config.generators do |g|
+      #   config.app_generators do |g|
       #     g.orm             :datamapper, :migration => true
       #     g.template_engine :haml
       #     g.test_framework  :rspec
@@ -26,9 +26,9 @@ module Rails
       #
       # If you want to disable color in console, do:
       #
-      #   config.generators.colorize_logging = false
+      #   config.app_generators.colorize_logging = false
       #
-      def generators
+      def app_generators
         @@generators ||= Rails::Configuration::Generators.new
         if block_given?
           yield @@generators
@@ -36,6 +36,7 @@ module Rails
           @@generators
         end
       end
+      alias :generators :app_generators
 
       def before_configuration(&block)
         ActiveSupport.on_load(:before_configuration, :yield => true, &block)

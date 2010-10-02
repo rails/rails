@@ -84,7 +84,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     # Customize the ORM
-  #     config.generators.orm :my_railtie_orm
+  #     config.app_generators.orm :my_railtie_orm
   #
   #     # Add a to_prepare block which is executed once in production
   #     # and before which request in development

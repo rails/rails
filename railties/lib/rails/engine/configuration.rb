@@ -33,6 +33,12 @@ module Rails
         end
       end
 
+      def generators #:nodoc:
+        ActiveSupport::Deprecation.warn "config.generators in Rails::Engine is deprecated. " <<
+          "Please use config.app_generators instead."
+        super
+      end
+
       def root=(value)
         @root = paths.path = Pathname.new(value).expand_path
       end
