@@ -192,7 +192,11 @@ module ActionView
       end
 
       def _assigns
-        _instance_variables.map { |var| [var[1..-1].to_sym, instance_variable_get(var)] }
+        _instance_variables.inject({}) do |hash, var|
+          name = var[1..-1].to_sym
+          hash[name] = instance_variable_get(var)
+          hash
+        end
       end
 
       def _routes
