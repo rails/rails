@@ -27,7 +27,7 @@ module Rails
       end
 
       def generators(&block) #:nodoc
-        ActiveSupport::Deprecation.warn "config.generators is deprecated. Please use config.app_generators instead."
+        ActiveSupport::Deprecation.warn "config.generators in Rails::Railtie is deprecated. Please use config.app_generators instead."
         app_generators(&block)
       end
 
