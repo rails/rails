@@ -18,11 +18,6 @@ module ActionDispatch
         @protocol ||= ssl? ? 'https://' : 'http://'
       end
 
-      # Is this an SSL request?
-      def ssl?
-        @ssl ||= @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
-      end
-
       # Returns the \host for this request, such as "example.com".
       def raw_host_with_port
         if forwarded = env["HTTP_X_FORWARDED_HOST"]

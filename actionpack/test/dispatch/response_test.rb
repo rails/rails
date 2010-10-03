@@ -11,9 +11,7 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "max-age=0, private, must-revalidate",
-      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"'
+      "Content-Type" => "text/html; charset=utf-8"
     }, headers)
 
     parts = []
@@ -27,9 +25,7 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "max-age=0, private, must-revalidate",
-      "ETag" => '"ebb5e89e8a94e9dd22abf5d915d112b2"'
+      "Content-Type" => "text/html; charset=utf-8"
     }, headers)
   end
 
@@ -41,8 +37,7 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "no-cache"
+      "Content-Type" => "text/html; charset=utf-8"
     }, headers)
 
     parts = []

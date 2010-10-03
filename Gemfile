@@ -6,6 +6,7 @@ else
   gem "arel", :git => "git://github.com/rails/arel.git"
 end
 
+gem "rack", :git => "git://github.com/rack/rack.git"
 gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"

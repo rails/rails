@@ -36,6 +36,8 @@ module ApplicationTests
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
         "ActionDispatch::Head",
+        "Rack::ConditionalGet",
+        "Rack::ETag",
         "ActionDispatch::BestStandardsSupport"
       ], middleware
     end
@@ -45,27 +47,7 @@ module ApplicationTests
 
       boot!
 
-      assert_equal [
-        "Rack::Cache",
-        "ActionDispatch::Static",
-        "Rack::Lock",
-        "ActiveSupport::Cache::Strategy::LocalCache",
-        "Rack::Runtime",
-        "Rails::Rack::Logger",
-        "ActionDispatch::ShowExceptions",
-        "ActionDispatch::RemoteIp",
-        "Rack::Sendfile",
-        "ActionDispatch::Callbacks",
-        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
-        "ActiveRecord::QueryCache",
-        "ActionDispatch::Cookies",
-        "ActionDispatch::Session::CookieStore",
-        "ActionDispatch::Flash",
-        "ActionDispatch::ParamsParser",
-        "Rack::MethodOverride",
-        "ActionDispatch::Head",
-        "ActionDispatch::BestStandardsSupport"
-      ], middleware
+      assert_equal "Rack::Cache", middleware.first
     end
 
     test "removing Active Record omits its middleware" do
@@ -129,6 +111,46 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.first
     end
 
+    # ConditionalGet + Etag
+    test "conditional get + etag middlewares handle http caching based on body" do
+      make_basic_app
+
+      class ::OmgController < ActionController::Base
+        def index
+          if params[:nothing]
+            render :text => ""
+          else
+            render :text => "OMG"
+          end
+        end
+      end
+
+      etag = "5af83e3196bf99f440f31f2e1a6c9afe".inspect
+
+      get "/"
+      assert_equal 200, last_response.status
+      assert_equal "OMG", last_response.body
+      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
+      assert_equal etag, last_response.headers["Etag"]
+
+      get "/", {}, "HTTP_IF_NONE_MATCH" => etag
+      assert_equal 304, last_response.status
+      assert_equal "", last_response.body
+      assert_equal nil, last_response.headers["Content-Type"]
+      assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
+      assert_equal etag, last_response.headers["Etag"]
+
+      get "/?nothing=true"
+      puts last_response.body
+      assert_equal 200, last_response.status
+      assert_equal "", last_response.body
+      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "no-cache", last_response.headers["Cache-Control"]
+      assert_equal nil, last_response.headers["Etag"]
+    end
+
+    # Show exceptions middleware
     test "show exceptions middleware filter backtrace before logging" do
       my_middleware = Struct.new(:app) do
         def call(env)
