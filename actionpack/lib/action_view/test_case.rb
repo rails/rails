@@ -201,7 +201,7 @@ module ActionView
       # frameworks.
       def view_assigns
         Hash[_user_defined_ivars.map do |var|
-          [var[1..-1].to_sym, instance_variable_get(var)]
+          [var[1, var.length].to_sym, instance_variable_get(var)]
         end]
       end
 
