@@ -1,19 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
-class Sheep
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-
-  attr_reader :id
-  def to_key; id ? [id] : nil end
-  def save; @id = 1 end
-  def new_record?; @id.nil? end
-  def name
-    @id.nil? ? 'new sheep' : "sheep ##{@id}"
-  end
-end
-
 class RecordIdentifierTest < Test::Unit::TestCase
   include ActionController::RecordIdentifier
 
