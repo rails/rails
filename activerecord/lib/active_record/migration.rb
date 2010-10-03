@@ -584,11 +584,13 @@ module ActiveRecord
       runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
+        seen = migrated.include?(migration.version.to_i)
+
         # On our way up, we skip migrating the ones we've already migrated
-        next if up? && migrated.include?(migration.version.to_i)
+        next if up? && seen
 
         # On our way down, we skip reverting the ones we've never migrated
-        if down? && !migrated.include?(migration.version.to_i)
+        if down? && !seen
           migration.announce 'never migrated, skipping'; migration.write
           next
         end
