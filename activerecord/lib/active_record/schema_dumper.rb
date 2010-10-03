@@ -183,8 +183,8 @@ HEADER
             ]
             statement_parts << ':unique => true' if index.unique
 
-            index_lengths = index.lengths.compact if index.lengths.is_a?(Array)
-            statement_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index_lengths.present?
+            index_lengths = (index.lengths || []).compact
+            statement_parts << (':length => ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
 
             '  ' + statement_parts.join(', ')
           end
