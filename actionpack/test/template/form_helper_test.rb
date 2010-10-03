@@ -735,11 +735,11 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_search_field
     # Test case for bug which would emit an "object" attribute
     # when used with form_for using a search_field form helper
-    form_for(Post.new, :url => "/search", :html => { :id => 'search-post' }) do |f|
+    form_for(Post.new, :url => "/search", :html => { :id => 'search-post', :method => :get}) do |f|
       concat f.search_field(:title)
     end
 
-    expected =  whole_form("/search", "search-post", "new_post") do
+    expected =  whole_form("/search", "search-post", "new_post", "get") do
       "<input name='post[title]' size='30' type='search' id='post_title' />"
     end
 
@@ -1528,17 +1528,20 @@ class FormHelperTest < ActionView::TestCase
   def snowman(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
+    if (method && !['get','post'].include?(method.to_s))
+      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    end
     txt << %{</div>}
   end
 
-  def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil)
+  def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
     txt =  %{<form accept-charset="UTF-8" action="#{action}"}
     txt << %{ enctype="multipart/form-data"} if multipart
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
     txt << %{ id="#{id}"} if id
-    txt << %{ method="post">}
+    method = method.to_s == "get" ? "get" : "post"
+    txt << %{ method="#{method}">}
   end
 
   def whole_form(action = "/", id = nil, html_class = nil, options = nil)
@@ -1550,7 +1553,7 @@ class FormHelperTest < ActionView::TestCase
       method = options
     end
 
-    form_text(action, id, html_class, remote, multipart) + snowman(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + snowman(method) + contents + "</form>"
   end
 
   def test_default_form_builder
