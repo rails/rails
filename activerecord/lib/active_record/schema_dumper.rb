@@ -176,9 +176,11 @@ HEADER
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            statement_parts = [ ('add_index ' + index.table.inspect) ]
-            statement_parts << index.columns.inspect
-            statement_parts << (':name => ' + index.name.inspect)
+            statement_parts = [
+              ('add_index ' + index.table.inspect),
+              index.columns.inspect,
+              (':name => ' + index.name.inspect),
+            ]
             statement_parts << ':unique => true' if index.unique
 
             index_lengths = index.lengths.compact if index.lengths.is_a?(Array)
