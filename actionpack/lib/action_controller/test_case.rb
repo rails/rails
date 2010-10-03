@@ -191,6 +191,7 @@ module ActionController
     DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
 
     def initialize(session = {})
+      @env, @by = nil, nil
       replace(session.stringify_keys)
       @loaded = true
     end
