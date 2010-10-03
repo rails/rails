@@ -83,6 +83,7 @@ module AbstractController
           # for details on the allowed parameters.
           def #{filter}_filter(*names, &blk)                                                    # def before_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options}
+              options[:if]=(Array.wrap(options[:if]) << "!halted") if #{filter == :after}
               set_callback(:process_action, :#{filter}, name, options)                          #     set_callback(:process_action, :before_filter, name, options)
             end                                                                                 #   end
           end                                                                                   # end
@@ -91,6 +92,7 @@ module AbstractController
           # for details on the allowed parameters.
           def prepend_#{filter}_filter(*names, &blk)                                            # def prepend_before_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options|
+              options[:if]=(Array.wrap(options[:if]) << "!halted") if #{filter == :after}
               set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))  #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
             end                                                                                 #   end
           end                                                                                   # end
