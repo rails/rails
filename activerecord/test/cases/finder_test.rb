@@ -127,7 +127,7 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal [[0,3],[1,1],[1,2]], first_three_posts.map { |p| [p.author_id, p.id] }
     assert_equal [[1,4],[1,5],[1,6]], second_three_posts.map { |p| [p.author_id, p.id] }
-    assert_equal [[2,7]], last_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[2,7],[2,9],[3,8]], last_posts.map { |p| [p.author_id, p.id] }
   end
 
 

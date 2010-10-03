@@ -196,7 +196,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     )
 
     ['"name":"David"', '"posts":[', '{"id":1}', '{"id":2}', '{"id":4}',
-     '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[{"id":7}]'].each do |fragment|
+     '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[', '{"id":7}', '{"id":9}'].each do |fragment|
       assert json.include?(fragment), json
      end
   end
