@@ -56,9 +56,11 @@ module ActiveRecord
       # +coder+ must contain the attributes necessary for initializing an empty
       # model object.
       def reinit_with(coder)
-        @previously_changed = changes
-        @attributes_cache, @changed_attributes = {}, {}
-        @attributes.update(coder['attributes'])
+        @attributes_cache = {}
+        dirty = @changed_attributes.keys
+        @attributes.update(coder['attributes'].except(*dirty))
+        @changed_attributes.update(coder['attributes'].slice(*dirty))
+        @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
 
         _run_find_callbacks
 

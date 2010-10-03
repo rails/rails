@@ -25,6 +25,10 @@ class IdentityMapTest < ActiveRecord::TestCase
     :developers_projects, :computers, :authors, :author_addresses,
     :posts, :tags, :taggings, :comments, :subscribers
 
+  ##############################################################################
+  # Basic tests checking if IM is functioning properly on basic find operations#
+  ##############################################################################
+
   def test_find_id
     assert_same(Client.find(3), Client.find(3))
   end
@@ -70,16 +74,45 @@ class IdentityMapTest < ActiveRecord::TestCase
     )
   end
 
+  ##############################################################################
+  # Tests checking if IM is functioning properly on more advanced finds        #
+  # and associations                                                           #
+  ##############################################################################
+
+  def test_owner_object_is_associated_from_identity_map
+    post = Post.find(1)
+    comment = post.comments.first
+
+    assert_no_queries do
+      comment.post
+    end
+    assert_same post, comment.post.target
+  end
+
+  def test_associated_object_are_assigned_from_identity_map
+    post = Post.find(1)
+
+    post.comments.each do |comment|
+      assert_same post, comment.post.target
+      assert_equal post.object_id, comment.post.target.object_id
+    end
+  end
+
   def test_creation
     t1 = Topic.create("title" => "t1")
     t2 = Topic.find(t1.id)
     assert_same(t1, t2)
   end
 
+  ##############################################################################
+  # Tests checking dirty attribute behaviour with IM                           #
+  ##############################################################################
+
   def test_loading_new_instance_should_not_update_dirty_attributes
     swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
     swistak.name = "Swistak Sreberkowiec"
     assert_equal(["name"], swistak.changed)
+    assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
 
     s = Subscriber.find('swistak')
 
@@ -87,12 +120,31 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal("Swistak Sreberkowiec", swistak.name)
   end
 
+  def test_loading_new_instance_should_change_dirty_attribute original_value
+    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak.name = "Swistak Sreberkowiec"
+
+    Susbscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
+
+    s = Subscriber.find('swistak')
+
+    assert_equal({'name' => ["Raczkowski Marcin", "Swistak Sreberkowiec"]}, swistak.changes)
+    assert_equal("Swistak Sreberkowiec", swistak.name)
+  end
+
   def test_loading_new_instance_should_remove_dirt
     swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
     swistak.name = "Swistak Sreberkowiec"
 
-    assert_equal({'name' => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
+    assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
+
+    Subscriber.update_all({:name => "Swistak Sreberkowiec"}, {:name => "Marcin Raczkowski"})
+
+    s = Subscriber.find('swistak')
+
     assert_equal("Swistak Sreberkowiec", swistak.name)
+    assert_equal({}, swistak.changes)
+    assert !swistak.name_changed?
   end
 
   def test_has_many_associations
@@ -107,23 +159,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     pirate.birds_attributes = [{ :id => posideons.id, :name => 'Grace OMalley' }]
     assert_equal 'Grace OMalley', pirate.birds.send(:load_target).find { |r| r.id == posideons.id }.name
   end
-
-# Currently AR is not allowing changing primary key (see Persistence#update)
-# So we ignore it. If this changes, this test needs to be uncommented.
-#  def test_updating_of_pkey
-#    assert client = Client.find(3),
-#    client.update_attribute(:id, 666)
-#
-#    assert Client.find(666)
-#    assert_same(client, Client.find(666))
-#
-#    s = Subscriber.find_by_nick('swistak')
-#    assert s.update_attribute(:nick, 'swistakTheJester')
-#    assert_equal('swistakTheJester', s.nick)
-#
-#    assert stj = Subscriber.find_by_nick('swistakTheJester')
-#    assert_same(s, stj)
-#  end
 
   def test_changing_associations
     post1 = Post.create("title" => "One post", "body" => "Posting...")
@@ -148,6 +183,11 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_same(tag, tag_with_joins_and_select)
     assert_nothing_raised(NoMethodError, "Joins/select was not loaded") { tag.author_id }
   end
+
+  ##############################################################################
+  # Tests checking Identity Map behaviour with preloaded associations, joins,  #
+  # includes etc.                                                              #
+  ##############################################################################
 
   def test_find_with_preloaded_associations
     assert_queries(2) do
@@ -238,6 +278,10 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts[0].author}
   end
 
+  ##############################################################################
+  # Behaviour releated to saving failures
+  ##############################################################################
+
   def test_reload_object_if_save_failed
     developer = Developer.first
     developer.salary = 0
@@ -277,24 +321,9 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_not_equal developer.salary, same_developer.salary
   end
 
-  def test_owner_object_is_associated_from_identity_map
-    post = Post.find(1)
-    comment = post.comments.first
-
-    assert_no_queries do
-      comment.post
-    end
-    assert_same post, comment.post.target
-  end
-
-  def test_associated_object_are_assigned_from_identity_map
-    post = Post.find(1)
-
-    post.comments.each do |comment|
-      assert_same post, comment.post.target
-      assert_equal post.object_id, comment.post.target.object_id
-    end
-  end
+  ##############################################################################
+  # Behaviour of readonly, forzen, destroyed
+  ##############################################################################
 
   def test_find_using_identity_map_respects_readonly_when_loading_associated_object_first
     author  = Author.first
@@ -321,4 +350,22 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::ReadOnlyRecord) {readonly_comment.save}
     assert comment.save
   end
+
+# Currently AR is not allowing changing primary key (see Persistence#update)
+# So we ignore it. If this changes, this test needs to be uncommented.
+#  def test_updating_of_pkey
+#    assert client = Client.find(3),
+#    client.update_attribute(:id, 666)
+#
+#    assert Client.find(666)
+#    assert_same(client, Client.find(666))
+#
+#    s = Subscriber.find_by_nick('swistak')
+#    assert s.update_attribute(:nick, 'swistakTheJester')
+#    assert_equal('swistakTheJester', s.nick)
+#
+#    assert stj = Subscriber.find_by_nick('swistakTheJester')
+#    assert_same(s, stj)
+#  end
+
 end
