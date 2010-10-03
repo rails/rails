@@ -24,5 +24,6 @@ module Arel
     def self.visitor_for engine
       ENGINE_VISITORS[engine]
     end
+    class << self; alias :for :visitor_for; end
   end
 end
