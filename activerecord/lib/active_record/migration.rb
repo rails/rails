@@ -509,6 +509,7 @@ module ActiveRecord
 
         migrations = files.inject([]) do |klasses, file|
           version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
+          name = name.camelize
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -517,11 +518,11 @@ module ActiveRecord
             raise DuplicateMigrationVersionError.new(version)
           end
 
-          if klasses.detect { |m| m.name == name.camelize && m.scope == scope }
-            raise DuplicateMigrationNameError.new(name.camelize)
+          if klasses.detect { |m| m.name == name && m.scope == scope }
+            raise DuplicateMigrationNameError.new(name)
           end
 
-          migration = MigrationProxy.new(name.camelize, version, file, scope)
+          migration = MigrationProxy.new(name, version, file, scope)
           klasses << migration
         end
 
