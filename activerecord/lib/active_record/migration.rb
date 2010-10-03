@@ -419,9 +419,12 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy
+  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
 
-    attr_accessor :name, :version, :filename, :scope
+    def initialize(name, version, filename, scope)
+      super
+      @migration = nil
+    end
 
     delegate :migrate, :announce, :write, :to=>:migration
 
@@ -518,11 +521,7 @@ module ActiveRecord
             raise DuplicateMigrationNameError.new(name.camelize)
           end
 
-          migration = MigrationProxy.new
-          migration.name     = name.camelize
-          migration.version  = version
-          migration.filename = file
-          migration.scope    = scope
+          migration = MigrationProxy.new(name.camelize, version, file, scope)
           klasses << migration
         end
 
