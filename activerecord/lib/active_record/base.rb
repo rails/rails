@@ -1270,7 +1270,10 @@ MSG
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
-          PredicateBuilder.build_from_hash(arel_engine, attrs, table).map{ |b| b.to_sql }.join(' AND ')
+          viz = Arel::Visitors.for(arel_engine)
+          PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
+            viz.accept b
+          }.join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 
