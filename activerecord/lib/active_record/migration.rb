@@ -570,7 +570,7 @@ module ActiveRecord
       current = migrations.detect { |m| m.version == current_version }
       target = migrations.detect { |m| m.version == @target_version }
 
-      if target.nil? && !@target_version.nil? && @target_version > 0
+      if target.nil? && @target_version && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
@@ -579,7 +579,7 @@ module ActiveRecord
       runnable = migrations[start..finish]
 
       # skip the last migration if we're headed down, but not ALL the way down
-      runnable.pop if down? && !target.nil?
+      runnable.pop if down? && target
 
       runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
