@@ -200,9 +200,9 @@ module ActionView
       # rendered. This is generally intended for internal use and extension
       # frameworks.
       def view_assigns
-        _user_defined_ivars.inject({}) do |hash, var|
-          hash.merge(var.sub('@','').to_sym => instance_variable_get(var))
-        end
+        Hash[_user_defined_ivars.map do |var|
+          [var[1..-1].to_sym, instance_variable_get(var)]
+        end]
       end
 
       def _assigns
