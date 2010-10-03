@@ -110,7 +110,7 @@ Active Resource provides a framework for managing the connection between busines
 
 h5. Active Support
 
-Active Support is an extensive collection of utility classes and standard Ruby library extensions that are used in the Rails, both by the core code and by your applications.
+Active Support is an extensive collection of utility classes and standard Ruby library extensions that are used in Rails, both by the core code and by your applications.
 
 h5. Railties
 
