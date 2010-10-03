@@ -189,9 +189,9 @@ module ActionView
       end
 
       def _assigns
-        _instance_variables.inject({}) do |hash, var|
-          hash.merge(var.sub('@','').to_sym => instance_variable_get(var))
-        end
+        Hash[_instance_variables.map do |var|
+          [var[1..-1].to_sym, instance_variable_get(var)]
+        end]
       end
 
       def _routes
