@@ -509,20 +509,19 @@ module ActiveRecord
 
         seen = Hash.new false
 
-        migrations = files.inject([]) do |klasses, file|
+        migrations = files.map do |file|
           version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
-          name = name.camelize
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
+          name = name.camelize
 
           raise DuplicateMigrationVersionError.new(version) if seen[version]
           raise DuplicateMigrationNameError.new(name) if seen[[name, scope]]
 
           seen[version] = seen[[name, scope]] = true
 
-          migration = MigrationProxy.new(name, version, file, scope)
-          klasses << migration
+          MigrationProxy.new(name, version, file, scope)
         end
 
         migrations.sort_by(&:version)
