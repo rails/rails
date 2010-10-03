@@ -52,7 +52,18 @@ module ActiveRecord
     self.enabled = false
 
     module InstanceMethods
+      # Reinitialize an Identity Map model object from +coder+.
+      # +coder+ must contain the attributes necessary for initializing an empty
+      # model object.
+      def reinit_with(coder)
+        @previously_changed = changes
+        @attributes_cache, @changed_attributes = {}, {}
+        @attributes.update(coder['attributes'])
 
+        _run_find_callbacks
+
+        self
+      end
     end
 
     module ClassMethods

@@ -878,42 +878,25 @@ module ActiveRecord #:nodoc:
           finder_needs_type_condition? ? @relation.where(type_condition) : @relation
         end
 
-        def instantiate_without_im(object, record)
-          object.instance_variable_set(:@attributes, record)
-          object.instance_variable_set(:@attributes_cache, {})
-          object.instance_variable_set(:@new_record, false)
-          object.instance_variable_set(:@readonly, false)
-          object.instance_variable_set(:@destroyed, false)
-          object.instance_variable_set(:@marked_for_destruction, false)
-          object.instance_variable_set(:@previously_changed, {})
-          object.instance_variable_set(:@changed_attributes, {})
-
-          object
-        end
-
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
         def instantiate(record)
           sti_class = find_sti_class(record[inheritance_column])
           record_id = sti_class.primary_key && record[sti_class.primary_key]
+
           if ActiveRecord::IdentityMap.enabled? && record_id
-            if object = identity_map.get(sti_class.name, record_id)
-              object.instance_variable_get("@attributes_cache").replace({})
-              object.instance_variable_get("@changed_attributes").update(record.slice(*object.changed))
-              object.instance_variable_get("@attributes").update(record.except(*object.changed))
+            if instance = identity_map.get(sti_class.name, record_id)
+              instance.reinit_with('attributes' => record)
             else
-              object = instantiate_without_im(sti_class.allocate, record)
-              identity_map.add(object)
+              instance = sti_class.allocate.init_with('attributes' => record)
+              identity_map.add(instance)
             end
           else
-            object = instantiate_without_im(sti_class.allocate, record)
+            instance = sti_class.allocate.init_with('attributes' => record)
           end
 
-          object.send(:_run_find_callbacks)
-          object.send(:_run_initialize_callbacks)
-
-          object
+          instance
         end
 
         def find_sti_class(type_name)
@@ -1452,6 +1435,8 @@ MSG
         @persisted = true
         _run_find_callbacks
         _run_initialize_callbacks
+
+        self
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
