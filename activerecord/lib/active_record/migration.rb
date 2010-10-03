@@ -507,6 +507,8 @@ module ActiveRecord
       def migrations(path)
         files = Dir["#{path}/[0-9]*_*.rb"]
 
+        seen = Hash.new false
+
         migrations = files.inject([]) do |klasses, file|
           version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
           name = name.camelize
@@ -514,13 +516,10 @@ module ActiveRecord
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
 
-          if klasses.detect { |m| m.version == version }
-            raise DuplicateMigrationVersionError.new(version)
-          end
+          raise DuplicateMigrationVersionError.new(version) if seen[version]
+          raise DuplicateMigrationNameError.new(name) if seen[[name, scope]]
 
-          if klasses.detect { |m| m.name == name && m.scope == scope }
-            raise DuplicateMigrationNameError.new(name)
-          end
+          seen[version] = seen[[name, scope]] = true
 
           migration = MigrationProxy.new(name, version, file, scope)
           klasses << migration
