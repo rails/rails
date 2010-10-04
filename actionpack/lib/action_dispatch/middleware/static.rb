@@ -6,13 +6,13 @@ module ActionDispatch
       @at, @root = at.chomp('/'), root.chomp('/')
       @compiled_at = (Regexp.compile(/^#{Regexp.escape(at)}/) unless @at.blank?)
       @compiled_root = Regexp.compile(/^#{Regexp.escape(root)}/)
-      @file_server = ::Rack::File.new(root)
+      @file_server = ::Rack::File.new(@root)
     end
 
     def match?(path)
       path = path.dup
-      if @compiled_at.blank? || path.sub!(@compiled_at, '')
-        full_path = File.join(@root, ::Rack::Utils.unescape(path))
+      if !@compiled_at || path.sub!(@compiled_at, '')
+        full_path = path.empty? ? @root : File.join(@root, ::Rack::Utils.unescape(path))
         paths = "#{full_path}#{ext}"
 
         matches = Dir[paths]
