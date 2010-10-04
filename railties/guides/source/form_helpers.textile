@@ -67,7 +67,7 @@ A basic search form
 <% end %>
 </html>
 
-TIP: +search_path+ can be a named route specified in "routes.rb": <br /><tt>map.search "search", :controller => "search"</tt>
+TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code>This declares for path "/search" to call action "search" from controller "search".
 
 The above view code will result in the following markup:
 
