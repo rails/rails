@@ -975,7 +975,7 @@ module ActiveRecord
         def select(sql, name = nil)
           fields, rows = select_raw(sql, name)
           rows.map do |row|
-            Hash[*fields.zip(row).flatten]
+            Hash[fields.zip(row)]
           end
         end
 
