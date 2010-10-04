@@ -9,8 +9,9 @@ module ActiveResource
     end
 
     module InstanceMethods
-      def set_resource_instance_variable(resource, default_value = nil)
-        if !instance_variable_defined?("@#{resource}")
+      def set_resource_instance_variable(resource, force_reload = false)
+        if !instance_variable_defined?("@#{resource}") or
+            instance_variable_defined?("@#{resource}").nil? or force_reload
           instance_variable_set("@#{resource}", yield)
         end
         instance_variable_get("@#{resource}")
@@ -44,11 +45,12 @@ module ActiveResource
       def has_one(resource, opts = {})
         o  = options(:has_one, resource)
 
-
         # Define accessor method for resource
         #
-        define_method(resource) do
-          set_resource_instance_variable(resource) do
+        define_method(resource) do |*force_reload|
+          force_reload = force_reload.first || false
+
+          set_resource_instance_variable(resource, force_reload) do
             o[:klass].constantize.find(:first, :params => { o[:association_col] => id })
           end
         end
@@ -70,10 +72,14 @@ module ActiveResource
 
         # Define accessor method for resource
         #
-        define_method(resource) do
+        define_method(resource) do |*force_reload|
+          force_reload = force_reload.first || false
+
           association_col = send o[:association_col]
           return nil if association_col.nil?
-          set_resource_instance_variable(resource){ o[:klass].constantize.find(association_col) }
+          set_resource_instance_variable(resource, force_reload){
+            o[:klass].constantize.find(association_col)
+          }
         end
 
         # Define writter method for resource
@@ -89,17 +95,17 @@ module ActiveResource
       def has_many(resource, opts = {})
         o  = options(:has_many, resource)
 
-
         # Define accessor method for resource
         #
-        define_method(resource) do
+        define_method(resource) do |*force_reload|
+          force_reload = force_reload.first || false
 
-          result = o[:klass].constantize.find(:all,
-                   :params => { o[:association_col] => id }) || []
+          set_resource_instance_variable(resource, force_reload) {
+            result = o[:klass].constantize.find(:all,
+                     :params => { o[:association_col] => id }) || []
 
-        set_resource_instance_variable(resource) {
-          AssociationCollection.new result, self, o[:association_col]
-        }
+             AssociationCollection.new result, self, o[:association_col]
+          }
         end
 
         define_method("#{resource}=") do |new_collection|
