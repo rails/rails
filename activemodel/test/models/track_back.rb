@@ -1,7 +1,7 @@
 class Post
   class TrackBack
     def to_model
-      NamedTrackBack.new(self)
+      NamedTrackBack.new
     end
   end
 
