@@ -41,27 +41,20 @@ module ActiveResource
         resource.camelize
       end
 
-      #######################################################################
-      # has_one association
-      #
-
       def has_one(resource, opts = {})
         o  = options(:has_one, resource)
 
-        #----------------------------------------------------------------------#
-        #   Define accessor method for resource
+
+        # Define accessor method for resource
         #
-        #----------------------------------------------------------------------#
         define_method(resource) do
           set_resource_instance_variable(resource) do
             o[:klass].constantize.find(:first, :params => { o[:association_col] => id })
           end
         end
 
-        #----------------------------------------------------------------------#
         # Define writter method for resource
         #
-        #----------------------------------------------------------------------#
         define_method("#{resource}=") do |new_resource|
           if send(resource).blank?
             new_resource.send("#{o[:association_col]}=", id)
@@ -72,27 +65,19 @@ module ActiveResource
         end
       end
 
-      #######################################################################
-      # belongs_to association
-      #
-
       def belongs_to(resource, opts = {})
         o  = options(:belongs_to, resource)
 
-        #----------------------------------------------------------------------#
-        #   Define accessor method for resource
+        # Define accessor method for resource
         #
-        #----------------------------------------------------------------------#
         define_method(resource) do
           association_col = send o[:association_col]
           return nil if association_col.nil?
           set_resource_instance_variable(resource){ o[:klass].constantize.find(association_col) }
         end
 
-        #----------------------------------------------------------------------#
         # Define writter method for resource
         #
-        #----------------------------------------------------------------------#
         define_method("#{resource}=") do |new_resource|
           if send(o[:association_col]) != new_resource.id
             send "#{o[:association_col]}=", new_resource.id
@@ -101,17 +86,12 @@ module ActiveResource
         end
       end
 
-      #######################################################################
-      # has_many association
-      #
-
       def has_many(resource, opts = {})
         o  = options(:has_many, resource)
 
-        #----------------------------------------------------------------------#
-        #   Define accessor method for resource
+
+        # Define accessor method for resource
         #
-        #----------------------------------------------------------------------#
         define_method(resource) do
 
           result = o[:klass].constantize.find(:all,
