@@ -1,3 +1,5 @@
+require 'active_resource/associations/association_collection'
+
 module ActiveResource
   module Associations
 
@@ -112,32 +114,12 @@ module ActiveResource
         #----------------------------------------------------------------------#
         define_method(resource) do
 
-          collection = set_resource_instance_variable(resource) {
-            o[:klass].constantize.find(:all,
-            :params => { o[:association_col] => id }) || []
-          }
+          result = o[:klass].constantize.find(:all,
+                   :params => { o[:association_col] => id }) || []
 
-          instance_eval "
-          def collection.<<(member)
-            member.#{o[:association_col]} = #{id}
-            member.save
-            super(member)
-          end"
-
-          instance_eval "
-          def collection.delete(member)
-            member.#{o[:association_col]} = nil
-            member.save
-            super(member)
-          end"
-
-          instance_eval "
-          def collection.clear
-            self.each{|member| delete(member)}
-            super
-          end"
-
-          collection
+        set_resource_instance_variable(resource) {
+          AssociationCollection.new result, self, o[:association_col]
+        }
         end
 
         define_method("#{resource}=") do |new_collection|
