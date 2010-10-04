@@ -103,7 +103,7 @@ module ActionView
       end
 
       def render(options = {}, local_assigns = {}, &block)
-        view.assign(_assigns)
+        view.assign(view_assigns)
         @rendered << output = view.render(options, local_assigns, &block)
         output
       end
@@ -166,15 +166,19 @@ module ActionView
 
       alias_method :_view, :view
 
-      EXCLUDE_IVARS = %w{
+      INTERNAL_IVARS = %w{
+        @__name__
         @_assertion_wrapped
+        @_assertions
         @_result
+        @_routes
         @controller
         @layouts
         @locals
         @method_name
         @output_buffer
         @partials
+        @passed
         @rendered
         @request
         @routes
@@ -184,14 +188,24 @@ module ActionView
         @view_context_class
       }
 
-      def _instance_variables
-        instance_variables.map(&:to_s) - EXCLUDE_IVARS
+      def _user_defined_ivars
+        instance_variables.map(&:to_s) - INTERNAL_IVARS
+      end
+
+      # Returns a Hash of instance variables and their values, as defined by
+      # the user in the test case, which are then assigned to the view being
+      # rendered. This is generally intended for internal use and extension
+      # frameworks.
+      def view_assigns
+        Hash[_user_defined_ivars.map do |var|
+          [var[1..-1].to_sym, instance_variable_get(var)]
+        end]
       end
 
       def _assigns
-        Hash[_instance_variables.map do |var|
-          [var[1..-1].to_sym, instance_variable_get(var)]
-        end]
+        ActiveSupport::Deprecation.warn "ActionView::TestCase#_assigns is deprecated and will be removed in future versions. " <<
+          "Please use view_assigns instead."
+        view_assigns
       end
 
       def _routes
