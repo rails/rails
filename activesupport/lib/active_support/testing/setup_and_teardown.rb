@@ -23,7 +23,7 @@ module ActiveSupport
             run_callbacks :setup
             result = super
           rescue Exception => e
-            result = runner.puke(self.class, self.name, e)
+            result = runner.puke(self.class, self.__name__, e)
           ensure
             begin
               run_callbacks :teardown, :enumerator => :reverse_each
