@@ -31,6 +31,13 @@ module ActionDispatch
       def generate_sid
         ActiveSupport::SecureRandom.hex(16)
       end
+
+    protected
+
+      def initialize_sid
+        @default_options.delete(:sidbits)
+        @default_options.delete(:secure_random)
+      end
     end
 
     module StaleSessionCheck
