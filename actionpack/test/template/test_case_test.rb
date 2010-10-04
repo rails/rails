@@ -120,7 +120,8 @@ module ActionView
     test "_assigns returns a Hash of local ivars" do
       @a = 'b'
       @c = 'd'
-      assert_equal({:a => 'b', :c => 'd'}, _assigns)
+      assert_equal 'b', _assigns[:a]
+      assert_equal 'd', _assigns[:c]
     end
   end
 
