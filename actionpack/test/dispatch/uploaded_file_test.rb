@@ -21,5 +21,23 @@ module ActionDispatch
       uf = Http::UploadedFile.new(:tempfile => 'foo')
       assert_equal 'foo', uf.tempfile
     end
+
+    def test_delegates_to_tempfile
+      tf = Class.new { def tenderlove; 'thunderhorse' end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse', uf.tenderlove
+    end
+
+    def test_delegates_to_tempfile_with_params
+      tf = Class.new { def tenderlove *args; args end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal %w{ thunder horse }, uf.tenderlove(*%w{ thunder horse })
+    end
+
+    def test_delegates_to_tempfile_with_block
+      tf = Class.new { def tenderlove; yield end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal('thunderhorse', uf.tenderlove { 'thunderhorse' })
+    end
   end
 end
