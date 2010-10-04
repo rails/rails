@@ -101,10 +101,6 @@ module ActionController #:nodoc:
       #   send_data image.data, :type => image.content_type, :disposition => 'inline'
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
-      #
-      # <b>Tip:</b> if you want to stream large amounts of on-the-fly generated
-      # data to the browser, then use <tt>render :text => proc { ... }</tt>
-      # instead. See ActionController::Base#render for more information.
       def send_data(data, options = {}) #:doc:
         send_file_headers! options.dup
         render options.slice(:status, :content_type).merge(:text => data)
