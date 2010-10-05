@@ -13,13 +13,16 @@ module ActionDispatch
         raise(ArgumentError, ':tempfile is required') unless @tempfile
       end
 
-      def respond_to?(name)
-        super || @tempfile.respond_to?(name)
+      def read(*args)
+        @tempfile.read(*args)
       end
 
-      def method_missing(name, *args, &block)
-        return super unless respond_to?(name)
-        @tempfile.send(name, *args, &block)
+      def rewind
+        @tempfile.rewind
+      end
+
+      def size
+        @tempfile.size
       end
     end
 
