@@ -26,11 +26,10 @@ h5. When are Objects Saved?
 Use same typography as in regular text:
 
 <plain>
-h3. Brief Note About +Test::Unit+
 h6. The +:content_type+ Option
 </plain>
 
-h3. API Documentation Guidelides
+h3. API Documentation Guidelines
 
 The guides and the API should be coherent where appropriate. Please have a look at these particular sections of the "API Documentation Guidelines":api_documentation_guidelines.html:
 
