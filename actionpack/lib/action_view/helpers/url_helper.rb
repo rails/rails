@@ -487,24 +487,25 @@ module ActionView
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
 
-        string = ''
-
-        if encode == "javascript"
-          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))}');".each_byte do |c|
-            string << sprintf("%%%x", c)
-          end
+        case encode
+        when "javascript"
+          string =
+            "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))}');".unpack('C*').map { |c|
+            sprintf("%%%x", c)
+          }.join
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
-        elsif encode == "hex"
+        when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
             sprintf("&#%d;", c)
           }.join
 
-          string += 'mailto:'.unpack('C*').map { |c| sprintf("&#%d;", c) }.join
-
-          string += email_address.unpack('C*').map do |c|
+          string = 'mailto:'.unpack('C*').map { |c|
+            sprintf("&#%d;", c)
+          }.join + email_address.unpack('C*').map { |c|
             char = c.chr
             char =~ /\w/ ? sprintf("%%%x", c) : char
-          end.join
+          }.join
+
           content_tag "a", name || email_address_encoded.html_safe, html_options.merge("href" => "#{string}#{extras}".html_safe)
         else
           content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
