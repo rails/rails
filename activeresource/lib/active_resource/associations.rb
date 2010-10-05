@@ -3,10 +3,10 @@ require 'active_resource/associations/association_collection'
 module ActiveResource
   module Associations
 
-    # Active Resource Associations works in the same way than Active Rescord
+    # Active Resource Associations works in the same way than Active Record
     # associations, it follows the same coventions and method names.
-    # At the moment it support only one to one and one to many associations,
-    # many to many associations are not implemented yet.
+    # At the moment it support only one-to-one and one-to-many associations,
+    # many-to-many associations are not implemented yet.
     #
     # An example of use:
     #
@@ -34,20 +34,18 @@ module ActiveResource
     #   other=(other)                     |     X      |      X       |    X
     #
     # ===Collection associations (one-to-many)
-    #                                     |       |          | has_many
-    #   generated methods                 | habtm | has_many | :through
-    #   ----------------------------------+-------+----------+----------
-    #   others                            |   X   |    X     |    X
-    #   others=(other,other,...)          |   X   |    X     |    X
-    #   others<<                          |   X   |    X     |    X
-    #   others.push                       |   X   |    X     |    X
-    #   others.concat                     |   X   |    X     |    X
-    #   others.size                       |   X   |    X     |    X
-    #   others.length                     |   X   |    X     |    X
-    #   others.count                      |   X   |    X     |    X
-    #   others.empty?                     |   X   |    X     |    X
-    #   others.clear                      |   X   |    X     |    X
-    #   others.delete(other)              |   X   |    X     |    X
+    #
+    #   generated methods (only one-to-many)
+    #   --------------------------
+    #   others
+    #   others=[other,other]
+    #   others<<
+    #   others.size
+    #   others.length
+    #   others.count
+    #   others.empty?
+    #   others.clear
+    #   others.delete(other)
     #
     #
     # === One-to-one
@@ -100,8 +98,8 @@ module ActiveResource
     #
     # === Cache
     #
-    # * Every associations set an instance variable over the base resource and works
-    #   with a simple cache that keep teh result of the last fetch of the resource
+    # * Every association set an instance variable over the base resource and works
+    #   with a simple cache that keep the result of the last fetched resource
     #   unless you specifically instructed not to.
     #
     #    project.milestones             # fetches milestones resources
@@ -117,8 +115,7 @@ module ActiveResource
 
     module InstanceMethods
       def set_resource_instance_variable(resource, force_reload = false)
-        if !instance_variable_defined?("@#{resource}") or
-            instance_variable_defined?("@#{resource}").nil? or force_reload
+        if !instance_variable_defined?("@#{resource}") or force_reload
           instance_variable_set("@#{resource}", yield)
         end
         instance_variable_get("@#{resource}")
