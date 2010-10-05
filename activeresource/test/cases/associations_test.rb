@@ -138,7 +138,6 @@ class AssociationsTest < Test::Unit::TestCase
 
     @project.milestones = [@milestone, @other_milestone]
     assert_equal [@milestone, @other_milestone], @project.milestones
-    puts @project.milestones.inspect
   end
 
 end
