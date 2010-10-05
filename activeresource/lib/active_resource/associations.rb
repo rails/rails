@@ -42,11 +42,9 @@ module ActiveResource
     #   others<<
     #   others.size
     #   others.length
-    #   others.count
     #   others.empty?
     #   others.clear
     #   others.delete(other)
-    #
     #
     # === One-to-one
     #
