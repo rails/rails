@@ -55,6 +55,11 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost
 
   alias_method :secret?, :secret
 
+  def initialize(*args)
+    super
+    @persisted = false
+  end
+
   def persisted=(boolean)
     @persisted = boolean
   end
