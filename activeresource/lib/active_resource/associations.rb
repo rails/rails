@@ -62,6 +62,11 @@ module ActiveResource
     #     has_one :project_manager
     #   end
     #
+    #   @project = Project.find(1)
+    #   @project.project_manager = ProjectManager.find(3)
+    #   @project.project_manager #=> #<ProjectManager:0x7fb91bb05708 @persisted=true,
+    #            @attributes={"name"=>"David", "project_id"=>1, "id"=>5}, @prefix_options={}>
+    #
     #
     # === One-to-many
     #
