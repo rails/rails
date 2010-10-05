@@ -9,7 +9,6 @@ module ActiveResource
     #
     # An example of use:
     #
-    #
     #   class Project < ActiveRecord::Base
     #     self.site = "http://37s.sunrise.i:3000"
     #
@@ -49,21 +48,33 @@ module ActiveResource
     #   others.clear                      |   X   |    X     |    X
     #   others.delete(other)              |   X   |    X     |    X
     #
-    # == Cardinality and associations
-    #
-    # Active Resource follow the same conventions like Active Record
     #
     # === One-to-one
     #
-    # TODO
+    #  Use has_one in the base, and belongs_to in the associated model.
+    #
+    #   class ProjectManager < ActiveResource::Base
+    #     self.site = "http://37s.sunrise.i:3000"
+    #     belongs_to :project
+    #   end
+    #
+    #   class Project < ActiveResource::Base
+    #     self.site = "http://37s.sunrise.i:3000"
+    #     has_one :project_manager
+    #   end
+    #
     #
     # === One-to-many
     #
-    # TODO
+    # Use has_many in the base, and belongs_to in the associated model.
     #
-    # === Many-to-many
-    #   class Project < ActiveRecord::Base
-    #      has_many :milestones
+    #   class Project < ActiveResource::Base
+    #     self.site = "http://37s.sunrise.i:3000"
+    #     has_many :milestones
+    #   end
+    #
+    #   class Milestone < ActiveResource::Base
+    #     self.site = "http://37s.sunrise.i:3000"
     #   end
     #
     #   @milestone = Milestone.find(2)
@@ -86,11 +97,17 @@ module ActiveResource
     #
     # * Adding an object to a collection (+has_many+) automatically saves that resource.
     #
-    # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar)
-    # fails, then <tt>push</tt> returns +false+.
-    #
     # === Cache
     #
+    # * Every associations set an instance variable over the base resource and works
+    #   with a simple cache that keep teh result of the last fetch of the resource
+    #   unless you specifically instructed not to.
+    #
+    #    project.milestones             # fetches milestones resources
+    #    project.milestones.size        # uses the milestone cache
+    #    project.milestones.empty?      # uses the milestone cache
+    #    project.milestones(true).size  # fetches milestones from the database
+    #    project.milestones             # uses the milestone cache
     #
     def self.included(klass)
       klass.send :include, InstanceMethods
