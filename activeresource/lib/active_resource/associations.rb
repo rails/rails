@@ -3,6 +3,95 @@ require 'active_resource/associations/association_collection'
 module ActiveResource
   module Associations
 
+    # Active Resource Associations works in the same way than Active Rescord
+    # associations, it follows the same coventions and method names.
+    # At the moment it support the 3 mains: has_one, belongs_to and has_many.
+    #
+    # An example of use:
+    #
+    #
+    #   class Project < ActiveRecord::Base
+    #     self.site = "http://37s.sunrise.i:3000"
+    #
+    #     belongs_to              :portfolio
+    #     has_one                 :project_manager
+    #     has_many                :milestones
+    #   end
+    #
+    # The project class now has the following methods in order to manipulate the relationships:
+    # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
+    # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
+    # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone), Project#milestone.delete(milestone)</tt>
+    #
+    #
+    # == Auto-generated methods
+    #
+    # === Singular associations (one-to-one)
+    #                                     |            |  belongs_to  |
+    #   generated methods                 | belongs_to | :polymorphic | has_one
+    #   ----------------------------------+------------+--------------+---------
+    #   other                             |     X      |      X       |    X
+    #   other=(other)                     |     X      |      X       |    X
+    #
+    # ===Collection associations (one-to-many)
+    #                                     |       |          | has_many
+    #   generated methods                 | habtm | has_many | :through
+    #   ----------------------------------+-------+----------+----------
+    #   others                            |   X   |    X     |    X
+    #   others=(other,other,...)          |   X   |    X     |    X
+    #   others<<                          |   X   |    X     |    X
+    #   others.push                       |   X   |    X     |    X
+    #   others.concat                     |   X   |    X     |    X
+    #   others.size                       |   X   |    X     |    X
+    #   others.length                     |   X   |    X     |    X
+    #   others.count                      |   X   |    X     |    X
+    #   others.empty?                     |   X   |    X     |    X
+    #   others.clear                      |   X   |    X     |    X
+    #   others.delete(other)              |   X   |    X     |    X
+    #
+    # == Cardinality and associations
+    #
+    # Active Resource follow the same conventions like Active Record
+    #
+    # === One-to-one
+    #
+    # TODO
+    #
+    # === One-to-many
+    #
+    # TODO
+    #
+    # === Many-to-many
+    #   class Project < ActiveRecord::Base
+    #      has_many :milestones
+    #   end
+    #
+    #   @milestone = Milestone.find(2)
+    #   @project   = Project.find(1)
+    #   @project.milestones << @milestone
+    #
+    #   This will set the @milestone.milestone_id to @project.id
+    #   and save @milestone, then when you call @project.milestones
+    #   will return an AssociationCollection list with the recently milestone added
+    #   included.
+    #
+    #   @project.milestones #=>[#<Milestone:0x7f8b3134ac88 @persisted=true,
+    #                    @attributes={"title"=>"pre", "project_id"=>nil, "id"=>1},
+    #                    @prefix_options={}>, #<Milestone:0x7f8b31324768 @errors=#<OrderedHash {}>,
+    #                    @validation_context=nil, @persisted=true, @attributes={"title"=>"rc other",
+    #                    "project_id"=>nil, "id"=>2}, @remote_errors=nil, @prefix_options={}>]
+    #
+    #
+    # === Collections
+    #
+    # * Adding an object to a collection (+has_many+) automatically saves that resource.
+    #
+    # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar)
+    # fails, then <tt>push</tt> returns +false+.
+    #
+    # === Cache
+    #
+    #
     def self.included(klass)
       klass.send :include, InstanceMethods
       klass.extend ClassMethods
