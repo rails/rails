@@ -29,36 +29,30 @@ module ActionDispatch
     end
 
     def test_delegates_to_tempfile
-      tf = Class.new { def tenderlove; 'thunderhorse' end }
+      tf = Class.new { def read; 'thunderhorse' end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
-      assert_equal 'thunderhorse', uf.tenderlove
+      assert_equal 'thunderhorse', uf.read
     end
 
     def test_delegates_to_tempfile_with_params
-      tf = Class.new { def tenderlove *args; args end }
+      tf = Class.new { def read *args; args end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
-      assert_equal %w{ thunder horse }, uf.tenderlove(*%w{ thunder horse })
-    end
-
-    def test_delegates_to_tempfile_with_block
-      tf = Class.new { def tenderlove; yield end }
-      uf = Http::UploadedFile.new(:tempfile => tf.new)
-      assert_equal('thunderhorse', uf.tenderlove { 'thunderhorse' })
+      assert_equal %w{ thunder horse }, uf.read(*%w{ thunder horse })
     end
 
     def test_delegate_respects_respond_to?
-      tf = Class.new { def tenderlove; yield end; private :tenderlove }
+      tf = Class.new { def read; yield end; private :read }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
       assert_raises(NoMethodError) do
-        uf.tenderlove
+        uf.read
       end
     end
 
     def test_respond_to?
-      tf = Class.new { def tenderlove; yield end }
+      tf = Class.new { def read; yield end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
       assert uf.respond_to?(:headers), 'responds to headers'
-      assert uf.respond_to?(:tenderlove), 'responds to tenderlove'
+      assert uf.respond_to?(:read), 'responds to read'
     end
   end
 end
