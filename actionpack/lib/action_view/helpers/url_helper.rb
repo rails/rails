@@ -476,18 +476,16 @@ module ActionView
 
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode").to_s
-        cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
 
-        extras = []
-        extras << "cc=#{Rack::Utils.escape(cc).gsub("+", "%20")}" unless cc.nil?
-        extras << "bcc=#{Rack::Utils.escape(bcc).gsub("+", "%20")}" unless bcc.nil?
-        extras << "body=#{Rack::Utils.escape(body).gsub("+", "%20")}" unless body.nil?
-        extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}" unless subject.nil?
+        extras = %w{ cc bcc body subject }.map { |item|
+          option = html_options.delete(item) || next
+          "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
+        }.compact
         extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
 
         email_address_obfuscated = email_address.dup
-        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
-        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
+        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
+        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
 
         string = ''
 
