@@ -13,7 +13,12 @@ module ActionDispatch
         raise(ArgumentError, ':tempfile is required') unless @tempfile
       end
 
+      def respond_to?(name)
+        super || @tempfile.respond_to?(name)
+      end
+
       def method_missing(name, *args, &block)
+        return super unless respond_to?(name)
         @tempfile.send(name, *args, &block)
       end
     end

@@ -45,5 +45,20 @@ module ActionDispatch
       uf = Http::UploadedFile.new(:tempfile => tf.new)
       assert_equal('thunderhorse', uf.tenderlove { 'thunderhorse' })
     end
+
+    def test_delegate_respects_respond_to?
+      tf = Class.new { def tenderlove; yield end; private :tenderlove }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_raises(NoMethodError) do
+        uf.tenderlove
+      end
+    end
+
+    def test_respond_to?
+      tf = Class.new { def tenderlove; yield end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert uf.respond_to?(:headers), 'responds to headers'
+      assert uf.respond_to?(:tenderlove), 'responds to tenderlove'
+    end
   end
 end
