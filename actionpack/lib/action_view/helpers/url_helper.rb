@@ -495,13 +495,11 @@ module ActionView
           end
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
         elsif encode == "hex"
-          email_address_encoded = ''
-          email_address_obfuscated.each_byte do |c|
-            email_address_encoded << sprintf("&#%d;", c)
-          end
+          email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
+            sprintf("&#%d;", c)
+          }.join
 
-          protocol = 'mailto:'
-          protocol.each_byte { |c| string << sprintf("&#%d;", c) }
+          string += 'mailto:'.unpack('C*').map { |c| sprintf("&#%d;", c) }.join
 
           email_address.each_byte do |c|
             char = c.chr
