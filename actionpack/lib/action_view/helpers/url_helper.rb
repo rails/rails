@@ -501,10 +501,10 @@ module ActionView
 
           string += 'mailto:'.unpack('C*').map { |c| sprintf("&#%d;", c) }.join
 
-          email_address.each_byte do |c|
+          string += email_address.unpack('C*').map do |c|
             char = c.chr
-            string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
-          end
+            char =~ /\w/ ? sprintf("%%%x", c) : char
+          end.join
           content_tag "a", name || email_address_encoded.html_safe, html_options.merge("href" => "#{string}#{extras}".html_safe)
         else
           content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
