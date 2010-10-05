@@ -10,6 +10,7 @@ module ActionDispatch
         @content_type      = hash[:type]
         @headers           = hash[:head]
         @tempfile          = hash[:tempfile]
+        raise(ArgumentError, ':tempfile is required') unless @tempfile
       end
 
       def method_missing(name, *args, &block)
