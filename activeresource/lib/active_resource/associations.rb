@@ -5,7 +5,8 @@ module ActiveResource
 
     # Active Resource Associations works in the same way than Active Rescord
     # associations, it follows the same coventions and method names.
-    # At the moment it support the 3 mains: has_one, belongs_to and has_many.
+    # At the moment it support only one to one and one to many associations,
+    # many to many associations are not implemented yet.
     #
     # An example of use:
     #
