@@ -59,6 +59,15 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     assert_match /haml \[not found\]/, content
   end
 
+  def test_mailer_with_namedspaced_mailer
+    run_generator ["Farm::Animal", "moos"]
+    assert_file "app/mailers/farm/animal.rb" do |mailer|
+      assert_match /class Farm::Animal < ActionMailer::Base/, mailer
+      assert_match /en\.farm\.animal\.moos\.subject/, mailer
+    end
+    assert_file "app/views/farm/animal/moos.text.erb"
+  end
+
   def test_actions_are_turned_into_methods
     run_generator
 
