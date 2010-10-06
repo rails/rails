@@ -43,7 +43,7 @@ module Rails
     #   path.inspect      #=> ["app/controllers", "lib/controllers"]
     #
     # Notice that when you add a path using #add, the path object created already
-    # contains te path with the same path value given to #add. In some situations,
+    # contains the path with the same path value given to #add. In some situations,
     # you may not want this behavior, so you can give :with as option.
     #
     #   root.add "config/routes", :with => "config/routes.rb"
