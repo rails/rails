@@ -1,6 +1,7 @@
 require 'active_support'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/inheritable_attributes'
+require "active_support/core_ext/class/inheritable_class_instance_reader"
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/module/attr_accessor_with_default'
@@ -382,31 +383,6 @@ module ActiveResource
         @known_attributes ||= []
       end
 
-      # Gets the URI of the REST resources to map for this class.  The site variable is required for
-      # Active Resource's mapping to work.
-      def site
-        # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
-        #
-        # With superclass_delegating_reader
-        #
-        #   Parent.site = 'http://anonymous@test.com'
-        #   Subclass.site # => 'http://anonymous@test.com'
-        #   Subclass.site.user = 'david'
-        #   Parent.site # => 'http://david@test.com'
-        #
-        # Without superclass_delegating_reader (expected behaviour)
-        #
-        #   Parent.site = 'http://anonymous@test.com'
-        #   Subclass.site # => 'http://anonymous@test.com'
-        #   Subclass.site.user = 'david' # => TypeError: can't modify frozen object
-        #
-        if defined?(@site)
-          @site
-        elsif superclass != Object && superclass.site
-          superclass.site.dup.freeze
-        end
-      end
-
       # Sets the URI of the REST resources to map for this class to the value in the +site+ argument.
       # The site variable is required for Active Resource's mapping to work.
       def site=(site)
@@ -420,46 +396,16 @@ module ActiveResource
         end
       end
 
-      # Gets the \proxy variable if a proxy is required
-      def proxy
-        # Not using superclass_delegating_reader. See +site+ for explanation
-        if defined?(@proxy)
-          @proxy
-        elsif superclass != Object && superclass.proxy
-          superclass.proxy.dup.freeze
-        end
-      end
-
       # Sets the URI of the http proxy to the value in the +proxy+ argument.
       def proxy=(proxy)
         @connection = nil
         @proxy = proxy.nil? ? nil : create_proxy_uri_from(proxy)
       end
 
-      # Gets the \user for REST HTTP authentication.
-      def user
-        # Not using superclass_delegating_reader. See +site+ for explanation
-        if defined?(@user)
-          @user
-        elsif superclass != Object && superclass.user
-          superclass.user.dup.freeze
-        end
-      end
-
       # Sets the \user for REST HTTP authentication.
       def user=(user)
         @connection = nil
         @user = user
-      end
-
-      # Gets the \password for REST HTTP authentication.
-      def password
-        # Not using superclass_delegating_reader. See +site+ for explanation
-        if defined?(@password)
-          @password
-        elsif superclass != Object && superclass.password
-          superclass.password.dup.freeze
-        end
       end
 
       # Sets the \password for REST HTTP authentication.
@@ -507,15 +453,6 @@ module ActiveResource
         @timeout = timeout
       end
 
-      # Gets the number of seconds after which requests to the REST API should time out.
-      def timeout
-        if defined?(@timeout)
-          @timeout
-        elsif superclass != Object && superclass.timeout
-          superclass.timeout
-        end
-      end
-
       # Options that will get applied to an SSL connection.
       #
       # * <tt>:key</tt> - An OpenSSL::PKey::RSA or OpenSSL::PKey::DSA object.
@@ -530,15 +467,6 @@ module ActiveResource
       def ssl_options=(opts={})
         @connection   = nil
         @ssl_options  = opts
-      end
-
-      # Returns the SSL options hash.
-      def ssl_options
-        if defined?(@ssl_options)
-          @ssl_options
-        elsif superclass != Object && superclass.ssl_options
-          superclass.ssl_options
-        end
       end
 
       # An instance of ActiveResource::Connection that is the base \connection to the remote service.
@@ -948,7 +876,7 @@ module ActiveResource
           [ prefix_options, query_options ]
         end
     end
-
+    inheritable_class_instance_reader :site, :proxy,:user, :password,:timeout,:ssl_options
     attr_accessor :attributes #:nodoc:
     attr_accessor :prefix_options #:nodoc:
 
