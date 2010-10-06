@@ -120,11 +120,11 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal("Swistak Sreberkowiec", swistak.name)
   end
 
-  def test_loading_new_instance_should_change_dirty_attribute original_value
+  def test_loading_new_instance_should_change_dirty_attribute_original_value
     swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
     swistak.name = "Swistak Sreberkowiec"
 
-    Susbscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
+    Subscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
 
     s = Subscriber.find('swistak')
 
