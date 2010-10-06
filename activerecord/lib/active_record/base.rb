@@ -834,7 +834,7 @@ module ActiveRecord #:nodoc:
           if self == ActiveRecord::Base
             Arel::Table.engine
           else
-            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.arel_engine
+            connection_handler.connection_pools[name] ? self : superclass.arel_engine
           end
         end
       end
@@ -884,13 +884,9 @@ module ActiveRecord #:nodoc:
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
         def instantiate(record)
-          find_sti_class(record[inheritance_column]).allocate.instance_eval do
-            @attributes, @attributes_cache, @previously_changed, @changed_attributes = record, {}, {}, {}
-            @new_record = @readonly = @destroyed = @marked_for_destruction = false
-            _run_find_callbacks
-            _run_initialize_callbacks
-            self
-          end
+          model = find_sti_class(record[inheritance_column]).allocate
+          model.init_with('attributes' => record)
+          model
         end
 
         def find_sti_class(type_name)
@@ -1274,8 +1270,10 @@ MSG
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
-          builder = PredicateBuilder.new(arel_engine)
-          builder.build_from_hash(attrs, table).map{ |b| b.to_sql }.join(' AND ')
+          viz = Arel::Visitors.for(arel_engine)
+          PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
+            viz.accept b
+          }.join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 
@@ -1414,6 +1412,24 @@ MSG
         ensure_proper_type
 
         populate_with_current_scope_attributes
+      end
+
+      # Initialize an empty model object from +coder+.  +coder+ must contain
+      # the attributes necessary for initializing an empty model object.  For
+      # example:
+      #
+      #   class Post < ActiveRecord::Base
+      #   end
+      #
+      #   post = Post.allocate
+      #   post.init_with('attributes' => { 'title' => 'hello world' })
+      #   post.title # => 'hello world'
+      def init_with(coder)
+        @attributes = coder['attributes']
+        @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
+        @new_record = @readonly = @destroyed = @marked_for_destruction = false
+        _run_find_callbacks
+        _run_initialize_callbacks
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this

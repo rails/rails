@@ -975,7 +975,7 @@ module ActiveRecord
         def select(sql, name = nil)
           fields, rows = select_raw(sql, name)
           rows.map do |row|
-            Hash[*fields.zip(row).flatten]
+            Hash[fields.zip(row)]
           end
         end
 
@@ -1017,11 +1017,11 @@ module ActiveRecord
         end
 
         def extract_pg_identifier_from_name(name)
-          match_data = name[0,1] == '"' ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
+          match_data = name.start_with?('"') ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
 
           if match_data
-            rest = name[match_data[0].length..-1]
-            rest = rest[1..-1] if rest[0,1] == "."
+            rest = name[match_data[0].length, name.length]
+            rest = rest[1, rest.length] if rest.start_with? "."
             [match_data[1], (rest.length > 0 ? rest : nil)]
           end
         end

@@ -171,13 +171,13 @@ module ActionDispatch
           end
 
           def blocks
+            block = @scope[:blocks] || []
+
             if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
-              block = @options[:constraints]
-            else
-              block = nil
+              block << @options[:constraints]
             end
 
-            ((@scope[:blocks] || []) + [ block ]).compact
+            block
           end
 
           def constraints

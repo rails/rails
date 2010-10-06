@@ -81,6 +81,10 @@ module Rails
       super
     end
 
+    def reload_routes!
+      routes_reloader.reload!
+    end
+
     def routes_reloader
       @routes_reloader ||= RoutesReloader.new
     end
@@ -141,8 +145,8 @@ module Rails
         rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
 
         require "action_dispatch/http/rack_cache" if rack_cache
+        middleware.use ::Rack::Cache, rack_cache  if rack_cache
 
-        middleware.use ::Rack::Cache, rack_cache if rack_cache
         middleware.use ::ActionDispatch::Static, config.static_asset_paths if config.serve_static_assets
         middleware.use ::Rack::Lock if !config.allow_concurrency
         middleware.use ::Rack::Runtime
@@ -161,6 +165,8 @@ module Rails
         middleware.use ::ActionDispatch::ParamsParser
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::Head
+        middleware.use ::Rack::ConditionalGet
+        middleware.use ::Rack::ETag, "no-cache"
         middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support if config.action_dispatch.best_standards_support
       end
     end

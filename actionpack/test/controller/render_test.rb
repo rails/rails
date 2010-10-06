@@ -99,11 +99,6 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
-  def render_hello_world_with_etag_set
-    response.etag = "hello_world"
-    render :template => "test/hello_world"
-  end
-
   # :ported: compatibility
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
@@ -1384,119 +1379,6 @@ class ExpiresInRenderTest < ActionController::TestCase
     get :conditional_hello_with_expires_now
     assert_equal "no-cache", @response.headers["Cache-Control"]
   end
-end
-
-
-class EtagRenderTest < ActionController::TestCase
-  tests TestController
-
-  def setup
-    super
-    @request.host = "www.nextangle.com"
-    @expected_bang_etag = etag_for(expand_key([:foo, 123]))
-  end
-
-  def test_render_blank_body_shouldnt_set_etag
-    get :blank_response
-    assert !@response.etag?
-  end
-
-  def test_render_200_should_set_etag
-    get :render_hello_world_from_variable
-    assert_equal etag_for("hello david"), @response.headers['ETag']
-    assert_equal "max-age=0, private, must-revalidate", @response.headers['Cache-Control']
-  end
-
-  def test_render_against_etag_request_should_304_when_match
-    @request.if_none_match = etag_for("hello david")
-    get :render_hello_world_from_variable
-    assert_equal 304, @response.status.to_i
-    assert @response.body.empty?
-  end
-
-  def test_render_against_etag_request_should_have_no_content_length_when_match
-    @request.if_none_match = etag_for("hello david")
-    get :render_hello_world_from_variable
-    assert !@response.headers.has_key?("Content-Length")
-  end
-
-  def test_render_against_etag_request_should_200_when_no_match
-    @request.if_none_match = etag_for("hello somewhere else")
-    get :render_hello_world_from_variable
-    assert_equal 200, @response.status.to_i
-    assert !@response.body.empty?
-  end
-
-  def test_render_should_not_set_etag_when_last_modified_has_been_specified
-    get :render_hello_world_with_last_modified_set
-    assert_equal 200, @response.status.to_i
-    assert_not_nil @response.last_modified
-    assert_nil @response.etag
-    assert_present @response.body
-  end
-
-  def test_render_with_etag
-    get :render_hello_world_from_variable
-    expected_etag = etag_for('hello david')
-    assert_equal expected_etag, @response.headers['ETag']
-    @response = ActionController::TestResponse.new
-
-    @request.if_none_match = expected_etag
-    get :render_hello_world_from_variable
-    assert_equal 304, @response.status.to_i
-
-    @response = ActionController::TestResponse.new
-    @request.if_none_match = "\"diftag\""
-    get :render_hello_world_from_variable
-    assert_equal 200, @response.status.to_i
-  end
-
-  def render_with_404_shouldnt_have_etag
-    get :render_custom_code
-    assert_nil @response.headers['ETag']
-  end
-
-  def test_etag_should_not_be_changed_when_already_set
-    get :render_hello_world_with_etag_set
-    assert_equal etag_for("hello_world"), @response.headers['ETag']
-  end
-
-  def test_etag_should_govern_renders_with_layouts_too
-    get :builder_layout_test
-    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
-    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
-  end
-
-  def test_etag_with_bang_should_set_etag
-    get :conditional_hello_with_bangs
-    assert_equal @expected_bang_etag, @response.headers["ETag"]
-    assert_response :success
-  end
-
-  def test_etag_with_bang_should_obey_if_none_match
-    @request.if_none_match = @expected_bang_etag
-    get :conditional_hello_with_bangs
-    assert_response :not_modified
-  end
-
-  def test_etag_with_public_true_should_set_header
-    get :conditional_hello_with_public_header
-    assert_equal "public", @response.headers['Cache-Control']
-  end
-
-  def test_etag_with_public_true_should_set_header_and_retain_other_headers
-    get :conditional_hello_with_public_header_and_expires_at
-    assert_equal "max-age=60, public", @response.headers['Cache-Control']
-  end
-
-  protected
-    def etag_for(text)
-      %("#{Digest::MD5.hexdigest(text)}")
-    end
-
-    def expand_key(args)
-      ActiveSupport::Cache.expand_cache_key(args)
-    end
 end
 
 class LastModifiedRenderTest < ActionController::TestCase

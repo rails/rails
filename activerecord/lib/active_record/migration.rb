@@ -419,9 +419,12 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy
+  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
 
-    attr_accessor :name, :version, :filename, :scope
+    def initialize(name, version, filename, scope)
+      super
+      @migration = nil
+    end
 
     delegate :migrate, :announce, :write, :to=>:migration
 
@@ -504,26 +507,21 @@ module ActiveRecord
       def migrations(path)
         files = Dir["#{path}/[0-9]*_*.rb"]
 
-        migrations = files.inject([]) do |klasses, file|
+        seen = Hash.new false
+
+        migrations = files.map do |file|
           version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
+          name = name.camelize
 
-          if klasses.detect { |m| m.version == version }
-            raise DuplicateMigrationVersionError.new(version)
-          end
+          raise DuplicateMigrationVersionError.new(version) if seen[version]
+          raise DuplicateMigrationNameError.new(name) if seen[[name, scope]]
 
-          if klasses.detect { |m| m.name == name.camelize && m.scope == scope }
-            raise DuplicateMigrationNameError.new(name.camelize)
-          end
+          seen[version] = seen[[name, scope]] = true
 
-          migration = MigrationProxy.new
-          migration.name     = name.camelize
-          migration.version  = version
-          migration.filename = file
-          migration.scope    = scope
-          klasses << migration
+          MigrationProxy.new(name, version, file, scope)
         end
 
         migrations.sort_by(&:version)
@@ -570,7 +568,7 @@ module ActiveRecord
       current = migrations.detect { |m| m.version == current_version }
       target = migrations.detect { |m| m.version == @target_version }
 
-      if target.nil? && !@target_version.nil? && @target_version > 0
+      if target.nil? && @target_version && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
@@ -579,16 +577,18 @@ module ActiveRecord
       runnable = migrations[start..finish]
 
       # skip the last migration if we're headed down, but not ALL the way down
-      runnable.pop if down? && !target.nil?
+      runnable.pop if down? && target
 
       runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
+        seen = migrated.include?(migration.version.to_i)
+
         # On our way up, we skip migrating the ones we've already migrated
-        next if up? && migrated.include?(migration.version.to_i)
+        next if up? && seen
 
         # On our way down, we skip reverting the ones we've never migrated
-        if down? && !migrated.include?(migration.version.to_i)
+        if down? && !seen
           migration.announce 'never migrated, skipping'; migration.write
           next
         end

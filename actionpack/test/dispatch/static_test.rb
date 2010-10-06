@@ -2,30 +2,37 @@ require 'abstract_unit'
 
 module StaticTests
   def test_serves_dynamic_content
-    assert_equal "Hello, World!", get("/nofile")
+    assert_equal "Hello, World!", get("/nofile").body
   end
 
   def test_serves_static_index_at_root
-    assert_equal "/index.html", get("/index.html")
-    assert_equal "/index.html", get("/index")
-    assert_equal "/index.html", get("/")
+    assert_html "/index.html", get("/index.html")
+    assert_html "/index.html", get("/index")
+    assert_html "/index.html", get("/")
+    assert_html "/index.html", get("")
   end
 
   def test_serves_static_file_in_directory
-    assert_equal "/foo/bar.html", get("/foo/bar.html")
-    assert_equal "/foo/bar.html", get("/foo/bar/")
-    assert_equal "/foo/bar.html", get("/foo/bar")
+    assert_html "/foo/bar.html", get("/foo/bar.html")
+    assert_html "/foo/bar.html", get("/foo/bar/")
+    assert_html "/foo/bar.html", get("/foo/bar")
   end
 
   def test_serves_static_index_file_in_directory
-    assert_equal "/foo/index.html", get("/foo/index.html")
-    assert_equal "/foo/index.html", get("/foo/")
-    assert_equal "/foo/index.html", get("/foo")
+    assert_html "/foo/index.html", get("/foo/index.html")
+    assert_html "/foo/index.html", get("/foo/")
+    assert_html "/foo/index.html", get("/foo")
   end
 
   private
+
+    def assert_html(body, response)
+      assert_equal body, response.body
+      assert_equal "text/html", response.headers["Content-Type"]
+    end
+
     def get(path)
-      Rack::MockRequest.new(@app).request("GET", path).body
+      Rack::MockRequest.new(@app).request("GET", path)
     end
 end
 
@@ -59,16 +66,16 @@ class MultipleDirectorisStaticTest < ActiveSupport::TestCase
   include StaticTests
 
   test "serves files from other mounted directories" do
-    assert_equal "/blog/index.html", get("/blog/index.html")
-    assert_equal "/blog/index.html", get("/blog/index")
-    assert_equal "/blog/index.html", get("/blog/")
+    assert_html "/blog/index.html", get("/blog/index.html")
+    assert_html "/blog/index.html", get("/blog/index")
+    assert_html "/blog/index.html", get("/blog/")
 
-    assert_equal "/blog/blog.html", get("/blog/blog/")
-    assert_equal "/blog/blog.html", get("/blog/blog.html")
-    assert_equal "/blog/blog.html", get("/blog/blog")
+    assert_html "/blog/blog.html", get("/blog/blog/")
+    assert_html "/blog/blog.html", get("/blog/blog.html")
+    assert_html "/blog/blog.html", get("/blog/blog")
 
-    assert_equal "/blog/subdir/index.html", get("/blog/subdir/index.html")
-    assert_equal "/blog/subdir/index.html", get("/blog/subdir/")
-    assert_equal "/blog/subdir/index.html", get("/blog/subdir")
+    assert_html "/blog/subdir/index.html", get("/blog/subdir/index.html")
+    assert_html "/blog/subdir/index.html", get("/blog/subdir/")
+    assert_html "/blog/subdir/index.html", get("/blog/subdir")
   end
 end

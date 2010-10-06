@@ -11,18 +11,6 @@ module ApplicationTests
       extend Rack::Test::Methods
     end
 
-    def app(env = "production")
-      old_env = ENV["RAILS_ENV"]
-
-      @app ||= begin
-        ENV["RAILS_ENV"] = env
-        require "#{app_path}/config/environment"
-        Rails.application
-      end
-    ensure
-      ENV["RAILS_ENV"] = old_env
-    end
-
     def simple_controller
       controller :expires, <<-RUBY
         class ExpiresController < ApplicationController

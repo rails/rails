@@ -167,7 +167,7 @@ end
 
 class IntegrationTestTest < Test::Unit::TestCase
   def setup
-    @test = ::ActionDispatch::IntegrationTest.new(:default_test)
+    @test = ::ActionDispatch::IntegrationTest.new(:app)
     @test.class.stubs(:fixture_table_names).returns([])
     @session = @test.open_session
   end

@@ -116,6 +116,37 @@ module ActionView
     end
   end
 
+  class AssignsTest < ActionView::TestCase
+    setup do
+      ActiveSupport::Deprecation.stubs(:warn)
+    end
+
+    test "_assigns delegates to user_defined_ivars" do
+      self.expects(:view_assigns)
+      _assigns
+    end
+
+    test "_assigns is deprecated" do
+      ActiveSupport::Deprecation.expects(:warn)
+      _assigns
+    end
+  end
+
+  class ViewAssignsTest < ActionView::TestCase
+    test "view_assigns returns a Hash of user defined ivars" do
+      @a = 'b'
+      @c = 'd'
+      assert_equal({:a => 'b', :c => 'd'}, view_assigns)
+    end
+
+    test "view_assigns excludes internal ivars" do
+      INTERNAL_IVARS.each do |ivar|
+        assert defined?(ivar), "expected #{ivar} to be defined"
+        assert !view_assigns.keys.include?(ivar.sub('@','').to_sym), "expected #{ivar} to be excluded from view_assigns"
+      end
+    end
+  end
+  
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper

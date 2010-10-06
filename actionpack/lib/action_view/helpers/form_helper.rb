@@ -791,7 +791,7 @@ module ActionView
           options["incremental"] = true unless options.has_key?("incremental")
         end
 
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("search", options)
+        InstanceTag.new(object_name, method, self, options.delete("object")).to_input_field_tag("search", options)
       end
 
       # Returns a text_field of type "tel".

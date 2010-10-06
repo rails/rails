@@ -1267,4 +1267,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal new_comment.type, "SpecialComment"
     assert_equal new_comment.post_id, posts(:welcome).id
   end
+
+  def test_include_method_in_has_many_association_should_return_true_for_instance_added_with_build
+    post = Post.new
+    comment = post.comments.build
+    assert post.comments.include?(comment)
+  end
 end

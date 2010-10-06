@@ -758,12 +758,12 @@ class ControllerWithSymbolAsFilter < PostsController
 
     def without_exception
       # Do stuff...
-      1 + 1
+      wtf = 1 + 1
 
       yield
 
       # Do stuff...
-      1 + 1
+      wtf += 1
     end
 end
 

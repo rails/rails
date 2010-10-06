@@ -8,7 +8,7 @@ module Rails
       def blocks
         @blocks ||= {}
       end
-    private
+
       def reload!
         clear!
         load_blocks
@@ -17,6 +17,8 @@ module Rails
       ensure
         revert
       end
+
+    protected
 
       def clear!
         routers.each do |routes|
@@ -32,7 +34,7 @@ module Rails
       end
 
       def load_paths
-          paths.each { |path| load(path) }
+        paths.each { |path| load(path) }
       end
 
       def finalize!

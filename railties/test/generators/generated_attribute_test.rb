@@ -117,7 +117,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_missing_type_raises_exception
     assert_raise Thor::Error do
-      create_generated_attribute(:'', 'title')
+      create_generated_attribute('', 'title')
     end
   end
 end

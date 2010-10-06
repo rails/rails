@@ -132,7 +132,7 @@ module ActionDispatch # :nodoc:
     # information.
     attr_accessor :charset, :content_type
 
-    CONTENT_TYPE    = "Content-Type"
+    CONTENT_TYPE = "Content-Type"
 
     cattr_accessor(:default_charset) { "utf-8" }
 

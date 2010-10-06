@@ -89,7 +89,7 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits")
       response = Rails.application.call(env)
 
-      assert_equal "HELLO WORLD", response[2]
+      assert_equal ["HELLO WORLD"], response[2]
     end
 
     test "it provides routes as default endpoint" do
@@ -116,8 +116,7 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = Rails.application.call(env)
-
-      assert_equal "foo", response[2]
+      assert_equal ["foo"], response[2]
     end
 
     test "engine can load its own plugins" do
@@ -379,15 +378,15 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/foo")
       response = Rails.application.call(env)
-      assert_equal "Something... Something... Something...", response[2].body
+      assert_equal ["Something... Something... Something..."], response[2]
 
       env = Rack::MockRequest.env_for("/foo/show")
       response = Rails.application.call(env)
-      assert_equal "/foo", response[2].body
+      assert_equal ["/foo"], response[2]
 
       env = Rack::MockRequest.env_for("/foo/bar")
       response = Rails.application.call(env)
-      assert_equal "It's a bar.", response[2].body
+      assert_equal ["It's a bar."], response[2]
     end
 
     test "isolated engine should include only its own routes and helpers" do
@@ -488,23 +487,23 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/from_app")
       response = AppTemplate::Application.call(env)
-      assert_equal "false", response[2].body
+      assert_equal ["false"], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/foo/show")
       response = AppTemplate::Application.call(env)
-      assert_equal "/bukkits/foo", response[2].body
+      assert_equal ["/bukkits/foo"], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = AppTemplate::Application.call(env)
-      assert_equal "Helped.", response[2].body
+      assert_equal ["Helped."], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/routes_helpers_in_view")
       response = AppTemplate::Application.call(env)
-      assert_equal "/bukkits/foo, /bar", response[2].body
+      assert_equal ["/bukkits/foo, /bar"], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/polymorphic_path_without_namespace")
       response = AppTemplate::Application.call(env)
-      assert_equal "/bukkits/posts/1", response[2].body
+      assert_equal ["/bukkits/posts/1"], response[2]
     end
 
     test "isolated engine should avoid namespace in names if that's possible" do

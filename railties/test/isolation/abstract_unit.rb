@@ -45,6 +45,17 @@ module TestHelpers
   end
 
   module Rack
+    def app(env = "production")
+      old_env = ENV["RAILS_ENV"]
+      @app ||= begin
+        ENV["RAILS_ENV"] = env
+        require "#{app_path}/config/environment"
+        Rails.application
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+
     def extract_body(response)
       "".tap do |body|
         response[2].each {|chunk| body << chunk }
@@ -122,6 +133,22 @@ module TestHelpers
 
       require 'rack/test'
       extend ::Rack::Test::Methods
+    end
+
+    def simple_controller
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render :text => "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match ':controller(/:action)'
+        end
+      RUBY
     end
 
     class Bukkit
