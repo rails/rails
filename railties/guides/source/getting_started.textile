@@ -110,7 +110,7 @@ Active Resource provides a framework for managing the connection between busines
 
 h5. Active Support
 
-Active Support is an extensive collection of utility classes and standard Ruby library extensions that are used in the Rails, both by the core code and by your applications.
+Active Support is an extensive collection of utility classes and standard Ruby library extensions that are used in Rails, both by the core code and by your applications.
 
 h5. Railties
 
@@ -175,7 +175,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 
 |_.File/Folder|_.Purpose|
 |Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application.|
-|README.rdoc|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
+|README|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
 |Rakefile|This file contains batch jobs that can be run from the terminal.|
 |app/|Contains the controllers, models, and views for your application. You'll focus on this folder for the remainder of this guide.|
 |config/|Configure your application's runtime rules, routes, database, and more.|
@@ -195,7 +195,7 @@ h4. Installing the Required Gems
 Rails applications manage gem dependencies with "Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
-bundle install
+# bundle install
 </shell>
 
 to have them ready.
@@ -316,7 +316,7 @@ The first step to doing this is to delete the default page from your application
 $ rm public/index.html
 </shell>
 
-We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic contact we generate from the controllers.
+We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic content we generate from the controllers.
 
 Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+, uncomment it and change it like the following:
 
@@ -352,7 +352,7 @@ NOTE. While scaffolding will get you up and running quickly, the "one size fits 
 The scaffold generator will build 15 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
 
 |_.File                                       |_.Purpose|
-|db/migrate/20100207214725_create_posts.rb.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
+|db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/models/post.rb                           |The Post model|
 |test/fixtures/posts.yml                      |Dummy posts for use in testing|
 |app/controllers/posts_controller.rb          |The Posts controller|
