@@ -140,7 +140,7 @@ class HttpMockTest < ActiveSupport::TestCase
     assert_equal 2, ActiveResource::HttpMock.responses.length
   end
 
-  test "allows you to add replace the existing reponese with the same path" do
+  test "allows you to replace the existing reponse with the same request" do
     ActiveResource::HttpMock.respond_to do |mock|
       mock.send(:get, "/people/1", {}, "XML1")
     end
@@ -153,6 +153,19 @@ class HttpMockTest < ActiveSupport::TestCase
     ActiveResource::HttpMock.respond_to({get_matz => ok_response}, false)
 
     assert_equal 1, ActiveResource::HttpMock.responses.length
+  end
+
+  test "do not replace the response with the same path but different method" do
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.send(:get, "/people/1", {}, "XML1")
+    end
+    assert_equal 1, ActiveResource::HttpMock.responses.length
+
+    put_matz = ActiveResource::Request.new(:put, '/people/1', nil)
+    ok_response = ActiveResource::Response.new("", 200, {})
+
+    ActiveResource::HttpMock.respond_to({put_matz => ok_response}, false)
+    assert_equal 2, ActiveResource::HttpMock.responses.length
   end
 
   def request(method, path, headers = {}, body = nil)
