@@ -25,7 +25,7 @@ module ActiveSupport
 
     DEFAULT_ENCODINGS = {
       "binary" => "base64"
-    } unless defined?(TYPE_NAMES)
+    } unless defined?(DEFAULT_ENCODINGS)
 
     TYPE_NAMES = {
       "Symbol"     => "symbol",
