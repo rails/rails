@@ -62,13 +62,13 @@ module Rails
     end
 
     initializer :handle_lib_autoload, :before => :set_load_path do |app|
-      paths = if app.config.reload_plugins
+      autoload = if app.config.reload_plugins
         config.autoload_paths
       else
         config.autoload_once_paths
       end
 
-      paths.concat config.paths.lib.to_a
+      autoload.concat paths["lib"].existent
     end
 
     initializer :load_init_rb, :before => :load_config_initializers do |app|

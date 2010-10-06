@@ -72,7 +72,7 @@ module Rails
     end
 
     def require_environment! #:nodoc:
-      environment = paths.config.environment.to_a.first
+      environment = paths["config/environment"].existent.first
       require environment if environment
     end
 

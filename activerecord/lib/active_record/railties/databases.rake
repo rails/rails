@@ -2,7 +2,7 @@ namespace :db do
   task :load_config => :rails_env do
     require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-    ActiveRecord::Migrator.migrations_path = Rails.application.config.paths.db.migrate.to_a.first
+    ActiveRecord::Migrator.migrations_path = Rails.application.paths["db/migrate"].first
   end
 
   task :copy_migrations => :load_config do
@@ -11,8 +11,8 @@ namespace :db do
     Rails.application.railties.all do |railtie|
       next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
-      if railtie.config.respond_to?(:paths) && railtie.config.paths.db
-        railties[railtie.railtie_name] = railtie.config.paths.db.migrate.to_a.first
+      if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
+        railties[railtie.railtie_name] = path
       end
     end
 

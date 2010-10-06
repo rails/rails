@@ -9,7 +9,7 @@ module Rails
                     :filter_parameters,  :log_level, :logger,
                     :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
-                    :time_zone, :whiny_nils
+                    :time_zone, :whiny_nils, :helpers_paths
 
       def initialize(*)
         super
@@ -17,6 +17,7 @@ module Rails
         @allow_concurrency = false
         @consider_all_requests_local = false
         @filter_parameters = []
+        @helpers_paths = []
         @dependency_loading = true
         @serve_static_assets = true
         @session_store = :cookie_store
@@ -60,13 +61,12 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.config.database     "config/database.yml"
-          paths.config.environment  "config/environment.rb"
-          paths.lib.templates       "lib/templates"
-          paths.log                 "log/#{Rails.env}.log"
-          paths.tmp                 "tmp"
-          paths.tmp.cache           "tmp/cache"
-
+          paths.add "config/database",    :with => "config/database.yml"
+          paths.add "config/environment", :with => "config/environment.rb"
+          paths.add "lib/templates"
+          paths.add "log",                :with => "log/#{Rails.env}.log"
+          paths.add "tmp"
+          paths.add "tmp/cache"
           paths
         end
       end
@@ -88,7 +88,7 @@ module Rails
       # YAML::load.
       def database_configuration
         require 'erb'
-        YAML::load(ERB.new(IO.read(paths.config.database.to_a.first)).result)
+        YAML::load(ERB.new(IO.read(paths["config/database"].first)).result)
       end
 
       def cache_store

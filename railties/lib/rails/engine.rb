@@ -90,17 +90,17 @@ module Rails
   # The available paths in an Engine are:
   #
   #   class MyEngine < Rails::Engine
-  #     paths.app                 = "app"
-  #     paths.app.controllers     = "app/controllers"
-  #     paths.app.helpers         = "app/helpers"
-  #     paths.app.models          = "app/models"
-  #     paths.app.views           = "app/views"
-  #     paths.lib                 = "lib"
-  #     paths.lib.tasks           = "lib/tasks"
-  #     paths.config              = "config"
-  #     paths.config.initializers = "config/initializers"
-  #     paths.config.locales      = "config/locales"
-  #     paths.config.routes       = "config/routes.rb"
+  #     paths["app"]                 #=> ["app"]
+  #     paths["app/controllers"]     #=> ["app/controllers"]
+  #     paths["app/helpers"]         #=> ["app/helpers"]
+  #     paths["app/models"]          #=> ["app/models"]
+  #     paths["app/views"]           #=> ["app/views"]
+  #     paths["lib"]                 #=> ["lib"]
+  #     paths["lib/tasks"]           #=> ["lib/tasks"]
+  #     paths["config"]              #=> ["config"]
+  #     paths["config/initializers"] #=> ["config/initializers"]
+  #     paths["config/locales"]      #=> ["config/locales"]
+  #     paths["config/routes"]       #=> ["config/routes.rb"]
   #   end
   #
   # Your Application class adds a couple more paths to this set. And as in your Application,
@@ -276,11 +276,11 @@ module Rails
   #     end
   #   end
   #
-  # There is also 'app' helper that gives you access to application's routes inside Engine:
+  # There is also 'main_app' helper that gives you access to application's routes inside Engine:
   #
   #   module MyEngine
   #     class BarController
-  #       app.foo_path #=> /foo
+  #       main_app.foo_path #=> /foo
   #     end
   #   end
   #
@@ -381,7 +381,7 @@ module Rails
 
     def load_tasks
       super
-      config.paths.lib.tasks.to_a.sort.each { |ext| load(ext) }
+      paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
 
     def eager_load!
@@ -441,7 +441,7 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = config.paths.db.seeds.to_a.first
+      seed_file = paths["db/seeds"].existent.first
       load(seed_file) if File.exist?(seed_file)
     end
 
@@ -469,20 +469,22 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      app.routes_reloader.blocks[routes] = routes_draw_block
-      paths.config.routes.to_a.each do |route|
-        app.routes_reloader.paths.unshift(route) if File.exists?(route)
+      paths = self.paths["config/routes"].existent
+
+      if routes? || paths.any?
+        app.routes_reloader.blocks[routes] = routes_draw_block
+        app.routes_reloader.paths.unshift(*paths)
       end
     end
 
     # I18n load paths are a special case since the ones added
     # later have higher priority.
     initializer :add_locales do
-      config.i18n.railties_load_path.concat(paths.config.locales.to_a)
+      config.i18n.railties_load_path.concat(paths["config/locales"].existent)
     end
 
     initializer :add_view_paths do
-      views = paths.app.views.to_a
+      views = paths["app/views"].existent
       unless views.empty?
         ActiveSupport.on_load(:action_controller){ prepend_view_path(views) }
         ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
@@ -490,28 +492,27 @@ module Rails
     end
 
     initializer :load_environment_config, :before => :load_environment_hook do
-      environment = config.paths.config.environments.to_a.first
+      environment = paths["config/environments"].existent.first
       require environment if environment
     end
 
     initializer :append_asset_paths do
       config.asset_path ||= "/#{engine_name}%s"
 
-      public_path = config.paths.public.to_a.first
+      public_path = paths["public"].first
       if config.compiled_asset_path && File.exist?(public_path)
         config.static_asset_paths[config.compiled_asset_path] = public_path
       end
     end
 
-    initializer :prepend_helpers_path do
-      unless namespaced?
-        config.helpers_paths = [] unless config.respond_to?(:helpers_paths)
-        config.helpers_paths = config.paths.app.helpers.to_a + config.helpers_paths
+    initializer :prepend_helpers_path do |app|
+      if !namespaced? || (app == self)
+        app.config.helpers_paths.unshift(*paths["app/helpers"].existent)
       end
     end
 
     initializer :load_config_initializers do
-      paths.config.initializers.to_a.sort.each do |initializer|
+      config.paths["config/initializers"].existent.sort.each do |initializer|
         load(initializer)
       end
     end
@@ -523,6 +524,10 @@ module Rails
 
   protected
     attr_accessor :routes_draw_block
+
+    def routes?
+      defined?(@routes)
+    end
 
     def find_root_with_flag(flag, default=nil)
       root_path = self.class.called_from

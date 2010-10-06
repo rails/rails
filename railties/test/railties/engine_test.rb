@@ -552,11 +552,11 @@ module RailtiesTest
         end
       RUBY
 
-      @plugin.write "app/views/bukkits/posts/new.html.erb", <<-RUBY
+      @plugin.write "app/views/bukkits/posts/new.html.erb", <<-ERB
           <%= form_for(Bukkits::Post.new) do |f| %>
             <%= f.text_field :title %>
           <% end %>
-      RUBY
+      ERB
 
       add_to_config("config.action_dispatch.show_exceptions = false")
 
@@ -593,7 +593,7 @@ module RailtiesTest
           module Bukkits
             class Engine < ::Rails::Engine
               namespace(Bukkits)
-              config.paths.public = "#{File.join(@plugin.path, "alternate_public")}"
+              paths["public"] = "#{File.join(@plugin.path, "alternate_public")}"
             end
           end
         RUBY
@@ -611,7 +611,7 @@ module RailtiesTest
           module Bukkits
             class Engine < ::Rails::Engine
               namespace(Bukkits)
-              config.paths.public = "#{File.join(@plugin.path, "not_existing")}"
+              paths["public"] = "#{File.join(@plugin.path, "not_existing")}"
             end
           end
         RUBY
