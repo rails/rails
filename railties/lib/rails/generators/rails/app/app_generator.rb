@@ -6,12 +6,152 @@ require 'open-uri'
 require 'uri'
 
 module Rails
+  module ActionMethods
+    attr_reader :options
+
+    def initialize(generator)
+      @generator = generator
+      @options   = generator.options
+    end
+
+    private
+      %w(template copy_file directory empty_directory inside
+         empty_directory_with_gitkeep create_file chmod shebang).each do |method|
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{method}(*args, &block)
+            @generator.send(:#{method}, *args, &block)
+          end
+        RUBY
+      end
+
+      # TODO: Remove once this is fully in place
+      def method_missing(meth, *args, &block)
+        STDERR.puts "Calling #{meth} with #{args.inspect} with #{block}"
+        @generator.send(meth, *args, &block)
+      end
+  end
+
+  class AppBuilder
+    def rakefile
+      template "Rakefile"
+    end
+
+    def readme
+      copy_file "README"
+    end
+
+    def gemfile
+      template "Gemfile"
+    end
+
+    def configru
+      template "config.ru"
+    end
+
+    def gitignore
+      copy_file "gitignore", ".gitignore"
+    end
+
+    def app
+      directory 'app'
+    end
+
+    def config
+      empty_directory "config"
+
+      inside "config" do
+        template "routes.rb"
+        template "application.rb"
+        template "environment.rb"
+
+        directory "environments"
+        directory "initializers"
+        directory "locales"
+      end
+    end
+
+    def database_yml
+      template "config/databases/#{@options[:database]}.yml", "config/database.yml"
+    end
+
+    def db
+      directory "db"
+    end
+
+    def doc
+      directory "doc"
+    end
+
+    def lib
+      empty_directory "lib"
+      empty_directory_with_gitkeep "lib/tasks"
+    end
+
+    def log
+      empty_directory "log"
+
+      inside "log" do
+        %w( server production development test ).each do |file|
+          create_file "#{file}.log"
+          chmod "#{file}.log", 0666, :verbose => false
+        end
+      end
+    end
+
+    def public_directory
+      directory "public", "public", :recursive => false
+    end
+
+    def images
+      directory "public/images"
+    end
+
+    def stylesheets
+      empty_directory_with_gitkeep "public/stylesheets"
+    end
+
+    def javascripts
+      unless options[:skip_prototype]
+        directory "public/javascripts"
+      else
+        empty_directory_with_gitkeep "public/javascripts"
+        create_file "public/javascripts/application.js"
+      end
+    end
+
+    def script
+      directory "script" do |content|
+        "#{shebang}\n" + content
+      end
+      chmod "script", 0755, :verbose => false
+    end
+
+    def test
+      directory "test"
+    end
+
+    def tmp
+      empty_directory "tmp"
+
+      inside "tmp" do
+        %w(sessions sockets cache pids).each do |dir|
+          empty_directory(dir)
+        end
+      end
+    end
+
+    def vendor_plugins
+      empty_directory_with_gitkeep "vendor/plugins"
+    end
+  end
+
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
 
-    RESERVED_NAMES = %w(application destroy benchmarker profiler plugin runner test)
+    RESERVED_NAMES = %w[application destroy benchmarker profiler
+                        plugin runner test]
 
     class AppGenerator < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
@@ -23,6 +163,9 @@ module Rails
 
       class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                         :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+      class_option :builder,            :type => :string, :aliases => "-b",
+                                        :desc => "Path to an application builder (can be a filesystem path or URL)"
 
       class_option :template,           :type => :string, :aliases => "-m",
                                         :desc => "Path to an application template (can be a filesystem path or URL)"
@@ -57,6 +200,7 @@ module Rails
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
+
         @original_wd = Dir.pwd
 
         super
@@ -76,29 +220,19 @@ module Rails
       end
 
       def create_root_files
-        copy_file "README"
-        template "Rakefile"
-        template "config.ru"
-        copy_file "gitignore", ".gitignore" unless options[:skip_git]
-        template "Gemfile" unless options[:skip_gemfile]
+        build(:readme)
+        build(:rakefile)
+        build(:configru)
+        build(:gitignore) unless options[:skip_git]
+        build(:gemfile)   unless options[:skip_gemfile]
       end
 
       def create_app_files
-        directory 'app'
+        build(:app)
       end
 
       def create_config_files
-        empty_directory "config"
-
-        inside "config" do
-          template "routes.rb"
-          template "application.rb"
-          template "environment.rb"
-
-          directory "environments"
-          directory "initializers"
-          directory "locales"
-        end
+        build(:config)
       end
 
       def create_boot_file
@@ -107,77 +241,59 @@ module Rails
 
       def create_active_record_files
         return if options[:skip_active_record]
-        template "config/databases/#{@options[:database]}.yml", "config/database.yml"
+        build(:database_yml)
       end
 
       def create_db_files
-        directory "db"
+        build(:db)
       end
 
       def create_doc_files
-        directory "doc"
+        build(:doc)
       end
 
       def create_lib_files
-        empty_directory "lib"
-        empty_directory_with_gitkeep "lib/tasks"
+        build(:lib)
       end
 
       def create_log_files
-        empty_directory "log"
-
-        inside "log" do
-          %w( server production development test ).each do |file|
-            create_file "#{file}.log"
-            chmod "#{file}.log", 0666, :verbose => false
-          end
-        end
+        build(:log)
       end
 
       def create_public_files
-        directory "public", "public", :recursive => false
+        build(:public_directory)
       end
 
       def create_public_image_files
-        directory "public/images"
+        build(:images)
       end
 
       def create_public_stylesheets_files
-        empty_directory_with_gitkeep "public/stylesheets"
+        build(:stylesheets)
       end
 
-      def create_public_javascripts_files
-        unless options[:skip_prototype]
-          directory "public/javascripts"
-        else
-          empty_directory_with_gitkeep "public/javascripts"
-          create_file "public/javascripts/application.js"
-        end
+      def create_prototype_files
+        build(:javascripts)
       end
 
       def create_script_files
-        directory "script" do |content|
-          "#{shebang}\n" + content
-        end
-        chmod "script", 0755, :verbose => false
+        build(:script)
       end
 
       def create_test_files
-        directory "test" unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test_unit]
       end
 
       def create_tmp_files
-        empty_directory "tmp"
-
-        inside "tmp" do
-          %w(sessions sockets cache pids).each do |dir|
-            empty_directory(dir)
-          end
-        end
+        build(:tmp)
       end
 
       def create_vendor_files
-        empty_directory_with_gitkeep "vendor/plugins"
+        build(:vendor_plugins)
+      end
+
+      def finish_template
+        build(:leftovers)
       end
 
       def apply_rails_template
@@ -195,6 +311,29 @@ module Rails
 
       def self.banner
         "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
+      end
+
+      def builder
+        @builder ||= begin
+          if path = options[:builder]
+            if URI(path).is_a?(URI::HTTP)
+              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
+            else
+              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
+            end
+
+            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
+            instance_eval(&prok)
+          end
+
+          builder_class = defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
+          builder_class.send(:include, ActionMethods)
+          builder_class.new(self)
+        end
+      end
+
+      def build(meth, *args)
+        builder.send(meth, *args) if builder.respond_to?(meth)
       end
 
       def set_default_accessors!

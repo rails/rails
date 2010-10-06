@@ -262,3 +262,69 @@ protected
   end
 
 end
+
+class CustomAppGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+  tests Rails::Generators::AppGenerator
+
+  arguments [destination_root]
+
+  def setup
+    Rails.application = TestApp::Application
+    super
+    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
+  end
+
+  def teardown
+    super
+    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    Object.class_eval { remove_const :AppBuilder if const_defined?(:AppBuilder) }
+    Rails.application = TestApp::Application.instance
+  end
+
+  def test_builder_option_with_empty_app_builder
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/empty_builder.rb"])
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
+  def test_builder_option_with_simple_app_builder
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/simple_builder.rb"])
+    (DEFAULT_APP_FILES - ['config.ru']).each{ |path| assert_no_file path }
+    assert_file "config.ru", %[run proc { |env| [200, { "Content-Type" => "text/html" }, ["Hello World"]] }]
+  end
+
+  def test_builder_option_with_relative_path
+    here = File.expand_path(File.dirname(__FILE__))
+    FileUtils.cd(here)
+    run_generator([destination_root, "-b", "../fixtures/lib/simple_builder.rb"])
+    (DEFAULT_APP_FILES - ['config.ru']).each{ |path| assert_no_file path }
+    assert_file "config.ru", %[run proc { |env| [200, { "Content-Type" => "text/html" }, ["Hello World"]] }]
+  end
+
+  def test_builder_option_with_tweak_app_builder
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/tweak_builder.rb"])
+    DEFAULT_APP_FILES.each{ |path| assert_file path }
+    assert_file "config.ru", %[run proc { |env| [200, { "Content-Type" => "text/html" }, ["Hello World"]] }]
+  end
+
+  def test_builder_option_with_http
+    path = "http://gist.github.com/103208.txt"
+    template = "class AppBuilder; end"
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    capture(:stdout) { generator.invoke_all }
+
+    DEFAULT_APP_FILES.each{ |path| assert_no_file path }
+  end
+
+protected
+
+  def action(*args, &block)
+    silence(:stdout){ generator.send(*args, &block) }
+  end
+end
