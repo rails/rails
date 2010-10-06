@@ -419,9 +419,9 @@ module Rails
       }
     end
 
-    def routes(&block)
+    def routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
-      self.routes_draw_block = block if block_given?
+      @routes.append(&Proc.new) if block_given?
       @routes
     end
 
@@ -472,8 +472,8 @@ module Rails
       paths = self.paths["config/routes"].existent
 
       if routes? || paths.any?
-        app.routes_reloader.blocks[routes] = routes_draw_block
         app.routes_reloader.paths.unshift(*paths)
+        app.routes_reloader.route_sets << routes
       end
     end
 
@@ -523,8 +523,6 @@ module Rails
     end
 
   protected
-    attr_accessor :routes_draw_block
-
     def routes?
       defined?(@routes)
     end

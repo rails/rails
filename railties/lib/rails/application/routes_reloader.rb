@@ -1,17 +1,15 @@
 module Rails
   class Application
     class RoutesReloader < ::ActiveSupport::FileUpdateChecker
+      attr_reader :route_sets
+
       def initialize
         super([]) { reload! }
-      end
-
-      def blocks
-        @blocks ||= {}
+        @route_sets = []
       end
 
       def reload!
         clear!
-        load_blocks
         load_paths
         finalize!
       ensure
@@ -21,15 +19,9 @@ module Rails
     protected
 
       def clear!
-        routers.each do |routes|
+        route_sets.each do |routes|
           routes.disable_clear_and_finalize = true
           routes.clear!
-        end
-      end
-
-      def load_blocks
-        blocks.each do |routes, block|
-          routes.draw(&block) if block
         end
       end
 
@@ -38,19 +30,15 @@ module Rails
       end
 
       def finalize!
-        routers.each do |routes|
+        route_sets.each do |routes|
           ActiveSupport.on_load(:action_controller) { routes.finalize! }
         end
       end
 
       def revert
-        routers.each do |routes|
+        route_sets.each do |routes|
           routes.disable_clear_and_finalize = false
         end
-      end
-
-      def routers
-        blocks.keys
       end
     end
   end
