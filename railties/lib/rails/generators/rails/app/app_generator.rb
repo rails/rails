@@ -21,6 +21,13 @@ module Rails
     end
   end
 
+  # The application builder allows you to override elements of the application
+  # generator without being forced to reverse the operations of the default
+  # generator.
+  #
+  # This allows you to override entire operations, like the creation of the
+  # Gemfile, README, or javascript files, without needing to know exactly
+  # what those operations do so you can create another template action.
   class AppBuilder
     def rakefile
       template "Rakefile"
