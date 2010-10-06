@@ -100,11 +100,11 @@ module ActiveResource
 
       # Accepts a block which declares a set of requests and responses for the HttpMock to respond to in
       # the following format:
-      # 
+      #
       #   mock.http_method(path, request_headers = {}, body = nil, status = 200, response_headers = {})
-      # 
+      #
       # === Example
-      # 
+      #
       #   @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
       #   ActiveResource::HttpMock.respond_to do |mock|
       #     mock.post   "/people.xml",   {}, @matz, 201, "Location" => "/people/1.xml"
@@ -112,58 +112,58 @@ module ActiveResource
       #     mock.put    "/people/1.xml", {}, nil, 204
       #     mock.delete "/people/1.xml", {}, nil, 200
       #   end
-      # 
+      #
       # Alternatively, accepts a hash of <tt>{Request => Response}</tt> pairs allowing you to generate
       # these the following format:
-      # 
+      #
       #   ActiveResource::Request.new(method, path, body, request_headers)
       #   ActiveResource::Response.new(body, status, response_headers)
-      # 
+      #
       # === Example
-      # 
+      #
       # Request.new(:#{method}, path, nil, request_headers)
-      # 
+      #
       #   @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
       #
       #   create_matz      = ActiveResource::Request.new(:post, '/people.xml', @matz, {})
       #   created_response = ActiveResource::Response.new("", 201, {"Location" => "/people/1.xml"})
       #   get_matz         = ActiveResource::Request.new(:get, '/people/1.xml', nil)
       #   ok_response      = ActiveResource::Response.new("", 200, {})
-      # 
+      #
       #   pairs = {create_matz => created_response, get_matz => ok_response}
-      # 
+      #
       #   ActiveResource::HttpMock.respond_to(pairs)
       #
       # Note, by default, every time you call +respond_to+, any previous request and response pairs stored
       # in HttpMock will be deleted giving you a clean slate to work on.
-      # 
+      #
       # If you want to override this behaviour, pass in +false+ as the last argument to +respond_to+
-      # 
+      #
       # === Example
-      # 
+      #
       #   ActiveResource::HttpMock.respond_to do |mock|
       #     mock.send(:get, "/people/1", {}, "XML1")
       #   end
       #   ActiveResource::HttpMock.responses.length #=> 1
-      #   
+      #
       #   ActiveResource::HttpMock.respond_to(false) do |mock|
       #     mock.send(:get, "/people/2", {}, "XML2")
       #   end
       #   ActiveResource::HttpMock.responses.length #=> 2
-      # 
+      #
       # This also works with passing in generated pairs of requests and responses, again, just pass in false
       # as the last argument:
-      # 
+      #
       # === Example
-      # 
+      #
       #   ActiveResource::HttpMock.respond_to do |mock|
       #     mock.send(:get, "/people/1", {}, "XML1")
       #   end
       #   ActiveResource::HttpMock.responses.length #=> 1
-      # 
+      #
       #   get_matz         = ActiveResource::Request.new(:get, '/people/1.xml', nil)
       #   ok_response      = ActiveResource::Response.new("", 200, {})
-      # 
+      #
       #   pairs = {get_matz => ok_response}
       #
       #   ActiveResource::HttpMock.respond_to(pairs, false)
@@ -171,12 +171,21 @@ module ActiveResource
       def respond_to(*args) #:yields: mock
         pairs = args.first || {}
         reset! if args.last.class != FalseClass
+
+        delete_responses_to_replace pairs.to_a
         responses.concat pairs.to_a
         if block_given?
           yield Responder.new(responses)
         else
           Responder.new(responses)
         end
+      end
+
+      def delete_responses_to_replace(new_responses)
+        new_responses.each{|nr|
+          request_to_remove = nr[0]
+          @@responses = responses.delete_if{|r| r[0] == request_to_remove}
+        }
       end
 
       # Deletes all logged requests and responses.
