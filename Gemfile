@@ -55,6 +55,8 @@ platforms :jruby do
 
   gem "activerecord-jdbcsqlite3-adapter"
 
+  gem "jruby-openssl"
+
   group :db do
     gem "activerecord-jdbcmysql-adapter"
     gem "activerecord-jdbcpostgresql-adapter"
