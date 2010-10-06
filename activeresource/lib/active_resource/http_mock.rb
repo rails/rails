@@ -168,6 +168,15 @@ module ActiveResource
       #
       #   ActiveResource::HttpMock.respond_to(pairs, false)
       #   ActiveResource::HttpMock.responses.length #=> 2
+      #
+      #   # If you add a response with an existing request, it will be replaced
+      #
+      #   fail_response      = ActiveResource::Response.new("", 404, {})
+      #   pairs = {get_matz => fail_response}
+      #
+      #   ActiveResource::HttpMock.respond_to(pairs, false)
+      #   ActiveResource::HttpMock.responses.length #=> 2
+      #
       def respond_to(*args) #:yields: mock
         pairs = args.first || {}
         reset! if args.last.class != FalseClass
