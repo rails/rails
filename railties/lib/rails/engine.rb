@@ -17,7 +17,7 @@ module Rails
   # In Rails versions before to 3.0, your gems automatically behaved as Engine, however
   # this coupled Rails to Rubygems. Since Rails 3.0, if you want a gem to automatically
   # behave as Engine, you have to specify an Engine for it somewhere inside your plugin
-  # lib folder (similar with how we spceify a Railtie):
+  # lib folder (similar to how we specify a Railtie):
   #
   #   # lib/my_engine.rb
   #   module MyEngine
