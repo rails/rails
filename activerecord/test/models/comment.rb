@@ -23,6 +23,9 @@ class SpecialComment < Comment
   end
 end
 
+class SubSpecialComment < SpecialComment
+end
+
 class VerySpecialComment < Comment
   def self.what_are_you
     'a very special comment...'

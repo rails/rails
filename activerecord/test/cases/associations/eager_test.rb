@@ -174,7 +174,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to
     comments = Comment.find(:all, :include => :post)
-    assert_equal 10, comments.length
+    assert_equal 11, comments.length
     titles = comments.map { |c| c.post.title }
     assert titles.include?(posts(:welcome).title)
     assert titles.include?(posts(:sti_post_and_comments).title)
@@ -532,7 +532,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_has_many_with_association_inheritance
     post = Post.find(4, :include => [ :special_comments ])
     post.special_comments.each do |special_comment|
-      assert_equal "SpecialComment", special_comment.class.to_s
+      assert special_comment.is_a?(SpecialComment)
     end
   end
 
@@ -726,8 +726,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = assert_queries(2) do
       Post.find(:all, :joins => :comments, :include => :author, :order => 'comments.id DESC')
     end
-    assert_equal posts(:eager_other), posts[0]
-    assert_equal authors(:mary), assert_no_queries { posts[0].author}
+    assert_equal posts(:eager_other), posts[1]
+    assert_equal authors(:mary), assert_no_queries { posts[1].author}
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
