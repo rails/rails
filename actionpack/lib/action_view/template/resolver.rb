@@ -6,7 +6,6 @@ module ActionView
   # = Action View Resolver
   class Resolver
     def initialize
-      @path = nil
       @cached = Hash.new { |h1,k1| h1[k1] =
         Hash.new { |h2,k2| h2[k2] = Hash.new { |h3, k3| h3[k3] = {} } } }
     end
@@ -35,6 +34,23 @@ module ActionView
       raise NotImplementedError
     end
 
+    # Helpers that builds a path. Useful for building virtual paths.
+    def build_path(name, prefix, partial, details)
+      path = ""
+      path << "#{prefix}/" unless prefix.empty?
+      path << (partial ? "_#{name}" : name)
+      path
+    end
+
+    # Get the handler and format from the given parameters.
+    def retrieve_handler_and_format(handler, format, default_formats=nil)
+      handler  = Template.handler_class_for_extension(handler)
+      format   = format && Mime[format]
+      format ||= handler.default_format if handler.respond_to?(:default_format)
+      format ||= default_formats
+      [handler, format]
+    end
+
     def cached(key, prefix, name, partial)
       return yield unless key && caching?
       @cached[key][prefix][name][partial] ||= yield
@@ -44,23 +60,11 @@ module ActionView
   class PathResolver < Resolver
     EXTENSION_ORDER = [:locale, :formats, :handlers]
 
-    def to_s
-      @path.to_s
-    end
-    alias :to_path :to_s
-
-  private
+    private
 
     def find_templates(name, prefix, partial, details)
       path = build_path(name, prefix, partial, details)
       query(path, EXTENSION_ORDER.map { |ext| details[ext] }, details[:formats])
-    end
-
-    def build_path(name, prefix, partial, details)
-      path = ""
-      path << "#{prefix}/" unless prefix.empty?
-      path << (partial ? "_#{name}" : name)
-      path
     end
 
     def query(path, exts, formats)
@@ -86,13 +90,7 @@ module ActionView
     def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
-
-      handler  = Template.handler_class_for_extension(pieces.pop)
-      format   = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
-      format ||= handler.default_format if handler.respond_to?(:default_format)
-      format ||= default_formats
-
-      [handler, format]
+      retrieve_handler_and_format(pieces.pop, pieces.pop, default_formats)
     end
   end
 
@@ -102,6 +100,11 @@ module ActionView
       super()
       @path = File.expand_path(path)
     end
+
+    def to_s
+      @path.to_s
+    end
+    alias :to_path :to_s
 
     def eql?(resolver)
       self.class.equal?(resolver.class) && to_path == resolver.to_path
