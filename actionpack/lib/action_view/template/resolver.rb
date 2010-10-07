@@ -6,8 +6,8 @@ module ActionView
   # = Action View Resolver
   class Resolver
     def initialize
-      @cached = Hash.new { |h1,k1| h1[k1] =
-        Hash.new { |h2,k2| h2[k2] = Hash.new { |h3, k3| h3[k3] = {} } } }
+      @cached = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
+        h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
     end
 
     def clear_cache
@@ -15,8 +15,8 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_template.
-    def find_all(name, prefix=nil, partial=false, details={}, key=nil)
-      cached(key, prefix, name, partial) do
+    def find_all(name, prefix=nil, partial=false, details={}, locals=[], key=nil)
+      cached(key, prefix, name, partial, locals) do
         find_templates(name, prefix, partial, details)
       end
     end
@@ -51,9 +51,25 @@ module ActionView
       [handler, format]
     end
 
-    def cached(key, prefix, name, partial)
-      return yield unless key && caching?
-      @cached[key][prefix][name][partial] ||= yield
+    def cached(key, prefix, name, partial, locals)
+      locals = sort_locals(locals)
+      unless key && caching?
+        yield.each { |t| t.locals = locals }
+      else
+        @cached[key][prefix][name][partial][locals] ||= yield.each { |t| t.locals = locals }
+      end
+    end
+
+    if :locale.respond_to?("<=>")
+      def sort_locals(locals)
+        locals.sort.freeze
+      end
+    else
+      def sort_locals(locals)
+        locals = locals.map{ |l| l.to_s }
+        locals.sort!
+        locals.freeze
+      end
     end
   end
 

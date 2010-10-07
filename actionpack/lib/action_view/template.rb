@@ -98,6 +98,8 @@ module ActionView
 
     extend Template::Handlers
 
+    attr_accessor :locals
+
     attr_reader :source, :identifier, :handler, :virtual_path, :formats,
                 :original_encoding
 
@@ -117,23 +119,17 @@ module ActionView
       @handler            = handler
       @original_encoding  = nil
       @method_names       = {}
-
-      format   = details[:format] || :html
-      @formats = Array.wrap(format).map(&:to_sym)
-      @virtual_path = details[:virtual_path].try(:sub, ".#{format}", "")
+      @locals             = details[:locals] || []
+      @formats            = Array.wrap(details[:format] || :html).map(&:to_sym)
+      @virtual_path       = details[:virtual_path].try(:sub, ".#{@formats.first}", "")
+      @compiled           = false
     end
 
     def render(view, locals, &block)
       # Notice that we use a bang in this instrumentation because you don't want to
       # consume this in production. This is only slow if it's being listened to.
       ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
-        if view.is_a?(ActionView::CompiledTemplates)
-          mod = ActionView::CompiledTemplates
-        else
-          mod = view.singleton_class
-        end
-
-        method_name = compile(locals, view, mod)
+        compile!(view)
         view.send(method_name, locals, &block)
       end
     rescue Exception => e
@@ -141,7 +137,7 @@ module ActionView
         e.sub_template_of(self)
         raise e
       else
-        raise Template::Error.new(self, view.respond_to?(:assigns) ? view.assigns : {}, e)
+        raise Template::Error.new(refresh(view) || self, view.respond_to?(:assigns) ? view.assigns : {}, e)
       end
     end
 
@@ -149,10 +145,12 @@ module ActionView
       @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
     end
 
+    # TODO Remove me
     def variable_name
       @variable_name ||= @virtual_path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
     end
 
+    # TODO Remove me
     def counter_name
       @counter_name ||= "#{variable_name}_counter".to_sym
     end
@@ -166,7 +164,25 @@ module ActionView
         end
     end
 
-    private
+    def compile!(view)
+      return if @compiled
+
+      if view.is_a?(ActionView::CompiledTemplates)
+        mod = ActionView::CompiledTemplates
+      else
+        mod = view.singleton_class
+      end
+
+      compile(view, mod)
+
+      # Just discard the source if we have a virtual path. This
+      # means we can get the template back.
+      @source = nil if @virtual_path
+      @compiled = true
+    end
+
+    protected
+
       # Among other things, this method is responsible for properly setting
       # the encoding of the source. Until this point, we assume that the
       # source is BINARY data. If no additional information is supplied,
@@ -187,11 +203,9 @@ module ActionView
       # encode the source into Encoding.default_internal. In general,
       # this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(locals, view, mod)
-        method_name = build_method_name(locals)
-        return method_name if view.respond_to?(method_name)
-
-        locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
+      def compile(view, mod)
+        method_name = self.method_name
+        locals_code = @locals.map { |key| "#{key} = local_assigns[:#{key}];" }.join
 
         if source.encoding_aware?
           # Look for # encoding: *. If we find one, we'll encode the
@@ -256,8 +270,6 @@ module ActionView
         begin
           mod.module_eval(source, identifier, 0)
           ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-
-          method_name
         rescue Exception => e # errors from template code
           if logger = (view && view.logger)
             logger.debug "ERROR: compiling #{method_name} RAISED #{e}"
@@ -269,12 +281,20 @@ module ActionView
         end
       end
 
-      def build_method_name(locals)
-        @method_names[locals.keys.hash] ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}_#{locals.keys.hash}".gsub('-', "_")
+      def refresh(view)
+        return unless @virtual_path
+        pieces  = @virtual_path.split("/")
+        name    = pieces.pop
+        partial = name.sub!(/^_/, "")
+        view.find_template(name, pieces.join, partial || false, @locals)
+      end
+
+      def method_name
+        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".gsub('-', "_")
       end
 
       def identifier_method_name
-        @identifier_method_name ||= inspect.gsub(/[^a-z_]/, '_')
+        inspect.gsub(/[^a-z_]/, '_')
       end
   end
 end

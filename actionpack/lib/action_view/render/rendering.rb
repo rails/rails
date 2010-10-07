@@ -34,16 +34,18 @@ module ActionView
 
     # Determine the template to be rendered using the given options.
     def _determine_template(options) #:nodoc:
+      keys = (options[:locals] ||= {}).keys
+
       if options.key?(:inline)
         handler = Template.handler_class_for_extension(options[:type] || "erb")
-        Template.new(options[:inline], "inline template", handler, {})
+        Template.new(options[:inline], "inline template", handler, { :locals => keys })
       elsif options.key?(:text)
         Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
-        with_fallbacks { find_template(options[:file], options[:prefix]) }
+        with_fallbacks { find_template(options[:file], options[:prefix], false, keys) }
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
-          options[:template] : find_template(options[:template], options[:prefix])
+          options[:template] : find_template(options[:template], options[:prefix], false, keys)
       end
     end
 
@@ -51,7 +53,7 @@ module ActionView
     # supplied as well.
     def _render_template(template, layout = nil, options = {}) #:nodoc:
       locals = options[:locals] || {}
-      layout = find_layout(layout) if layout
+      layout = find_layout(layout, locals.keys) if layout
 
       ActiveSupport::Notifications.instrument("render_template.action_view",
         :identifier => template.identifier, :layout => layout.try(:virtual_path)) do

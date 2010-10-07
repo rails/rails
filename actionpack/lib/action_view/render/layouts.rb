@@ -62,11 +62,11 @@ module ActionView
     # This is the method which actually finds the layout using details in the lookup
     # context object. If no layout is found, it checks if at least a layout with
     # the given name exists across all details before raising the error.
-    def find_layout(layout)
+    def find_layout(layout, keys)
       begin
         with_layout_format do
           layout =~ /^\// ?
-            with_fallbacks { find_template(layout) } : find_template(layout)
+            with_fallbacks { find_template(layout, nil, false, keys) } : find_template(layout, nil, false, keys)
         end
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do

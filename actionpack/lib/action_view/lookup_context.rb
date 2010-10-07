@@ -77,17 +77,17 @@ module ActionView
         @view_paths = ActionView::Base.process_view_paths(paths)
       end
 
-      def find(name, prefix = nil, partial = false)
-        @view_paths.find(*args_for_lookup(name, prefix, partial))
+      def find(name, prefix = nil, partial = false, keys = [])
+        @view_paths.find(*args_for_lookup(name, prefix, partial, keys))
       end
       alias :find_template :find
 
-      def find_all(name, prefix = nil, partial = false)
-        @view_paths.find_all(*args_for_lookup(name, prefix, partial))
+      def find_all(name, prefix = nil, partial = false, keys = [])
+        @view_paths.find_all(*args_for_lookup(name, prefix, partial, keys))
       end
 
-      def exists?(name, prefix = nil, partial = false)
-        @view_paths.exists?(*args_for_lookup(name, prefix, partial))
+      def exists?(name, prefix = nil, partial = false, keys = [])
+        @view_paths.exists?(*args_for_lookup(name, prefix, partial, keys))
       end
       alias :template_exists? :exists?
 
@@ -106,9 +106,9 @@ module ActionView
 
     protected
 
-      def args_for_lookup(name, prefix, partial) #:nodoc:
+      def args_for_lookup(name, prefix, partial, keys) #:nodoc:
         name, prefix = normalize_name(name, prefix)
-        [name, prefix, partial || false, @details, details_key]
+        [name, prefix, partial || false, @details, keys, details_key]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb
