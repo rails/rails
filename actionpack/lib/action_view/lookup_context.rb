@@ -61,6 +61,7 @@ module ActionView
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
+      @cache = details.key?(:cache) ? details.delete(:cache) : true
 
       self.view_paths = view_paths
       self.registered_detail_setters.each do |key, setter|
@@ -130,10 +131,20 @@ module ActionView
     end
 
     module Details
+      attr_accessor :cache
+
       # Calculate the details key. Remove the handlers from calculation to improve performance
       # since the user cannot modify it explicitly.
       def details_key #:nodoc:
-        @details_key ||= DetailsKey.get(@details)
+        @details_key ||= DetailsKey.get(@details) if @cache
+      end
+
+      # Temporary skip passing the details_key forward.
+      def disable_cache
+        old_value, @cache = @cache, false
+        yield
+      ensure
+        @cache = old_value
       end
 
       # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing

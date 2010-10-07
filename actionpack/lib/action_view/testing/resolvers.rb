@@ -16,16 +16,18 @@ module ActionView #:nodoc:
     private
 
     def query(path, exts, formats)
-      query = Regexp.escape(path)
+      query = ""
       exts.each do |ext|
         query << '(' << ext.map {|e| e && Regexp.escape(".#{e}") }.join('|') << '|)'
       end
+      query = /^(#{Regexp.escape(path)})#{query}$/
 
       templates = []
-      @hash.select { |k,v| k =~ /^#{query}$/ }.each do |_path, source|
+      @hash.each do |_path, source|
+        next unless _path =~ query
         handler, format = extract_handler_and_format(_path, formats)
         templates << Template.new(source, _path, handler,
-          :virtual_path => _path, :format => format)
+          :virtual_path => $1, :format => format)
       end
 
       templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }

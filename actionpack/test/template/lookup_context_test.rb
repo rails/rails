@@ -163,4 +163,25 @@ class LookupContextTest < ActiveSupport::TestCase
     template = @lookup_context.find("foo", "test", true)
     assert_equal "Bar", template.source
   end
+
+  test "can disable the cache on demand" do
+    @lookup_context.view_paths = ActionView::FixtureResolver.new("test/_foo.erb" => "Foo")
+    old_template = @lookup_context.find("foo", "test", true)
+
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal template, old_template
+
+    assert @lookup_context.cache
+    template = @lookup_context.disable_cache do
+      assert !@lookup_context.cache
+      @lookup_context.find("foo", "test", true)
+    end
+    assert @lookup_context.cache
+
+    assert_not_equal template, old_template
+  end
+
+  test "can have cache disabled on initialization" do
+    assert !ActionView::LookupContext.new(FIXTURE_LOAD_PATH, :cache => false).cache
+  end
 end

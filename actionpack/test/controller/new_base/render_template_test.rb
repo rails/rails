@@ -11,7 +11,8 @@ module RenderTemplate
       "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>",
       "test/with_json.html.erb"  => "<%= render :template => 'test/with_json.json' %>",
       "test/with_json.json.erb"  => "<%= render :template => 'test/final' %>",
-      "test/final.json.erb"      => "{ final: json }"
+      "test/final.json.erb"      => "{ final: json }",
+      "test/with_error.html.erb" => "<%= idontexist %>"
     )]
 
     def index
@@ -48,6 +49,10 @@ module RenderTemplate
 
     def with_raw
       render :template => "with_raw"
+    end
+
+    def with_error
+      render :template => "test/with_error"
     end
   end
 
@@ -100,6 +105,12 @@ module RenderTemplate
       get :html_with_json_inside_json
       assert_content_type "text/html; charset=utf-8"
       assert_response "{ final: json }"
+    end
+
+    test "rendering a template with error properly exceprts the code" do
+      get :with_error
+      assert_status 500
+      assert_match "undefined local variable or method `idontexist'", response.body
     end
   end
 

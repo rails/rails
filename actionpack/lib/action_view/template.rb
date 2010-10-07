@@ -286,7 +286,9 @@ module ActionView
         pieces  = @virtual_path.split("/")
         name    = pieces.pop
         partial = name.sub!(/^_/, "")
-        view.find_template(name, pieces.join, partial || false, ["unlikely_local_key"])
+        view.lookup_context.disable_cache do
+          view.find_template(name, pieces.join, partial || false, @locals)
+        end
       end
 
       def method_name
