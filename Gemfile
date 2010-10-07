@@ -55,6 +55,9 @@ platforms :jruby do
 
   gem "activerecord-jdbcsqlite3-adapter"
 
+  # This is needed by now to let tests work on JRuby
+  # TODO: When the JRuby guys merge jruby-openssl in
+  # jruby this will be removed
   gem "jruby-openssl"
 
   group :db do
