@@ -8,11 +8,18 @@ module RenderTemplate
       "shared.html.erb"          => "Elastica",
       "locals.html.erb"          => "The secret is <%= secret %>",
       "xml_template.xml.builder" => "xml.html do\n  xml.p 'Hello'\nend",
-      "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>"
+      "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>",
+      "test/with_json.html.erb"  => "<%= render :template => 'test/with_json.json' %>",
+      "test/with_json.json.erb"  => "<%= render :template => 'test/final' %>",
+      "test/final.json.erb"      => "{ final: json }"
     )]
 
     def index
       render :template => "test/basic"
+    end
+
+    def html_with_json_inside_json
+      render :template => "test/with_json"
     end
 
     def index_without_key
@@ -87,6 +94,12 @@ module RenderTemplate
 
       assert_body "Hello <strong>this is raw</strong>"
       assert_status 200
+    end
+
+    test "rendering a template with renders another template with other format that renders other template in the same format" do
+      get :html_with_json_inside_json
+      assert_content_type "text/html; charset=utf-8"
+      assert_response "{ final: json }"
     end
   end
 

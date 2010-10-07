@@ -371,13 +371,15 @@ module ActionView
     end
 
     def _render_partial(options, &block) #:nodoc:
-      if defined?(@renderer)
-        @renderer.setup(options, block)
-      else
-        @renderer = PartialRenderer.new(self, options, block)
-      end
+      _wrap_formats(options[:partial]) do
+        if defined?(@renderer)
+          @renderer.setup(options, block)
+        else
+          @renderer = PartialRenderer.new(self, options, block)
+        end
 
-      @renderer.render
+        @renderer.render
+      end
     end
 
   end

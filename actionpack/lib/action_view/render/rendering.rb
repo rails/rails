@@ -21,14 +21,29 @@ module ActionView
         elsif options.key?(:partial)
           _render_partial(options)
         else
-          template = _determine_template(options)
-          lookup_context.freeze_formats(template.formats, true)
-          _render_template(template, options[:layout], options)
+          _wrap_formats(options[:template] || options[:file]) do
+            template = _determine_template(options)
+            lookup_context.freeze_formats(template.formats, true)
+            _render_template(template, options[:layout], options)
+          end
         end
       when :update
         update_page(&block)
       else
         _render_partial(:partial => options, :locals => locals)
+      end
+    end
+
+    # Checks if the given path contains a format and if so, change
+    # the lookup context to take this new format into account.
+    def _wrap_formats(value)
+      return yield unless value.is_a?(String)
+      @@formats_regexp ||= /\.(#{Mime::SET.symbols.join('|')})$/
+
+      if value.sub!(@@formats_regexp, "")
+        update_details(:formats => [$1.to_sym]){ yield }
+      else
+        yield
       end
     end
 

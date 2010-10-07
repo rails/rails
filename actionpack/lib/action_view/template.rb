@@ -121,7 +121,7 @@ module ActionView
       @method_names       = {}
       @locals             = details[:locals] || []
       @formats            = Array.wrap(details[:format] || :html).map(&:to_sym)
-      @virtual_path       = details[:virtual_path].try(:sub, ".#{@formats.first}", "")
+      @virtual_path       = details[:virtual_path]
       @compiled           = false
     end
 
@@ -286,7 +286,7 @@ module ActionView
         pieces  = @virtual_path.split("/")
         name    = pieces.pop
         partial = name.sub!(/^_/, "")
-        view.find_template(name, pieces.join, partial || false, @locals)
+        view.find_template(name, pieces.join, partial || false, ["unlikely_local_key"])
       end
 
       def method_name
