@@ -307,12 +307,12 @@ module ActionView
 
       def collection_without_template
         segments, locals, collection_data = [], @locals, @collection_data
-        index, template  = -1, nil
+        index, template, cache = -1, nil, {}
         keys = @locals.keys
 
         @collection.each_with_index do |object, i|
           path, *data = collection_data[i]
-          template = find_template(path, keys + data)
+          template = (cache[path] ||= find_template(path, keys + data))
           locals[data[0]] = object
           locals[data[1]] = (index += 1)
           segments << template.render(@view, locals)

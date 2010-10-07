@@ -50,7 +50,7 @@ module AbstractController
             if controller.respond_to?(:_helpers)
               include controller._helpers
 
-              if controller.respond_to?(:_routes)
+              if controller.respond_to?(:_routes) && controller._routes
                 include controller._routes.url_helpers
                 include controller._routes.mounted_helpers
               end
