@@ -1,4 +1,17 @@
 module ActiveRecord
+  # = Active Record Identity Map
+  #
+  # Ensures that each object gets loaded only once by keeping every loaded
+  # object in a map. Looks up objects using the map when referring to them.
+  #
+  # More information on Identity Map pattern:
+  #   http://www.martinfowler.com/eaaCatalog/identityMap.html
+  #
+  # == Configuration
+  #
+  # In order to activate IdentityMap, set <tt>config.active_record.identity_map = true</tt>
+  # in your <tt>config/application.rb</tt> file.
+  #
   module IdentityMap
     extend ActiveSupport::Concern
 
