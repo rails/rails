@@ -73,8 +73,6 @@ module ActiveRecord
         # The mutex used to synchronize pool access
         @connection_mutex = Monitor.new
         @queue = @connection_mutex.new_cond
-
-        # default 5 second timeout unless on ruby 1.9
         @timeout = spec.config[:wait_timeout] || 5
 
         # default max pool size to 5
