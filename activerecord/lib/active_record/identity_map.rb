@@ -45,6 +45,7 @@ module ActiveRecord
       end
 
       alias enabled? enabled
+      alias identity_map= enabled=
     end
 
     self.repositories ||= Hash.new

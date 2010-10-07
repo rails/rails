@@ -425,6 +425,7 @@ module ActiveRecord #:nodoc:
       delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :except, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
+      delegate :identity_map=, :to => :identity_map
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
