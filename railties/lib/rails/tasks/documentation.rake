@@ -47,7 +47,7 @@ namespace :doc do
     rdoc.rdoc_files.include('app/**/*.rb')
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
-  Rake::Task['doc:app'].comment = "Generate docs for the app -- also availble doc:rails, doc:guides, doc:plugins (options: TEMPLATE=/rdoc-template.rb, TITLE=\"Custom Title\")"
+  Rake::Task['doc:app'].comment = "Generate docs for the app -- also available doc:rails, doc:guides, doc:plugins (options: TEMPLATE=/rdoc-template.rb, TITLE=\"Custom Title\")"
 
   # desc 'Generate documentation for the Rails framework.'
   RDocTaskWithoutDescriptions.new("rails") { |rdoc|
