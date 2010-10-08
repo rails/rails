@@ -71,8 +71,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'Hello World'] }
-
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello World']] }
             config.middleware.use ::RailtiesTest::EngineTest::Upcaser
           end
         end
@@ -102,7 +101,7 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, 'foo'] }
+          match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
         end
       RUBY
 
