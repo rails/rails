@@ -128,9 +128,9 @@ module Rails
     end
 
     def initializers
-      initializers = Bootstrap.initializers_for(self)
-      initializers += super
-      initializers += Finisher.initializers_for(self)
+      Bootstrap.initializers_for(self) +
+      super +
+      Finisher.initializers_for(self)
     end
 
     def config
