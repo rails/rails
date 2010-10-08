@@ -2178,6 +2178,46 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_routing_constraints_with_anchors_raises_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'page/:id' => 'pages#show', :id => /^\d+/ }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'page/:id' => 'pages#show', :id => /\A\d+/ }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'page/:id' => 'pages#show', :id => /\d+$/ }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'page/:id' => 'pages#show', :id => /\d+\Z/ }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'page/:id' => 'pages#show', :id => /^\d+\z/ }
+      end
+    end
+  end
+
+  def test_multiline_routing_constraint_raises_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'page/:id' => 'pages#show', :id => /\w+/m }
+      end
+    end
+  end
+
 private
   def with_test_routes
     yield
