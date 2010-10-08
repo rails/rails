@@ -387,18 +387,18 @@ module ActiveRecord
       def copy(destination, sources)
         copied = []
 
-        sources.each do |scope, path|
+        sources.each do |name, path|
           destination_migrations = ActiveRecord::Migrator.migrations(destination)
           source_migrations = ActiveRecord::Migrator.migrations(path)
           last = destination_migrations.last
 
           source_migrations.each do |migration|
-            next if destination_migrations.any? { |m| m.name == migration.name && m.scope == scope.to_s }
+            next if destination_migrations.any? { |m| m.name == migration.name }
 
             migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
             last = migration
 
-            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
+            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
             FileUtils.cp(migration.filename, new_path)
             copied << new_path
           end
@@ -419,9 +419,9 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
+  class MigrationProxy < Struct.new(:name, :version, :filename)
 
-    def initialize(name, version, filename, scope)
+    def initialize(name, version, filename)
       super
       @migration = nil
     end
@@ -510,18 +510,18 @@ module ActiveRecord
         seen = Hash.new false
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
+          version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
           name = name.camelize
 
           raise DuplicateMigrationVersionError.new(version) if seen[version]
-          raise DuplicateMigrationNameError.new(name) if seen[[name, scope]]
+          raise DuplicateMigrationNameError.new(name) if seen[name]
 
-          seen[version] = seen[[name, scope]] = true
+          seen[version] = seen[name] = true
 
-          MigrationProxy.new(name, version, file, scope)
+          MigrationProxy.new(name, version, file)
         end
 
         migrations.sort_by(&:version)
