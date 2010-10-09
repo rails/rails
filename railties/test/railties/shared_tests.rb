@@ -43,7 +43,7 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       Dir.chdir(app_path) do
-        output = `rake railties:install:migrations FROM=bukkits 2>&1`
+        output = `rake bukkits:install:migrations 2>&1`
 
         assert File.exists?("#{app_path}/db/migrate/2_create_users.rb")
         assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.rb")

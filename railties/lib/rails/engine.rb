@@ -522,6 +522,20 @@ module Rails
       # consistently executed after all the initializers above across all engines.
     end
 
+    rake_tasks do
+      next if self.is_a?(Rails::Application)
+
+      namespace railtie_name do
+        namespace :install do
+          desc "Copy migrations from #{railtie_name} to application"
+          task :migrations do
+            ENV["FROM"] = railtie_name
+            Rake::Task["railties:install:migrations"].invoke
+          end
+        end
+      end
+    end
+
   protected
     def routes?
       defined?(@routes)
