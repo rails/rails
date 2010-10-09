@@ -125,34 +125,41 @@ module ActionView
       @compiled           = false
     end
 
+    # Render a template. If the template was not compiled yet, it is done
+    # exactly before rendering.
+    #
+    # This method is instrumented as "!render_template.action_view". Notice that
+    # we use a bang in this instrumentation because you don't want to
+    # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, &block)
-      # Notice that we use a bang in this instrumentation because you don't want to
-      # consume this in production. This is only slow if it's being listened to.
       ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
         compile!(view)
         view.send(method_name, locals, &block)
       end
     rescue Exception => e
-      if e.is_a?(Template::Error)
-        e.sub_template_of(self)
-        raise e
-      else
-        raise Template::Error.new(refresh(view) || self, view.respond_to?(:assigns) ? view.assigns : {}, e)
-      end
+      handle_render_error(view, e)
     end
 
     def mime_type
       @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
     end
 
-    # TODO Remove me
-    def variable_name
-      @variable_name ||= @virtual_path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
-    end
-
-    # TODO Remove me
-    def counter_name
-      @counter_name ||= "#{variable_name}_counter".to_sym
+    # Receives a view object and return a template similar to self by using @virtual_path.
+    #
+    # This method is useful if you have a template object but it does not contain its source
+    # anymore since it was already compiled. In such cases, all you need to do is to call
+    # refresh passing in the view object.
+    #
+    # Notice this method raises an error if the template to be refreshed does not have a
+    # virtual path set (true just for inline templates).
+    def refresh(view)
+      raise "A template need to have a virtual path in order to be refreshed" unless @virtual_path
+      pieces  = @virtual_path.split("/")
+      name    = pieces.pop
+      partial = name.sub!(/^_/, "")
+      view.lookup_context.disable_cache do
+        view.find_template(name, pieces.join, partial || false, @locals)
+      end
     end
 
     def inspect
@@ -164,24 +171,26 @@ module ActionView
         end
     end
 
-    def compile!(view)
-      return if @compiled
-
-      if view.is_a?(ActionView::CompiledTemplates)
-        mod = ActionView::CompiledTemplates
-      else
-        mod = view.singleton_class
-      end
-
-      compile(view, mod)
-
-      # Just discard the source if we have a virtual path. This
-      # means we can get the template back.
-      @source = nil if @virtual_path
-      @compiled = true
-    end
-
     protected
+
+      # Compile a template. This method ensures a template is compiled
+      # just once and removes the source after it is compiled.
+      def compile!(view) #:nodoc:
+        return if @compiled
+
+        if view.is_a?(ActionView::CompiledTemplates)
+          mod = ActionView::CompiledTemplates
+        else
+          mod = view.singleton_class
+        end
+
+        compile(view, mod)
+
+        # Just discard the source if we have a virtual path. This
+        # means we can get the template back.
+        @source = nil if @virtual_path
+        @compiled = true
+      end
 
       # Among other things, this method is responsible for properly setting
       # the encoding of the source. Until this point, we assume that the
@@ -203,9 +212,8 @@ module ActionView
       # encode the source into Encoding.default_internal. In general,
       # this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(view, mod)
+      def compile(view, mod) #:nodoc:
         method_name = self.method_name
-        locals_code = @locals.map { |key| "#{key} = local_assigns[:#{key}];" }.join
 
         if source.encoding_aware?
           # Look for # encoding: *. If we find one, we'll encode the
@@ -281,21 +289,26 @@ module ActionView
         end
       end
 
-      def refresh(view)
-        return unless @virtual_path
-        pieces  = @virtual_path.split("/")
-        name    = pieces.pop
-        partial = name.sub!(/^_/, "")
-        view.lookup_context.disable_cache do
-          view.find_template(name, pieces.join, partial || false, @locals)
+      def handle_render_error(view, e) #:nodoc:
+        if e.is_a?(Template::Error)
+          e.sub_template_of(self)
+          raise e
+        else
+          assigns  = view.respond_to?(:assigns) ? view.assigns : {}
+          template = @virtual_path ? refresh(view) : self
+          raise Template::Error.new(template, assigns, e)
         end
       end
 
-      def method_name
+      def locals_code #:nodoc:
+        @locals.map { |key| "#{key} = local_assigns[:#{key}];" }.join
+      end
+
+      def method_name #:nodoc:
         @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".gsub('-', "_")
       end
 
-      def identifier_method_name
+      def identifier_method_name #:nodoc:
         inspect.gsub(/[^a-z_]/, '_')
       end
   end
