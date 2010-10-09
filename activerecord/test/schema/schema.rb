@@ -449,6 +449,11 @@ ActiveRecord::Schema.define do
     t.string :type
   end
 
+  create_table :ratings, :force => true do |t|
+    t.integer :comment_id
+    t.integer :value
+  end
+
   create_table :readers, :force => true do |t|
     t.integer :post_id, :null => false
     t.integer :person_id, :null => false

@@ -2129,7 +2129,7 @@ module ActiveRecord
             # These implement abstract methods from the superclass
             attr_reader :aliased_prefix, :aliased_table_name
             
-            delegate :options, :through_reflection, :source_reflection, :to => :reflection
+            delegate :options, :through_reflection, :source_reflection, :through_reflection_chain, :to => :reflection
             delegate :table, :table_name, :to => :parent, :prefix => true
 
             def initialize(reflection, join_dependency, parent = nil)
@@ -2185,13 +2185,13 @@ module ActiveRecord
 
             protected
 
-              def aliased_table_name_for(name, suffix = nil)
+              def aliased_table_name_for(name, aliased_name, suffix = nil)
                 if @join_dependency.table_aliases[name].zero?
                   @join_dependency.table_aliases[name] = @join_dependency.count_aliases_from_table_joins(name)
                 end
 
                 if !@join_dependency.table_aliases[name].zero? # We need an alias
-                  name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
+                  name = active_record.connection.table_alias_for "#{aliased_name}_#{parent_table_name}#{suffix}"
                   @join_dependency.table_aliases[name] += 1
                   if @join_dependency.table_aliases[name] == 1 # First time we've seen this name
                     # Also need to count the aliases from the table_aliases to avoid incorrect count
@@ -2226,12 +2226,26 @@ module ActiveRecord
             
             def allocate_aliases
               @aliased_prefix     = "t#{ join_dependency.join_parts.size }"
-              @aliased_table_name = aliased_table_name_for(table_name)
+              @aliased_table_name = aliased_table_name_for(table_name, pluralize(reflection.name))
               
-              if reflection.macro == :has_and_belongs_to_many
-                @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
-              elsif [:has_many, :has_one].include?(reflection.macro) && reflection.options[:through]
-                @aliased_join_table_name = aliased_table_name_for(reflection.through_reflection.klass.table_name, "_join")
+              case reflection.macro
+                when :has_and_belongs_to_many
+                  @aliased_join_table_name = aliased_table_name_for(
+                    reflection.options[:join_table],
+                    pluralize(reflection.name), "_join"
+                  )
+                when :has_many, :has_one
+                  # Add the target table name which was already generated. We don't want to generate
+                  # it again as that would lead to an unnecessary alias.
+                  @aliased_through_table_names = [@aliased_table_name]
+                  
+                  # Generate the rest in the original order
+                  @aliased_through_table_names += through_reflection_chain[1..-1].map do |reflection|
+                    aliased_table_name_for(reflection.table_name, pluralize(reflection.name), "_join")
+                  end
+                  
+                  # Now reverse the list, as we will use it in that order
+                  @aliased_through_table_names.reverse!
               end
             end
             
@@ -2284,99 +2298,81 @@ module ActiveRecord
                   eq(join_table[klass_fk])
               )
             end
-
+            
             def join_has_many_to(relation)
-              if reflection.options[:through]
-                join_has_many_through_to(relation)
-              elsif reflection.options[:as]
-                join_has_many_polymorphic_to(relation)
-              else
-                foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
-                primary_key = options[:primary_key] || parent.primary_key
-                
-                join_target_table(
-                  relation,
-                  target_table[foreign_key].
-                    eq(parent_table[primary_key])
+              # Chain usually starts with target, but we want to end with it here (just makes it
+              # easier to understand the joins that are generated)
+              chain = through_reflection_chain.reverse
+              
+              foreign_table = parent_table
+              
+              chain.zip(@aliased_through_table_names).each do |reflection, aliased_table_name|
+                table = Arel::Table.new(
+                  reflection.table_name, :engine => arel_engine,
+                  :as => aliased_table_name, :columns => reflection.klass.columns
                 )
+                
+                conditions = []
+                
+                if reflection.source_reflection.nil?
+                  case reflection.macro
+                    when :belongs_to
+                      key         = reflection.options[:primary_key] ||
+                                    reflection.klass.primary_key
+                      foreign_key = reflection.primary_key_name
+                    when :has_many, :has_one
+                      key         = reflection.primary_key_name
+                      foreign_key = reflection.options[:primary_key] ||
+                                    reflection.active_record.primary_key
+                      
+                      if reflection.options[:as]
+                        conditions <<
+                          table["#{reflection.options[:as]}_type"].
+                            eq(reflection.active_record.base_class.name)
+                      end
+                  end
+                elsif reflection.source_reflection.macro == :belongs_to
+                  key         = reflection.klass.primary_key
+                  foreign_key = reflection.source_reflection.primary_key_name
+                  
+                  if reflection.options[:source_type]
+                    conditions <<
+                      foreign_table[reflection.source_reflection.options[:foreign_type]].
+                        eq(reflection.options[:source_type])
+                  end
+                else
+                  key         = reflection.source_reflection.primary_key_name
+                  foreign_key = reflection.source_reflection.klass.primary_key
+                end
+                
+                conditions << table[key].eq(foreign_table[foreign_key])
+                
+                if reflection.options[:conditions]
+                  conditions << process_conditions(reflection.options[:conditions], aliased_table_name)
+                end
+                
+                # If the target table is an STI model then we must be sure to only include records of
+                # its type and its sub-types.
+                unless reflection.klass.descends_from_active_record?
+                  sti_column = table[reflection.klass.inheritance_column]
+                  
+                  sti_condition = sti_column.eq(reflection.klass.sti_name)
+                  reflection.klass.descendants.each do |subclass|
+                    sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name))
+                  end
+                  
+                  conditions << sti_condition
+                end
+                
+                relation = relation.join(table, join_type).on(*conditions)
+                
+                # The current table in this iteration becomes the foreign table in the next
+                foreign_table = table
               end
+              
+              relation
             end
             alias :join_has_one_to :join_has_many_to
-            
-            def join_has_many_through_to(relation)
-              join_table = Arel::Table.new(
-                through_reflection.klass.table_name, :engine => arel_engine,
-                :as => @aliased_join_table_name
-              )
-              
-              jt_conditions = []
-              jt_foreign_key = first_key = second_key = nil
-
-              if through_reflection.options[:as] # has_many :through against a polymorphic join
-                as_key         = through_reflection.options[:as].to_s
-                jt_foreign_key = as_key + '_id'
-                
-                jt_conditions <<
-                  join_table[as_key + '_type'].
-                    eq(parent.active_record.base_class.name)
-              else
-                jt_foreign_key = through_reflection.primary_key_name
-              end
-
-              case source_reflection.macro
-              when :has_many
-                second_key = options[:foreign_key] || primary_key
-
-                if source_reflection.options[:as]
-                  first_key = "#{source_reflection.options[:as]}_id"
-                else
-                  first_key = through_reflection.klass.base_class.to_s.foreign_key
-                end
-
-                unless through_reflection.klass.descends_from_active_record?
-                  jt_conditions <<
-                    join_table[through_reflection.active_record.inheritance_column].
-                      eq(through_reflection.klass.sti_name)
-                end
-              when :belongs_to
-                first_key = primary_key
-                
-                if reflection.options[:source_type]
-                  second_key = source_reflection.association_foreign_key
-                  
-                  jt_conditions <<
-                    join_table[reflection.source_reflection.options[:foreign_type]].
-                      eq(reflection.options[:source_type])
-                else
-                  second_key = source_reflection.primary_key_name
-                end
-              end
-              
-              jt_conditions <<
-                parent_table[parent.primary_key].
-                  eq(join_table[jt_foreign_key])
-              
-              if through_reflection.options[:conditions]
-                jt_conditions << process_conditions(through_reflection.options[:conditions], aliased_table_name)
-              end
-              
-              relation = relation.join(join_table, join_type).on(*jt_conditions)
-              
-              join_target_table(
-                relation,
-                target_table[first_key].eq(join_table[second_key])
-              )
-            end
-            
-            def join_has_many_polymorphic_to(relation)
-              join_target_table(
-                relation,
-                target_table["#{reflection.options[:as]}_id"].
-                  eq(parent_table[parent.primary_key]),
-                target_table["#{reflection.options[:as]}_type"].
-                  eq(parent.active_record.base_class.name)
-              )
-            end
 
             def join_belongs_to_to(relation)
               foreign_key = options[:foreign_key] || reflection.primary_key_name

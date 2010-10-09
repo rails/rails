@@ -13,6 +13,9 @@ class Person < ActiveRecord::Base
   belongs_to :primary_contact, :class_name => 'Person'
   has_many :agents, :class_name => 'Person', :foreign_key => 'primary_contact_id'
   belongs_to :number1_fan, :class_name => 'Person'
+  
+  has_many :agents_posts, :through => :agents, :source => :posts
+  has_many :agents_posts_authors, :through => :agents_posts, :source => :author
 
   scope :males, :conditions => { :gender => 'M' }
   scope :females, :conditions => { :gender => 'F' }

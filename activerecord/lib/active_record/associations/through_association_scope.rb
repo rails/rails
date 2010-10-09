@@ -73,6 +73,8 @@ module ActiveRecord
               if left.options[:as]
                 polymorphic_join = "AND %s.%s = %s" % [
                   table_aliases[left], "#{left.options[:as]}_type",
+                  # TODO: Why right.klass.name? Rather than left.active_record.name?
+                  # TODO: Also should maybe use the base_class (see related code in JoinAssociation)
                   @owner.class.quote_value(right.klass.name)
                 ]
               end
@@ -117,6 +119,8 @@ module ActiveRecord
         joins.join(" ")
       end
 
+      # TODO: Use the same aliasing strategy (and code?) as JoinAssociation (as this is the
+      # documented behaviour)
       def table_aliases
         @table_aliases ||= begin
           tally = {}

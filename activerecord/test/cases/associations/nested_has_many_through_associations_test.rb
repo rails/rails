@@ -17,18 +17,37 @@ require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
+require 'models/rating'
+
+# NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
+# are just one level deep. But it's all the same thing really, as the "nested" code is being 
+# written in a generic way which applies to "non-nested" HMT associations too. So let's just shove
+# all useful tests in here for now and then work out where they ought to live properly later.
 
 class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings
+  fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
+           :people, :readers, :references, :jobs, :ratings, :comments
 
   def test_has_many_through_a_has_many_through_association_on_source_reflection
     author = authors(:david)
     assert_equal [tags(:general), tags(:general)], author.tags
+    
+    # Only David has a Post tagged with General
+    authors = Author.joins(:tags).where('tags.id' => tags(:general).id)
+    assert_equal [authors(:david)], authors.uniq
+    
+    # This ensures that the polymorphism of taggings is being observed correctly
+    authors = Author.joins(:tags).where('taggings.taggable_type' => 'FakeModel')
+    assert authors.empty?
   end
 
   def test_has_many_through_a_has_many_through_association_on_through_reflection
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], author.subscribers
+    
+    # All authors with subscribers where one of the subscribers' nick is 'alterself'
+    authors = Author.joins(:subscribers).where('subscribers.nick' => 'alterself')
+    assert_equal [authors(:david)], authors
   end
 
   def test_distinct_has_many_through_a_has_many_through_association_on_source_reflection
@@ -44,11 +63,41 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_nested_has_many_through_with_a_table_referenced_multiple_times
     author = authors(:bob)
     assert_equal [posts(:misc_by_bob), posts(:misc_by_mary)], author.similar_posts.sort_by(&:id)
+    
+    # Mary and Bob both have posts in misc, but they are the only ones.
+    authors = Author.joins(:similar_posts).where('posts.id' => posts(:misc_by_bob).id)
+    assert_equal [authors(:mary), authors(:bob)], authors.uniq.sort_by(&:id)
+    
+    # Check the polymorphism of taggings is being observed correctly (in both joins)
+    authors = Author.joins(:similar_posts).where('taggings.taggable_type' => 'FakeModel')
+    assert authors.empty?
+    authors = Author.joins(:similar_posts).where('taggings_authors_join.taggable_type' => 'FakeModel')
+    assert authors.empty?
   end
   
-  def test_nested_has_many_through_as_a_join
-    # All authors with subscribers where one of the subscribers' nick is 'alterself'
-    authors = Author.joins(:subscribers).where('subscribers.nick' => 'alterself')
-    assert_equal [authors(:david)], authors
+  def test_has_many_through_with_foreign_key_option_on_through_reflection
+    assert_equal [posts(:welcome), posts(:authorless)], people(:david).agents_posts
+    assert_equal [authors(:david)], references(:david_unicyclist).agents_posts_authors
+    
+    references = Reference.joins(:agents_posts_authors).where('authors.id' => authors(:david).id)
+    assert_equal [references(:david_unicyclist)], references
+  end
+  
+  def test_has_many_through_with_foreign_key_option_on_source_reflection
+    assert_equal [people(:michael), people(:susan)], jobs(:unicyclist).agents
+    
+    jobs = Job.joins(:agents)
+    assert_equal [jobs(:unicyclist), jobs(:unicyclist)], jobs
+  end
+
+  def test_has_many_through_with_sti_on_through_reflection
+    ratings = posts(:sti_comments).special_comments_ratings.sort_by(&:id)
+    assert_equal [ratings(:special_comment_rating), ratings(:sub_special_comment_rating)], ratings
+    
+    # Ensure STI is respected in the join
+    scope = Post.joins(:special_comments_ratings).where(:id => posts(:sti_comments).id)
+    assert scope.where("comments.type" => "Comment").empty?
+    assert !scope.where("comments.type" => "SpecialComment").empty?
+    assert !scope.where("comments.type" => "SubSpecialComment").empty?
   end
 end
