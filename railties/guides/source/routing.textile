@@ -39,10 +39,10 @@ You can also generate paths and URLs. If your application contains this code:
 </ruby>
 
 <erb>
-<%= link_to "Patient Record", patients_path(@patient.id) %>
+<%= link_to "Patient Record", patient_path(@patient) %>
 </erb>
 
-The router will generate the path +/patients/17+. This reduces the brittleness of your view and makes your code easier to understand.
+The router will generate the path +/patients/17+. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
 h3. Resource Routing: the Rails Default
 
@@ -91,7 +91,7 @@ Creating a resourceful route will also expose a number of helpers to the control
 
 * +photos_path+ returns +/photos+
 * +new_photo_path+ returns +/photos/new+
-* +edit_photo_path+ returns +/photos/edit+
+* +edit_photo_path(id)+ returns +/photos/:id/edit+ (for instance, +edit_photo_path(10)+ returns +/photos/10/edit+)
 * +photo_path(id)+ returns +/photos/:id+ (for instance, +photo_path(10)+ returns +/photos/10+)
 
 Each of these helpers has a corresponding +_url+ helper (such as +photos_url+) which returns the same path prefixed with the current host, port and path prefix.
@@ -116,7 +116,7 @@ resources :videos
 
 h4. Singular Resources
 
-Sometimes, you have a resource that clients always look up without referencing an ID. A common example, +/profile+ always shows the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
+Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like +/profile+ to always show the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
 
 <ruby>
 match "profile" => "users#show"
@@ -161,15 +161,15 @@ end
 This will create a number of routes for each of the +posts+ and +comments+ controller. For +Admin::PostsController+, Rails will create:
 
 |_. Verb |_.Path               |_.action |_. helper                  |
-|GET     |/admin/photos        |index    | admin_photos_path         |
-|GET     |/admin/photos/new    |new      | new_admin_photos_path     |
-|POST    |/admin/photos        |create   | admin_photos_path         |
-|GET     |/admin/photos/1      |show     | admin_photo_path(id)      |
-|GET     |/admin/photos/1/edit |edit     | edit_admin_photo_path(id) |
-|PUT     |/admin/photos/1      |update   | admin_photo_path(id)      |
-|DELETE  |/admin/photos/1      |destroy  | admin_photo_path(id)      |
+|GET     |/admin/posts        |index    | admin_posts_path         |
+|GET     |/admin/posts/new    |new      | new_admin_posts_path     |
+|POST    |/admin/posts        |create   | admin_posts_path         |
+|GET     |/admin/posts/1      |show     | admin_post_path(id)      |
+|GET     |/admin/posts/1/edit |edit     | edit_admin_post_path(id) |
+|PUT     |/admin/posts/1      |update   | admin_post_path(id)      |
+|DELETE  |/admin/posts/1      |destroy  | admin_post_path(id)      |
 
-If you want to route +/photos+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
+If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
 
 <ruby>
 scope :module => "admin" do
@@ -183,7 +183,7 @@ or, for a single case
 resources :posts, :module => "admin"
 </ruby>
 
-If you want to route +/admin/photos+ to +PostsController+ (without the +Admin::+ module prefix), you could use
+If you want to route +/admin/posts+ to +PostsController+ (without the +Admin::+ module prefix), you could use
 
 <ruby>
 scope "/admin" do
@@ -200,13 +200,13 @@ resources :posts, :path => "/admin"
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
 
 |_. Verb |_.Path               |_.action |_. helper            |
-|GET     |/admin/photos        |index    | photos_path         |
-|GET     |/admin/photos/new    |new      | photos_path         |
-|POST    |/admin/photos        |create   | photos_path         |
-|GET     |/admin/photos/1      |show     | photo_path(id)      |
-|GET     |/admin/photos/1/edit |edit     | edit_photo_path(id) |
-|PUT     |/admin/photos/1      |update   | photo_path(id)      |
-|DELETE  |/admin/photos/1      |destroy  | photo_path(id)      |
+|GET     |/admin/posts        |index    | posts_path         |
+|GET     |/admin/posts/new    |new      | posts_path         |
+|POST    |/admin/posts        |create   | posts_path         |
+|GET     |/admin/posts/1      |show     | post_path(id)      |
+|GET     |/admin/posts/1/edit |edit     | edit_post_path(id) |
+|PUT     |/admin/posts/1      |update   | post_path(id)      |
+|DELETE  |/admin/posts/1      |destroy  | post_path(id)      |
 
 h4. Nested Resources
 
@@ -370,7 +370,7 @@ When you set up a regular route, you supply a series of symbols that Rails maps 
 match ':controller(/:action(/:id))'
 </ruby>
 
-If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
+If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController#index+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
 
 h4. Dynamic Segments
 
@@ -434,7 +434,7 @@ You can specify a name for any route using the +:as+ option.
 match 'exit' => 'sessions#destroy', :as => :logout
 </ruby>
 
-This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/logout+
+This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
 
 h4. Segment Constraints
 
@@ -589,7 +589,7 @@ The +:controller+ option lets you explicitly specify a controller to use for the
 resources :photos, :controller => "images"
 </ruby>
 
-will recognize incoming paths beginning with +/photo+ but route to the +Images+ controller:
+will recognize incoming paths beginning with +/photos+ but route to the +Images+ controller:
 
 |_. Verb |_.Path         |_.action |
 |GET     |/photos        |index    |
@@ -723,7 +723,7 @@ scope(:path_names => { :new => "neu", :edit => "bearbeiten" }) do
 end
 </ruby>
 
-Rails now creates routes to the +CategoriesControlleR+.
+Rails now creates routes to the +CategoriesController+.
 
 |_.HTTP verb|_.Path                     |_.action |
 |GET        |/kategorien                |index    |
@@ -788,7 +788,7 @@ TIP: You'll find that the output from +rake routes+ is much more readable if you
 
 h4. Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionController/Assertions/RoutingAssertions.html designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html designed to make testing routes simpler:
 
 * +assert_generates+
 * +assert_recognizes+
