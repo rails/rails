@@ -168,6 +168,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_not_added_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
+    assert_file "test/test_helper.rb" do |helper_content|
+      assert_no_match /fixtures :all/, helper_content
+    end
     assert_file "test/performance/browsing_test.rb"
   end
 
