@@ -49,7 +49,7 @@ module ApplicationTests
       @plugin.write "lib/blog.rb", <<-RUBY
         module Blog
           class Engine < ::Rails::Engine
-            namespace(Blog)
+            isolate_namespace(Blog)
           end
         end
       RUBY
