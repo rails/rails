@@ -384,23 +384,32 @@ module ActiveRecord
         end
       end
 
-      def copy(destination, sources)
+      def copy(destination, sources, options = {})
         copied = []
 
+        destination_migrations = ActiveRecord::Migrator.migrations(destination)
+        last = destination_migrations.last
         sources.each do |name, path|
-          destination_migrations = ActiveRecord::Migrator.migrations(destination)
           source_migrations = ActiveRecord::Migrator.migrations(path)
-          last = destination_migrations.last
 
           source_migrations.each do |migration|
-            next if destination_migrations.any? { |m| m.name == migration.name }
+            source = File.read(migration.filename)
+            source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
+
+            if duplicate = destination_migrations.detect { |m| m.name == migration.name }
+              options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
+              next
+            end
 
             migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
+            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
+            old_path, migration.filename = migration.filename, new_path
             last = migration
 
-            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
-            FileUtils.cp(migration.filename, new_path)
-            copied << new_path
+            FileUtils.cp(old_path, migration.filename)
+            copied << migration
+            options[:on_copy].call(name, migration, old_path) if options[:on_copy]
+            destination_migrations << migration
           end
         end
 
@@ -424,6 +433,10 @@ module ActiveRecord
     def initialize(name, version, filename)
       super
       @migration = nil
+    end
+
+    def basename
+      File.basename(filename)
     end
 
     delegate :migrate, :announce, :write, :to=>:migration

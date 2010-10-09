@@ -1912,7 +1912,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
       assert File.exists?(@migrations_path + "/4_people_have_hobbies.rb")
       assert File.exists?(@migrations_path + "/5_people_have_descriptions.rb")
-      assert_equal [@migrations_path + "/4_people_have_hobbies.rb", @migrations_path + "/5_people_have_descriptions.rb"], copied
+      assert_equal [@migrations_path + "/4_people_have_hobbies.rb", @migrations_path + "/5_people_have_descriptions.rb"], copied.map(&:filename)
 
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
@@ -1953,7 +1953,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
         expected = [@migrations_path + "/20100726101010_people_have_hobbies.rb",
                     @migrations_path + "/20100726101011_people_have_descriptions.rb"]
-        assert_equal expected, copied
+        assert_equal expected, copied.map(&:filename)
 
         files_count = Dir[@migrations_path + "/*.rb"].length
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
@@ -2002,6 +2002,24 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
         assert copied.empty?
       end
+    ensure
+      clear
+    end
+
+    def test_skipping_migrations
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = sources[:omg] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+
+      skipped = []
+      on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      assert_equal 2, copied.length
+
+      assert_equal 2, skipped.length
+      assert_equal ["bukkits PeopleHaveHobbies", "bukkits PeopleHaveDescriptions"], skipped
     ensure
       clear
     end
