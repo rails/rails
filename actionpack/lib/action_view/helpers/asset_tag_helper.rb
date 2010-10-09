@@ -152,7 +152,7 @@ module ActionView
     #
     #   # Normally you'd calculate RELEASE_NUMBER at startup.
     #   RELEASE_NUMBER = 12345
-    #   config.action_controller.asset_path_template = proc { |asset_path|
+    #   config.action_controller.asset_path = proc { |asset_path|
     #     "/release-#{RELEASE_NUMBER}#{asset_path}"
     #   }
     #
