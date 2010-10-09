@@ -165,7 +165,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql2["']$/
   end
 
-  def test_config_database_is_not_added_if_skip_active_record_is_given
+  def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_file "test/test_helper.rb" do |helper_content|
