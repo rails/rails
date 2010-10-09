@@ -191,6 +191,13 @@ module Rails
 
     def load_tasks
       self.class.rake_tasks.each(&:call)
+
+      # load also tasks from all superclasses
+      klass = self.class.superclass
+      while klass.respond_to?(:rake_tasks)
+        klass.rake_tasks.each { |t| self.instance_exec(&t) }
+        klass = klass.superclass
+      end
     end
 
     def load_generators

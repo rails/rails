@@ -103,6 +103,30 @@ module RailtiesTest
       assert $ran_block
     end
 
+    test "rake_tasks block defined in superclass of railtie is also executed" do
+      $ran_block = []
+
+      class Rails::Railtie
+        rake_tasks do
+          $ran_block << railtie_name
+        end
+      end
+
+      class MyTie < Rails::Railtie
+        railtie_name "my_tie"
+      end
+
+      require "#{app_path}/config/environment"
+
+      assert_equal [], $ran_block
+      require 'rake'
+      require 'rake/testtask'
+      require 'rake/rdoctask'
+
+      AppTemplate::Application.load_tasks
+      assert $ran_block.include?("my_tie")
+    end
+
     test "generators block is executed when MyApp.load_generators is called" do
       $ran_block = false
 
