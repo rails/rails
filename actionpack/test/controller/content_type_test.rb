@@ -29,18 +29,18 @@ class OldContentTypeController < ActionController::Base
     render :text => "hello world!"
   end
 
-  def render_default_for_rhtml
+  def render_default_for_erb
   end
 
-  def render_default_for_rxml
+  def render_default_for_builder
   end
 
   def render_default_for_rjs
   end
 
-  def render_change_for_rxml
+  def render_change_for_builder
     response.content_type = Mime::HTML
-    render :action => "render_default_for_rxml"
+    render :action => "render_default_for_builder"
   end
 
   def render_default_content_types_for_respond_to
@@ -108,23 +108,23 @@ class ContentTypeTest < ActionController::TestCase
     assert_equal "utf-8", @response.charset, @response.headers.inspect
   end
 
-  def test_nil_default_for_rhtml
+  def test_nil_default_for_erb
     OldContentTypeController.default_charset = nil
-    get :render_default_for_rhtml
+    get :render_default_for_erb
     assert_equal Mime::HTML, @response.content_type
     assert_nil @response.charset, @response.headers.inspect
   ensure
     OldContentTypeController.default_charset = "utf-8"
   end
 
-  def test_default_for_rhtml
-    get :render_default_for_rhtml
+  def test_default_for_erb
+    get :render_default_for_erb
     assert_equal Mime::HTML, @response.content_type
     assert_equal "utf-8", @response.charset
   end
 
-  def test_default_for_rxml
-    get :render_default_for_rxml
+  def test_default_for_builder
+    get :render_default_for_builder
     assert_equal Mime::XML, @response.content_type
     assert_equal "utf-8", @response.charset
   end
@@ -135,8 +135,8 @@ class ContentTypeTest < ActionController::TestCase
     assert_equal "utf-8", @response.charset
   end
 
-  def test_change_for_rxml
-    get :render_change_for_rxml
+  def test_change_for_builder
+    get :render_change_for_builder
     assert_equal Mime::HTML, @response.content_type
     assert_equal "utf-8", @response.charset
   end
