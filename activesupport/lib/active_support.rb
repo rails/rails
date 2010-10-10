@@ -35,6 +35,7 @@ module ActiveSupport
 end
 
 require "active_support/dependencies/autoload"
+require "active_support/version"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
@@ -43,7 +44,6 @@ module ActiveSupport
   autoload :FileUpdateChecker
   autoload :LogSubscriber
   autoload :Notifications
-  autoload :VERSION
 
   # TODO: Narrow this list down
   eager_autoload do
