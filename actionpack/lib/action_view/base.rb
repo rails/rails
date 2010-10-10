@@ -158,7 +158,7 @@ module ActionView #:nodoc:
     module Subclasses
     end
 
-    include Helpers, Rendering, Partials, Layouts, ::ERB::Util, Context
+    include Helpers, Rendering, Partials, ::ERB::Util, Context
 
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
@@ -180,8 +180,7 @@ module ActionView #:nodoc:
     attr_accessor :base_path, :assigns, :template_extension, :lookup_context
     attr_internal :captures, :request, :controller, :template, :config
 
-    delegate :find_template, :template_exists?, :formats, :formats=, :locale, :locale=,
-             :view_paths, :view_paths=, :with_fallbacks, :update_details, :with_layout_format, :to => :lookup_context
+    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
              :flash, :action_name, :controller_name, :to => :controller
@@ -218,6 +217,10 @@ module ActionView #:nodoc:
       @lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
         lookup_context : ActionView::LookupContext.new(lookup_context)
       @lookup_context.formats = formats if formats
+    end
+
+    def store_content_for(key, value)
+      @_content_for[key] = value
     end
 
     def controller_path
