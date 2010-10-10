@@ -1,8 +1,9 @@
 require 'active_support/inflector'
+require 'active_support/core_ext/hash/except'
 
 module ActiveModel
   class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path, :route_key, :param_key
+    attr_reader :singular, :plural, :element, :collection, :partial_path, :route_key, :param_key, :i18n_key
     alias_method :cache_key, :collection
 
     def initialize(klass, namespace = nil)
@@ -18,6 +19,7 @@ module ActiveModel
       @partial_path = "#{@collection}/#{@element}".freeze
       @param_key = (namespace ? _singularize(@unnamespaced) : @singular).freeze
       @route_key = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural).freeze
+      @i18n_key = _singularize(self, '.').to_sym
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -31,20 +33,21 @@ module ActiveModel
                            @klass.respond_to?(:i18n_scope)
 
       defaults = @klass.lookup_ancestors.map do |klass|
-        klass.model_name.underscore.to_sym
+        klass.model_name.i18n_key
       end
 
-      defaults << options.delete(:default) if options[:default]
+      defaults << options[:default] if options[:default]
       defaults << @human
 
-      options.reverse_merge! :scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults
+      options = {:scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults}.merge(options.except(:default))
       I18n.translate(defaults.shift, options)
     end
 
     private
-      def _singularize(str)
-        ActiveSupport::Inflector.underscore(str).tr('/', '_')
-      end
+
+    def _singularize(string, replacement='_')
+      ActiveSupport::Inflector.underscore(string).tr('/', replacement)
+    end
   end
 
   # == Active Model Naming
@@ -60,6 +63,9 @@ module ActiveModel
   #   BookCover.model_name        # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
   #
+  #   BookCover.model_name.i18n_key              # => "book_cover"
+  #   BookModule::BookCover.model_name.i18n_key  # => "book_module.book_cover"
+  #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test.  So either extending the provided
   # method below, or rolling your own is required..
@@ -67,8 +73,10 @@ module ActiveModel
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information.
     def model_name
-      namespace = self.parents.detect { |n| n.respond_to?(:_railtie) }
-      @_model_name ||= ActiveModel::Name.new(self, namespace)
+      @_model_name ||= begin
+        namespace = self.parents.detect { |n| n.respond_to?(:_railtie) }
+        ActiveModel::Name.new(self, namespace)
+      end
     end
 
     # Returns the plural class name of a record or class. Examples:
@@ -121,7 +129,11 @@ module ActiveModel
 
     private
       def self.model_name_from_record_or_class(record_or_class)
-        (record_or_class.is_a?(Class) ? record_or_class : record_or_class.class).model_name
+        (record_or_class.is_a?(Class) ? record_or_class : convert_to_model(record_or_class).class).model_name
+      end
+
+      def self.convert_to_model(object)
+        object.respond_to?(:to_model) ? object.to_model : object
       end
   end
 

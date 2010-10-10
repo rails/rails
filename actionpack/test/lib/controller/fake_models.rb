@@ -55,6 +55,11 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost
 
   alias_method :secret?, :secret
 
+  def initialize(*args)
+    super
+    @persisted = false
+  end
+
   def persisted=(boolean)
     @persisted = boolean
   end
@@ -91,6 +96,7 @@ class Comment
   attr_accessor :relevances
   def relevances_attributes=(attributes); end
 
+  attr_accessor :body
 end
 
 class Tag
@@ -128,6 +134,20 @@ class CommentRelevance
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
   end
 end
+
+class Sheep
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+
+  attr_reader :id
+  def to_key; id ? [id] : nil end
+  def save; @id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    @id.nil? ? 'new sheep' : "sheep ##{@id}"
+  end
+end
+
 
 class TagRelevance
   extend ActiveModel::Naming

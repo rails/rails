@@ -1,12 +1,20 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added render :once. You can pass either a string or an array of strings and Rails will ensure they each of them are rendered just once. [José Valim]
+
+* Deprecate old template handler API. The new API simply requires a template handler to respond to call. [José Valim]
+
+* :rhtml and :rxml were finally removed as template handlers. [José Valim]
+
+* Moved etag responsibility from ActionDispatch::Response to the middleware stack. [José Valim]
+
+* Rely on Rack::Session stores API for more compatibility across the Ruby world. This is backwards incompatible since Rack::Session expects #get_session to accept 4 arguments and requires #destroy_session instead of simply #destroy. [José Valim]
+
 * file_field automatically adds :multipart => true to the enclosing form. [Santiago Pastorino]
 
 * Renames csrf_meta_tag -> csrf_meta_tags, and aliases csrf_meta_tag for backwards compatibility. [fxn]
 
-* Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used
-  for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply
-  to the browser only.
+* Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. [Yehuda Katz, Carl Lerche]
 
 *Rails 3.0.0 (August 29, 2010)*
 

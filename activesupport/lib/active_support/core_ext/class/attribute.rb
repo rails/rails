@@ -72,11 +72,21 @@ class Class
             remove_possible_method(:#{name})
             define_method(:#{name}) { val }
           end
+
+          if singleton_class?
+            class_eval do
+              remove_possible_method(:#{name})
+              def #{name}
+                defined?(@#{name}) ? @#{name} : singleton_class.#{name}
+              end
+            end
+          end
           val
         end
 
+        remove_method :#{name} if method_defined?(:#{name})
         def #{name}
-          defined?(@#{name}) ? @#{name} : singleton_class.#{name}
+          defined?(@#{name}) ? @#{name} : self.class.#{name}
         end
 
         def #{name}?
@@ -86,5 +96,16 @@ class Class
 
       attr_writer name if instance_writer
     end
+  end
+
+  private
+  def singleton_class?
+    # in case somebody is crazy enough to overwrite allocate
+    allocate = Class.instance_method(:allocate)
+    # object.class always points to a real (non-singleton) class
+    allocate.bind(self).call.class != self
+  rescue TypeError
+    # MRI/YARV/JRuby all disallow creating new instances of a singleton class
+    true
   end
 end

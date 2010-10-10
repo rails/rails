@@ -118,7 +118,7 @@ module ActiveRecord
 end
 
 ActiveSupport.on_load(:active_record) do
-  Arel::Table.engine = Arel::Sql::Engine.new(self)
+  Arel::Table.engine = self
 end
 
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

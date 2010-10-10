@@ -31,6 +31,20 @@ def current_adapter?(*types)
   end
 end
 
+def with_env_tz(new_tz = 'US/Eastern')
+  old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+  yield
+ensure
+  old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+end
+
+def with_active_record_default_timezone(zone)
+  old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
+  yield
+ensure
+  ActiveRecord::Base.default_timezone = old_zone
+end
+
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /SHOW FIELDS/]
 
@@ -42,6 +56,18 @@ ActiveRecord::Base.connection.class.class_eval do
 
   alias_method_chain :execute, :query_record
 end
+
+ActiveRecord::Base.connection.class.class_eval {
+  attr_accessor :column_calls
+
+  def columns_with_calls(*args)
+    @column_calls ||= 0
+    @column_calls += 1
+    columns_without_calls(*args)
+  end
+
+  alias_method_chain :columns, :calls
+}
 
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods

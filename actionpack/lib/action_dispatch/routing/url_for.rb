@@ -98,6 +98,11 @@ module ActionDispatch
         end
       end
 
+      def initialize(*)
+        @_routes = nil
+        super
+      end
+
       def url_options
         default_url_options
       end

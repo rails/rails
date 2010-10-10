@@ -105,7 +105,7 @@ module ActionDispatch
           else        [ record_or_hash_or_array ]
         end
 
-        inflection = if options[:action].to_s == "new"
+        inflection = if options[:action] && options[:action].to_s == "new"
           args.pop
           :singular
         elsif (record.respond_to?(:persisted?) && !record.persisted?)
@@ -168,10 +168,7 @@ module ActionDispatch
         end
 
         def build_named_route_call(records, inflection, options = {})
-          unless records.is_a?(Array)
-            record = extract_record(records)
-            route  = []
-          else
+          if records.is_a?(Array)
             record = records.pop
             route = records.map do |parent|
               if parent.is_a?(Symbol) || parent.is_a?(String)
@@ -180,6 +177,9 @@ module ActionDispatch
                 ActiveModel::Naming.route_key(parent).singularize
               end
             end
+          else
+            record = extract_record(records)
+            route  = []
           end
 
           if record.is_a?(Symbol) || record.is_a?(String)

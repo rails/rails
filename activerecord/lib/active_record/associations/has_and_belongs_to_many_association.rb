@@ -49,23 +49,20 @@ module ActiveRecord
             timestamps = record_timestamp_columns(record)
             timezone   = record.send(:current_time_from_proper_timezone) if timestamps.any?
 
-            attributes = columns.inject({}) do |attrs, column|
+            attributes = Hash[columns.map do |column|
               name = column.name
-              case name.to_s
+              value = case name.to_s
                 when @reflection.primary_key_name.to_s
-                  attrs[relation[name]] = @owner.id
+                  @owner.id
                 when @reflection.association_foreign_key.to_s
-                  attrs[relation[name]] = record.id
+                  record.id
                 when *timestamps
-                  attrs[relation[name]] = timezone
+                  timezone
                 else
-                  if record.has_attribute?(name)
-                    value = @owner.send(:quote_value, record[name], column)
-                    attrs[relation[name]] = value unless value.nil?
-                  end
+                  @owner.send(:quote_value, record[name], column) if record.has_attribute?(name)
               end
-              attrs
-            end
+              [relation[name], value] unless value.nil?
+            end]
 
             relation.insert(attributes)
           end
@@ -79,7 +76,7 @@ module ActiveRecord
           else
             relation = Arel::Table.new(@reflection.options[:join_table])
             relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
-              and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }))
+              and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
             ).delete
           end
         end

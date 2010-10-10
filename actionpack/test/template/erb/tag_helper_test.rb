@@ -3,9 +3,6 @@ require "template/erb/helper"
 
 module ERBTest
   class TagHelperTest < BlockTestCase
-    def block_helper(str, rest)
-      "<%= #{str} do %>#{rest}<% end %>"
-    end
 
     extend ActiveSupport::Testing::Declarative
 

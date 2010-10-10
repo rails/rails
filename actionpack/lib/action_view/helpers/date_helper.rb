@@ -923,6 +923,7 @@ module ActionView
       private
         def datetime_selector(options, html_options)
           datetime = value(object) || default_datetime(options)
+          @auto_index ||= nil
 
           options = options.dup
           options[:field_name]           = @method_name

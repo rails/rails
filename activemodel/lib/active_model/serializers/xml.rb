@@ -76,10 +76,9 @@ module ActiveModel
         end
 
         def serializable_methods
-          Array.wrap(options[:methods]).inject([]) do |methods, name|
-            methods << self.class::MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
-            methods
-          end
+          Array.wrap(options[:methods]).map do |name|
+            self.class::MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
+          end.compact
         end
 
         def serialize

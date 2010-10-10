@@ -263,7 +263,7 @@ module ActionView
       #
       #   post_body = "Welcome to my new blog at http://www.myblog.com/.  Please e-mail me at me@email.com."
       #   auto_link(post_body, :html => { :target => '_blank' }) do |text|
-      #     truncate(text, 15)
+      #     truncate(text, :length => 15)
       #   end
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.m...</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
@@ -365,7 +365,7 @@ module ActionView
       #   <% end %>
       def current_cycle(name = "default")
         cycle = get_cycle(name)
-        cycle.current_value unless cycle.nil?
+        cycle.current_value if cycle
       end
 
       # Resets a cycle so that it starts from the first element the next time

@@ -5,16 +5,20 @@ module ActionController
     include AbstractController::UrlFor
 
     def url_options
-      options = {}
-      if _routes.equal?(env["action_dispatch.routes"])
-        options[:script_name] = request.script_name.dup
-      end
-
-      super.merge(options).reverse_merge(
+      @_url_options ||= super.reverse_merge(
         :host => request.host_with_port,
         :protocol => request.protocol,
         :_path_segments => request.symbolized_path_parameters
-      )
+      ).freeze
+
+      if _routes.equal?(env["action_dispatch.routes"])
+        @_url_options.dup.tap do |options|
+          options[:script_name] = request.script_name.dup
+          options.freeze
+        end
+      else
+        @_url_options
+      end
     end
   end
 end

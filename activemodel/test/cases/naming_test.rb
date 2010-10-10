@@ -28,6 +28,10 @@ class NamingTest < ActiveModel::TestCase
   def test_partial_path
     assert_equal 'post/track_backs/track_back', @model_name.partial_path
   end
+
+  def test_human
+    assert_equal 'Track back', @model_name.human
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
@@ -119,6 +123,10 @@ class NamingHelpersTest < Test::Unit::TestCase
     @uncountable = Sheep
     @route_key = 'contacts'
     @param_key = 'contact'
+  end
+
+  def test_to_model_called_on_record
+    assert_equal 'post_named_track_backs', plural(Post::TrackBack.new)
   end
 
   def test_singular

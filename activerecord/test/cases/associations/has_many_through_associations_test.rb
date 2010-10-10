@@ -421,4 +421,32 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) {company.developer_ids= ids}
   end
 
+  def test_build_a_model_from_hm_through_association_with_where_clause
+    assert_nothing_raised { books(:awdr).subscribers.where(:nick => "marklazz").build }
+  end
+
+  def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_where_clause
+    new_subscriber = books(:awdr).subscribers.where(:nick => "marklazz").build
+    assert_equal new_subscriber.nick, "marklazz"
+  end
+
+  def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_multiple_where_clauses
+    new_subscriber = books(:awdr).subscribers.where(:nick => "marklazz").where(:name => 'Marcelo Giorgi').build
+    assert_equal new_subscriber.nick, "marklazz"
+    assert_equal new_subscriber.name, "Marcelo Giorgi"
+  end
+
+  def test_include_method_in_association_through_should_return_true_for_instance_added_with_build
+    person = Person.new
+    reference = person.references.build
+    job = reference.build_job
+    assert person.jobs.include?(job)
+  end
+
+  def test_include_method_in_association_through_should_return_true_for_instance_added_with_nested_builds
+    author = Author.new
+    post = author.posts.build
+    comment = post.comments.build
+    assert author.comments.include?(comment)
+  end
 end

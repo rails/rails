@@ -158,9 +158,9 @@ class Class # :nodoc:
       if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
         new_inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
       else
-        new_inheritable_attributes = inheritable_attributes.inject({}) do |memo, (key, value)|
-          memo.update(key => value.duplicable? ? value.dup : value)
-        end
+        new_inheritable_attributes = Hash[inheritable_attributes.map do |(key, value)|
+          [key, value.duplicable? ? value.dup : value]
+        end]
       end
 
       child.instance_variable_set('@inheritable_attributes', new_inheritable_attributes)

@@ -425,7 +425,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_removing_associations_on_destroy
     david = DeveloperWithBeforeDestroyRaise.find(1)
     assert !david.projects.empty?
-    assert_nothing_raised { david.destroy }
+    assert_raise(RuntimeError) { david.destroy }
     assert david.projects.empty?
     assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
   end
@@ -848,4 +848,20 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_queries(0) { david.projects.columns; david.projects.columns }
   end
 
+  def test_attributes_are_being_set_when_initialized_from_habm_association_with_where_clause
+    new_developer = projects(:action_controller).developers.where(:name => "Marcelo").build
+    assert_equal new_developer.name, "Marcelo"
+  end
+
+  def test_attributes_are_being_set_when_initialized_from_habm_association_with_multiple_where_clauses
+    new_developer = projects(:action_controller).developers.where(:name => "Marcelo").where(:salary => 90_000).build
+    assert_equal new_developer.name, "Marcelo"
+    assert_equal new_developer.salary, 90_000
+  end
+
+  def test_include_method_in_has_and_belongs_to_many_association_should_return_true_for_instance_added_with_build
+    project = Project.new
+    developer = project.developers.build
+    assert project.developers.include?(developer)
+  end
 end

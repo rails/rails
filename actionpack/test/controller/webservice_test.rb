@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class WebServiceTest < ActionController::IntegrationTest
+class WebServiceTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]
@@ -24,6 +24,7 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def setup
     @controller = TestController.new
+    @integration_session = nil
   end
 
   def test_check_parameters

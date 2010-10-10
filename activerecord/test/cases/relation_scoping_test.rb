@@ -425,4 +425,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
   end
+
+  def test_scope_composed_by_limit_and_then_offset_is_equal_to_scope_composed_by_offset_and_then_limit
+    posts_limit_offset = Post.limit(3).offset(2)
+    posts_offset_limit = Post.offset(2).limit(3)
+    assert_equal posts_limit_offset, posts_offset_limit
+  end
 end

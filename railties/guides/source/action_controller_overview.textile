@@ -98,7 +98,7 @@ The value of +params[:ids]+ will now be +["1", "2", "3"]+. Note that parameter v
 To send a hash you include the key name inside the brackets:
 
 <html>
-<form action="/clients" method="post">
+<form accept-charset="UTF-8" action="/clients" method="post">
   <input type="text" name="client[name]" value="Acme" />
   <input type="text" name="client[phone]" value="12345" />
   <input type="text" name="client[address][postcode]" value="12345" />
@@ -115,10 +115,7 @@ h4. Routing Parameters
 The +params+ hash will always contain the +:controller+ and +:action+ keys, but you should use the methods +controller_name+ and +action_name+ instead to access these values. Any other parameters defined by the routing, such as +:id+ will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the +:status+ parameter in a "pretty" URL:
 
 <ruby>
-map.connect "/clients/:status",
-  :controller => "clients",
-  :action => "index",
-  :foo => "bar"
+match '/clients/:status' => 'clients#index', :foo => "bar"
 </ruby>
 
 In this case, when a user opens the URL +/clients/active+, +params[:status]+ will be set to "active". When this route is used, +params[:foo]+ will also be set to "bar" just like it was passed in the query string. In the same way +params[:action]+ will contain "index".
@@ -161,7 +158,7 @@ If you need a different session storage mechanism, you can change it in the +con
 <ruby>
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
-# (create the session table with "rake db:sessions:create")
+# (create the session table with "script/rails g session_migration")
 # YourApp::Application.config.session_store :active_record_store
 </ruby>
 
@@ -214,7 +211,7 @@ class ApplicationController < ActionController::Base
   # logging out removes it.
   def current_user
     @_current_user ||= session[:current_user_id] &&
-      User.find(session[:current_user_id])
+      User.find_by_id(session[:current_user_id])
   end
 end
 </ruby>
@@ -424,7 +421,7 @@ Around filters are responsible for running the action, but they can choose not t
 
 <ruby>
 # Example taken from the Rails API filter documentation:
-# http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html
+# http://ap.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html
 class ApplicationController < ActionController::Base
   around_filter :catch_exceptions
 
@@ -474,11 +471,11 @@ end
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
 
-The Rails API documentation has "more information on using filters":http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html.
+The Rails API documentation has "more information on using filters":http://ap.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html.
 
 h3. Verification
 
-Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response. It is described in the "API documentation":http://api.rubyonrails.org/classes/ActionController/Verification/ClassMethods.html as "essentially a special kind of before_filter".
+Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response. It is described in the "API documentation":http://ap.rubyonrails.org/classes/ActionController/Verification/ClassMethods.html as "essentially a special kind of before_filter".
 
 Here's an example of using verification to make sure the user supplies a username and a password in order to log in:
 
@@ -535,7 +532,7 @@ If you generate a form like this:
 You will see how the token gets added as a hidden field:
 
 <html>
-<form action="/users/1" method="post">
+<form accept-charset="UTF-8" action="/users/1" method="post">
 <input type="hidden"
        value="67250ab105eb5ad10851c00a5621854a23af5489"
        name="authenticity_token"/>
@@ -555,7 +552,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 h4. The +request+ Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html. Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://ap.rubyonrails.org/classes/ActionController/AbstractRequest.html. Among the properties that you can access on this object are:
 
 |_.Property of +request+|_.Purpose|
 |host|The hostname used for this request.|

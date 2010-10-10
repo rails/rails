@@ -15,12 +15,7 @@ module ActionDispatch
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
       def protocol
-        ssl? ? 'https://' : 'http://'
-      end
-
-      # Is this an SSL request?
-      def ssl?
-        @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
+        @protocol ||= ssl? ? 'https://' : 'http://'
       end
 
       # Returns the \host for this request, such as "example.com".

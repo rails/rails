@@ -81,4 +81,34 @@ class CallbacksTest < ActiveModel::TestCase
     assert !ModelCallbacks.respond_to?(:around_empty)
     assert !ModelCallbacks.respond_to?(:after_empty)
   end
+
+  class Violin
+    attr_reader :history
+    def initialize
+      @history = []
+    end
+    extend ActiveModel::Callbacks
+    define_model_callbacks :create
+    def callback1; self.history << 'callback1'; end
+    def callback2; self.history << 'callback2'; end
+    def create
+      _run_create_callbacks {}
+      self
+    end
+  end
+  class Violin1 < Violin
+    after_create :callback1, :callback2
+  end
+  class Violin2 < Violin
+    after_create :callback1
+    after_create :callback2
+  end
+
+  test "after_create callbacks with both callbacks declared in one line" do
+    assert_equal ["callback1", "callback2"], Violin1.new.create.history
+  end
+  test "after_create callbacks with both callbacks declared in differnt lines" do
+    assert_equal ["callback1", "callback2"], Violin2.new.create.history
+  end
+
 end

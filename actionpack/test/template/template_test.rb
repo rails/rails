@@ -1,11 +1,12 @@
 require "abstract_unit"
 
 class TestERBTemplate < ActiveSupport::TestCase
-  ERBHandler = ActionView::Template::Handlers::ERB
+  ERBHandler = ActionView::Template::Handlers::ERB.new
 
   class Context
     def initialize
       @output_buffer = "original"
+      @_virtual_path = nil
     end
 
     def hello
@@ -31,8 +32,8 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", handler = ERBHandler, details = {})
-    ActionView::Template.new(body, "hello template", ERBHandler, {:virtual_path => "hello"})
+  def new_template(body = "<%= hello %>", details = {})
+    ActionView::Template.new(body, "hello template", ERBHandler, {:virtual_path => "hello"}.merge!(details))
   end
 
   def render(locals = {})
@@ -48,8 +49,21 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_template_loses_its_source_after_rendering
+    @template = new_template
+    render
+    assert_nil @template.source
+  end
+
+  def test_template_does_not_lose_its_source_after_rendering_if_it_does_not_have_a_virtual_path
+    @template = new_template("Hello", :virtual_path => nil)
+    render
+    assert_equal "Hello", @template.source
+  end
+
   def test_locals
     @template = new_template("<%= my_local %>")
+    @template.locals = [:my_local]
     assert_equal "I'm a local", render(:my_local => "I'm a local")
   end
 
@@ -82,12 +96,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     # is set to something other than UTF-8, we don't
     # get any errors and get back a UTF-8 String.
     def test_default_external_works
-      Encoding.default_external = "ISO-8859-1"
-      @template = new_template("hello \xFCmlat")
-      assert_equal Encoding::UTF_8, render.encoding
-      assert_equal "hello \u{fc}mlat", render
-    ensure
-      Encoding.default_external = "UTF-8"
+      with_external_encoding "ISO-8859-1" do
+        @template = new_template("hello \xFCmlat")
+        assert_equal Encoding::UTF_8, render.encoding
+        assert_equal "hello \u{fc}mlat", render
+      end
     end
 
     def test_encoding_can_be_specified_with_magic_comment
@@ -101,14 +114,14 @@ class TestERBTemplate < ActiveSupport::TestCase
     # inside Rails.
     def test_lying_with_magic_comment
       assert_raises(ActionView::Template::Error) do
-        @template = new_template("# encoding: UTF-8\nhello \xFCmlat")
+        @template = new_template("# encoding: UTF-8\nhello \xFCmlat", :virtual_path => nil)
         render
       end
     end
 
     def test_encoding_can_be_specified_with_magic_comment_in_erb
       with_external_encoding Encoding::UTF_8 do
-        @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat")
+        @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat", :virtual_path => nil)
         result = render
         assert_equal Encoding::UTF_8, render.encoding
         assert_equal "hello \u{fc}mlat", render
@@ -117,16 +130,17 @@ class TestERBTemplate < ActiveSupport::TestCase
 
     def test_error_when_template_isnt_valid_utf8
       assert_raises(ActionView::Template::Error, /\xFC/) do
-        @template = new_template("hello \xFCmlat")
+        @template = new_template("hello \xFCmlat", :virtual_path => nil)
         render
       end
     end
 
     def with_external_encoding(encoding)
-      old, Encoding.default_external = Encoding.default_external, encoding
+      old = Encoding.default_external
+      silence_warnings { Encoding.default_external = encoding }
       yield
     ensure
-      Encoding.default_external = old
+      silence_warnings { Encoding.default_external = old }
     end
   end
 end

@@ -1,20 +1,19 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
+require 'pg'
 
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.postgresql_connection(config) # :nodoc:
-      require 'pg'
-
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
       username = config[:username].to_s if config[:username]
       password = config[:password].to_s if config[:password]
 
-      if config.has_key?(:database)
+      if config.key?(:database)
         database = config[:database]
       else
         raise ArgumentError, "No database specified. Missing argument: database."
@@ -27,12 +26,6 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    class TableDefinition
-      def xml(*args)
-        options = args.extract_options!
-        column(args[0], 'xml', options)
-      end
-    end
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       # Instantiates a new PostgreSQL column definition in a table.
@@ -170,9 +163,7 @@ module ActiveRecord
           end
         end
     end
-  end
 
-  module ConnectionAdapters
     # The PostgreSQL adapter works both with the native C (http://ruby.scripting.ca/postgres/) and the pure
     # Ruby (available both as gem and from http://rubyforge.org/frs/?group_id=234&release_id=1944) drivers.
     #
@@ -192,10 +183,17 @@ module ActiveRecord
     # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock;
     #   otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
-      ADAPTER_NAME = 'PostgreSQL'.freeze
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def xml(*args)
+          options = args.extract_options!
+          column(args[0], 'xml', options)
+        end
+      end
+
+      ADAPTER_NAME = 'PostgreSQL'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "serial primary key".freeze,
+        :primary_key => "serial primary key",
         :string      => { :name => "character varying", :limit => 255 },
         :text        => { :name => "text" },
         :integer     => { :name => "integer" },
@@ -317,19 +315,22 @@ module ActiveRecord
       def quote(value, column = nil) #:nodoc:
         return super unless column
 
-        if value.kind_of?(String) && column.type == :binary
-          "'#{escape_bytea(value)}'"
-        elsif value.kind_of?(String) && column.sql_type == 'xml'
-          "xml '#{quote_string(value)}'"
-        elsif value.kind_of?(Numeric) && column.sql_type == 'money'
+        case value
+        when Numeric
+          return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
           "'#{value}'"
-        elsif value.kind_of?(String) && column.sql_type =~ /^bit/
-          case value
-            when /^[01]*$/
-              "B'#{value}'" # Bit-string notation
-            when /^[0-9A-F]*$/i
-              "X'#{value}'" # Hexadecimal notation
+        when String
+          case column.sql_type
+          when 'bytea' then "'#{escape_bytea(value)}'"
+          when 'xml'   then "xml '#{quote_string(value)}'"
+          when /^bit/
+            case value
+            when /^[01]*$/      then "B'#{value}'" # Bit-string notation
+            when /^[0-9A-F]*$/i then "X'#{value}'" # Hexadecimal notation
+            end
+          else
+            super
           end
         else
           super
@@ -974,7 +975,7 @@ module ActiveRecord
         def select(sql, name = nil)
           fields, rows = select_raw(sql, name)
           rows.map do |row|
-            Hash[*fields.zip(row).flatten]
+            Hash[fields.zip(row)]
           end
         end
 
@@ -1016,14 +1017,18 @@ module ActiveRecord
         end
 
         def extract_pg_identifier_from_name(name)
-          match_data = name[0,1] == '"' ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
+          match_data = name.start_with?('"') ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
 
           if match_data
-            rest = name[match_data[0].length..-1]
-            rest = rest[1..-1] if rest[0,1] == "."
+            rest = name[match_data[0].length, name.length]
+            rest = rest[1, rest.length] if rest.start_with? "."
             [match_data[1], (rest.length > 0 ? rest : nil)]
           end
         end
+
+      def table_definition
+        TableDefinition.new(self)
+      end
     end
   end
 end

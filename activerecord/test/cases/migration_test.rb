@@ -91,7 +91,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # Oracle adapter is shortening index name when just column list is given
         unless current_adapter?(:OracleAdapter)
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-          assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
+          assert_nothing_raised { Person.connection.remove_index("people", :name => :index_people_on_last_name_and_first_name) }
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
           assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
         end
@@ -122,6 +122,13 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
         assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
       end
+    end
+
+    def test_index_symbol_names
+      assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, :name => :symbol_index_name }
+      assert Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
+      assert_nothing_raised { Person.connection.remove_index :people, :name => :symbol_index_name }
+      assert !Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
     end
 
     def test_add_index_length_limit
@@ -1581,11 +1588,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLiteAdapter) || current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+      def test_xml_creates_xml_column
+        type = current_adapter?(:PostgreSQLAdapter) ? 'xml' : :text
+
+        with_new_table do |t|
+          t.expects(:column).with(:data, type, {})
+          t.xml :data
+        end
+      end
+    else
       def test_xml_creates_xml_column
         with_new_table do |t|
-          t.expects(:column).with(:data, 'xml', {})
-          t.xml :data
+          assert_raises(NotImplementedError) do
+            t.xml :data
+          end
         end
       end
     end

@@ -459,12 +459,12 @@ module ActiveSupport
       #
       # becomes
       #
-      #   dispatch_callback :before, :authenticate, :per_key => {:unless => proc {|c| c.action_name == "index"}}
+      #   set_callback :process_action, :before, :authenticate, :per_key => {:unless => proc {|c| c.action_name == "index"}}
       #
       # Per-Key conditions are evaluated only once per use of a given key.
       # In the case of the above example, you would do:
       #
-      #   run_callbacks(:dispatch, action_name) { ... dispatch stuff ... }
+      #   run_callbacks(:process_action, action_name) { ... dispatch stuff ... }
       #
       # In that case, each action_name would get its own compiled callback
       # method that took into consideration the per_key conditions. This
@@ -482,7 +482,7 @@ module ActiveSupport
             chain.delete_if {|c| c.matches?(type, filter) }
           end
 
-          options[:prepend] ? chain.unshift(*mapped) : chain.push(*mapped)
+          options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
         end
       end
 

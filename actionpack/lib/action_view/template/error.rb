@@ -43,8 +43,9 @@ module ActionView
   end
 
   class Template
-    # The Template::Error exception is raised when the compilation of the template fails. This exception then gathers a
-    # bunch of intimate details and uses it to report a very precise exception message.
+    # The Template::Error exception is raised when the compilation or rendering of the template
+    # fails. This exception then gathers a bunch of intimate details and uses it to report a
+    # precise exception message.
     class Error < ActionViewError #:nodoc:
       SOURCE_CODE_RADIUS = 3
 
@@ -52,6 +53,7 @@ module ActionView
 
       def initialize(template, assigns, original_exception)
         @template, @assigns, @original_exception = template, assigns.dup, original_exception
+        @sub_templates = nil
         @backtrace = original_exception.backtrace
       end
 

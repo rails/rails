@@ -338,13 +338,12 @@ module ActiveRecord
 
       def uniq(collection = self)
         seen = Set.new
-        collection.inject([]) do |kept, record|
+        collection.map do |record|
           unless seen.include?(record.id)
-            kept << record
             seen << record.id
+            record
           end
-          kept
-        end
+        end.compact
       end
 
       # Replace this collection with +other_array+
@@ -364,6 +363,7 @@ module ActiveRecord
 
       def include?(record)
         return false unless record.is_a?(@reflection.klass)
+        return include_in_memory?(record) if record.new_record?
         load_target if @reflection.options[:finder_sql] && !loaded?
         return @target.include?(record) if loaded?
         exists?(record)
@@ -554,6 +554,17 @@ module ActiveRecord
         def fetch_first_or_last_using_find?(args)
           args.first.kind_of?(Hash) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
                                          @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
+        end
+
+        def include_in_memory?(record)
+          if @reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
+            @owner.send(proxy_reflection.through_reflection.name.to_sym).any? do |source|
+              target = source.send(proxy_reflection.source_reflection.name)
+              target.respond_to?(:include?) ? target.include?(record) : target == record
+            end
+          else
+            @target.include?(record)
+          end
         end
     end
   end

@@ -92,7 +92,7 @@ module Rails
     end
 
     def public_path
-      application && application.paths.public.to_a.first
+      application && application.paths["public"].first
     end
   end
 end

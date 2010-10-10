@@ -2,8 +2,6 @@ module ActionController
   module Head
     extend ActiveSupport::Concern
 
-    include ActionController::UrlFor
-
     # Return a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
     # This allows you to easily return a response that consists only of
@@ -27,7 +25,7 @@ module ActionController
 
       self.status = status
       self.location = url_for(location) if location
-      self.content_type = Mime[formats.first]
+      self.content_type = Mime[formats.first] if formats
       self.response_body = " "
     end
   end

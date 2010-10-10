@@ -2,7 +2,7 @@ namespace :db do
   task :load_config => :rails_env do
     require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-    ActiveRecord::Migrator.migrations_path = Rails.application.config.paths.db.migrate.to_a.first
+    ActiveRecord::Migrator.migrations_path = Rails.application.paths["db/migrate"].first
   end
 
   task :copy_migrations => :load_config do
@@ -11,8 +11,8 @@ namespace :db do
     Rails.application.railties.all do |railtie|
       next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
-      if railtie.config.respond_to?(:paths) && railtie.config.paths.db
-        railties[railtie.railtie_name] = railtie.config.paths.db.migrate.to_a.first
+      if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
+        railties[railtie.railtie_name] = path
       end
     end
 
@@ -108,7 +108,7 @@ namespace :db do
           end
         end
       when 'postgresql'
-        @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
+        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
@@ -299,8 +299,7 @@ namespace :db do
 
   desc 'Load the seed data from db/seeds.rb'
   task :seed => 'db:abort_if_pending_migrations' do
-    seed_file = File.join(Rails.root, 'db', 'seeds.rb')
-    load(seed_file) if File.exist?(seed_file)
+    Rails.application.load_seed
   end
 
   namespace :fixtures do
@@ -357,7 +356,7 @@ namespace :db do
       if File.exists?(file)
         load(file)
       else
-        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/boot.rb to limit the frameworks that will be loaded}
+        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded}
       end
     end
   end
@@ -391,7 +390,7 @@ namespace :db do
         db_string = firebird_db_string(abcs[Rails.env])
         sh "isql -a #{db_string} > #{Rails.root}/db/#{Rails.env}_structure.sql"
       else
-        raise "Task not supported by '#{abcs["test"]["adapter"]}'"
+        raise "Task not supported by '#{abcs[Rails.env]["adapter"]}'"
       end
 
       if ActiveRecord::Base.connection.supports_migrations?

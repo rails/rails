@@ -149,6 +149,27 @@ module CallbacksTest
     end
   end
 
+  class AfterSaveConditionalPerson < Record
+    after_save Proc.new { |r| r.history << [:after_save, :string1] }
+    after_save Proc.new { |r| r.history << [:after_save, :string2] }
+    def save
+      run_callbacks :save
+    end
+  end
+
+  class AfterSaveConditionalPersonCallbackTest < Test::Unit::TestCase
+    def test_after_save_runs_in_the_reverse_order
+      person = AfterSaveConditionalPerson.new
+      person.save
+      assert_equal [
+        [:after_save, :string2],
+        [:after_save, :string1]
+      ], person.history
+    end
+  end
+
+
+
   class ConditionalPerson < Record
     # proc
     before_save Proc.new { |r| r.history << [:before_save, :proc] }, :if => Proc.new { |r| true }
@@ -351,6 +372,8 @@ module CallbacksTest
       ], person.history
     end
   end
+
+
 
   class ResetCallbackTest < Test::Unit::TestCase
     def test_save_conditional_person

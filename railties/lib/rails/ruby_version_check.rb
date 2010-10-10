@@ -14,8 +14,7 @@ elsif RUBY_VERSION > '1.9' and RUBY_VERSION < '1.9.2'
   $stderr.puts <<-end_message
 
     Rails 3 doesn't officially support Ruby 1.9.1 since recent stable
-    releases have segfaulted the test suite. Please upgrade to Ruby 1.9.2
-    before Rails 3 is released!
+    releases have segfaulted the test suite. Please upgrade to Ruby 1.9.2.
 
     You're running
       #{RUBY_DESCRIPTION}

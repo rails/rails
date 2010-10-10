@@ -69,6 +69,24 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_use_table_engine_for_quoting_where
+    relation = Topic.where(Topic.arel_table[:id].eq(1))
+    engine = relation.table.engine
+
+    fakepool = Class.new(Struct.new(:spec)) {
+      def with_connection; yield self; end
+      def connection_pool; self; end
+      def quote_table_name(*args); raise "lol quote_table_name"; end
+    }
+
+    relation.table.engine = fakepool.new(engine.connection_pool.spec)
+
+    error = assert_raises(RuntimeError) { relation.to_a }
+    assert_match('lol', error.message)
+  ensure
+    relation.table.engine = engine
+  end
+
   def test_preserving_time_objects
     assert_kind_of(
       Time, Topic.find(1).bonus_time,
@@ -366,6 +384,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find(1), Topic.find(2).topic
   end
 
+  def test_find_by_slug
+    assert_equal Topic.find('1-meowmeow'), Topic.find(1)
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
   end
@@ -659,6 +681,10 @@ class BasicsTest < ActiveRecord::TestCase
     cloned_topic.save
     assert !cloned_topic.new_record?
     assert_not_equal cloned_topic.id, topic.id
+
+    cloned_topic.reload
+    # FIXME: I think this is poor behavior, and will fix it with #5686
+    assert_equal({'a' => 'c'}.to_s, cloned_topic.title)
   end
 
   def test_clone_with_aggregate_of_same_name_as_attribute
@@ -1433,19 +1459,4 @@ class BasicsTest < ActiveRecord::TestCase
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
-    def with_active_record_default_timezone(zone)
-      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
-      yield
-    ensure
-      ActiveRecord::Base.default_timezone = old_zone
-    end
 end

@@ -41,7 +41,6 @@ class MimeTypeTest < ActiveSupport::TestCase
     begin
       Mime::Type.register("image/gif", :gif)
       assert_nothing_raised do
-        Mime::GIF
         assert_equal Mime::GIF, Mime::SET.last
       end
     ensure

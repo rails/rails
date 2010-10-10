@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', version)
   s.add_dependency('activemodel',   version)
-  s.add_dependency('arel',          '~> 1.0.1')
+  s.add_dependency('arel',          '~> 2.0.0')
   s.add_dependency('tzinfo',        '~> 0.3.23')
 end

@@ -14,6 +14,20 @@ class InheritanceTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = old
   end
 
+  def test_class_with_blank_sti_name
+    company = Company.find(:first)
+    company = company.clone
+    company.extend(Module.new {
+      def read_attribute(name)
+        return '  ' if name == 'type'
+        super
+      end
+    })
+    company.save!
+    company = Company.find(:all).find { |x| x.id == company.id }
+    assert_equal '  ', company.type
+  end
+
   def test_class_without_store_full_sti_class_returns_demodulized_name
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = false

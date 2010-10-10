@@ -183,15 +183,23 @@ module ActiveRecord
       end
     end
 
-    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-      column = if @klass.column_names.include?(column_name.to_s)
+    def aggregate_column(column_name)
+      if @klass.column_names.include?(column_name.to_s)
         Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
-        Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
+        Arel.sql(column_name == :all ? "*" : column_name.to_s)
       end
+    end
+
+    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
+      column = aggregate_column(column_name)
 
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = except(:order).select(operation == 'count' ? column.count(distinct) : column.send(operation))
+      relation = except(:order)
+      select_value = operation == 'count' ? column.count(distinct) : column.send(operation)
+
+      relation.select_values = [select_value]
+
       type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
     end
 
@@ -205,33 +213,31 @@ module ActiveRecord
 
       group = @klass.connection.adapter_name == 'FrontBase' ? group_alias : group_field
 
-      aggregate_alias = column_alias_for(operation, column_name)
-
-      select_statement = if operation == 'count' && column_name == :all
-        "COUNT(*) AS count_all"
+      if operation == 'count' && column_name == :all
+        aggregate_alias = 'count_all'
       else
-        Arel::Attribute.new(@klass.unscoped.table, column_name).send(operation).as(aggregate_alias).to_sql
+        aggregate_alias = column_alias_for(operation, column_name)
       end
 
-      select_statement <<  ", #{group_field} AS #{group_alias}"
-
-      relation = except(:group).select(select_statement).group(group)
+      relation = except(:group).group(group)
+      relation.select_values = [
+        aggregate_column(column_name).send(operation).as(aggregate_alias),
+        "#{group_field} AS #{group_alias}"
+      ]
 
       calculated_data = @klass.connection.select_all(relation.to_sql)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_alias] }
         key_records = association.klass.base_class.find(key_ids)
-        key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
+        key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
-      calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
-        key   = type_cast_calculated_value(row[group_alias], group_column)
-        key   = key_records[key] if associated
-        value = row[aggregate_alias]
-        all[key] = type_cast_calculated_value(value, column_for(column_name), operation)
-        all
-      end
+      ActiveSupport::OrderedHash[calculated_data.map do |row|
+        key = type_cast_calculated_value(row[group_alias], group_column)
+        key = key_records[key] if associated
+        [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
+      end]
     end
 
     # Converts the given keys to the value that the database adapter returns as

@@ -328,7 +328,6 @@ class ActionMailerTest < Test::Unit::TestCase
     mail
   end
 
-  # Replacing logger work around for mocha bug. Should be fixed in mocha 0.3.3
   def setup
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
@@ -336,14 +335,12 @@ class ActionMailerTest < Test::Unit::TestCase
     ActionMailer::Base.deliveries.clear
     ActiveSupport::Deprecation.silenced = true
 
-    @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
 
     TestMailer.delivery_method = :test
   end
 
   def teardown
-    TestMailer.logger = @original_logger
     ActiveSupport::Deprecation.silenced = false
     restore_delivery_method
   end

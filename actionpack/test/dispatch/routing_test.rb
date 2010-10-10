@@ -442,6 +442,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
+      scope :as => "routes" do
+        get "/c/:id", :as => :collision, :to => "collision#show"
+        get "/collision", :to => "collision#show"
+        get "/no_collision", :to => "collision#show", :as => nil
+
+        get "/fc/:id", :as => :forced_collision, :to => "forced_collision#show"
+        get "/forced_collision", :as => :forced_collision, :to => "forced_collision#show"
+      end
+
       match '/purchases/:token/:filename',
         :to => 'purchases#fetch',
         :token => /[[:alnum:]]{10}/,
@@ -463,7 +472,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  class TestAltApp < ActionController::IntegrationTest
+  class TestAltApp < ActionDispatch::IntegrationTest
     class AltRequest
       def initialize(env)
         @env = env
@@ -1205,14 +1214,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/', root_path
       get '/'
       assert_equal 'projects#index', @response.body
-    end
-  end
-
-  def test_index
-    with_test_routes do
-      assert_equal '/info', info_path
-      get '/info'
-      assert_equal 'projects#info', @response.body
     end
   end
 
@@ -2128,6 +2129,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
+  def test_named_routes_collision_is_avoided_unless_explicitly_given_as
+    assert_equal "/c/1", routes_collision_path(1)
+    assert_equal "/forced_collision", routes_forced_collision_path
+  end
+
+  def test_explicitly_avoiding_the_named_route
+    assert !respond_to?(:routes_no_collision_path)
+  end
+
   def test_controller_name_with_leading_slash_raise_error
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
@@ -2184,7 +2194,7 @@ private
   end
 end
 
-class TestAppendingRoutes < ActionController::IntegrationTest
+class TestAppendingRoutes < ActionDispatch::IntegrationTest
   def simple_app(resp)
     lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
   end
@@ -2218,7 +2228,7 @@ class TestAppendingRoutes < ActionController::IntegrationTest
   end
 end
 
-class TestDefaultScope < ActionController::IntegrationTest
+class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
       def index

@@ -2,7 +2,6 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    include ActionController::RackDelegation
     include AbstractController::Rendering
 
     # Before processing, set the request formats in current controller formats.

@@ -11,7 +11,8 @@ require 'action_controller'
 require 'rails/all'
 
 # TODO: Remove these hacks
-class TestApp < Rails::Application
-  config.root = File.dirname(__FILE__)
+module TestApp
+  class Application < Rails::Application
+    config.root = File.dirname(__FILE__)
+  end
 end
-Rails.application = TestApp

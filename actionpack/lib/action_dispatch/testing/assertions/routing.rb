@@ -146,16 +146,16 @@ module ActionDispatch
       #
       def with_routing
         old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
-        old_controller, @controller = @controller, @controller.clone if @controller
-        _routes = @routes
+        if defined?(@controller) && @controller
+          old_controller, @controller = @controller, @controller.clone
+          _routes = @routes
 
-        # Unfortunately, there is currently an abstraction leak between AC::Base
-        # and AV::Base which requires having the URL helpers in both AC and AV.
-        # To do this safely at runtime for tests, we need to bump up the helper serial
-        # to that the old AV subclass isn't cached.
-        #
-        # TODO: Make this unnecessary
-        if @controller
+          # Unfortunately, there is currently an abstraction leak between AC::Base
+          # and AV::Base which requires having the URL helpers in both AC and AV.
+          # To do this safely at runtime for tests, we need to bump up the helper serial
+          # to that the old AV subclass isn't cached.
+          #
+          # TODO: Make this unnecessary
           @controller.singleton_class.send(:include, _routes.url_helpers)
           @controller.view_context_class = Class.new(@controller.view_context_class) do
             include _routes.url_helpers
@@ -164,14 +164,14 @@ module ActionDispatch
         yield @routes
       ensure
         @routes = old_routes
-        if @controller
+        if defined?(@controller) && @controller
           @controller = old_controller
         end
       end
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
-        if @controller && @routes && @routes.named_routes.helpers.include?(selector)
+        if defined?(@controller) && @controller && @routes && @routes.named_routes.helpers.include?(selector)
           @controller.send(selector, *args, &block)
         else
           super

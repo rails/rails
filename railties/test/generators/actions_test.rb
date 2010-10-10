@@ -7,9 +7,14 @@ class ActionsTest < Rails::Generators::TestCase
   arguments [destination_root]
 
   def setup
+    Rails.application = TestApp::Application
     super
     @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'
     @svn_plugin_uri = 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
+  end
+
+  def teardown
+    Rails.application = TestApp::Application.instance
   end
 
   def test_invoke_other_generator_with_shortcut

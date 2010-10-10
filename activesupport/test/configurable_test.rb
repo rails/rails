@@ -39,4 +39,22 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :baz, instance.config.foo
     assert_equal :bar, Parent.config.foo
   end
+
+  test "configuration is crystalizeable" do
+    parent = Class.new { include ActiveSupport::Configurable }
+    child  = Class.new(parent)
+
+    parent.config.bar = :foo
+    assert !parent.config.respond_to?(:bar)
+    assert !child.config.respond_to?(:bar)
+    assert !child.new.config.respond_to?(:bar)
+
+    parent.config.compile_methods!
+    assert_equal :foo, parent.config.bar
+    assert_equal :foo, child.new.config.bar
+
+    assert_respond_to parent.config, :bar
+    assert_respond_to child.config, :bar
+    assert_respond_to child.new.config, :bar
+  end
 end

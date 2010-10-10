@@ -93,9 +93,9 @@ module ActionController
   # * ActiveRecord::SessionStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
   #   unlike CookieStore, hides your session contents from the user. To use ActiveRecord::SessionStore, set
   #
-  #     config.action_controller.session_store = :active_record_store
+  #     MyApplication::Application.config.session_store :active_record_store
   #
-  #   in your <tt>config/environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
+  #   in your <tt>config/initializers/session_store.rb</tt> and run <tt>script/rails g session_migration</tt>.
   #
   # == Responses
   #

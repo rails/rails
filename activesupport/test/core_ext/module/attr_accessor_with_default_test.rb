@@ -26,6 +26,6 @@ class AttrAccessorWithDefaultTest < Test::Unit::TestCase
   end
 
   def test_invalid_args
-    assert_raise(RuntimeError) {@target.attr_accessor_with_default :foo}
+    assert_raise(ArgumentError) {@target.attr_accessor_with_default :foo}
   end
 end

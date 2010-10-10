@@ -1,3 +1,3 @@
 module FooHelper
-  def baz() end
+  redefine_method(:baz) {}
 end

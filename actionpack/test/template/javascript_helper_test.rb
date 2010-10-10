@@ -22,8 +22,6 @@ class JavaScriptHelperTest < ActionView::TestCase
     ActiveSupport.escape_html_entities_in_json  = false
   end
 
-  def _evaluate_assigns_and_ivars() end
-
   def test_escape_javascript
     assert_equal '', escape_javascript(nil)
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))

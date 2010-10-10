@@ -423,7 +423,7 @@ module ActiveRecord #:nodoc:
     class << self # Class methods
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
-      delegate :select, :group, :order, :reorder, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
+      delegate :select, :group, :order, :reorder, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -834,7 +834,7 @@ module ActiveRecord #:nodoc:
           if self == ActiveRecord::Base
             Arel::Table.engine
           else
-            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.arel_engine
+            connection_handler.connection_pools[name] ? self : superclass.arel_engine
           end
         end
       end
@@ -884,21 +884,9 @@ module ActiveRecord #:nodoc:
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
         def instantiate(record)
-          object = find_sti_class(record[inheritance_column]).allocate
-
-          object.instance_variable_set(:@attributes, record)
-          object.instance_variable_set(:@attributes_cache, {})
-          object.instance_variable_set(:@new_record, false)
-          object.instance_variable_set(:@readonly, false)
-          object.instance_variable_set(:@destroyed, false)
-          object.instance_variable_set(:@marked_for_destruction, false)
-          object.instance_variable_set(:@previously_changed, {})
-          object.instance_variable_set(:@changed_attributes, {})
-
-          object.send(:_run_find_callbacks)
-          object.send(:_run_initialize_callbacks)
-
-          object
+          model = find_sti_class(record[inheritance_column]).allocate
+          model.init_with('attributes' => record)
+          model
         end
 
         def find_sti_class(type_name)
@@ -1022,8 +1010,9 @@ module ActiveRecord #:nodoc:
         end
 
         def all_attributes_exists?(attribute_names)
-          attribute_names = expand_attribute_names_for_aggregates(attribute_names)
-          attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
+          expand_attribute_names_for_aggregates(attribute_names).all? { |name|
+            column_methods_hash.include?(name.to_sym)
+          }
         end
 
       protected
@@ -1281,8 +1270,10 @@ MSG
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
-          builder = PredicateBuilder.new(arel_engine)
-          builder.build_from_hash(attrs, table).map{ |b| b.to_sql }.join(' AND ')
+          viz = Arel::Visitors.for(arel_engine)
+          PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
+            viz.accept b
+          }.join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 
@@ -1391,10 +1382,7 @@ MSG
 
         ensure_proper_type
 
-        if scope = self.class.send(:current_scoped_methods)
-          create_with = scope.scope_for_create
-          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
-        end
+        populate_with_current_scope_attributes
         self.attributes = attributes unless attributes.nil?
 
         result = yield self if block_given?
@@ -1423,10 +1411,25 @@ MSG
         @new_record = true
         ensure_proper_type
 
-        if scope = self.class.send(:current_scoped_methods)
-          create_with = scope.scope_for_create
-          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
-        end
+        populate_with_current_scope_attributes
+      end
+
+      # Initialize an empty model object from +coder+.  +coder+ must contain
+      # the attributes necessary for initializing an empty model object.  For
+      # example:
+      #
+      #   class Post < ActiveRecord::Base
+      #   end
+      #
+      #   post = Post.allocate
+      #   post.init_with('attributes' => { 'title' => 'hello world' })
+      #   post.title # => 'hello world'
+      def init_with(coder)
+        @attributes = coder['attributes']
+        @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
+        @new_record = @readonly = @destroyed = @marked_for_destruction = false
+        _run_find_callbacks
+        _run_initialize_callbacks
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
@@ -1814,6 +1817,13 @@ MSG
       def object_from_yaml(string)
         return string unless string.is_a?(String) && string =~ /^---/
         YAML::load(string) rescue string
+      end
+
+      def populate_with_current_scope_attributes
+        if scope = self.class.send(:current_scoped_methods)
+          create_with = scope.scope_for_create
+          create_with.each { |att,value| self.respond_to?(:"#{att}=") && self.send("#{att}=", value) } if create_with
+        end
       end
   end
 

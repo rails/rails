@@ -21,11 +21,7 @@ module ActionDispatch
           conditions[:path_info] = ::Rack::Mount::Strexp.compile(path, requirements, SEPARATORS, anchor)
         end
 
-        @conditions = conditions.inject({}) { |h, (k, v)|
-          h[k] = Rack::Mount::RegexpWithNamedGroups.new(v)
-          h
-        }
-
+        @conditions = Hash[conditions.map { |k,v| [k, Rack::Mount::RegexpWithNamedGroups.new(v)] }]
         @conditions.delete_if{ |k,v| k != :path_info && !valid_condition?(k) }
         @requirements.delete_if{ |k,v| !valid_condition?(k) }
       end

@@ -21,16 +21,26 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.assets_dir           ||= paths.public.to_a.first
-      options.javascripts_dir      ||= paths.public.javascripts.to_a.first
-      options.stylesheets_dir      ||= paths.public.stylesheets.to_a.first
-      options.page_cache_directory ||= paths.public.to_a.first
+      options.assets_dir           ||= paths["public"].first
+      options.javascripts_dir      ||= paths["public/javascripts"].first
+      options.stylesheets_dir      ||= paths["public/stylesheets"].first
+      options.page_cache_directory ||= paths["public"].first
+
+      # make sure readers methods get compiled
+      options.asset_path           ||= nil
+      options.asset_host           ||= nil
 
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Paths.with(app)
         options.each { |k,v| send("#{k}=", v) }
+      end
+    end
+
+    initializer "action_controller.compile_config_methods" do
+      ActiveSupport.on_load(:action_controller) do
+        config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
   end

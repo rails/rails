@@ -47,6 +47,7 @@ module AbstractController
       end
 
       def index
+        @text ||= nil
         self.response_body = @text.to_s
       end
     end
@@ -152,7 +153,7 @@ module AbstractController
 
       test "when :except is specified, an after filter is not triggered on that action" do
         result = @controller.process(:index)
-        assert_nil @controller.instance_variable_get("@authenticated")
+        assert !@controller.instance_variable_defined?("@authenticated")
       end
     end
 
@@ -196,7 +197,7 @@ module AbstractController
 
       test "when :except is specified with an array, an after filter is not triggered on that action" do
         result = @controller.process(:index)
-        assert_nil @controller.instance_variable_get("@authenticated")
+        assert !@controller.instance_variable_defined?("@authenticated")
       end
     end
 
@@ -204,6 +205,7 @@ module AbstractController
       before_filter :first, :only => :index
 
       def not_index
+        @text ||= nil
         self.response_body = @text.to_s
       end
     end

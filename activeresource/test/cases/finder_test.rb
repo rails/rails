@@ -84,7 +84,7 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_by_id_not_found
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(99) }
-    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(99, :params => {:person_id => 1}) }
   end
 
   def test_find_all_sub_objects

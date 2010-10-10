@@ -13,6 +13,7 @@ module AbstractController
   class Base
     attr_internal :response_body
     attr_internal :action_name
+    attr_internal :formats
 
     include ActiveSupport::Configurable
     extend ActiveSupport::DescendantsTracker
@@ -61,13 +62,13 @@ module AbstractController
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
-          methods = public_instance_methods(true).map { |m| m.to_s }.to_set -
+          methods = (public_instance_methods(true) -
             # Except for public instance methods of Base and its ancestors
-            internal_methods.map { |m| m.to_s } +
+            internal_methods +
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false).map { |m| m.to_s } -
+            public_instance_methods(false)).uniq.map { |x| x.to_s } -
             # And always exclude explicitly hidden actions
-            hidden_actions
+            hidden_actions.to_a
 
           # Clear out AS callback method pollution
           methods.reject { |method| method =~ /_one_time_conditions/ }

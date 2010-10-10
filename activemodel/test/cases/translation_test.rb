@@ -46,5 +46,11 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     I18n.backend.store_translations 'en', :activemodel => {:models => {:person => 'person model'} }
     assert_equal 'person model', Child.model_name.human
   end
+
+  def test_human_does_not_modify_options
+    options = {:default => 'person model'}
+    Person.model_name.human(options)
+    assert_equal({:default => 'person model'}, options)
+  end
 end
 

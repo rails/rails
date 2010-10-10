@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'stringio'
 
-class CookieStoreTest < ActionController::IntegrationTest
+class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
@@ -53,18 +53,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     def rescue_action(e) raise end
   end
 
-  def test_raises_argument_error_if_missing_session_key
-    assert_raise(ArgumentError, nil.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-        :key => nil, :secret => SessionSecret)
-    }
-
-    assert_raise(ArgumentError, ''.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-        :key => '', :secret => SessionSecret)
-    }
-  end
-
   def test_setting_session_value
     with_test_route_set do
       get '/set_session_value'
@@ -105,7 +93,7 @@ class CookieStoreTest < ActionController::IntegrationTest
       assert_equal 'foo: nil', response.body
     end
   end
-  
+
   def test_does_not_set_secure_cookies_over_http
     with_test_route_set(:secure => true) do
       get '/set_session_value'
@@ -113,7 +101,7 @@ class CookieStoreTest < ActionController::IntegrationTest
       assert_equal nil, headers['Set-Cookie']
     end
   end
-  
+
   def test_does_set_secure_cookies_over_https
     with_test_route_set(:secure => true) do
       get '/set_session_value', nil, 'HTTPS' => 'on'
@@ -279,7 +267,7 @@ class CookieStoreTest < ActionController::IntegrationTest
   def test_session_store_with_explicit_domain
     with_test_route_set(:domain => "example.es") do
       get '/set_session_value'
-      assert_match /domain=example\.es/, headers['Set-Cookie']
+      assert_match(/domain=example\.es/, headers['Set-Cookie'])
       headers['Set-Cookie']
     end
   end

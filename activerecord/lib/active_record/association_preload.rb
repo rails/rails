@@ -209,23 +209,20 @@ module ActiveRecord
         records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
-          through_reflection = reflections[options[:through]]
-          through_primary_key = through_reflection.primary_key_name
+
           unless through_records.empty?
+            through_reflection = reflections[options[:through]]
+            through_primary_key = through_reflection.primary_key_name
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             if through_reflection.macro == :belongs_to
-              rev_id_to_record_map = construct_id_map(records, through_primary_key).first
-              rev_primary_key = through_reflection.klass.primary_key
-              through_records.each do |through_record|
-                add_preloaded_record_to_collection(rev_id_to_record_map[through_record[rev_primary_key].to_s],
-                                                   reflection.name, through_record.send(source))
-              end
-            else
-              through_records.each do |through_record|
-                add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
-                                                   reflection.name, through_record.send(source))
-              end
+              id_to_record_map    = construct_id_map(records, through_primary_key).first
+              through_primary_key = through_reflection.klass.primary_key
+            end
+
+            through_records.each do |through_record|
+              add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
+                                                 reflection.name, through_record.send(source))
             end
           end
         else
@@ -299,9 +296,10 @@ module ActiveRecord
         options = reflection.options
         primary_key_name = reflection.primary_key_name
 
+        klasses_and_ids = {}
+
         if options[:polymorphic]
           polymorph_type = options[:foreign_type]
-          klasses_and_ids = {}
 
           # Construct a mapping from klass to a list of ids to load and a mapping of those ids back
           # to their parent_records
@@ -310,34 +308,27 @@ module ActiveRecord
               klass_id = record.send(primary_key_name)
               if klass_id
                 id_map = klasses_and_ids[klass] ||= {}
-                id_list_for_klass_id = (id_map[klass_id.to_s] ||= [])
-                id_list_for_klass_id << record
+                (id_map[klass_id.to_s] ||= []) << record
               end
             end
           end
-          klasses_and_ids = klasses_and_ids.to_a
         else
           id_map = {}
           records.each do |record|
             key = record.send(primary_key_name)
-            if key
-              mapped_records = (id_map[key.to_s] ||= [])
-              mapped_records << record
-            end
+            (id_map[key.to_s] ||= []) << record if key
           end
-          klasses_and_ids = [[reflection.klass.name, id_map]]
+          klasses_and_ids[reflection.klass.name] = id_map unless id_map.empty?
         end
 
-        klasses_and_ids.each do |klass_and_id|
-          klass_name, id_map = *klass_and_id
-          next if id_map.empty?
+        klasses_and_ids.each do |klass_name, _id_map|
           klass = klass_name.constantize
 
           table_name = klass.quoted_table_name
           primary_key = reflection.options[:primary_key] || klass.primary_key
           column_type = klass.columns.detect{|c| c.name == primary_key}.type
 
-          ids = id_map.keys.map do |id|
+          ids = _id_map.keys.map do |id|
             if column_type == :integer
               id.to_i
             elsif column_type == :float
@@ -352,7 +343,7 @@ module ActiveRecord
 
           associated_records = klass.unscoped.where([conditions, ids]).apply_finder_options(options.slice(:include, :select, :joins, :order)).to_a
 
-          set_association_single_records(id_map, reflection.name, associated_records, primary_key)
+          set_association_single_records(_id_map, reflection.name, associated_records, primary_key)
         end
       end
 

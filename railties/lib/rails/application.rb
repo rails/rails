@@ -39,6 +39,7 @@ module Rails
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
+    autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
       def inherited(base)
@@ -71,7 +72,7 @@ module Rails
     end
 
     def require_environment! #:nodoc:
-      environment = paths.config.environment.to_a.first
+      environment = paths["config/environment"].existent.first
       require environment if environment
     end
 
@@ -80,18 +81,12 @@ module Rails
       super
     end
 
-    def routes_reloader
-      @routes_reloader ||= ActiveSupport::FileUpdateChecker.new([]){ reload_routes! }
+    def reload_routes!
+      routes_reloader.reload!
     end
 
-    def reload_routes!
-      _routes = self.routes
-      _routes.disable_clear_and_finalize = true
-      _routes.clear!
-      routes_reloader.paths.each { |path| load(path) }
-      ActiveSupport.on_load(:action_controller) { _routes.finalize! }
-    ensure
-      _routes.disable_clear_and_finalize = false
+    def routes_reloader
+      @routes_reloader ||= RoutesReloader.new
     end
 
     def initialize!
@@ -133,10 +128,9 @@ module Rails
     end
 
     def initializers
-      initializers = Bootstrap.initializers_for(self)
-      initializers += super
-      initializers += Finisher.initializers_for(self)
-      initializers
+      Bootstrap.initializers_for(self) +
+      super +
+      Finisher.initializers_for(self)
     end
 
     def config
@@ -150,8 +144,8 @@ module Rails
         rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
 
         require "action_dispatch/http/rack_cache" if rack_cache
+        middleware.use ::Rack::Cache, rack_cache  if rack_cache
 
-        middleware.use ::Rack::Cache, rack_cache if rack_cache
         middleware.use ::ActionDispatch::Static, config.static_asset_paths if config.serve_static_assets
         middleware.use ::Rack::Lock if !config.allow_concurrency
         middleware.use ::Rack::Runtime
@@ -170,6 +164,8 @@ module Rails
         middleware.use ::ActionDispatch::ParamsParser
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::Head
+        middleware.use ::Rack::ConditionalGet
+        middleware.use ::Rack::ETag, "no-cache"
         middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support if config.action_dispatch.best_standards_support
       end
     end

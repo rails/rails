@@ -1,19 +1,5 @@
 require 'abstract_unit'
 
-module ActionDispatch
-  class ShowExceptions
-    private
-      def public_path
-        "#{FIXTURE_LOAD_PATH}/public"
-      end
-
-      # Silence logger
-      def logger
-        nil
-      end
-  end
-end
-
 class RescueController < ActionController::Base
   class NotAuthorized < StandardError
   end
@@ -311,7 +297,7 @@ class RescueControllerTest < ActionController::TestCase
   end
 end
 
-class RescueTest < ActionController::IntegrationTest
+class RescueTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class RecordInvalid < StandardError
       def message

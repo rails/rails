@@ -85,6 +85,9 @@ module ActionController
     def initialize(*)
       @_headers = {"Content-Type" => "text/html"}
       @_status = 200
+      @_request = nil
+      @_response = nil
+      @_routes = nil
       super
     end
 
@@ -99,7 +102,7 @@ module ActionController
     # Basic implementations for content_type=, location=, and headers are
     # provided to reduce the dependency on the RackDelegation module
     # in Renderer and Redirector.
-    
+
     def content_type=(type)
       headers["Content-Type"] = type.to_s
     end
@@ -114,6 +117,11 @@ module ActionController
 
     def location=(url)
       headers["Location"] = url
+    end
+
+    # basic url_for that can be overridden for more robust functionality
+    def url_for(string)
+      string
     end
 
     def status

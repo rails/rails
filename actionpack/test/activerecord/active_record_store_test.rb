@@ -1,6 +1,6 @@
 require 'active_record_unit'
 
-class ActiveRecordStoreTest < ActionController::IntegrationTest
+class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def no_session_access
       head :ok

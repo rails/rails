@@ -62,7 +62,6 @@ module ActionDispatch
             if using_match_shorthand?(path_without_format, @options)
               to_shorthand    = @options[:to].blank?
               @options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
-              @options[:as] ||= Mapper.normalize_name(path_without_format)
             end
 
             @options.merge!(default_controller_and_action(to_shorthand))
@@ -172,13 +171,13 @@ module ActionDispatch
           end
 
           def blocks
+            block = @scope[:blocks] || []
+
             if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
-              block = @options[:constraints]
-            else
-              block = nil
+              block << @options[:constraints]
             end
 
-            ((@scope[:blocks] || []) + [ block ]).compact
+            block
           end
 
           def constraints
@@ -346,11 +345,11 @@ module ActionDispatch
         # Redirect any path to another path:
         #
         #   match "/stories" => redirect("/posts")
-        def redirect(*args, &block)
+        def redirect(*args)
           options = args.last.is_a?(Hash) ? args.pop : {}
 
-          path      = args.shift || block
-          path_proc = path.is_a?(Proc) ? path : proc { |params| path % params }
+          path      = args.shift || Proc.new
+          path_proc = path.is_a?(Proc) ? path : proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
           status    = options[:status] || 301
 
           lambda do |env|
@@ -395,10 +394,10 @@ module ActionDispatch
       #   namespace "admin" do
       #     resources :posts, :comments
       #   end
-      # 
+      #
       # This will create a number of routes for each of the posts and comments
       # controller. For Admin::PostsController, Rails will create:
-      # 
+      #
       #   GET	    /admin/photos
       #   GET	    /admin/photos/new
       #   POST	  /admin/photos
@@ -406,33 +405,33 @@ module ActionDispatch
       #   GET	    /admin/photos/1/edit
       #   PUT	    /admin/photos/1
       #   DELETE  /admin/photos/1
-      # 
+      #
       # If you want to route /photos (without the prefix /admin) to
       # Admin::PostsController, you could use
-      # 
+      #
       #   scope :module => "admin" do
       #     resources :posts, :comments
       #   end
       #
       # or, for a single case
-      # 
+      #
       #   resources :posts, :module => "admin"
-      # 
+      #
       # If you want to route /admin/photos to PostsController
       # (without the Admin:: module prefix), you could use
-      # 
+      #
       #   scope "/admin" do
       #     resources :posts, :comments
       #   end
       #
       # or, for a single case
-      # 
+      #
       #   resources :posts, :path => "/admin"
       #
       # In each of these cases, the named routes remain the same as if you did
       # not use scope. In the last case, the following paths map to
       # PostsController:
-      # 
+      #
       #   GET	    /admin/photos
       #   GET	    /admin/photos/new
       #   POST	  /admin/photos
@@ -676,6 +675,7 @@ module ActionDispatch
           DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
 
           def initialize(entities, options)
+            @as         = nil
             @name       = entities.to_s
             @path       = (options.delete(:path) || @name).to_s
             @controller = (options.delete(:controller) || plural).to_s
@@ -735,15 +735,15 @@ module ActionDispatch
           resource_scope(SingletonResource.new(resources.pop, options)) do
             yield if block_given?
 
-            collection_scope do
+            collection do
               post :create
             end if parent_resource.actions.include?(:create)
 
-            new_scope do
+            new do
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member_scope  do
+            member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
               put    :update if parent_resource.actions.include?(:update)
@@ -780,16 +780,16 @@ module ActionDispatch
           resource_scope(Resource.new(resources.pop, options)) do
             yield if block_given?
 
-            collection_scope do
+            collection do
               get  :index if parent_resource.actions.include?(:index)
               post :create if parent_resource.actions.include?(:create)
             end
 
-            new_scope do
+            new do
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member_scope  do
+            member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
               put    :update if parent_resource.actions.include?(:update)
@@ -813,12 +813,14 @@ module ActionDispatch
         # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
         # route helpers.
         def collection
-          unless @scope[:scope_level] == :resources
-            raise ArgumentError, "can't use collection outside resources scope"
+          unless resource_scope?
+            raise ArgumentError, "can't use collection outside resource(s) scope"
           end
 
-          collection_scope do
-            yield
+          with_scope_level(:collection) do
+            scope(parent_resource.collection_scope) do
+              yield
+            end
           end
         end
 
@@ -838,8 +840,10 @@ module ActionDispatch
             raise ArgumentError, "can't use member outside resource(s) scope"
           end
 
-          member_scope do
-            yield
+          with_scope_level(:member) do
+            scope(parent_resource.member_scope) do
+              yield
+            end
           end
         end
 
@@ -848,8 +852,10 @@ module ActionDispatch
             raise ArgumentError, "can't use new outside resource(s) scope"
           end
 
-          new_scope do
-            yield
+          with_scope_level(:new) do
+            scope(parent_resource.new_scope(action_path(:new))) do
+              yield
+            end
           end
         end
 
@@ -923,9 +929,14 @@ module ActionDispatch
 
           if action.to_s =~ /^[\w\/]+$/
             options[:action] ||= action unless action.to_s.include?("/")
-            options[:as] = name_for_action(action, options[:as])
           else
-            options[:as] = name_for_action(options[:as])
+            action = nil
+          end
+
+          if options.key?(:as) && !options[:as]
+            options.delete(:as)
+          else
+            options[:as] = name_for_action(options[:as], action)
           end
 
           super(path, options)
@@ -1029,30 +1040,6 @@ module ActionDispatch
             end
           end
 
-          def new_scope
-            with_scope_level(:new) do
-              scope(parent_resource.new_scope(action_path(:new))) do
-                yield
-              end
-            end
-          end
-
-          def collection_scope
-            with_scope_level(:collection) do
-              scope(parent_resource.collection_scope) do
-                yield
-              end
-            end
-          end
-
-          def member_scope
-            with_scope_level(:member) do
-              scope(parent_resource.member_scope) do
-                yield
-              end
-            end
-          end
-
           def nested_options
             {}.tap do |options|
               options[:as] = parent_resource.member_name
@@ -1091,18 +1078,16 @@ module ActionDispatch
             path || @scope[:path_names][name.to_sym] || name.to_s
           end
 
-          def prefix_name_for_action(action, as)
-            if as.present?
+          def prefix_name_for_action(as, action)
+            if as
               as.to_s
-            elsif as
-              nil
             elsif !canonical_action?(action, @scope[:scope_level])
               action.to_s
             end
           end
 
-          def name_for_action(action, as=nil)
-            prefix = prefix_name_for_action(action, as)
+          def name_for_action(as, action)
+            prefix = prefix_name_for_action(as, action)
             prefix = Mapper.normalize_name(prefix) if prefix
             name_prefix = @scope[:as]
 
@@ -1126,7 +1111,8 @@ module ActionDispatch
               [name_prefix, member_name, prefix]
             end
 
-            name.select(&:present?).join("_").presence
+            candidate = name.select(&:present?).join("_").presence
+            candidate unless as.nil? && @set.routes.find { |r| r.name == candidate }
           end
       end
 

@@ -187,8 +187,8 @@ module Rails
       #   initializer("globals.rb") do
       #     data = ""
       #
-      #     ['MY_WORK', 'ADMINS', 'BEST_COMPANY_EVAR'].each do
-      #       data << "#{const} = :entp"
+      #     ['MY_WORK', 'ADMINS', 'BEST_COMPANY_EVAR'].each do |const|
+      #       data << "#{const} = :entp\n"
       #     end
       #
       #     data

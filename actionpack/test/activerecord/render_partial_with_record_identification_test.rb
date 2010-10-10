@@ -93,38 +93,6 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   end
 end
 
-class RenderPartialWithRecordIdentificationController < ActionController::Base
-  def render_with_has_many_and_belongs_to_association
-    @developer = Developer.find(1)
-    render :partial => @developer.projects
-  end
-
-  def render_with_has_many_association
-    @topic = Topic.find(1)
-    render :partial => @topic.replies
-  end
-
-  def render_with_has_many_through_association
-    @developer = Developer.find(:first)
-    render :partial => @developer.topics
-  end
-
-  def render_with_belongs_to_association
-    @reply = Reply.find(1)
-    render :partial => @reply.topic
-  end
-
-  def render_with_record
-    @developer = Developer.find(:first)
-    render :partial => @developer
-  end
-
-  def render_with_record_collection
-    @developers = Developer.find(:all)
-    render :partial => @developers
-  end
-end
-
 class Game < Struct.new(:name, :id)
   extend ActiveModel::Naming
   include ActiveModel::Conversion

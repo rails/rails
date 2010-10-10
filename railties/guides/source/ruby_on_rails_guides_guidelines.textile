@@ -1,0 +1,77 @@
+h2. Ruby on Rails Guides Guidelines
+
+This guide documents guidelines for writing guides. This guide follows itself in a gracile loop.
+
+endprologue.
+
+h3. Textile
+
+Guides are written in "Textile":http://www.textism.com/tools/textile/. There's comprehensive documentation "here":http://redcloth.org/hobix.com/textile/ and a cheatsheet for markup "here":http://redcloth.org/hobix.com/textile/quick.html.
+
+h3. Prologue
+
+Each guide should start with motivational text at the top. That's the little introduction in the blue area. The prologue should tell the readers what's the guide about, and what will they learn. See for example the "Routing Guide":routing.html.
+
+h3. Titles
+
+The title of every guide uses +h2+, guide sections use +h3+, subsections +h4+, etc.
+
+Capitalize all words except for internal articles, prepositions, conjuctions, and forms of the verb to be:
+
+<plain>
+h5. Middleware Stack is an Array
+h5. When are Objects Saved?
+</plain>
+
+Use same typography as in regular text:
+
+<plain>
+h6. The +:content_type+ Option
+</plain>
+
+h3. API Documentation Guidelines
+
+The guides and the API should be coherent where appropriate. Please have a look at these particular sections of the "API Documentation Guidelines":api_documentation_guidelines.html:
+
+* "Wording":api_documentation_guidelines.html#wording
+* "Example Code":api_documentation_guidelines.html#example-code
+* "Filenames":api_documentation_guidelines.html#filenames
+* "Fonts":api_documentation_guidelines.html#fonts
+
+Those guidelines apply also to guides.
+
+h3. HTML Generation
+
+To generate all the guides just cd into the +railties+ directory and execute
+
+<plain>
+rake generate_guides
+</plain>
+
+You'll need the gems erubis, i18n, and RedCloth. 
+
+To process +my_guide.textile+ and nothing else use the +ONLY+ environment variable:
+
+<plain>
+rake generate_guides ONLY=my_guide
+</plain>
+
+Although by default guides that have not been modified are not processed, so +ONLY+ is rarely needed in practice.
+
+To force process of al the guides pass +ALL=1+.
+
+It is also recommended that you work with +WARNINGS=1+, this detects duplicate IDs and warns about broken internal links.
+
+h3. HTML validation
+
+Please do validate the generated HTML with
+
+<plain>
+rake validate_guides
+</plain>
+
+Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a way to fix them.
+
+h3. Changelog
+
+* October 5, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn

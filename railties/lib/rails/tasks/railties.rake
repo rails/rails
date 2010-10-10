@@ -2,7 +2,7 @@ namespace :railties do
   desc "Create symlinks to railties public directories in application's public directory."
   task :create_symlinks => :environment do
     paths = Rails.application.config.static_asset_paths.dup
-    app_public_path = Rails.application.config.paths.public.to_a.first
+    app_public_path = Rails.application.paths["public"].first
 
     paths.each do |mount_path, path|
       symlink_path = File.join(app_public_path, mount_path)

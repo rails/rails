@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/sqlite_adapter'
+require 'sqlite3'
 
 module ActiveRecord
   class Base
@@ -20,16 +21,12 @@ module ActiveRecord
         raise ArgumentError, 'adapter name should be "sqlite3"'
       end
 
-      unless self.class.const_defined?(:SQLite3)
-        require_library_or_gem(config[:adapter])
-      end
-
       db = SQLite3::Database.new(
         config[:database],
         :results_as_hash => true
       )
 
-      db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
+      db.busy_timeout(config[:timeout]) if config[:timeout]
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     end

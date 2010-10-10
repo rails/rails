@@ -126,13 +126,6 @@ class AssertPresentTest < ActiveSupport::TestCase
   end
 end
 
-# These should always pass
-if ActiveSupport::Testing.const_defined?(:Default)
-  class NotTestingThingsTest < Test::Unit::TestCase
-    include ActiveSupport::Testing::Default
-  end
-end
-
 class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
 

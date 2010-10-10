@@ -314,6 +314,7 @@ class FilterTest < ActionController::TestCase
 
     def initialize
       @@execution_log = ""
+      super()
     end
 
     before_filter { |c| c.class.execution_log << " before procfilter "  }
@@ -452,13 +453,14 @@ class FilterTest < ActionController::TestCase
       render :text => 'hello world'
     end
   end
+
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
   end
 
   def test_before_method_of_sweeper_should_always_return_true
-    sweeper =  ActionController::Caching::Sweeper.send(:new)
+    sweeper = ActionController::Caching::Sweeper.send(:new)
     assert sweeper.before(TestController.new)
   end
 
@@ -668,7 +670,7 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( ensure_login find_user ), assigns["ran_filter"]
 
     test_process(ConditionalSkippingController, "login")
-    assert_nil @controller.instance_variable_get("@ran_after_filter")
+    assert !@controller.instance_variable_defined?("@ran_after_filter")
     test_process(ConditionalSkippingController, "change_password")
     assert_equal %w( clean_up ), @controller.instance_variable_get("@ran_after_filter")
   end
@@ -756,12 +758,12 @@ class ControllerWithSymbolAsFilter < PostsController
 
     def without_exception
       # Do stuff...
-      1 + 1
+      wtf = 1 + 1
 
       yield
 
       # Do stuff...
-      1 + 1
+      wtf += 1
     end
 end
 

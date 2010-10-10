@@ -704,11 +704,9 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def read_yaml_fixture_files
-      yaml_string = ""
-      Dir["#{@fixture_path}/**/*.yml"].select { |f| test(?f, f) }.each do |subfixture_path|
-        yaml_string << IO.read(subfixture_path)
-      end
-      yaml_string << IO.read(yaml_file_path)
+      yaml_string = (Dir["#{@fixture_path}/**/*.yml"].select { |f|
+        File.file?(f)
+      } + [yaml_file_path]).map { |file_path| IO.read(file_path) }.join
 
       if yaml = parse_yaml_string(yaml_string)
         # If the file is an ordered map, extract its children.

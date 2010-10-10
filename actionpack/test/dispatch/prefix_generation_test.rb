@@ -1,8 +1,23 @@
 require 'abstract_unit'
+require 'rack/test'
 
 module TestGenerationPrefix
+  class Post
+    extend ActiveModel::Naming
+
+    def to_param
+      "1"
+    end
+
+    def self.model_name
+      klass = "Post"
+      def klass.name; self end
+
+      ActiveModel::Name.new(klass)
+    end
+  end
+
   class WithMountedEngine < ActionDispatch::IntegrationTest
-    require 'rack/test'
     include Rack::Test::Methods
 
     class BlogEngine
@@ -54,21 +69,6 @@ module TestGenerationPrefix
 
     # force draw
     RailsApplication.routes
-
-    class Post
-      extend ActiveModel::Naming
-
-      def to_param
-        "1"
-      end
-
-      def self.model_name
-        klass = "Post"
-        def klass.name; self end
-
-        ActiveModel::Name.new(klass)
-      end
-    end
 
     class ::InsideEngineGeneratingController < ActionController::Base
       include BlogEngine.routes.url_helpers
@@ -251,6 +251,67 @@ module TestGenerationPrefix
 
       path = engine_object.polymorphic_url(Post.new, :host => "www.example.com")
       assert_equal "http://www.example.com/awesome/blog/posts/1", path
+    end
+  end
+
+  class EngineMountedAtRoot < ActionDispatch::IntegrationTest
+    include Rack::Test::Methods
+
+    class BlogEngine
+      def self.routes
+        @routes ||= begin
+          routes = ActionDispatch::Routing::RouteSet.new
+          routes.draw do
+            match "/posts/:id", :to => "posts#show", :as => :post
+          end
+
+          routes
+        end
+      end
+
+      def self.call(env)
+        env['action_dispatch.routes'] = routes
+        routes.call(env)
+      end
+    end
+
+    class RailsApplication
+      def self.routes
+        @routes ||= begin
+          routes = ActionDispatch::Routing::RouteSet.new
+          routes.draw do
+            mount BlogEngine => "/"
+          end
+
+          routes
+        end
+      end
+
+      def self.call(env)
+        env['action_dispatch.routes'] = routes
+        routes.call(env)
+      end
+    end
+
+    # force draw
+    RailsApplication.routes
+
+    class ::PostsController < ActionController::Base
+      include BlogEngine.routes.url_helpers
+      include RailsApplication.routes.mounted_helpers
+
+      def show
+        render :text => post_path(:id => params[:id])
+      end
+    end
+
+    def app
+      RailsApplication
+    end
+
+    test "generating path inside engine" do
+      get "/posts/1"
+      assert_equal "/posts/1", last_response.body
     end
   end
 end

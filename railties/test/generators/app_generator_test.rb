@@ -42,6 +42,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   arguments [destination_root]
 
   def setup
+    Rails.application = TestApp::Application
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
@@ -56,6 +57,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def teardown
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    Rails.application = TestApp::Application.instance
   end
 
   def test_application_skeleton_is_created
@@ -129,6 +131,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator.send(:app_const)
     silence(:stdout){ generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
+    assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
   
   def test_rails_update_generates_correct_session_key
@@ -162,9 +165,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql2["']$/
   end
 
-  def test_config_database_is_not_added_if_skip_active_record_is_given
+  def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
+    assert_file "test/test_helper.rb" do |helper_content|
+      assert_no_match /fixtures :all/, helper_content
+    end
+    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
@@ -267,6 +274,7 @@ class CustomAppGeneratorTest < Rails::Generators::TestCase
   arguments [destination_root]
 
   def setup
+    Rails.application = TestApp::Application
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
@@ -276,6 +284,7 @@ class CustomAppGeneratorTest < Rails::Generators::TestCase
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
     Object.class_eval { remove_const :AppBuilder if const_defined?(:AppBuilder) }
+    Rails.application = TestApp::Application.instance
   end
 
   def test_builder_option_with_empty_app_builder

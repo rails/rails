@@ -12,7 +12,6 @@ module ActionView #:nodoc:
     autoload :CsrfHelper
     autoload :DateHelper
     autoload :DebugHelper
-    autoload :DeprecatedBlockHelpers
     autoload :FormHelper
     autoload :FormOptionsHelper
     autoload :FormTagHelper

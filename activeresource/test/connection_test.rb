@@ -120,7 +120,7 @@ class ConnectionTest < Test::Unit::TestCase
   end
 
   def test_get
-    matz = @conn.get("/people/1.xml")
+    matz = decode(@conn.get("/people/1.xml"))
     assert_equal "Matz", matz["name"]
   end
 
@@ -131,23 +131,23 @@ class ConnectionTest < Test::Unit::TestCase
   end
 
   def test_get_with_header
-    david = @conn.get("/people/2.xml", @header)
+    david = decode(@conn.get("/people/2.xml", @header))
     assert_equal "David", david["name"]
   end
 
   def test_get_collection
-    people = @conn.get("/people.xml")
+    people = decode(@conn.get("/people.xml"))
     assert_equal "Matz", people[0]["name"]
     assert_equal "David", people[1]["name"]
   end
 
   def test_get_collection_single
-    people = @conn.get("/people_single_elements.xml")
+    people = decode(@conn.get("/people_single_elements.xml"))
     assert_equal "Matz", people[0]["name"]
   end
 
   def test_get_collection_empty
-    people = @conn.get("/people_empty_elements.xml")
+    people = decode(@conn.get("/people_empty_elements.xml"))
     assert_equal [], people
   end
 
@@ -249,5 +249,9 @@ class ConnectionTest < Test::Unit::TestCase
 
     def handle_response(response)
       @conn.__send__(:handle_response, response)
+    end
+
+    def decode(response)
+      @conn.format.decode(response.body)
     end
 end

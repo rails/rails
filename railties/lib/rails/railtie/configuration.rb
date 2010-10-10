@@ -5,7 +5,6 @@ module Rails
     class Configuration
       def initialize
         @@options ||= {}
-        @@static_asset_paths = ActiveSupport::OrderedHash.new
       end
 
       # This allows you to modify the application's middlewares from Engines.
@@ -17,25 +16,19 @@ module Rails
         @@app_middleware ||= Rails::Configuration::MiddlewareStackProxy.new
       end
 
-      # Holds generators configuration:
+      # This allows you to modify application's generators from Railties.
       #
-      #   config.generators do |g|
-      #     g.orm             :datamapper, :migration => true
-      #     g.template_engine :haml
-      #     g.test_framework  :rspec
-      #   end
-      #
-      # If you want to disable color in console, do:
-      #
-      #   config.generators.colorize_logging = false
-      #
-      def generators
-        @@generators ||= Rails::Configuration::Generators.new
-        if block_given?
-          yield @@generators
-        else
-          @@generators
-        end
+      # Values set on app_generators will become defaults for applicaiton, unless
+      # application overwrites them.
+      def app_generators
+        @@app_generators ||= Rails::Configuration::Generators.new
+        yield(@@app_generators) if block_given?
+        @@app_generators
+      end
+
+      def generators(&block) #:nodoc
+        ActiveSupport::Deprecation.warn "config.generators in Rails::Railtie is deprecated. Please use config.app_generators instead."
+        app_generators(&block)
       end
 
       def before_configuration(&block)
@@ -70,7 +63,7 @@ module Rails
       # with associated public folders, like:
       # { "/" => "/app/public", "/my_engine" => "app/engines/my_engine/public" }
       def static_asset_paths
-        @@static_asset_paths
+        @@static_asset_paths ||= ActiveSupport::OrderedHash.new
       end
 
     private

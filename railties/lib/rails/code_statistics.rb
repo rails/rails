@@ -23,7 +23,7 @@ class CodeStatistics #:nodoc:
 
   private
     def calculate_statistics
-      @pairs.inject({}) { |stats, pair| stats[pair.first] = calculate_directory_statistics(pair.last); stats }
+      Hash[@pairs.map{|pair| [pair.first, calculate_directory_statistics(pair.last)]}]
     end
 
     def calculate_directory_statistics(directory, pattern = /.*\.rb$/)

@@ -30,7 +30,7 @@ module ActionController
     #
     #
     # === Advanced \Basic example
-    # 
+    #
     # Here is a more advanced \Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
     # the regular HTML interface is protected by a session approach:
     #
@@ -98,7 +98,7 @@ module ActionController
     #   end
     #
     # === Notes
-    # 
+    #
     # The +authenticate_or_request_with_http_digest+ block must return the user's password
     # or the ha1 digest hash so the framework can appropriately hash to check the user's
     # credentials. Returning +nil+ will cause authentication to fail.
@@ -214,7 +214,7 @@ module ActionController
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
         credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password, password_is_ha1)
-        "Digest " + credentials.sort_by {|x| x[0].to_s }.inject([]) {|a, v| a << "#{v[0]}='#{v[1]}'" }.join(', ')
+        "Digest " + credentials.sort_by {|x| x[0].to_s }.map {|v| "#{v[0]}='#{v[1]}'" }.join(', ')
       end
 
       def decode_credentials_header(request)
@@ -222,11 +222,10 @@ module ActionController
       end
 
       def decode_credentials(header)
-        header.to_s.gsub(/^Digest\s+/,'').split(',').inject({}) do |hash, pair|
+        Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          hash[key.strip.to_sym] = value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')
-          hash
-        end
+          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')]
+        end]
       end
 
       def authentication_header(controller, realm)
@@ -418,20 +417,19 @@ module ActionController
       #   Authorization: Token token="abc", nonce="def"
       # Then the returned token is "abc", and the options is {:nonce => "def"}
       #
-      # request - ActionController::Request instance with the current headers.
+      # request - ActionDispatch::Request instance with the current headers.
       #
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.
       def token_and_options(request)
         if header = request.authorization.to_s[/^Token (.*)/]
-          values = $1.split(',').
-            inject({}) do |memo, value|
-              value.strip!                      # remove any spaces between commas and values
-              key, value = value.split(/\=\"?/) # split key=value pairs
-              value.chomp!('"')                 # chomp trailing " in value
-              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-              memo.update(key => value)
-            end
+          values = Hash[$1.split(',').map do |value|
+            value.strip!                      # remove any spaces between commas and values
+            key, value = value.split(/\=\"?/) # split key=value pairs
+            value.chomp!('"')                 # chomp trailing " in value
+            value.gsub!(/\\\"/, '"')          # unescape remaining quotes
+            [key, value]
+          end]
           [values.delete("token"), values.with_indifferent_access]
         end
       end
@@ -443,9 +441,8 @@ module ActionController
       #
       # Returns String.
       def encode_credentials(token, options = {})
-        values = ["token=#{token.to_s.inspect}"]
-        options.each do |key, value|
-          values << "#{key}=#{value.to_s.inspect}"
+        values = ["token=#{token.to_s.inspect}"] + options.map do |key, value|
+          "#{key}=#{value.to_s.inspect}"
         end
         "Token #{values * ", "}"
       end

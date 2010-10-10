@@ -12,7 +12,6 @@ module AbstractController
 
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
   # it will trigger the lookup_context and consequently expire the cache.
-  # TODO Add some deprecation warnings to remove I18n.locale from controllers
   class I18nProxy < ::I18n::Config #:nodoc:
     attr_reader :i18n_config, :lookup_context
 
@@ -50,7 +49,7 @@ module AbstractController
             if controller.respond_to?(:_helpers)
               include controller._helpers
 
-              if controller.respond_to?(:_routes)
+              if controller.respond_to?(:_routes) && controller._routes
                 include controller._routes.url_helpers
                 include controller._routes.mounted_helpers
               end
@@ -156,7 +155,7 @@ module AbstractController
         options[:partial] = action_name
       end
 
-      if (options.keys & [:partial, :file, :template]).empty?
+      if (options.keys & [:partial, :file, :template, :once]).empty?
         options[:prefix] ||= _prefix
       end
 

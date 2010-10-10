@@ -127,6 +127,10 @@ module RenderTestCases
     assert_equal "Hello: david", @view.render(:partial => "test/customer", :object => Customer.new("david"))
   end
 
+  def test_render_object_with_array
+    assert_equal "[1, 2, 3]", @view.render(:partial => "test/object_inspector", :object => [1, 2, 3])
+  end
+
   def test_render_partial_collection
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end
@@ -319,10 +323,11 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     end
 
     def with_external_encoding(encoding)
-      old, Encoding.default_external = Encoding.default_external, encoding
+      old = Encoding.default_external
+      silence_warnings { Encoding.default_external = encoding }
       yield
     ensure
-      Encoding.default_external = old
+      silence_warnings { Encoding.default_external = old }
     end
   end
 end

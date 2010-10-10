@@ -149,8 +149,6 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 
 * +config.action_controller.optimise_named_routes+ turns on some optimizations in generating the routing table. It is set to +true+ by default.
 
-* +config.action_controller.use_accept_header+ sets the rules for determining the response format. If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept header into account. If it is set to false then the request format will be determined solely by examining +params[:format]+. If there is no +format+ parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.
-
 * +config.action_controller.allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
 
 * +config.action_controller.relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
