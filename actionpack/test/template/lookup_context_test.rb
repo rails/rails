@@ -100,8 +100,8 @@ class LookupContextTest < ActiveSupport::TestCase
 
     @lookup_context.with_fallbacks do
       assert_equal 3, @lookup_context.view_paths.size
-      assert @lookup_context.view_paths.include?(ActionView::FileSystemResolver.new(""))
-      assert @lookup_context.view_paths.include?(ActionView::FileSystemResolver.new("/"))
+      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new(""))
+      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new("/"))
     end
   end
 

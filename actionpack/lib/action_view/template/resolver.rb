@@ -135,6 +135,7 @@ module ActionView
     end
   end
 
+  # A resolver that loads files from the filesystem.
   class FileSystemResolver < PathResolver
     def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
@@ -151,5 +152,17 @@ module ActionView
       self.class.equal?(resolver.class) && to_path == resolver.to_path
     end
     alias :== :eql?
+  end
+
+  # The same as FileSystemResolver but does not allow templates to store
+  # a virtual path since it is invalid for such resolvers.
+  class FallbackFileSystemResolver < FileSystemResolver
+    def self.instances
+      [new(""), new("/")]
+    end
+
+    def decorate(*)
+      super.each { |t| t.virtual_path = nil }
+    end
   end
 end

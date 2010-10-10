@@ -114,12 +114,23 @@ module RenderTestCases
   end
 
   def test_render_sub_template_with_errors
-    @view.render(:file => "test/sub_template_raise")
+    @view.render(:template => "test/sub_template_raise")
     flunk "Render did not raise Template::Error"
   rescue ActionView::Template::Error => e
     assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "Trace of template inclusion: #{File.expand_path("#{FIXTURE_LOAD_PATH}/test/sub_template_raise.html.erb")}", e.sub_template_message
     assert_equal "1", e.line_number
+    assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+  end
+
+  def test_render_file_with_errors
+    @view.render(:file => File.expand_path("test/_raise", FIXTURE_LOAD_PATH))
+    flunk "Render did not raise Template::Error"
+  rescue ActionView::Template::Error => e
+    assert_match %r!method.*doesnt_exist!, e.message
+    assert_equal "", e.sub_template_message
+    assert_equal "1", e.line_number
+    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code.strip
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
