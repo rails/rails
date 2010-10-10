@@ -384,16 +384,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_reorder_overrides_default_scope_order
+  def test_except_and_order_overrides_default_scope_order
     expected = Developer.order('name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.reorder('name DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.except(:order).order('name DESC').collect { |dev| dev.name }
     assert_equal expected, received
-  end
-
-  def test_reordered_scope_overrides_default_scope_order
-    not_expected = DeveloperOrderedBySalary.first # Jamis -> name DESC
-    received = DeveloperOrderedBySalary.reordered_by_name.first # David -> name
-    assert not_expected.id != received.id
   end
 
   def test_nested_exclusive_scope

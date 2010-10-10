@@ -19,18 +19,9 @@ module ActiveRecord
         end
       end
 
-      (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order]).each do |method|
+      (Relation::MULTI_VALUE_METHODS - [:joins, :where]).each do |method|
         value = r.send(:"#{method}_values")
         merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
-      end
-
-      order_value = r.order_values
-      if order_value.present?
-        if r.reorder_flag
-          merged_relation.order_values = order_value
-        else
-          merged_relation.order_values = merged_relation.order_values + order_value
-        end
       end
 
       merged_relation = merged_relation.joins(r.joins_values)

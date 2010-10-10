@@ -135,12 +135,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
-  def test_finding_with_reorder
-    topics = Topic.order('author_name').order('title').reorder('id')
-    assert_equal 4, topics.to_a.size
-    assert_equal topics(:first).title, topics.first.title
-  end
-
   def test_finding_with_order_and_take
     entrants = Entrant.order("id ASC").limit(2).to_a
 
