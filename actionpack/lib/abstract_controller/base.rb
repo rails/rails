@@ -13,6 +13,7 @@ module AbstractController
   class Base
     attr_internal :response_body
     attr_internal :action_name
+    attr_internal :formats
 
     include ActiveSupport::Configurable
     extend ActiveSupport::DescendantsTracker

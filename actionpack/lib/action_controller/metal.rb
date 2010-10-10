@@ -112,6 +112,11 @@ module ActionController
       headers["Location"] = url
     end
 
+    # basic url_for that can be overridden for more robust functionality
+    def url_for(string)
+      string
+    end
+
     def status
       @_status
     end
