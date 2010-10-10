@@ -1,9 +1,16 @@
 require "abstract_unit"
+require "logger"
 
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB.new
 
   class Context
+    class LookupContext
+      def disable_cache
+        yield
+      end
+    end
+
     def initialize
       @output_buffer = "original"
       @_virtual_path = nil
@@ -22,8 +29,11 @@ class TestERBTemplate < ActiveSupport::TestCase
       )
     end
 
+    def lookup_context
+      @lookup_context ||= LookupContext.new
+    end
+
     def logger
-      require "logger"
       Logger.new(STDERR)
     end
 
@@ -37,11 +47,11 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def render(locals = {})
-    @template.render(@obj, locals)
+    @template.render(@context, locals)
   end
 
   def setup
-    @obj = Context.new
+    @context = Context.new
   end
 
   def test_basic_template
@@ -70,7 +80,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_restores_buffer
     @template = new_template
     assert_equal "Hello", render
-    assert_equal "original", @obj.my_buffer
+    assert_equal "original", @context.my_buffer
   end
 
   def test_virtual_path
@@ -78,6 +88,20 @@ class TestERBTemplate < ActiveSupport::TestCase
                              "<%= partial.render(self, {}) %>" \
                              "<%= @_virtual_path %>")
     assert_equal "hellopartialhello", render
+  end
+
+  def test_refresh
+    @template = new_template("Hello", :virtual_path => "test/foo")
+    @template.locals = [:key]
+    @context.lookup_context.expects(:find_template).with("foo", "test", false, [:key]).returns("template")
+    assert_equal "template", @template.refresh(@context)
+  end
+
+  def test_refresh_raises_an_error_without_virtual_path
+    @template = new_template("Hello", :virtual_path => nil)
+    assert_raise RuntimeError, /OMG/ do
+      @template.refresh(@context)
+    end
   end
 
   if "ruby".encoding_aware?
