@@ -2,7 +2,6 @@ require 'action_view/renderer/abstract_renderer'
 
 module ActionView
   class PartialRenderer < AbstractRenderer #:nodoc:
-    N = ::ActiveSupport::Notifications
     PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
 
     def initialize(view)
@@ -46,11 +45,11 @@ module ActionView
         identifier = ((@template = find_partial) ? @template.identifier : @path)
 
         if @collection
-          N.instrument("render_collection.action_view", :identifier => identifier || "collection", :count => @collection.size) do
+          instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
             render_collection
           end
         else
-          N.instrument("render_partial.action_view", :identifier => identifier) do
+          instrument(:partial, :identifier => identifier) do
             render_partial
           end
         end
@@ -83,7 +82,7 @@ module ActionView
         view._layout_for(*name, &block)
       end
 
-      content = render_layout(layout, locals){ content } if layout
+      content = layout.render(view, locals){ content } if layout
       content
     end
 

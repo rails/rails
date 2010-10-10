@@ -1,26 +1,51 @@
+require 'set'
+require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/array/wrap'
 require 'action_view/renderer/abstract_renderer'
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
+    attr_reader :rendered
+
+    def initialize(view)
+      super
+      @rendered = Set.new
+    end
+
     def render(options)
       wrap_formats(options[:template] || options[:file]) do
         template = determine_template(options)
-        lookup_context.freeze_formats(template.formats, true)
-        render_template(template, options[:layout], options)
+        render_template(template, options[:layout], options[:locals])
+      end
+    end
+
+    def render_once(options)
+      paths, locals = options[:once], options[:locals] || {}
+      layout, keys, prefix = options[:layout], locals.keys, options[:prefix]
+
+      raise "render :once expects a String or an Array to be given" unless paths
+
+      render_with_layout(layout, locals) do
+        contents = []
+        Array.wrap(paths).each do |path|
+          template = find_template(path, prefix, false, keys)
+          contents << render_template(template, nil, locals) if @rendered.add?(template)
+        end
+        contents.join("\n")
       end
     end
 
     # Determine the template to be rendered using the given options.
     def determine_template(options) #:nodoc:
-      keys = (options[:locals] ||= {}).keys
+      keys = options[:locals].try(:keys) || []
 
-      if options.key?(:inline)
-        handler = Template.handler_class_for_extension(options[:type] || "erb")
-        Template.new(options[:inline], "inline template", handler, { :locals => keys })
-      elsif options.key?(:text)
+      if options.key?(:text)
         Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], options[:prefix], false, keys) }
+      elsif options.key?(:inline)
+        handler = Template.handler_class_for_extension(options[:type] || "erb")
+        Template.new(options[:inline], "inline template", handler, { :locals => keys })
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
           options[:template] : find_template(options[:template], options[:prefix], false, keys)
@@ -29,20 +54,26 @@ module ActionView
 
     # Renders the given template. An string representing the layout can be
     # supplied as well.
-    def render_template(template, layout = nil, options = {}) #:nodoc:
-      view, locals = @view, options[:locals] || {}
-      layout = find_layout(layout, locals.keys) if layout
+    def render_template(template, layout_name = nil, locals = {}) #:nodoc:
+      lookup_context.freeze_formats(template.formats, true)
+      view, locals = @view, locals || {}
 
-      ActiveSupport::Notifications.instrument("render_template.action_view",
-        :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
-
-        content = template.render(view, locals) { |*name| view._layout_for(*name) }
-      
-        if layout
-          view.store_content_for(:layout, content)
-          content = render_layout(layout, locals)
+      render_with_layout(layout_name, locals) do |layout|
+        instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
+          template.render(view, locals) { |*name| view._layout_for(*name) }
         end
+      end
+    end
 
+    def render_with_layout(path, locals) #:nodoc:
+      layout  = path && find_layout(path, locals.keys)
+      content = yield(layout)
+
+      if layout
+        view = @view
+        view.store_content_for(:layout, content)
+        layout.render(view, locals){ |*name| view._layout_for(*name) }
+      else
         content
       end
     end

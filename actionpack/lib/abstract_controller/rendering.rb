@@ -155,7 +155,7 @@ module AbstractController
         options[:partial] = action_name
       end
 
-      if (options.keys & [:partial, :file, :template]).empty?
+      if (options.keys & [:partial, :file, :template, :once]).empty?
         options[:prefix] ||= _prefix
       end
 

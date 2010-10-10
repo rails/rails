@@ -14,12 +14,6 @@ module ActionView
       raise NotImplementedError
     end
 
-    # Contains the logic that actually renders the layout.
-    def render_layout(layout, locals, &block) #:nodoc:
-      view = @view
-      layout.render(view, locals){ |*name| view._layout_for(*name, &block) }
-    end
-
     # Checks if the given path contains a format and if so, change
     # the lookup context to take this new format into account.
     def wrap_formats(value)
@@ -31,6 +25,12 @@ module ActionView
       else
         yield
       end
+    end
+
+    protected
+
+    def instrument(name, options={})
+      ActiveSupport::Notifications.instrument("render_#{name}.action_view", options){ yield }
     end
   end
 end
