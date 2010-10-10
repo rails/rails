@@ -214,11 +214,11 @@ module Rails
   # as they would be created inside application. One of the cosequences of that is including
   # application's helpers and url_helpers inside controller. Sometimes, especially when your
   # engine provides its own routes, you don't want that. To isolate engine's stuff from application
-  # you can use namespace method:
+  # you can use isolate_namespace method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
-  #       namespace MyEngine
+  #       isolate_namespace MyEngine
   #     end
   #   end
   #
@@ -252,7 +252,7 @@ module Rails
   #   end
   #
   #
-  # Additionaly namespaced engine will set its name according to namespace, so in that case:
+  # Additionaly isolated engine will set its name according to namespace, so in that case:
   # MyEngine::Engine.engine_name #=> "my_engine" and it will set MyEngine.table_name_prefix
   # to "my_engine_".
   #
@@ -315,7 +315,7 @@ module Rails
     autoload :Configuration, "rails/engine/configuration"
 
     class << self
-      attr_accessor :called_from, :namespaced
+      attr_accessor :called_from, :isolated
       alias :engine_name :railtie_name
 
       def inherited(base)
@@ -350,12 +350,12 @@ module Rails
         @endpoint
       end
 
-      def namespace(mod)
+      def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod))
 
         name = engine_name
         self.routes.default_scope = {:module => name}
-        self.namespaced = true
+        self.isolated = true
 
         unless mod.respond_to?(:_railtie)
           _railtie = self
@@ -371,13 +371,13 @@ module Rails
         end
       end
 
-      def namespaced?
-        !!namespaced
+      def isolated?
+        !!isolated
       end
     end
 
     delegate :middleware, :root, :paths, :to => :config
-    delegate :engine_name, :namespaced?, :to => "self.class"
+    delegate :engine_name, :isolated?, :to => "self.class"
 
     def load_tasks
       super
@@ -506,7 +506,7 @@ module Rails
     end
 
     initializer :prepend_helpers_path do |app|
-      if !namespaced? || (app == self)
+      if !isolated? || (app == self)
         app.config.helpers_paths.unshift(*paths["app/helpers"].existent)
       end
     end
@@ -520,6 +520,20 @@ module Rails
     initializer :engines_blank_point do
       # We need this initializer so all extra initializers added in engines are
       # consistently executed after all the initializers above across all engines.
+    end
+
+    rake_tasks do
+      next if self.is_a?(Rails::Application)
+
+      namespace railtie_name do
+        namespace :install do
+          desc "Copy migrations from #{railtie_name} to application"
+          task :migrations do
+            ENV["FROM"] = railtie_name
+            Rake::Task["railties:install:migrations"].invoke
+          end
+        end
+      end
     end
 
   protected

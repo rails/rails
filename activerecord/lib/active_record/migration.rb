@@ -384,23 +384,32 @@ module ActiveRecord
         end
       end
 
-      def copy(destination, sources)
+      def copy(destination, sources, options = {})
         copied = []
 
-        sources.each do |scope, path|
-          destination_migrations = ActiveRecord::Migrator.migrations(destination)
+        destination_migrations = ActiveRecord::Migrator.migrations(destination)
+        last = destination_migrations.last
+        sources.each do |name, path|
           source_migrations = ActiveRecord::Migrator.migrations(path)
-          last = destination_migrations.last
 
           source_migrations.each do |migration|
-            next if destination_migrations.any? { |m| m.name == migration.name && m.scope == scope.to_s }
+            source = File.read(migration.filename)
+            source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
+
+            if duplicate = destination_migrations.detect { |m| m.name == migration.name }
+              options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
+              next
+            end
 
             migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
+            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
+            old_path, migration.filename = migration.filename, new_path
             last = migration
 
-            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
-            FileUtils.cp(migration.filename, new_path)
-            copied << new_path
+            FileUtils.cp(old_path, migration.filename)
+            copied << migration
+            options[:on_copy].call(name, migration, old_path) if options[:on_copy]
+            destination_migrations << migration
           end
         end
 
@@ -419,11 +428,15 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
+  class MigrationProxy < Struct.new(:name, :version, :filename)
 
-    def initialize(name, version, filename, scope)
+    def initialize(name, version, filename)
       super
       @migration = nil
+    end
+
+    def basename
+      File.basename(filename)
     end
 
     delegate :migrate, :announce, :write, :to=>:migration
@@ -510,18 +523,18 @@ module ActiveRecord
         seen = Hash.new false
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
+          version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
           name = name.camelize
 
           raise DuplicateMigrationVersionError.new(version) if seen[version]
-          raise DuplicateMigrationNameError.new(name) if seen[[name, scope]]
+          raise DuplicateMigrationNameError.new(name) if seen[name]
 
-          seen[version] = seen[[name, scope]] = true
+          seen[version] = seen[name] = true
 
-          MigrationProxy.new(name, version, file, scope)
+          MigrationProxy.new(name, version, file)
         end
 
         migrations.sort_by(&:version)

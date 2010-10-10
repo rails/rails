@@ -394,7 +394,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace Bukkits
+            isolate_namespace Bukkits
           end
         end
       RUBY
@@ -511,7 +511,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace Bukkits
+            isolate_namespace Bukkits
           end
         end
       RUBY
@@ -572,7 +572,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace(Bukkits)
+            isolate_namespace(Bukkits)
           end
         end
       RUBY
@@ -593,7 +593,7 @@ module RailtiesTest
         @plugin.write "lib/bukkits.rb", <<-RUBY
           module Bukkits
             class Engine < ::Rails::Engine
-              namespace(Bukkits)
+              isolate_namespace(Bukkits)
               paths["public"] = "#{File.join(@plugin.path, "alternate_public")}"
             end
           end
@@ -611,7 +611,7 @@ module RailtiesTest
         @plugin.write "lib/bukkits.rb", <<-RUBY
           module Bukkits
             class Engine < ::Rails::Engine
-              namespace(Bukkits)
+              isolate_namespace(Bukkits)
               paths["public"] = "#{File.join(@plugin.path, "not_existing")}"
             end
           end
@@ -648,12 +648,12 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module AppTemplate
           class Engine < ::Rails::Engine
-            namespace(AppTemplate)
+            isolate_namespace(AppTemplate)
           end
         end
       RUBY
 
-      add_to_config "namespace AppTemplate"
+      add_to_config "isolate_namespace AppTemplate"
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do end
@@ -686,7 +686,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace(Bukkits)
+            isolate_namespace(Bukkits)
           end
         end
       RUBY

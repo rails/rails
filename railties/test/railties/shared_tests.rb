@@ -21,6 +21,11 @@ module RailtiesTest
         end
       RUBY
 
+      @plugin.write "db/migrate/3_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration
+        end
+      RUBY
+
       app_file "db/migrate/1_create_sessions.rb", <<-RUBY
         class CreateSessions < ActiveRecord::Migration
         end
@@ -38,24 +43,26 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       Dir.chdir(app_path) do
-        output = `rake railties:copy_migrations FROM=bukkits`
+        output = `rake bukkits:install:migrations 2>&1`
 
-        assert File.exists?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
-        assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
-        assert_match /2_create_users/, output
-        assert_match /3_add_last_name_to_users/, output
+        assert File.exists?("#{app_path}/db/migrate/2_create_users.rb")
+        assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.rb")
+        assert_match /Copied migration 2_create_users.rb from bukkits/, output
+        assert_match /Copied migration 3_add_last_name_to_users.rb from bukkits/, output
+        assert_match /WARNING: Migration 3_create_sessions.rb from bukkits has been skipped/, output
         assert_equal 3, Dir["#{app_path}/db/migrate/*.rb"].length
 
-        output = `rake railties:copy_migrations`
+        output = `rake railties:install:migrations 2>&1`
 
-        assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.acts_as_yaffle.rb")
-        assert_match /4_create_yaffles/, output
+        assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.rb")
+        assert_match /WARNING: Migration 3_create_sessions.rb from bukkits has been skipped/, output
+        assert_match /Copied migration 4_create_yaffles.rb from acts_as_yaffle/, output
+        assert_no_match /2_create_users/, output
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `rake railties:copy_migrations`
+        output = `rake railties:install:migrations 2>&1`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
-        assert_match /No migrations were copied/, output
       end
     end
 

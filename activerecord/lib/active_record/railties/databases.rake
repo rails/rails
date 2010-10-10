@@ -5,27 +5,6 @@ namespace :db do
     ActiveRecord::Migrator.migrations_path = Rails.application.paths["db/migrate"].first
   end
 
-  task :copy_migrations => :load_config do
-    to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
-    railties = {}
-    Rails.application.railties.all do |railtie|
-      next unless to_load == :all || to_load.include?(railtie.railtie_name)
-
-      if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
-        railties[railtie.railtie_name] = path
-      end
-    end
-
-    copied = ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_path, railties)
-
-    if copied.blank?
-      puts "No migrations were copied, project is up to date."
-    else
-      puts "The following migrations were copied:"
-      puts copied.map{ |path| File.basename(path) }.join("\n")
-    end
-  end
-
   namespace :create do
     # desc 'Create all the local databases defined in config/database.yml'
     task :all => :load_config do
@@ -501,8 +480,31 @@ namespace :db do
 end
 
 namespace :railties do
-  desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
-  task :copy_migrations => 'db:copy_migrations'
+  namespace :install do
+    desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
+    task :migrations => :"db:load_config" do
+      to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
+      railties = {}
+      Rails.application.railties.all do |railtie|
+        next unless to_load == :all || to_load.include?(railtie.railtie_name)
+
+        if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
+          railties[railtie.railtie_name] = path
+        end
+      end
+
+      on_skip = Proc.new do |name, migration|
+        $stderr.puts "WARNING: Migration #{migration.basename} from #{name} has been skipped. Migration with the same name already exists."
+      end
+
+      on_copy = Proc.new do |name, migration, old_path|
+        puts "Copied migration #{migration.basename} from #{name}"
+      end
+
+      ActiveRecord::Migration.copy( ActiveRecord::Migrator.migrations_path, railties,
+                                    :on_skip => on_skip, :on_copy => on_copy)
+    end
+  end
 end
 
 task 'test:prepare' => 'db:test:prepare'
