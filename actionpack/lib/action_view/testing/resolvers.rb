@@ -23,11 +23,12 @@ module ActionView #:nodoc:
       query = /^(#{Regexp.escape(path)})#{query}$/
 
       templates = []
-      @hash.each do |_path, source|
+      @hash.each do |_path, array|
+        source, updated_at = array
         next unless _path =~ query
         handler, format = extract_handler_and_format(_path, formats)
         templates << Template.new(source, _path, handler,
-          :virtual_path => $1, :format => format)
+          :virtual_path => $1, :format => format, :updated_at => updated_at)
       end
 
       templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }

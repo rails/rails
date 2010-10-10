@@ -98,10 +98,9 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals
+    attr_accessor :locals, :formats, :virtual_path
 
-    attr_reader :source, :identifier, :handler, :virtual_path, :formats,
-                :original_encoding
+    attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
 
     # This finalizer is needed (and exactly with a proc inside another proc)
     # otherwise templates leak in development.
@@ -114,15 +113,17 @@ module ActionView
     end
 
     def initialize(source, identifier, handler, details)
-      @source             = source
-      @identifier         = identifier
-      @handler            = handler
-      @original_encoding  = nil
-      @method_names       = {}
-      @locals             = details[:locals] || []
-      @formats            = Array.wrap(details[:format] || :html).map(&:to_sym)
-      @virtual_path       = details[:virtual_path]
-      @compiled           = false
+      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
+
+      @source            = source
+      @identifier        = identifier
+      @handler           = handler
+      @compiled          = false
+      @original_encoding = nil
+      @locals            = details[:locals] || []
+      @virtual_path      = details[:virtual_path]
+      @updated_at        = details[:updated_at] || Time.now
+      @formats           = Array.wrap(format).map(&:to_sym)
     end
 
     # Render a template. If the template was not compiled yet, it is done

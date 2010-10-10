@@ -16,7 +16,7 @@ module ActionView
 
     # Normalizes the arguments and passes it on to find_template.
     def find_all(name, prefix=nil, partial=false, details={}, locals=[], key=nil)
-      cached(key, prefix, name, partial, locals) do
+      cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
     end
@@ -35,37 +35,55 @@ module ActionView
     end
 
     # Helpers that builds a path. Useful for building virtual paths.
-    def build_path(name, prefix, partial, details)
+    def build_path(name, prefix, partial)
       path = ""
       path << "#{prefix}/" unless prefix.empty?
       path << (partial ? "_#{name}" : name)
       path
     end
 
-    # Get the handler and format from the given parameters.
-    def retrieve_handler_and_format(handler, format, default_formats=nil)
-      handler  = Template.handler_class_for_extension(handler)
-      format   = format && Mime[format]
-      format ||= handler.default_format if handler.respond_to?(:default_format)
-      format ||= default_formats
-      [handler, format]
-    end
-
-    def cached(key, prefix, name, partial, locals)
+    # Hnadles templates caching. If a key is given and caching is on
+    # always check the cache before hitting the resolver. Otherwise,
+    # it always hits the resolver but check if the resolver is fresher
+    # before returning it.
+    def cached(key, path_info, details, locals) #:nodoc:
+      name, prefix, partial = path_info
       locals = sort_locals(locals)
-      unless key && caching?
-        yield.each { |t| t.locals = locals }
+
+      if key && caching?
+        @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
       else
-        @cached[key][prefix][name][partial][locals] ||= yield.each { |t| t.locals = locals }
+        fresh = decorate(yield, path_info, details, locals)
+        return fresh unless key
+
+        scope = @cached[key][name][prefix][partial]
+        cache = scope[locals]
+        mtime = cache && cache.map(&:updated_at).max
+
+        if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
+          scope[locals] = fresh
+        else
+          cache
+        end
       end
     end
 
-    if :locale.respond_to?("<=>")
-      def sort_locals(locals)
+    # Ensures all the resolver information is set in the template.
+    def decorate(templates, path_info, details, locals) #:nodoc:
+      cached = nil
+      templates.each do |t|
+        t.locals         = locals
+        t.formats        = details[:formats] || [:html] if t.formats.empty?
+        t.virtual_path ||= (cached ||= build_path(*path_info))
+      end
+    end
+
+    if :symbol.respond_to?("<=>")
+      def sort_locals(locals) #:nodoc:
         locals.sort.freeze
       end
     else
-      def sort_locals(locals)
+      def sort_locals(locals) #:nodoc:
         locals = locals.map{ |l| l.to_s }
         locals.sort!
         locals.freeze
@@ -79,7 +97,7 @@ module ActionView
     private
 
     def find_templates(name, prefix, partial, details)
-      path = build_path(name, prefix, partial, details)
+      path = build_path(name, prefix, partial)
       query(path, EXTENSION_ORDER.map { |ext| details[ext] }, details[:formats])
     end
 
@@ -96,8 +114,13 @@ module ActionView
         contents = File.open(p, "rb") {|io| io.read }
 
         Template.new(contents, File.expand_path(p), handler,
-          :virtual_path => path, :format => format)
+          :virtual_path => path, :format => format, :updated_at => mtime(p))
       end
+    end
+
+    # Returns the file mtime from the filesystem.
+    def mtime(p)
+      File.stat(p).mtime
     end
 
     # Extract handler and formats from path. If a format cannot be a found neither
@@ -106,7 +129,9 @@ module ActionView
     def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
-      retrieve_handler_and_format(pieces.pop, pieces.pop, default_formats)
+      handler = Template.handler_class_for_extension(pieces.pop)
+      format  = pieces.last && Mime[pieces.last]
+      [handler, format]
     end
   end
 
