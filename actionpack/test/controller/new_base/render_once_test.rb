@@ -61,13 +61,12 @@ module RenderTemplate
     include Tests
   end
 
-  # TODO This still needs to be implemented and supported.
-  # class TestWithoutResolverCache < Rack::TestCase
-  #   testing RenderTemplate::RenderOnceController
-  #   include Tests
-  #
-  #   def setup
-  #     RenderTemplate::RenderOnceController::RESOLVER.stubs(:caching?).returns(false)
-  #   end
-  # end
+  class TestWithoutResolverCache < Rack::TestCase
+    testing RenderTemplate::RenderOnceController
+    include Tests
+
+    def setup
+      RenderTemplate::RenderOnceController::RESOLVER.stubs(:caching?).returns(false)
+    end
+  end
 end

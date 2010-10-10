@@ -151,6 +151,14 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
+  def test_inline_template_is_only_equal_if_source_match
+    inline1 = ActionView::Template::Inline.new("sample", ERBHandler)
+    inline2 = ActionView::Template::Inline.new("sample", ERBHandler)
+    inline3 = ActionView::Template::Inline.new("other",  ERBHandler)
+    assert inline1.eql?(inline2)
+    assert !inline1.eql?(inline3)
+  end
+
   if "ruby".encoding_aware?
     def test_resulting_string_is_utf8
       @template = new_template
