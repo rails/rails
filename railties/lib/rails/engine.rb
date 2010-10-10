@@ -547,6 +547,12 @@ module Rails
             Rake::Task["railties:install:migrations"].invoke
           end
         end
+
+        desc "Copy assets from #{railtie_name} to application"
+        task :assets do
+          ENV["FROM"] = railtie_name
+          Rake::Task["railties:install:assets"].invoke
+        end
       end
     end
 

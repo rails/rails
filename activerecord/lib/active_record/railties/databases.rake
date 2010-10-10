@@ -494,7 +494,7 @@ namespace :railties do
       end
 
       on_skip = Proc.new do |name, migration|
-        $stderr.puts "WARNING: Migration #{migration.basename} from #{name} has been skipped. Migration with the same name already exists."
+        puts "NOTE: Migration #{migration.basename} from #{name} has been skipped. Migration with the same name already exists."
       end
 
       on_copy = Proc.new do |name, migration, old_path|
