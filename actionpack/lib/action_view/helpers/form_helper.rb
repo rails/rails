@@ -1020,14 +1020,9 @@ module ActionView
 
         def value_before_type_cast(object, method_name)
           unless object.nil?
-            if object.respond_to?(method_name)
-              object.send(method_name)
-            # FIXME: this is AR dependent
-            elsif object.respond_to?(method_name + "_before_type_cast")
-              object.send(method_name + "_before_type_cast")
-            else
-              raise NoMethodError, "Model #{object.class} does not respond to #{method_name}"
-            end
+            object.respond_to?(method_name + "_before_type_cast") ?
+            object.send(method_name + "_before_type_cast") :
+            object.send(method_name)
           end
         end
 
