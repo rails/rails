@@ -45,8 +45,8 @@ module ActionView
       private
         def scope_key_by_partial(key)
           if key.to_s.first == "."
-            if @_virtual_path
-              @_virtual_path.gsub(%r{/_?}, ".") + key.to_s
+            if (path = @_template && @_template.virtual_path)
+              path.gsub(%r{/_?}, ".") + key.to_s
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

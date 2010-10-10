@@ -4,12 +4,14 @@ require "logger"
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB.new
 
-  class Context
-    class LookupContext
-      def disable_cache
-        yield
-      end
+  class LookupContext
+    def disable_cache
+      yield
     end
+  end
+
+  class Context
+    attr_accessor :_template
 
     def initialize
       @output_buffer = "original"
@@ -22,7 +24,7 @@ class TestERBTemplate < ActiveSupport::TestCase
 
     def partial
       ActionView::Template.new(
-        "<%= @_virtual_path %>",
+        "<%= @_template.virtual_path %>",
         "partial",
         ERBHandler,
         :virtual_path => "partial"
@@ -84,9 +86,9 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_virtual_path
-    @template = new_template("<%= @_virtual_path %>" \
+    @template = new_template("<%= @_template.virtual_path %>" \
                              "<%= partial.render(self, {}) %>" \
-                             "<%= @_virtual_path %>")
+                             "<%= @_template.virtual_path %>")
     assert_equal "hellopartialhello", render
   end
 

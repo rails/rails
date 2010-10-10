@@ -133,12 +133,15 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, &block)
+      old_template, view._template = view._template, self
       ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
         compile!(view)
         view.send(method_name, locals, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)
+    ensure
+      view._template = old_template
     end
 
     def mime_type
@@ -272,9 +275,9 @@ module ActionView
         # encoding of the code
         source = <<-end_src
           def #{method_name}(local_assigns)
-            _old_virtual_path, @_virtual_path = @_virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
+            _old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
-            @_virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
+            @output_buffer = _old_output_buffer
           end
         end_src
 
