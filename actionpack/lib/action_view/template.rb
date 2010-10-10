@@ -154,13 +154,30 @@ module ActionView
     # Notice this method raises an error if the template to be refreshed does not have a
     # virtual path set (true just for inline templates).
     def refresh(view)
-      raise "A template need to have a virtual path in order to be refreshed" unless @virtual_path
+      raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
       lookup  = view.lookup_context
       pieces  = @virtual_path.split("/")
       name    = pieces.pop
-      partial = name.sub!(/^_/, "")
+      partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, pieces.join, partial || false, @locals)
+        lookup.find_template(name, pieces.join, partial, @locals)
+      end
+    end
+
+    # Expires this template by setting his updated_at date to Jan 1st, 1970.
+    def expire!
+      @updated_at = Time.utc(1970)
+    end
+
+    # Receives a view context and renders a template exactly like self by using
+    # the @virtual_path. It raises an error if no @virtual_path was given.
+    def rerender(view)
+      raise "A template needs to have a virtual path in order to be rerendered" unless @virtual_path
+      name = @virtual_path.dup
+      if name.sub!(/(^|\/)_([^\/]*)$/, '\1\2')
+        view.render :partial => name
+      else
+        view.render :template => @virtual_path
       end
     end
 
