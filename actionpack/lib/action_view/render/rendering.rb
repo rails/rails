@@ -10,7 +10,7 @@ module ActionView
     # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
     # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
     # * <tt>:text</tt> - Renders the text passed in out.
-    # * <tt>:once</tt> - Receives :template paths and ensures they are rendered just once.
+    # * <tt>:once</tt> - Accepts a string or an array of strings and Rails will ensure they each of them are rendered just once.
     #
     # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
     # as the locals hash.
