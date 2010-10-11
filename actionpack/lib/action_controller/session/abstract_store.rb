@@ -206,11 +206,8 @@ module ActionController
             cookie << "; HttpOnly" if options[:httponly]
 
             headers = response[1]
-            unless headers[SET_COOKIE].blank?
-              headers[SET_COOKIE] << "\n#{cookie}"
-            else
-              headers[SET_COOKIE] = cookie
-            end
+            headers[SET_COOKIE] = [] if headers[SET_COOKIE].blank?
+            headers[SET_COOKIE] << cookie
           end
         end
 
