@@ -14,5 +14,10 @@ module ContentNegotiation
       get "/content_negotiation/basic/hello", {}, "HTTP_ACCEPT" => "*/*"
       assert_body "Hello world */*!"
     end
+
+    test "An empty accept header will return HTML" do
+      get "/content_negotiation/basic/hello", {}, "HTTP_ACCEPT" => nil
+      assert_body "Hello world */*!"
+    end
   end
 end
