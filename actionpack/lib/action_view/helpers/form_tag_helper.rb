@@ -390,7 +390,7 @@ module ActionView
         end
 
         if confirm = options.delete("confirm")
-          add_confirm_to_attributes!(options, confirm)
+          options["data-confirm"] = confirm
         end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
@@ -423,7 +423,7 @@ module ActionView
         options.stringify_keys!
 
         if confirm = options.delete("confirm")
-          add_confirm_to_attributes!(options, confirm)
+          options["data-confirm"] = confirm
         end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
