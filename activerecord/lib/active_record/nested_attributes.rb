@@ -286,9 +286,7 @@ module ActiveRecord
         assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
 
       elsif attributes['id']
-        existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
-        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-        self.send(association_name.to_s+'=', existing_record)
+        raise_nested_attributes_record_not_found(association_name, attributes['id'])
 
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
@@ -358,16 +356,11 @@ module ActiveRecord
           unless reject_new_record?(association_name, attributes)
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
-
-        elsif existing_records.size == 0 # Existing record but not yet associated
-          existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
-          association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
           association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-
+        else
+          raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end
       end
     end
@@ -387,7 +380,7 @@ module ActiveRecord
       ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
     end
 
-    # Determines if a new record should be built by checking for
+    # Determines if a new record should be build by checking for
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
@@ -403,5 +396,9 @@ module ActiveRecord
       end
     end
 
+    def raise_nested_attributes_record_not_found(association_name, record_id)
+      reflection = self.class.reflect_on_association(association_name)
+      raise RecordNotFound, "Couldn't find #{reflection.klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+    end
   end
 end
