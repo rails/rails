@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Capture Helper
@@ -38,7 +39,7 @@ module ActionView
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
         if string = buffer.presence || value and string.is_a?(String)
-          string
+          html_escape string
         end
       end
 
