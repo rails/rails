@@ -1,5 +1,7 @@
 *Rails 3.0.1 (unreleased)*
 
+* reorder is deprecated in favor of except(:order).order(...) [Santiago Pastorino]
+
 * except is now AR public API
 
     Model.order('name').except(:order).order('salary')
