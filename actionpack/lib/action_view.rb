@@ -38,7 +38,6 @@ module ActionView
     autoload :Helpers
     autoload :Base
     autoload :LookupContext
-    autoload :Render
     autoload :PathSet,        "action_view/paths"
     autoload :TestCase,       "action_view/test_case"
 
