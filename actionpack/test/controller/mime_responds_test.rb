@@ -709,6 +709,15 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal " ", @response.body
   end
 
+  def test_using_resource_for_put_with_json_yields_ok_on_success
+    Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
+    @request.accept = "application/json"
+    put :using_resource
+    assert_equal "application/json", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal "{}", @response.body
+  end
+
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
     @request.accept = "application/xml"
     errors = { :name => :invalid }
@@ -737,6 +746,16 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
     assert_equal 200, @response.status
     assert_equal " ", @response.body
+  end
+
+  def test_using_resource_for_delete_with_json_yields_ok_on_success
+    Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
+    Customer.any_instance.stubs(:destroyed?).returns(true)
+    @request.accept = "application/json"
+    delete :using_resource
+    assert_equal "application/json", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal "{}", @response.body
   end
 
   def test_using_resource_for_delete_with_html_redirects_on_failure

@@ -161,6 +161,8 @@ module ActionController #:nodoc:
         display resource.errors, :status => :unprocessable_entity
       elsif post?
         display resource, :status => :created, :location => api_location
+      elsif has_empty_resource_definition?
+        display empty_resource, :status => :ok
       else
         head :ok
       end
@@ -220,6 +222,24 @@ module ActionController #:nodoc:
     #
     def default_action
       @action ||= ACTIONS_FOR_VERBS[request.request_method_symbol]
+    end
+
+    # Check whether resource needs a specific definition of empty resource to be valid
+    #
+    def has_empty_resource_definition?
+      respond_to?("empty_#{format}_resource")
+    end
+
+    # Delegate to proper empty resource method
+    #
+    def empty_resource
+      send("empty_#{format}_resource")
+    end
+
+    # Return a valid empty JSON resource
+    #
+    def empty_json_resource
+      "{}"
     end
   end
 end
