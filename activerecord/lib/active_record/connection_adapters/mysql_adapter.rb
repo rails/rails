@@ -132,7 +132,7 @@ module ActiveRecord
       cattr_accessor :emulate_booleans
       self.emulate_booleans = true
 
-      ADAPTER_NAME = 'MySQL'.freeze
+      ADAPTER_NAME = 'MySQL'
 
       LOST_CONNECTION_ERROR_MESSAGES = [
         "Server shutdown in progress",
@@ -140,10 +140,10 @@ module ActiveRecord
         "Lost connection to MySQL server during query",
         "MySQL server has gone away" ]
 
-      QUOTED_TRUE, QUOTED_FALSE = '1'.freeze, '0'.freeze
+      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY".freeze,
+        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
         :string      => { :name => "varchar", :limit => 255 },
         :text        => { :name => "text" },
         :integer     => { :name => "int", :limit => 4 },
