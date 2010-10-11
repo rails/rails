@@ -33,6 +33,8 @@
 
 * Upgrade to Rack 1.2.1 [Jeremy Kemper]
 
+* Removed reset_javascript_include_default, use  config.action_view.javascript_expansions in config/application.rb for this instead [José Valim]
+
 * Allow :path to be given to match/get/post/put/delete instead of :path_names in the new router [Carlos Antônio da Silva]
 
 * Added resources_path_names to the new router DSL [José Valim]
