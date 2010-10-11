@@ -589,6 +589,7 @@ module ActionView
             html_options['data-remote'] = 'true'
           end
 
+          disable_with = html_options.delete("disable_with")
           confirm = html_options.delete("confirm")
 
           if html_options.key?("popup")
@@ -597,6 +598,7 @@ module ActionView
 
           method, href = html_options.delete("method"), html_options['href']
 
+          add_disable_with_to_attributes!(html_options, disable_with) if disable_with
           add_confirm_to_attributes!(html_options, confirm) if confirm
           add_method_to_attributes!(html_options, method)   if method
 
@@ -605,6 +607,10 @@ module ActionView
 
         def add_confirm_to_attributes!(html_options, confirm)
           html_options["data-confirm"] = confirm if confirm
+        end
+
+        def add_disable_with_to_attributes!(html_options, disable_with)
+          html_options["data-disable-with"] = disable_with if disable_with
         end
 
         def add_method_to_attributes!(html_options, method)
