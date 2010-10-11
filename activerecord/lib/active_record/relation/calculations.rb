@@ -277,7 +277,7 @@ module ActiveRecord
           else type_cast_using_column(value, column)
         end
       else
-        value
+        type_cast_using_column(value, column)
       end
     end
 
