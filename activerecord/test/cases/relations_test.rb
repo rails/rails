@@ -136,9 +136,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_reorder
-    topics = Topic.order('author_name').order('title').reorder('id')
-    assert_equal 4, topics.to_a.size
-    assert_equal topics(:first).title, topics.first.title
+    assert_deprecated do
+      topics = Topic.order('author_name').order('title').reorder('id')
+      assert_equal 4, topics.to_a.size
+      assert_equal topics(:first).title, topics.first.title
+    end
   end
 
   def test_finding_with_order_and_take
