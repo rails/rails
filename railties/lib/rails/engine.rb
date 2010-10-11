@@ -77,14 +77,14 @@ module Rails
   # you need to do is:
   #
   #   class MyEngine < Rails::Engine
-  #     paths.app.controllers = "lib/controllers"
+  #     paths["app/controllers"] = "lib/controllers"
   #   end
   #
   # You can also have your controllers being loaded from both "app/controllers" and
   # "lib/controllers":
   #
   #   class MyEngine < Rails::Engine
-  #     paths.app.controllers << "lib/controllers"
+  #     paths["app/controllers"] << "lib/controllers"
   #   end
   #
   # The available paths in an Engine are:
@@ -185,19 +185,21 @@ module Rails
   # == Serving static files
   #
   # By default, rails use ActionDispatch::Static to serve static files in development mode. This is ok
-  # while you develop your application, but when you want to deploy it, assets from engine will not be served.
+  # while you develop your application, but when you want to deploy it, assets from engine will not be
+  # served by default. You should choose one of the two following strategies:
   #
-  # You can fix it in one of two ways:
   # * enable serving static files by setting config.serve_static_assets to true
   # * symlink engines' public directories in application's public directory by running
-  #   `rake railties:create_symlinks`
+  #   `rake ENGINE_NAME:install:assets`, where ENGINE_NAME is usually my_engine for the
+  #   examples above
   #
   # == Engine name
   #
   # There are some places where engine's name is used.
+  #
   # * routes: when you mount engine with mount(MyEngine::Engine => '/my_engine'), it's used as default :as option
-  # * migrations: when you copy engine's migrations, they will be decorated with suffix based on engine_name, for example:
-  #   2010010203121314_create_users.my_engine.rb
+  #
+  # * rake tasks: engines have a few rake tasks. They are usually under my_engine namespace.
   #
   # Engine name is set by default based on class name. For MyEngine::Engine it will be my_engine_engine.
   # You can change it manually it manually using engine_name method:
@@ -210,11 +212,13 @@ module Rails
   #
   # == Namespaced Engine
   #
-  # Normally, when you create controllers, helpers and models inside engine, they are treated
-  # as they would be created inside application. One of the cosequences of that is including
-  # application's helpers and url_helpers inside controller. Sometimes, especially when your
-  # engine provides its own routes, you don't want that. To isolate engine's stuff from application
-  # you can use isolate_namespace method:
+  # Normally when you create controllers, helpers and models inside engine, they are treated
+  # as they were created inside the application. This means all applications helpers and named routes
+  # will be available to your engine controllers.
+  #
+  # However, sometimes you want to isolate your engine from the application, specially if your engine
+  # have its own router. To do that, you simply need to call +isolate_namespace+. This method requires
+  # you to pass a module where all your controllers, helpers and models should be nested to:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -235,15 +239,21 @@ module Rails
   # url_helpers from MyEngine::Engine.routes.
   #
   # The next thing that changes in isolated engine is routes behaviour. Normally, when you namespace
-  # your controllers, you need to use scope or namespace method in routes. With isolated engine,
-  # the namespace is applied by default, so you can ignore it in routes. Further more, you don't need
-  # to use longer url helpers like "my_engine_articles_path". As the prefix is not set you can just use
-  # articles_path as you would normally do.
+  # your controllers, you also need to do namespace all your routes. With isolated engine,
+  # the namespace is applied by default, so you can ignore it in routes:
+  #
+  #   MyEngine::Engine.routes.draw do
+  #     resources :articles
+  #   end
+  # 
+  # The routes above will automatically point to MyEngine::ApplicationContoller. Further more, you don't
+  # need to use longer url helpers like "my_engine_articles_path". Instead, you shuold simply use
+  # articles_path as you would do with your application.
   #
   # To make that behaviour consistent with other parts of framework, isolated engine has influence also on
   # ActiveModel::Naming. When you use namespaced model, like MyEngine::Article, it will normally
-  # use the prefix "my_engine". In isolated engine, the prefix will be ommited in most of the places,
-  # like url helpers or form fields.
+  # use the prefix "my_engine". In isolated engine, the prefix will be ommited in url helpers and
+  # form fields for convenience.
   #
   #   polymorphic_url(MyEngine::Article.new) #=> "articles_path"
   #
@@ -251,16 +261,15 @@ module Rails
   #     text_field :title #=> <input type="text" name="article[title]" id="article_title" />
   #   end
   #
-  #
-  # Additionaly isolated engine will set its name according to namespace, so in that case:
-  # MyEngine::Engine.engine_name #=> "my_engine" and it will set MyEngine.table_name_prefix
-  # to "my_engine_".
+  # Additionaly isolated engine will set its name according to namespace, so
+  # MyEngine::Engine.engine_name #=> "my_engine". It will also set MyEngine.table_name_prefix
+  # to "my_engine_", changing MyEngine::Article model to use my_engine_article table.
   #
   # == Using Engine's routes outside Engine
   #
-  # Since you can mount engine inside application's routes now, you do not have direct access to engine's
-  # url_helpers inside application. When you mount Engine in application's routes special helper is
-  # created to allow doing that. Consider such scenario:
+  # Since now you can mount engine inside application's routes, you do not have direct access to engine's
+  # url_helpers inside application. When you mount Engine in application's routes, a special helper is
+  # created to allow you to do that. Consider such scenario:
   #
   #   # APP/config/routes.rb
   #   MyApplication::Application.routes.draw do
@@ -268,7 +277,7 @@ module Rails
   #     match "/foo" => "foo#index"
   #   end
   #
-  # Now, you can use my_engine helper:
+  # Now, you can use my_engine helper inside your application:
   #
   #   class FooController < ApplicationController
   #     def index
@@ -280,20 +289,23 @@ module Rails
   #
   #   module MyEngine
   #     class BarController
-  #       main_app.foo_path #=> /foo
+  #       def index
+  #         main_app.foo_path #=> /foo
+  #       end
   #     end
   #   end
   #
-  # Note that :as option takes engine_name as default, so most of the time you can ommit it.
+  # Note that the :as option given to mount takes the engine_name as default, so most of the time
+  # you can simply ommit it.
   #
-  # If you want to generate url to engine's route using polymorphic_url, you can also use that helpers.
-  #
-  # Let's say that you want to create a form pointing to one of the engine's routes. All you need to do
-  # is passing helper as the first element in array with attributes for url:
+  # Finally, if you want to generate url to engine's route using polymorphic_url, you also need
+  # to pass the engine helper. Let's say that you want to create a form pointing to one of the
+  # engine's routes. All you need to do is pass the helper as the first element in array with
+  # attributes for url:
   #
   # form_for([my_engine, @user])
   #
-  # This code will use my_engine.user_path(@user) to generate proper route.
+  # This code will use my_engine.user_path(@user) to generate the proper route.
   #
   # == Migrations & seed data
   #
@@ -303,7 +315,7 @@ module Rails
   # To use engine's migrations in application you can use rake task, which copies them to
   # application's dir:
   #
-  #   rake railties:copy_migrations
+  #   rake ENGINE_NAME:install:migrations
   #
   # If your engine has migrations, you may also want to prepare data for the database in
   # seeds.rb file. You can load that data using load_seed method, e.g.
@@ -527,6 +539,8 @@ module Rails
 
       namespace railtie_name do
         namespace :install do
+          # TODO Add assets copying to this list
+          # TODO Skip this if there is no paths["db/migrate"] for the engine
           desc "Copy migrations from #{railtie_name} to application"
           task :migrations do
             ENV["FROM"] = railtie_name
