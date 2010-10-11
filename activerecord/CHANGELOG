@@ -1,5 +1,15 @@
 *Rails 3.0.1 (unreleased)*
 
+* except is now AR public API
+
+    Model.order('name').except(:order).order('salary')
+
+  generates:
+
+    SELECT * FROM models ORDER BY salary
+
+  [Santiago Pastorino]
+
 * The following code:
 
     Model.limit(10).scoping { Model.count }
