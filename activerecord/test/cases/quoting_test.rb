@@ -206,6 +206,10 @@ module ActiveRecord
         string = ActiveSupport::Multibyte::Chars.new('lo\l')
         assert_equal "'foo'", @quoter.quote(string, col)
       end
+
+      def test_string_with_crazy_column
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:foo))
+      end
     end
   end
 end
