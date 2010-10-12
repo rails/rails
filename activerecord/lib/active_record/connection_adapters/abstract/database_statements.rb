@@ -39,6 +39,12 @@ module ActiveRecord
       end
       undef_method :execute
 
+      # Executes +sql+ statement in the context of this connection using
+      # +bind_values+ as the bind substitutes.  +name+ is logged along with
+      # the executed +sql+ statement.
+      def exec(sql, name = nil, binds = [])
+      end
+
       # Returns the last auto-generated ID from the affected table.
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         insert_sql(sql, name, pk, id_value, sequence_name)
