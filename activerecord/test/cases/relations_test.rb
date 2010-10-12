@@ -19,6 +19,15 @@ class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :taggings, :cars
 
+  def test_bind_values
+    relation = Post.scoped
+    assert_equal [], relation.bind_values
+
+    relation2 = relation.bind 'foo'
+    assert_equal %w{ foo }, relation2.bind_values
+    assert_equal [], relation.bind_values
+  end
+
   def test_two_named_scopes_with_includes_should_not_drop_any_include
     car = Car.incl_engines.incl_tyres.first
     assert_no_queries { car.tyres.length }
