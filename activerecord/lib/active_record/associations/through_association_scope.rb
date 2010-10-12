@@ -53,7 +53,7 @@ module ActiveRecord
       end
       
       def construct_joins(custom_joins = nil)
-        # puts @reflection.through_reflection_chain.map(&:inspect)
+        # p @reflection.through_reflection_chain
         
         "#{construct_through_joins} #{@reflection.options[:joins]} #{custom_joins}"
       end
@@ -67,16 +67,27 @@ module ActiveRecord
           
           case
             when left.source_reflection.nil?
-              left_primary_key  = left.primary_key_name
-              right_primary_key = right.klass.primary_key
+              # TODO: Perhaps need to pay attention to left.options[:primary_key] and
+              # left.options[:foreign_key] in places here
               
-              if left.options[:as]
-                polymorphic_join = "AND %s.%s = %s" % [
-                  table_aliases[left], "#{left.options[:as]}_type",
-                  # TODO: Why right.klass.name? Rather than left.active_record.name?
-                  # TODO: Also should maybe use the base_class (see related code in JoinAssociation)
-                  @owner.class.quote_value(right.klass.name)
-                ]
+              case left.macro
+                when :belongs_to
+                  left_primary_key  = left.klass.primary_key
+                  right_primary_key = right.primary_key_name
+                when :has_many, :has_one
+                  left_primary_key  = left.primary_key_name
+                  right_primary_key = right.klass.primary_key
+                  
+                  if left.options[:as]
+                    polymorphic_join = "AND %s.%s = %s" % [
+                      table_aliases[left], "#{left.options[:as]}_type",
+                      # TODO: Why right.klass.name? Rather than left.active_record.name?
+                      # TODO: Also should maybe use the base_class (see related code in JoinAssociation)
+                      @owner.class.quote_value(right.klass.name)
+                    ]
+                  end
+                when :has_and_belongs_to_many
+                  raise NotImplementedError
               end
             when left.source_reflection.macro == :belongs_to
               left_primary_key  = left.klass.primary_key

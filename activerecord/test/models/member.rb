@@ -9,4 +9,7 @@ class Member < ActiveRecord::Base
   has_one :member_detail
   has_one :organization, :through => :member_detail
   belongs_to :member_type
+  
+  has_many :nested_member_types, :through => :member_detail, :source => :member_type
+  has_one :nested_member_type, :through => :member_detail, :source => :member_type
 end

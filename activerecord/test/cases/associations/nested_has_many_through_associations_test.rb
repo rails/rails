@@ -18,6 +18,9 @@ require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
 require 'models/rating'
+require 'models/member'
+require 'models/member_detail'
+require 'models/member_type'
 
 # NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
 # are just one level deep. But it's all the same thing really, as the "nested" code is being 
@@ -26,7 +29,8 @@ require 'models/rating'
 
 class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
-           :people, :readers, :references, :jobs, :ratings, :comments
+           :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
+           :member_types
 
   # Through associations can either use the has_many or has_one macros.
   # 
@@ -56,6 +60,9 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     authors = Author.joins(:tags).where('tags.id' => tags(:general).id)
     assert_equal [authors(:david)], authors.uniq
     
+    authors = Author.includes(:tags)
+    assert_equal [tags(:general), tags(:general)], authors.first.tags
+    
     # This ensures that the polymorphism of taggings is being observed correctly
     authors = Author.joins(:tags).where('taggings.taggable_type' => 'FakeModel')
     assert authors.empty?
@@ -71,11 +78,24 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     # All authors with subscribers where one of the subscribers' nick is 'alterself'
     authors = Author.joins(:subscribers).where('subscribers.nick' => 'alterself')
     assert_equal [authors(:david)], authors
+    
+    # TODO: Make this work
+    # authors = Author.includes(:subscribers)
+    # assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], authors.first.subscribers
   end
   
-  # TODO: has_many through
+  # has_many through
   # Source: has_one through
   # Through: has_one
+  def test_has_many_through_has_one_with_has_one_through_source_reflection
+    assert_equal [member_types(:founding)], members(:groucho).nested_member_types
+    
+    members = Member.joins(:nested_member_types).where('member_types.id' => member_types(:founding).id)
+    assert_equal [members(:groucho)], members
+    
+    members = Member.includes(:nested_member_types)
+    assert_equal [member_types(:founding)], members.first.nested_member_types
+  end
   
   # TODO: has_many through
   # Source: has_one
@@ -105,9 +125,18 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   # Source: has_many through
   # Through: belongs_to
   
-  # TODO: has_one through
+  # has_one through
   # Source: has_one through
   # Through: has_one
+  def test_has_one_through_has_one_with_has_one_through_source_reflection
+    assert_equal member_types(:founding), members(:groucho).nested_member_type
+    
+    members = Member.joins(:nested_member_type).where('member_types.id' => member_types(:founding).id)
+    assert_equal [members(:groucho)], members
+    
+    members = Member.includes(:nested_member_type)
+    assert_equal member_types(:founding), members.first.nested_member_type
+  end
   
   # TODO: has_one through
   # Source: belongs_to
