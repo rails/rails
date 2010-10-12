@@ -65,52 +65,56 @@ module ActiveRecord
         @reflection.through_reflection_chain.each_cons(2) do |left, right|
           polymorphic_join  = nil
           
-          case
-            when left.source_reflection.nil?
-              # TODO: Perhaps need to pay attention to left.options[:primary_key] and
-              # left.options[:foreign_key] in places here
-              
-              case left.macro
-                when :belongs_to
-                  left_primary_key  = left.klass.primary_key
-                  right_primary_key = left.primary_key_name
-                when :has_many, :has_one
-                  left_primary_key  = left.primary_key_name
-                  right_primary_key = right.klass.primary_key
-                  
-                  if left.options[:as]
-                    polymorphic_join = "AND %s.%s = %s" % [
-                      table_aliases[left], "#{left.options[:as]}_type",
-                      # TODO: Why right.klass.name? Rather than left.active_record.name?
-                      # TODO: Also should maybe use the base_class (see related code in JoinAssociation)
-                      @owner.class.quote_value(right.klass.name)
-                    ]
-                  end
-                when :has_and_belongs_to_many
-                  raise NotImplementedError
-              end
-            when left.source_reflection.macro == :belongs_to
-              left_primary_key  = left.klass.primary_key
-              right_primary_key = left.source_reflection.primary_key_name
-              
-              if left.options[:source_type]
-                polymorphic_join = "AND %s.%s = %s" % [
-                  table_aliases[right],
-                  left.source_reflection.options[:foreign_type].to_s,
-                  @owner.class.quote_value(left.options[:source_type])
-                ]
-              end
-            else
-              left_primary_key  = left.source_reflection.primary_key_name
-              right_primary_key = right.klass.primary_key
-              
-              if left.source_reflection.options[:as]
-                polymorphic_join = "AND %s.%s = %s" % [
-                  table_aliases[left],
-                  "#{left.source_reflection.options[:as]}_type",
-                  @owner.class.quote_value(right.klass.name)
-                ]
-              end
+          if left.source_reflection.nil?
+            # TODO: Perhaps need to pay attention to left.options[:primary_key] and
+            # left.options[:foreign_key] in places here
+            
+            case left.macro
+              when :belongs_to
+                left_primary_key  = left.klass.primary_key
+                right_primary_key = left.primary_key_name
+              when :has_many, :has_one
+                left_primary_key  = left.primary_key_name
+                right_primary_key = right.klass.primary_key
+                
+                if left.options[:as]
+                  polymorphic_join = "AND %s.%s = %s" % [
+                    table_aliases[left], "#{left.options[:as]}_type",
+                    # TODO: Why right.klass.name? Rather than left.active_record.name?
+                    # TODO: Also should maybe use the base_class (see related code in JoinAssociation)
+                    @owner.class.quote_value(right.klass.name)
+                  ]
+                end
+              when :has_and_belongs_to_many
+                raise NotImplementedError
+            end
+          else
+            case left.source_reflection.macro
+              when :belongs_to
+                left_primary_key  = left.klass.primary_key
+                right_primary_key = left.source_reflection.primary_key_name
+                
+                if left.options[:source_type]
+                  polymorphic_join = "AND %s.%s = %s" % [
+                    table_aliases[right],
+                    left.source_reflection.options[:foreign_type].to_s,
+                    @owner.class.quote_value(left.options[:source_type])
+                  ]
+                end
+              when :has_many, :has_one
+                left_primary_key  = left.source_reflection.primary_key_name
+                right_primary_key = right.klass.primary_key
+                
+                if left.source_reflection.options[:as]
+                  polymorphic_join = "AND %s.%s = %s" % [
+                    table_aliases[left],
+                    "#{left.source_reflection.options[:as]}_type",
+                    @owner.class.quote_value(right.klass.name)
+                  ]
+                end
+              when :has_and_belongs_to_many
+                raise NotImplementedError
+            end
           end
           
           if right.quoted_table_name == table_aliases[right]
