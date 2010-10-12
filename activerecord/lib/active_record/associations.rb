@@ -114,6 +114,7 @@ module ActiveRecord
     autoload :NestedHasManyThroughAssociation, 'active_record/associations/nested_has_many_through_association'
     autoload :HasOneAssociation, 'active_record/associations/has_one_association'
     autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
+    autoload :AliasTracker, 'active_record/associations/alias_tracker'
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
@@ -1834,7 +1835,7 @@ module ActiveRecord
         end
 
         class JoinDependency # :nodoc:
-          attr_reader :join_parts, :reflections, :table_aliases
+          attr_reader :join_parts, :reflections, :alias_tracker
 
           def initialize(base, associations, joins)
             @join_parts            = [JoinBase.new(base, joins)]
@@ -1842,8 +1843,8 @@ module ActiveRecord
             @reflections           = []
             @base_records_hash     = {}
             @base_records_in_order = []
-            @table_aliases         = Hash.new(0)
-            @table_aliases[base.table_name] = 1
+            @alias_tracker         = AliasTracker.new(joins)
+            @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
             build(associations)
           end
 
@@ -1861,17 +1862,6 @@ module ActiveRecord
 
           def join_base
             join_parts.first
-          end
-
-          def count_aliases_from_table_joins(name)
-            # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-            quoted_name = join_base.active_record.connection.quote_table_name(name.downcase).downcase
-            join_sql = join_base.table_joins.to_s.downcase
-            join_sql.blank? ? 0 :
-              # Table names
-              join_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
-              # Table aliases
-              join_sql.scan(/join(?:\s+\w+)?\s+\S+\s+#{quoted_name}\son/).size
           end
 
           def instantiate(rows)
@@ -2130,6 +2120,7 @@ module ActiveRecord
             
             delegate :options, :through_reflection, :source_reflection, :through_reflection_chain, :to => :reflection
             delegate :table, :table_name, :to => :parent, :prefix => true
+            delegate :alias_tracker, :to => :join_dependency
 
             def initialize(reflection, join_dependency, parent = nil)
               reflection.check_validity!
@@ -2248,24 +2239,10 @@ module ActiveRecord
             
             protected
 
-              def aliased_table_name_for(name, aliased_name, suffix = nil)
-                if @join_dependency.table_aliases[name].zero?
-                  @join_dependency.table_aliases[name] = @join_dependency.count_aliases_from_table_joins(name)
-                end
-
-                if !@join_dependency.table_aliases[name].zero? # We need an alias
-                  name = active_record.connection.table_alias_for "#{aliased_name}_#{parent_table_name}#{suffix}"
-                  @join_dependency.table_aliases[name] += 1
-                  if @join_dependency.table_aliases[name] == 1 # First time we've seen this name
-                    # Also need to count the aliases from the table_aliases to avoid incorrect count
-                    @join_dependency.table_aliases[name] += @join_dependency.count_aliases_from_table_joins(name)
-                  end
-                  table_index = @join_dependency.table_aliases[name]
-                  name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
-                else
-                  @join_dependency.table_aliases[name] += 1
-                end
-
+              def table_alias_for(reflection)
+                name = pluralize(reflection.name)
+                name << "_#{parent_table_name}"
+                name << "_join" if reflection != self.reflection
                 name
               end
 
@@ -2273,12 +2250,12 @@ module ActiveRecord
                 ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
               end
 
-              def table_alias_for(table_name, table_alias)
+              def table_name_and_alias_for(table_name, table_alias)
                  "#{table_name} #{table_alias if table_name != table_alias}".strip
               end
 
               def table_name_and_alias
-                table_alias_for table_name, aliased_table_name
+                table_name_and_alias_for(table_name, aliased_table_name)
               end
 
               def interpolate_sql(sql)
@@ -2292,12 +2269,9 @@ module ActiveRecord
             # the proper alias.
             def setup_tables
               @tables = through_reflection_chain.map do |reflection|
-                suffix = reflection == self.reflection ? nil : '_join'
-                
-                aliased_table_name = aliased_table_name_for(
+                aliased_table_name = alias_tracker.aliased_name_for(
                   reflection.table_name,
-                  pluralize(reflection.name),
-                  suffix
+                  table_alias_for(reflection)
                 )
                 
                 table = Arel::Table.new(
@@ -2308,9 +2282,9 @@ module ActiveRecord
                 # For habtm, we have two Arel::Table instances related to a single reflection, so
                 # we just store them as a pair in the array.
                 if reflection.macro == :has_and_belongs_to_many
-                  aliased_join_table_name = aliased_table_name_for(
+                  aliased_join_table_name = alias_tracker.aliased_name_for(
                     reflection.options[:join_table],
-                    pluralize(reflection.name), "_join"
+                    table_alias_for(reflection)
                   )
                   
                   join_table = Arel::Table.new(
