@@ -90,6 +90,26 @@ module ActiveRecord
       ensure
         ActiveRecord::Base.default_timezone = before
       end
+
+      def test_quote_with_quoted_id
+        assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1), nil)
+        assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1), 'foo')
+      end
+
+      def test_quote_nil
+        assert_equal 'NULL', @quoter.quote(nil, nil)
+        assert_equal 'NULL', @quoter.quote(nil, 'foo')
+      end
+
+      def test_quote_true
+        assert_equal @quoter.quoted_true, @quoter.quote(true, nil)
+        assert_equal '1', @quoter.quote(true, Struct.new(:type).new(:integer))
+      end
+
+      def test_quote_false
+        assert_equal @quoter.quoted_false, @quoter.quote(false, nil)
+        assert_equal '0', @quoter.quote(false, Struct.new(:type).new(:integer))
+      end
     end
   end
 end
