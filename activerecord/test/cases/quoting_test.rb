@@ -110,6 +110,24 @@ module ActiveRecord
         assert_equal @quoter.quoted_false, @quoter.quote(false, nil)
         assert_equal '0', @quoter.quote(false, Struct.new(:type).new(:integer))
       end
+
+      def test_quote_float
+        float = 1.2
+        assert_equal float.to_s, @quoter.quote(float, nil)
+        assert_equal float.to_s, @quoter.quote(float, Object.new)
+      end
+
+      def test_quote_fixnum
+        fixnum = 1
+        assert_equal fixnum.to_s, @quoter.quote(fixnum, nil)
+        assert_equal fixnum.to_s, @quoter.quote(fixnum, Object.new)
+      end
+
+      def test_quote_bignum
+        bignum = 1 << 100
+        assert_equal bignum.to_s, @quoter.quote(bignum, nil)
+        assert_equal bignum.to_s, @quoter.quote(bignum, Object.new)
+      end
     end
   end
 end
