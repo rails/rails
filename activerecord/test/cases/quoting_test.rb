@@ -164,6 +164,11 @@ module ActiveRecord
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l', nil)
       end
 
+      def test_quote_as_mb_chars_no_column
+        string = ActiveSupport::Multibyte::Chars.new('lo\l')
+        assert_equal "'lo\\\\l'", @quoter.quote(string, nil)
+      end
+
       def test_quote_string_int_column
         assert_equal "1", @quoter.quote('1', FakeColumn.new(:integer))
         assert_equal "1", @quoter.quote('1.2', FakeColumn.new(:integer))
@@ -172,6 +177,11 @@ module ActiveRecord
       def test_quote_string_float_column
         assert_equal "1.0", @quoter.quote('1', FakeColumn.new(:float))
         assert_equal "1.2", @quoter.quote('1.2', FakeColumn.new(:float))
+      end
+
+      def test_quote_as_mb_chars_binary_column
+        string = ActiveSupport::Multibyte::Chars.new('lo\l')
+        assert_equal "'lo\\\\l'", @quoter.quote(string, FakeColumn.new(:binary))
       end
 
       def test_quote_binary_without_string_to_binary
@@ -185,6 +195,16 @@ module ActiveRecord
           end
         }.new(:binary)
         assert_equal "'foo'", @quoter.quote('lo\l', col)
+      end
+
+      def test_quote_as_mb_chars_binary_column_with_string_to_binary
+        col = Class.new(FakeColumn) {
+          def self.string_to_binary(value)
+            'foo'
+          end
+        }.new(:binary)
+        string = ActiveSupport::Multibyte::Chars.new('lo\l')
+        assert_equal "'foo'", @quoter.quote(string, col)
       end
     end
   end
