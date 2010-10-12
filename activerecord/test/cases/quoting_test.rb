@@ -168,6 +168,11 @@ module ActiveRecord
         assert_equal "1", @quoter.quote('1', FakeColumn.new(:integer))
         assert_equal "1", @quoter.quote('1.2', FakeColumn.new(:integer))
       end
+
+      def test_quote_string_float_column
+        assert_equal "1.0", @quoter.quote('1', FakeColumn.new(:float))
+        assert_equal "1.2", @quoter.quote('1.2', FakeColumn.new(:float))
+      end
     end
   end
 end
