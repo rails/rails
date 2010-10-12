@@ -291,8 +291,8 @@ module ActiveRecord
       record = where(primary_key.eq(id)).first
 
       unless record
-        conditions = arel.wheres.map { |x| x.value }.join(', ')
-        conditions = " [WHERE #{conditions}]" if conditions.present?
+        conditions = arel.where_sql
+        conditions = " [#{conditions}]" if conditions
         raise RecordNotFound, "Couldn't find #{@klass.name} with ID=#{id}#{conditions}"
       end
 
