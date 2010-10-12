@@ -3,6 +3,7 @@ require 'arel/visitors/postgresql'
 require 'arel/visitors/mysql'
 require 'arel/visitors/oracle'
 require 'arel/visitors/join_sql'
+require 'arel/visitors/where_sql'
 require 'arel/visitors/order_clauses'
 require 'arel/visitors/dot'
 

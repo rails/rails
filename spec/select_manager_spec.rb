@@ -379,6 +379,23 @@ module Arel
       end
     end
 
+    describe 'where_sql' do
+      it 'gives me back the where sql' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.where table[:id].eq 10
+        manager.where_sql.should be_like %{ WHERE "users"."id" = 10 }
+      end
+
+      it 'returns nil when there are no wheres' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.where_sql.should be_nil
+      end
+    end
+
     describe 'update' do
       it 'copies limits' do
         engine  = EngineProxy.new Table.engine

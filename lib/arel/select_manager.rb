@@ -122,6 +122,13 @@ module Arel
       Compatibility::Wheres.new @engine, @ctx.wheres
     end
 
+    def where_sql
+      return if @ctx.wheres.empty?
+
+      viz = Visitors::WhereSql.new @engine
+      Nodes::SqlLiteral.new viz.accept @ctx
+    end
+
     def take limit
       @head.limit = limit
       self
