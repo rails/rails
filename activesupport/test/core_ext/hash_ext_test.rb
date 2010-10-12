@@ -6,6 +6,9 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 
 class HashExtTest < Test::Unit::TestCase
+  class IndifferentHash < HashWithIndifferentAccess
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
@@ -267,13 +270,23 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 1, h['first']
   end
 
-
   def test_indifferent_subhashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
 
     h = {:user => {:id => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+  end
+
+  def test_indifferent_duplication
+    # Should preserve default value
+    h = HashWithIndifferentAccess.new
+    h.default = '1234'
+    assert_equal h.default, h.dup.default
+
+    # Should preserve class for subclasses
+    h = IndifferentHash.new
+    assert_equal h.class, h.dup.class
   end
 
   def test_assert_valid_keys

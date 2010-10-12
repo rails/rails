@@ -28,7 +28,7 @@ module ActiveSupport
     end
 
     def self.new_from_hash_copying_default(hash)
-      ActiveSupport::HashWithIndifferentAccess.new(hash).tap do |new_hash|
+      new(hash).tap do |new_hash|
         new_hash.default = hash.default
       end
     end
@@ -97,7 +97,9 @@ module ActiveSupport
 
     # Returns an exact copy of the hash.
     def dup
-      HashWithIndifferentAccess.new(self)
+      self.class.new(self).tap do |new_hash|
+        new_hash.default = default
+      end
     end
 
     # Merges the instantized and the specified hashes together, giving precedence to the values from the second hash
