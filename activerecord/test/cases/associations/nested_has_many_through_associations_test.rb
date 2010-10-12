@@ -21,6 +21,8 @@ require 'models/rating'
 require 'models/member'
 require 'models/member_detail'
 require 'models/member_type'
+require 'models/sponsor'
+require 'models/club'
 
 # NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
 # are just one level deep. But it's all the same thing really, as the "nested" code is being 
@@ -30,7 +32,7 @@ require 'models/member_type'
 class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
-           :member_types
+           :member_types, :sponsors, :clubs
 
   # Through associations can either use the has_many or has_one macros.
   # 
@@ -97,9 +99,19 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [member_types(:founding)], members.first.nested_member_types
   end
   
-  # TODO: has_many through
+  # has_many through
   # Source: has_one
   # Through: has_one through
+  def test_has_many_through_has_one_through
+    assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], members(:groucho).nested_sponsors
+    
+    members = Member.joins(:nested_sponsors).where('sponsors.id' => sponsors(:moustache_club_sponsor_for_groucho).id)
+    assert_equal [members(:groucho)], members
+    
+    # TODO: Make this work
+    # members = Member.includes(:nested_sponsors)
+    # assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], members.first.nested_sponsors
+  end
   
   # TODO: has_many through
   # Source: has_many through

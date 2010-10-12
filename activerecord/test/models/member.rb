@@ -12,4 +12,7 @@ class Member < ActiveRecord::Base
   
   has_many :nested_member_types, :through => :member_detail, :source => :member_type
   has_one :nested_member_type, :through => :member_detail, :source => :member_type
+  
+  has_many :nested_sponsors, :through => :sponsor_club, :source => :sponsor
+  has_one :nested_sponsor, :through => :sponsor_club, :source => :sponsor
 end
