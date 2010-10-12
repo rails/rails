@@ -173,9 +173,7 @@ module ActiveRecord
       alias :create :insert_sql
 
       def select_rows(sql, name = nil)
-        execute(sql, name).map do |row|
-          (0...(row.size / 2)).map { |i| row[i] }
-        end
+        exec(sql, name).rows
       end
 
       def begin_db_transaction #:nodoc:
@@ -199,7 +197,7 @@ module ActiveRecord
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
 
-        execute(sql, name).map do |row|
+        exec(sql, name).map do |row|
           row['name']
         end
       end
