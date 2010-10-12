@@ -173,6 +173,19 @@ module ActiveRecord
         assert_equal "1.0", @quoter.quote('1', FakeColumn.new(:float))
         assert_equal "1.2", @quoter.quote('1.2', FakeColumn.new(:float))
       end
+
+      def test_quote_binary_without_string_to_binary
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:binary))
+      end
+
+      def test_quote_binary_with_string_to_binary
+        col = Class.new(FakeColumn) {
+          def self.string_to_binary(value)
+            'foo'
+          end
+        }.new(:binary)
+        assert_equal "'foo'", @quoter.quote('lo\l', col)
+      end
     end
   end
 end
