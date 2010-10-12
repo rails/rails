@@ -393,6 +393,23 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 100000,  klass.first.salary
   end
 
+  def test_default_scope_called_twice_in_different_place_merges_where_clause
+    Developer.destroy_all
+    Developer.create!(:name => "David", :salary => 80000)
+    Developer.create!(:name => "David", :salary => 100000)
+    Developer.create!(:name => "Brian", :salary => 100000)
+
+    klass = Class.new(Developer)
+    klass.class_eval do
+      default_scope where("name = 'David'")
+      default_scope where("salary = 100000")
+    end
+
+    assert_equal 1,       klass.count
+    assert_equal "David", klass.first.name
+    assert_equal 100000,  klass.first.salary
+  end
+
   def test_method_scope
     expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }

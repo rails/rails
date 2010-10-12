@@ -1456,6 +1456,7 @@ class BasicsTest < ActiveRecord::TestCase
     UnloadablePost.class_eval do
       default_scope order('posts.comments_count ASC')
     end
+    UnloadablePost.scoped_methods # make Thread.current[:UnloadablePost_scoped_methods] not nil
 
     UnloadablePost.unloadable
     assert_not_nil Thread.current[:UnloadablePost_scoped_methods]
