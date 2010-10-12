@@ -269,7 +269,7 @@ module ActiveRecord
 
       def change_column_null(table_name, column_name, null, default = nil)
         unless null || default.nil?
-          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          exec("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
           definition[column_name].null = null
