@@ -3,6 +3,9 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class QuotingTest < ActiveRecord::TestCase
+      class FakeColumn < Struct.new(:type)
+      end
+
       def setup
         @quoter = Class.new { include Quoting }.new
       end
@@ -155,6 +158,15 @@ module ActiveRecord
         crazy = Class.new { def to_s; 'lo\l' end }.new
         assert_equal "'lo\\\\l'", @quoter.quote(crazy, nil)
         assert_equal "'lo\\\\l'", @quoter.quote(crazy, Object.new)
+      end
+
+      def test_quote_string_no_column
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', nil)
+      end
+
+      def test_quote_string_int_column
+        assert_equal "1", @quoter.quote('1', FakeColumn.new(:integer))
+        assert_equal "1", @quoter.quote('1.2', FakeColumn.new(:integer))
       end
     end
   end
