@@ -146,7 +146,9 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params bind_values.map { |col, val| val }
+            stmt.bind_params bind_values.map { |col, val|
+              col ? col.type_cast(val) : val
+            }
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)
