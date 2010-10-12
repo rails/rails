@@ -228,11 +228,11 @@ module ActiveRecord
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
-        execute "DROP INDEX #{quote_column_name(index_name)}"
+        exec "DROP INDEX #{quote_column_name(index_name)}"
       end
 
       def rename_table(name, new_name)
-        execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+        exec "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # See: http://www.sqlite.org/lang_altertable.html
