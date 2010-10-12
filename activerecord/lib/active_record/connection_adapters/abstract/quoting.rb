@@ -14,12 +14,12 @@ module ActiveRecord
           value = value.to_s
           return "'#{quote_string(value)}'" unless column
 
-          if column.type == :binary
-            "'#{quote_string(column.string_to_binary(value))}'" # ' (for ruby-mode)
-          elsif [:integer, :float].include?(column.type)
-            (column.type == :integer ? value.to_i : value.to_f).to_s
+          case column.type
+          when :binary then "'#{quote_string(column.string_to_binary(value))}'"
+          when :integer then value.to_i.to_s
+          when :float then value.to_f.to_s
           else
-            "'#{quote_string(value)}'" # ' (for ruby-mode)
+            "'#{quote_string(value)}'"
           end
 
         when true, false
