@@ -20,18 +20,15 @@ module ActiveRecord
           else
             "'#{quote_string(value)}'" # ' (for ruby-mode)
           end
-        when NilClass                 then "NULL"
-        when TrueClass                then (column && column.type == :integer ? '1' : quoted_true)
-        when FalseClass               then (column && column.type == :integer ? '0' : quoted_false)
-        when Float, Fixnum, Bignum    then value.to_s
-          # BigDecimals need to be output in a non-normalized form and quoted.
-        when BigDecimal               then value.to_s('F')
+        when NilClass              then "NULL"
+        when TrueClass             then (column && column.type == :integer ? '1' : quoted_true)
+        when FalseClass            then (column && column.type == :integer ? '0' : quoted_false)
+        when Float, Fixnum, Bignum then value.to_s
+          # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal            then value.to_s('F')
+        when Date, Time, DateTime  then "'#{quoted_date(value)}'"
         else
-          if value.acts_like?(:date) || value.acts_like?(:time)
-            "'#{quoted_date(value)}'"
-          else
-            "'#{quote_string(value.to_s)}'"
-          end
+          "'#{quote_string(value.to_s)}'"
         end
       end
 
