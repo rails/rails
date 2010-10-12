@@ -80,7 +80,13 @@ module ActiveRecord
 
       def disconnect!
         super
+        @statements.clear
         @connection.close rescue nil
+      end
+
+      def reset!
+        @statements.clear
+        super
       end
 
       def supports_count_distinct? #:nodoc:
