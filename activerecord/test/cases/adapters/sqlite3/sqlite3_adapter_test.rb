@@ -51,6 +51,15 @@ module ActiveRecord
                                        :timeout => 100
         assert_equal 'UTF-8', conn.encoding
       end
+
+      def test_bind_value_substitute
+        conn = Base.sqlite3_connection :database => ':memory:',
+                                       :adapter => 'sqlite3',
+                                       :timeout => 100
+
+        bind_param = conn.substitute_for('foo', [])
+        assert_equal Arel.sql('?'), bind_param
+      end
     end
   end
 end

@@ -97,6 +97,12 @@ module ActiveRecord
         quote_column_name(name)
       end
 
+      # Returns a bind substitution value given a +column+ and list of current
+      # +bind_values+
+      def substitute_for(column, bind_values)
+        Arel.sql '?'
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       # Override to turn off referential integrity while executing <tt>&block</tt>.
