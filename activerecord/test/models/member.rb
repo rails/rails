@@ -17,4 +17,5 @@ class Member < ActiveRecord::Base
   has_one :nested_sponsor, :through => :sponsor_club, :source => :sponsor
   
   has_many :organization_member_details, :through => :member_detail
+  has_many :organization_member_details_2, :through => :organization, :source => :member_details
 end

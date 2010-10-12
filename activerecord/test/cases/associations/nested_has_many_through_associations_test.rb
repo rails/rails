@@ -134,9 +134,26 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
                  members.first.organization_member_details
   end
   
-  # TODO: has_many through
+  # has_many through
   # Source: has_many
   # Through: has_one through
+  def test_has_many_through_has_one_through_with_has_many_source_reflection
+    assert_equal [member_details(:groucho), member_details(:some_other_guy)],
+                 members(:groucho).organization_member_details_2
+    
+    members = Member.joins(:organization_member_details_2).
+                     where('member_details.id' => member_details(:groucho).id)
+    assert_equal [members(:groucho), members(:some_other_guy)], members
+    
+    members = Member.joins(:organization_member_details_2).
+                     where('member_details.id' => 9)
+    assert members.empty?
+    
+    # TODO: Make this work
+    # members = Member.includes(:organization_member_details_2)
+    # assert_equal [member_details(:groucho), member_details(:some_other_guy)],
+    #              members.first.organization_member_details_2
+  end
   
   # TODO: has_many through
   # Source: has_and_belongs_to_many
