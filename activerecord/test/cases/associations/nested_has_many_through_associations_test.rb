@@ -28,6 +28,26 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments
 
+  # Through associations can either use the has_many or has_one macros.
+  # 
+  # has_many
+  #   - Source reflection can be has_many, has_one, belongs_to or has_and_belongs_to_many
+  #   - Through reflection can be has_many, has_one, belongs_to or has_and_belongs_to_many
+  # 
+  # has_one
+  #   - Source reflection can be has_one or belongs_to
+  #   - Through reflection can be has_one or belongs_to
+  # 
+  # Additionally, the source reflection and/or through reflection may be subject to
+  # polymorphism and/or STI.
+  # 
+  # When testing these, we need to make sure it works via loading the association directly, or
+  # joining the association, or including the association. We also need to ensure that associations
+  # are readonly where relevant.
+
+  # has_many through
+  # Source: has_many through
+  # Through: has_many
   def test_has_many_through_a_has_many_through_association_on_source_reflection
     author = authors(:david)
     assert_equal [tags(:general), tags(:general)], author.tags
@@ -41,6 +61,9 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert authors.empty?
   end
 
+  # has_many through
+  # Source: has_many
+  # Through: has_many through
   def test_has_many_through_a_has_many_through_association_on_through_reflection
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], author.subscribers
@@ -49,6 +72,46 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     authors = Author.joins(:subscribers).where('subscribers.nick' => 'alterself')
     assert_equal [authors(:david)], authors
   end
+  
+  # TODO: has_many through
+  # Source: has_one through
+  # Through: has_one
+  
+  # TODO: has_many through
+  # Source: has_one
+  # Through: has_one through
+  
+  # TODO: has_many through
+  # Source: has_many through
+  # Through: has_one
+  
+  # TODO: has_many through
+  # Source: has_many
+  # Through: has_one through
+  
+  # TODO: has_many through
+  # Source: has_and_belongs_to_many
+  # Through: has_many
+  
+  # TODO: has_many through
+  # Source: has_many
+  # Through: has_and_belongs_to_many
+  
+  # TODO: has_many through
+  # Source: belongs_to
+  # Through: has_many through
+  
+  # TODO: has_many through
+  # Source: has_many through
+  # Through: belongs_to
+  
+  # TODO: has_one through
+  # Source: has_one through
+  # Through: has_one
+  
+  # TODO: has_one through
+  # Source: belongs_to
+  # Through: has_one through
 
   def test_distinct_has_many_through_a_has_many_through_association_on_source_reflection
     author = authors(:david)
