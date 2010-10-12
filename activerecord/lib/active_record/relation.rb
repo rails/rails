@@ -61,7 +61,7 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
 
       preload = @preload_values
       preload +=  @includes_values unless eager_loading?

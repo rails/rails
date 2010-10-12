@@ -50,6 +50,7 @@ module ActiveRecord
 
       def initialize(connection, logger, config)
         super(connection, logger)
+        @statements = {}
         @config = config
       end
 
@@ -130,6 +131,27 @@ module ActiveRecord
 
 
       # DATABASE STATEMENTS ======================================
+
+      def exec(sql, name = nil, bind_values = [])
+        log(sql, name) do
+
+          # Don't cache statements without bind values
+          if bind_values.empty?
+            stmt = @connection.prepare(sql)
+            cols = stmt.columns
+          else
+            cache = @statements[sql] ||= {
+              :stmt => @connection.prepare(sql)
+            }
+            stmt = cache[:stmt]
+            cols = cache[:cols] ||= stmt.columns
+            stmt.reset!
+            stmt.bind_params bind_values.map { |col, val| val }
+          end
+
+          ActiveRecord::Result.new(cols, stmt.to_a)
+        end
+      end
 
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
@@ -280,8 +302,8 @@ module ActiveRecord
       end
 
       protected
-        def select(sql, name = nil) #:nodoc:
-          execute(sql, name).map do |row|
+        def select(sql, name = nil, bind_values = []) #:nodoc:
+          exec(sql, name, bind_values).map do |row|
             record = {}
             row.each do |key, value|
               record[key.sub(/^"?\w+"?\./, '')] = value if key.is_a?(String)

@@ -60,6 +60,41 @@ module ActiveRecord
         bind_param = conn.substitute_for('foo', [])
         assert_equal Arel.sql('?'), bind_param
       end
+
+      def test_exec_no_binds
+        conn = Base.sqlite3_connection :database => ':memory:',
+                                       :adapter => 'sqlite3',
+                                       :timeout => 100
+
+        conn.exec('create table ex(id int, data string)')
+        result = conn.exec('SELECT id, data FROM ex')
+        assert_equal 0, result.rows.length
+        assert_equal 2, result.columns.length
+        assert_equal %w{ id data }, result.columns
+
+        conn.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
+        result = conn.exec('SELECT id, data FROM ex')
+        assert_equal 1, result.rows.length
+        assert_equal 2, result.columns.length
+
+        assert_equal [[1, 'foo']], result.rows
+      end
+
+      def test_exec_with_binds
+        conn = Base.sqlite3_connection :database => ':memory:',
+                                       :adapter => 'sqlite3',
+                                       :timeout => 100
+
+        conn.exec('create table ex(id int, data string)')
+        conn.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
+        result = conn.exec(
+          'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+
+        assert_equal 1, result.rows.length
+        assert_equal 2, result.columns.length
+
+        assert_equal [[1, 'foo']], result.rows
+      end
     end
   end
 end

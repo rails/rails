@@ -3,8 +3,8 @@ module ActiveRecord
     module DatabaseStatements
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
-      def select_all(sql, name = nil)
-        select(sql, name)
+      def select_all(sql, name = nil, bind_values = [])
+        select(sql, name, bind_values)
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -260,7 +260,7 @@ module ActiveRecord
       protected
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
-        def select(sql, name = nil)
+        def select(sql, name = nil, bind_values = [])
         end
         undef_method :select
 

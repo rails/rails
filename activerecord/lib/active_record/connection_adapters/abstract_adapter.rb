@@ -12,6 +12,7 @@ require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
 require 'active_record/connection_adapters/abstract/database_limits'
+require 'active_record/result'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
