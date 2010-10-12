@@ -128,6 +128,12 @@ module ActiveRecord
         assert_equal bignum.to_s, @quoter.quote(bignum, nil)
         assert_equal bignum.to_s, @quoter.quote(bignum, Object.new)
       end
+
+      def test_quote_bigdecimal
+        bigdec = BigDecimal.new((1 << 100).to_s)
+        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, nil)
+        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, Object.new)
+      end
     end
   end
 end
