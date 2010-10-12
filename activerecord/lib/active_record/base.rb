@@ -1160,6 +1160,7 @@ MSG
         #   Article.new.published    # => true
         #   Article.create.published # => true
         def default_scope(options = {})
+          reset_scoped_methods
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
         end
 
