@@ -54,7 +54,7 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   # has_many through
   # Source: has_many through
   # Through: has_many
-  def test_has_many_through_a_has_many_through_association_on_source_reflection
+  def test_has_many_through_has_many_with_has_many_through_source_reflection
     author = authors(:david)
     assert_equal [tags(:general), tags(:general)], author.tags
     
@@ -73,7 +73,7 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   # has_many through
   # Source: has_many
   # Through: has_many through
-  def test_has_many_through_a_has_many_through_association_on_through_reflection
+  def test_has_many_through_has_many_through_with_has_many_source_reflection
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], author.subscribers
     
@@ -102,7 +102,7 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   # has_many through
   # Source: has_one
   # Through: has_one through
-  def test_has_many_through_has_one_through
+  def test_has_many_through_has_one_through_with_has_one_source_reflection
     assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], members(:groucho).nested_sponsors
     
     members = Member.joins(:nested_sponsors).where('sponsors.id' => sponsors(:moustache_club_sponsor_for_groucho).id)
