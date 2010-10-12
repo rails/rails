@@ -20,6 +20,7 @@ module ActiveRecord
       end
 
       # Build SQL conditions from attributes, qualified by table name.
+      # TODO: Conditions on joins
       def construct_conditions
         reflection = @reflection.through_reflection_chain.last
         conditions = construct_quoted_owner_attributes(reflection).map do |attr, value|
@@ -134,23 +135,43 @@ module ActiveRecord
         joins.join(" ")
       end
 
-      # TODO: Use the same aliasing strategy (and code?) as JoinAssociation (as this is the
-      # documented behaviour)
+      def alias_tracker
+        @alias_tracker ||= AliasTracker.new
+      end
+
       def table_aliases
         @table_aliases ||= begin
-          tally = {}
           @reflection.through_reflection_chain.inject({}) do |aliases, reflection|
-            if tally[reflection.table_name].nil?
-              tally[reflection.table_name] = 1
-              aliases[reflection] = reflection.quoted_table_name
+            table_alias = quote_table_name(alias_tracker.aliased_name_for(
+              reflection.table_name,
+              table_alias_for(reflection, reflection != @reflection)
+            ))
+            
+            if reflection.macro == :has_and_belongs_to_many
+              join_table_alias = quote_table_name(alias_tracker.aliased_name_for(
+                reflection.options[:join_table],
+                table_alias_for(reflection, true)
+              ))
+              
+              aliases[reflection] = [table_alias, join_table_alias]
             else
-              tally[reflection.table_name] += 1
-              aliased_table_name = reflection.table_name + "_#{tally[reflection.table_name]}"
-              aliases[reflection] = reflection.klass.connection.quote_table_name(aliased_table_name)
+              aliases[reflection] = table_alias
             end
+            
             aliases
           end
         end
+      end
+      
+      def table_alias_for(reflection, join = false)
+        name = alias_tracker.pluralize(reflection.name)
+        name << "_#{@reflection.name}"
+        name << "_join" if join
+        name
+      end
+      
+      def quote_table_name(table_name)
+        @reflection.klass.connection.quote_table_name(table_name)
       end
 
       # Construct attributes for associate pointing to owner.
