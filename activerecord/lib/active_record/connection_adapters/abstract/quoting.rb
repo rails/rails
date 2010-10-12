@@ -12,14 +12,17 @@ module ActiveRecord
         case value
         when String, ActiveSupport::Multibyte::Chars
           value = value.to_s
-          if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
+          return "'#{quote_string(value)}'" unless column
+
+          if column.type == :binary && column.class.respond_to?(:string_to_binary)
             "'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
-          elsif column && [:integer, :float].include?(column.type)
+          elsif [:integer, :float].include?(column.type)
             value = column.type == :integer ? value.to_i : value.to_f
             value.to_s
           else
             "'#{quote_string(value)}'" # ' (for ruby-mode)
           end
+
         when NilClass              then "NULL"
         when TrueClass             then (column && column.type == :integer ? '1' : quoted_true)
         when FalseClass            then (column && column.type == :integer ? '0' : quoted_false)
