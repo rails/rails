@@ -134,6 +134,16 @@ module ActiveRecord
         assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, nil)
         assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, Object.new)
       end
+
+      def test_dates_and_times
+        @quoter.extend(Module.new { def quoted_date(value) 'lol' end })
+        assert_equal "'lol'", @quoter.quote(Date.today, nil)
+        assert_equal "'lol'", @quoter.quote(Date.today, Object.new)
+        assert_equal "'lol'", @quoter.quote(Time.now, nil)
+        assert_equal "'lol'", @quoter.quote(Time.now, Object.new)
+        assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
+        assert_equal "'lol'", @quoter.quote(DateTime.now, Object.new)
+      end
     end
   end
 end
