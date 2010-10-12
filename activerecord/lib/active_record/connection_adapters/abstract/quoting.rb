@@ -22,13 +22,13 @@ module ActiveRecord
             "'#{quote_string(value)}'" # ' (for ruby-mode)
           end
 
-        when NilClass              then "NULL"
-        when TrueClass             then (column && column.type == :integer ? '1' : quoted_true)
-        when FalseClass            then (column && column.type == :integer ? '0' : quoted_false)
-        when Float, Fixnum, Bignum then value.to_s
+        when nil        then "NULL"
+        when true       then (column && column.type == :integer ? '1' : quoted_true)
+        when false      then (column && column.type == :integer ? '0' : quoted_false)
           # BigDecimals need to be put in a non-normalized form and quoted.
-        when BigDecimal            then value.to_s('F')
-        when Date, Time, DateTime  then "'#{quoted_date(value)}'"
+        when BigDecimal then value.to_s('F')
+        when Numeric    then value.to_s
+        when Date, Time then "'#{quoted_date(value)}'"
         else
           "'#{quote_string(value.to_s)}'"
         end
