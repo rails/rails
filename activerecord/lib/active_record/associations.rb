@@ -2239,23 +2239,11 @@ module ActiveRecord
             
             protected
 
-              def table_alias_for(reflection)
-                name = pluralize(reflection.name)
+              def table_alias_for(reflection, join = false)
+                name = alias_tracker.pluralize(reflection.name)
                 name << "_#{parent_table_name}"
-                name << "_join" if reflection != self.reflection
+                name << "_join" if join
                 name
-              end
-
-              def pluralize(table_name)
-                ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
-              end
-
-              def table_name_and_alias_for(table_name, table_alias)
-                 "#{table_name} #{table_alias if table_name != table_alias}".strip
-              end
-
-              def table_name_and_alias
-                table_name_and_alias_for(table_name, aliased_table_name)
               end
 
               def interpolate_sql(sql)
@@ -2271,7 +2259,7 @@ module ActiveRecord
               @tables = through_reflection_chain.map do |reflection|
                 aliased_table_name = alias_tracker.aliased_name_for(
                   reflection.table_name,
-                  table_alias_for(reflection)
+                  table_alias_for(reflection, reflection != self.reflection)
                 )
                 
                 table = Arel::Table.new(
@@ -2284,7 +2272,7 @@ module ActiveRecord
                 if reflection.macro == :has_and_belongs_to_many
                   aliased_join_table_name = alias_tracker.aliased_name_for(
                     reflection.options[:join_table],
-                    table_alias_for(reflection)
+                    table_alias_for(reflection, true)
                   )
                   
                   join_table = Arel::Table.new(

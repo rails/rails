@@ -2,11 +2,12 @@ require 'active_support/core_ext/string/conversions'
 
 module ActiveRecord
   module Associations
-    # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency
+    # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
+    # ActiveRecord::Associations::ThroughAssociationScope
     class AliasTracker # :nodoc:
       # other_sql is some other sql which might conflict with the aliases we assign here. Therefore
       # we store other_sql so that we can scan it before assigning a specific name.
-      def initialize(other_sql)
+      def initialize(other_sql = nil)
         @aliases   = Hash.new
         @other_sql = other_sql.to_s.downcase
       end
@@ -35,6 +36,10 @@ module ActiveRecord
             aliased_name
           end
         end
+      end
+
+      def pluralize(table_name)
+        ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
       end
       
       private
