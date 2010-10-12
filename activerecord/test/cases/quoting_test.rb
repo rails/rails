@@ -144,6 +144,18 @@ module ActiveRecord
         assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
         assert_equal "'lol'", @quoter.quote(DateTime.now, Object.new)
       end
+
+      def test_crazy_object
+        crazy = Class.new { def to_s; 'lol' end }.new
+        assert_equal "'lol'", @quoter.quote(crazy, nil)
+        assert_equal "'lol'", @quoter.quote(crazy, Object.new)
+      end
+
+      def test_crazy_object_calls_quote_string
+        crazy = Class.new { def to_s; 'lo\l' end }.new
+        assert_equal "'lo\\\\l'", @quoter.quote(crazy, nil)
+        assert_equal "'lo\\\\l'", @quoter.quote(crazy, Object.new)
+      end
     end
   end
 end
