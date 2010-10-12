@@ -209,12 +209,12 @@ module ActiveRecord
       end
 
       def indexes(table_name, name = nil) #:nodoc:
-        execute("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
+        exec("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'].to_i != 0,
-            execute("PRAGMA index_info('#{row['name']}')").map { |col|
+            exec("PRAGMA index_info('#{row['name']}')").map { |col|
               col['name']
             })
         end
