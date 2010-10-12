@@ -3,7 +3,12 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class QuotingTest < ActiveRecord::TestCase
-      class FakeColumn < Struct.new(:type)
+      class FakeColumn < ActiveRecord::ConnectionAdapters::Column
+        attr_accessor :type
+
+        def initialize type
+          @type = type
+        end
       end
 
       def setup
@@ -190,7 +195,7 @@ module ActiveRecord
 
       def test_quote_binary_with_string_to_binary
         col = Class.new(FakeColumn) {
-          def self.string_to_binary(value)
+          def string_to_binary(value)
             'foo'
           end
         }.new(:binary)
@@ -199,7 +204,7 @@ module ActiveRecord
 
       def test_quote_as_mb_chars_binary_column_with_string_to_binary
         col = Class.new(FakeColumn) {
-          def self.string_to_binary(value)
+          def string_to_binary(value)
             'foo'
           end
         }.new(:binary)

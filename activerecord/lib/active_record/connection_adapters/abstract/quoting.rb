@@ -14,8 +14,8 @@ module ActiveRecord
           value = value.to_s
           return "'#{quote_string(value)}'" unless column
 
-          if column.type == :binary && column.class.respond_to?(:string_to_binary)
-            "'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
+          if column.type == :binary
+            "'#{quote_string(column.string_to_binary(value))}'" # ' (for ruby-mode)
           elsif [:integer, :float].include?(column.type)
             (column.type == :integer ? value.to_i : value.to_f).to_s
           else
