@@ -73,7 +73,7 @@ module ActiveRecord
               case left.macro
                 when :belongs_to
                   left_primary_key  = left.klass.primary_key
-                  right_primary_key = right.primary_key_name
+                  right_primary_key = left.primary_key_name
                 when :has_many, :has_one
                   left_primary_key  = left.primary_key_name
                   right_primary_key = right.klass.primary_key
