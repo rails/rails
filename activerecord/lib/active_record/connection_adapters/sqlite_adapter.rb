@@ -387,11 +387,11 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
           quoted_to = quote_table_name(to)
-          @connection.execute "SELECT * FROM #{quote_table_name(from)}" do |row|
+          exec("SELECT * FROM #{quote_table_name(from)}").each do |row|
             sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
-            @connection.execute sql
+            exec sql
           end
         end
 
