@@ -2209,14 +2209,6 @@ module ActiveRecord
                 ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
               end
 
-              def table_alias_for(table_name, table_alias)
-                 "#{table_name} #{table_alias if table_name != table_alias}".strip
-              end
-
-              def table_name_and_alias
-                table_alias_for table_name, aliased_table_name
-              end
-
               def interpolate_sql(sql)
                 instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
               end
