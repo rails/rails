@@ -315,11 +315,11 @@ module ActiveRecord
 
       def exec(sql, name = 'SQL', bind_values = [])
         log(sql, name) do
+          result = nil
           stmt = @connection.prepare(sql)
           stmt.execute(*bind_values.map { |col, val|
             col ? col.type_cast(val) : val
           })
-          result = nil
           if metadata = stmt.result_metadata
             cols   = metadata.fetch_fields.map { |field| field.name }
             values = []
@@ -328,6 +328,19 @@ module ActiveRecord
           end
           stmt.close
           result
+        end
+      end
+
+      def exec_without_stmt(sql, name = 'SQL') # :nodoc:
+        # Some queries, like SHOW CREATE TABLE don't work through the prepared
+        # statement API.  For those queries, we need to use this method. :'(
+        log(sql, name) do
+          result = @connection.query(sql)
+          cols = result.fetch_fields.map { |field| field.name }
+          values = []
+          result.each { |row| values << row }
+          result.free
+          ActiveRecord::Result.new(cols, values)
         end
       end
 
@@ -411,7 +424,8 @@ module ActiveRecord
 
         select_all(sql).map do |table|
           table.delete('Table_type')
-          select_one("SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}")["Create Table"] + ";\n\n"
+          sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
+          exec_without_stmt(sql).first['Create Table'] + ";\n\n"
         end.join("")
       end
 
