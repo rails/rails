@@ -103,7 +103,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Boolean.create({ "value" => false })
-      assert_equal "0", bool.reload.attributes_before_type_cast["value"]
+      assert_equal 0, bool.reload.attributes_before_type_cast["value"]
     end
   end
 
@@ -112,7 +112,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       developer = Developer.find(:first)
       # Oracle adapter returns Time before type cast
       unless current_adapter?(:OracleAdapter)
-        assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"]
+        assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"].to_s
       else
         assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"].to_s(:db)
 
@@ -121,7 +121,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         assert_equal developer.created_at, nil
 
         developer.created_at = "2010-03-21 21:23:32"
-        assert_equal developer.created_at_before_type_cast, "2010-03-21 21:23:32"
+        assert_equal developer.created_at_before_type_cast.to_s, "2010-03-21 21:23:32"
         assert_equal developer.created_at, Time.parse("2010-03-21 21:23:32")
       end
     end

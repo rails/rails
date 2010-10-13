@@ -43,6 +43,64 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
   end
 
+  def test_bind_value_substitute
+    bind_param = @connection.substitute_for('foo', [])
+    assert_equal Arel.sql('?'), bind_param
+  end
+
+  def test_exec_no_binds
+    @connection.exec('drop table if exists ex')
+    @connection.exec(<<-eosql)
+      CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+        `data` varchar(255))
+    eosql
+    result = @connection.exec('SELECT id, data FROM ex')
+    assert_equal 0, result.rows.length
+    assert_equal 2, result.columns.length
+    assert_equal %w{ id data }, result.columns
+
+    @connection.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    result = @connection.exec('SELECT id, data FROM ex')
+    assert_equal 1, result.rows.length
+    assert_equal 2, result.columns.length
+
+    assert_equal [[1, 'foo']], result.rows
+  end
+
+  def test_exec_with_binds
+    @connection.exec('drop table if exists ex')
+    @connection.exec(<<-eosql)
+      CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+        `data` varchar(255))
+    eosql
+    @connection.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    result = @connection.exec(
+      'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+
+    assert_equal 1, result.rows.length
+    assert_equal 2, result.columns.length
+
+    assert_equal [[1, 'foo']], result.rows
+  end
+
+  def test_exec_typecasts_bind_vals
+    @connection.exec('drop table if exists ex')
+    @connection.exec(<<-eosql)
+      CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+        `data` varchar(255))
+    eosql
+    @connection.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    column = @connection.columns('ex').find { |col| col.name == 'id' }
+
+    result = @connection.exec(
+      'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
+
+    assert_equal 1, result.rows.length
+    assert_equal 2, result.columns.length
+
+    assert_equal [[1, 'foo']], result.rows
+  end
+
   # Test that MySQL allows multiple results for stored procedures
   if Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
     def test_multi_results

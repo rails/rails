@@ -3,6 +3,27 @@ require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 require 'set'
 
+begin
+  require 'mysql'
+rescue LoadError
+  raise "!!! Missing the mysql gem. Add it to your Gemfile: gem 'mysql'"
+end
+
+unless defined?(Mysql::Result) && Mysql::Result.method_defined?(:each_hash)
+  raise "!!! Outdated mysql gem. Upgrade to 2.8.1 or later. In your Gemfile: gem 'mysql', '2.8.1'. Or use gem 'mysql2'"
+end
+
+class Mysql
+  class Time
+    ###
+    # This monkey patch is for test_additional_columns_from_join_table
+
+    def to_date
+      Date.new(year, month, day)
+    end
+  end
+end
+
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -14,18 +35,6 @@ module ActiveRecord
       username = config[:username] ? config[:username].to_s : 'root'
       password = config[:password].to_s
       database = config[:database]
-
-      unless defined? Mysql
-        begin
-          require 'mysql'
-        rescue LoadError
-          raise "!!! Missing the mysql2 gem. Add it to your Gemfile: gem 'mysql2'"
-        end
-
-        unless defined?(Mysql::Result) && Mysql::Result.method_defined?(:each_hash)
-          raise "!!! Outdated mysql gem. Upgrade to 2.8.1 or later. In your Gemfile: gem 'mysql', '2.8.1'. Or use gem 'mysql2'"
-        end
-      end
 
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslca] || config[:sslkey]
@@ -39,6 +48,30 @@ module ActiveRecord
 
   module ConnectionAdapters
     class MysqlColumn < Column #:nodoc:
+      class << self
+        def string_to_time(value)
+          return super unless Mysql::Time === value
+          new_time(
+            value.year,
+            value.month,
+            value.day,
+            value.hour,
+            value.minute,
+            value.second,
+            value.second_part)
+        end
+
+        def string_to_dummy_time(v)
+          return super unless Mysql::Time === v
+          new_time(2000, 01, 01, v.hour, v.minute, v.second, v.second_part)
+        end
+
+        def string_to_date(v)
+          return super unless Mysql::Time === v
+          new_date(v.year, v.month, v.day)
+        end
+      end
+
       def extract_default(default)
         if sql_type =~ /blob/i || type == :text
           if default.blank?
@@ -278,6 +311,24 @@ module ActiveRecord
         result.free
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
+      end
+
+      def exec(sql, name = 'SQL', bind_values = [])
+        log(sql, name) do
+          stmt = @connection.prepare(sql)
+          stmt.execute(*bind_values.map { |col, val|
+            col ? col.type_cast(val) : val
+          })
+          result = nil
+          if metadata = stmt.result_metadata
+            cols   = metadata.fetch_fields.map { |field| field.name }
+            values = []
+            stmt.each { |thing| values << thing }
+            result = ActiveRecord::Result.new(cols, values)
+          end
+          stmt.close
+          result
+        end
       end
 
       # Executes an SQL query and returns a MySQL::Result object. Note that you have to free
@@ -614,12 +665,9 @@ module ActiveRecord
           execute("SET SQL_AUTO_IS_NULL=0", :skip_logging)
         end
 
-        def select(sql, name = nil)
+        def select(sql, name = nil, binds = [])
           @connection.query_with_result = true
-          result = execute(sql, name)
-          rows = []
-          result.each_hash { |row| rows << row }
-          result.free
+          rows = exec(sql, name, binds).to_a
           @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
           rows
         end
