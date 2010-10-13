@@ -307,10 +307,7 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         @connection.query_with_result = true
-        result = execute(sql, name)
-        rows = []
-        result.each { |row| rows << row }
-        result.free
+        rows = exec_without_stmt(sql, name).rows
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end
@@ -389,7 +386,7 @@ module ActiveRecord
       end
 
       def begin_db_transaction #:nodoc:
-        execute "BEGIN"
+        exec_without_stmt "BEGIN"
       rescue Exception
         # Transactions aren't supported
       end
