@@ -510,7 +510,7 @@ module Rails
     end
 
     initializer :append_asset_paths do
-      config.asset_path ||= "/#{engine_name}%s"
+      config.asset_path ||= "/#{railtie_name}%s"
 
       public_path = paths["public"].first
       if config.compiled_asset_path && File.exist?(public_path)
