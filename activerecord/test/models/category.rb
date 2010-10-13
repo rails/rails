@@ -23,6 +23,8 @@ class Category < ActiveRecord::Base
 
   has_many :categorizations
   has_many :authors, :through => :categorizations, :select => 'authors.*, categorizations.post_id'
+  
+  has_many :post_comments, :through => :posts, :source => :comments
 end
 
 class SpecialCategory < Category

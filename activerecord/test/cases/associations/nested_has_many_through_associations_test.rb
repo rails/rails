@@ -169,9 +169,19 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [categories(:general), categories(:cooking)], authors[2].post_categories
   end
   
-  # TODO: has_many through
+  # has_many through
   # Source: has_many
   # Through: has_and_belongs_to_many
+  def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection
+    assert_equal [comments(:greetings), comments(:more_greetings)], categories(:technology).post_comments
+    
+    categories = Category.joins(:post_comments).where('comments.id' => comments(:more_greetings).id)
+    assert_equal [categories(:general), categories(:technology)], categories
+    
+    # TODO: Make this work
+    # categories = Category.includes(:post_comments)
+    # assert_equal [comments(:greetings), comments(:more_greetings)], categories[1].post_comments
+  end
   
   # TODO: has_many through
   # Source: belongs_to

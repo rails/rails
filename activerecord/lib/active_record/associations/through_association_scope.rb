@@ -23,8 +23,15 @@ module ActiveRecord
       # TODO: Conditions on joins
       def construct_conditions
         reflection = @reflection.through_reflection_chain.last
+        
+        if reflection.macro == :has_and_belongs_to_many
+          table_alias = table_aliases[reflection].first
+        else
+          table_alias = table_aliases[reflection]
+        end
+        
         conditions = construct_quoted_owner_attributes(reflection).map do |attr, value|
-          "#{table_aliases[reflection]}.#{attr} = #{value}"
+          "#{table_alias}.#{attr} = #{value}"
         end
         conditions << sql_conditions if sql_conditions
         "(" + conditions.join(') AND (') + ")"
@@ -97,12 +104,30 @@ module ActiveRecord
                   source_type_conditions(left)
                 )
               when :has_many, :has_one
+                if right.macro == :has_and_belongs_to_many
+                  join_table, right_table = table_aliases[right]
+                  right_table_and_alias = table_name_and_alias(right.quoted_table_name, right_table)
+                else
+                  right_table = table_aliases[right]
+                end
+              
                 joins << inner_join_sql(
                   right_table_and_alias,
-                  table_aliases[left],  left.source_reflection.primary_key_name,
-                  table_aliases[right], right.klass.primary_key,
+                  table_aliases[left], left.source_reflection.primary_key_name,
+                  right_table,         right.klass.primary_key,
                   polymorphic_conditions(left, left.source_reflection.options[:as])
                 )
+                
+                if right.macro == :has_and_belongs_to_many
+                  joins << inner_join_sql(
+                    table_name_and_alias(
+                      quote_table_name(right.options[:join_table]),
+                      join_table
+                    ),
+                    right_table, right.klass.primary_key,
+                    join_table,  right.association_foreign_key
+                  )
+                end
               when :has_and_belongs_to_many
                 join_table, left_table = table_aliases[left]
                 
