@@ -221,19 +221,8 @@ module ActiveRecord
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
-      to_join = []
-
       join_dependency.join_associations.each do |association|
-        if (association_relation = association.relation).is_a?(Array)
-          to_join << [association_relation.first, association.join_class, association.association_join.first]
-          to_join << [association_relation.last, association.join_class, association.association_join.last]
-        else
-          to_join << [association_relation, association.join_class, association.association_join]
-        end
-      end
-
-      to_join.uniq.each do |left, join_class, right|
-        relation = relation.join(left, join_class).on(*right)
+        relation = association.join_to(relation)
       end
 
       relation.join(custom_joins)
