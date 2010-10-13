@@ -538,6 +538,12 @@ module Rails
       next if self.is_a?(Rails::Application)
 
       namespace railtie_name do
+        desc "Shortcut for running both rake #{railtie_name}:install:migrations and #{railtie_name}:install:assets"
+        task :install do
+          Rake::Task["#{railtie_name}:install:migrations"].invoke
+          Rake::Task["#{railtie_name}:install:assets"].invoke
+        end
+
         namespace :install do
           # TODO Add assets copying to this list
           # TODO Skip this if there is no paths["db/migrate"] for the engine
