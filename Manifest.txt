@@ -102,4 +102,5 @@ spec/table_spec.rb
 spec/update_manager_spec.rb
 spec/visitors/join_sql_spec.rb
 spec/visitors/oracle_spec.rb
+spec/visitors/postgres_spec.rb
 spec/visitors/to_sql_spec.rb

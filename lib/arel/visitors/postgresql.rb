@@ -2,6 +2,10 @@ module Arel
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
       private
+      def visit_Arel_Nodes_Lock o
+        "FOR UPDATE"
+      end
+
       def visit_Arel_Nodes_SelectStatement o
         if !o.orders.empty? && using_distinct_on?(o)
           subquery        = o.dup
