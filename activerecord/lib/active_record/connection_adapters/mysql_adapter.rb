@@ -194,6 +194,7 @@ module ActiveRecord
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
+        @statements = {}
         connect
       end
 
@@ -285,6 +286,7 @@ module ActiveRecord
 
       def reconnect!
         disconnect!
+        clear_cache!
         connect
       end
 
@@ -313,10 +315,23 @@ module ActiveRecord
         rows
       end
 
+      def clear_cache!
+        @statements.values.each do |stmt|
+          stmt.close
+        end
+        @statements.clear
+      end
+
       def exec(sql, name = 'SQL', bind_values = [])
         log(sql, name) do
           result = nil
-          stmt = @connection.prepare(sql)
+
+          if bind_values.empty?
+            stmt = @connection.prepare(sql)
+          else
+            stmt = @statements[sql] ||= @connection.prepare(sql)
+          end
+
           stmt.execute(*bind_values.map { |col, val|
             col ? col.type_cast(val) : val
           })
@@ -326,7 +341,9 @@ module ActiveRecord
             stmt.each { |thing| values << thing }
             result = ActiveRecord::Result.new(cols, values)
           end
-          stmt.close
+
+          stmt.close if bind_values.empty?
+
           result
         end
       end
