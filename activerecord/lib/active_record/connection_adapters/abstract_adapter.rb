@@ -142,6 +142,13 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
+      ###
+      # Clear any caching the database adapter may be doing, for example
+      # clearing the prepared statement cache.  This is database specific.
+      def clear_cache!
+        # this should be overridden by concrete adapters
+      end
+
       # Returns true if its required to reload the connection between requests for development mode.
       # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?

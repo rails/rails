@@ -718,7 +718,7 @@ module ActiveRecord #:nodoc:
       #    end
       #  end
       def reset_column_information
-        connection.reset!
+        connection.clear_cache!
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = @arel_table = nil
