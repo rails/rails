@@ -2180,6 +2180,7 @@ module ActiveRecord
                       # to represent the join table)
                       table, join_table = table
                       
+                      # TODO: Can join_key just be reflection.primary_key_name ?
                       join_key         = reflection.options[:foreign_key] ||
                                          reflection.active_record.to_s.foreign_key
                       join_foreign_key = reflection.active_record.primary_key
@@ -2192,18 +2193,37 @@ module ActiveRecord
                       # We've done the first join now, so update the foreign_table for the second
                       foreign_table = join_table
                       
+                      # TODO: Can foreign_key be reflection.association_foreign_key?
                       key         = reflection.klass.primary_key
                       foreign_key = reflection.options[:association_foreign_key] ||
                                     reflection.klass.to_s.foreign_key
                   end
-                elsif reflection.source_reflection.macro == :belongs_to
-                  key         = reflection.klass.primary_key
-                  foreign_key = reflection.source_reflection.primary_key_name
-                  
-                  conditions << source_type_conditions(reflection, foreign_table)
                 else
-                  key         = reflection.source_reflection.primary_key_name
-                  foreign_key = reflection.source_reflection.klass.primary_key
+                  case reflection.source_reflection.macro
+                    when :belongs_to
+                      key         = reflection.klass.primary_key
+                      foreign_key = reflection.source_reflection.primary_key_name
+                      
+                      conditions << source_type_conditions(reflection, foreign_table)
+                    when :has_many, :has_one
+                      key         = reflection.source_reflection.primary_key_name
+                      foreign_key = reflection.source_reflection.klass.primary_key
+                    when :has_and_belongs_to_many
+                      table, join_table = table
+                      
+                      join_key         = reflection.source_reflection.primary_key_name
+                      join_foreign_key = reflection.source_reflection.klass.primary_key
+                      
+                      relation = relation.join(join_table, join_type).on(
+                        join_table[join_key].
+                          eq(foreign_table[join_foreign_key])
+                      )
+                      
+                      foreign_table = join_table
+                      
+                      key         = reflection.klass.primary_key
+                      foreign_key = reflection.source_reflection.association_foreign_key
+                  end
                 end
                 
                 conditions << table[key].eq(foreign_table[foreign_key])
@@ -2269,14 +2289,19 @@ module ActiveRecord
                 
                 # For habtm, we have two Arel::Table instances related to a single reflection, so
                 # we just store them as a pair in the array.
-                if reflection.macro == :has_and_belongs_to_many
+                if reflection.macro == :has_and_belongs_to_many ||
+                     (reflection.source_reflection &&
+                      reflection.source_reflection.macro == :has_and_belongs_to_many)
+                  
+                  join_table_name = (reflection.source_reflection || reflection).options[:join_table]
+                  
                   aliased_join_table_name = alias_tracker.aliased_name_for(
-                    reflection.options[:join_table],
+                    join_table_name,
                     table_alias_for(reflection, true)
                   )
                   
                   join_table = Arel::Table.new(
-                    reflection.options[:join_table], :engine => arel_engine,
+                    join_table_name, :engine => arel_engine,
                     :as => aliased_join_table_name
                   )
                   

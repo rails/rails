@@ -26,6 +26,6 @@ general_misc_by_bob:
   category_id: 1
   post_id: 8
 
-technology_misc_by_bob:
-  category_id: 2
+cooking_misc_by_bob:
+  category_id: 4
   post_id: 8

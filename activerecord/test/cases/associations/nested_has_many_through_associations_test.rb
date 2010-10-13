@@ -159,10 +159,15 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   # has_many through
   # Source: has_and_belongs_to_many
   # Through: has_many
-  # TODO: Enable and implement this, and finish off the test
-  # def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection
-  #   assert_equal [categories(:general), categories(:technology)], authors(:bob).post_categories
-  # end
+  def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection
+    assert_equal [categories(:general), categories(:cooking)], authors(:bob).post_categories
+    
+    authors = Author.joins(:post_categories).where('categories.id' => categories(:cooking).id)
+    assert_equal [authors(:bob)], authors
+    
+    authors = Author.includes(:post_categories)
+    assert_equal [categories(:general), categories(:cooking)], authors[2].post_categories
+  end
   
   # TODO: has_many through
   # Source: has_many

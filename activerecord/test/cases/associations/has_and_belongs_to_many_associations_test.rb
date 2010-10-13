@@ -719,7 +719,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_scoped_grouped
     assert_equal 5, categories(:general).posts_grouped_by_title.size
-    assert_equal 2, categories(:technology).posts_grouped_by_title.size
+    assert_equal 1, categories(:technology).posts_grouped_by_title.size
   end
 
   def test_find_scoped_grouped_having

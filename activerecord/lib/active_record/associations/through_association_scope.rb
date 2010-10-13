@@ -65,6 +65,7 @@ module ActiveRecord
         # Iterate over each pair in the through reflection chain, joining them together
         @reflection.through_reflection_chain.each_cons(2) do |left, right|
           polymorphic_join  = nil
+          left_table, right_table = table_aliases[left], table_aliases[right]
           
           if left.source_reflection.nil?
             # TODO: Perhaps need to pay attention to left.options[:primary_key] and
@@ -114,20 +115,31 @@ module ActiveRecord
                   ]
                 end
               when :has_and_belongs_to_many
-                raise NotImplementedError
+                join_table, left_table = left_table
+                
+                left_primary_key = left.klass.primary_key
+                join_primary_key = left.source_reflection.association_foreign_key
+                
+                joins << "INNER JOIN %s ON %s.%s = %s.%s" % [
+                  table_name_and_alias(
+                    quote_table_name(left.source_reflection.options[:join_table]),
+                    join_table
+                  ),
+                  left_table, left_primary_key,
+                  join_table, join_primary_key
+                ]
+                
+                left_table = join_table
+                
+                left_primary_key  = left.source_reflection.primary_key_name
+                right_primary_key = right.klass.primary_key
             end
           end
           
-          if right.quoted_table_name == table_aliases[right]
-            table = right.quoted_table_name
-          else
-            table = "#{right.quoted_table_name} #{table_aliases[right]}"
-          end
-          
           joins << "INNER JOIN %s ON %s.%s = %s.%s %s" % [
-            table,
-            table_aliases[left],  left_primary_key,
-            table_aliases[right], right_primary_key,
+            table_name_and_alias(right.quoted_table_name, right_table),
+            left_table,  left_primary_key,
+            right_table, right_primary_key,
             polymorphic_join
           ]
         end
@@ -147,13 +159,16 @@ module ActiveRecord
               table_alias_for(reflection, reflection != @reflection)
             ))
             
-            if reflection.macro == :has_and_belongs_to_many
+            if reflection.macro == :has_and_belongs_to_many ||
+                 (reflection.source_reflection &&
+                  reflection.source_reflection.macro == :has_and_belongs_to_many)
+              
               join_table_alias = quote_table_name(alias_tracker.aliased_name_for(
-                reflection.options[:join_table],
+                (reflection.source_reflection || reflection).options[:join_table],
                 table_alias_for(reflection, true)
               ))
               
-              aliases[reflection] = [table_alias, join_table_alias]
+              aliases[reflection] = [join_table_alias, table_alias]
             else
               aliases[reflection] = table_alias
             end
@@ -172,6 +187,10 @@ module ActiveRecord
       
       def quote_table_name(table_name)
         @reflection.klass.connection.quote_table_name(table_name)
+      end
+      
+      def table_name_and_alias(table_name, table_alias)
+        "#{table_name} #{table_alias if table_alias != table_name}".strip
       end
 
       # Construct attributes for associate pointing to owner.

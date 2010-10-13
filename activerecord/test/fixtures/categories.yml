@@ -12,3 +12,8 @@ sti_test:
   id: 3
   name: Special category
   type: SpecialCategory
+
+cooking:
+  id: 4
+  name: Cooking
+  type: Category
