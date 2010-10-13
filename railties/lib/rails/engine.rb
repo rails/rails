@@ -189,17 +189,14 @@ module Rails
   # served by default. You should choose one of the two following strategies:
   #
   # * enable serving static files by setting config.serve_static_assets to true
-  # * symlink engines' public directories in application's public directory by running
-  #   `rake ENGINE_NAME:install:assets`, where ENGINE_NAME is usually my_engine for the
-  #   examples above
+  # * copy engine's public files to application's public folder with rake ENGINE_NAME:install:assets, for example
+  #   rake my_engine:install:assets
   #
   # == Engine name
   #
-  # There are some places where engine's name is used.
-  #
+  # There are some places where engine's name is used:
   # * routes: when you mount engine with mount(MyEngine::Engine => '/my_engine'), it's used as default :as option
-  #
-  # * rake tasks: engines have a few rake tasks. They are usually under my_engine namespace.
+  # * some of the rake tasks are based on engine name, e.g. my_engine:install:migrations, my_engine:install:assets
   #
   # Engine name is set by default based on class name. For MyEngine::Engine it will be my_engine_engine.
   # You can change it manually it manually using engine_name method:
@@ -316,6 +313,10 @@ module Rails
   # application's dir:
   #
   #   rake ENGINE_NAME:install:migrations
+  #
+  # Note that some of the migrations may be skipped if migration with the same name already exists
+  # in application. In such situation you must decide whether to leave that migration or rename the
+  # migration in application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
   # seeds.rb file. You can load that data using load_seed method, e.g.
