@@ -180,8 +180,6 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock;
-    #   otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def xml(*args)
