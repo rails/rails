@@ -1833,10 +1833,10 @@ module ActiveRecord
         end
 
         class JoinDependency # :nodoc:
-          attr_reader :joins, :reflections, :table_aliases
+          attr_reader :join_parts, :reflections, :table_aliases
 
           def initialize(base, associations, joins)
-            @joins                 = [JoinBase.new(base, joins)]
+            @join_parts            = [JoinBase.new(base, joins)]
             @associations          = associations
             @reflections           = []
             @base_records_hash     = {}
@@ -1849,17 +1849,17 @@ module ActiveRecord
           def graft(*associations)
             associations.each do |association|
               join_associations.detect {|a| association == a} ||
-              build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class)
+              build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_type)
             end
             self
           end
 
           def join_associations
-            @joins.last(@joins.length - 1)
+            join_parts.last(join_parts.length - 1)
           end
 
           def join_base
-            @joins[0]
+            join_parts.first
           end
 
           def count_aliases_from_table_joins(name)
@@ -1917,24 +1917,24 @@ module ActiveRecord
 
           protected
 
-            def build(associations, parent = nil, join_class = Arel::InnerJoin)
-              parent ||= @joins.last
+            def build(associations, parent = nil, join_type = Arel::InnerJoin)
+              parent ||= join_parts.last
               case associations
                 when Symbol, String
                   reflection = parent.reflections[associations.to_s.intern] or
                   raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
                   @reflections << reflection
                   join_association = build_join_association(reflection, parent)
-                  join_association.join_class = join_class
-                  @joins << join_association
+                  join_association.join_type = join_type
+                  @join_parts << join_association
                 when Array
                   associations.each do |association|
-                    build(association, parent, join_class)
+                    build(association, parent, join_type)
                   end
                 when Hash
                   associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-                    build(name, parent, join_class)
-                    build(associations[name], nil, join_class)
+                    build(name, parent, join_type)
+                    build(associations[name], nil, join_type)
                   end
                 else
                   raise ConfigurationError, associations.inspect
@@ -1951,60 +1951,64 @@ module ActiveRecord
               JoinAssociation.new(reflection, self, parent)
             end
 
-            def construct(parent, associations, joins, row)
+            def construct(parent, associations, join_parts, row)
               case associations
               when Symbol, String
-                join = joins.detect{|j| j.reflection.name.to_s == associations.to_s && j.parent_table_name == parent.class.table_name }
-                raise(ConfigurationError, "No such association") if join.nil?
+                join_part = join_parts.detect { |j|
+                  j.reflection.name.to_s == associations.to_s &&
+                  j.parent_table_name    == parent.class.table_name }
+                raise(ConfigurationError, "No such association") if join_part.nil?
 
-                joins.delete(join)
-                construct_association(parent, join, row)
+                join_parts.delete(join_part)
+                construct_association(parent, join_part, row)
               when Array
                 associations.each do |association|
-                  construct(parent, association, joins, row)
+                  construct(parent, association, join_parts, row)
                 end
               when Hash
                 associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
-                  join = joins.detect{|j| j.reflection.name.to_s == name.to_s && j.parent_table_name == parent.class.table_name }
-                  raise(ConfigurationError, "No such association") if join.nil?
+                  join_part = join_parts.detect{ |j|
+                    j.reflection.name.to_s == name.to_s &&
+                    j.parent_table_name    == parent.class.table_name }
+                  raise(ConfigurationError, "No such association") if join_part.nil?
 
-                  association = construct_association(parent, join, row)
-                  joins.delete(join)
-                  construct(association, assoc, joins, row) if association
+                  association = construct_association(parent, join_part, row)
+                  join_parts.delete(join_part)
+                  construct(association, assoc, join_parts, row) if association
                 end
               else
                 raise ConfigurationError, associations.inspect
               end
             end
 
-            def construct_association(record, join, row)
-              return if record.id.to_s != join.parent.record_id(row).to_s
+            def construct_association(record, join_part, row)
+              return if record.id.to_s != join_part.parent.record_id(row).to_s
 
-              macro = join.reflection.macro
+              macro = join_part.reflection.macro
               if macro == :has_one
-                return if record.instance_variable_defined?("@#{join.reflection.name}")
-                association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
-                set_target_and_inverse(join, association, record)
+                return if record.instance_variable_defined?("@#{join_part.reflection.name}")
+                association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
+                set_target_and_inverse(join_part, association, record)
               else
-                return if row[join.aliased_primary_key].nil?
-                association = join.instantiate(row)
+                return if row[join_part.aliased_primary_key].nil?
+                association = join_part.instantiate(row)
                 case macro
                 when :has_many, :has_and_belongs_to_many
-                  collection = record.send(join.reflection.name)
+                  collection = record.send(join_part.reflection.name)
                   collection.loaded
                   collection.target.push(association)
                   collection.__send__(:set_inverse_instance, association, record)
                 when :belongs_to
-                  set_target_and_inverse(join, association, record)
+                  set_target_and_inverse(join_part, association, record)
                 else
-                  raise ConfigurationError, "unknown macro: #{join.reflection.macro}"
+                  raise ConfigurationError, "unknown macro: #{join_part.reflection.macro}"
                 end
               end
               association
             end
 
-            def set_target_and_inverse(join, association, record)
-              association_proxy = record.send("set_#{join.reflection.name}_target", association)
+            def set_target_and_inverse(join_part, association, record)
+              association_proxy = record.send("set_#{join_part.reflection.name}_target", association)
               association_proxy.__send__(:set_inverse_instance, association, record)
             end
           
@@ -2119,7 +2123,7 @@ module ActiveRecord
             attr_reader :parent
             
             # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
-            attr_accessor :join_class
+            attr_accessor :join_type
             
             # These implement abstract methods from the superclass
             attr_reader :aliased_prefix, :aliased_table_name
@@ -2139,7 +2143,7 @@ module ActiveRecord
               @reflection      = reflection
               @join_dependency = join_dependency
               @parent          = parent
-              @join_class       = Arel::InnerJoin
+              @join_type       = Arel::InnerJoin
               
               # This must be done eagerly upon initialisation because the alias which is produced
               # depends on the state of the join dependency, but we want it to work the same way
@@ -2154,8 +2158,8 @@ module ActiveRecord
             end
 
             def find_parent_in(other_join_dependency)
-              other_join_dependency.joins.detect do |join|
-                self.parent == join
+              other_join_dependency.join_parts.detect do |join_part|
+                self.parent == join_part
               end
             end
             
@@ -2164,7 +2168,7 @@ module ActiveRecord
             end
 
             def join_relation(joining_relation)
-              self.join_class = Arel::OuterJoin
+              self.join_type = Arel::OuterJoin
               joining_relation.joins(self)
             end
             
@@ -2210,7 +2214,7 @@ module ActiveRecord
               end
 
               def table_name_and_alias
-                table_alias_for table_name, @aliased_table_name
+                table_alias_for table_name, aliased_table_name
               end
 
               def interpolate_sql(sql)
@@ -2220,7 +2224,7 @@ module ActiveRecord
             private
             
             def allocate_aliases
-              @aliased_prefix     = "t#{ join_dependency.joins.size }"
+              @aliased_prefix     = "t#{ join_dependency.join_parts.size }"
               @aliased_table_name = aliased_table_name_for(table_name)
               
               if reflection.macro == :has_and_belongs_to_many
@@ -2235,7 +2239,7 @@ module ActiveRecord
             end
             
             def join_target_table(relation, *conditions)
-              relation = relation.join(target_table, join_class)
+              relation = relation.join(target_table, join_type)
               
               # If the target table is an STI model then we must be sure to only include records of
               # its type and its sub-types.
@@ -2267,7 +2271,7 @@ module ActiveRecord
               fk       = options[:foreign_key]             || reflection.active_record.to_s.foreign_key
               klass_fk = options[:association_foreign_key] || reflection.klass.to_s.foreign_key
               
-              relation = relation.join(join_table, join_class)
+              relation = relation.join(join_table, join_type)
               relation = relation.on(
                 join_table[fk].
                   eq(parent_table[reflection.active_record.primary_key])
@@ -2355,7 +2359,7 @@ module ActiveRecord
                 jt_conditions << process_conditions(through_reflection.options[:conditions], aliased_table_name)
               end
               
-              relation = relation.join(join_table, join_class).on(*jt_conditions)
+              relation = relation.join(join_table, join_type).on(*jt_conditions)
               
               join_target_table(
                 relation,
