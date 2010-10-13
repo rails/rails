@@ -10,6 +10,20 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
+    def test_copying_assets
+      @plugin.write "public/javascripts/foo.js", "doSomething()"
+      @plugin.write "public/stylesheets/foo.css", "h1 { font-size: 10000px }"
+      @plugin.write "public/images/img.png", ""
+
+      Dir.chdir(app_path) do
+        `rake bukkits:install:assets --trace`
+
+        assert File.exists?(app_path("public/bukkits/javascripts/foo.js"))
+        assert File.exists?(app_path("public/bukkits/stylesheets/foo.css"))
+        assert File.exists?(app_path("public/bukkits/images/img.png"))
+      end
+    end
+
     def test_copying_migrations
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration
