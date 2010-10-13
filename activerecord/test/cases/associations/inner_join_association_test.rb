@@ -4,9 +4,12 @@ require 'models/comment'
 require 'models/author'
 require 'models/category'
 require 'models/categorization'
+require 'models/tagging'
+require 'models/tag'
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations
+  fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations,
+           :taggings, :tags
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).to_a
@@ -61,5 +64,24 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     real_count = Author.scoped.to_a.select {|a| a.posts.any? {|p| p.title =~ /^Welcome/} }.length
     authors_with_welcoming_post_titles = Author.calculate(:count, 'authors.id', :joins => :posts, :distinct => true, :conditions => "posts.title like 'Welcome%'")
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
+  end
+  
+  def test_find_with_sti_join
+    scope = Post.joins(:special_comments).where(:id => posts(:sti_comments).id)
+    
+    # The join should match SpecialComment and its subclasses only
+    assert scope.where("comments.type" => "Comment").empty?
+    assert !scope.where("comments.type" => "SpecialComment").empty?
+    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+  end
+  
+  def test_find_with_conditions_on_reflection
+    assert !posts(:welcome).comments.empty?
+    assert Post.joins(:nonexistant_comments).where(:id => posts(:welcome).id).empty? # [sic!]
+  end
+  
+  def test_find_with_conditions_on_through_reflection
+    assert !posts(:welcome).tags.empty?
+    assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
   end
 end
