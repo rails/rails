@@ -288,7 +288,12 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      record = where(primary_key.eq(id)).first
+      column = primary_key.column
+
+      substitute = connection.substitute_for(column, @bind_values)
+      relation = where(primary_key.eq(substitute))
+      relation.bind_values = [[column, id]]
+      record = relation.first
 
       unless record
         conditions = arel.where_sql
