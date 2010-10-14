@@ -8,29 +8,42 @@ module RenderTemplate
       "test/a.html.erb"       => "a",
       "test/b.html.erb"       => "<>",
       "test/c.html.erb"       => "c",
-      "test/one.html.erb"     => "<%= render :once => 'test/result' %>",
-      "test/two.html.erb"     => "<%= render :once => 'test/result' %>",
-      "test/three.html.erb"   => "<%= render :once => 'test/result' %>",
+      "test/one.html.erb"     => "<%= render :once => 'result' %>",
+      "test/two.html.erb"     => "<%= render :once => 'result' %>",
+      "test/three.html.erb"   => "<%= render :once => 'result' %>",
       "test/result.html.erb"  => "YES!",
+      "other/result.html.erb" => "NO!",
       "layouts/test.html.erb" => "l<%= yield %>l"
     )
 
     self.view_paths = [RESOLVER]
 
+    def _prefix
+      "test"
+    end
+
     def multiple
-      render :once => %w(test/a test/b test/c)
+      render :once => %w(a b c)
     end
 
     def once
-      render :once => %w(test/one test/two test/three)
+      render :once => %w(one two three)
     end
 
     def duplicate
-      render :once => %w(test/a test/a test/a)
+      render :once => %w(a a a)
     end
 
     def with_layout
-      render :once => %w(test/a test/b test/c), :layout => "test"
+      render :once => %w(a b c), :layout => "test"
+    end
+
+    def with_prefix
+      render :once => "result", :prefix => "other"
+    end
+
+    def with_nil_prefix
+      render :once => "test/result", :prefix => nil
     end
   end
 
@@ -53,6 +66,16 @@ module RenderTemplate
     def test_layout_wraps_all_rendered_templates
       get :with_layout
       assert_response "la\n<>\ncl"
+    end
+
+    def test_with_prefix_option
+      get :with_prefix
+      assert_response "NO!"
+    end
+
+    def test_with_nil_prefix_option
+      get :with_nil_prefix
+      assert_response "YES!"
     end
   end
 
