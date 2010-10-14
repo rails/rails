@@ -17,7 +17,7 @@ module Rails
       def initialize(*args) #:nodoc:
         super
 
-        if name == name.pluralize && !options[:force_plural]
+        if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]
           unless ResourceHelpers.skip_warn
             say "Plural version of the model detected, using singularized version. Override with --force-plural."
             ResourceHelpers.skip_warn = true
