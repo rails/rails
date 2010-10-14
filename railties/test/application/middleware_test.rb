@@ -28,6 +28,7 @@ module ApplicationTests
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::IdentityMap::Middleware",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
@@ -55,6 +56,7 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
+      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do

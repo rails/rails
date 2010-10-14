@@ -22,6 +22,9 @@ module ActiveRecord
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",
       "ActiveRecord::ConnectionAdapters::ConnectionManagement"
 
+    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+      "ActiveRecord::IdentityMap::Middleware"
+
     rake_tasks do
       load "active_record/railties/databases.rake"
     end
