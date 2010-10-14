@@ -24,6 +24,12 @@ class Mysql
   end
 end
 
+class Mysql
+  class Stmt
+    include Enumerable
+  end
+end
+
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -334,12 +340,11 @@ module ActiveRecord
           })
           if metadata = stmt.result_metadata
             cols   = metadata.fetch_fields.map { |field| field.name }
-            values = []
-            stmt.each { |thing| values << thing }
-            stmt.free_result
-            result = ActiveRecord::Result.new(cols, values)
+            metadata.free
+            result = ActiveRecord::Result.new(cols, stmt.to_a)
           end
 
+          stmt.free_result
           stmt.close if bind_values.empty?
 
           result
