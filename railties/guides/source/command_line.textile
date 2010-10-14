@@ -145,7 +145,7 @@ $ rails generate controller Greetings hello
 
 What all did this generate?  It made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
 
-Check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):ma
+Check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):
 
 <ruby>
 class GreetingsController < ApplicationController
