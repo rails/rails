@@ -89,7 +89,7 @@ module ActiveRecord
                   right_table_and_alias,
                   table_aliases[left],  left.primary_key_name,
                   table_aliases[right], right.klass.primary_key,
-                  polymorphic_conditions(left, left.options[:as])
+                  polymorphic_conditions(left, left)
                 )
               when :has_and_belongs_to_many
                 raise NotImplementedError
@@ -115,7 +115,7 @@ module ActiveRecord
                   right_table_and_alias,
                   table_aliases[left], left.source_reflection.primary_key_name,
                   right_table,         right.klass.primary_key,
-                  polymorphic_conditions(left, left.source_reflection.options[:as])
+                  polymorphic_conditions(left, left.source_reflection)
                 )
                 
                 if right.macro == :has_and_belongs_to_many
@@ -207,11 +207,11 @@ module ActiveRecord
         ]
       end
       
-      def polymorphic_conditions(reflection, interface_name)
-        if interface_name
+      def polymorphic_conditions(reflection, polymorphic_reflection)
+        if polymorphic_reflection.options[:as]
           "AND %s.%s = %s" % [
-            table_aliases[reflection], "#{interface_name}_type",
-            @owner.class.quote_value(reflection.active_record.base_class.name)
+            table_aliases[reflection], "#{polymorphic_reflection.options[:as]}_type",
+            @owner.class.quote_value(polymorphic_reflection.active_record.base_class.name)
           ]
         end
       end
