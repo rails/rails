@@ -8,7 +8,7 @@ module ActionView
       module Compilable
         def self.included(base)
           ActiveSupport::Deprecation.warn "Including Compilable in your template handler is deprecated. " <<
-            "All the API your template handler needs to implement is to respond to #call."
+            "Since Rails 3, all the API your template handler needs to implement is to respond to #call."
           base.extend(ClassMethods)
         end
 
@@ -30,7 +30,7 @@ module ActionView
 
       def self.inherited(base)
         ActiveSupport::Deprecation.warn "Inheriting from ActionView::Template::Handler is deprecated. " <<
-          "All the API your template handler needs to implement is to respond to #call."
+          "Since Rails 3, all the API your template handler needs to implement is to respond to #call."
         super
       end
 

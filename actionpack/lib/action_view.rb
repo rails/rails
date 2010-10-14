@@ -30,23 +30,20 @@ module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
-    autoload :Context
-    autoload :Template
-    autoload :Helpers
     autoload :Base
+    autoload :Context
+    autoload :Helpers
     autoload :LookupContext
-    autoload :PathSet,        "action_view/paths"
-    autoload :TestCase,       "action_view/test_case"
+    autoload :Partials
+    autoload :PathSet
+    autoload :Rendering
+    autoload :Template
+    autoload :TestCase
 
     autoload_under "renderer" do
       autoload :AbstractRenderer
       autoload :PartialRenderer
       autoload :TemplateRenderer
-    end
-
-    autoload_under "render" do
-      autoload :Partials
-      autoload :Rendering
     end
 
     autoload_at "action_view/template/resolver" do
