@@ -1,11 +1,5 @@
 source 'http://rubygems.org'
 
-if ENV['AREL']
-  gem "arel", :path => ENV['AREL']
-else
-  gem "arel", :git => "git://github.com/rails/arel.git"
-end
-
 gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
