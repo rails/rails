@@ -72,7 +72,7 @@ module Rails
     end
 
     def require_environment! #:nodoc:
-      environment = paths.config.environment.to_a.first
+      environment = paths["config/environment"].existent.first
       require environment if environment
     end
 
@@ -128,10 +128,9 @@ module Rails
     end
 
     def initializers
-      initializers = Bootstrap.initializers_for(self)
-      initializers += super
-      initializers += Finisher.initializers_for(self)
-      initializers
+      Bootstrap.initializers_for(self) +
+      super +
+      Finisher.initializers_for(self)
     end
 
     def config

@@ -316,6 +316,16 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_store_on_indifferent_access
+    hash = HashWithIndifferentAccess.new
+    hash.store(:test1, 1)
+    hash.store('test1', 11)
+    hash[:test2] = 2
+    hash['test2'] = 22
+    expected = { "test1" => 11, "test2" => 22 }
+    assert_equal expected, hash
+  end
+
   def test_reverse_merge
     defaults = { :a => "x", :b => "y", :c => 10 }.freeze
     options  = { :a => 1, :b => 2 }

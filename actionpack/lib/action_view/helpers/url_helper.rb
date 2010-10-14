@@ -587,10 +587,12 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
+            disable_with = html_options.delete("disable_with")
             confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            add_confirm_to_attributes!(html_options, confirm) if confirm
+            html_options["data-disable-with"] = disable_with if disable_with
+            html_options["data-confirm"] = confirm if confirm
             add_method_to_attributes!(html_options, method)   if method
 
             html_options
@@ -601,13 +603,9 @@ module ActionView
           options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
         end
 
-        def add_confirm_to_attributes!(html_options, confirm)
-          html_options["data-confirm"] = confirm if confirm
-        end
-
         def add_method_to_attributes!(html_options, method)
-          html_options["rel"] = "nofollow" if method && method.to_s.downcase != "get"
-          html_options["data-method"] = method if method
+          html_options["rel"] = "nofollow" if method.to_s.downcase != "get"
+          html_options["data-method"] = method
         end
 
         def options_for_javascript(options)

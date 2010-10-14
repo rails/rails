@@ -165,9 +165,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql2["']$/
   end
 
-  def test_config_database_is_not_added_if_skip_active_record_is_given
+  def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
+    assert_file "test/test_helper.rb" do |helper_content|
+      assert_no_match /fixtures :all/, helper_content
+    end
+    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
@@ -183,14 +187,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/javascripts/rails.js"
     assert_file "test"
   end
-
-  def test_prototype_and_test_unit_are_skipped_if_required
-    run_generator [destination_root, "--skip-prototype", "--skip-test-unit"]
+  
+  def test_test_unit_is_skipped_if_required
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_no_file "test"    
+  end
+  
+  def test_javascript_is_skipped_if_required
+    run_generator [destination_root, "--skip-javascript"]
     assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
     assert_file "public/javascripts/application.js"
     assert_no_file "public/javascripts/prototype.js"
     assert_no_file "public/javascripts/rails.js"
-    assert_no_file "test"
+  end
+  
+  def test_config_prototype_javascript_library
+    run_generator [destination_root, "-j", "prototype"]
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "public/javascripts/application.js"
+    assert_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts/rails.js", /prototype/
+  end
+  
+  def test_config_jquery_javascript_library
+    run_generator [destination_root, "-j", "jquery"]
+    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "public/javascripts/application.js"
+    assert_file "public/javascripts/jquery.js"
+    assert_file "public/javascripts/rails.js", /jQuery/
   end
 
   def test_shebang_is_added_to_rails_file

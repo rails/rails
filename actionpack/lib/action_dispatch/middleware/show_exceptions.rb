@@ -62,6 +62,7 @@ module ActionDispatch
     private
       def render_exception(env, exception)
         log_error(exception)
+        exception = original_exception(exception)
 
         request = Request.new(env)
         if @consider_all_requests_local || request.local?
@@ -154,5 +155,17 @@ module ActionDispatch
       def logger
         defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
       end
+
+    def original_exception(exception)
+      if registered_original_exception?(exception)
+        exception.original_exception
+      else
+        exception
+      end
+    end
+
+    def registered_original_exception?(exception)
+      exception.respond_to?(:original_exception) && @@rescue_responses.has_key?(exception.original_exception.class.name)
+    end
   end
 end

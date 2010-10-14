@@ -21,9 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
 require 'active_support/ruby/shim'
 require 'active_support/core_ext/class/attribute_accessors'
 
@@ -33,24 +30,27 @@ module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
-    autoload :Context
-    autoload :Template
-    autoload :Helpers
     autoload :Base
+    autoload :Context
+    autoload :Helpers
     autoload :LookupContext
-    autoload :PathSet,        "action_view/paths"
-    autoload :TestCase,       "action_view/test_case"
+    autoload :Partials
+    autoload :PathSet
+    autoload :Rendering
+    autoload :Template
+    autoload :TestCase
 
-    autoload_under "render" do
-      autoload :Layouts
-      autoload :Partials
-      autoload :Rendering
+    autoload_under "renderer" do
+      autoload :AbstractRenderer
+      autoload :PartialRenderer
+      autoload :TemplateRenderer
     end
 
     autoload_at "action_view/template/resolver" do
       autoload :Resolver
       autoload :PathResolver
       autoload :FileSystemResolver
+      autoload :FallbackFileSystemResolver
     end
 
     autoload_at "action_view/template/error" do

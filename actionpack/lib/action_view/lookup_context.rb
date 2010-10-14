@@ -10,7 +10,7 @@ module ActionView
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     mattr_accessor :fallbacks
-    @@fallbacks = [FileSystemResolver.new(""), FileSystemResolver.new("/")]
+    @@fallbacks = FallbackFileSystemResolver.instances
 
     mattr_accessor :registered_details
     self.registered_details = []
@@ -61,6 +61,7 @@ module ActionView
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
+      @cache = true
 
       self.view_paths = view_paths
       self.registered_detail_setters.each do |key, setter|
@@ -77,17 +78,17 @@ module ActionView
         @view_paths = ActionView::Base.process_view_paths(paths)
       end
 
-      def find(name, prefix = nil, partial = false)
-        @view_paths.find(*args_for_lookup(name, prefix, partial))
+      def find(name, prefix = nil, partial = false, keys = [])
+        @view_paths.find(*args_for_lookup(name, prefix, partial, keys))
       end
       alias :find_template :find
 
-      def find_all(name, prefix = nil, partial = false)
-        @view_paths.find_all(*args_for_lookup(name, prefix, partial))
+      def find_all(name, prefix = nil, partial = false, keys = [])
+        @view_paths.find_all(*args_for_lookup(name, prefix, partial, keys))
       end
 
-      def exists?(name, prefix = nil, partial = false)
-        @view_paths.exists?(*args_for_lookup(name, prefix, partial))
+      def exists?(name, prefix = nil, partial = false, keys = [])
+        @view_paths.exists?(*args_for_lookup(name, prefix, partial, keys))
       end
       alias :template_exists? :exists?
 
@@ -106,9 +107,9 @@ module ActionView
 
     protected
 
-      def args_for_lookup(name, prefix, partial) #:nodoc:
+      def args_for_lookup(name, prefix, partial, keys) #:nodoc:
         name, prefix = normalize_name(name, prefix)
-        [name, prefix, partial || false, @details, details_key]
+        [name, prefix, partial || false, @details, keys, details_key]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb
@@ -130,10 +131,20 @@ module ActionView
     end
 
     module Details
+      attr_accessor :cache
+
       # Calculate the details key. Remove the handlers from calculation to improve performance
       # since the user cannot modify it explicitly.
       def details_key #:nodoc:
-        @details_key ||= DetailsKey.get(@details)
+        @details_key ||= DetailsKey.get(@details) if @cache
+      end
+
+      # Temporary skip passing the details_key forward.
+      def disable_cache
+        old_value, @cache = @cache, false
+        yield
+      ensure
+        @cache = old_value
       end
 
       # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing

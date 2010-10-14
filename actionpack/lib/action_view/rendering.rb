@@ -1,6 +1,38 @@
+require 'active_support/core_ext/object/try'
+
 module ActionView
-  # = Action View Layouts
-  module Layouts
+  # = Action View Rendering
+  module Rendering
+    # Returns the result of a render that's dictated by the options hash. The primary options are:
+    #
+    # * <tt>:partial</tt> - See ActionView::Partials.
+    # * <tt>:update</tt> - Calls update_page with the block given.
+    # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
+    # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
+    # * <tt>:text</tt> - Renders the text passed in out.
+    # * <tt>:once</tt> - Accepts a string or an array of strings and Rails will ensure they each of them are rendered just once.
+    #
+    # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
+    # as the locals hash.
+    def render(options = {}, locals = {}, &block)
+      case options
+      when Hash
+        if block_given?
+          _render_partial(options.merge(:partial => options[:layout]), &block)
+        elsif options.key?(:partial)
+          _render_partial(options)
+        elsif options.key?(:once)
+          _render_once(options)
+        else
+          _render_template(options)
+        end
+      when :update
+        update_page(&block)
+      else
+        _render_partial(:partial => options, :locals => locals)
+      end
+    end
+
     # Returns the contents that are yielded to a layout, given a name or a block.
     #
     # You can think of a layout as a method that is called with a block. If the user calls
@@ -47,7 +79,7 @@ module ActionView
     #     Hello David
     #   </html>
     #
-    def _layout_for(*args, &block) #:nodoc:
+    def _layout_for(*args, &block)
       name = args.first
 
       if name.is_a?(Symbol)
@@ -59,25 +91,16 @@ module ActionView
       end
     end
 
-    # This is the method which actually finds the layout using details in the lookup
-    # context object. If no layout is found, it checks if at least a layout with
-    # the given name exists across all details before raising the error.
-    def find_layout(layout)
-      begin
-        with_layout_format do
-          layout =~ /^\// ?
-            with_fallbacks { find_template(layout) } : find_template(layout)
-        end
-      rescue ActionView::MissingTemplate => e
-        update_details(:formats => nil) do
-          raise unless template_exists?(layout)
-        end
-      end
+    def _render_once(options) #:nodoc:
+      _template_renderer.render_once(options)
     end
 
-    # Contains the logic that actually renders the layout.
-    def _render_layout(layout, locals, &block) #:nodoc:
-      layout.render(self, locals){ |*name| _layout_for(*name, &block) }
+    def _render_template(options) #:nodoc:
+      _template_renderer.render(options)
+    end
+
+    def _template_renderer #:nodoc:
+      @_template_renderer ||= TemplateRenderer.new(self)
     end
   end
 end

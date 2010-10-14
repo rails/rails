@@ -114,6 +114,11 @@ module ActiveRecord
         type_cast(default)
       end
 
+      # Used to convert from Strings to BLOBs
+      def string_to_binary(value)
+        self.class.string_to_binary(value)
+      end
+
       class << self
         # Used to convert from Strings to BLOBs
         def string_to_binary(value)
@@ -267,6 +272,10 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
+
+      def string_to_binary(value)
+        value
+      end
 
       def sql_type
         base.type_to_sql(type.to_sym, limit, precision, scale) rescue type

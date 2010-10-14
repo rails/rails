@@ -1,6 +1,10 @@
 *Rails 3.1.0 (unreleased)*
 
-* Added Rack::Cache to the default middleware stack
+* Added -j parameter with jquery/prototype as options. Now you can create your apps with jQuery using `rails new myapp -j jquery`. The default is still Prototype. [siong1987]
+
+* Added Rack::Etag and Rack::ConditionalGet to the default middleware stack [José Valim]
+
+* Added Rack::Cache to the default middleware stack [Yehuda Katz and Carl Lerche]
 
 * Engine is now rack application [Piotr Sarnacki]
 

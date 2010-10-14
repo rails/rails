@@ -346,4 +346,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_from_option_with_table_different_than_class
     assert_equal Account.count(:all), Company.count(:all, :from => 'accounts')
   end
+
+  def test_distinct_is_honored_when_used_with_count_operation_after_group
+    # Count the number of authors for approved topics
+    approved_topics_count = Topic.group(:approved).count(:author_name)[true]
+    assert_equal approved_topics_count, 3
+    # Count the number of distinct authors for approved Topics
+    distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
+    assert_equal distinct_authors_for_approved_count, 2
+  end
 end

@@ -4,7 +4,7 @@ module Rails
       include Initializable
 
       initializer :add_generator_templates do
-        config.generators.templates.unshift(*paths.lib.templates.to_a)
+        config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
 
       initializer :ensure_autoload_once_paths_as_subset do

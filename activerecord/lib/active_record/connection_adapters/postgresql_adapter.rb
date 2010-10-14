@@ -180,8 +180,6 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock;
-    #   otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def xml(*args)
@@ -930,7 +928,7 @@ module ActiveRecord
           PGconn.translate_results = false if PGconn.respond_to?(:translate_results=)
 
           # Ignore async_exec and async_query when using postgres-pr.
-          @async = @config[:allow_concurrency] && @connection.respond_to?(:async_exec)
+          @async = @connection.respond_to?(:async_exec)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision

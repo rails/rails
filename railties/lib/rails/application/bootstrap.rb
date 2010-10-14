@@ -23,7 +23,7 @@ module Rails
       # Initialize the logger early in the stack in case we need to log some deprecation.
       initializer :initialize_logger do
         Rails.logger ||= config.logger || begin
-          path = config.paths.log.to_a.first
+          path = config.paths["log"].first
           logger = ActiveSupport::BufferedLogger.new(path)
           logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
           logger.auto_flushing = false if Rails.env.production?

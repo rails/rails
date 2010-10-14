@@ -46,13 +46,13 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   def test_application_layout_is_default_when_no_controller_match
     @controller = ProductController.new
     get :hello
-    assert_equal 'layout_test.rhtml hello.rhtml', @response.body
+    assert_equal 'layout_test.erb hello.erb', @response.body
   end
 
   def test_controller_name_layout_name_match
     @controller = ItemController.new
     get :hello
-    assert_equal 'item.rhtml hello.rhtml', @response.body
+    assert_equal 'item.erb hello.erb', @response.body
   end
 
   def test_third_party_template_library_auto_discovers_layout
@@ -65,13 +65,13 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   def test_namespaced_controllers_auto_detect_layouts1
     @controller = ControllerNameSpace::NestedController.new
     get :hello
-    assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
+    assert_equal 'controller_name_space/nested.erb hello.erb', @response.body
   end
 
   def test_namespaced_controllers_auto_detect_layouts2
     @controller = MultipleExtensions.new
     get :hello
-    assert_equal 'multiple_extensions.html.erb hello.rhtml', @response.body.strip
+    assert_equal 'multiple_extensions.html.erb hello.erb', @response.body.strip
   end
 end
 
@@ -79,7 +79,7 @@ class DefaultLayoutController < LayoutTest
 end
 
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.rhtml')
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.erb')
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -137,7 +137,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_only_exception_when_excepted
     @controller = OnlyLayoutController.new
     get :goodbye
-    assert !@response.body.include?("item.rhtml"), "#{@response.body.inspect} included 'item.rhtml'"
+    assert !@response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
   end
 
   def test_layout_except_exception_when_included
@@ -149,7 +149,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_except_exception_when_excepted
     @controller = ExceptLayoutController.new
     get :goodbye
-    assert !@response.body.include?("item.rhtml"), "#{@response.body.inspect} included 'item.rhtml'"
+    assert !@response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
   end
 
   def test_layout_set_when_using_render
@@ -173,7 +173,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_absolute_pathed_layout
     @controller = AbsolutePathLayoutController.new
     get :hello
-    assert_equal "layout_test.rhtml hello.rhtml", @response.body.strip
+    assert_equal "layout_test.erb hello.erb", @response.body.strip
   end
 end
 
@@ -184,7 +184,7 @@ class RenderWithTemplateOptionController < LayoutTest
 end
 
 class SetsNonExistentLayoutFile < LayoutTest
-  layout "nofile.rhtml"
+  layout "nofile.erb"
 end
 
 class LayoutExceptionRaised < ActionController::TestCase

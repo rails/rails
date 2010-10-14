@@ -100,8 +100,8 @@ class LookupContextTest < ActiveSupport::TestCase
 
     @lookup_context.with_fallbacks do
       assert_equal 3, @lookup_context.view_paths.size
-      assert @lookup_context.view_paths.include?(ActionView::FileSystemResolver.new(""))
-      assert @lookup_context.view_paths.include?(ActionView::FileSystemResolver.new("/"))
+      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new(""))
+      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new("/"))
     end
   end
 
@@ -162,5 +162,67 @@ class LookupContextTest < ActiveSupport::TestCase
     @lookup_context.view_paths.first.clear_cache
     template = @lookup_context.find("foo", "test", true)
     assert_equal "Bar", template.source
+  end
+
+  test "can disable the cache on demand" do
+    @lookup_context.view_paths = ActionView::FixtureResolver.new("test/_foo.erb" => "Foo")
+    old_template = @lookup_context.find("foo", "test", true)
+
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal template, old_template
+
+    assert @lookup_context.cache
+    template = @lookup_context.disable_cache do
+      assert !@lookup_context.cache
+      @lookup_context.find("foo", "test", true)
+    end
+    assert @lookup_context.cache
+
+    assert_not_equal template, old_template
+  end
+end
+
+class LookupContextWithFalseCaching < ActiveSupport::TestCase
+  def setup
+    @resolver = ActionView::FixtureResolver.new("test/_foo.erb" => ["Foo", Time.utc(2000)])
+    @resolver.stubs(:caching?).returns(false)
+    @lookup_context = ActionView::LookupContext.new(@resolver, {})
+  end
+
+  test "templates are always found in the resolver but timestamp is checked before being compiled" do
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal "Foo", template.source
+
+    # Now we are going to change the template, but it won't change the returned template
+    # since the timestamp is the same.
+    @resolver.hash["test/_foo.erb"][0] = "Bar"
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal "Foo", template.source
+
+    # Now update the timestamp.
+    @resolver.hash["test/_foo.erb"][1] = Time.now.utc
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal "Bar", template.source
+  end
+
+  test "if no template was found in the second lookup, give it higher preference" do
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal "Foo", template.source
+
+    @resolver.hash.clear
+    assert_raise ActionView::MissingTemplate do
+      @lookup_context.find("foo", "test", true)
+    end
+  end
+
+  test "if no template was cached in the first lookup, do not use the cache in the second" do
+    @resolver.hash.clear
+    assert_raise ActionView::MissingTemplate do
+      @lookup_context.find("foo", "test", true)
+    end
+
+    @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal "Foo", template.source
   end
 end

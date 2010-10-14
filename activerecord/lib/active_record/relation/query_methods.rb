@@ -6,7 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     attr_accessor :includes_values, :eager_load_values, :preload_values,
-                  :select_values, :group_values, :order_values, :reorder_flag, :joins_values, :where_values, :having_values,
+                  :select_values, :group_values, :order_values, :joins_values, :where_values, :having_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value, :from_value
 
     def includes(*args)
@@ -50,15 +50,6 @@ module ActiveRecord
     def order(*args)
       relation = clone
       relation.order_values += args.flatten unless args.blank?
-      relation
-    end
-
-    def reorder(*args)
-      relation = clone
-      unless args.blank?
-        relation.order_values = args
-        relation.reorder_flag = true
-      end
       relation
     end
 

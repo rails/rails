@@ -10,8 +10,8 @@ module ActionView #:nodoc:
       METHOD
     end
 
-    def find(path, prefix = nil, partial = false, details = {}, key = nil)
-      template = find_all(path, prefix, partial, details, key).first
+    def find(path, prefix = nil, partial = false, details = {}, keys = [], key = nil)
+      template = find_all(path, prefix, partial, details, keys, key).first
       raise MissingTemplate.new(self, "#{prefix}/#{path}", details, partial) unless template
       template
     end

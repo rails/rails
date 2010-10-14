@@ -25,7 +25,7 @@ module ApplicationTests
     end
 
     def assert_path(paths, *dir)
-      assert_equal [root(*dir)], paths.paths
+      assert_equal [root(*dir)], paths.expanded
     end
 
     def assert_in_load_path(*path)
@@ -37,20 +37,20 @@ module ApplicationTests
     end
 
     test "booting up Rails yields a valid paths object" do
-      assert_path @paths.app.models, "app", "models"
-      assert_path @paths.app.helpers, "app", "helpers"
-      assert_path @paths.app.views, "app", "views"
-      assert_path @paths.lib, "lib"
-      assert_path @paths.vendor, "vendor"
-      assert_path @paths.vendor.plugins, "vendor", "plugins"
-      assert_path @paths.tmp, "tmp"
-      assert_path @paths.tmp.cache, "tmp", "cache"
-      assert_path @paths.config, "config"
-      assert_path @paths.config.locales, "config", "locales", "en.yml"
-      assert_path @paths.config.environment, "config", "environment.rb"
-      assert_path @paths.config.environments, "config", "environments", "development.rb"
+      assert_path @paths["app/models"],          "app/models"
+      assert_path @paths["app/helpers"],         "app/helpers"
+      assert_path @paths["app/views"],           "app/views"
+      assert_path @paths["lib"],                 "lib"
+      assert_path @paths["vendor"],              "vendor"
+      assert_path @paths["vendor/plugins"],      "vendor/plugins"
+      assert_path @paths["tmp"],                 "tmp"
+      assert_path @paths["tmp/cache"],           "tmp/cache"
+      assert_path @paths["config"],              "config"
+      assert_path @paths["config/locales"],      "config/locales/en.yml"
+      assert_path @paths["config/environment"],  "config/environment.rb"
+      assert_path @paths["config/environments"], "config/environments/development.rb"
 
-      assert_equal root("app", "controllers"), @paths.app.controllers.to_a.first
+      assert_equal root("app", "controllers"), @paths["app/controllers"].expanded.first
     end
 
     test "booting up Rails yields a list of paths that are eager" do

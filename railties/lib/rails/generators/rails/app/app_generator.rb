@@ -108,12 +108,20 @@ module Rails
     end
 
     def javascripts
-      unless options[:skip_prototype]
-        directory "public/javascripts"
-      else
-        empty_directory_with_gitkeep "public/javascripts"
-        create_file "public/javascripts/application.js"
+      empty_directory "public/javascripts"
+          
+      unless options[:skip_javascript]
+        copy_file "public/javascripts/#{@options[:javascript]}.js"
+        copy_file "public/javascripts/#{@options[:javascript]}_ujs.js", "public/javascripts/rails.js"
+        
+        if options[:prototype]
+          copy_file "public/javascripts/controls.js"
+          copy_file "public/javascripts/dragdrop.js"
+          copy_file "public/javascripts/effects.js"
+        end
       end
+      
+      copy_file "public/javascripts/application.js"
     end
 
     def script
@@ -152,6 +160,7 @@ module Rails
 
     class AppGenerator < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      JAVASCRIPTS = %w( prototype jquery )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -160,6 +169,9 @@ module Rails
 
       class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                         :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+      class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
+                                        :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
 
       class_option :builder,            :type => :string, :aliases => "-b",
                                         :desc => "Path to an application builder (can be a filesystem path or URL)"
@@ -182,8 +194,8 @@ module Rails
       class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
                                         :desc => "Skip Test::Unit files"
 
-      class_option :skip_prototype,     :type => :boolean, :aliases => "-J", :default => false,
-                                        :desc => "Skip Prototype files"
+      class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
+                                        :desc => "Skip javascript files"
 
       class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                         :desc => "Skip Git ignores and keeps"
@@ -204,6 +216,10 @@ module Rails
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+        end
+        
+        if !options[:skip_javascript] && !JAVASCRIPTS.include?(options[:javascript])
+          raise Error, "Invalid value for --javascript option. Supported for preconfiguration are: #{JAVASCRIPTS.join(", ")}."
         end
       end
 
@@ -269,7 +285,7 @@ module Rails
         build(:stylesheets)
       end
 
-      def create_prototype_files
+      def create_javascript_files
         build(:javascripts)
       end
 

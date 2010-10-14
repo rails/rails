@@ -91,7 +91,7 @@ Creating a resourceful route will also expose a number of helpers to the control
 
 * +photos_path+ returns +/photos+
 * +new_photo_path+ returns +/photos/new+
-* +edit_photo_path+ returns +/photos/:id/edit+
+* +edit_photo_path(id)+ returns +/photos/:id/edit+ (for instance, +edit_photo_path(10)+ returns +/photos/10/edit+)
 * +photo_path(id)+ returns +/photos/:id+ (for instance, +photo_path(10)+ returns +/photos/10+)
 
 Each of these helpers has a corresponding +_url+ helper (such as +photos_url+) which returns the same path prefixed with the current host, port and path prefix.
