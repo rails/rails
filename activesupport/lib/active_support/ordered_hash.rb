@@ -79,7 +79,7 @@ module ActiveSupport
       end
 
       def []=(key, value)
-        @keys << key if !has_key?(key)
+        @keys << key unless has_key?(key)
         super
       end
 
