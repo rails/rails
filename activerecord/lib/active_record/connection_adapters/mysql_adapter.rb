@@ -336,6 +336,7 @@ module ActiveRecord
             cols   = metadata.fetch_fields.map { |field| field.name }
             values = []
             stmt.each { |thing| values << thing }
+            stmt.free_result
             result = ActiveRecord::Result.new(cols, values)
           end
 
