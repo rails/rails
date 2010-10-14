@@ -53,7 +53,6 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
-  gem "weakling", :git => "git://github.com/headius/weakling.git"
 
   gem "activerecord-jdbcsqlite3-adapter"
 
