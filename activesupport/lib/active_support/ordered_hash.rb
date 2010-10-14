@@ -64,8 +64,9 @@ module ActiveSupport
           raise ArgumentError.new("odd number of arguments for Hash")
         end
 
-        0.step(args.length, 2) do |ind|
-          ordered_hash[args[ind]] = args[ind + 1]
+        args.each_with_index do |val, ind|
+          next if (ind % 2 != 0)
+          ordered_hash[val] = args[ind + 1]
         end
 
         ordered_hash
