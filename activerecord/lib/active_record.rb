@@ -32,7 +32,6 @@ require 'active_support'
 require 'active_support/i18n'
 require 'active_model'
 require 'arel'
-require 'weakling'
 
 require 'active_record/version'
 

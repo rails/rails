@@ -25,8 +25,6 @@ gem "memcache-client", ">= 1.8.5"
 # AM
 gem "text-format", "~> 1.0.0"
 
-gem "weakling", :git => "git://github.com/swistak/weakling.git"
-
 platforms :mri_18 do
   gem "system_timer"
   gem "ruby-debug", ">= 0.10.3"
@@ -55,6 +53,7 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
+  gem "weakling", :git => "git://github.com/headius/weakling.git"
 
   gem "activerecord-jdbcsqlite3-adapter"
 
