@@ -90,7 +90,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <%= link_to 'New book', new_book_path %>
 </ruby>
 
-NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (javascript with embedded ruby) and +.builder+ for Builder (XML generator).
+NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (JavaScript with embedded ruby) and +.builder+ for Builder (XML generator).
 
 h4. Using +render+
 
@@ -252,7 +252,7 @@ render :inline =>
 
 h5. Using +render+ with +:update+
 
-You can also render javascript-based page updates inline using the +:update+ option to +render+:
+You can also render JavaScript-based page updates inline using the +:update+ option to +render+:
 
 <ruby>
 render :update do |page|
@@ -260,7 +260,7 @@ render :update do |page|
 end
 </ruby>
 
-WARNING: Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. We recommend using a separate rjs template instead, no matter how small the update.
+WARNING: Placing JavaScript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. We recommend using a separate RJS template instead, no matter how small the update.
 
 h5. Rendering Text
 
@@ -276,7 +276,7 @@ NOTE: By default, if you use the +:text+ option, the text is rendered without us
 
 h5. Rendering JSON
 
-JSON is a javascript data format used by many AJAX libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:
+JSON is a JavaScript data format used by many AJAX libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:
 
 <ruby>
 render :json => @product
@@ -655,7 +655,7 @@ I'll discuss each of these in turn.
 
 h4. Asset Tags
 
-Asset tags provide methods for generating HTML that links views to assets like images, videos, audio, javascript, stylesheets, and feeds. There are six types of include tag:
+Asset tags provide methods for generating HTML that links views to assets like images, videos, audio, JavaScript, stylesheets, and feeds. There are six types of include tag:
 
 * +auto_discovery_link_tag+
 * +javascript_include_tag+
@@ -715,7 +715,7 @@ The +defaults+ option loads the Prototype and Scriptaculous libraries:
 <%= javascript_include_tag :defaults %>
 </erb>
 
-The +all+ option loads every javascript file in +public/javascripts+, starting with the Prototype and Scriptaculous libraries:
+The +all+ option loads every JavaScript file in +public/javascripts+, starting with the Prototype and Scriptaculous libraries:
 
 <erb>
 <%= javascript_include_tag :all %>
@@ -727,7 +727,7 @@ You can supply the +:recursive+ option to load files in subfolders of +public/ja
 <%= javascript_include_tag :all, :recursive => true %>
 </erb>
 
-If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
+If you're loading multiple JavaScript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
 
 <erb>
 <%= javascript_include_tag "main", "columns", :cache => true %>
@@ -962,7 +962,7 @@ The result of rendering this page into the supplied layout would be this HTML:
 </html>
 </erb>
 
-The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise generic layout.
+The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or css files into the header of an otherwise generic layout.
 
 h4. Using Partials
 
