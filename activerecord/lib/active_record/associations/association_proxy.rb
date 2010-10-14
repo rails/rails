@@ -254,8 +254,8 @@ module ActiveRecord
           return nil unless defined?(@loaded)
 
           if !loaded? and (@owner.persisted? || foreign_key_present)
-            if IdentityMap.enabled? && ActiveRecord.const_defined?(@reflection.class_name)
-              @target = IdentityMap.get(@reflection.klass, @owner[@reflection.association_foreign_key])
+            if IdentityMap.enabled? && association_class
+              @target = IdentityMap.get(association_class, @owner[@reflection.association_foreign_key])
             end
             @target ||= find_target
           end
@@ -312,6 +312,10 @@ module ActiveRecord
         # Override in subclasses
         def we_can_set_the_inverse_on_this?(record)
           false
+        end
+
+        def association_class
+          @reflection.klass
         end
     end
   end
