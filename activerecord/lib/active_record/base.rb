@@ -792,6 +792,10 @@ module ActiveRecord #:nodoc:
         object.is_a?(self)
       end
 
+      def symbolized_base_class
+        @symbolized_base_class ||= base_class.to_s.to_sym
+      end
+
       # Returns the base AR subclass that this class descends from. If A
       # extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
@@ -887,7 +891,10 @@ module ActiveRecord #:nodoc:
           record_id = sti_class.primary_key && record[sti_class.primary_key]
 
           if ActiveRecord::IdentityMap.enabled? && record_id
-            if instance = identity_map.get(sti_class.name, record_id)
+            if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
+              record_id = record_id.to_i
+            end
+            if instance = identity_map.get(sti_class, record_id)
               instance.reinit_with('attributes' => record)
             else
               instance = sti_class.allocate.init_with('attributes' => record)

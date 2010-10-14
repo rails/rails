@@ -23,7 +23,7 @@ module ActiveRecord
       attr_accessor :enabled
 
       def current
-        repositories[current_repository_name] ||= Weakling::WeakHash.new
+        repositories[current_repository_name] ||= Hash.new { |h,k| h[k] = Weakling::WeakHash.new }
       end
 
       def with_repository(name = :default)
@@ -43,16 +43,20 @@ module ActiveRecord
         self.enabled = old
       end
 
-      def get(class_name, primary_key)
-        current[[class_name, primary_key.to_s]]
+      def get(klass, primary_key)
+        if obj = current[klass.symbolized_base_class][primary_key]
+          return obj if obj.id == primary_key && klass == obj.class
+        end
+
+        nil
       end
 
       def add(record)
-        current[[record.class.name, record.id.to_s]] = record
+        current[record.class.symbolized_base_class][record.id] = record
       end
 
       def remove(record)
-        current.delete([record.class.name, record.id.to_s])
+        current[record.class.symbolized_base_class].delete(record.id)
       end
 
       def clear

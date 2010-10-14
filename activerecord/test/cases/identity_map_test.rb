@@ -53,6 +53,13 @@ class IdentityMapTest < ActiveRecord::TestCase
     )
   end
 
+  def test_find_by_string_and_numeric_id
+    assert_same(
+      Client.find_by_id("3"),
+      Client.find_by_id(3)
+    )
+  end
+
   def test_find_by_pkey
     assert_same(
       Subscriber.find_by_nick('swistak'),
