@@ -198,9 +198,20 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [comments(:greetings), comments(:more_greetings)], comments[2].category_post_comments
   end
   
-  # TODO: has_many through
+  # has_many through
   # Source: belongs_to
   # Through: has_many through
+  def test_has_many_through_has_many_through_with_belongs_to_source_reflection
+    author = authors(:david)
+    assert_equal [tags(:general), tags(:general)], author.tagging_tags
+    
+    authors = Author.joins(:tagging_tags).where('tags.id' => tags(:general).id)
+    assert_equal [authors(:david)], authors.uniq
+    
+    # TODO: Make this work
+    # authors = Author.includes(:tagging_tags)
+    # assert_equal [tags(:general), tags(:general)], authors.first.tagging_tags
+  end
   
   # TODO: has_many through
   # Source: has_many through
