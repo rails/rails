@@ -1,3 +1,6 @@
+*2.3.10 (October 15, 2010)*
+
+
 *2.3.9 (September 4, 2010)*
 
 * i18n: bundle i18n 0.4.1 for forward compatibility with Rails 3. Deprecates {{foo}} interpolation syntax in favor of 1.9-native %{foo}.
