@@ -254,7 +254,7 @@ module ActiveRecord
           return nil unless defined?(@loaded)
 
           if !loaded? and (@owner.persisted? || foreign_key_present)
-            if IdentityMap.enabled? && defined?(@reflection.klass)
+            if IdentityMap.enabled? && ActiveRecord.const_defined?(@reflection.class_name)
               @target = IdentityMap.get(@reflection.klass, @owner[@reflection.association_foreign_key])
             end
             @target ||= find_target
