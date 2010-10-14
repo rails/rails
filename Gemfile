@@ -59,6 +59,10 @@ platforms :jruby do
   end
 end
 
+env :AREL do
+  gem "arel", :path => ENV['AREL']
+end
+
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   platforms :ruby do
