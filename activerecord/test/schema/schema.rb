@@ -113,6 +113,7 @@ ActiveRecord::Schema.define do
 
   create_table :clubs, :force => true do |t|
     t.string :name
+    t.integer :category_id
   end
 
   create_table :collections, :force => true do |t|

@@ -18,4 +18,6 @@ class Member < ActiveRecord::Base
   
   has_many :organization_member_details, :through => :member_detail
   has_many :organization_member_details_2, :through => :organization, :source => :member_details
+  
+  has_one :club_category, :through => :club, :source => :category
 end

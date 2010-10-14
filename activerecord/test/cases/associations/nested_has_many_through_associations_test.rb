@@ -26,6 +26,7 @@ require 'models/club'
 require 'models/organization'
 require 'models/category'
 require 'models/categorization'
+require 'models/membership'
 
 # NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
 # are just one level deep. But it's all the same thing really, as the "nested" code is being 
@@ -36,7 +37,7 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
            :member_types, :sponsors, :clubs, :organizations, :categories, :categories_posts,
-           :categorizations
+           :categorizations, :memberships
 
   # Through associations can either use the has_many or has_one macros.
   # 
@@ -241,9 +242,19 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal member_types(:founding), members.first.nested_member_type
   end
   
-  # TODO: has_one through
+  # has_one through
   # Source: belongs_to
   # Through: has_one through
+  def test_has_one_through_has_one_through_with_belongs_to_source_reflection
+    assert_equal categories(:general), members(:groucho).club_category
+    
+    members = Member.joins(:club_category).where('categories.id' => categories(:technology).id)
+    assert_equal [members(:blarpy_winkup)], members
+    
+    # TODO: Make this work
+    # members = Member.includes(:club_category)
+    # assert_equal categories(:general), members.first.club_category
+  end
 
   def test_distinct_has_many_through_a_has_many_through_association_on_source_reflection
     author = authors(:david)
