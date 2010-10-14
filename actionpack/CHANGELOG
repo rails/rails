@@ -1,3 +1,7 @@
+*Rails 3.0.1 (October 15, 2010)*
+
+* No Changes, just a version bump.
+
 *Rails 3.0.0 (August 29, 2010)*
 
 * Symbols and strings in routes should yield the same behavior. Note this may break existing apps that were using symbols with the new routes API [José Valim]

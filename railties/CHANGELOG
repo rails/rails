@@ -1,3 +1,7 @@
+*Rails 3.0.1 (October 15, 2010)*
+
+* No Changes, just a version bump.
+
 *Rails 3.0.0 (August 29, 2010)*
 
 * Application generation: --skip-testunit and --skip-activerecord become --skip-test-unit
