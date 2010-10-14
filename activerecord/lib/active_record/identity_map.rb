@@ -1,3 +1,5 @@
+require "active_support/weak_hash"
+
 module ActiveRecord
   # = Active Record Identity Map
   #
@@ -23,7 +25,7 @@ module ActiveRecord
       attr_accessor :enabled
 
       def current
-        repositories[current_repository_name] ||= Hash.new { |h,k| h[k] = Weakling::WeakHash.new }
+        repositories[current_repository_name] ||= Hash.new { |h,k| h[k] = ActiveSupport::WeakHash.new }
       end
 
       def with_repository(name = :default)
