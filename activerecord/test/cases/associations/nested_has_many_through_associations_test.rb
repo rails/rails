@@ -213,9 +213,20 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     # assert_equal [tags(:general), tags(:general)], authors.first.tagging_tags
   end
   
-  # TODO: has_many through
+  # has_many through
   # Source: has_many through
   # Through: belongs_to
+  def test_has_many_through_belongs_to_with_has_many_through_source_reflection
+    assert_equal [taggings(:welcome_general), taggings(:thinking_general)],
+                 categorizations(:david_welcome_general).post_taggings
+    
+    categorizations = Categorization.joins(:post_taggings).where('taggings.id' => taggings(:welcome_general).id)
+    assert_equal [categorizations(:david_welcome_general)], categorizations
+    
+    categorizations = Categorization.includes(:post_taggings)
+    assert_equal [taggings(:welcome_general), taggings(:thinking_general)],
+                 categorizations.first.post_taggings
+  end
   
   # has_one through
   # Source: has_one through
