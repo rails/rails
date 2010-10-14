@@ -92,7 +92,11 @@ module ActiveRecord
                   polymorphic_conditions(left, left)
                 )
               when :has_and_belongs_to_many
-                raise NotImplementedError
+                joins << inner_join_sql(
+                  right_table_and_alias,
+                  table_aliases[left].first, left.primary_key_name,
+                  table_aliases[right],      right.klass.primary_key
+                )
             end
           else
             case left.source_reflection.macro
@@ -106,7 +110,7 @@ module ActiveRecord
               when :has_many, :has_one
                 if right.macro == :has_and_belongs_to_many
                   join_table, right_table = table_aliases[right]
-                  right_table_and_alias = table_name_and_alias(right.quoted_table_name, right_table)
+                  right_table_and_alias   = table_name_and_alias(right.quoted_table_name, right_table)
                 else
                   right_table = table_aliases[right]
                 end

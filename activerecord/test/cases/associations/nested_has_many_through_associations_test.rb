@@ -25,6 +25,7 @@ require 'models/sponsor'
 require 'models/club'
 require 'models/organization'
 require 'models/category'
+require 'models/categorization'
 
 # NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
 # are just one level deep. But it's all the same thing really, as the "nested" code is being 
@@ -34,7 +35,8 @@ require 'models/category'
 class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
-           :member_types, :sponsors, :clubs, :organizations, :categories, :categories_posts
+           :member_types, :sponsors, :clubs, :organizations, :categories, :categories_posts,
+           :categorizations
 
   # Through associations can either use the has_many or has_one macros.
   # 
@@ -181,6 +183,19 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     # TODO: Make this work
     # categories = Category.includes(:post_comments)
     # assert_equal [comments(:greetings), comments(:more_greetings)], categories[1].post_comments
+  end
+  
+  # has_many through
+  # Source: has_many through a habtm
+  # Through: has_many through
+  def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection
+    assert_equal [comments(:greetings), comments(:more_greetings)], authors(:bob).category_post_comments
+    
+    authors = Author.joins(:category_post_comments).where('comments.id' => comments(:does_it_hurt).id)
+    assert_equal [authors(:david), authors(:mary)], authors
+    
+    comments = Author.joins(:category_post_comments)
+    assert_equal [comments(:greetings), comments(:more_greetings)], comments[2].category_post_comments
   end
   
   # TODO: has_many through

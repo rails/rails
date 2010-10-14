@@ -101,6 +101,7 @@ class Author < ActiveRecord::Base
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
 
   has_many :post_categories, :through => :posts, :source => :categories
+  has_many :category_post_comments, :through => :categories, :source => :post_comments
 
   scope :relation_include_posts, includes(:posts)
   scope :relation_include_tags, includes(:tags)

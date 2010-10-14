@@ -15,3 +15,9 @@ mary_thinking_general:
   author_id: 2
   post_id: 2
   category_id: 1
+
+bob_misc_by_bob_technology:
+  id: 4
+  author_id: 3
+  post_id: 8
+  category_id: 2
