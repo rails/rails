@@ -17,17 +17,12 @@ class Mysql
   class Time
     ###
     # This monkey patch is for test_additional_columns_from_join_table
-
     def to_date
       Date.new(year, month, day)
     end
   end
-end
-
-class Mysql
-  class Stmt
-    include Enumerable
-  end
+  class Stmt; include Enumerable end
+  class Result; include Enumerable end
 end
 
 module ActiveRecord
@@ -357,10 +352,9 @@ module ActiveRecord
         log(sql, name) do
           result = @connection.query(sql)
           cols = result.fetch_fields.map { |field| field.name }
-          values = []
-          result.each { |row| values << row }
+          rows = result.to_a
           result.free
-          ActiveRecord::Result.new(cols, values)
+          ActiveRecord::Result.new(cols, rows)
         end
       end
 
