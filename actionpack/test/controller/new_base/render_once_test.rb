@@ -79,17 +79,8 @@ module RenderTemplate
     end
   end
 
-  class TestWithResolverCache < Rack::TestCase
+  class TestRenderOnce < Rack::TestCase
     testing RenderTemplate::RenderOnceController
     include Tests
-  end
-
-  class TestWithoutResolverCache < Rack::TestCase
-    testing RenderTemplate::RenderOnceController
-    include Tests
-
-    def setup
-      RenderTemplate::RenderOnceController::RESOLVER.stubs(:caching?).returns(false)
-    end
   end
 end

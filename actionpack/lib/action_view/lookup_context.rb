@@ -61,7 +61,7 @@ module ActionView
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
-      @cache = details.key?(:cache) ? details.delete(:cache) : true
+      @cache = true
 
       self.view_paths = view_paths
       self.registered_detail_setters.each do |key, setter|

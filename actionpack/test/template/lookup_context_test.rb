@@ -180,10 +180,6 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert_not_equal template, old_template
   end
-
-  test "can have cache disabled on initialization" do
-    assert !ActionView::LookupContext.new(FIXTURE_LOAD_PATH, :cache => false).cache
-  end
 end
 
 class LookupContextWithFalseCaching < ActiveSupport::TestCase

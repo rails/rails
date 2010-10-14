@@ -93,7 +93,6 @@ module ActionView
       autoload :Error
       autoload :Handler
       autoload :Handlers
-      autoload :Inline
       autoload :Text
     end
 
@@ -183,14 +182,6 @@ module ActionView
       else
         view.render :template => @virtual_path
       end
-    end
-
-    def hash
-      identifier.hash
-    end
-
-    def eql?(other)
-      other.is_a?(Template) && other.identifier == identifier
     end
 
     def inspect
