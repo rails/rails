@@ -22,9 +22,6 @@ module ActiveRecord
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",
       "ActiveRecord::ConnectionAdapters::ConnectionManagement"
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::IdentityMap::Middleware"
-
     rake_tasks do
       load "active_record/railties/databases.rake"
     end
@@ -79,6 +76,11 @@ module ActiveRecord
           end
         end
       end
+    end
+
+    initializer "active_record.identity_map" do |app|
+      config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+        "ActiveRecord::IdentityMap::Middleware" if ActiveRecord::IdentityMap.enabled?
     end
 
     config.after_initialize do

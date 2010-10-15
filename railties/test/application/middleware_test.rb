@@ -107,6 +107,11 @@ module ApplicationTests
       assert_equal "Rack::Runtime", middleware.fourth
     end
 
+    test "identity map is inserted" do
+      boot!
+      assert_equal "ActiveRecord::IdentityMap::Middleware", middleware[9]
+    end
+
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
