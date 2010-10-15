@@ -37,6 +37,18 @@ module Arel
 
   describe 'select manager' do
     describe 'backwards compatibility' do
+      describe 'project' do
+        it 'accepts symbols as sql literals' do
+          table   = Table.new :users
+          manager = Arel::SelectManager.new Table.engine
+          manager.project :id
+          manager.from table
+          manager.to_sql.should be_like %{
+            SELECT id FROM "users"
+          }
+        end
+      end
+
       describe 'order' do
         it 'accepts symbols' do
           table   = Table.new :users
