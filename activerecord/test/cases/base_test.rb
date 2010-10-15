@@ -48,6 +48,11 @@ class Boolean < ActiveRecord::Base; end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def test_select_symbol
+    topic_ids = Topic.select(:id).map(&:id).sort
+    assert_equal Topic.find(:all).map(&:id), topic_ids
+  end
+
   def test_table_exists
     assert !NonExistentTable.table_exists?
     assert Topic.table_exists?
