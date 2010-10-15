@@ -84,7 +84,10 @@ module ActiveSupport
       end
 
       def delete(key)
-        @keys.delete key if has_key? key
+        if has_key? key
+          index = @keys.index(key)
+          @keys.delete_at index
+        end
         super
       end
 
