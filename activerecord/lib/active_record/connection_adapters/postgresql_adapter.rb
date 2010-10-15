@@ -228,7 +228,7 @@ module ActiveRecord
 
       def clear_cache!
         @statements.each_value do |value|
-          exec "DEALLOCATE #{value}"
+          @connection.query "DEALLOCATE #{value}"
         end
         @statements.clear
       end
@@ -251,6 +251,7 @@ module ActiveRecord
       def reconnect!
         if @connection.respond_to?(:reset)
           @connection.reset
+          clear_cache!
           configure_connection
         else
           disconnect!
@@ -515,6 +516,10 @@ module ActiveRecord
         end
       end
 
+      def substitute_for(column, current_values)
+        Arel.sql("$#{current_values.length + 1}")
+      end
+
       def exec(sql, name = 'SQL', binds = [])
         return async_exec(sql, name, binds) if @async
 
@@ -537,7 +542,9 @@ module ActiveRecord
           })
           @connection.block
           result = @connection.get_last_result
-          ActiveRecord::Result.new(result.fields, result_as_array(result))
+          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
+          result.clear
+          return ret
         end
       end
 
@@ -1014,11 +1021,8 @@ module ActiveRecord
 
         # Executes a SELECT query and returns the results, performing any data type
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
-        def select(sql, name = nil)
-          fields, rows = select_raw(sql, name)
-          rows.map do |row|
-            Hash[fields.zip(row)]
-          end
+        def select(sql, name = nil, binds = [])
+          exec(sql, name, binds).to_a
         end
 
         def select_raw(sql, name = nil)
