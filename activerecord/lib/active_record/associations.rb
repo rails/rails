@@ -64,6 +64,12 @@ module ActiveRecord
       super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
     end
   end
+  
+  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
+    def initialize(owner, reflection)
+      super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
+    end
+  end
 
   class HasAndBelongsToManyAssociationWithPrimaryKeyError < ActiveRecordError #:nodoc:
     def initialize(reflection)

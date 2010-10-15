@@ -363,6 +363,48 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert !scope.where("comments.type" => "SpecialComment").empty?
     assert !scope.where("comments.type" => "SubSpecialComment").empty?
   end
+
+  def test_nested_has_many_through_writers_should_raise_error
+    david = authors(:david)
+    subscriber = subscribers(:first)
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscribers = [subscriber]
+    end
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscriber_ids = [subscriber.id]
+    end
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscribers << subscriber
+    end
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscribers.delete(subscriber)
+    end
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscribers.clear
+    end
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscribers.build
+    end
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      david.subscribers.create
+    end
+  end
+  
+  def test_nested_has_one_through_writers_should_raise_error
+    groucho = members(:groucho)
+    founding = member_types(:founding)
+    
+    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+      groucho.nested_member_type = founding
+    end
+  end
   
   private
   

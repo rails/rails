@@ -8,6 +8,11 @@ module ActiveRecord
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociationScope
 
+      def build(attributes = {}, &block)
+        ensure_not_nested
+        super
+      end
+
       alias_method :new, :build
 
       def create!(attrs = nil)
@@ -37,6 +42,7 @@ module ActiveRecord
 
       protected
         def create_record(attrs, force = true)
+          ensure_not_nested
           ensure_owner_is_not_new
 
           transaction do
@@ -60,6 +66,8 @@ module ActiveRecord
         end
 
         def insert_record(record, force = true, validate = true)
+          ensure_not_nested
+          
           if record.new_record?
             if force
               record.save!
@@ -75,6 +83,8 @@ module ActiveRecord
 
         # TODO - add dependent option support
         def delete_records(records)
+          ensure_not_nested
+          
           klass = @reflection.through_reflection.klass
           records.each do |associate|
             klass.delete_all(construct_join_attributes(associate))

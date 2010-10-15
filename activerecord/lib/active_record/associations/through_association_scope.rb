@@ -8,15 +8,18 @@ module ActiveRecord
       protected
 
       def construct_scope
-        { :create => construct_owner_attributes(@reflection),
-          :find   => { :conditions  => construct_conditions,
-                       :joins       => construct_joins,
-                       :include     => @reflection.options[:include] || @reflection.source_reflection.options[:include],
-                       :select      => construct_select,
-                       :order       => @reflection.options[:order],
-                       :limit       => @reflection.options[:limit],
-                       :readonly    => @reflection.options[:readonly],
-           } }
+        scope = {}
+        scope[:find] = {
+          :conditions => construct_conditions,
+          :joins      => construct_joins,
+          :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include],
+          :select     => construct_select,
+          :order      => @reflection.options[:order],
+          :limit      => @reflection.options[:limit],
+          :readonly   => @reflection.options[:readonly]
+        }
+        scope[:create] = construct_owner_attributes(@reflection) unless @reflection.nested?
+        scope
       end
 
       # Build SQL conditions from attributes, qualified by table name.
@@ -299,6 +302,12 @@ module ActiveRecord
       end
 
       alias_method :sql_conditions, :conditions
+      
+      def ensure_not_nested
+        if @reflection.nested?
+          raise HasManyThroughNestedAssociationsAreReadonly.new(@owner, @reflection)
+        end
+      end
     end
   end
 end

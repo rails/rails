@@ -395,6 +395,10 @@ module ActiveRecord
           chain
         end
       end
+      
+      def nested?
+        through_reflection_chain.length > 2
+      end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:
       #

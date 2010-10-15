@@ -14,6 +14,8 @@ module ActiveRecord
       private
 
       def create_through_record(new_value) #nodoc:
+        ensure_not_nested
+        
         klass = @reflection.through_reflection.klass
 
         current_object = @owner.send(@reflection.through_reflection.name)
