@@ -311,6 +311,17 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_default_scope_with_lambda
+    expected = Post.find_all_by_author_id(2)
+    PostForAuthor.selected_author = 2
+    received = PostForAuthor.all
+    assert_equal expected, received
+    expected = Post.find_all_by_author_id(1)
+    PostForAuthor.selected_author = 1
+    received = PostForAuthor.all
+    assert_equal expected, received
+  end
+
   def test_default_scope_is_unscoped_on_find
     assert_equal 1, DeveloperCalledDavid.count
     assert_equal 11, DeveloperCalledDavid.unscoped.count

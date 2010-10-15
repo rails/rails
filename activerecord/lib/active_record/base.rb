@@ -1143,7 +1143,12 @@ MSG
         end
 
         def current_scoped_methods #:nodoc:
-          scoped_methods.last
+          method = scoped_methods.last
+          if method.respond_to?(:call)
+            unscoped(&method)
+          else
+            method
+          end
         end
 
         def reset_scoped_methods #:nodoc:
