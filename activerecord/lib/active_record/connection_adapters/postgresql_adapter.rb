@@ -220,9 +220,17 @@ module ActiveRecord
         @local_tz = nil
         @table_alias_length = nil
         @postgresql_version = nil
+        @statements = Hash.new { |h,k| h[k] = "a#{h.length + 1}" }
 
         connect
         @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
+      end
+
+      def clear_cache!
+        @statements.each_value do |value|
+          exec "DEALLOCATE #{value}"
+        end
+        @statements.clear
       end
 
       # Is this connection alive and ready for queries?
@@ -250,8 +258,14 @@ module ActiveRecord
         end
       end
 
+      def reset!
+        clear_cache!
+        super
+      end
+
       # Close the connection.
       def disconnect!
+        clear_cache!
         @connection.close rescue nil
       end
 
@@ -498,6 +512,30 @@ module ActiveRecord
           else
             @connection.exec(sql)
           end
+        end
+      end
+
+      def exec(sql, name = 'SQL', binds = [])
+        return async_exec(sql, name, binds) if @async
+
+        log(sql, name) do
+        end
+      end
+
+      def async_exec(sql, name, binds)
+        log(sql, name) do
+          unless @statements.key? sql
+            @connection.prepare @statements[sql], sql
+          end
+
+          key = @statements[sql]
+
+          # Clear the queue
+          @connection.get_last_result
+          @connection.send_query_prepared(key, [])
+          @connection.block
+          result = @connection.get_last_result
+          ActiveRecord::Result.new(result.fields, result_as_array(result))
         end
       end
 
