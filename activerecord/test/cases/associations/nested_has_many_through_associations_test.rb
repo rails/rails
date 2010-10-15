@@ -54,70 +54,98 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   # Source: has_many through
   # Through: has_many
   def test_has_many_through_has_many_with_has_many_through_source_reflection
-    author = authors(:david)
-    assert_equal [tags(:general), tags(:general)], author.tags
+    general = tags(:general)
+    
+    assert_equal [general, general], authors(:david).tags
     
     # Only David has a Post tagged with General
     authors = Author.joins(:tags).where('tags.id' => tags(:general).id)
     assert_equal [authors(:david)], authors.uniq
     
-    authors = Author.includes(:tags)
-    assert_equal [tags(:general), tags(:general)], authors.first.tags
-    
     # This ensures that the polymorphism of taggings is being observed correctly
     authors = Author.joins(:tags).where('taggings.taggable_type' => 'FakeModel')
     assert authors.empty?
+    
+    assert_queries(5) do
+      authors = Author.includes(:tags).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [general, general], authors.first.tags
+    end
   end
 
   # has_many through
   # Source: has_many
   # Through: has_many through
   def test_has_many_through_has_many_through_with_has_many_source_reflection
+    luke, david = subscribers(:first), subscribers(:second)
+    
     author = authors(:david)
-    assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], author.subscribers
+    assert_equal [luke, david, david], author.subscribers
     
     # All authors with subscribers where one of the subscribers' nick is 'alterself'
     authors = Author.joins(:subscribers).where('subscribers.nick' => 'alterself')
     assert_equal [authors(:david)], authors
     
-    # TODO: Make this work
-    # authors = Author.includes(:subscribers)
-    # assert_equal [subscribers(:first), subscribers(:second), subscribers(:second)], authors.first.subscribers
+    assert_queries(4) do
+      authors = Author.includes(:subscribers).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [luke, david, david], authors.first.subscribers.sort_by(&:nick)
+    end
+    
+    # TODO: Add eager loading test using LEFT OUTER JOIN
   end
   
   # has_many through
   # Source: has_one through
   # Through: has_one
   def test_has_many_through_has_one_with_has_one_through_source_reflection
-    assert_equal [member_types(:founding)], members(:groucho).nested_member_types
+    founding = member_types(:founding)
+  
+    assert_equal [founding], members(:groucho).nested_member_types
     
-    members = Member.joins(:nested_member_types).where('member_types.id' => member_types(:founding).id)
+    members = Member.joins(:nested_member_types).where('member_types.id' => founding.id)
     assert_equal [members(:groucho)], members
     
-    members = Member.includes(:nested_member_types)
-    assert_equal [member_types(:founding)], members.first.nested_member_types
+    assert_queries(4) do
+      members = Member.includes(:nested_member_types).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [founding], members.first.nested_member_types
+    end
   end
   
   # has_many through
   # Source: has_one
   # Through: has_one through
   def test_has_many_through_has_one_through_with_has_one_source_reflection
-    assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], members(:groucho).nested_sponsors
+    mustache = sponsors(:moustache_club_sponsor_for_groucho)
     
-    members = Member.joins(:nested_sponsors).where('sponsors.id' => sponsors(:moustache_club_sponsor_for_groucho).id)
+    assert_equal [mustache], members(:groucho).nested_sponsors
+    
+    members = Member.joins(:nested_sponsors).where('sponsors.id' => mustache.id)
     assert_equal [members(:groucho)], members
     
-    # TODO: Make this work
-    # members = Member.includes(:nested_sponsors)
-    # assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], members.first.nested_sponsors
+    assert_queries(4) do
+      members = Member.includes(:nested_sponsors).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [mustache], members.first.nested_sponsors
+    end
   end
   
   # has_many through
   # Source: has_many through
   # Through: has_one
   def test_has_many_through_has_one_with_has_many_through_source_reflection
-    assert_equal [member_details(:groucho), member_details(:some_other_guy)],
-                 members(:groucho).organization_member_details
+    groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
+  
+    assert_equal [groucho_details, other_details], members(:groucho).organization_member_details
     
     members = Member.joins(:organization_member_details).
                      where('member_details.id' => member_details(:groucho).id)
@@ -127,127 +155,178 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
                      where('member_details.id' => 9)
     assert members.empty?
     
-    members = Member.includes(:organization_member_details)
-    assert_equal [member_details(:groucho), member_details(:some_other_guy)],
-                 members.first.organization_member_details
+    assert_queries(4) do
+      members = Member.includes(:organization_member_details).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [groucho_details, other_details], members.first.organization_member_details
+    end
   end
   
   # has_many through
   # Source: has_many
   # Through: has_one through
   def test_has_many_through_has_one_through_with_has_many_source_reflection
-    assert_equal [member_details(:groucho), member_details(:some_other_guy)],
-                 members(:groucho).organization_member_details_2
+    groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
+  
+    assert_equal [groucho_details, other_details], members(:groucho).organization_member_details_2
     
     members = Member.joins(:organization_member_details_2).
-                     where('member_details.id' => member_details(:groucho).id)
+                     where('member_details.id' => groucho_details.id)
     assert_equal [members(:groucho), members(:some_other_guy)], members
     
     members = Member.joins(:organization_member_details_2).
                      where('member_details.id' => 9)
     assert members.empty?
     
-    # TODO: Make this work
-    # members = Member.includes(:organization_member_details_2)
-    # assert_equal [member_details(:groucho), member_details(:some_other_guy)],
-    #              members.first.organization_member_details_2
+    assert_queries(4) do
+      members = Member.includes(:organization_member_details_2).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [groucho_details, other_details], members.first.organization_member_details_2
+    end
   end
   
   # has_many through
   # Source: has_and_belongs_to_many
   # Through: has_many
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection
-    assert_equal [categories(:general), categories(:cooking)], authors(:bob).post_categories
+    general, cooking = categories(:general), categories(:cooking)
+  
+    assert_equal [general, cooking], authors(:bob).post_categories
     
-    authors = Author.joins(:post_categories).where('categories.id' => categories(:cooking).id)
+    authors = Author.joins(:post_categories).where('categories.id' => cooking.id)
     assert_equal [authors(:bob)], authors
     
-    authors = Author.includes(:post_categories)
-    assert_equal [categories(:general), categories(:cooking)], authors[2].post_categories
+    assert_queries(3) do
+      authors = Author.includes(:post_categories).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [general, cooking], authors[2].post_categories
+    end
   end
   
   # has_many through
   # Source: has_many
   # Through: has_and_belongs_to_many
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection
-    assert_equal [comments(:greetings), comments(:more_greetings)], categories(:technology).post_comments
+    greetings, more = comments(:greetings), comments(:more_greetings)
+  
+    assert_equal [greetings, more], categories(:technology).post_comments
     
-    categories = Category.joins(:post_comments).where('comments.id' => comments(:more_greetings).id)
+    categories = Category.joins(:post_comments).where('comments.id' => more.id)
     assert_equal [categories(:general), categories(:technology)], categories
     
-    # TODO: Make this work
-    # categories = Category.includes(:post_comments)
-    # assert_equal [comments(:greetings), comments(:more_greetings)], categories[1].post_comments
+    assert_queries(3) do
+      categories = Category.includes(:post_comments).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [greetings, more], categories[1].post_comments
+    end
   end
   
   # has_many through
   # Source: has_many through a habtm
   # Through: has_many through
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection
-    assert_equal [comments(:greetings), comments(:more_greetings)], authors(:bob).category_post_comments
+    greetings, more = comments(:greetings), comments(:more_greetings)
+  
+    assert_equal [greetings, more], authors(:bob).category_post_comments
     
     authors = Author.joins(:category_post_comments).where('comments.id' => comments(:does_it_hurt).id)
     assert_equal [authors(:david), authors(:mary)], authors
     
-    comments = Author.joins(:category_post_comments)
-    assert_equal [comments(:greetings), comments(:more_greetings)], comments[2].category_post_comments
+    assert_queries(5) do
+      authors = Author.includes(:category_post_comments).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [greetings, more], authors[2].category_post_comments
+    end
   end
   
   # has_many through
   # Source: belongs_to
   # Through: has_many through
   def test_has_many_through_has_many_through_with_belongs_to_source_reflection
-    author = authors(:david)
-    assert_equal [tags(:general), tags(:general)], author.tagging_tags
+    general = tags(:general)
+    
+    assert_equal [general, general], authors(:david).tagging_tags
     
     authors = Author.joins(:tagging_tags).where('tags.id' => tags(:general).id)
     assert_equal [authors(:david)], authors.uniq
     
-    # TODO: Make this work
-    # authors = Author.includes(:tagging_tags)
-    # assert_equal [tags(:general), tags(:general)], authors.first.tagging_tags
+    assert_queries(5) do
+      authors = Author.includes(:tagging_tags).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [general, general], authors.first.tagging_tags
+    end
   end
   
   # has_many through
   # Source: has_many through
   # Through: belongs_to
   def test_has_many_through_belongs_to_with_has_many_through_source_reflection
-    assert_equal [taggings(:welcome_general), taggings(:thinking_general)],
-                 categorizations(:david_welcome_general).post_taggings
+    welcome_general, thinking_general = taggings(:welcome_general), taggings(:thinking_general)
+  
+    assert_equal [welcome_general, thinking_general], categorizations(:david_welcome_general).post_taggings
     
-    categorizations = Categorization.joins(:post_taggings).where('taggings.id' => taggings(:welcome_general).id)
+    categorizations = Categorization.joins(:post_taggings).where('taggings.id' => welcome_general.id)
     assert_equal [categorizations(:david_welcome_general)], categorizations
     
-    categorizations = Categorization.includes(:post_taggings)
-    assert_equal [taggings(:welcome_general), taggings(:thinking_general)],
-                 categorizations.first.post_taggings
+    assert_queries(4) do
+      categorizations = Categorization.includes(:post_taggings).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal [welcome_general, thinking_general], categorizations.first.post_taggings
+    end
   end
   
   # has_one through
   # Source: has_one through
   # Through: has_one
   def test_has_one_through_has_one_with_has_one_through_source_reflection
-    assert_equal member_types(:founding), members(:groucho).nested_member_type
+    founding = member_types(:founding)
+  
+    assert_equal founding, members(:groucho).nested_member_type
     
-    members = Member.joins(:nested_member_type).where('member_types.id' => member_types(:founding).id)
+    members = Member.joins(:nested_member_type).where('member_types.id' => founding.id)
     assert_equal [members(:groucho)], members
     
-    members = Member.includes(:nested_member_type)
-    assert_equal member_types(:founding), members.first.nested_member_type
+    assert_queries(4) do
+      members = Member.includes(:nested_member_type).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal founding, members.first.nested_member_type
+    end
   end
   
   # has_one through
   # Source: belongs_to
   # Through: has_one through
   def test_has_one_through_has_one_through_with_belongs_to_source_reflection
-    assert_equal categories(:general), members(:groucho).club_category
+    general = categories(:general)
+  
+    assert_equal general, members(:groucho).club_category
     
     members = Member.joins(:club_category).where('categories.id' => categories(:technology).id)
     assert_equal [members(:blarpy_winkup)], members
     
-    # TODO: Make this work
-    # members = Member.includes(:club_category)
-    # assert_equal categories(:general), members.first.club_category
+    assert_queries(4) do
+      members = Member.includes(:club_category).to_a
+    end
+    
+    assert_no_queries do
+      assert_equal general, members.first.club_category
+    end
   end
 
   def test_distinct_has_many_through_a_has_many_through_association_on_source_reflection

@@ -202,93 +202,108 @@ module ActiveRecord
         set_association_collection_records(id_to_record_map, reflection.name, associated_records, 'the_parent_record_id')
       end
 
-      def preload_has_one_association(records, reflection, preload_options={})
-        return if records.first.send("loaded_#{reflection.name}?")
-        id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
+      def preload_has_one_or_has_many_association(records, reflection, preload_options={})
+        if reflection.macro == :has_many
+          return if records.first.send(reflection.name).loaded?
+          records.each { |record| record.send(reflection.name).loaded }
+        else
+          return if records.first.send("loaded_#{reflection.name}?")
+          records.each {|record| record.send("set_#{reflection.name}_target", nil)}
+        end
+        
         options = reflection.options
-        records.each {|record| record.send("set_#{reflection.name}_target", nil)}
+        
         if options[:through]
-          through_records = preload_through_records(records, reflection, options[:through])
+          records_with_through_records = preload_through_records(records, reflection, options[:through])
+          all_through_records = records_with_through_records.map(&:last).flatten
 
-          unless through_records.empty?
-            through_reflection = reflections[options[:through]]
-            through_primary_key = through_reflection.primary_key_name
+          unless all_through_records.empty?
             source = reflection.source_reflection.name
-            through_records.first.class.preload_associations(through_records, source)
-            if through_reflection.macro == :belongs_to
-              id_to_record_map    = construct_id_map(records, through_primary_key).first
-              through_primary_key = through_reflection.klass.primary_key
-            end
-
-            through_records.each do |through_record|
-              add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
-                                                 reflection.name, through_record.send(source))
+            all_through_records.first.class.preload_associations(all_through_records, source, options)
+            
+            records_with_through_records.each do |record, through_records|
+              source_records = through_records.map(&source).flatten.compact
+              
+              case reflection.macro
+                when :has_many, :has_and_belongs_to_many
+                  add_preloaded_records_to_collection([record], reflection.name, source_records)
+                when :has_one, :belongs_to
+                  add_preloaded_record_to_collection([record], reflection.name, source_records.first)
+              end
             end
           end
         else
-          set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.primary_key_name)
-        end
-      end
-
-      def preload_has_many_association(records, reflection, preload_options={})
-        return if records.first.send(reflection.name).loaded?
-        options = reflection.options
-
-        primary_key_name = reflection.through_reflection_primary_key_name
-        id_to_record_map, ids = construct_id_map(records, primary_key_name || reflection.options[:primary_key])
-        records.each {|record| record.send(reflection.name).loaded}
-
-        if options[:through]
-          through_records = preload_through_records(records, reflection, options[:through])
-          unless through_records.empty?
-            source = reflection.source_reflection.name
-            through_records.first.class.preload_associations(through_records, source, options)
-            through_records.each do |through_record|
-              through_record_id = through_record[reflection.through_reflection_primary_key].to_s
-              add_preloaded_records_to_collection(id_to_record_map[through_record_id], reflection.name, through_record.send(source))
-            end
+          id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
+          associated_records = find_associated_records(ids, reflection, preload_options)
+          
+          if reflection.macro == :has_many
+            set_association_collection_records(
+              id_to_record_map, reflection.name,
+              associated_records, reflection.primary_key_name
+            )
+          else
+            set_association_single_records(
+              id_to_record_map, reflection.name,
+              associated_records, reflection.primary_key_name
+            )
           end
-
-        else
-          set_association_collection_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options),
-                                             reflection.primary_key_name)
         end
       end
+      
+      alias_method :preload_has_one_association, :preload_has_one_or_has_many_association
+      alias_method :preload_has_many_association, :preload_has_one_or_has_many_association
 
       def preload_through_records(records, reflection, through_association)
         through_reflection = reflections[through_association]
 
-        through_records = []
+        # If the same through record is loaded twice, we want to return exactly the same
+        # object in the result, rather than two separate instances representing the same
+        # record. This is so that we can preload the source association for each record,
+        # and always be able to access the preloaded association regardless of where we
+        # refer to the record.
+        # 
+        # Suffices to say, if AR had an identity map built in then this would be unnecessary.
+        identity_map = {}
+        
+        options = {}
+        
         if reflection.options[:source_type]
           interface = reflection.source_reflection.options[:foreign_type]
-          preload_options = {:conditions => ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]}
-
+          options[:conditions] = ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]
           records.compact!
-          records.first.class.preload_associations(records, through_association, preload_options)
+        else
+          if reflection.options[:conditions]
+            options[:include]    = reflection.options[:include] ||
+                                   reflection.options[:source] 
+            options[:conditions] = reflection.options[:conditions]
+          end
+          
+          options[:order] = reflection.options[:order]
+        end
+        
+        records.first.class.preload_associations(records, through_association, options)
 
-          # Dont cache the association - we would only be caching a subset
-          records.each do |record|
+        records.map do |record|
+          if reflection.options[:source_type]
+            # Dont cache the association - we would only be caching a subset
             proxy = record.send(through_association)
-
+            
             if proxy.respond_to?(:target)
-              through_records.concat Array.wrap(proxy.target)
+              through_records = proxy.target
               proxy.reset
             else # this is a has_one :through reflection
-              through_records << proxy if proxy
+              through_records = proxy
             end
+          else
+            through_records = record.send(through_association)
           end
-        else
-          options = {}
-          options[:include] = reflection.options[:include] || reflection.options[:source] if reflection.options[:conditions]
-          options[:order] = reflection.options[:order]
-          options[:conditions] = reflection.options[:conditions]
-          records.first.class.preload_associations(records, through_association, options)
-
-          records.each do |record|
-            through_records.concat Array.wrap(record.send(through_association))
+          
+          through_records = Array.wrap(through_records).map do |through_record|
+            identity_map[through_record] ||= through_record
           end
+          
+          [record, through_records]
         end
-        through_records
       end
 
       def preload_belongs_to_association(records, reflection, preload_options={})
