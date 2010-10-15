@@ -2246,7 +2246,7 @@ module ActiveRecord
             end
             
             def table
-              if reflection.macro == :has_and_belongs_to_many
+              if @tables.last.is_a?(Array)
                 @tables.last.first
               else
                 @tables.last
