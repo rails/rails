@@ -29,6 +29,18 @@ module ActiveRecord
 
         assert_equal [['1', 'foo']], result.rows
       end
+
+      def test_exec_with_binds
+        string = @connection.quote('foo')
+        @connection.exec("INSERT INTO ex (id, data) VALUES (1, #{string})")
+        result = @connection.exec(
+          'SELECT id, data FROM ex WHERE id = $1', nil, [[nil, 1]])
+
+        assert_equal 1, result.rows.length
+        assert_equal 2, result.columns.length
+
+        assert_equal [['1', 'foo']], result.rows
+      end
     end
   end
 end
