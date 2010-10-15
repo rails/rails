@@ -98,9 +98,8 @@ module ActiveRecord
       end
 
       def call(env)
-        ActiveRecord::IdentityMap.use do
-          @app.call(env)
-        end
+        ActiveRecord::IdentityMap.enabled? ?
+          ActiveRecord::IdentityMap.use { @app.call(env) } : @app.call(env)
       end
     end
   end
