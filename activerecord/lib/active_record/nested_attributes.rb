@@ -399,10 +399,17 @@ module ActiveRecord
           unless reject_new_record?(association_name, attributes)
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
+        elsif existing_records.count == 0 #Existing record but not yet associated
+          existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
+          if !call_reject_if(association_name, attributes)
+            association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded?
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded? && !call_reject_if(association_name, attributes)
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-
+          if !call_reject_if(association_name, attributes)
+            association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded?
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
         else
           raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end
