@@ -20,21 +20,14 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     class << self
-      attr_accessor :repositories
-      attr_accessor :current_repository_name
       attr_accessor :enabled
 
-      def current
-        repositories[current_repository_name] ||= Hash.new { |h,k| h[k] = ActiveSupport::WeakHash.new }
+      def repository
+        Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = ActiveSupport::WeakHash.new }
       end
 
       def with_repository(name = :default)
-        old_repository = self.current_repository_name
-        self.current_repository_name = name
-
         yield if block_given?
-      ensure
-        self.current_repository_name = old_repository
       end
 
       def without
@@ -46,7 +39,7 @@ module ActiveRecord
       end
 
       def get(klass, primary_key)
-        if obj = current[klass.symbolized_base_class][primary_key]
+        if obj = repository[klass.symbolized_base_class][primary_key]
           return obj if obj.id == primary_key && klass == obj.class
         end
 
@@ -54,23 +47,21 @@ module ActiveRecord
       end
 
       def add(record)
-        current[record.class.symbolized_base_class][record.id] = record
+        repository[record.class.symbolized_base_class][record.id] = record
       end
 
       def remove(record)
-        current[record.class.symbolized_base_class].delete(record.id)
+        repository[record.class.symbolized_base_class].delete(record.id)
       end
 
       def clear
-        current.clear
+        repository.clear
       end
 
       alias enabled? enabled
       alias identity_map= enabled=
     end
 
-    self.repositories ||= Hash.new
-    self.current_repository_name ||= :default
     self.enabled = true
 
     module InstanceMethods

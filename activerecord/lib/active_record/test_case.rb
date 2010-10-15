@@ -6,7 +6,6 @@ module ActiveRecord
     setup :cleanup_identity_map
 
     def cleanup_identity_map
-      ActiveRecord::IdentityMap.current_repository_name = :test
       ActiveRecord::Base.identity_map.clear
     end
 
