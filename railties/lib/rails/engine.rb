@@ -336,7 +336,7 @@ module Rails
           base.called_from = begin
             # Remove the line number from backtraces making sure we don't leave anything behind
             call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
-            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-\.]*/lib/rails|rack[\w\-\.]*/lib/rack] })
+            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack] })
           end
         end
 

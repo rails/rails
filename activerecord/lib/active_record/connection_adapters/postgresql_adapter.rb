@@ -465,8 +465,8 @@ module ActiveRecord
               #  (2) $12.345.678,12
               case data
               when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d\.]/, '')
-              when /^-?\D+[\d\.]+,\d{2}$/  # (2)
+                data.gsub!(/[^-\d.]/, '')
+              when /^-?\D+[\d.]+,\d{2}$/  # (2)
                 data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
               end
             end

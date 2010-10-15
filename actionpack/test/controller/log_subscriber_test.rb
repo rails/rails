@@ -93,7 +93,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match(/\(Views: [\d\.]+ms\)/, logs[1])
+    assert_match(/\(Views: [\d.]+ms\)/, logs[1])
   end
 
   def test_process_action_with_filter_parameters
