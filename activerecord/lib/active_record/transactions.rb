@@ -224,8 +224,8 @@ module ActiveRecord
     end
 
     # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
-    def transaction(&block)
-      self.class.transaction(&block)
+    def transaction(options = {}, &block)
+      self.class.transaction(options, &block)
     end
 
     def destroy #:nodoc:

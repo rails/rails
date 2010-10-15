@@ -263,6 +263,27 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.reload.approved?
   end if Topic.connection.supports_savepoints?
 
+  def test_force_savepoint_on_instance
+    @first.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save!
+      @second.save!
+
+      begin
+        @second.transaction :requires_new => true do
+          @first.happy = false
+          @first.save!
+          raise
+        end
+      rescue
+      end
+    end
+
+    assert @first.reload.approved?
+    assert !@second.reload.approved?
+  end if Topic.connection.supports_savepoints?
+
   def test_no_savepoint_in_nested_transaction_without_force
     Topic.transaction do
       @first.approved = true
