@@ -26,7 +26,7 @@ module ActiveRecord
         Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = ActiveSupport::WeakHash.new }
       end
 
-      def with_repository(name = :default)
+      def use
         yield if block_given?
       end
 
