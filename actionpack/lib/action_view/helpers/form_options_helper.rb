@@ -247,7 +247,7 @@ module ActionView
       #
       #   time_zone_select( "user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::Timezone.all.sort, :model => ActiveSupport::Timezone)
+      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
