@@ -11,4 +11,9 @@ $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(rail
 require 'rails/ruby_version_check'
 Signal.trap("INT") { puts; exit }
 
-require 'rails/commands/application'
+if ARGV.first == 'plugin'
+  ARGV.shift
+  require 'rails/commands/plugin_new'
+else
+  require 'rails/commands/application'
+end
