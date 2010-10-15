@@ -58,18 +58,16 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     
     assert_equal [general, general], authors(:david).tags
     
-    # Only David has a Post tagged with General
-    authors = Author.joins(:tags).where('tags.id' => tags(:general).id)
-    assert_equal [authors(:david)], authors.uniq
+    assert_includes_and_joins_equal(
+      Author.where('tags.id' => tags(:general).id),
+      [authors(:david)], :tags
+    )
     
     # This ensures that the polymorphism of taggings is being observed correctly
     authors = Author.joins(:tags).where('taggings.taggable_type' => 'FakeModel')
     assert authors.empty?
     
-    assert_queries(5) do
-      authors = Author.includes(:tags).to_a
-    end
-    
+    authors = assert_queries(5) { Author.includes(:tags).to_a }
     assert_no_queries do
       assert_equal [general, general], authors.first.tags
     end
@@ -85,13 +83,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [luke, david, david], author.subscribers
     
     # All authors with subscribers where one of the subscribers' nick is 'alterself'
-    authors = Author.joins(:subscribers).where('subscribers.nick' => 'alterself')
-    assert_equal [authors(:david)], authors
+    assert_includes_and_joins_equal(
+      Author.where('subscribers.nick' => 'alterself'),
+      [authors(:david)], :subscribers
+    )
     
-    assert_queries(4) do
-      authors = Author.includes(:subscribers).to_a
-    end
-    
+    authors = assert_queries(4) { Author.includes(:subscribers).to_a }
     assert_no_queries do
       assert_equal [luke, david, david], authors.first.subscribers.sort_by(&:nick)
     end
@@ -107,13 +104,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [founding], members(:groucho).nested_member_types
     
-    members = Member.joins(:nested_member_types).where('member_types.id' => founding.id)
-    assert_equal [members(:groucho)], members
+    assert_includes_and_joins_equal(
+      Member.where('member_types.id' => founding.id),
+      [members(:groucho)], :nested_member_types
+    )
     
-    assert_queries(4) do
-      members = Member.includes(:nested_member_types).to_a
-    end
-    
+    members = assert_queries(4) { Member.includes(:nested_member_types).to_a }
     assert_no_queries do
       assert_equal [founding], members.first.nested_member_types
     end
@@ -127,13 +123,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     
     assert_equal [mustache], members(:groucho).nested_sponsors
     
-    members = Member.joins(:nested_sponsors).where('sponsors.id' => mustache.id)
-    assert_equal [members(:groucho)], members
+    assert_includes_and_joins_equal(
+      Member.where('sponsors.id' => mustache.id),
+      [members(:groucho)], :nested_sponsors
+    )
     
-    assert_queries(4) do
-      members = Member.includes(:nested_sponsors).to_a
-    end
-    
+    members = assert_queries(4) { Member.includes(:nested_sponsors).to_a }
     assert_no_queries do
       assert_equal [mustache], members.first.nested_sponsors
     end
@@ -147,18 +142,16 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [groucho_details, other_details], members(:groucho).organization_member_details
     
-    members = Member.joins(:organization_member_details).
-                     where('member_details.id' => member_details(:groucho).id)
-    assert_equal [members(:groucho), members(:some_other_guy)], members
+    assert_includes_and_joins_equal(
+      Member.where('member_details.id' => member_details(:groucho).id),
+      [members(:groucho), members(:some_other_guy)], :organization_member_details
+    )
     
     members = Member.joins(:organization_member_details).
                      where('member_details.id' => 9)
     assert members.empty?
     
-    assert_queries(4) do
-      members = Member.includes(:organization_member_details).to_a
-    end
-    
+    members = assert_queries(4) { Member.includes(:organization_member_details).to_a }
     assert_no_queries do
       assert_equal [groucho_details, other_details], members.first.organization_member_details
     end
@@ -172,18 +165,16 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [groucho_details, other_details], members(:groucho).organization_member_details_2
     
-    members = Member.joins(:organization_member_details_2).
-                     where('member_details.id' => groucho_details.id)
-    assert_equal [members(:groucho), members(:some_other_guy)], members
+    assert_includes_and_joins_equal(
+      Member.where('member_details.id' => groucho_details.id),
+      [members(:groucho), members(:some_other_guy)], :organization_member_details_2
+    )
     
     members = Member.joins(:organization_member_details_2).
                      where('member_details.id' => 9)
     assert members.empty?
     
-    assert_queries(4) do
-      members = Member.includes(:organization_member_details_2).to_a
-    end
-    
+    members = assert_queries(4) { Member.includes(:organization_member_details_2).to_a }
     assert_no_queries do
       assert_equal [groucho_details, other_details], members.first.organization_member_details_2
     end
@@ -197,13 +188,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [general, cooking], authors(:bob).post_categories
     
-    authors = Author.joins(:post_categories).where('categories.id' => cooking.id)
-    assert_equal [authors(:bob)], authors
+    assert_includes_and_joins_equal(
+      Author.where('categories.id' => cooking.id),
+      [authors(:bob)], :post_categories
+    )
     
-    assert_queries(3) do
-      authors = Author.includes(:post_categories).to_a
-    end
-    
+    authors = assert_queries(3) { Author.includes(:post_categories).to_a }
     assert_no_queries do
       assert_equal [general, cooking], authors[2].post_categories
     end
@@ -217,13 +207,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [greetings, more], categories(:technology).post_comments
     
-    categories = Category.joins(:post_comments).where('comments.id' => more.id)
-    assert_equal [categories(:general), categories(:technology)], categories
+    assert_includes_and_joins_equal(
+      Category.where('comments.id' => more.id),
+      [categories(:general), categories(:technology)], :post_comments
+    )
     
-    assert_queries(3) do
-      categories = Category.includes(:post_comments).to_a
-    end
-    
+    categories = assert_queries(3) { Category.includes(:post_comments).to_a }
     assert_no_queries do
       assert_equal [greetings, more], categories[1].post_comments
     end
@@ -237,13 +226,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [greetings, more], authors(:bob).category_post_comments
     
-    authors = Author.joins(:category_post_comments).where('comments.id' => comments(:does_it_hurt).id)
-    assert_equal [authors(:david), authors(:mary)], authors
+    assert_includes_and_joins_equal(
+      Author.where('comments.id' => comments(:does_it_hurt).id),
+      [authors(:david), authors(:mary)], :category_post_comments
+    )
     
-    assert_queries(5) do
-      authors = Author.includes(:category_post_comments).to_a
-    end
-    
+    authors = assert_queries(5) { Author.includes(:category_post_comments).to_a }
     assert_no_queries do
       assert_equal [greetings, more], authors[2].category_post_comments
     end
@@ -257,13 +245,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     
     assert_equal [general, general], authors(:david).tagging_tags
     
-    authors = Author.joins(:tagging_tags).where('tags.id' => tags(:general).id)
-    assert_equal [authors(:david)], authors.uniq
+    assert_includes_and_joins_equal(
+      Author.where('tags.id' => tags(:general).id),
+      [authors(:david)], :tagging_tags
+    )
     
-    assert_queries(5) do
-      authors = Author.includes(:tagging_tags).to_a
-    end
-    
+    authors = assert_queries(5) { Author.includes(:tagging_tags).to_a }
     assert_no_queries do
       assert_equal [general, general], authors.first.tagging_tags
     end
@@ -277,13 +264,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal [welcome_general, thinking_general], categorizations(:david_welcome_general).post_taggings
     
-    categorizations = Categorization.joins(:post_taggings).where('taggings.id' => welcome_general.id)
-    assert_equal [categorizations(:david_welcome_general)], categorizations
+    assert_includes_and_joins_equal(
+      Categorization.where('taggings.id' => welcome_general.id),
+      [categorizations(:david_welcome_general)], :post_taggings
+    )
     
-    assert_queries(4) do
-      categorizations = Categorization.includes(:post_taggings).to_a
-    end
-    
+    categorizations = assert_queries(4) { Categorization.includes(:post_taggings).to_a }
     assert_no_queries do
       assert_equal [welcome_general, thinking_general], categorizations.first.post_taggings
     end
@@ -297,13 +283,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal founding, members(:groucho).nested_member_type
     
-    members = Member.joins(:nested_member_type).where('member_types.id' => founding.id)
-    assert_equal [members(:groucho)], members
+    assert_includes_and_joins_equal(
+      Member.where('member_types.id' => founding.id),
+      [members(:groucho)], :nested_member_type
+    )
     
-    assert_queries(4) do
-      members = Member.includes(:nested_member_type).to_a
-    end
-    
+    members = assert_queries(4) { Member.includes(:nested_member_type).to_a }
     assert_no_queries do
       assert_equal founding, members.first.nested_member_type
     end
@@ -317,13 +302,12 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
     assert_equal general, members(:groucho).club_category
     
-    members = Member.joins(:club_category).where('categories.id' => categories(:technology).id)
-    assert_equal [members(:blarpy_winkup)], members
+    assert_includes_and_joins_equal(
+      Member.where('categories.id' => categories(:technology).id),
+      [members(:blarpy_winkup)], :club_category
+    )
     
-    assert_queries(4) do
-      members = Member.includes(:club_category).to_a
-    end
-    
+    members = assert_queries(4) { Member.includes(:club_category).to_a }
     assert_no_queries do
       assert_equal general, members.first.club_category
     end
@@ -379,4 +363,14 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert !scope.where("comments.type" => "SpecialComment").empty?
     assert !scope.where("comments.type" => "SubSpecialComment").empty?
   end
+  
+  private
+  
+    def assert_includes_and_joins_equal(query, expected, association)
+      actual = assert_queries(1) { query.joins(association).to_a.uniq }
+      assert_equal expected, actual
+      
+      actual = assert_queries(1) { query.includes(association).to_a.uniq }
+      assert_equal expected, actual
+    end
 end
