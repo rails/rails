@@ -39,6 +39,14 @@ class IdentityMapTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_id_use_identity_map
+    ActiveRecord::IdentityMap.enabled = false
+    ActiveRecord::IdentityMap.use do
+      assert_same(Client.find(3), Client.find(3))
+    end
+    ActiveRecord::IdentityMap.enabled = true
+  end
+
   def test_find_pkey
     assert_same(
       Subscriber.find('swistak'),

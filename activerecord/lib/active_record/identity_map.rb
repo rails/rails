@@ -27,7 +27,12 @@ module ActiveRecord
       end
 
       def use
+        old, self.enabled = self.enabled, true
+
         yield if block_given?
+      ensure
+        self.enabled = old
+        ActiveRecord::IdentityMap.clear
       end
 
       def without
@@ -93,9 +98,9 @@ module ActiveRecord
       end
 
       def call(env)
-        @app.call(env)
-      ensure
-        ActiveRecord::IdentityMap.clear
+        ActiveRecord::IdentityMap.use do
+          @app.call(env)
+        end
       end
     end
   end
