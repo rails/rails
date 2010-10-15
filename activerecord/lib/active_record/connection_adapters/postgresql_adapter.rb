@@ -532,7 +532,9 @@ module ActiveRecord
 
           # Clear the queue
           @connection.get_last_result
-          @connection.send_query_prepared(key, binds.map { |col, val| val })
+          @connection.send_query_prepared(key, binds.map { |col, val|
+            col ? col.type_cast(val) : val
+          })
           @connection.block
           result = @connection.get_last_result
           ActiveRecord::Result.new(result.fields, result_as_array(result))
