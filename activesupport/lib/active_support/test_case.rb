@@ -24,8 +24,7 @@ module ActiveSupport
     else
       Assertion = Test::Unit::AssertionFailedError
 
-      require 'active_support/testing/default'
-      include ActiveSupport::Testing::Default
+      undef :default_test
     end
 
     $tags = {}

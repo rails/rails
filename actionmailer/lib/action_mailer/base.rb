@@ -409,7 +409,7 @@ module ActionMailer #:nodoc:
     protected
 
       def set_payload_for_mail(payload, mail) #:nodoc:
-        payload[:mailer]     = self.name
+        payload[:mailer]     = name
         payload[:message_id] = mail.message_id
         payload[:subject]    = mail.subject
         payload[:to]         = mail.to
@@ -421,11 +421,8 @@ module ActionMailer #:nodoc:
       end
 
       def method_missing(method, *args) #:nodoc:
-        if action_methods.include?(method.to_s)
-          new(method, *args).message
-        else
-          super
-        end
+        return super unless respond_to?(method)
+        new(method, *args).message
       end
     end
 

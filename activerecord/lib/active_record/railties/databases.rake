@@ -2,28 +2,7 @@ namespace :db do
   task :load_config => :rails_env do
     require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-    ActiveRecord::Migrator.migrations_path = Rails.application.config.paths.db.migrate.to_a.first
-  end
-
-  task :copy_migrations => :load_config do
-    to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
-    railties = {}
-    Rails.application.railties.all do |railtie|
-      next unless to_load == :all || to_load.include?(railtie.railtie_name)
-
-      if railtie.config.respond_to?(:paths) && railtie.config.paths.db
-        railties[railtie.railtie_name] = railtie.config.paths.db.migrate.to_a.first
-      end
-    end
-
-    copied = ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_path, railties)
-
-    if copied.blank?
-      puts "No migrations were copied, project is up to date."
-    else
-      puts "The following migrations were copied:"
-      puts copied.map{ |path| File.basename(path) }.join("\n")
-    end
+    ActiveRecord::Migrator.migrations_path = Rails.application.paths["db/migrate"].first
   end
 
   namespace :create do
@@ -108,7 +87,7 @@ namespace :db do
           end
         end
       when 'postgresql'
-        @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
+        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
@@ -501,8 +480,31 @@ namespace :db do
 end
 
 namespace :railties do
-  desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
-  task :copy_migrations => 'db:copy_migrations'
+  namespace :install do
+    # desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
+    task :migrations => :"db:load_config" do
+      to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map {|n| n.strip }
+      railties = {}
+      Rails.application.railties.all do |railtie|
+        next unless to_load == :all || to_load.include?(railtie.railtie_name)
+
+        if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
+          railties[railtie.railtie_name] = path
+        end
+      end
+
+      on_skip = Proc.new do |name, migration|
+        $stderr.puts "WARNING: Migration #{migration.basename} from #{name} has been skipped. Migration with the same name already exists."
+      end
+
+      on_copy = Proc.new do |name, migration, old_path|
+        puts "Copied migration #{migration.basename} from #{name}"
+      end
+
+      ActiveRecord::Migration.copy( ActiveRecord::Migrator.migrations_path, railties,
+                                    :on_skip => on_skip, :on_copy => on_copy)
+    end
+  end
 end
 
 task 'test:prepare' => 'db:test:prepare'

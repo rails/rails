@@ -1,7 +1,7 @@
 begin
   require 'memcache'
 rescue LoadError => e
-  $stderr.puts "You don't have memcache installed in your application. Please add it to your Gemfile and run bundle install"
+  $stderr.puts "You don't have memcache-client installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 require 'digest/md5'
@@ -73,7 +73,7 @@ module ActiveSupport
       def read_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-        keys_to_names = names.inject({}){|map, name| map[escape_key(namespaced_key(name, options))] = name; map}
+        keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
         raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
         values = {}
         raw_values.each do |key, value|

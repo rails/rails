@@ -196,19 +196,19 @@ module ActiveRecord
       arel
     end
 
+    private
+
     def build_where(opts, other = [])
       case opts
       when String, Array
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-        PredicateBuilder.new(table.engine).build_from_hash(attributes, table)
+        PredicateBuilder.build_from_hash(table.engine, attributes, table)
       else
         [opts]
       end
     end
-
-    private
 
     def build_joins(relation, joins)
       association_joins = []

@@ -9,7 +9,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   # or request.
   #
   # In those cases, we'll set up a simple mock
-  attr_accessor :controller, :request
+  attr_accessor :controller, :request, :_template
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
@@ -544,24 +544,6 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
     assert_equal "<a href=\"/tasks\">tasks</a>\n" +
       "<a href=\"#{@request.protocol}#{@request.host_with_port}/tasks\">tasks</a>",
       @response.body
-  end
-end
-
-class Workshop
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-  attr_accessor :id
-
-  def initialize(id)
-    @id = id
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def to_s
-    id.to_s
   end
 end
 

@@ -1,6 +1,8 @@
 *Rails 3.1.0 (unreleased)*
 
-* Added Rack::Cache to the default middleware stack
+* Added Rack::Etag and Rack::ConditionalGet to the default middleware stack [José Valim]
+
+* Added Rack::Cache to the default middleware stack [Yehuda Katz and Carl Lerche]
 
 * Engine is now rack application [Piotr Sarnacki]
 

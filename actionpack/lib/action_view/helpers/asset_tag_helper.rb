@@ -152,7 +152,7 @@ module ActionView
     #
     #   # Normally you'd calculate RELEASE_NUMBER at startup.
     #   RELEASE_NUMBER = 12345
-    #   config.action_controller.asset_path_template = proc { |asset_path|
+    #   config.action_controller.asset_path = proc { |asset_path|
     #     "/release-#{RELEASE_NUMBER}#{asset_path}"
     #   }
     #
@@ -291,9 +291,6 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
       #
       # * = The application.js file is only referenced if it exists
-      #
-      # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason
-      # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
       #
       # You can also include all javascripts in the +javascripts+ directory using <tt>:all</tt> as the source:
       #

@@ -3,15 +3,18 @@ source 'http://rubygems.org'
 <%- if options.dev? -%>
 gem 'rails', :path => '<%= Rails::Generators::RAILS_DEV_PATH %>'
 gem 'arel',  :git => 'git://github.com/rails/arel.git'
+gem "rack", :git => "git://github.com/rack/rack.git"
 <%- elsif options.edge? -%>
 gem 'rails', :git => 'git://github.com/rails/rails.git'
 gem 'arel',  :git => 'git://github.com/rails/arel.git'
+gem "rack", :git => "git://github.com/rack/rack.git"
 <%- else -%>
 gem 'rails', '<%= Rails::VERSION::STRING %>'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 # gem 'arel',  :git => 'git://github.com/rails/arel.git'
+# gem "rack", :git => "git://github.com/rack/rack.git"
 <%- end -%>
 
 <% unless options[:skip_active_record] -%>

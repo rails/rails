@@ -35,6 +35,7 @@ module ActiveSupport
 end
 
 require "active_support/dependencies/autoload"
+require "active_support/version"
 
 module ActiveSupport
   extend ActiveSupport::Autoload

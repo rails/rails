@@ -6,6 +6,7 @@ else
   gem "arel", :git => "git://github.com/rails/arel.git"
 end
 
+gem "rack", :git => "git://github.com/rack/rack.git"
 gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
@@ -53,6 +54,11 @@ platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
 
   gem "activerecord-jdbcsqlite3-adapter"
+
+  # This is needed by now to let tests work on JRuby
+  # TODO: When the JRuby guys merge jruby-openssl in
+  # jruby this will be removed
+  gem "jruby-openssl"
 
   group :db do
     gem "activerecord-jdbcmysql-adapter"

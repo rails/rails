@@ -7,13 +7,9 @@ module ActionView #:nodoc:
       autoload :Builder, 'action_view/template/handlers/builder'
 
       def self.extended(base)
-        base.register_default_template_handler :erb, ERB
-        base.register_template_handler :rjs, RJS
-        base.register_template_handler :builder, Builder
-
-        # TODO: Depreciate old template extensions
-        base.register_template_handler :rhtml, ERB
-        base.register_template_handler :rxml, Builder
+        base.register_default_template_handler :erb, ERB.new
+        base.register_template_handler :rjs, RJS.new
+        base.register_template_handler :builder, Builder.new
       end
 
       @@template_handlers = {}

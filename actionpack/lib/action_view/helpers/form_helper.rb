@@ -791,7 +791,7 @@ module ActionView
           options["incremental"] = true unless options.has_key?("incremental")
         end
 
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("search", options)
+        InstanceTag.new(object_name, method, self, options.delete("object")).to_input_field_tag("search", options)
       end
 
       # Returns a text_field of type "tel".
@@ -1015,19 +1015,14 @@ module ActionView
 
       module ClassMethods
         def value(object, method_name)
-          object.send method_name unless object.nil?
+          object.send method_name if object
         end
 
         def value_before_type_cast(object, method_name)
           unless object.nil?
-            if object.respond_to?(method_name)
-              object.send(method_name)
-            # FIXME: this is AR dependent
-            elsif object.respond_to?(method_name + "_before_type_cast")
-              object.send(method_name + "_before_type_cast")
-            else
-              raise NoMethodError, "Model #{object.class} does not respond to #{method_name}"
-            end
+            object.respond_to?(method_name + "_before_type_cast") ?
+            object.send(method_name + "_before_type_cast") :
+            object.send(method_name)
           end
         end
 

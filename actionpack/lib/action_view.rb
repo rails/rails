@@ -38,11 +38,17 @@ module ActionView
     autoload :Helpers
     autoload :Base
     autoload :LookupContext
+    autoload :Render
     autoload :PathSet,        "action_view/paths"
     autoload :TestCase,       "action_view/test_case"
 
+    autoload_under "renderer" do
+      autoload :AbstractRenderer
+      autoload :PartialRenderer
+      autoload :TemplateRenderer
+    end
+
     autoload_under "render" do
-      autoload :Layouts
       autoload :Partials
       autoload :Rendering
     end
@@ -51,6 +57,7 @@ module ActionView
       autoload :Resolver
       autoload :PathResolver
       autoload :FileSystemResolver
+      autoload :FallbackFileSystemResolver
     end
 
     autoload_at "action_view/template/error" do

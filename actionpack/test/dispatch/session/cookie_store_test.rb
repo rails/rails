@@ -53,18 +53,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     def rescue_action(e) raise end
   end
 
-  def test_raises_argument_error_if_missing_session_key
-    assert_raise(ArgumentError, nil.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-        :key => nil, :secret => SessionSecret)
-    }
-
-    assert_raise(ArgumentError, ''.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-        :key => '', :secret => SessionSecret)
-    }
-  end
-
   def test_setting_session_value
     with_test_route_set do
       get '/set_session_value'

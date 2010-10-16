@@ -15,7 +15,7 @@ module Rails
       def plugins
         @plugins ||= begin
           plugin_names = (@config.plugins || [:all]).map { |p| p.to_sym }
-          Plugin.all(plugin_names, @config.paths.vendor.plugins)
+          Plugin.all(plugin_names, @config.paths["vendor/plugins"].existent)
         end
       end
     end

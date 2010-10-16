@@ -8,15 +8,18 @@ Rake can be found at http://rake.rubyforge.org
 
 == Running by hand
 
-If you only want to run a single test suite, or don't want to bother with Rake,
-you can do so with something like:
+To run a single test suite
 
-   ruby -Itest test/controller/base_tests.rb
+   rake test TEST=path/to/test.rb
 
-== Dependency on ActiveRecord and database setup
+which can be further narrowed down to one test:
+
+   rake test TEST=path/to/test.rb TESTOPTS="--name=test_something"
+
+== Dependency on Active Record and database setup
 
 Test cases in the test/controller/active_record/ directory depend on having
-activerecord and sqlite installed. If ActiveRecord is not in
+activerecord and sqlite installed. If Active Record is not in
 actionpack/../activerecord directory, or the sqlite rubygem is not installed,
 these tests are skipped.
 

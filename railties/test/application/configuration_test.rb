@@ -42,7 +42,7 @@ module ApplicationTests
     test "Rails::Application responds to paths" do
       require "#{app_path}/config/environment"
       assert_respond_to AppTemplate::Application, :paths
-      assert_equal AppTemplate::Application.paths.app.views.to_a, ["#{app_path}/app/views"]
+      assert_equal AppTemplate::Application.paths["app/views"].expanded, ["#{app_path}/app/views"]
     end
 
     test "the application root is set correctly" do
@@ -180,7 +180,7 @@ module ApplicationTests
 
     test "config.paths.public sets Rails.public_path" do
       add_to_config <<-RUBY
-        config.paths.public = "somewhere"
+        config.paths["public"] = "somewhere"
       RUBY
 
       require "#{app_path}/config/application"

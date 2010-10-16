@@ -73,12 +73,7 @@ module ActiveRecord
         # The mutex used to synchronize pool access
         @connection_mutex = Monitor.new
         @queue = @connection_mutex.new_cond
-
-        # default 5 second timeout unless on ruby 1.9
-        @timeout =
-          if RUBY_VERSION < '1.9'
-            spec.config[:wait_timeout] || 5
-          end
+        @timeout = spec.config[:wait_timeout] || 5
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
@@ -161,7 +156,6 @@ module ActiveRecord
         keys = @reserved_connections.keys - Thread.list.find_all { |t|
           t.alive?
         }.map { |thread| thread.object_id }
-
         keys.each do |key|
           checkin @reserved_connections[key]
           @reserved_connections.delete(key)
@@ -194,16 +188,18 @@ module ActiveRecord
                      checkout_new_connection
                    end
             return conn if conn
-            # No connections available; wait for one
-            if @queue.wait(@timeout)
+
+            @queue.wait(@timeout)
+
+            if(@checked_out.size < @connections.size)
               next
             else
-              # try looting dead threads
               clear_stale_cached_connections!
               if @size == @checked_out.size
                 raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}.  The max pool size is currently #{@size}; consider increasing it."
               end
             end
+
           end
         end
       end

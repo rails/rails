@@ -8,11 +8,19 @@ module RenderTemplate
       "shared.html.erb"          => "Elastica",
       "locals.html.erb"          => "The secret is <%= secret %>",
       "xml_template.xml.builder" => "xml.html do\n  xml.p 'Hello'\nend",
-      "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>"
+      "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>",
+      "test/with_json.html.erb"  => "<%= render :template => 'test/with_json.json' %>",
+      "test/with_json.json.erb"  => "<%= render :template => 'test/final' %>",
+      "test/final.json.erb"      => "{ final: json }",
+      "test/with_error.html.erb" => "<%= idontexist %>"
     )]
 
     def index
       render :template => "test/basic"
+    end
+
+    def html_with_json_inside_json
+      render :template => "test/with_json"
     end
 
     def index_without_key
@@ -41,6 +49,10 @@ module RenderTemplate
 
     def with_raw
       render :template => "with_raw"
+    end
+
+    def with_error
+      render :template => "test/with_error"
     end
   end
 
@@ -87,6 +99,18 @@ module RenderTemplate
 
       assert_body "Hello <strong>this is raw</strong>"
       assert_status 200
+    end
+
+    test "rendering a template with renders another template with other format that renders other template in the same format" do
+      get :html_with_json_inside_json
+      assert_content_type "text/html; charset=utf-8"
+      assert_response "{ final: json }"
+    end
+
+    test "rendering a template with error properly exceprts the code" do
+      get :with_error
+      assert_status 500
+      assert_match "undefined local variable or method `idontexist'", response.body
     end
   end
 

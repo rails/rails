@@ -90,10 +90,7 @@ module Enumerable
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   #
   def index_by
-    inject({}) do |accum, elem|
-      accum[yield(elem)] = elem
-      accum
-    end
+    Hash[map { |elem| [yield(elem), elem] }]
   end
 
   # Returns true if the collection has more than 1 element. Functionally equivalent to collection.size > 1.

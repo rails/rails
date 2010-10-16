@@ -6,14 +6,14 @@ require 'rails/generators/mailer/mailer_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   def setup
-    TestApp::Application.namespace(TestApp)
+    TestApp::Application.isolate_namespace(TestApp)
   end
 
   def teardown
     if TestApp.respond_to?(:_railtie)
       TestApp.singleton_class.send(:undef_method, :_railtie)
       TestApp.singleton_class.send(:undef_method, :table_name_prefix)
-      TestApp::Application.namespaced = false
+      TestApp::Application.isolated = false
     end
   end
 end

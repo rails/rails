@@ -33,7 +33,7 @@ class FormatTest < Test::Unit::TestCase
         ActiveResource::HttpMock.respond_to.get "/people.#{format}", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode(@programmers)
         remote_programmers = Person.find(:all)
         assert_equal 2, remote_programmers.size
-        assert remote_programmers.select { |p| p.name == 'David' }
+        assert remote_programmers.find { |p| p.name == 'David' }
       end
     end
   end

@@ -3070,7 +3070,7 @@ The +Rails::Plugin::Configuration+ class may be a bit difficult to find at first
 
 <ruby>
   module Rails
-    class Plugin < Railtie
+    class Plugin < Engine
       ...
     end
   end

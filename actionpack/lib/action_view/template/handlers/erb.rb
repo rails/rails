@@ -1,6 +1,7 @@
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/string/output_safety'
-require "action_view/template"
+require 'action_view/template'
+require 'action_view/template/handler'
 require 'erubis'
 
 module ActionView
@@ -47,28 +48,31 @@ module ActionView
         end
       end
 
-      class ERB < Handler
-        include Compilable
-
-        ##
-        # :singleton-method:
+      class ERB
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERb documentation for suitable values.
-        cattr_accessor :erb_trim_mode
+        class_attribute :erb_trim_mode
         self.erb_trim_mode = '-'
 
+        # Default format used by ERB.
+        class_attribute :default_format
         self.default_format = Mime::HTML
 
-        cattr_accessor :erb_implementation
+        # Default implemenation used.
+        class_attribute :erb_implementation
         self.erb_implementation = Erubis
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
-        def self.handles_encoding?
+        def self.call(template)
+          new.call(template)
+        end
+
+        def handles_encoding?
           true
         end
 
-        def compile(template)
+        def call(template)
           if template.source.encoding_aware?
             # First, convert to BINARY, so in case the encoding is
             # wrong, we can still find an encoding tag
@@ -94,6 +98,7 @@ module ActionView
         end
 
       private
+
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case

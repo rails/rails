@@ -187,15 +187,18 @@ module ActionController
     end
   end
 
-  class TestSession < ActionDispatch::Session::AbstractStore::SessionHash #:nodoc:
-    DEFAULT_OPTIONS = ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS
+  class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
+    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
 
     def initialize(session = {})
+      @env, @by = nil, nil
       replace(session.stringify_keys)
       @loaded = true
     end
 
-    def exists?; true; end
+    def exists?
+      true
+    end
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to
@@ -394,7 +397,7 @@ module ActionController
         parameters ||= {}
         @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
 
-        @request.session = ActionController::TestSession.new(session) unless session.nil?
+        @request.session = ActionController::TestSession.new(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
         @request.session["flash"].sweep
 

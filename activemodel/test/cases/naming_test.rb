@@ -125,6 +125,10 @@ class NamingHelpersTest < Test::Unit::TestCase
     @param_key = 'contact'
   end
 
+  def test_to_model_called_on_record
+    assert_equal 'post_named_track_backs', plural(Post::TrackBack.new)
+  end
+
   def test_singular
     assert_equal @singular, singular(@record)
   end

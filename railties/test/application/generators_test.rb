@@ -69,7 +69,7 @@ module ApplicationTests
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
       assert_equal Hash[:shoulda => :test_unit], Rails::Generators.fallbacks
-      assert_equal ["#{app_path}/lib/templates", "some/where"], Rails::Generators.templates_path
+      assert_equal ["some/where"], Rails::Generators.templates_path
     end
 
     test "generators no color on initialization" do

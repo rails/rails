@@ -50,8 +50,7 @@ module ActionDispatch
           if cache_control = self["Cache-Control"]
             cache_control.split(/,\s*/).each do |segment|
               first, last = segment.split("=")
-              last ||= true
-              @cache_control[first.to_sym] = last
+              @cache_control[first.to_sym] = last || true
             end
           end
         end
@@ -88,26 +87,7 @@ module ActionDispatch
         def handle_conditional_get!
           if etag? || last_modified? || !@cache_control.empty?
             set_conditional_cache_control!
-          elsif nonempty_ok_response?
-            self.etag = body
-
-            if request && request.etag_matches?(etag)
-              self.status = 304
-              self.body = []
-            end
-
-            set_conditional_cache_control!
-          else
-            headers["Cache-Control"] = "no-cache"
           end
-        end
-
-        def nonempty_ok_response?
-          @status == 200 && string_body?
-        end
-
-        def string_body?
-          !@blank && @body.respond_to?(:all?) && @body.all? { |part| part.is_a?(String) }
         end
 
         DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"

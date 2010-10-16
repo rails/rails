@@ -73,7 +73,8 @@ end
 
 desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
 task :test do
-  errors = %w(test:units test:functionals test:integration).collect do |task|
+  tests_to_run = ENV['TEST'] ? ["test:single"] : %w(test:units test:functionals test:integration)
+  errors = tests_to_run.collect do |task|
     begin
       Rake::Task[task].invoke
       nil
@@ -122,6 +123,10 @@ namespace :test do
     t.libs << 'test'
   end
   Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
+
+  Rake::TestTask.new(:single => "test:prepare") do |t|
+    t.libs << "test"
+  end
 
   TestTaskWithoutDescription.new(:units => "test:prepare") do |t|
     t.libs << "test"

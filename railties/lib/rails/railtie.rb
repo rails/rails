@@ -83,7 +83,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     # Customize the ORM
-  #     config.generators.orm :my_railtie_orm
+  #     config.app_generators.orm :my_railtie_orm
   #
   #     # Add a to_prepare block which is executed once in production
   #     # and before each request in development
@@ -191,6 +191,13 @@ module Rails
 
     def load_tasks
       self.class.rake_tasks.each(&:call)
+
+      # load also tasks from all superclasses
+      klass = self.class.superclass
+      while klass.respond_to?(:rake_tasks)
+        klass.rake_tasks.each { |t| self.instance_exec(&t) }
+        klass = klass.superclass
+      end
     end
 
     def load_generators

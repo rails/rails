@@ -45,6 +45,8 @@ module ActiveSupport
       regular_writer(convert_key(key), convert_value(value))
     end
 
+    alias_method :store, :[]=
+
     # Updates the instantized hash with values from the second:
     #
     #   hash_1 = HashWithIndifferentAccess.new

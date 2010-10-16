@@ -62,17 +62,18 @@ module RailtiesTest
 
       def call(env)
         response = @app.call(env)
-        response[2].upcase!
+        response[2].each { |b| b.upcase! }
         response
       end
     end
 
     test "engine is a rack app and can have his own middleware stack" do
+      add_to_config("config.action_dispatch.show_exceptions = false")
+
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'Hello World'] }
-
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello World']] }
             config.middleware.use ::RailtiesTest::EngineTest::Upcaser
           end
         end
@@ -89,7 +90,7 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits")
       response = Rails.application.call(env)
 
-      assert_equal "HELLO WORLD", response[2]
+      assert_equal ["HELLO WORLD"], response[2]
     end
 
     test "it provides routes as default endpoint" do
@@ -102,7 +103,7 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, 'foo'] }
+          match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
         end
       RUBY
 
@@ -116,8 +117,7 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = Rails.application.call(env)
-
-      assert_equal "foo", response[2]
+      assert_equal ["foo"], response[2]
     end
 
     test "engine can load its own plugins" do
@@ -379,22 +379,22 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/foo")
       response = Rails.application.call(env)
-      assert_equal "Something... Something... Something...", response[2].body
+      assert_equal ["Something... Something... Something..."], response[2]
 
       env = Rack::MockRequest.env_for("/foo/show")
       response = Rails.application.call(env)
-      assert_equal "/foo", response[2].body
+      assert_equal ["/foo"], response[2]
 
       env = Rack::MockRequest.env_for("/foo/bar")
       response = Rails.application.call(env)
-      assert_equal "It's a bar.", response[2].body
+      assert_equal ["It's a bar."], response[2]
     end
 
     test "isolated engine should include only its own routes and helpers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace Bukkits
+            isolate_namespace Bukkits
           end
         end
       RUBY
@@ -488,30 +488,30 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/from_app")
       response = AppTemplate::Application.call(env)
-      assert_equal "false", response[2].body
+      assert_equal ["false"], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/foo/show")
       response = AppTemplate::Application.call(env)
-      assert_equal "/bukkits/foo", response[2].body
+      assert_equal ["/bukkits/foo"], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = AppTemplate::Application.call(env)
-      assert_equal "Helped.", response[2].body
+      assert_equal ["Helped."], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/routes_helpers_in_view")
       response = AppTemplate::Application.call(env)
-      assert_equal "/bukkits/foo, /bar", response[2].body
+      assert_equal ["/bukkits/foo, /bar"], response[2]
 
       env = Rack::MockRequest.env_for("/bukkits/polymorphic_path_without_namespace")
       response = AppTemplate::Application.call(env)
-      assert_equal "/bukkits/posts/1", response[2].body
+      assert_equal ["/bukkits/posts/1"], response[2]
     end
 
     test "isolated engine should avoid namespace in names if that's possible" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace Bukkits
+            isolate_namespace Bukkits
           end
         end
       RUBY
@@ -553,11 +553,11 @@ module RailtiesTest
         end
       RUBY
 
-      @plugin.write "app/views/bukkits/posts/new.html.erb", <<-RUBY
+      @plugin.write "app/views/bukkits/posts/new.html.erb", <<-ERB
           <%= form_for(Bukkits::Post.new) do |f| %>
             <%= f.text_field :title %>
           <% end %>
-      RUBY
+      ERB
 
       add_to_config("config.action_dispatch.show_exceptions = false")
 
@@ -572,7 +572,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace(Bukkits)
+            isolate_namespace(Bukkits)
           end
         end
       RUBY
@@ -593,8 +593,8 @@ module RailtiesTest
         @plugin.write "lib/bukkits.rb", <<-RUBY
           module Bukkits
             class Engine < ::Rails::Engine
-              namespace(Bukkits)
-              config.paths.public = "#{File.join(@plugin.path, "alternate_public")}"
+              isolate_namespace(Bukkits)
+              paths["public"] = "#{File.join(@plugin.path, "alternate_public")}"
             end
           end
         RUBY
@@ -611,8 +611,8 @@ module RailtiesTest
         @plugin.write "lib/bukkits.rb", <<-RUBY
           module Bukkits
             class Engine < ::Rails::Engine
-              namespace(Bukkits)
-              config.paths.public = "#{File.join(@plugin.path, "not_existing")}"
+              isolate_namespace(Bukkits)
+              paths["public"] = "#{File.join(@plugin.path, "not_existing")}"
             end
           end
         RUBY
@@ -642,6 +642,105 @@ module RailtiesTest
 
       Bukkits::Engine.load_seed
       assert Bukkits::Engine.config.bukkits_seeds_loaded
+    end
+
+    test "using namespace more than once on one module should not overwrite _railtie method" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module AppTemplate
+          class Engine < ::Rails::Engine
+            isolate_namespace(AppTemplate)
+          end
+        end
+      RUBY
+
+      add_to_config "isolate_namespace AppTemplate"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do end
+      RUBY
+
+      boot_rails
+
+      assert_equal AppTemplate._railtie, AppTemplate::Engine
+    end
+
+    test "properly reload routes" do
+      # when routes are inside application class definition
+      # they should not be reloaded when engine's routes
+      # file has changed
+      add_to_config <<-RUBY
+        routes do
+          mount lambda{|env| [200, {}, ["foo"]]} => "/foo"
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      FileUtils.rm(File.join(app_path, "config/routes.rb"))
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          mount lambda{|env| [200, {}, ["bar"]]} => "/bar"
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace(Bukkits)
+          end
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      boot_rails
+
+      require "#{rails_root}/config/environment"
+      get "/foo"
+      assert_equal "foo", last_response.body
+
+      get "/bukkits/bar"
+      assert_equal "bar", last_response.body
+    end
+
+    test "setting generators for engine and overriding app generator's" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            config.generators do |g|
+              g.orm             :datamapper
+              g.template_engine :haml
+              g.test_framework  :rspec
+            end
+
+            config.app_generators do |g|
+              g.orm             :mongoid
+              g.template_engine :liquid
+              g.test_framework  :shoulda
+            end
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.generators do |g|
+          g.test_framework  :test_unit
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      app_generators = Rails.application.config.generators.options[:rails]
+      assert_equal :mongoid  , app_generators[:orm]
+      assert_equal :liquid   , app_generators[:template_engine]
+      assert_equal :test_unit, app_generators[:test_framework]
+
+      generators = Bukkits::Engine.config.generators.options[:rails]
+      assert_equal :datamapper, generators[:orm]
+      assert_equal :haml      , generators[:template_engine]
+      assert_equal :rspec     , generators[:test_framework]
     end
   end
 end

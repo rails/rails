@@ -58,7 +58,7 @@ class RailsEnvironment
     else
       plugin = name_uri_or_plugin
     end
-    unless plugin.nil?
+    if plugin
       plugin.install
     else
       puts "Plugin not found: #{name_uri_or_plugin}"

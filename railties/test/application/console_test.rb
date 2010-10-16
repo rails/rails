@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 class ConsoleTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::Isolation  
 
   def setup
     build_app
@@ -14,16 +14,15 @@ class ConsoleTest < Test::Unit::TestCase
   end
 
   def test_app_method_should_return_integration_session
+    TestHelpers::Rack.send :remove_method, :app
     load_environment
     console_session = app
-    assert_not_nil console_session
     assert_instance_of ActionDispatch::Integration::Session, console_session
   end
 
   def test_new_session_should_return_integration_session
     load_environment
     session = new_session
-    assert_not_nil session
     assert_instance_of ActionDispatch::Integration::Session, session
   end
 

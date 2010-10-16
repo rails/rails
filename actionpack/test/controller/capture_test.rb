@@ -25,6 +25,10 @@ class CaptureController < ActionController::Base
     render :layout => "talk_from_action"
   end
 
+  def proper_block_detection
+    @todo = "some todo"
+  end
+
   def rescue_action(e) raise end
 end
 
@@ -66,8 +70,8 @@ class CaptureTest < ActionController::TestCase
   end
 
   def test_proper_block_detection
-    @todo = "some todo"
     get :proper_block_detection
+    assert_equal "some todo", @response.body
   end
 
   private
