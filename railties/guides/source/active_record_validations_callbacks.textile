@@ -235,7 +235,7 @@ This helper validates that the attributes' values are not included in a given se
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_exclusion_of :subdomain, :in => %w(www),
+  validates_exclusion_of :subdomain, :in => %w(www us ca jp),
     :message => "Subdomain %{value} is reserved."
 end
 </ruby>
