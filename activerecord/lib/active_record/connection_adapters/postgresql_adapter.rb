@@ -220,7 +220,7 @@ module ActiveRecord
         @local_tz = nil
         @table_alias_length = nil
         @postgresql_version = nil
-        @statements = Hash.new { |h,k| h[k] = "a#{h.length + 1}" }
+        @statements = {}
 
         connect
         @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
@@ -530,7 +530,9 @@ module ActiveRecord
       def async_exec(sql, name, binds)
         log(sql, name) do
           unless @statements.key? sql
-            @connection.prepare @statements[sql], sql
+            nextkey = "a#{@statements.length + 1}"
+            @connection.prepare nextkey, sql
+            @statements[sql] = nextkey
           end
 
           key = @statements[sql]
