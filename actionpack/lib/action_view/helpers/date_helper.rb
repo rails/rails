@@ -215,20 +215,9 @@ module ActionView
       #   # Creates a time select tag that, when POSTed, will be stored in the post variable in the sunrise attribute
       #   time_select("post", "sunrise")
       #
-      #   # Creates a time select tag that, when POSTed, will be stored in the order variable in the submitted
-      #   # attribute
-      #   time_select("order", "submitted")
-      #
-      #   # Creates a time select tag that, when POSTed, will be stored in the mail variable in the sent_at attribute
-      #   time_select("mail", "sent_at")
-      #
       #   # Creates a time select tag with a seconds field that, when POSTed, will be stored in the post variables in
       #   # the sunrise attribute.
       #   time_select("post", "start_time", :include_seconds => true)
-      #
-      #   # Creates a time select tag with a seconds field that, when POSTed, will be stored in the entry variables in
-      #   # the submission_time attribute.
-      #   time_select("entry", "submission_time", :include_seconds => true)
       #
       #   # You can set the :minute_step to 15 which will give you: 00, 15, 30 and 45.
       #   time_select 'game', 'game_time', {:minute_step => 15}
