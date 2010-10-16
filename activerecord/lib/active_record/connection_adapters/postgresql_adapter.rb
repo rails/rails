@@ -250,8 +250,8 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         if @connection.respond_to?(:reset)
-          @connection.reset
           clear_cache!
+          @connection.reset
           configure_connection
         else
           disconnect!
