@@ -1,6 +1,6 @@
 module ActionView
   class AbstractRenderer #:nodoc:
-    attr_reader :vew, :lookup_context
+    attr_reader :lookup_context
 
     delegate :find_template, :template_exists?, :with_fallbacks, :update_details,
       :with_layout_format, :formats, :to => :lookup_context
