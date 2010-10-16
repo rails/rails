@@ -3,7 +3,7 @@ module ActionView
     attr_reader :lookup_context
 
     delegate :find_template, :template_exists?, :with_fallbacks, :update_details,
-      :with_layout_format, :formats, :to => :lookup_context
+      :with_layout_format, :formats, :freeze_formats, :to => :lookup_context
 
     def initialize(view)
       @view = view
