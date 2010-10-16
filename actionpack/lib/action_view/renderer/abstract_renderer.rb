@@ -16,13 +16,16 @@ module ActionView
     # the lookup context to take this new format into account.
     def wrap_formats(value)
       return yield unless value.is_a?(String)
-      @@formats_regexp ||= /\.(#{Mime::SET.symbols.join('|')})$/
 
-      if value.sub!(@@formats_regexp, "")
+      if value.sub!(formats_regexp, "")
         update_details(:formats => [$1.to_sym]){ yield }
       else
         yield
       end
+    end
+
+    def formats_regexp
+      @@formats_regexp ||= /\.(#{Mime::SET.symbols.join('|')})$/
     end
 
     protected
