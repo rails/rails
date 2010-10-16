@@ -1,6 +1,27 @@
 require 'spec_helper'
 
-module Arel
+describe '#Table' do
+  it 'creates a base relation variable' do
+    name = :foo
+    Table(name) == Arel::Table.new(name)
+  end
+  
+  it 'should have a default engine' do
+    Table(:foo).engine.should == Arel::Table.engine  
+  end
+  
+  it 'can take an engine' do
+    engine = Arel::Table.engine
+    Table(:foo, engine).engine.should be engine
+  end
+  it 'can take an options hash' do
+    engine = Arel::Table.engine
+    options = { :engine => engine }
+    Table(:foo, options).engine.should be engine
+  end
+end
+
+module Arel 
   describe Table do
     before do
       @relation = Table.new(:users)

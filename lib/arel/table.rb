@@ -1,4 +1,8 @@
-module Arel
+def Table(name, engine = Arel::Table.engine)
+  Arel::Table.new(name, engine)
+end
+
+module Arel 
   class Table
     include Arel::Crud
 

@@ -1,3 +1,9 @@
+== 2.0.0 / 2010-08-01
+* Enhancements
+  
+  * Recreate library using the Visitor pattern.
+    http://en.wikipedia.org/wiki/Visitor_pattern
+
 == 0.3.0 / 2010-03-10
 
 * Enhancements
