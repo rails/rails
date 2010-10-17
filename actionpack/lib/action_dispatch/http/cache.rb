@@ -45,7 +45,6 @@ module ActionDispatch
           status, header, body = super
 
           @cache_control = {}
-          @etag = self["ETag"]
 
           if cache_control = self["Cache-Control"]
             cache_control.split(/,\s*/).each do |segment|
@@ -70,12 +69,9 @@ module ActionDispatch
         end
 
         def etag
-          @etag
+          @etag ||= self["ETag"]
         end
-
-        def etag?
-          @etag
-        end
+        alias_method :etag?, :etag
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
