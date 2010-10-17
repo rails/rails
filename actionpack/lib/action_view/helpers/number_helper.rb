@@ -52,10 +52,8 @@ module ActionView
         begin
           Float(number)
         rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          end
-        end
+          raise InvalidNumberError, number
+        end if options[:raise]
 
         number       = number.to_s.strip
         options      = options.symbolize_keys
