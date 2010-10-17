@@ -127,9 +127,11 @@ module ActionView
             options.each_pair do |key, value|
               if key.to_s == 'data' && value.is_a?(Hash)
                 value.each do |k, v|
-                  final_v = [String, Symbol].include?(v.class) ? v : v.to_json
-                  final_v = html_escape(final_v) if escape
-                  attrs << %(data-#{k.to_s.dasherize}="#{final_v}")
+                  if !v.is_a?(String) && !v.is_a?(Symbol)
+                    v = v.to_json
+                  end
+                  v = html_escape(v) if escape
+                  attrs << %(data-#{k.to_s.dasherize}="#{v}")
                 end
               elsif BOOLEAN_ATTRIBUTES.include?(key)
                 attrs << %(#{key}="#{key}") if value
