@@ -39,7 +39,8 @@ module ActionDispatch
       end
 
       module Response
-        attr_reader :cache_control
+        attr_reader :cache_control, :etag
+        alias :etag? :etag
 
         def initialize(*)
           status, header, body = super
@@ -69,14 +70,6 @@ module ActionDispatch
           headers['Last-Modified'] = utc_time.httpdate
         end
 
-        def etag
-          @etag
-        end
-
-        def etag?
-          @etag
-        end
-
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
           @etag = self["ETag"] = %("#{Digest::MD5.hexdigest(key)}")
@@ -99,7 +92,7 @@ module ActionDispatch
 
           if control.empty?
             headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
-          elsif @cache_control[:no_cache]
+          elsif control[:no_cache]
             headers["Cache-Control"] = "no-cache"
           else
             extras  = control[:extras]
