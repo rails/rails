@@ -114,9 +114,9 @@ HEADER
                                  column.type.to_s
                                end
             spec[:limit]     = column.limit.inspect if column.limit != @types[column.type][:limit] && spec[:type] != 'decimal'
-            spec[:precision] = column.precision.inspect if !column.precision.nil?
-            spec[:scale]     = column.scale.inspect if !column.scale.nil?
-            spec[:null]      = 'false' if !column.null
+            spec[:precision] = column.precision.inspect if column.precision
+            spec[:scale]     = column.scale.inspect if column.scale
+            spec[:null]      = 'false' unless column.null
             spec[:default]   = default_string(column.default) if column.has_default?
             (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
             spec
