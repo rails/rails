@@ -95,7 +95,7 @@ module ActiveSupport
           end
         end
 
-        if !defined?(@has_win32)
+        unless defined?(@has_win32)
           begin
             require 'Win32API'
 

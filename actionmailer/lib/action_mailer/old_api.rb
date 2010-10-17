@@ -212,7 +212,7 @@ module ActionMailer
 
         # If this is a multipart e-mail add the mime_version if it is not
         # already set.
-        @mime_version ||= "1.0" if !@parts.empty?
+        @mime_version ||= "1.0" unless @parts.empty?
       end
     end
 

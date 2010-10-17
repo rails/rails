@@ -72,7 +72,7 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-          if !respond_to?(adapter_method)
+          unless respond_to?(adapter_method)
             raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
           end
 
