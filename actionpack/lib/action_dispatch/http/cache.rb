@@ -43,15 +43,11 @@ module ActionDispatch
 
         def initialize(*)
           status, header, body = super
-
-          @cache_control = {}
-
-          if cache_control = self["Cache-Control"]
-            cache_control.split(/,\s*/).each do |segment|
-              first, last = segment.split("=")
-              @cache_control[first.to_sym] = last || true
-            end
-          end
+          
+          self["Cache-Control"].split(/,\s*/).each do |segment|
+            first, last = segment.split("=")
+            cache_control[first.to_sym] = last || true
+          end if self["Cache-Control"]
         end
 
         def last_modified
@@ -77,11 +73,15 @@ module ActionDispatch
           key = ActiveSupport::Cache.expand_cache_key(etag)
           @etag = self["ETag"] = %("#{Digest::MD5.hexdigest(key)}")
         end
+        
+        def cache_control
+          @cache_control ||= {}
+        end
 
       private
 
         def handle_conditional_get!
-          if etag? || last_modified? || !@cache_control.empty?
+          if etag? || last_modified? || !cache_control.empty?
             set_conditional_cache_control!
           end
         end
@@ -91,20 +91,18 @@ module ActionDispatch
         def set_conditional_cache_control!
           return if self["Cache-Control"].present?
 
-          control = @cache_control
-
-          if control.empty?
+          if cache_control.empty?
             headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
-          elsif @cache_control[:no_cache]
+          elsif cache_control[:no_cache]
             headers["Cache-Control"] = "no-cache"
           else
-            extras  = control[:extras]
-            max_age = control[:max_age]
+            extras  = cache_control[:extras]
+            max_age = cache_control[:max_age]
 
             options = []
             options << "max-age=#{max_age.to_i}" if max_age
-            options << (control[:public] ? "public" : "private")
-            options << "must-revalidate" if control[:must_revalidate]
+            options << (cache_control[:public] ? "public" : "private")
+            options << "must-revalidate" if cache_control[:must_revalidate]
             options.concat(extras) if extras
 
             headers["Cache-Control"] = options.join(", ")
