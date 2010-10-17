@@ -25,9 +25,13 @@ module ActionView
       # escaping.
       #
       # ==== Options
-      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
-      # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
-      # symbols or strings for the attribute names.
+      # Use +true+ with boolean attributes that can render with no value (like
+      # +disabled+ and +readonly+).
+      #
+      # HTML5 data-* attributes can be set with a single +data+ key and a hash
+      # value of sub-attributes. Sub-attribute keys will be dasherized.
+      #
+      # You can use symbols or strings for the attribute names.
       #
       # ==== Examples
       #   tag("br")
@@ -44,6 +48,9 @@ module ActionView
       #
       #   tag("img", { :src => "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
+      #
+      #   tag("div", { :data => { :name => 'Stephen', :city_state => %w(Chicago IL) } })
+      #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" data-name="Stephen" />
       def tag(name, options = nil, open = false, escape = true)
         "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
       end
@@ -118,7 +125,13 @@ module ActionView
           unless options.blank?
             attrs = []
             options.each_pair do |key, value|
-              if BOOLEAN_ATTRIBUTES.include?(key)
+              if key.to_s == 'data' && value.is_a?(Hash)
+                value.each do |k, v|
+                  final_v = [String, Symbol].include?(v.class) ? v : v.to_json
+                  final_v = html_escape(final_v) if escape
+                  attrs << %(data-#{k.to_s.dasherize}="#{final_v}")
+                end
+              elsif BOOLEAN_ATTRIBUTES.include?(key)
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
                 final_value = value.is_a?(Array) ? value.join(" ") : value

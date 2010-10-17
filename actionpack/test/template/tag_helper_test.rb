@@ -110,4 +110,11 @@ class TagHelperTest < ActionView::TestCase
   def test_disable_escaping
     assert_equal '<a href="&amp;" />', tag('a', { :href => '&amp;' }, false, false)
   end
+
+  def test_data_attributes
+    ['data', :data].each { |data|
+      assert_dom_equal '<a data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string="hello" data-symbol="foo" />',
+        tag('a', { data => { :a_number => 1, :string => 'hello', :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
+    }
+  end
 end
