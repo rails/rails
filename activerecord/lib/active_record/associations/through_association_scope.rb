@@ -7,9 +7,8 @@ module ActiveRecord
 
       protected
 
-      def construct_scope
-        scope = {}
-        scope[:find] = {
+      def construct_find_scope
+        {
           :conditions => construct_conditions,
           :joins      => construct_joins,
           :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include],
@@ -18,8 +17,10 @@ module ActiveRecord
           :limit      => @reflection.options[:limit],
           :readonly   => @reflection.options[:readonly]
         }
-        scope[:create] = construct_owner_attributes(@reflection) unless @reflection.nested?
-        scope
+      end
+      
+      def construct_create_scope
+        @reflection.nested? ? {} : construct_owner_attributes(@reflection)
       end
 
       # Build SQL conditions from attributes, qualified by table name.

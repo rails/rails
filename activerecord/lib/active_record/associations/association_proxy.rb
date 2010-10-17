@@ -61,6 +61,7 @@ module ActiveRecord
         reflection.check_validity!
         Array.wrap(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset
+        construct_scope
       end
 
       # Returns the owner of the proxy.
@@ -201,6 +202,24 @@ module ActiveRecord
         # Forwards +with_scope+ to the reflection.
         def with_scope(*args, &block)
           @reflection.klass.send :with_scope, *args, &block
+        end
+
+        # Construct the scope used for find/create queries on the target
+        def construct_scope
+          @scope = {
+            :find   => construct_find_scope,
+            :create => construct_create_scope
+          }
+        end
+        
+        # Implemented by subclasses
+        def construct_find_scope
+          raise NotImplementedError
+        end
+        
+        # Implemented by (some) subclasses
+        def construct_create_scope
+          {}
         end
 
       private

@@ -44,20 +44,20 @@ module ActiveRecord
           end
         end
 
+        def construct_find_scope
+          { :conditions => conditions }
+        end
+
         def find_target
           return nil if association_class.nil?
 
-          target =
-            if @reflection.options[:conditions]
-              association_class.find(
-                @owner[@reflection.primary_key_name],
-                :select     => @reflection.options[:select],
-                :conditions => conditions,
-                :include    => @reflection.options[:include]
-              )
-            else
-              association_class.find(@owner[@reflection.primary_key_name], :select => @reflection.options[:select], :include => @reflection.options[:include])
-            end
+          target = association_class.send(:with_scope, :find => @scope[:find]) do
+            association_class.find(
+              @owner[@reflection.primary_key_name],
+              :select  => @reflection.options[:select],
+              :include => @reflection.options[:include]
+            )
+          end
           set_inverse_instance(target, @owner)
           target
         end

@@ -6,14 +6,10 @@ module ActiveRecord
     # If the association has a <tt>:through</tt> option further specialization
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, reflection)
-        @finder_sql = nil
-        super
-      end
       protected
         def owner_quoted_id
           if @reflection.options[:primary_key]
-            quote_value(@owner.send(@reflection.options[:primary_key]))
+            @owner.class.quote_value(@owner.send(@reflection.options[:primary_key]))
           else
             @owner.quoted_id
           end
@@ -35,10 +31,10 @@ module ActiveRecord
         def count_records
           count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif @reflection.options[:counter_sql]
-            @reflection.klass.count_by_sql(@counter_sql)
+          elsif @reflection.options[:counter_sql] || @reflection.options[:finder_sql]
+            @reflection.klass.count_by_sql(custom_counter_sql)
           else
-            @reflection.klass.count(:conditions => @counter_sql, :include => @reflection.options[:include])
+            @reflection.klass.count(@scope[:find].slice(:conditions, :joins, :include))
           end
 
           # If there's nothing in the database and @target has no new records
@@ -87,36 +83,32 @@ module ActiveRecord
           false
         end
 
-        def construct_sql
-          case
-            when @reflection.options[:finder_sql]
-              @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
-
-            when @reflection.options[:as]
-              @finder_sql =
-                "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
-                "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
-              @finder_sql << " AND (#{conditions})" if conditions
-
-            else
-              @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
-              @finder_sql << " AND (#{conditions})" if conditions
+        def construct_conditions
+          if @reflection.options[:as]
+            sql =
+              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
+              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
+          else
+            sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
           end
-
-          construct_counter_sql
+          sql << " AND (#{conditions})" if conditions
+          sql
         end
 
-        def construct_scope
+        def construct_find_scope
+          {
+            :conditions => construct_conditions,
+            :readonly   => false,
+            :order      => @reflection.options[:order],
+            :limit      => @reflection.options[:limit],
+            :include    => @reflection.options[:include]
+          }
+        end
+
+        def construct_create_scope
           create_scoping = {}
           set_belongs_to_association_for(create_scoping)
-          {
-            :find => { :conditions => @finder_sql,
-                       :readonly => false,
-                       :order => @reflection.options[:order],
-                       :limit => @reflection.options[:limit],
-                       :include => @reflection.options[:include]},
-            :create => create_scoping
-          }
+          create_scoping
         end
 
         def we_can_set_the_inverse_on_this?(record)

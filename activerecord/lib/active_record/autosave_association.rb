@@ -313,8 +313,8 @@ module ActiveRecord
           end
         end
 
-        # reconstruct the SQL queries now that we know the owner's id
-        association.send(:construct_sql) if association.respond_to?(:construct_sql)
+        # reconstruct the scope now that we know the owner's id
+        association.send(:construct_scope) if association.respond_to?(:construct_scope)
       end
     end
 
