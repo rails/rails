@@ -51,12 +51,9 @@ module ActionView
 
         begin
           Float(number)
-          is_number_html_safe = true
         rescue ArgumentError, TypeError
           if options[:raise]
             raise InvalidNumberError, number
-          else
-            is_number_html_safe = number.to_s.html_safe?
           end
         end
 
@@ -76,7 +73,7 @@ module ActionView
           number.starts_with?('-') ? number.slice!(1..-1) : number
         end
         str << " x #{extension}" unless extension.blank?
-        is_number_html_safe ? str.html_safe : str
+        html_escape(str)
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
