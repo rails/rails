@@ -60,7 +60,7 @@ module ActionView
         options      = options.symbolize_keys
         area_code    = options[:area_code]
         delimiter    = options[:delimiter] || "-"
-        extension    = options[:extension].to_s.strip
+        extension    = options[:extension]
         country_code = options[:country_code]
 
         str = ""
