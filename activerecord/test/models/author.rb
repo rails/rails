@@ -86,7 +86,7 @@ class Author < ActiveRecord::Base
   has_many :tagging,         :through => :posts
   has_many :taggings,        :through => :posts
   has_many :tags,            :through => :posts
-  has_many :similar_posts,   :through => :tags,  :source => :tagged_posts
+  has_many :similar_posts,   :through => :tags,  :source => :tagged_posts, :uniq => true
   has_many :distinct_tags,   :through => :posts, :source => :tags, :select => "DISTINCT tags.*", :order => "tags.name"
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :tagging_tags,    :through => :taggings, :source => :tag
@@ -103,6 +103,11 @@ class Author < ActiveRecord::Base
 
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :category_post_comments, :through => :categories, :source => :post_comments
+  
+  has_many :misc_posts, :class_name => 'Post', :conditions => "posts.title LIKE 'misc post%'"
+  has_many :misc_post_first_blue_tags, :through => :misc_posts, :source => :first_blue_tags
+
+  has_many :misc_post_first_blue_tags_2, :through => :posts, :source => :first_blue_tags_2, :conditions => "posts.title LIKE 'misc post%'"
 
   scope :relation_include_posts, includes(:posts)
   scope :relation_include_tags, includes(:tags)

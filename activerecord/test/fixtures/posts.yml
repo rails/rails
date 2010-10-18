@@ -64,3 +64,17 @@ misc_by_mary:
   title: misc post by mary
   body: hello
   type: Post
+
+other_by_bob:
+  id: 10
+  author_id: 3
+  title: other post by bob
+  body: hello
+  type: Post
+
+other_by_mary:
+  id: 11
+  author_id: 2
+  title: other post by mary
+  body: hello
+  type: Post

@@ -253,6 +253,10 @@ module ActiveRecord
       def through_reflection_chain
         [self]
       end
+      
+      def through_conditions
+        [Array.wrap(options[:conditions])]
+      end
 
       def through_reflection_primary_key_name
       end
@@ -378,9 +382,9 @@ module ActiveRecord
       # TODO: Documentation
       def through_reflection_chain
         @through_reflection_chain ||= begin
-          if source_reflection.through_reflection
-            # If the source reflection goes through another reflection, then the chain must start
-            # by getting us to the source reflection.
+          if source_reflection.source_reflection
+            # If the source reflection has its own source reflection, then the chain must start
+            # by getting us to that source reflection.
             chain = source_reflection.through_reflection_chain
           else
             # If the source reflection does not go through another reflection, then we can get
@@ -393,6 +397,49 @@ module ActiveRecord
           
           # Finally return the completed chain
           chain
+        end
+      end
+      
+      # Consider the following example:
+      # 
+      #   class Person
+      #     has_many :articles
+      #     has_many :comment_tags, :through => :articles
+      #   end
+      # 
+      #   class Article
+      #     has_many :comments
+      #     has_many :comment_tags, :through => :comments, :source => :tags
+      #   end
+      # 
+      #   class Comment
+      #     has_many :tags
+      #   end
+      # 
+      # There may be conditions on Person.comment_tags, Article.comment_tags and/or Comment.tags,
+      # but only Comment.tags will be represented in the through_reflection_chain. So this method
+      # creates an array of conditions corresponding to the through_reflection_chain. Each item in
+      # the through_conditions array corresponds to an item in the through_reflection_chain, and is
+      # itself an array of conditions from an arbitrary number of relevant reflections.
+      def through_conditions
+        @through_conditions ||= begin
+          # Initialize the first item - which corresponds to this reflection - either by recursing
+          # into the souce reflection (if it is itself a through reflection), or by grabbing the
+          # source reflection conditions.
+          if source_reflection.source_reflection
+            conditions = source_reflection.through_conditions
+          else
+            conditions = [Array.wrap(source_reflection.options[:conditions])]
+          end
+          
+          # Add to it the conditions from this reflection if necessary.
+          conditions.first << options[:conditions] if options[:conditions]
+          
+          # Recursively fill out the rest of the array from the through reflection
+          conditions += through_reflection.through_conditions
+          
+          # And return
+          conditions
         end
       end
       

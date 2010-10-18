@@ -53,8 +53,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_with_ordering
     list = Post.find(:all, :include => :comments, :order => "posts.id DESC")
-    [:misc_by_mary, :misc_by_bob, :eager_other, :sti_habtm, :sti_post_and_comments,
-     :sti_comments, :authorless, :thinking, :welcome
+    [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
+     :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
     ].each_with_index do |post, index|
       assert_equal posts(post), list[index]
     end

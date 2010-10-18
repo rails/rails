@@ -2164,8 +2164,10 @@ module ActiveRecord
               chain = through_reflection_chain.reverse
               
               foreign_table = parent_table
+              index = 0
               
-              chain.zip(@tables).each do |reflection, table|
+              chain.each do |reflection|
+                table = @tables[index]
                 conditions = []
                 
                 if reflection.source_reflection.nil?
@@ -2234,13 +2236,14 @@ module ActiveRecord
                 
                 conditions << table[key].eq(foreign_table[foreign_key])
                 
-                conditions << reflection_conditions(reflection, table)
+                conditions << reflection_conditions(index, table)
                 conditions << sti_conditions(reflection, table)
                 
-                relation = relation.join(table, join_type).on(*conditions.compact)
+                relation = relation.join(table, join_type).on(*conditions.flatten.compact)
                 
                 # The current table in this iteration becomes the foreign table in the next
                 foreign_table = table
+                index += 1
               end
               
               relation
@@ -2325,10 +2328,10 @@ module ActiveRecord
               @tables
             end
             
-            def reflection_conditions(reflection, table)
-              if reflection.options[:conditions]
+            def reflection_conditions(index, table)
+              @reflection.through_conditions.reverse[index].map do |condition|
                 Arel.sql(interpolate_sql(sanitize_sql(
-                  reflection.options[:conditions],
+                  condition,
                   table.table_alias || table.name
                 )))
               end

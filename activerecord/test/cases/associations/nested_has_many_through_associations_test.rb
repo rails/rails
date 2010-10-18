@@ -92,8 +92,6 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [luke, david, david], authors.first.subscribers.sort_by(&:nick)
     end
-    
-    # TODO: Add eager loading test using LEFT OUTER JOIN
   end
   
   # has_many through
@@ -325,7 +323,7 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   
   def test_nested_has_many_through_with_a_table_referenced_multiple_times
     author = authors(:bob)
-    assert_equal [posts(:misc_by_bob), posts(:misc_by_mary)], author.similar_posts.sort_by(&:id)
+    assert_equal [posts(:misc_by_bob), posts(:misc_by_mary), posts(:other_by_bob), posts(:other_by_mary)], author.similar_posts.sort_by(&:id)
     
     # Mary and Bob both have posts in misc, but they are the only ones.
     authors = Author.joins(:similar_posts).where('posts.id' => posts(:misc_by_bob).id)
@@ -403,6 +401,42 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     
     assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
       groucho.nested_member_type = founding
+    end
+  end
+  
+  def test_nested_has_many_through_with_conditions_on_through_associations
+    blue, bob = tags(:blue), authors(:bob)
+  
+    assert_equal [blue], bob.misc_post_first_blue_tags
+    
+    # Pointless condition to force single-query loading
+    assert_includes_and_joins_equal(
+      Author.where('tags.id = tags.id'),
+      [bob], :misc_post_first_blue_tags
+    )
+    
+    assert Author.where('tags.id' => 100).joins(:misc_post_first_blue_tags).empty?
+    
+    authors = assert_queries(3) { Author.includes(:misc_post_first_blue_tags).to_a }
+    assert_no_queries do
+      assert_equal [blue], authors[2].misc_post_first_blue_tags
+    end
+  end
+  
+  def test_nested_has_many_through_with_conditions_on_source_associations
+    blue, bob = tags(:blue), authors(:bob)
+    
+    assert_equal [blue], bob.misc_post_first_blue_tags_2
+    
+    # Pointless condition to force single-query loading
+    assert_includes_and_joins_equal(
+      Author.where('tags.id = tags.id'),
+      [bob], :misc_post_first_blue_tags_2
+    )
+    
+    authors = assert_queries(4) { Author.includes(:misc_post_first_blue_tags_2).to_a }
+    assert_no_queries do
+      assert_equal [blue], authors[2].misc_post_first_blue_tags_2
     end
   end
   

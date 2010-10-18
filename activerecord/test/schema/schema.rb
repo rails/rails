@@ -537,6 +537,7 @@ ActiveRecord::Schema.define do
     t.column :super_tag_id, :integer
     t.column :taggable_type, :string
     t.column :taggable_id, :integer
+    t.string :comment
   end
 
   create_table :tags, :force => true do |t|

@@ -15,7 +15,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
-    assert_equal 2, authors[1].posts.size
+    assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
   end
 
@@ -23,7 +23,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     authors = Author.find(:all, :include=>[{:posts=>:comments}, :categorizations], :order=>"authors.id")
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
-    assert_equal 2, authors[1].posts.size
+    assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
     assert_equal 1, authors[0].categorizations.size
     assert_equal 2, authors[1].categorizations.size
@@ -56,7 +56,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     authors = Author.find(:all, :include=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id")
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
-    assert_equal 2, authors[1].posts.size
+    assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
   end
 

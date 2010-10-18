@@ -24,7 +24,6 @@ module ActiveRecord
       end
 
       # Build SQL conditions from attributes, qualified by table name.
-      # TODO: Conditions on joins
       def construct_conditions
         reflection = @reflection.through_reflection_chain.last
         
@@ -34,11 +33,12 @@ module ActiveRecord
           table_alias = table_aliases[reflection]
         end
         
-        conditions = construct_quoted_owner_attributes(reflection).map do |attr, value|
+        parts = construct_quoted_owner_attributes(reflection).map do |attr, value|
           "#{table_alias}.#{attr} = #{value}"
         end
-        conditions << sql_conditions if sql_conditions
-        "(" + conditions.join(') AND (') + ")"
+        parts += reflection_conditions(0)
+        
+        "(" + parts.join(') AND (') + ")"
       end
 
       # Associate attributes pointing to owner, quoted.
@@ -55,23 +55,21 @@ module ActiveRecord
         end
       end
 
-      def construct_from
-        @reflection.table_name
-      end
-
       def construct_select(custom_select = nil)
         distinct = "DISTINCT " if @reflection.options[:uniq]
         selected = custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
       end
       
       def construct_joins(custom_joins = nil)
-        # p @reflection.through_reflection_chain
+        # TODO: Remove this at the end
+        #p @reflection.through_reflection_chain
+        #p @reflection.through_conditions
         
         "#{construct_through_joins} #{@reflection.options[:joins]} #{custom_joins}"
       end
 
       def construct_through_joins
-        joins = []
+        joins, right_index = [], 1
         
         # Iterate over each pair in the through reflection chain, joining them together
         @reflection.through_reflection_chain.each_cons(2) do |left, right|
@@ -86,20 +84,23 @@ module ActiveRecord
                 joins << inner_join_sql(
                   right_table_and_alias,
                   table_aliases[left],  left.klass.primary_key,
-                  table_aliases[right], left.primary_key_name
+                  table_aliases[right], left.primary_key_name,
+                  reflection_conditions(right_index)
                 )
               when :has_many, :has_one
                 joins << inner_join_sql(
                   right_table_and_alias,
                   table_aliases[left],  left.primary_key_name,
                   table_aliases[right], right.klass.primary_key,
-                  polymorphic_conditions(left, left)
+                  polymorphic_conditions(left, left),
+                  reflection_conditions(right_index)
                 )
               when :has_and_belongs_to_many
                 joins << inner_join_sql(
                   right_table_and_alias,
                   table_aliases[left].first, left.primary_key_name,
-                  table_aliases[right],      right.klass.primary_key
+                  table_aliases[right],      right.klass.primary_key,
+                  reflection_conditions(right_index)
                 )
             end
           else
@@ -109,7 +110,8 @@ module ActiveRecord
                   right_table_and_alias,
                   table_aliases[left],  left.klass.primary_key,
                   table_aliases[right], left.source_reflection.primary_key_name,
-                  source_type_conditions(left)
+                  source_type_conditions(left),
+                  reflection_conditions(right_index)
                 )
               when :has_many, :has_one
                 if right.macro == :has_and_belongs_to_many
@@ -123,7 +125,8 @@ module ActiveRecord
                   right_table_and_alias,
                   table_aliases[left], left.source_reflection.primary_key_name,
                   right_table,         right.klass.primary_key,
-                  polymorphic_conditions(left, left.source_reflection)
+                  polymorphic_conditions(left, left.source_reflection),
+                  reflection_conditions(right_index)
                 )
                 
                 if right.macro == :has_and_belongs_to_many
@@ -151,10 +154,13 @@ module ActiveRecord
                 joins << inner_join_sql(
                   right_table_and_alias,
                   join_table,           left.source_reflection.primary_key_name,
-                  table_aliases[right], right.klass.primary_key
+                  table_aliases[right], right.klass.primary_key,
+                  reflection_conditions(right_index)
                 )
             end
           end
+          
+          right_index += 1
         end
         
         joins.join(" ")
@@ -206,18 +212,45 @@ module ActiveRecord
         "#{table_name} #{table_alias if table_alias != table_name}".strip
       end
       
-      def inner_join_sql(table, on_left_table, on_left_key, on_right_table, on_right_key, conds = nil)
-        "INNER JOIN %s ON %s.%s = %s.%s %s" % [
-          table,
-          on_left_table,  on_left_key,
-          on_right_table, on_right_key,
-          conds
-        ]
+      def inner_join_sql(table, on_left_table, on_left_key, on_right_table, on_right_key, *conditions)
+        conditions << "#{on_left_table}.#{on_left_key} = #{on_right_table}.#{on_right_key}"
+        conditions = conditions.flatten.compact
+        conditions = conditions.map { |sql| "(#{sql})" } * ' AND '
+        
+        "INNER JOIN #{table} ON #{conditions}"
+      end
+      
+      def reflection_conditions(index)
+        reflection            = @reflection.through_reflection_chain[index]
+        reflection_conditions = @reflection.through_conditions[index]
+        
+        conditions = []
+        
+        if reflection.options[:as].nil? && # reflection.klass is a Module if :as is used
+           reflection.klass.finder_needs_type_condition?
+          conditions << reflection.klass.send(:type_condition).to_sql
+        end
+        
+        reflection_conditions.each do |condition|
+          sanitized_condition    = reflection.klass.send(:sanitize_sql, condition)
+          interpolated_condition = interpolate_sql(sanitized_condition)
+          
+          if condition.is_a?(Hash)
+            interpolated_condition.gsub!(
+              @reflection.quoted_table_name,
+              reflection.quoted_table_name
+            )
+          end
+          
+          conditions << interpolated_condition
+        end
+        
+        conditions
       end
       
       def polymorphic_conditions(reflection, polymorphic_reflection)
         if polymorphic_reflection.options[:as]
-          "AND %s.%s = %s" % [
+          "%s.%s = %s" % [
             table_aliases[reflection], "#{polymorphic_reflection.options[:as]}_type",
             @owner.class.quote_value(polymorphic_reflection.active_record.base_class.name)
           ]
@@ -226,7 +259,7 @@ module ActiveRecord
       
       def source_type_conditions(reflection)
         if reflection.options[:source_type]
-          "AND %s.%s = %s" % [
+          "%s.%s = %s" % [
             table_aliases[reflection.through_reflection],
             reflection.source_reflection.options[:foreign_type].to_s,
             @owner.class.quote_value(reflection.options[:source_type])
@@ -245,6 +278,8 @@ module ActiveRecord
       end
 
       # Construct attributes for :through pointing to owner and associate.
+      # This method is used when adding records to the association. Since this only makes sense for
+      # non-nested through associations, that's the only case we have to worry about here.
       def construct_join_attributes(associate)
         # TODO: revisit this to allow it for deletion, supposing dependent option is supported
         raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
@@ -261,48 +296,6 @@ module ActiveRecord
 
         join_attributes
       end
-
-      def conditions
-        @conditions = build_conditions unless defined?(@conditions)
-        @conditions
-      end
-
-      def build_conditions
-        association_conditions = @reflection.options[:conditions]
-        through_conditions = build_through_conditions
-        source_conditions = @reflection.source_reflection.options[:conditions]
-        uses_sti = !@reflection.through_reflection.klass.descends_from_active_record?
-
-        if association_conditions || through_conditions || source_conditions || uses_sti
-          all = []
-
-          [association_conditions, source_conditions].each do |conditions|
-            all << interpolate_sql(sanitize_sql(conditions)) if conditions
-          end
-
-          all << through_conditions  if through_conditions
-          all << build_sti_condition if uses_sti
-
-          all.map { |sql| "(#{sql})" } * ' AND '
-        end
-      end
-
-      def build_through_conditions
-        conditions = @reflection.through_reflection.options[:conditions]
-        if conditions.is_a?(Hash)
-          interpolate_sql(@reflection.through_reflection.klass.send(:sanitize_sql, conditions)).gsub(
-            @reflection.quoted_table_name,
-            @reflection.through_reflection.quoted_table_name)
-        elsif conditions
-          interpolate_sql(sanitize_sql(conditions))
-        end
-      end
-
-      def build_sti_condition
-        @reflection.through_reflection.klass.send(:type_condition).to_sql
-      end
-
-      alias_method :sql_conditions, :conditions
       
       def ensure_not_nested
         if @reflection.nested?
