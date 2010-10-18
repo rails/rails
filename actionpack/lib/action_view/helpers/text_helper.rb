@@ -342,10 +342,10 @@ module ActionView
         values.unshift(first_value)
 
         cycle = get_cycle(name)
-        if (cycle.nil? || cycle.values != values)
+        unless cycle && cycle.values == values
           cycle = set_cycle(name, Cycle.new(*values))
         end
-        return cycle.to_s
+        cycle.to_s
       end
 
       # Returns the current cycle string after a cycle has been started. Useful
@@ -386,7 +386,7 @@ module ActionView
       #   </table>
       def reset_cycle(name = "default")
         cycle = get_cycle(name)
-        cycle.reset unless cycle.nil?
+        cycle.reset if cycle
       end
 
       class Cycle #:nodoc:
