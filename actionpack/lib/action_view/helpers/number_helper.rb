@@ -261,7 +261,7 @@ module ActionView
             digits = (Math.log10(number.abs) + 1).floor
             rounded_number = BigDecimal.new((number / 10 ** (digits - precision)).to_s).round.to_f * 10 ** (digits - precision)
           end
-          precision = precision - digits
+          precision -= digits
           precision = precision > 0 ? precision : 0  #don't let it be negative
         else
           rounded_number = BigDecimal.new((number * (10 ** precision)).to_s).round.to_f / 10 ** precision
