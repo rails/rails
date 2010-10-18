@@ -58,10 +58,10 @@ module ActionView
 
         number       = number.to_s.strip
         options      = options.symbolize_keys
-        area_code    = options[:area_code] || nil
+        area_code    = options[:area_code]
         delimiter    = options[:delimiter] || "-"
-        extension    = options[:extension].to_s.strip || nil
-        country_code = options[:country_code] || nil
+        extension    = options[:extension].to_s.strip
+        country_code = options[:country_code]
 
         str = ""
         str << "+#{country_code}#{delimiter}" unless country_code.blank?
