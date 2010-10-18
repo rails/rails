@@ -19,7 +19,7 @@ module Arel
       it 'chains' do
         table = Table.new(:users)
         dm = Arel::DeleteManager.new Table.engine
-        check dm.from(table).must_equal dm
+        dm.from(table).must_equal dm
       end
     end
 
@@ -35,7 +35,7 @@ module Arel
       it 'chains' do
         table = Table.new(:users)
         dm = Arel::DeleteManager.new Table.engine
-        check dm.where(table[:id].eq(10)).must_equal dm
+        dm.where(table[:id].eq(10)).must_equal dm
       end
     end
   end

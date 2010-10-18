@@ -28,7 +28,7 @@ module Arel
 
         sql = @visitor.accept(stmt)
         sql2 = @visitor.accept(stmt)
-        check sql.must_equal sql2
+        sql.must_equal sql2
       end
 
       it 'splits orders with commas' do
@@ -58,7 +58,7 @@ module Arel
             stmt.limit = 10
             sql = @visitor.accept stmt
             sql2 = @visitor.accept stmt
-            check sql.must_equal sql2
+            sql.must_equal sql2
           end
 
           it 'creates a subquery when there is order_by' do
@@ -102,7 +102,7 @@ module Arel
             stmt.offset = Nodes::Offset.new(10)
             sql = @visitor.accept stmt
             sql2 = @visitor.accept stmt
-            check sql.must_equal sql2
+            sql.must_equal sql2
           end
         end
       end

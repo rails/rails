@@ -328,8 +328,8 @@ module Arel
         it 'should return an equality node' do
           attribute = Attribute.new nil, nil, nil
           equality = attribute.eq 1
-          check equality.left.must_equal attribute
-          check equality.right.must_equal 1
+          equality.left.must_equal attribute
+          equality.right.must_equal 1
           equality.must_be_kind_of Nodes::Equality
         end
 
@@ -487,8 +487,8 @@ module Arel
         it 'should return an in node' do
           attribute = Attribute.new nil, nil, nil
           node = Nodes::In.new attribute, [1,2,3]
-          check node.left.must_equal attribute
-          check node.right.must_equal [1, 2, 3]
+          node.left.must_equal attribute
+          node.right.must_equal [1, 2, 3]
         end
 
         it 'should generate IN in sql' do
@@ -540,8 +540,8 @@ module Arel
         it 'should return a NotIn node' do
           attribute = Attribute.new nil, nil, nil
           node = Nodes::NotIn.new attribute, [1,2,3]
-          check node.left.must_equal attribute
-          check node.right.must_equal [1, 2, 3]
+          node.left.must_equal attribute
+          node.right.must_equal [1, 2, 3]
         end
 
         it 'should generate NOT IN in sql' do

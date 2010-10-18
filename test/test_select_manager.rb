@@ -135,7 +135,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.take 10
-        check manager.taken.must_equal 10
+        manager.taken.must_equal 10
       end
     end
 
@@ -168,7 +168,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         order = table[:id]
         manager.order table[:id]
-        check manager.orders.must_equal [order]
+        manager.orders.must_equal [order]
       end
     end
 
@@ -199,7 +199,7 @@ module Arel
       it 'chains' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        check manager.order(table[:id]).must_equal manager
+        manager.order(table[:id]).must_equal manager
       end
     end
 
@@ -275,7 +275,7 @@ module Arel
 
       it 'noops on nil' do
         manager   = Arel::SelectManager.new Table.engine
-        check manager.join(nil).must_equal manager
+        manager.join(nil).must_equal manager
       end
     end
 
@@ -288,7 +288,7 @@ module Arel
         manager.join_sql.must_be_like %{
           INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
-        check manager.joins(manager).must_equal manager.join_sql
+        manager.joins(manager).must_equal manager.join_sql
       end
 
       it 'returns outer join sql' do
@@ -299,7 +299,7 @@ module Arel
         manager.join_sql.must_be_like %{
           LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
-        check manager.joins(manager).must_equal manager.join_sql
+        manager.joins(manager).must_equal manager.join_sql
       end
 
       it 'returns string join sql' do
@@ -308,7 +308,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::StringJoin.new(table, 'hello')
         manager.join_sql.must_be_like %{ 'hello' }
-        check manager.joins(manager).must_equal manager.join_sql
+        manager.joins(manager).must_equal manager.join_sql
       end
 
       it 'returns nil join sql' do
@@ -342,7 +342,7 @@ module Arel
       it 'chains' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        check manager.group(table[:id]).must_equal manager
+        manager.group(table[:id]).must_equal manager
       end
 
       it 'takes multiple args' do
@@ -550,7 +550,7 @@ module Arel
 
         mgr = left.join(right)
         mgr.project Nodes::SqlLiteral.new('*')
-        check mgr.on(predicate).must_equal mgr
+        mgr.on(predicate).must_equal mgr
 
         mgr.to_sql.must_be_like %{
            SELECT * FROM "users"
@@ -573,7 +573,7 @@ module Arel
       it "chains" do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        check manager.from(table).project(table['id']).must_equal manager
+        manager.from(table).project(table['id']).must_equal manager
         manager.to_sql.must_be_like 'SELECT "users"."id" FROM "users"'
       end
     end

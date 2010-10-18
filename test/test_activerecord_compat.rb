@@ -9,7 +9,7 @@ module Arel
         manager.where table[:id].eq 1
         manager.where table[:name].eq 'Aaron'
 
-        check manager.wheres.map { |x|
+        manager.wheres.map { |x|
           x.value
         }.join(', ').must_equal "\"users\".\"id\" = 1, \"users\".\"name\" = 'Aaron'"
       end

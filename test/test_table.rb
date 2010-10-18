@@ -8,7 +8,7 @@ module Arel
 
     describe 'primary_key' do
       it 'should return an attribute' do
-        check @relation.primary_key.name.must_equal :id
+        @relation.primary_key.name.must_equal :id
       end
     end
 
@@ -31,7 +31,7 @@ module Arel
     describe 'backwards compat' do
       describe 'joins' do
         it 'returns nil' do
-          check @relation.joins(nil).must_equal nil
+          @relation.joins(nil).must_equal nil
         end
       end
 
@@ -67,12 +67,12 @@ module Arel
 
     describe 'alias' do
       it 'should create a node that proxies to a table' do
-        check @relation.aliases.must_equal []
+        @relation.aliases.must_equal []
 
         node = @relation.alias
-        check @relation.aliases.must_equal [node]
-        check node.name.must_equal 'users_2'
-        check node[:id].relation.must_equal node
+        @relation.aliases.must_equal [node]
+        node.name.must_equal 'users_2'
+        node[:id].relation.must_equal node
       end
     end
 
@@ -80,18 +80,18 @@ module Arel
       it 'takes :columns' do
         columns = Table.engine.connection.columns("users")
         @relation = Table.new(:users, :columns => columns)
-        check @relation.columns.first.name.must_equal :id
-        check @relation.engine.must_equal Table.engine
+        @relation.columns.first.name.must_equal :id
+        @relation.engine.must_equal Table.engine
       end
 
       it 'should accept an engine' do
         rel = Table.new :users, 'foo'
-        check rel.engine.must_equal 'foo'
+        rel.engine.must_equal 'foo'
       end
 
       it 'should accept a hash' do
         rel = Table.new :users, :engine => 'foo'
-        check rel.engine.must_equal 'foo'
+        rel.engine.must_equal 'foo'
       end
 
       it 'ignores as if it equals name' do
@@ -143,7 +143,7 @@ module Arel
     describe 'columns' do
       it 'returns a list of columns' do
         columns = @relation.columns
-        check columns.length.must_equal 2
+        columns.length.must_equal 2
         columns.map { |x| x.name.to_s }.sort.must_equal %w{ name id }.sort
       end
     end
@@ -160,7 +160,7 @@ module Arel
       describe 'when given a Symbol' do
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           column = @relation[:id]
-          check column.name.must_equal :id
+          column.name.must_equal :id
           column.must_be_kind_of Attributes::Integer
         end
       end
