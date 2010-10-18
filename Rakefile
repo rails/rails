@@ -2,7 +2,7 @@ require "rubygems"
 gem 'hoe', '>= 2.1.0'
 require 'hoe'
 
-Hoe.plugin :isolate
+Hoe.plugin :minitest
 Hoe.plugin :gemspec # `gem install hoe-gemspec`
 
 Hoe.spec 'arel' do
@@ -13,9 +13,5 @@ Hoe.spec 'arel' do
 
   self.readme_file      = 'README.markdown'
   self.extra_rdoc_files = FileList['README.markdown']
-  self.extra_dev_deps << ['rspec', '~> 1.3.0']
-  self.extra_dev_deps << ['ZenTest']
-  self.extra_dev_deps << ['minitest']
   self.extra_dev_deps << ['hoe-gemspec']
-  self.testlib = :minitest
 end
