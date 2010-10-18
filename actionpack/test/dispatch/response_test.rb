@@ -18,6 +18,10 @@ class ResponseTest < ActiveSupport::TestCase
     body.each { |part| parts << part }
     assert_equal ["Hello, World!"], parts
   end
+  
+  test "status handled properly in initialize" do
+    assert_equal 200, ActionDispatch::Response.new('200 OK').status
+  end
 
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
