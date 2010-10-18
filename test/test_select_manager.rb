@@ -577,17 +577,5 @@ module Arel
         manager.to_sql.must_be_like 'SELECT "users"."id" FROM "users"'
       end
     end
-
-    # HACK
-    # describe "TreeManager" do
-    #   subject do
-    #     table   = Table.new :users
-    #     Arel::SelectManager.new(Table.engine).tap do |manager|
-    #       manager.from(table).project(table['id'])
-    #     end
-    #   end
-    #
-    #   it_should_behave_like "TreeManager"
-    # end
   end
 end
