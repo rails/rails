@@ -521,13 +521,6 @@ module ActiveRecord
       end
 
       def exec(sql, name = 'SQL', binds = [])
-        return async_exec(sql, name, binds) if @async
-
-        log(sql, name) do
-        end
-      end
-
-      def async_exec(sql, name, binds)
         log(sql, name) do
           unless @statements.key? sql
             nextkey = "a#{@statements.length + 1}"
