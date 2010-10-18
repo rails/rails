@@ -2,6 +2,7 @@ require 'cgi'
 require 'erb'
 require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Form Option Helpers
@@ -100,7 +101,6 @@ module ActionView
     #
     module FormOptionsHelper
       # ERB::Util can mask some helpers like textilize. Make sure to include them.
-      include ERB::Util
       include TextHelper
 
       # Create a select tag and a series of contained option tags for the provided object and method.
@@ -306,7 +306,7 @@ module ActionView
           text, value = option_text_and_value(element).map(&:to_s)
           selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
           disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          %(<option value="#{html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{html_escape(text)}</option>)
+          %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
         end.join("\n").html_safe
 
       end
@@ -396,7 +396,7 @@ module ActionView
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
           group_label_string = eval("group.#{group_label_method}")
-          "<optgroup label=\"#{html_escape(group_label_string)}\">" +
+          "<optgroup label=\"#{ERB::Util.html_escape(group_label_string)}\">" +
             options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key) +
             '</optgroup>'
         end.join.html_safe
@@ -501,7 +501,7 @@ module ActionView
           return "" unless Array === element
           html_attributes = []
           element.select { |e| Hash === e }.reduce({}, :merge).each do |k, v|
-            html_attributes << " #{k}=\"#{html_escape(v.to_s)}\""
+            html_attributes << " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
           end
           html_attributes.join
         end
@@ -595,11 +595,11 @@ module ActionView
       private
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = "<option value=\"\">#{html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
+            option_tags = "<option value=\"\">#{ERB::Util.html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = "<option value=\"\">#{html_escape(prompt)}</option>\n" + option_tags
+            option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
           end
           option_tags.html_safe
         end

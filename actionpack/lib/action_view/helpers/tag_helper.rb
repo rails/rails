@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 require 'set'
 
 module ActionView
@@ -7,8 +8,6 @@ module ActionView
     # Provides methods to generate HTML tags programmatically when you can't use
     # a Builder. By default, they output XHTML compliant tags.
     module TagHelper
-      include ERB::Util
-
       extend ActiveSupport::Concern
       include CaptureHelper
 
@@ -130,14 +129,14 @@ module ActionView
                   if !v.is_a?(String) && !v.is_a?(Symbol)
                     v = v.to_json
                   end
-                  v = html_escape(v) if escape
+                  v = ERB::Util.html_escape(v) if escape
                   attrs << %(data-#{k.to_s.dasherize}="#{v}")
                 end
               elsif BOOLEAN_ATTRIBUTES.include?(key)
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
                 final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = html_escape(final_value) if escape
+                final_value = ERB::Util.html_escape(final_value) if escape
                 attrs << %(#{key}="#{final_value}")
               end
             end
