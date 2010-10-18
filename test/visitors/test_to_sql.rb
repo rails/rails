@@ -11,13 +11,13 @@ module Arel
       describe 'equality' do
         it 'should handle false' do
           sql = @visitor.accept Nodes::Equality.new(false, false)
-          sql.should be_like %{ 'f' = 'f' }
+          sql.must_be_like %{ 'f' = 'f' }
         end
 
         it 'should use the column to quote' do
           table = Table.new(:users)
           sql = @visitor.accept Nodes::Equality.new(table[:id], '1-fooo')
-          sql.should be_like %{ "users"."id" = 1 }
+          sql.must_be_like %{ "users"."id" = 1 }
         end
       end
 
@@ -43,14 +43,14 @@ module Arel
 
       it "should visit_Arel_Nodes_And" do
         node = Nodes::And.new @attr.eq(10), @attr.eq(11)
-        @visitor.accept(node).should be_like %{
+        @visitor.accept(node).must_be_like %{
           "users"."id" = 10 AND "users"."id" = 11
         }
       end
 
       it "should visit_Arel_Nodes_Or" do
         node = Nodes::Or.new @attr.eq(10), @attr.eq(11)
-        @visitor.accept(node).should be_like %{
+        @visitor.accept(node).must_be_like %{
           "users"."id" = 10 OR "users"."id" = 11
         }
       end
@@ -63,13 +63,13 @@ module Arel
       it "should visit_TrueClass" do
         test = @attr.eq(true)
         test.left.column.type = :boolean
-        @visitor.accept(test).should be_like %{ "users"."id" = 't' }
+        @visitor.accept(test).must_be_like %{ "users"."id" = 't' }
       end
 
       describe "Nodes::Ordering" do
         it "should know how to visit" do
           node = @attr.desc
-          @visitor.accept(node).should be_like %{
+          @visitor.accept(node).must_be_like %{
             "users"."id" DESC
           }
         end
@@ -78,28 +78,28 @@ module Arel
       describe "Nodes::In" do
         it "should know how to visit" do
           node = @attr.in [1, 2, 3]
-          @visitor.accept(node).should be_like %{
+          @visitor.accept(node).must_be_like %{
             "users"."id" IN (1, 2, 3)
           }
         end
 
         it "should turn empty right to NULL" do
           node = @attr.in []
-          @visitor.accept(node).should be_like %{
+          @visitor.accept(node).must_be_like %{
             "users"."id" IN (NULL)
           }
         end
 
         it 'can handle two dot ranges' do
           node = @attr.in 1..3
-          @visitor.accept(node).should be_like %{
+          @visitor.accept(node).must_be_like %{
             "users"."id" BETWEEN 1 AND 3
           }
         end
 
         it 'can handle three dot ranges' do
           node = @attr.in 1...3
-          @visitor.accept(node).should be_like %{
+          @visitor.accept(node).must_be_like %{
             "users"."id" >= 1 AND "users"."id" < 3
           }
         end
@@ -116,7 +116,7 @@ module Arel
           in_node = Nodes::In.new @attr, %w{ a b c }
           visitor = visitor.new(Table.engine)
           visitor.expected = @attr.column
-          lambda { visitor.accept(in_node) }.should_not raise_error
+          visitor.accept(in_node).must_equal %("users"."id" IN ('a', 'b', 'c'))
         end
       end
 
@@ -124,7 +124,7 @@ module Arel
         it "should escape strings" do
           test = @attr.eq 'Aaron Patterson'
           test.left.column.type = :string
-          @visitor.accept(test).should be_like %{
+          @visitor.accept(test).must_be_like %{
             "users"."id" = 'Aaron Patterson'
           }
         end

@@ -6,10 +6,9 @@ describe Arel::Nodes::DeleteStatement do
       statement = Arel::Nodes::DeleteStatement.new
       statement.wheres = %w[a b c]
 
-      statement.wheres.should_receive(:clone).and_return([:wheres])
-
       dolly = statement.clone
-      dolly.wheres.should == [:wheres]
+      dolly.wheres.must_equal statement.wheres
+      dolly.wheres.wont_be_same_as statement.wheres
     end
   end
 end

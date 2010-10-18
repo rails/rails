@@ -1,0 +1,26 @@
+# -*- ruby -*-
+
+# require 'autotest/restart'
+
+ENV['GEM_PATH'] = "tmp/isolate/ruby-1.8"
+
+module Autotest::Restart
+  Autotest.add_hook :updated do |at, *args|
+    if args.flatten.include? ".autotest" then
+      warn "Detected change to .autotest, restarting"
+      cmd = %w(autotest)
+      cmd << " -v" if $v
+      cmd += ARGV
+
+      exec(*cmd)
+    end
+  end
+end
+
+Autotest.add_hook :initialize do |at|
+  at.add_exception 'tmp'
+  at.testlib = "minitest/autorun"
+
+  at.find_directories = ARGV unless ARGV.empty?
+end
+

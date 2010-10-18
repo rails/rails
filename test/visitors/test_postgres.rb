@@ -8,7 +8,7 @@ module Arel
       end
 
       it 'should produce a lock value' do
-        @visitor.accept(Nodes::Lock.new).should be_like %{
+        @visitor.accept(Nodes::Lock.new).must_be_like %{
           FOR UPDATE
         }
       end

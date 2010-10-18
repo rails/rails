@@ -11,7 +11,7 @@ module Arel
 
         check manager.wheres.map { |x|
           x.value
-        }.join(', ').should == "\"users\".\"id\" = 1, \"users\".\"name\" = 'Aaron'"
+        }.join(', ').must_equal "\"users\".\"id\" = 1, \"users\".\"name\" = 'Aaron'"
       end
     end
   end

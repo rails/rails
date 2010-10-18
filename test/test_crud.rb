@@ -38,7 +38,7 @@ module Arel
         fc.insert [[table[:id], 'foo']]
         fc.engine.calls.find { |method, _|
           method == :insert
-        }.should_not be_nil
+        }.wont_be_nil
       end
     end
 
@@ -50,7 +50,7 @@ module Arel
         fc.update [[table[:id], 'foo']]
         fc.engine.calls.find { |method, _|
           method == :update
-        }.should_not be_nil
+        }.wont_be_nil
       end
     end
 
@@ -62,7 +62,7 @@ module Arel
         fc.delete
         fc.engine.calls.find { |method, _|
           method == :delete
-        }.should_not be_nil
+        }.wont_be_nil
       end
     end
   end

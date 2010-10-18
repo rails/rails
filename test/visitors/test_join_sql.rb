@@ -12,7 +12,7 @@ module Arel
           t    = Table.new :users
           join = Nodes::InnerJoin.new t, t, Nodes::On.new(t[:id])
           j2   = Nodes::InnerJoin.new join, t, Nodes::On.new(t[:id])
-          @visitor.accept(j2).should be_like %{
+          @visitor.accept(j2).must_be_like %{
             INNER JOIN "users" ON "users"."id"
             INNER JOIN "users" ON "users"."id"
           }
@@ -24,7 +24,7 @@ module Arel
           t    = Table.new :users
           join = Nodes::OuterJoin.new t, t, Nodes::On.new(t[:id])
           j2   = Nodes::OuterJoin.new join, t, Nodes::On.new(t[:id])
-          @visitor.accept(j2).should be_like %{
+          @visitor.accept(j2).must_be_like %{
             LEFT OUTER JOIN "users" ON "users"."id"
             LEFT OUTER JOIN "users" ON "users"."id"
           }

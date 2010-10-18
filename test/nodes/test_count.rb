@@ -3,14 +3,14 @@ require 'spec_helper'
 describe Arel::Nodes::Count do
   describe 'backwards compatibility' do
     it 'must be an expression' do
-      Arel::Nodes::Count.new('foo').should be_kind_of Arel::Expression
+      Arel::Nodes::Count.new('foo').must_be_kind_of Arel::Expression
     end
   end
 
   describe "as" do
     it 'should alias the count' do
       table = Arel::Table.new :users
-      table[:id].count.as('foo').to_sql.should be_like %{
+      table[:id].count.as('foo').to_sql.must_be_like %{
         COUNT("users"."id") AS foo
       }
     end

@@ -7,12 +7,12 @@ describe Arel::Nodes::UpdateStatement do
       statement.wheres = %w[a b c]
       statement.values = %w[x y z]
 
-      statement.wheres.should_receive(:clone).and_return([:wheres])
-      statement.values.should_receive(:clone).and_return([:values])
-
       dolly = statement.clone
-      check dolly.wheres.should == [:wheres]
-      check dolly.values.should == [:values]
+      dolly.wheres.must_equal statement.wheres
+      dolly.wheres.wont_be_same_as statement.wheres
+
+      dolly.values.must_equal statement.values
+      dolly.values.wont_be_same_as statement.values
     end
   end
 end

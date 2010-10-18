@@ -14,7 +14,7 @@ module Arel
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
         stmt.orders << Nodes::SqlLiteral.new('foo')
         sql = @visitor.accept(stmt)
-        sql.should be_like %{
+        sql.must_be_like %{
           SELECT #{select} ORDER BY alias_0__
         }
       end
@@ -28,7 +28,7 @@ module Arel
 
         sql = @visitor.accept(stmt)
         sql2 = @visitor.accept(stmt)
-        check sql.should == sql2
+        check sql.must_equal sql2
       end
 
       it 'splits orders with commas' do
@@ -38,7 +38,7 @@ module Arel
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
         stmt.orders << Nodes::SqlLiteral.new('foo, bar')
         sql = @visitor.accept(stmt)
-        sql.should be_like %{
+        sql.must_be_like %{
           SELECT #{select} ORDER BY alias_0__, alias_1__
         }
       end
@@ -49,7 +49,7 @@ module Arel
             stmt = Nodes::SelectStatement.new
             stmt.limit = 10
             sql = @visitor.accept stmt
-            sql.should be_like %{ SELECT WHERE ROWNUM <= 10 }
+            sql.must_be_like %{ SELECT WHERE ROWNUM <= 10 }
           end
 
           it 'is idempotent' do
@@ -58,7 +58,7 @@ module Arel
             stmt.limit = 10
             sql = @visitor.accept stmt
             sql2 = @visitor.accept stmt
-            check sql.should == sql2
+            check sql.must_equal sql2
           end
 
           it 'creates a subquery when there is order_by' do
@@ -66,7 +66,7 @@ module Arel
             stmt.orders << Nodes::SqlLiteral.new('foo')
             stmt.limit = 10
             sql = @visitor.accept stmt
-            sql.should be_like %{
+            sql.must_be_like %{
               SELECT * FROM (SELECT ORDER BY foo) WHERE ROWNUM <= 10
             }
           end
@@ -76,7 +76,7 @@ module Arel
             stmt.cores.first.projections << Nodes::SqlLiteral.new('DISTINCT id')
             stmt.limit = 10
             sql = @visitor.accept stmt
-            sql.should be_like %{
+            sql.must_be_like %{
               SELECT * FROM (SELECT DISTINCT id) WHERE ROWNUM <= 10
             }
           end
@@ -86,7 +86,7 @@ module Arel
             stmt.limit = 10
             stmt.offset = Nodes::Offset.new(10)
             sql = @visitor.accept stmt
-            sql.should be_like %{
+            sql.must_be_like %{
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (SELECT ) raw_sql_
@@ -102,7 +102,7 @@ module Arel
             stmt.offset = Nodes::Offset.new(10)
             sql = @visitor.accept stmt
             sql2 = @visitor.accept stmt
-            check sql.should == sql2
+            check sql.must_equal sql2
           end
         end
       end

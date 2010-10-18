@@ -7,12 +7,12 @@ describe Arel::Nodes::InsertStatement do
       statement.columns = %w[a b c]
       statement.values  = %w[x y z]
 
-      statement.columns.should_receive(:clone).and_return([:columns])
-      statement.values.should_receive(:clone).and_return([:values])
-
       dolly = statement.clone
-      check dolly.columns.should == [:columns]
-      check dolly.values.should  == [:values]
+      dolly.columns.must_equal statement.columns
+      dolly.values.must_equal statement.values
+
+      dolly.columns.wont_be_same_as statement.columns
+      dolly.values.wont_be_same_as statement.values
     end
   end
 end
