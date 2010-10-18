@@ -95,9 +95,10 @@
       parameters: params,
       evalScripts: true,
 
-      onComplete:    function(request) { element.fire("ajax:complete", request); },
-      onSuccess:     function(request) { element.fire("ajax:success",  request); },
-      onFailure:     function(request) { element.fire("ajax:failure",  request); }
+      onCreate:   function(request)  { element.fire("ajax:create",   request); },
+      onComplete: function(response) { element.fire("ajax:complete", response); },
+      onSuccess:  function(response) { element.fire("ajax:success",  response); },
+      onFailure:  function(response) { element.fire("ajax:failure",  response); }
     });
 
     element.fire("ajax:after");
@@ -127,6 +128,12 @@
     form.submit();
   }
 
+  function disableFormElements(form) {
+    form.select('input[type=submit][data-disable-with]').each(function(input) {
+      input.store('rails:original-value', input.getValue());
+      input.disable().setValue(input.readAttribute('data-disable-with'));
+    });
+  }
 
   document.on("click", "*[data-confirm]", function(event, element) {
     var message = element.readAttribute('data-confirm');
@@ -145,7 +152,7 @@
     event.stop();
   });
 
-  document.on("click", "form input[type=submit]", function(event, button) {
+  document.on("click", "form input[type=submit], form button[type=submit], form button:not([type])", function(event, button) {
     // register the pressed submit button
     event.findElement('form').store('rails:submit-button', button.name || false);
   });
@@ -159,18 +166,20 @@
       return false;
     }
 
-    form.select('input[type=submit][data-disable-with]').each(function(input) {
-      input.store('rails:original-value', input.getValue());
-      input.disable().setValue(input.readAttribute('data-disable-with'));
-    });
-
     if (form.readAttribute('data-remote')) {
       handleRemote(form);
       event.stop();
+    } else {
+      disableFormElements(form);
     }
   });
 
-  document.on("ajax:after", "form", function(event, form) {
+  document.on("ajax:create", function(event) {
+    var element = event.findElement();
+    if (element.match('form')) disableFormElements(element);
+  });
+
+  document.on("ajax:complete", "form", function(event, form) {
     form.select('input[type=submit][data-disable-with]').each(function(input) {
       input.setValue(input.retrieve('rails:original-value')).enable();
     });
