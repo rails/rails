@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'helper'
 
 module Arel
   describe 'update manager' do

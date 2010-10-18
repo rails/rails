@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'helper'
 
 describe Arel::Nodes::InsertStatement do
   describe "#clone" do
