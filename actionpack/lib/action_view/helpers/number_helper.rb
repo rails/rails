@@ -74,7 +74,7 @@ module ActionView
         str << "+#{country_code}#{delimiter}" unless country_code.blank?
         str << number
         str << " x #{extension}" unless extension.blank?
-        html_escape(str)
+        ERB::Util.html_escape(str)
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
