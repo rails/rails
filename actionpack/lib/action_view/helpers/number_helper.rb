@@ -102,7 +102,7 @@ module ActionView
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         options.symbolize_keys!
 
@@ -147,7 +147,7 @@ module ActionView
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
       def number_to_percentage(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         options.symbolize_keys!
 
