@@ -445,6 +445,8 @@ module ActionView
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
+        inverted_du = DECIMAL_UNITS.invert
+
         units = options.delete :units
         unit_exponents = case units
         when Hash
@@ -455,7 +457,7 @@ module ActionView
           I18n.translate(:"number.human.decimal_units.units", :locale => options[:locale], :raise => true)
         else
           raise ArgumentError, ":units must be a Hash or String translation scope."
-        end.keys.map{|e_name| DECIMAL_UNITS.invert[e_name] }.sort_by{|e| -e}
+        end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
 
         number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
         display_exponent = unit_exponents.find{|e| number_exponent >= e }
