@@ -48,7 +48,7 @@ module ActionView
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
       #  => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
-        return nil if number.nil?
+        return nil unless number
 
         begin
           Float(number)
