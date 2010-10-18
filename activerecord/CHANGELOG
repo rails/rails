@@ -1,4 +1,4 @@
-*Rails 3.0.1 (unreleased)*
+*Rails 3.0.2 (unreleased)*
 
 * reorder is deprecated in favor of except(:order).order(...) [Santiago Pastorino]
 
@@ -26,6 +26,10 @@
     Model.limit(10).scoping { Model.all.size }
 
   [Aaron Patterson]
+
+*Rails 3.0.1 (October 15, 2010)*
+
+* Introduce a fix for CVE-2010-3993
 
 *Rails 3.0.0 (August 29, 2010)*
 
