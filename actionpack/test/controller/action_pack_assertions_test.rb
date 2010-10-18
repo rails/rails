@@ -547,6 +547,14 @@ class AssertTemplateTest < ActionController::TestCase
       assert_template :hello_planet
     end
   end
+
+  def test_assert_template_reset_between_requests
+    get :hello_world
+    assert_template 'test/hello_world'
+
+    get :nothing
+    assert_template nil
+  end
 end
 
 class ActionPackHeaderTest < ActionController::TestCase

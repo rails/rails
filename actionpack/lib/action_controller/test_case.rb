@@ -40,6 +40,13 @@ module ActionController
       ActiveSupport::Notifications.unsubscribe("!render_template.action_view")
     end
 
+    def process(*args)
+      @partials = Hash.new(0)
+      @templates = Hash.new(0)
+      @layouts = Hash.new(0)
+      super
+    end
+
     # Asserts that the request was rendered with the appropriate template file or partials.
     #
     # ==== Examples
