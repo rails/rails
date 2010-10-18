@@ -16,6 +16,10 @@
 
 * Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. [Yehuda Katz, Carl Lerche]
 
+*Rails 3.0.1 (October 15, 2010)*
+
+* No Changes, just a version bump.
+
 *Rails 3.0.0 (August 29, 2010)*
 
 * password_field renders with nil value by default making the use of passwords secure by default, if you want to render you should do for instance f.password_field(:password, :value => @user.password) [Santiago Pastorino]
