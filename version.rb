@@ -5,6 +5,6 @@ module Rails
     TINY  = 2
     BUILD = 'pre'
 
-    STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
+    STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
   end
 end
