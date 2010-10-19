@@ -37,7 +37,7 @@ module Rails
 
     def test_dummy
       invoke Rails::Generators::AppGenerator,
-        [ File.expand_path(dummy_path, destination_root) ]
+        [ File.expand_path(dummy_path, destination_root) ], {}
     end
 
     def test_dummy_config

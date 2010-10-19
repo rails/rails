@@ -104,6 +104,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/support/integration_case.rb", /class ActiveSupport::IntegrationCase/
   end
 
+  def test_ensure_that_plugin_options_are_not_passed_app_generator
+    output = run_generator [destination_root, "--skip_gemfile"]
+    assert_no_file "Gemfile"
+    assert_match /STEP 2.*create  Gemfile/m, output
+  end
+
 protected
 
   def action(*args, &block)
