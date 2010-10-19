@@ -24,13 +24,20 @@ module ActionView
       # escaping.
       #
       # ==== Options
-      # Use +true+ with boolean attributes that can render with no value (like
-      # +disabled+ and +readonly+).
+      # Use +true+ with boolean attributes that can render with no value, like
+      # +disabled+ and +readonly+.
       #
-      # HTML5 data-* attributes can be set with a single +data+ key and a hash
-      # value of sub-attributes. Sub-attribute keys will be dasherized.
+      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
+      # pointing to a hash of sub-attributes.
       #
-      # You can use symbols or strings for the attribute names.
+      # Sub-attribute keys may be strings or symbols. To play nicely with
+      # JavaScript conventions +dataset+ they will be dasherized so that a key
+      # +user_id+ would render as <tt>data-user-id</tt> and thus accessed as
+      # <tt>dataset.userId</tt>.
+      #
+      # Values are encoded to JSON, with the exception of strings and symbols.
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()<tt>
+      # from 1.4.3.
       #
       # ==== Examples
       #   tag("br")
@@ -39,17 +46,17 @@ module ActionView
       #   tag("br", nil, true)
       #   # => <br>
       #
-      #   tag("input", { :type => 'text', :disabled => true })
+      #   tag("input", :type => 'text', :disabled => true)
       #   # => <input type="text" disabled="disabled" />
       #
-      #   tag("img", { :src => "open & shut.png" })
+      #   tag("img", :src => "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("img", { :src => "open &amp; shut.png" }, false, false)
+      #   tag("img", {:src => "open &amp; shut.png"}, false, false)
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("div", { :data => { :name => 'Stephen', :city_state => %w(Chicago IL) } })
-      #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" data-name="Stephen" />
+      #   tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name, options = nil, open = false, escape = true)
         "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
       end
