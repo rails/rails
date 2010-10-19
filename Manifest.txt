@@ -74,8 +74,10 @@ lib/arel/visitors/oracle.rb
 lib/arel/visitors/order_clauses.rb
 lib/arel/visitors/postgresql.rb
 lib/arel/visitors/to_sql.rb
+lib/arel/visitors/visitor.rb
 lib/arel/visitors/where_sql.rb
 test/attributes/test_attribute.rb
+test/helper.rb
 test/nodes/test_count.rb
 test/nodes/test_delete_statement.rb
 test/nodes/test_equality.rb
@@ -91,7 +93,6 @@ test/test_activerecord_compat.rb
 test/test_attributes.rb
 test/test_crud.rb
 test/test_delete_manager.rb
-test/test_helper.rb
 test/test_insert_manager.rb
 test/test_select_manager.rb
 test/test_table.rb
