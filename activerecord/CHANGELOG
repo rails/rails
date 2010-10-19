@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Associations with a :through option can now use *any* association as the through or source association, including other associations which have a :through option and has_and_belongs_to_many associations #1812 [Jon Leighton]
+
 * The following code:
 
     Model.limit(10).scoping { Model.count }
