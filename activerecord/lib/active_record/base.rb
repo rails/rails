@@ -1145,7 +1145,7 @@ MSG
         def current_scoped_methods #:nodoc:
           method = scoped_methods.last
           if method.respond_to?(:call)
-            unscoped(&method)
+            relation.scoping { method.call }
           else
             method
           end

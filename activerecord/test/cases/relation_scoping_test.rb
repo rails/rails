@@ -322,6 +322,24 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_default_scope_with_thing_that_responds_to_call
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'posts'
+    end
+
+    klass.class_eval do
+      default_scope Class.new(Struct.new(:klass)) {
+        def call
+          klass.where(:author_id => 2)
+        end
+      }.new(self)
+    end
+
+    records = klass.all
+    assert_equal 1, records.length
+    assert_equal 2, records.first.author_id
+  end
+
   def test_default_scope_is_unscoped_on_find
     assert_equal 1, DeveloperCalledDavid.count
     assert_equal 11, DeveloperCalledDavid.unscoped.count
