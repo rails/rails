@@ -1,6 +1,8 @@
 module Arel
   module Visitors
     class MySQL < Arel::Visitors::ToSql
+      private
+
       def visit_Arel_Nodes_UpdateStatement o
         [
           "UPDATE #{visit o.relation}",

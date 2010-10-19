@@ -1,6 +1,6 @@
 module Arel
   module Visitors
-    class Dot
+    class Dot < Arel::Visitors::Visitor
       class Node # :nodoc:
         attr_accessor :name, :id, :fields
 
@@ -23,7 +23,7 @@ module Arel
       end
 
       def accept object
-        visit object
+        super
         to_dot
       end
 
@@ -188,7 +188,7 @@ module Arel
         @seen[node.id] = node
         @nodes << node
         with_node node do
-          send "visit_#{o.class.name.gsub('::', '_')}", o
+          super
         end
       end
 
