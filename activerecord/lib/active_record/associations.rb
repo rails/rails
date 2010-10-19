@@ -2207,18 +2207,18 @@ module ActiveRecord
                 else
                   case reflection.source_reflection.macro
                     when :belongs_to
-                      key         = reflection.source_reflection.association_primary_key
-                      foreign_key = reflection.source_reflection.primary_key_name
+                      key         = reflection.association_primary_key
+                      foreign_key = reflection.primary_key_name
                       
                       conditions << source_type_conditions(reflection, foreign_table)
                     when :has_many, :has_one
-                      key         = reflection.source_reflection.primary_key_name
+                      key         = reflection.primary_key_name
                       foreign_key = reflection.source_reflection.active_record_primary_key
                     when :has_and_belongs_to_many
                       table, join_table = table
                       
-                      join_key         = reflection.source_reflection.primary_key_name
-                      join_foreign_key = reflection.source_reflection.klass.primary_key
+                      join_key         = reflection.primary_key_name
+                      join_foreign_key = reflection.klass.primary_key
                       
                       relation = relation.join(join_table, join_type).on(
                         join_table[join_key].
@@ -2228,7 +2228,7 @@ module ActiveRecord
                       foreign_table = join_table
                       
                       key         = reflection.klass.primary_key
-                      foreign_key = reflection.source_reflection.association_foreign_key
+                      foreign_key = reflection.association_foreign_key
                   end
                 end
                 

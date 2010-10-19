@@ -357,6 +357,8 @@ module ActiveRecord
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
+      delegate :primary_key_name, :association_foreign_key, :to => :source_reflection
+    
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
@@ -450,6 +452,13 @@ module ActiveRecord
       
       def nested?
         through_reflection_chain.length > 2
+      end
+      
+      # We want to use the klass from this reflection, rather than just delegate straight to
+      # the source_reflection, because the source_reflection may be polymorphic. We still
+      # need to respect the source_reflection's :primary_key option, though.
+      def association_primary_key
+        @association_primary_key ||= source_reflection.options[:primary_key] || klass.primary_key
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:

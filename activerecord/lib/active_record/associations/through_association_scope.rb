@@ -108,8 +108,8 @@ module ActiveRecord
               when :belongs_to
                 joins << inner_join_sql(
                   right_table_and_alias,
-                  table_aliases[left],  left.source_reflection.association_primary_key,
-                  table_aliases[right], left.source_reflection.primary_key_name,
+                  table_aliases[left],  left.association_primary_key,
+                  table_aliases[right], left.primary_key_name,
                   source_type_conditions(left),
                   reflection_conditions(right_index)
                 )
@@ -123,7 +123,7 @@ module ActiveRecord
               
                 joins << inner_join_sql(
                   right_table_and_alias,
-                  table_aliases[left], left.source_reflection.primary_key_name,
+                  table_aliases[left], left.primary_key_name,
                   right_table,         left.source_reflection.active_record_primary_key,
                   polymorphic_conditions(left, left.source_reflection),
                   reflection_conditions(right_index)
@@ -148,12 +148,12 @@ module ActiveRecord
                     join_table
                   ),
                   left_table, left.klass.primary_key,
-                  join_table, left.source_reflection.association_foreign_key
+                  join_table, left.association_foreign_key
                 )
                 
                 joins << inner_join_sql(
                   right_table_and_alias,
-                  join_table,           left.source_reflection.primary_key_name,
+                  join_table,           left.primary_key_name,
                   table_aliases[right], right.klass.primary_key,
                   reflection_conditions(right_index)
                 )
