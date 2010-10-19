@@ -266,9 +266,6 @@ module ActiveRecord
         [Array.wrap(options[:conditions])]
       end
 
-      def through_reflection_primary_key_name
-      end
-
       def source_reflection
         nil
       end
@@ -487,14 +484,6 @@ module ActiveRecord
         # end
 
         check_validity_of_inverse!
-      end
-
-      def through_reflection_primary_key
-        through_reflection.belongs_to? ? through_reflection.klass.primary_key : through_reflection.primary_key_name
-      end
-
-      def through_reflection_primary_key_name
-        through_reflection.primary_key_name if through_reflection.belongs_to?
       end
 
       private
