@@ -217,7 +217,6 @@ module Rails
       end
 
       def create_root
-        set_default_accessors!
         super
       end
 
@@ -299,9 +298,7 @@ module Rails
       end
 
       def apply_rails_template
-        apply rails_template if rails_template
-      rescue Thor::Error, LoadError, Errno::ENOENT => e
-        raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+        super
       end
 
       def bundle_if_dev_or_edge
@@ -336,17 +333,6 @@ module Rails
 
       def build(meth, *args)
         builder.send(meth, *args) if builder.respond_to?(meth)
-      end
-
-      def set_default_accessors!
-        self.rails_template = case options[:template]
-          when /^http:\/\//
-            options[:template]
-          when String
-            File.expand_path(options[:template], Dir.pwd)
-          else
-            options[:template]
-        end
       end
 
       # Define file as an alias to create_file for backwards compatibility.

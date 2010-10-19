@@ -54,7 +54,25 @@ module Rails
         valid_const?
 
         empty_directory '.'
+        set_default_accessors!
         FileUtils.cd(destination_root) unless options[:pretend]
+      end
+
+      def apply_rails_template
+        apply rails_template if rails_template
+      rescue Thor::Error, LoadError, Errno::ENOENT => e
+        raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+      end
+
+      def set_default_accessors!
+        self.rails_template = case options[:template]
+          when /^http:\/\//
+            options[:template]
+          when String
+            File.expand_path(options[:template], Dir.pwd)
+          else
+            options[:template]
+        end
       end
     end
   end

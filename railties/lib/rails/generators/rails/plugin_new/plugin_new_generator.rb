@@ -82,6 +82,9 @@ module Rails
       class_option :builder,            :type => :string, :aliases => "-b",
                                         :desc => "Path to a plugin builder (can be a filesystem path or URL)"
 
+      class_option :template,           :type => :string, :aliases => "-m",
+                                        :desc => "Path to an application template (can be a filesystem path or URL)"
+
       class_option :skip_gemfile,       :type => :boolean, :default => false,
                                         :desc => "Don't create a Gemfile"
 
@@ -145,6 +148,14 @@ module Rails
 
       def remove_uneeded_rails_files
         build(:test_dummy_clean)
+      end
+
+      def finish_template
+        build(:leftovers)
+      end
+
+      def apply_rails_template
+        super
       end
 
     protected
