@@ -312,29 +312,6 @@ module Rails
         "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
-      def builder
-        @builder ||= begin
-          if path = options[:builder]
-            if URI(path).is_a?(URI::HTTP)
-              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-            else
-              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
-            end
-
-            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
-            instance_eval(&prok)
-          end
-
-          builder_class = get_builder_class
-          builder_class.send(:include, ActionMethods)
-          builder_class.new(self)
-        end
-      end
-
-      def build(meth, *args)
-        builder.send(meth, *args) if builder.respond_to?(meth)
-      end
-
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
