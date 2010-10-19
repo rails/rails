@@ -131,14 +131,6 @@ module ActiveRecord
         @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
       end
 
-      # TODO: Remove these in the final patch. I am just using them for debugging etc.
-      def inspect
-        "#<#{code_name}>"
-      end
-      def code_name
-        "#{active_record.name}.#{macro} :#{name}"
-      end
-
       private
         def derive_class_name
           name.to_s.camelize
@@ -325,16 +317,6 @@ module ActiveRecord
       def belongs_to?
         macro == :belongs_to
       end
-      
-      # TODO: Remove for final patch. Just here for debugging.
-      def inspect
-        str = "#<#{code_name}, @source_reflection="
-        str << (source_reflection.respond_to?(:code_name) ? source_reflection.code_name : source_reflection.inspect)
-        str << ", @through_reflection="
-        str << (through_reflection.respond_to?(:code_name) ? through_reflection.code_name : through_reflection.inspect)
-        str << ">"
-        str
-      end
 
       private
         def derive_class_name
@@ -496,12 +478,6 @@ module ActiveRecord
         if source_reflection.options[:polymorphic] && options[:source_type].nil?
           raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
         end
-
-        # TODO: Presumably remove the HasManyThroughSourceAssociationMacroError class and delete these lines.
-        # Think about whether there are any cases which should still be disallowed.
-        # unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?
-        #   raise HasManyThroughSourceAssociationMacroError.new(self)
-        # end
 
         check_validity_of_inverse!
       end

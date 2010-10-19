@@ -23,11 +23,6 @@ require 'models/categorization'
 require 'models/membership'
 require 'models/essay'
 
-# NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
-# are just one level deep. But it's all the same thing really, as the "nested" code is being 
-# written in a generic way which applies to "non-nested" HMT associations too. So let's just shove
-# all useful tests in here for now and then work out where they ought to live properly later.
-
 class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,

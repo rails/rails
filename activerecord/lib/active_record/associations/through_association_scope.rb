@@ -61,10 +61,6 @@ module ActiveRecord
       end
       
       def construct_joins(custom_joins = nil)
-        # TODO: Remove this at the end
-        #p @reflection.through_reflection_chain
-        #p @reflection.through_conditions
-        
         "#{construct_through_joins} #{@reflection.options[:joins]} #{custom_joins}"
       end
 

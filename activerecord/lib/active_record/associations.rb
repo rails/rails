@@ -39,14 +39,6 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      through_reflection = reflection.through_reflection
-      source_reflection  = reflection.source_reflection
-      super("Invalid source reflection macro :#{source_reflection.macro}#{" :through" if source_reflection.options[:through]} for has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}.  Use :source to specify the source reflection.")
-    end
-  end
-
   class HasManyThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because the source reflection class '#{reflection.source_reflection.class_name}' is associated to '#{reflection.through_reflection.class_name}' via :#{reflection.source_reflection.macro}.")
