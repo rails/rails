@@ -3,7 +3,7 @@ require 'date'
 
 module Arel
   module Visitors
-    class ToSql
+    class ToSql < Arel::Visitors::Visitor
       def initialize engine
         @engine         = engine
         @connection     = nil
@@ -16,7 +16,7 @@ module Arel
         @last_column = nil
         @engine.connection_pool.with_connection do |conn|
           @connection = conn
-          visit object
+          super
         end
       end
 
@@ -276,14 +276,6 @@ module Arel
       alias :visit_Symbol :visit_String
       alias :visit_Time :visit_String
       alias :visit_TrueClass :visit_String
-
-      DISPATCH = Hash.new do |hash, klass|
-        hash[klass] = "visit_#{klass.name.gsub('::', '_')}"
-      end
-
-      def visit object
-        send DISPATCH[object.class], object
-      end
 
       def quote value, column = nil
         @connection.quote value, column

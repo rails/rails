@@ -1,3 +1,4 @@
+require 'arel/visitors/visitor'
 require 'arel/visitors/to_sql'
 require 'arel/visitors/postgresql'
 require 'arel/visitors/mysql'
