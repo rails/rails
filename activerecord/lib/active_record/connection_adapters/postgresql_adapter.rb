@@ -849,6 +849,10 @@ module ActiveRecord
         execute "DROP INDEX #{quote_table_name(index_name)}"
       end
 
+      def rename_index(table_name, old_name, new_name)
+        execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+      end
+
       def index_name_length
         63
       end
