@@ -487,6 +487,49 @@ module ActiveRecord
     #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
     #   @group.avatars.delete(@group.avatars.last)  # so would this
     #
+    # === Nested Associations
+    # 
+    # You can actually specify *any* association with the <tt>:through</tt> option, including an
+    # association which has a <tt>:through</tt> option itself. For example:
+    #
+    #   class Author < ActiveRecord::Base
+    #     has_many :posts
+    #     has_many :comments, :through => :posts
+    #     has_many :commenters, :through => :comments
+    #   end
+    #   
+    #   class Post < ActiveRecord::Base
+    #     has_many :comments
+    #   end
+    #   
+    #   class Comment < ActiveRecord::Base
+    #     belongs_to :commenter
+    #   end
+    #   
+    #   @author = Author.first
+    #   @author.commenters # => People who commented on posts written by the author
+    #
+    # An equivalent way of setting up this association this would be:
+    #
+    #   class Author < ActiveRecord::Base
+    #     has_many :posts
+    #     has_many :commenters, :through => :posts
+    #   end
+    #   
+    #   class Post < ActiveRecord::Base
+    #     has_many :comments
+    #     has_many :commenters, :through => :comments
+    #   end
+    #   
+    #   class Comment < ActiveRecord::Base
+    #     belongs_to :commenter
+    #   end
+    #
+    # When using nested association, you will not be able to modify the association because there
+    # is not enough information to know what modification to make. For example, if you tries to
+    # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the 
+    # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
+    #
     # === Polymorphic Associations
     #
     # Polymorphic associations on models are not restricted on what types of models they
@@ -934,10 +977,11 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt>
-      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You
-      #   can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>, <tt>has_one</tt>
-      #   or <tt>has_many</tt> association on the join model. The collection of join models
+      #   Specifies a join model through which to perform the query. Options for <tt>:class_name</tt>,
+      #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
+      #   source reflection. You can use a <tt>:through</tt> association through any other,
+      #   association, but if other <tt>:through</tt> associations are involved then the resulting
+      #   association will be read-only. Otherwise, the collection of join models
       #   can be managed via the collection API. For example, new join models are created for
       #   newly associated objects, and if some are gone their rows are deleted (directly,
       #   no destroy callbacks are triggered).
@@ -1061,10 +1105,10 @@ module ActiveRecord
       #   you want to do a join but not include the joined columns. Do not forget to include the
       #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
-      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt>
-      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You
-      #   can only use a <tt>:through</tt> query through a <tt>has_one</tt> or <tt>belongs_to</tt>
-      #   association on the join model.
+      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt>,
+      #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
+      #   source reflection. You can only use a <tt>:through</tt> query through a <tt>has_one</tt>
+      #   or <tt>belongs_to</tt> association on the join model.
       # [:source]
       #   Specifies the source association name used by <tt>has_one :through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.
