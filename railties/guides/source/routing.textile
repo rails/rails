@@ -153,7 +153,7 @@ h4. Controller Namespaces and Routing
 You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an +Admin::+ namespace. You would place these controllers under the +app/controllers/admin+ directory, and you can group them together in your router:
 
 <ruby>
-namespace "admin" do
+namespace :admin do
   resources :posts, :comments
 end
 </ruby>
@@ -478,7 +478,7 @@ match "photos", :constraints => {:subdomain => "admin"}
 You can also specify constrains in a block form:
 
 <ruby>
-namespace "admin" do
+namespace :admin do
   constraints :subdomain => "admin" do
     resources :photos
   end

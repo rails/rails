@@ -144,7 +144,7 @@ generators/initializer_generator.rb
 
 If none is found you get an error message.
 
-INFO: The examples above put files under the application's +lib+ because said directoty belongs to +$LOAD_PATH+.
+INFO: The examples above put files under the application's +lib+ because said directory belongs to +$LOAD_PATH+.
 
 h3. Customizing Your Workflow
 
