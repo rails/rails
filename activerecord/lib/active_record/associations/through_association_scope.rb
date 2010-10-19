@@ -76,14 +76,11 @@ module ActiveRecord
           right_table_and_alias = table_name_and_alias(right.quoted_table_name, table_aliases[right])
           
           if left.source_reflection.nil?
-            # TODO: Perhaps need to pay attention to left.options[:primary_key] and
-            # left.options[:foreign_key] in places here
-            
             case left.macro
               when :belongs_to
                 joins << inner_join_sql(
                   right_table_and_alias,
-                  table_aliases[left],  left.klass.primary_key,
+                  table_aliases[left],  left.association_primary_key,
                   table_aliases[right], left.primary_key_name,
                   reflection_conditions(right_index)
                 )
@@ -91,7 +88,7 @@ module ActiveRecord
                 joins << inner_join_sql(
                   right_table_and_alias,
                   table_aliases[left],  left.primary_key_name,
-                  table_aliases[right], right.klass.primary_key,
+                  table_aliases[right], right.association_primary_key,
                   polymorphic_conditions(left, left),
                   reflection_conditions(right_index)
                 )

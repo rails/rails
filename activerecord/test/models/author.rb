@@ -110,6 +110,9 @@ class Author < ActiveRecord::Base
   has_many :essays_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
   has_many :essay_categories_2, :through => :essays_2, :source => :category
 
+  belongs_to :owned_essay, :primary_key => :name, :class_name => 'Essay'
+  has_one :owned_essay_category, :through => :owned_essay, :source => :category
+
   belongs_to :author_address,       :dependent => :destroy
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
 

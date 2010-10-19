@@ -44,6 +44,8 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.integer :author_address_id
     t.integer :author_address_extra_id
+    t.string :organization_id
+    t.string :owned_essay_id
   end
 
   create_table :author_addresses, :force => true do |t|

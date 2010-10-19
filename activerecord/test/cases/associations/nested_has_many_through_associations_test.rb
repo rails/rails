@@ -21,6 +21,7 @@ require 'models/organization'
 require 'models/category'
 require 'models/categorization'
 require 'models/membership'
+require 'models/essay'
 
 # NOTE: Some of these tests might not really test "nested" HMT associations, as opposed to ones which
 # are just one level deep. But it's all the same thing really, as the "nested" code is being 
@@ -31,7 +32,7 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
            :member_types, :sponsors, :clubs, :organizations, :categories, :categories_posts,
-           :categorizations, :memberships
+           :categorizations, :memberships, :essays
 
   # Through associations can either use the has_many or has_one macros.
   # 
@@ -438,6 +439,20 @@ class NestedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [blue], authors[2].misc_post_first_blue_tags_2
     end
+  end
+  
+  def test_nested_has_many_through_with_foreign_key_option_on_the_source_reflection_through_reflection
+    assert_equal [categories(:general)], organizations(:nsa).author_essay_categories
+    
+    organizations = Organization.joins(:author_essay_categories).
+                                 where('categories.id' => categories(:general).id)
+    assert_equal [organizations(:nsa)], organizations
+    
+    assert_equal categories(:general), organizations(:nsa).author_owned_essay_category
+    
+    organizations = Organization.joins(:author_owned_essay_category).
+                                 where('categories.id' => categories(:general).id)
+    assert_equal [organizations(:nsa)], organizations
   end
   
   private
