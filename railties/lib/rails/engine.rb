@@ -335,27 +335,12 @@ module Rails
         unless base.abstract_railtie?
           base.called_from = begin
             # Remove the line number from backtraces making sure we don't leave anything behind
-            call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
-            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-\.]*/lib/rails|rack[\w\-\.]*/lib/rack] })
+            call_stack = caller.map { |p| p.sub(/:\d+.*/, '') }
+            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack] })
           end
         end
 
         super
-      end
-
-      def find_root_with_flag(flag, default=nil)
-        root_path = self.called_from
-
-        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
-          parent = File.dirname(root_path)
-          root_path = parent != root_path && parent
-        end
-
-        root = File.exist?("#{root_path}/#{flag}") ? root_path : default
-        raise "Could not find root path for #{self}" unless root
-
-        RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ?
-          Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
 
       def endpoint(endpoint = nil)

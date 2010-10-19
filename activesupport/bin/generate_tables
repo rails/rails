@@ -70,7 +70,7 @@ module ActiveSupport
         end
 
         def parse_grapheme_break_property(line)
-          if line =~ /^([0-9A-F\.]+)\s*;\s*([\w]+)\s*#/
+          if line =~ /^([0-9A-F.]+)\s*;\s*([\w]+)\s*#/
             type = $2.downcase.intern
             @ucd.boundary[type] ||= []
             if $1.include? '..'

@@ -465,8 +465,8 @@ module ActiveRecord
               #  (2) $12.345.678,12
               case data
               when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d\.]/, '')
-              when /^-?\D+[\d\.]+,\d{2}$/  # (2)
+                data.gsub!(/[^-\d.]/, '')
+              when /^-?\D+[\d.]+,\d{2}$/  # (2)
                 data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
               end
             end
@@ -847,6 +847,10 @@ module ActiveRecord
 
       def remove_index!(table_name, index_name) #:nodoc:
         execute "DROP INDEX #{quote_table_name(index_name)}"
+      end
+
+      def rename_index(table_name, old_name, new_name)
+        execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       def index_name_length

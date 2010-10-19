@@ -2859,14 +2859,22 @@ d.end_of_week            # => Sun, 09 May 2010
 
 +beginning_of_week+ is aliased to +monday+ and +at_beginning_of_week+. +end_of_week+ is aliased to +sunday+ and +at_end_of_week+.
 
-h6. +next_week+
+h6. +prev_week+, +next_week+
 
-+next_week+ receives a symbol with a day name in English (in lowercase, default is +:monday+) and it returns the date corresponding to that day in the next week:
+The method +next_week+ receives a symbol with a day name in English (in lowercase, default is +:monday+) and it returns the date corresponding to that day:
 
 <ruby>
 d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
 d.next_week              # => Mon, 10 May 2010
 d.next_week(:saturday)   # => Sat, 15 May 2010
+</ruby>
+
+The method +prev_week+ is analogous:
+
+<ruby>
+d.prev_week              # => Mon, 26 Apr 2010
+d.prev_week(:saturday)   # => Sat, 01 May 2010
+d.prev_week(:friday)     # => Fri, 30 Apr 2010
 </ruby>
 
 h6. +beginning_of_month+, +end_of_month+
@@ -2944,6 +2952,15 @@ If such a day does not exist, the last day of the corresponding month is returne
 <ruby>
 Date.new(2010, 4, 30).months_ago(2)    # => Sun, 28 Feb 2010
 Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
+</ruby>
+
+h6. +weeks_ago+
+
+The method +weeks_ago+ works analogously for weeks:
+
+<ruby>
+Date.new(2010, 5, 24).weeks_ago(1)    # => Mon, 17 May 2010
+Date.new(2010, 5, 24).weeks_ago(2)    # => Mon, 10 May 2010
 </ruby>
 
 h6. +advance+
@@ -3067,6 +3084,8 @@ yesterday
 tomorrow
 beginning_of_week (monday, at_beginning_of_week)
 end_on_week (at_end_of_week)
+weeks_ago
+prev_week
 next_week
 months_ago
 months_since
@@ -3239,6 +3258,8 @@ beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
 beginning_of_week (monday, at_beginning_of_week)
 end_on_week (at_end_of_week)
+weeks_ago
+prev_week
 next_week
 months_ago
 months_since

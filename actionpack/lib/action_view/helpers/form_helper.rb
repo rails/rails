@@ -5,6 +5,7 @@ require 'action_view/helpers/form_tag_helper'
 require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Form Helpers
@@ -907,7 +908,7 @@ module ActionView
         end
         options["type"]  ||= field_type
         options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
-        options["value"] &&= html_escape(options["value"])
+        options["value"] &&= ERB::Util.html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
       end
@@ -943,7 +944,7 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast(object)), options)
+        content_tag("textarea", ERB::Util.html_escape(options.delete('value') || value_before_type_cast(object)), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")

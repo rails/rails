@@ -44,8 +44,8 @@ module ActionDispatch # :nodoc:
         @block = nil
         @length = 0
 
-        @status, @header = status, header
-        self.body = body
+        @header = header
+        self.body, self.status = body, status
 
         @cookie = []
         @sending_file = false

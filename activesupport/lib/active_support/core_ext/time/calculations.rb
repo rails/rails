@@ -22,7 +22,7 @@ class Time
 
     # Returns a new Time if requested year can be accommodated by Ruby's Time class
     # (i.e., if year is within either 1970..2038 or 1902..2038, depending on system architecture);
-    # otherwise returns a DateTime
+    # otherwise returns a DateTime.
     def time_with_datetime_fallback(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0, usec=0)
       time = ::Time.send(utc_or_local, year, month, day, hour, min, sec, usec)
       # This check is needed because Time.utc(y) returns a time object in the 2000s for 0 <= y <= 138.
@@ -117,6 +117,11 @@ class Time
   end
   alias :in :since
 
+  # Returns a new Time representing the time a number of specified weeks ago.
+  def weeks_ago(weeks)
+    advance(:weeks => -weeks)
+  end
+
   # Returns a new Time representing the time a number of specified months ago
   def months_ago(months)
     advance(:months => -months)
@@ -171,6 +176,11 @@ class Time
     (self + days_to_sunday.days).end_of_day
   end
   alias :at_end_of_week :end_of_week
+
+  # Returns a new Time representing the start of the given day in the previous week (default is Monday).
+  def prev_week(day = :monday)
+    ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
+  end
 
   # Returns a new Time representing the start of the given day in next week (default is Monday).
   def next_week(day = :monday)

@@ -93,9 +93,9 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_refresh_with_templates
-    @template = new_template("Hello", :virtual_path => "test/foo")
+    @template = new_template("Hello", :virtual_path => "test/foo/bar")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("foo", "test", false, [:key]).returns("template")
+    @context.lookup_context.expects(:find_template).with("bar", "test/foo", false, [:key]).returns("template")
     assert_equal "template", @template.refresh(@context)
   end
 

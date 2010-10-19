@@ -56,7 +56,7 @@ module ActionView
     # Renders the given template. An string representing the layout can be
     # supplied as well.
     def render_template(template, layout_name = nil, locals = {}) #:nodoc:
-      lookup_context.freeze_formats(template.formats, true)
+      freeze_formats(template.formats, true)
       view, locals = @view, locals || {}
 
       render_with_layout(layout_name, locals) do |layout|

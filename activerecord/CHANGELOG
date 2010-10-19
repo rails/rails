@@ -15,6 +15,10 @@
 
   [Aaron Patterson]
 
+*Rails 3.0.1 (October 15, 2010)*
+
+* Introduce a fix for CVE-2010-3993
+
 *Rails 3.0.0 (August 29, 2010)*
 
 * Changed update_attribute to not run callbacks and update the record directly in the database [Neeraj Singh]

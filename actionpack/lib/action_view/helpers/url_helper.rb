@@ -1,6 +1,7 @@
 require 'action_view/helpers/javascript_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/string/output_safety'
 require 'action_dispatch'
 
 module ActionView
@@ -240,8 +241,8 @@ module ActionView
           href = html_options['href']
           tag_options = tag_options(html_options)
 
-          href_attr = "href=\"#{html_escape(url)}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
+          href_attr = "href=\"#{ERB::Util.html_escape(url)}\"" unless href
+          "<a #{href_attr}#{tag_options}>#{ERB::Util.html_escape(name || url)}</a>".html_safe
         end
       end
 
@@ -326,7 +327,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{ERB::Util.html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 
@@ -472,7 +473,7 @@ module ActionView
       #            :subject => "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
-        email_address = html_escape(email_address)
+        email_address = ERB::Util.html_escape(email_address)
 
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode").to_s
@@ -481,7 +482,7 @@ module ActionView
           option = html_options.delete(item) || next
           "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
         }.compact
-        extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
+        extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
         email_address_obfuscated = email_address.dup
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")

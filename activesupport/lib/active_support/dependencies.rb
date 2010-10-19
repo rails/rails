@@ -166,7 +166,7 @@ module ActiveSupport #:nodoc:
       def const_missing(const_name, nesting = nil)
         klass_name = name.presence || "Object"
 
-        if !nesting
+        unless nesting
           # We'll assume that the nesting of Foo::Bar is ["Foo::Bar", "Foo"]
           # even though it might not be, such as in the case of
           # class Foo::Bar; Baz; end

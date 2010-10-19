@@ -4,6 +4,7 @@ require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/file'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -819,7 +820,7 @@ module ActionView
         end
 
         def stylesheet_tag(source, options)
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
         end
 
         def compute_javascript_paths(*args)
