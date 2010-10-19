@@ -188,6 +188,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test"
   end
   
+  def test_test_unit_is_removed_from_frameworks_if_skip_test_unit_is_given
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_file "config/application.rb" do |file|
+      assert_match /config.generators.test_framework = false/, file
+    end
+  end
+  
   def test_test_unit_is_skipped_if_required
     run_generator [destination_root, "--skip-test-unit"]
     assert_no_file "test"    

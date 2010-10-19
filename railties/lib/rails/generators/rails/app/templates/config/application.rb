@@ -48,6 +48,10 @@ module <%= app_const_base %>
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
 <% end -%>
 
+<% if options[:skip_test_unit] -%>
+    config.generators.test_framework = false
+<% end -%>
+
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"
 
