@@ -95,8 +95,18 @@ class Author < ActiveRecord::Base
   has_many :subscriptions,        :through => :books
   has_many :subscribers,          :through => :subscriptions, :order => "subscribers.nick" # through has_many :through (on through reflection)
   has_many :distinct_subscribers, :through => :subscriptions, :source => :subscriber, :select => "DISTINCT subscribers.*", :order => "subscribers.nick"
-
+  
   has_one :essay, :primary_key => :name, :as => :writer
+  has_one :essay_category, :through => :essay, :source => :category
+
+  has_one :essay_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
+  has_one :essay_category_2, :through => :essay_2, :source => :category
+
+  has_many :essays, :primary_key => :name, :as => :writer
+  has_many :essay_categories, :through => :essays, :source => :category
+  
+  has_many :essays_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
+  has_many :essay_categories_2, :through => :essays_2, :source => :category
 
   belongs_to :author_address,       :dependent => :destroy
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"

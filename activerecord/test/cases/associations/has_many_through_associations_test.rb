@@ -17,11 +17,14 @@ require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
+require 'models/essay'
+require 'models/category'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors,
            :owners, :pets, :toys, :jobs, :references, :companies,
-           :subscribers, :books, :subscriptions, :developers
+           :subscribers, :books, :subscriptions, :developers,
+           :essays, :categories
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -448,5 +451,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post = author.posts.build
     comment = post.comments.build
     assert author.comments.include?(comment)
+  end
+
+  def test_has_many_through_polymorphic_with_primary_key_option_on_through_reflection
+    assert_equal [categories(:general)], authors(:david).essay_categories
+    
+    authors = Author.joins(:essay_categories).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
+  end
+  
+  def test_has_many_through_with_primary_key_option_on_through_reflection
+    assert_equal [categories(:general)], authors(:david).essay_categories_2
+    
+    authors = Author.joins(:essay_categories_2).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
   end
 end

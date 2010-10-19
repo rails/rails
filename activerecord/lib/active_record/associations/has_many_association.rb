@@ -7,9 +7,9 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
       protected
-        def owner_quoted_id
-          if @reflection.options[:primary_key]
-            @owner.class.quote_value(@owner.send(@reflection.options[:primary_key]))
+        def owner_quoted_id(reflection = @reflection)
+          if reflection.options[:primary_key]
+            @owner.class.quote_value(@owner.send(reflection.options[:primary_key]))
           else
             @owner.quoted_id
           end

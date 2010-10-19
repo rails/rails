@@ -214,6 +214,8 @@ ActiveRecord::Schema.define do
     t.string :name
     t.string :writer_id
     t.string :writer_type
+    t.integer :category_id
+    t.integer :author_id
   end
 
   create_table :events, :force => true do |t|

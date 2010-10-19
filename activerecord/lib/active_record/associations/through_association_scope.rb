@@ -44,14 +44,14 @@ module ActiveRecord
       # Associate attributes pointing to owner, quoted.
       def construct_quoted_owner_attributes(reflection)
         if as = reflection.options[:as]
-          { "#{as}_id" => owner_quoted_id,
+          { "#{as}_id" => owner_quoted_id(reflection),
             "#{as}_type" => reflection.klass.quote_value(
               @owner.class.base_class.name.to_s,
               reflection.klass.columns_hash["#{as}_type"]) }
         elsif reflection.macro == :belongs_to
           { reflection.klass.primary_key => @owner.class.quote_value(@owner[reflection.primary_key_name]) }
         else
-          { reflection.primary_key_name => owner_quoted_id }
+          { reflection.primary_key_name => owner_quoted_id(reflection) }
         end
       end
 

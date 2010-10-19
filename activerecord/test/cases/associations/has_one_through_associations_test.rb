@@ -9,9 +9,13 @@ require 'models/member_detail'
 require 'models/minivan'
 require 'models/dashboard'
 require 'models/speedometer'
+require 'models/category'
+require 'models/author'
+require 'models/essay'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans, :dashboards, :speedometers
+  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
+           :dashboards, :speedometers, :categories, :authors, :essays
 
   def setup
     @member = members(:groucho)
@@ -211,5 +215,19 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       minivan.dashboard
     end
+  end
+  
+  def test_has_one_through_polymorphic_with_primary_key_option_on_through_reflection
+    assert_equal categories(:general), authors(:david).essay_category
+    
+    authors = Author.joins(:essay_category).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
+  end
+  
+  def test_has_one_through_with_primary_key_option_on_through_reflection
+    assert_equal categories(:general), authors(:david).essay_category_2
+    
+    authors = Author.joins(:essay_category_2).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
   end
 end
