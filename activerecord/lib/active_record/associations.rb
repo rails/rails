@@ -2186,9 +2186,7 @@ module ActiveRecord
                       # to represent the join table)
                       table, join_table = table
                       
-                      # TODO: Can join_key just be reflection.primary_key_name ?
-                      join_key         = reflection.options[:foreign_key] ||
-                                         reflection.active_record.to_s.foreign_key
+                      join_key         = reflection.primary_key_name
                       join_foreign_key = reflection.active_record.primary_key
                       
                       relation = relation.join(join_table, join_type).on(
@@ -2199,10 +2197,8 @@ module ActiveRecord
                       # We've done the first join now, so update the foreign_table for the second
                       foreign_table = join_table
                       
-                      # TODO: Can foreign_key be reflection.association_foreign_key?
                       key         = reflection.klass.primary_key
-                      foreign_key = reflection.options[:association_foreign_key] ||
-                                    reflection.klass.to_s.foreign_key
+                      foreign_key = reflection.association_foreign_key
                   end
                 else
                   case reflection.source_reflection.macro
