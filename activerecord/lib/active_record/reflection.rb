@@ -368,7 +368,16 @@ module ActiveRecord
         @through_reflection ||= active_record.reflect_on_association(options[:through])
       end
       
-      # TODO: Documentation
+      # Returns an array of AssociationReflection objects which are involved in this through
+      # association. Each item in the array corresponds to a table which will be part of the
+      # query for this association.
+      # 
+      # If the source reflection is itself a ThroughReflection, then we don't include self in
+      # the chain, but just defer to the source reflection.
+      # 
+      # The chain is built by recursively calling through_reflection_chain on the source
+      # reflection and the through reflection. The base case for the recursion is a normal
+      # association, which just returns [self] for its through_reflection_chain.
       def through_reflection_chain
         @through_reflection_chain ||= begin
           if source_reflection.source_reflection
