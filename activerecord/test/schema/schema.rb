@@ -214,8 +214,8 @@ ActiveRecord::Schema.define do
     t.string :name
     t.string :writer_id
     t.string :writer_type
-    t.integer :category_id
-    t.integer :author_id
+    t.string :category_id
+    t.string :author_id
   end
 
   create_table :events, :force => true do |t|
@@ -369,6 +369,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
+    t.string :essay_id
   end
 
 

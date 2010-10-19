@@ -108,7 +108,7 @@ module ActiveRecord
               when :belongs_to
                 joins << inner_join_sql(
                   right_table_and_alias,
-                  table_aliases[left],  left.klass.primary_key,
+                  table_aliases[left],  left.source_reflection.association_primary_key,
                   table_aliases[right], left.source_reflection.primary_key_name,
                   source_type_conditions(left),
                   reflection_conditions(right_index)
@@ -124,7 +124,7 @@ module ActiveRecord
                 joins << inner_join_sql(
                   right_table_and_alias,
                   table_aliases[left], left.source_reflection.primary_key_name,
-                  right_table,         right.klass.primary_key,
+                  right_table,         left.source_reflection.active_record_primary_key,
                   polymorphic_conditions(left, left.source_reflection),
                   reflection_conditions(right_index)
                 )

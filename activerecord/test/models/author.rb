@@ -98,12 +98,14 @@ class Author < ActiveRecord::Base
   
   has_one :essay, :primary_key => :name, :as => :writer
   has_one :essay_category, :through => :essay, :source => :category
+  has_one :essay_owner, :through => :essay, :source => :owner
 
   has_one :essay_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
   has_one :essay_category_2, :through => :essay_2, :source => :category
 
   has_many :essays, :primary_key => :name, :as => :writer
   has_many :essay_categories, :through => :essays, :source => :category
+  has_many :essay_owners, :through => :essays, :source => :owner
   
   has_many :essays_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
   has_many :essay_categories_2, :through => :essays_2, :source => :category

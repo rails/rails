@@ -2173,13 +2173,11 @@ module ActiveRecord
                 if reflection.source_reflection.nil?
                   case reflection.macro
                     when :belongs_to
-                      key         = reflection.options[:primary_key] ||
-                                    reflection.klass.primary_key
+                      key         = reflection.association_primary_key
                       foreign_key = reflection.primary_key_name
                     when :has_many, :has_one
                       key         = reflection.primary_key_name
-                      foreign_key = reflection.options[:primary_key] ||
-                                    reflection.active_record.primary_key
+                      foreign_key = reflection.active_record_primary_key
                       
                       conditions << polymorphic_conditions(reflection, table)
                     when :has_and_belongs_to_many
@@ -2209,13 +2207,13 @@ module ActiveRecord
                 else
                   case reflection.source_reflection.macro
                     when :belongs_to
-                      key         = reflection.klass.primary_key
+                      key         = reflection.source_reflection.association_primary_key
                       foreign_key = reflection.source_reflection.primary_key_name
                       
                       conditions << source_type_conditions(reflection, foreign_table)
                     when :has_many, :has_one
                       key         = reflection.source_reflection.primary_key_name
-                      foreign_key = reflection.source_reflection.klass.primary_key
+                      foreign_key = reflection.source_reflection.active_record_primary_key
                     when :has_and_belongs_to_many
                       table, join_table = table
                       
