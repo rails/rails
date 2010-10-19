@@ -1,5 +1,12 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
+
+    tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+    # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
+
+  Keys are dasherized. Values are JSON-encoded, except for strings and symbols. [Stephen Celis]
+
 * Added render :once. You can pass either a string or an array of strings and Rails will ensure they each of them are rendered just once. [José Valim]
 
 * Deprecate old template handler API. The new API simply requires a template handler to respond to call. [José Valim]
