@@ -525,7 +525,7 @@ module ActiveRecord
     #   end
     #
     # When using nested association, you will not be able to modify the association because there
-    # is not enough information to know what modification to make. For example, if you tries to
+    # is not enough information to know what modification to make. For example, if you tried to
     # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the 
     # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
     #
