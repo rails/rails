@@ -109,7 +109,6 @@ module ActiveRecord
     autoload :HasAndBelongsToManyAssociation, 'active_record/associations/has_and_belongs_to_many_association'
     autoload :HasManyAssociation, 'active_record/associations/has_many_association'
     autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
-    autoload :NestedHasManyThroughAssociation, 'active_record/associations/nested_has_many_through_association'
     autoload :HasOneAssociation, 'active_record/associations/has_one_association'
     autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
     autoload :AliasTracker, 'active_record/associations/alias_tracker'
