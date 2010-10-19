@@ -450,15 +450,26 @@ module ActiveRecord
         end
       end
       
+      # A through association is nested iff there would be more than one join table
       def nested?
-        through_reflection_chain.length > 2
+        through_reflection_chain.length > 2 ||
+        through_reflection.macro == :has_and_belongs_to_many
       end
       
       # We want to use the klass from this reflection, rather than just delegate straight to
       # the source_reflection, because the source_reflection may be polymorphic. We still
       # need to respect the source_reflection's :primary_key option, though.
       def association_primary_key
-        @association_primary_key ||= source_reflection.options[:primary_key] || klass.primary_key
+        @association_primary_key ||= begin
+          # Get the "actual" source reflection if the immediate source reflection has a
+          # source reflection itself
+          source_reflection = self.source_reflection
+          while source_reflection.source_reflection
+            source_reflection = source_reflection.source_reflection
+          end
+          
+          source_reflection.options[:primary_key] || klass.primary_key
+        end
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:

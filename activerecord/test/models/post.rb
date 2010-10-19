@@ -63,6 +63,7 @@ class Post < ActiveRecord::Base
   has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => "tags.name = 'Misc'"
   has_many :funky_tags, :through => :taggings, :source => :tag
   has_many :super_tags, :through => :taggings
+  has_many :tags_with_primary_key, :through => :taggings, :source => :tag_with_primary_key
   has_one :tagging, :as => :taggable
   
   has_many :first_taggings, :as => :taggable, :class_name => 'Tagging', :conditions => "taggings.comment = 'first'"

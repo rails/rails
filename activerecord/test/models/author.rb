@@ -90,6 +90,7 @@ class Author < ActiveRecord::Base
   has_many :distinct_tags,   :through => :posts, :source => :tags, :select => "DISTINCT tags.*", :order => "tags.name"
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :tagging_tags,    :through => :taggings, :source => :tag
+  has_many :tags_with_primary_key, :through => :posts
 
   has_many :books
   has_many :subscriptions,        :through => :books
