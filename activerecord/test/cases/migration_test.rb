@@ -422,7 +422,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     # Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
-    unless current_adapter?(:SybaseAdapter, :SQLiteAdapter)
+    unless current_adapter?(:SybaseAdapter, :SQLite3Adapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
@@ -821,7 +821,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    if current_adapter?(:SQLiteAdapter)
+    if current_adapter?(:SQLite3Adapter)
       def test_rename_table_for_sqlite_should_work_with_reserved_words
         begin
           assert_nothing_raised do
@@ -1131,7 +1131,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # so this happens there too
         assert_kind_of BigDecimal, b.value_of_e
         assert_equal BigDecimal("2.7182818284590452353602875"), b.value_of_e
-      elsif current_adapter?(:SQLiteAdapter)
+      elsif current_adapter?(:SQLite3Adapter)
         # - SQLite3 stores a float, in violation of SQL
         assert_kind_of BigDecimal, b.value_of_e
         assert_in_delta BigDecimal("2.71828182845905"), b.value_of_e, 0.00000000000001
@@ -1588,7 +1588,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLiteAdapter) || current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter) || current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
       def test_xml_creates_xml_column
         type = current_adapter?(:PostgreSQLAdapter) ? 'xml' : :text
 
