@@ -1,9 +1,4 @@
-require 'digest/md5'
-require 'active_support/secure_random'
-require 'rails/version' unless defined?(Rails::VERSION)
-require 'rbconfig'
-require 'open-uri'
-require 'uri'
+require 'rails/generators/app_base'
 
 module Rails
   module ActionMethods
@@ -158,7 +153,7 @@ module Rails
     RESERVED_NAMES = %w[application destroy benchmarker profiler
                         plugin runner test]
 
-    class AppGenerator < Base
+    class AppGenerator < AppBase
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
       JAVASCRIPTS = %w( prototype jquery )
 
@@ -210,8 +205,6 @@ module Rails
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
 
-        @original_wd = Dir.pwd
-
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
@@ -224,12 +217,8 @@ module Rails
       end
 
       def create_root
-        self.destination_root = File.expand_path(app_path, destination_root)
-        valid_app_const?
-
-        empty_directory '.'
         set_default_accessors!
-        FileUtils.cd(destination_root) unless options[:pretend]
+        super
       end
 
       def create_root_files
@@ -339,7 +328,7 @@ module Rails
             instance_eval(&prok)
           end
 
-          builder_class = defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
+          builder_class = get_builder_class
           builder_class.send(:include, ActionMethods)
           builder_class.new(self)
         end
@@ -388,7 +377,7 @@ module Rails
         @app_const ||= "#{app_const_base}::Application"
       end
 
-      def valid_app_const?
+      def valid_const?
         if app_const =~ /^\d/
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(app_name)
@@ -441,6 +430,10 @@ module Rails
       def empty_directory_with_gitkeep(destination, config = {})
         empty_directory(destination, config)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      end
+
+      def get_builder_class
+        defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
       end
     end
   end
