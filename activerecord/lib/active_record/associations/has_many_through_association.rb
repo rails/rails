@@ -1,5 +1,4 @@
 require "active_record/associations/through_association_scope"
-require "active_record/associations/nested_has_many_through"
 require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
