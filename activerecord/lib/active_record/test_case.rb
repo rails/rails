@@ -5,6 +5,10 @@ module ActiveRecord
   class TestCase < ActiveSupport::TestCase #:nodoc:
     setup :cleanup_identity_map
 
+    def setup
+      cleanup_identity_map
+    end
+
     def cleanup_identity_map
       ActiveRecord::Base.identity_map.clear
     end
