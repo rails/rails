@@ -123,7 +123,7 @@ end
 
 
       def initialize(*args)
-        raise Error, "Options should be given after plugin name. For details run: rails plugin --help" if args[0].blank?
+        raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
 
         super
       end
