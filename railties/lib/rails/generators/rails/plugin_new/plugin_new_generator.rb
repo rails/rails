@@ -35,7 +35,7 @@ module Rails
       directory "test"
     end
 
-    def test_dummy
+    def generate_test_dummy
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], {}
     end
@@ -67,6 +67,27 @@ module Rails
         "#{shebang}\n" + content
       end
       chmod "script", 0755, :verbose => false
+    end
+
+    def rakefile_test_tasks
+      <<-RUBY
+require 'rake/testtask'
+
+Rake::TestTask.new(:test) do |t|
+  t.libs << 'lib'
+  t.libs << 'test'
+  t.pattern = 'test/**/*_test.rb'
+  t.verbose = false
+end
+      RUBY
+    end
+
+    def dummy_path
+      "#{test_path}/dummy"
+    end
+
+    def test_path
+      "test"
     end
   end
 
@@ -141,7 +162,7 @@ module Rails
       say_step "Vendoring Rails application at test/dummy"
 
       def create_test_dummy_files
-        build(:test_dummy)
+        build(:generate_test_dummy)
       end
 
       say_step "Configuring Rails application"
@@ -192,10 +213,6 @@ module Rails
         end
       end
 
-      def dummy_path
-        "test/dummy"
-      end
-
       def application_definition
         @application_definition ||= begin
           unless options[:pretend]
@@ -208,6 +225,12 @@ module Rails
 
       def get_builder_class
         defined?(::PluginBuilder) ? ::PluginBuilder : Rails::PluginBuilder
+      end
+
+      [:test_path, :dummy_path, :rakefile_test_tasks].each do |name|
+        define_method name do
+          builder.send(name) if builder.respond_to?(name)
+        end
       end
     end
   end

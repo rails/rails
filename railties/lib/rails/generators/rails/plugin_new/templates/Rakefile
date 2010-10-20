@@ -10,16 +10,9 @@ require 'rake'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
-require 'rake/testtask'
+<%= rakefile_test_tasks %>
 
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
-end
-
-task :default => :test
+task :default => :<%= test_path %>
 
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'

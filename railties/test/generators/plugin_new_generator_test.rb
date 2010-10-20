@@ -217,6 +217,16 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     DEFAULT_PLUGIN_FILES.each{ |path| assert_no_file path }
   end
 
+  def test_overriding_test_framework
+    FileUtils.cd(destination_root)
+    run_generator([destination_root, "-b", "#{Rails.root}/lib/plugin_builders/spec_builder.rb"])
+    assert_file 'spec/spec_helper.rb'
+    assert_file 'Rakefile', /task :default => :spec/
+    assert_file 'Rakefile', /# spec tasks in rakefile/
+    assert_file 'spec/dummy'
+    assert_file 'script/rails', %r{spec/dummy}
+  end
+
 protected
 
   def action(*args, &block)
