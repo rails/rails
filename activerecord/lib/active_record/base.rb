@@ -987,17 +987,15 @@ module ActiveRecord #:nodoc:
 
         # Similar in purpose to +expand_hash_conditions_for_aggregates+.
         def expand_attribute_names_for_aggregates(attribute_names)
-          expanded_attribute_names = []
-          attribute_names.each do |attribute_name|
+          attribute_names.map { |attribute_name|
             unless (aggregation = reflect_on_aggregation(attribute_name.to_sym)).nil?
-              aggregate_mapping(aggregation).each do |field_attr, aggregate_attr|
-                expanded_attribute_names << field_attr.to_sym
+              aggregate_mapping(aggregation).map do |field_attr, _|
+                field_attr.to_sym
               end
             else
-              expanded_attribute_names << attribute_name.to_sym
+              attribute_name.to_sym
             end
-          end
-          expanded_attribute_names
+          }.flatten
         end
 
         def all_attributes_exists?(attribute_names)
