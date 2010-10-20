@@ -132,7 +132,6 @@ module Arel
 
     describe 'taken' do
       it 'should return limit' do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.take 10
         manager.taken.must_equal 10
@@ -304,7 +303,6 @@ module Arel
 
       it 'returns string join sql' do
         table   = Table.new :users
-        aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::StringJoin.new(table, 'hello')
         manager.join_sql.must_be_like %{ 'hello' }
@@ -320,7 +318,6 @@ module Arel
     describe 'order_clauses' do
       it 'returns order clauses as a list' do
         table   = Table.new :users
-        aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
         manager.from table
         manager.order table[:id]
@@ -474,7 +471,6 @@ module Arel
 
     describe 'project' do
       it 'takes multiple args' do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.project Nodes::SqlLiteral.new('foo'),
           Nodes::SqlLiteral.new('bar')
@@ -482,14 +478,12 @@ module Arel
       end
 
       it 'takes strings' do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.project Nodes::SqlLiteral.new('*')
         manager.to_sql.must_be_like %{ SELECT * }
       end
 
       it "takes sql literals" do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.project Nodes::SqlLiteral.new '*'
         manager.to_sql.must_be_like %{
@@ -515,7 +509,6 @@ module Arel
       end
 
       it "chains" do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.take(1).must_equal manager
       end
