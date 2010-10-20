@@ -143,6 +143,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
   end
 
+  def test_ensure_that_tests_works
+    run_generator
+    FileUtils.cd destination_root
+    `bundle install`
+    assert_match /2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`
+  end
+
 protected
 
   def action(*args, &block)
