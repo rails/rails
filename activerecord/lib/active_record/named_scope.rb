@@ -97,11 +97,11 @@ module ActiveRecord
       #
       #   Article.published.new.published    # => true
       #   Article.published.create.published # => true
-      def scope(name, scope_options = {}, &block)
+      def scope(name, scope_options = {})
         name = name.to_sym
         valid_scope_name?(name)
 
-        extension = Module.new(&block) if block_given?
+        extension = Module.new(&Proc.new) if block_given?
 
         scopes[name] = lambda do |*args|
           options = scope_options.is_a?(Proc) ? scope_options.call(*args) : scope_options
