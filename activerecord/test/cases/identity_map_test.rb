@@ -292,7 +292,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
   end
-<<<<<<< HEAD
 
   ##############################################################################
   # Behaviour releated to saving failures
