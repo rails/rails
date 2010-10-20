@@ -118,10 +118,10 @@ module ActiveRecord
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         if IdentityMap.enabled? && instance_variable_defined?("@#{assoc.name}")
-          targets = [*instance_variable_get("@#{assoc.name}")]
-          targets.map! { |t| t.respond_to?(:target) ? t.target : t }
-          targets.compact!
-          targets.each { |r| IdentityMap.remove r }
+          Array(instance_variable_get("@#{assoc.name}")).each do |t|
+            next unless t.respond_to?(:target)
+            IdentityMap.remove t.target unless t.target.nil?
+          end
         end
         instance_variable_set "@#{assoc.name}", nil
       end if self.persisted?
