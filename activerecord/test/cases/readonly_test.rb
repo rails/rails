@@ -40,10 +40,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
 
   def test_find_with_joins_option_implies_readonly
-    # We disable IM, becouse we want to check default settings here
-    # adding readonly(false) does not update readonly status with IM
-    # (see corresponding test in IM)
-    ActiveRecord::IdentityMap.without do
     # Blank joins don't count.
     Developer.joins('  ').each { |d| assert !d.readonly? }
     Developer.joins('  ').readonly(false).each { |d| assert !d.readonly? }
@@ -51,7 +47,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
     # Others do.
     Developer.joins(', projects').each { |d| assert d.readonly? }
     Developer.joins(', projects').readonly(false).each { |d| assert !d.readonly? }
-    end
   end
 
 
@@ -77,10 +72,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_readonly_scoping
-    # We disable IM, becouse we want to check default settings here
-    # adding readonly(false) does not update readonly status with IM
-    # (see corresponding test in IM)
-    ActiveRecord::IdentityMap.without do
     Post.send(:with_scope, :find => { :conditions => '1=1' }) do
       assert !Post.find(1).readonly?
       assert Post.readonly(true).find(1).readonly?
@@ -107,7 +98,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
       assert Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?
-    end
     end
   end
 

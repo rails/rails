@@ -170,7 +170,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
-    ActiveRecord::IdentityMap.clear # We need to clear cache to force reload in next block
     author = assert_queries(3) { Author.find(author.id, :include => {:post_about_thinking_with_last_comment => :last_comment})} # find the author, then find the posts, then find the comments
     assert_no_queries do
       assert_equal post, author.post_about_thinking_with_last_comment
@@ -182,7 +181,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = posts(:welcome)
     author = post.author
     author_address = author.author_address
-    ActiveRecord::IdentityMap.clear # We need to clear cache to force reload in next block
     post = assert_queries(3) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author, then find the address
     assert_no_queries do
       assert_equal author, post.author_with_address
@@ -785,7 +783,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
-    ActiveRecord::IdentityMap.without do # IM caches records, so we need to disable it to test this functionality.
     posts = assert_queries(2) do
       Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     end
@@ -807,11 +804,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
-    end
+
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
-    ActiveRecord::IdentityMap.without do # IM caches records, so we need to disable it to test this functionality.
     posts = assert_queries(2) do
       Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     end
@@ -823,7 +819,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
-    end
+
   end
 
   def test_eager_loading_with_select_on_joined_table_preloads

@@ -551,7 +551,6 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal 'Grace OMalley', @child_1.reload.name
   end
 
-
   def test_should_not_overwrite_unsaved_updates_when_loading_association
     @pirate.reload
     @pirate.send(association_setter, [{ :id => @child_1.id, :name => 'Grace OMalley' }])

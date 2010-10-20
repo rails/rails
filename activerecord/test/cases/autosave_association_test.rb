@@ -578,7 +578,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.ship.mark_for_destruction
 
     assert !@pirate.reload.marked_for_destruction?
-    assert !@pirate.ship.target.reload.marked_for_destruction?
+    assert !@pirate.ship.marked_for_destruction?
   end
 
   # has_one
@@ -1194,7 +1194,6 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
   self.use_transactional_fixtures = false
 
   def setup
-    ActiveRecord::IdentityMap.enabled = false # This tests use trick with double association, IM prevents that, so we disable it.
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @pirate.create_ship(:name => 'titanic')
   end
@@ -1209,10 +1208,6 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
     assert @pirate.valid?
     @pirate.non_validated_ship.name = ''
     assert @pirate.valid?
-  end
-
-  def teardown
-    ActiveRecord::IdentityMap.enabled = true
   end
 end
 
