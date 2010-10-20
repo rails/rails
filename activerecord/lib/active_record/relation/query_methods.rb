@@ -120,6 +120,8 @@ module ActiveRecord
     def extending(*modules)
       modules << Module.new(&Proc.new) if block_given?
 
+      return self if modules.empty?
+
       relation = clone
       relation.send(:apply_modules, modules.flatten)
       relation
