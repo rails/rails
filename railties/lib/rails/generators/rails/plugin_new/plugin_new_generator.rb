@@ -91,6 +91,12 @@ module Rails
       class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                         :desc => "Skip Git ignores and keeps"
 
+      class_option :dev,                :type => :boolean, :default => false,
+                                        :desc => "Setup the plugin with Gemfile pointing to your Rails checkout"
+
+      class_option :edge,               :type => :boolean, :default => false,
+                                        :desc => "Setup the plugin with Gemfile pointing to Rails repository"
+
       class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                         :desc => "Show this help message and quit"
 
@@ -155,6 +161,10 @@ module Rails
       end
 
       def apply_rails_template
+        super
+      end
+
+      def bundle_if_dev_or_edge
         super
       end
 

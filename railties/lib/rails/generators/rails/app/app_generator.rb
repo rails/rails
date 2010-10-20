@@ -302,8 +302,7 @@ module Rails
       end
 
       def bundle_if_dev_or_edge
-        bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
-        run "#{bundle_command} install" if dev_or_edge?
+        super
       end
 
     protected
@@ -352,10 +351,6 @@ module Rails
 
       def app_secret
         ActiveSupport::SecureRandom.hex(64)
-      end
-
-      def dev_or_edge?
-        options.dev? || options.edge?
       end
 
       def gem_for_database

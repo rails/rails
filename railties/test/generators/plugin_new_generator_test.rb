@@ -130,6 +130,19 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_match /It works!/, silence(:stdout){ generator.invoke_all }
   end
 
+  def test_dev_option
+    generator([destination_root], :dev => true).expects(:run).with("#{@bundle_command} install")
+    silence(:stdout){ generator.invoke_all }
+    rails_path = File.expand_path('../../..', Rails.root)
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
+  end
+
+  def test_edge_option
+    generator([destination_root], :edge => true).expects(:run).with("#{@bundle_command} install")
+    silence(:stdout){ generator.invoke_all }
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
+  end
+
 protected
 
   def action(*args, &block)

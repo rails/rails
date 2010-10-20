@@ -74,6 +74,40 @@ module Rails
             options[:template]
         end
       end
+
+      def rails_gemfile_entry
+        if options.dev?
+          <<-GEMFILE
+gem 'rails', :path => '#{Rails::Generators::RAILS_DEV_PATH}'
+gem 'arel',  :git => 'git://github.com/rails/arel.git'
+gem "rack", :git => "git://github.com/rack/rack.git"
+          GEMFILE
+        elsif options.edge?
+          <<-GEMFILE
+gem 'rails', :git => 'git://github.com/rails/rails.git'
+gem 'arel',  :git => 'git://github.com/rails/arel.git'
+gem "rack", :git => "git://github.com/rack/rack.git"
+          GEMFILE
+        else
+          <<-GEMFILE
+gem 'rails', '#{Rails::VERSION::STRING}'
+
+# Bundle edge Rails instead:
+# gem 'rails', :git => 'git://github.com/rails/rails.git'
+# gem 'arel',  :git => 'git://github.com/rails/arel.git'
+# gem "rack", :git => "git://github.com/rack/rack.git"
+          GEMFILE
+        end
+      end
+
+      def bundle_if_dev_or_edge
+        bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
+        run "#{bundle_command} install" if dev_or_edge?
+      end
+
+      def dev_or_edge?
+        options.dev? || options.edge?
+      end
     end
   end
 end
