@@ -988,9 +988,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_attributes_from_arguments(attribute_names, arguments)
-          attributes = {}
-          attribute_names.each_with_index { |name, idx| attributes[name] = arguments[idx] }
-          attributes
+          Hash[attribute_names.zip(arguments)]
         end
 
         # Similar in purpose to +expand_hash_conditions_for_aggregates+.
