@@ -26,14 +26,14 @@ module ActiveRecord
 
       merged_relation = merged_relation.joins(r.joins_values)
 
-      merged_wheres = @where_values
+      merged_wheres = @where_values.dup
 
       r.where_values.each do |w|
         if w.respond_to?(:operator) && w.operator == :==
           merged_wheres = merged_wheres.reject {|p| p.respond_to?(:operator) && p.operator == :== && p.operand1.name == w.operand1.name }
         end
 
-        merged_wheres += [w]
+        merged_wheres << w
       end
 
       merged_relation.where_values = merged_wheres
