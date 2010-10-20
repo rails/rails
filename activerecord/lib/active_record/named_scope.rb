@@ -104,7 +104,7 @@ module ActiveRecord
         extension = Module.new(&Proc.new) if block_given?
 
         scopes[name] = lambda do |*args|
-          options = scope_options.is_a?(Proc) ? scope_options.call(*args) : scope_options
+          options = scope_options.respond_to?(:call) ? scope_options.call(*args) : scope_options
 
           relation = if options.is_a?(Hash)
             scoped.apply_finder_options(options)
