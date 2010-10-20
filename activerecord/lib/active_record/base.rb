@@ -973,7 +973,6 @@ module ActiveRecord #:nodoc:
             if match.scope?
               self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)                        # def self.scoped_by_user_name_and_password(*args)
-                  args.extract_options!                             #   args.extract_options!
                   attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
                     [:#{attribute_names.join(',:')}], args          #     [:user_name, :password], args
                   )                                                 #   )
