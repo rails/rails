@@ -117,8 +117,8 @@ module ActiveRecord
       relation
     end
 
-    def extending(*modules, &block)
-      modules << Module.new(&block) if block_given?
+    def extending(*modules)
+      modules << Module.new(&Proc.new) if block_given?
 
       relation = clone
       relation.send(:apply_modules, modules.flatten)
