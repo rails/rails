@@ -263,13 +263,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_preloaded_associations
-    ActiveRecord::IdentityMap.without do
     assert_queries(2) do
       posts = Post.preload(:comments)
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries(1) do
       posts = Post.preload(:comments).to_a
       assert posts.first.comments.first
     end
@@ -279,27 +278,25 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(2) do
+    assert_queries(1) do
       posts = Post.preload(:author).to_a
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries(1) do
       posts = Post.preload(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
     end
-    end
   end
 
   def test_find_with_included_associations
-    ActiveRecord::IdentityMap.without do
     assert_queries(2) do
       posts = Post.includes(:comments)
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries(1) do
       posts = Post.scoped.includes(:comments)
       assert posts.first.comments.first
     end
@@ -309,11 +306,10 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries(1) do
       posts = Post.includes(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
-    end
     end
   end
 
