@@ -59,6 +59,10 @@ module ActiveRecord
         repository[record.class.symbolized_base_class].delete(record.id)
       end
 
+      def remove_by_id(symbolized_base_class, id)
+        repository[symbolized_base_class].delete(id)
+      end
+
       def clear
         repository.clear
       end
