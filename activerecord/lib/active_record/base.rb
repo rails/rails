@@ -991,19 +991,18 @@ module ActiveRecord #:nodoc:
           attribute_names.each do |attribute_name|
             unless (aggregation = reflect_on_aggregation(attribute_name.to_sym)).nil?
               aggregate_mapping(aggregation).each do |field_attr, aggregate_attr|
-                expanded_attribute_names << field_attr
+                expanded_attribute_names << field_attr.to_sym
               end
             else
-              expanded_attribute_names << attribute_name
+              expanded_attribute_names << attribute_name.to_sym
             end
           end
           expanded_attribute_names
         end
 
         def all_attributes_exists?(attribute_names)
-          expand_attribute_names_for_aggregates(attribute_names).all? { |name|
-            column_methods_hash.include?(name.to_sym)
-          }
+          (expand_attribute_names_for_aggregates(attribute_names) -
+           column_methods_hash.keys).empty?
         end
 
       protected
