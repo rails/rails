@@ -972,23 +972,17 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.scope?
               self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
-                def self.#{method_id}(*args)                        # def self.scoped_by_user_name_and_password(*args)
-                  attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
-                    [:#{attribute_names.join(',:')}], args          #     [:user_name, :password], args
-                  )                                                 #   )
-                                                                    #
-                  scoped(:conditions => attributes)                 #   scoped(:conditions => attributes)
-                end                                                 # end
+                def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
+                  attributes = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   attributes = Hash[[:user_name, :password].zip(args)]
+                                                                                #
+                  scoped(:conditions => attributes)                             #   scoped(:conditions => attributes)
+                end                                                             # end
               METHOD
               send(method_id, *arguments)
             end
           else
             super
           end
-        end
-
-        def construct_attributes_from_arguments(attribute_names, arguments)
-          Hash[attribute_names.zip(arguments)]
         end
 
         # Similar in purpose to +expand_hash_conditions_for_aggregates+.
