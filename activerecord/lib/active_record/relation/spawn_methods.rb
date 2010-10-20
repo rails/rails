@@ -38,7 +38,7 @@ module ActiveRecord
 
       merged_relation.where_values = merged_wheres
 
-      Relation::SINGLE_VALUE_METHODS.reject {|m| m == :lock}.each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:lock]).each do |method|
         value = r.send(:"#{method}_value")
         merged_relation.send(:"#{method}_value=", value) unless value.nil?
       end
