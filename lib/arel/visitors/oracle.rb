@@ -40,6 +40,20 @@ module Arel
           return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{limit}"
         end
 
+        if o.offset
+          o        = o.dup
+          offset   = o.offset
+          o.offset = nil
+          sql = super(o)
+          return <<-eosql
+              SELECT * FROM (
+                SELECT raw_sql_.*, rownum raw_rnum_
+                FROM (#{sql}) raw_sql_
+              )
+              WHERE #{visit offset}
+          eosql
+        end
+
         super
       end
 

@@ -105,6 +105,22 @@ module Arel
             sql.must_equal sql2
           end
         end
+
+        describe 'only offset' do
+          it 'creates a select from subquery with rownum condition' do
+            stmt = Nodes::SelectStatement.new
+            stmt.offset = Nodes::Offset.new(10)
+            sql = @visitor.accept stmt
+            sql.must_be_like %{
+              SELECT * FROM (
+                SELECT raw_sql_.*, rownum raw_rnum_
+                FROM (SELECT ) raw_sql_
+              )
+              WHERE raw_rnum_ > 10
+            }
+          end
+        end
+
       end
     end
   end
