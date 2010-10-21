@@ -50,6 +50,17 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_auth_clears_stmt_cache
+    assert_nothing_raised do
+      set_session_auth
+      USERS.each do |u|
+        set_session_auth u
+        assert_equal u, @connection.exec("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [[nil, 1]]).first['name']
+        set_session_auth
+      end
+    end
+  end
+
   def test_auth_with_bind
     assert_nothing_raised do
       set_session_auth

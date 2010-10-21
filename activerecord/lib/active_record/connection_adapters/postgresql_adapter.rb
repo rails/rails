@@ -391,6 +391,7 @@ module ActiveRecord
 
       # Set the authorized user for this session
       def session_auth=(user)
+        clear_cache!
         exec "SET SESSION AUTHORIZATION #{user}"
       end
 
