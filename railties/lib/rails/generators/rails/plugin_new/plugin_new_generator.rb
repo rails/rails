@@ -41,7 +41,6 @@ module Rails
     end
 
     def test_dummy_config
-      store_application_definition!
       template "rails/boot.rb", "#{dummy_path}/config/boot.rb", :force => true
       template "rails/application.rb", "#{dummy_path}/config/application.rb", :force => true
     end
@@ -168,6 +167,7 @@ end
       say_step "Configuring Rails application"
 
       def change_config_files
+        store_application_definition!
         build(:test_dummy_config)
       end
 
