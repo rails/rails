@@ -43,6 +43,13 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_session_auth=
+    assert_raise(ActiveRecord::StatementInvalid) do
+      @connection.session_auth = 'DEFAULT'
+      @connection.execute "SELECT * FROM #{TABLE_NAME}"
+    end
+  end
+
   def test_auth_with_bind
     assert_nothing_raised do
       set_session_auth
@@ -90,7 +97,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
 
   private
     def set_session_auth auth = nil
-       @connection.execute "SET SESSION AUTHORIZATION #{auth || 'default'}"
+       @connection.session_auth =  auth || 'default'
     end
 
 end

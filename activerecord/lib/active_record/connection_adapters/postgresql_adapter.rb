@@ -389,6 +389,11 @@ module ActiveRecord
         end
       end
 
+      # Set the authorized user for this session
+      def session_auth=(user)
+        exec "SET SESSION AUTHORIZATION #{user}"
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def supports_disable_referential_integrity?() #:nodoc:
