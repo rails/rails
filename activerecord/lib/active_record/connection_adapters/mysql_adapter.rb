@@ -314,8 +314,8 @@ module ActiveRecord
       end
 
       def clear_cache!
-        @statements.values.each do |stmt|
-          stmt.close
+        @statements.values.each do |cache|
+          cache[:stmt].close
         end
         @statements.clear
       end
@@ -324,17 +324,24 @@ module ActiveRecord
         log(sql, name) do
           result = nil
 
+          cache = {}
           if bind_values.empty?
             stmt = @connection.prepare(sql)
           else
-            stmt = @statements[sql] ||= @connection.prepare(sql)
+            cache = @statements[sql] ||= {
+              :stmt => @connection.prepare(sql)
+            }
+            stmt = cache[:stmt]
           end
 
           stmt.execute(*bind_values.map { |col, val|
             col ? col.type_cast(val) : val
           })
           if metadata = stmt.result_metadata
-            cols   = metadata.fetch_fields.map { |field| field.name }
+            cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
+              field.name
+            }
+
             metadata.free
             result = ActiveRecord::Result.new(cols, stmt.to_a)
           end
