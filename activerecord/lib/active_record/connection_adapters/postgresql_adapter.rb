@@ -521,6 +521,8 @@ module ActiveRecord
       end
 
       def exec(sql, name = 'SQL', binds = [])
+        return exec_no_cache(sql, name) if binds.empty?
+
         log(sql, name) do
           unless @statements.key? sql
             nextkey = "a#{@statements.length + 1}"
@@ -962,6 +964,15 @@ module ActiveRecord
         end
 
       private
+      def exec_no_cache(sql, name)
+        log(sql, name) do
+          result = @connection.async_exec(sql)
+          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
+          result.clear
+          ret
+        end
+      end
+
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.
