@@ -81,6 +81,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_nil citibank_result.instance_variable_get("@firm_with_primary_key")
   end
 
+  def test_eager_loading_with_primary_key_as_symbol
+    Firm.create("name" => "Apple")
+    Client.create("name" => "Citibank", :firm_name => "Apple")
+    citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key_symbols)
+    assert_not_nil citibank_result.instance_variable_get("@firm_with_primary_key_symbols")
+  end
+
   def test_no_unexpected_aliasing
     first_firm = companies(:first_firm)
     another_firm = companies(:another_firm)
