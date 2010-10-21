@@ -73,6 +73,7 @@ lib/arel/visitors/mysql.rb
 lib/arel/visitors/oracle.rb
 lib/arel/visitors/order_clauses.rb
 lib/arel/visitors/postgresql.rb
+lib/arel/visitors/sqlite.rb
 lib/arel/visitors/to_sql.rb
 lib/arel/visitors/visitor.rb
 lib/arel/visitors/where_sql.rb
@@ -98,6 +99,8 @@ test/test_select_manager.rb
 test/test_table.rb
 test/test_update_manager.rb
 test/visitors/test_join_sql.rb
+test/visitors/test_mysql.rb
 test/visitors/test_oracle.rb
 test/visitors/test_postgres.rb
+test/visitors/test_sqlite.rb
 test/visitors/test_to_sql.rb

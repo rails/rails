@@ -2,6 +2,13 @@ module Arel
   module Visitors
     class MySQL < Arel::Visitors::ToSql
       private
+      ###
+      # :'(
+      # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
+      def visit_Arel_Nodes_SelectStatement o
+        o.limit = 18446744073709551615 if o.offset && !o.limit
+        super
+      end
 
       def visit_Arel_Nodes_UpdateStatement o
         [

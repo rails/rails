@@ -80,6 +80,10 @@ module Arel
       from(self).take amount
     end
 
+    def skip amount
+      from(self).skip amount
+    end
+
     def having expr
       from(self).having expr
     end

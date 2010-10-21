@@ -6,6 +6,13 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    describe 'skip' do
+      it 'should add an offset' do
+        sm = @relation.skip 2
+        sm.to_sql.must_be_like "SELECT FROM \"users\" OFFSET 2"
+      end
+    end
+
     describe 'primary_key' do
       it 'should return an attribute' do
         @relation.primary_key.name.must_equal :id

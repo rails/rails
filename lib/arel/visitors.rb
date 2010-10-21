@@ -1,5 +1,6 @@
 require 'arel/visitors/visitor'
 require 'arel/visitors/to_sql'
+require 'arel/visitors/sqlite'
 require 'arel/visitors/postgresql'
 require 'arel/visitors/mysql'
 require 'arel/visitors/oracle'
@@ -15,6 +16,8 @@ module Arel
       'mysql'           => Arel::Visitors::MySQL,
       'mysql2'          => Arel::Visitors::MySQL,
       'oracle_enhanced' => Arel::Visitors::Oracle,
+      'sqlite'          => Arel::Visitors::SQLite,
+      'sqlite3'         => Arel::Visitors::SQLite,
     }
 
     ENGINE_VISITORS = Hash.new do |hash, engine|
