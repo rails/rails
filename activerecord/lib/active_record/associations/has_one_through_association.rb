@@ -33,7 +33,7 @@ module ActiveRecord
 
     private
       def find_target
-        with_scope(construct_scope) { @reflection.klass.find(:first) }
+        with_scope(@scope) { @reflection.klass.find(:first) }
       end
     end
   end

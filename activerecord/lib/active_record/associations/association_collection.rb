@@ -19,11 +19,6 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class AssociationCollection < AssociationProxy #:nodoc:
-      def initialize(owner, reflection)
-        super
-        construct_sql
-      end
-
       delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
 
       def select(select = nil)
@@ -36,7 +31,7 @@ module ActiveRecord
       end
 
       def scoped
-        with_scope(construct_scope) { @reflection.klass.scoped }
+        with_scope(@scope) { @reflection.klass.scoped }
       end
 
       def find(*args)
@@ -58,9 +53,7 @@ module ActiveRecord
           merge_options_from_reflection!(options)
           construct_find_options!(options)
 
-          find_scope = construct_scope[:find].slice(:conditions, :order)
-
-          with_scope(:find => find_scope) do
+          with_scope(:find => @scope[:find].slice(:conditions, :order)) do
             relation = @reflection.klass.send(:construct_finder_arel, options, @reflection.klass.send(:current_scoped_methods))
 
             case args.first
@@ -178,17 +171,18 @@ module ActiveRecord
         end
       end
 
-      # Count all records using SQL. If the +:counter_sql+ option is set for the association, it will
-      # be used for the query. If no +:counter_sql+ was supplied, but +:finder_sql+ was set, the
-      # descendant's +construct_sql+ method will have set :counter_sql automatically.
-      # Otherwise, construct options and pass them with scope to the target class's +count+.
+      # Count all records using SQL. If the +:counter_sql+ or +:finder_sql+ option is set for the
+      # association, it will be used for the query. Otherwise, construct options and pass them with
+      # scope to the target class's +count+.
       def count(column_name = nil, options = {})
         column_name, options = nil, column_name if column_name.is_a?(Hash)
 
-        if @reflection.options[:counter_sql] && !options.blank?
-          raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
-        elsif @reflection.options[:counter_sql]
-          @reflection.klass.count_by_sql(@counter_sql)
+        if @reflection.options[:counter_sql] || @reflection.options[:finder_sql]
+          unless options.blank?
+            raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
+          end
+          
+          @reflection.klass.count_by_sql(custom_counter_sql)
         else
 
           if @reflection.options[:uniq]
@@ -197,7 +191,7 @@ module ActiveRecord
             options.merge!(:distinct => true)
           end
 
-          value = @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) }
+          value = @reflection.klass.send(:with_scope, @scope) { @reflection.klass.count(column_name, options) }
 
           limit  = @reflection.options[:limit]
           offset = @reflection.options[:offset]
@@ -377,18 +371,6 @@ module ActiveRecord
         def construct_find_options!(options)
         end
 
-        def construct_counter_sql
-          if @reflection.options[:counter_sql]
-            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
-          elsif @reflection.options[:finder_sql]
-            # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
-            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
-          else
-            @counter_sql = @finder_sql
-          end
-        end
-
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin
@@ -434,9 +416,9 @@ module ActiveRecord
           elsif @reflection.klass.scopes[method]
             @_named_scopes_cache ||= {}
             @_named_scopes_cache[method] ||= {}
-            @_named_scopes_cache[method][args] ||= with_scope(construct_scope) { @reflection.klass.send(method, *args) }
+            @_named_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
           else
-            with_scope(construct_scope) do
+            with_scope(@scope) do
               if block_given?
                 @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
               else
@@ -446,9 +428,19 @@ module ActiveRecord
           end
         end
 
-        # overloaded in derived Association classes to provide useful scoping depending on association type.
-        def construct_scope
-          {}
+        def custom_counter_sql
+          if @reflection.options[:counter_sql]
+            counter_sql = @reflection.options[:counter_sql]
+          else
+            # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
+            counter_sql = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+          end
+          
+          interpolate_sql(counter_sql)
+        end
+        
+        def custom_finder_sql
+          interpolate_sql(@reflection.options[:finder_sql])
         end
 
         def reset_target!
@@ -462,7 +454,7 @@ module ActiveRecord
         def find_target
           records =
             if @reflection.options[:finder_sql]
-              @reflection.klass.find_by_sql(@finder_sql)
+              @reflection.klass.find_by_sql(custom_finder_sql)
             else
               find(:all)
             end
@@ -494,7 +486,7 @@ module ActiveRecord
           ensure_owner_is_not_new
 
           scoped_where = scoped.where_values_hash
-          create_scope = scoped_where ? construct_scope[:create].merge(scoped_where) : construct_scope[:create]
+          create_scope = scoped_where ? @scope[:create].merge(scoped_where) : @scope[:create]
           record = @reflection.klass.send(:with_scope, :create => create_scope) do
             @reflection.build_association(attrs)
           end

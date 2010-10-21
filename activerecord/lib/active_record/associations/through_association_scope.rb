@@ -5,16 +5,20 @@ module ActiveRecord
 
       protected
 
-      def construct_scope
-        { :create => construct_owner_attributes(@reflection),
-          :find   => { :conditions  => construct_conditions,
-                       :joins       => construct_joins,
-                       :include     => @reflection.options[:include] || @reflection.source_reflection.options[:include],
-                       :select      => construct_select,
-                       :order       => @reflection.options[:order],
-                       :limit       => @reflection.options[:limit],
-                       :readonly    => @reflection.options[:readonly],
-           } }
+      def construct_find_scope
+        {
+          :conditions => construct_conditions,
+          :joins      => construct_joins,
+          :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include],
+          :select     => construct_select,
+          :order      => @reflection.options[:order],
+          :limit      => @reflection.options[:limit],
+          :readonly   => @reflection.options[:readonly]
+        }
+      end
+      
+      def construct_create_scope
+        construct_owner_attributes(@reflection)
       end
 
       # Build SQL conditions from attributes, qualified by table name.

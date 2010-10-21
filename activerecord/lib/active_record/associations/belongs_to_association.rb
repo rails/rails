@@ -50,18 +50,20 @@ module ActiveRecord
                           "find"
                         end
 
-          options = @reflection.options.dup
-          (options.keys - [:select, :include, :readonly]).each do |key|
-            options.delete key
-          end
-          options[:conditions] = conditions
+          options = @reflection.options.dup.slice(:select, :include, :readonly)
 
-          the_target = @reflection.klass.send(find_method,
-            @owner[@reflection.primary_key_name],
-            options
-          ) if @owner[@reflection.primary_key_name]
+          the_target = with_scope(:find => @scope[:find]) do
+            @reflection.klass.send(find_method,
+              @owner[@reflection.primary_key_name],
+              options
+            ) if @owner[@reflection.primary_key_name]
+          end
           set_inverse_instance(the_target, @owner)
           the_target
+        end
+        
+        def construct_find_scope
+          { :conditions => conditions }
         end
 
         def foreign_key_present

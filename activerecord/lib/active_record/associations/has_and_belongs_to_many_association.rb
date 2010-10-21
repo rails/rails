@@ -24,7 +24,7 @@ module ActiveRecord
 
       protected
         def construct_find_options!(options)
-          options[:joins]      = Arel::SqlLiteral.new @join_sql
+          options[:joins]      = Arel::SqlLiteral.new(@scope[:find][:joins])
           options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
           options[:select]   ||= (@reflection.options[:select] || Arel::SqlLiteral.new('*'))
         end
@@ -80,27 +80,26 @@ module ActiveRecord
             ).delete
           end
         end
-
-        def construct_sql
-          if @reflection.options[:finder_sql]
-            @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
-          else
-            @finder_sql = "#{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{owner_quoted_id} "
-            @finder_sql << " AND (#{conditions})" if conditions
-          end
-
-          @join_sql = "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
-
-          construct_counter_sql
+        
+        def construct_joins
+          "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end
 
-        def construct_scope
-          { :find => {  :conditions => @finder_sql,
-                        :joins => @join_sql,
-                        :readonly => false,
-                        :order => @reflection.options[:order],
-                        :include => @reflection.options[:include],
-                        :limit => @reflection.options[:limit] } }
+        def construct_conditions
+          sql = "#{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{owner_quoted_id} "
+          sql << " AND (#{conditions})" if conditions
+          sql
+        end
+
+        def construct_find_scope
+          {
+            :conditions => construct_conditions,
+            :joins      => construct_joins,
+            :readonly   => false,
+            :order      => @reflection.options[:order],
+            :include    => @reflection.options[:include],
+            :limit      => @reflection.options[:limit]
+          }
         end
 
         # Join tables with additional columns on top of the two foreign keys must be considered

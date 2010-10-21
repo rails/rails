@@ -2,11 +2,6 @@ module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
     class HasOneAssociation < AssociationProxy #:nodoc:
-      def initialize(owner, reflection)
-        super
-        construct_sql
-      end
-
       def create(attrs = {}, replace_existing = true)
         new_record(replace_existing) do |reflection|
           attrs = merge_with_conditions(attrs)
@@ -79,33 +74,31 @@ module ActiveRecord
 
       private
         def find_target
-          options = @reflection.options.dup
-          (options.keys - [:select, :order, :include, :readonly]).each do |key|
-            options.delete key
-          end
-          options[:conditions] = @finder_sql
+          options = @reflection.options.dup.slice(:select, :order, :include, :readonly)
 
-          the_target = @reflection.klass.find(:first, options)
+          the_target = with_scope(:find => @scope[:find]) do
+            @reflection.klass.find(:first, options)
+          end
           set_inverse_instance(the_target, @owner)
           the_target
         end
 
-        def construct_sql
-          case
-            when @reflection.options[:as]
-              @finder_sql =
-                "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
-                "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
-            else
-              @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
+        def construct_find_scope
+          if @reflection.options[:as]
+            sql =
+              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
+              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
+          else
+            sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
           end
-          @finder_sql << " AND (#{conditions})" if conditions
+          sql << " AND (#{conditions})" if conditions
+          { :conditions => sql }
         end
 
-        def construct_scope
+        def construct_create_scope
           create_scoping = {}
           set_belongs_to_association_for(create_scoping)
-          { :create => create_scoping }
+          create_scoping
         end
 
         def new_record(replace_existing)
@@ -113,7 +106,7 @@ module ActiveRecord
           # instance. Otherwise, if the target has not previously been loaded
           # elsewhere, the instance we create will get orphaned.
           load_target if replace_existing
-          record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) do
+          record = @reflection.klass.send(:with_scope, :create => @scope[:create]) do
             yield @reflection
           end
 
