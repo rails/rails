@@ -48,6 +48,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def authenticate_with_secure
+      cookies["user_name"] = { :value => "david", :secure => true }
+      head :ok
+    end
+
     def set_permanent_cookie
       cookies.permanent[:user_name] = "Jamie"
       head :ok
@@ -127,6 +132,26 @@ class CookiesTest < ActionController::TestCase
     get :authenticate_with_http_only
     assert_cookie_header "user_name=david; path=/; HttpOnly"
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+
+  def test_setting_cookie_with_secure
+    @request.env["HTTPS"] = "on"
+    get :authenticate_with_secure
+    assert_cookie_header "user_name=david; path=/; secure"
+    assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+
+  def test_setting_cookie_with_secure_in_development
+    Rails.env.stubs(:development?).returns(true)
+    get :authenticate_with_secure
+    assert_cookie_header "user_name=david; path=/; secure"
+    assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+
+  def test_not_setting_cookie_with_secure
+    get :authenticate_with_secure
+    assert_not_cookie_header "user_name=david; path=/; secure"
+    assert_not_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_multiple_cookies
@@ -273,6 +298,15 @@ class CookiesTest < ActionController::TestCase
         assert_equal expected.split("\n").sort, header.split("\n").sort
       else
         assert_equal expected.split("\n"), header
+      end
+    end
+
+    def assert_not_cookie_header(expected)
+      header = @response.headers["Set-Cookie"]
+      if header.respond_to?(:to_str)
+        assert_not_equal expected.split("\n").sort, header.split("\n").sort
+      else
+        assert_not_equal expected.split("\n"), header
       end
     end
 end
