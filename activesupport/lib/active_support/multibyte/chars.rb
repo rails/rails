@@ -64,7 +64,7 @@ module ActiveSupport #:nodoc:
       # Returns +true+ if _obj_ responds to the given method. Private methods are included in the search
       # only if the optional second parameter evaluates to +true+.
       def respond_to?(method, include_private=false)
-        super || @wrapped_string.respond_to?(method, include_private) || false
+        super || @wrapped_string.respond_to?(method, include_private)
       end
 
       # Enable more predictable duck-typing on String-like classes. See Object#acts_like?.
