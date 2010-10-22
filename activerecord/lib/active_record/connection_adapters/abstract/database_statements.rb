@@ -4,7 +4,15 @@ module ActiveRecord
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
       def select_all(sql, name = nil, bind_values = [])
-        select(sql, name, bind_values)
+        if supports_statement_cache?
+          select(sql, name, bind_values)
+        else
+          return select(sql, name) if bind_values.empty?
+          binds = bind_values.dup
+          select sql.gsub('?') {
+            quote(*binds.shift.reverse)
+          }, name
+        end
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -42,7 +50,7 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +bind_values+ as the bind substitutes.  +name+ is logged along with
       # the executed +sql+ statement.
-      def exec(sql, name = nil, binds = [])
+      def exec(sql, name = 'SQL', binds = [])
       end
 
       # Returns the last auto-generated ID from the affected table.
@@ -72,6 +80,12 @@ module ActiveRecord
       # only the PostgreSQL adapter supports this.
       def outside_transaction?
         nil
+      end
+
+      # Returns +true+ when the connection adapter supports prepared statement
+      # caching, otherwise returns +false+
+      def supports_statement_cache?
+        false
       end
 
       # Runs the given block in a database transaction, and returns the result

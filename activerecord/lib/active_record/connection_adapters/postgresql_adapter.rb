@@ -211,6 +211,12 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
+      # Returns +true+ when the connection adapter supports prepared statement
+      # caching, otherwise returns +false+
+      def supports_statement_cache?
+        true
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)

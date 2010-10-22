@@ -62,6 +62,12 @@ module ActiveRecord
         sqlite_version >= '2.0.0'
       end
 
+      # Returns +true+ when the connection adapter supports prepared statement
+      # caching, otherwise returns +false+
+      def supports_statement_cache?
+        true
+      end
+
       def supports_migrations? #:nodoc:
         true
       end
