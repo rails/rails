@@ -156,6 +156,11 @@ ActiveRecord::Schema.define do
     t.integer :company_id
   end
 
+  create_table :iris, :force => true do |t|
+    t.integer :eye
+    t.string  :color
+  end
+
   create_table :customers, :force => true do |t|
     t.string  :name
     t.integer :balance, :default => 0
@@ -192,6 +197,9 @@ ActiveRecord::Schema.define do
 
   create_table :engines, :force => true do |t|
     t.integer :car_id
+  end
+
+  create_table :eyes, :force => true do |t|
   end
 
   create_table :tyres, :force => true do |t|

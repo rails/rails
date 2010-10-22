@@ -167,7 +167,16 @@ module ActiveRecord
           else
             if reflection.macro == :has_one
               define_method(save_method) { save_has_one_association(reflection) }
-              after_save save_method
+              # Configures two callbacks instead of a single after_save so that
+              # the model may rely on their execution order relative to its
+              # own callbacks.
+              #
+              # For example, given that after_creates run before after_saves, if
+              # we configured instead an after_save there would be no way to fire
+              # a custom after_create callback after the child association gets
+              # created.
+              after_create save_method
+              after_update save_method
             else
               define_method(save_method) { save_belongs_to_association(reflection) }
               before_save save_method

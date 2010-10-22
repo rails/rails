@@ -1,5 +1,8 @@
 *Rails 3.1.0 (unreleased)*
 
+* has_one maintains the association with separate after_create/after_update instead
+  of a single after_save. [fxn]
+
 * The following code:
 
     Model.limit(10).scoping { Model.count }
