@@ -830,7 +830,7 @@ In other contexts you might want to change this behaviour, though. E.g. the defa
 
 <ruby>
 module I18n
-  def just_raise_that_exception(*args)
+  def self.just_raise_that_exception(*args)
     raise args.first
   end
 end
