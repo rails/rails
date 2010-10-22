@@ -25,13 +25,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { car.engines.length }
   end
 
-  def test_apply_relation_as_where_id
-    posts = Post.arel_table
-    post_authors = posts.where(posts[:author_id].eq(1)).project(posts[:id])
-    assert_equal 5, post_authors.to_a.size
-    assert_equal 5, Post.where(:id => post_authors).size
-  end
-
   def test_dynamic_finder
     x = Post.where('author_id = ?', 1)
     assert x.klass.respond_to?(:find_by_id), '@klass should handle dynamic finders'
