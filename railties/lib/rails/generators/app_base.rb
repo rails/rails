@@ -36,16 +36,6 @@ module Rails
                                           :desc => "Show this help message and quit"
       end
 
-      def self.say_step(message)
-        @step = (@step || 0) + 1
-        class_eval <<-METHOD, __FILE__, __LINE__ + 1
-          def step_#{@step}
-            #{"puts" if @step > 1}
-            say_status "STEP #{@step}", #{message.inspect}
-          end
-        METHOD
-      end
-
       def initialize(*args)
         @original_wd = Dir.pwd
 

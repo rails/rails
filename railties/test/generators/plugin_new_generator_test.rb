@@ -45,10 +45,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
   end
 
-  def test_ensure_that_plugin_options_are_not_passed_app_generator
-    output = run_generator [destination_root, "--skip_gemfile"]
-    assert_no_file "Gemfile"
-    assert_match /STEP 2.*create  Gemfile/m, output
+  def test_ensure_that_plugin_options_are_not_passed_to_app_generator
+    FileUtils.cd(Rails.root)
+    assert_no_match /It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"])
   end
 
   def test_template_from_dir_pwd

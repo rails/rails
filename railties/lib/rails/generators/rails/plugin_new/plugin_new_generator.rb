@@ -102,8 +102,6 @@ end
         super
       end
 
-      say_step "Creating gem skeleton"
-
       def create_root
         super
       end
@@ -133,20 +131,15 @@ end
         build(:test) unless options[:skip_test_unit]
       end
 
-      say_step "Vendoring Rails application at test/dummy"
-
       def create_test_dummy_files
+        say_status :vendor_app, dummy_path
         build(:generate_test_dummy)
       end
-
-      say_step "Configuring Rails application"
 
       def change_config_files
         store_application_definition!
         build(:test_dummy_config)
       end
-
-      say_step "Removing unneeded files"
 
       def remove_uneeded_rails_files
         build(:test_dummy_clean)
