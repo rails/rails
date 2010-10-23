@@ -145,7 +145,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   
   def test_test_unit_is_skipped_if_required
     run_generator [destination_root, "--skip-test-unit"]
-    assert_no_file "test"    
+    assert_no_file "test"
   end
   
   def test_javascript_is_skipped_if_required

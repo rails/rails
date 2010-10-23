@@ -215,8 +215,9 @@ end
 
       def application_definition
         @application_definition ||= begin
-          unless options[:pretend]
-            contents = File.read(File.expand_path("#{dummy_path}/config/application.rb", destination_root))
+          dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
+          unless options[:pretend] || !File.exists?(dummy_application_path)
+            contents = File.read(dummy_application_path)
             contents[(contents.index("module Dummy"))..-1]
           end
         end

@@ -13,8 +13,6 @@ DEFAULT_PLUGIN_FILES = %w(
   lib/bukkits.rb
   script/rails
   test/bukkits_test.rb
-  test/integration/navigation_test.rb
-  test/support/integration_case.rb
   test/test_helper.rb
   test/dummy
 )
@@ -43,12 +41,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_generating_test_files
     run_generator
     assert_file "test/test_helper.rb"
-    assert_directory "test/support/"
-    assert_directory "test/integration/"
 
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
-    assert_file "test/integration/navigation_test.rb", /assert_kind_of Dummy::Application, Rails.application/
-    assert_file "test/support/integration_case.rb", /class ActiveSupport::IntegrationCase/
   end
 
   def test_ensure_that_plugin_options_are_not_passed_app_generator
@@ -66,7 +60,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator
     FileUtils.cd destination_root
     `bundle install`
-    assert_match /2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`
+    assert_match /1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`
   end
 
 protected
