@@ -58,13 +58,13 @@ To create this form you will use +form_tag+, +label_tag+, +text_field_tag+, and 
 
 A basic search form
 
-<html>
+<erb>
 <%= form_tag(search_path, :method => "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
 <% end %>
-</html>
+</erb>
 
 TIP: +search_path+ can be a named route specified in "routes.rb": <br /><tt>map.search "search", :controller => "search"</tt>
 
@@ -129,14 +129,16 @@ Checkboxes are form controls that give the user a set of options they can enable
   <%= label_tag(:pet_dog, "I own a dog") %>
 <%= check_box_tag(:pet_cat) %>
   <%= label_tag(:pet_cat, "I own a cat") %>
+</erb>
 
 output:
 
+<html>
 <input id="pet_dog" name="pet_dog" type="checkbox" value="1" />
   <label for="pet_dog">I own a dog</label>
 <input id="pet_cat" name="pet_cat" type="checkbox" value="1" />
   <label for="pet_cat">I own a cat</label>
-</erb>
+</html>
 
 The second parameter to +check_box_tag+ is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the +params+ hash). With the above form you would check the value of +params[:pet_dog]+ and +params[:pet_cat]+ to see which pets the user owns.
 
@@ -149,14 +151,16 @@ Radio buttons, while similar to checkboxes, are controls that specify a set of o
   <%= label_tag(:age_child, "I am younger than 21") %>
 <%= radio_button_tag(:age, "adult") %>
   <%= label_tag(:age_adult, "I'm over 21") %>
+</erb>
 
 output:
 
+<html>
 <input id="age_child" name="age" type="radio" value="child" />
   <label for="age_child">I am younger than 21</label>
 <input id="age_adult" name="age" type="radio" value="adult" />
   <label for="age_adult">I'm over 21</label>
-</erb>
+</html>
 
 As with +check_box_tag+ the second parameter to +radio_button_tag+ is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one and +params[:age]+ will contain either "child" or "adult".
 
@@ -170,13 +174,15 @@ Other form controls worth mentioning are the text area, password input and hidde
 <%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
 <%= password_field_tag(:password) %>
 <%= hidden_field_tag(:parent_id, "5") %>
+</erb>
 
 output:
 
+<html>
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
 <input id="password" name="password" type="password" />
 <input id="parent_id" name="parent_id" type="hidden" value="5" />
-</erb>
+</html>
 
 Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript.
 

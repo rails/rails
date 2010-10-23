@@ -8,13 +8,10 @@
 <title><%= yield(:page_title) || 'Ruby on Rails guides' %></title>
 
 <link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/syntax.css" />
 <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
 
-<script type="text/javascript" src="javascripts/guides.js"></script>
-<script type="text/javascript" src="javascripts/code_highlighter.js"></script>
-<script type="text/javascript" src="javascripts/highlighters.js"></script>
-
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" />
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />
 </head>
 <body class="guide">
   <% if @edge %>
@@ -120,5 +117,15 @@
       <p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
     </div>
   </div>
+
+  <script type="text/javascript" src="javascripts/guides.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shCore.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushRuby.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushXml.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
+  <script type="text/javascript">
+    SyntaxHighlighter.all()
+  </script>
 </body>
 </html>
