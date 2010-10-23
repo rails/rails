@@ -8,6 +8,34 @@ require 'uri'
 module Rails
   module Generators
     class AppBase < Base
+      attr_accessor :rails_template
+      add_shebang_option!
+
+      argument :app_path,               :type => :string
+
+      def self.add_shared_options_for(name)
+        class_option :builder,            :type => :string, :aliases => "-b",
+                                          :desc => "Path to a #{name} builder (can be a filesystem path or URL)"
+
+        class_option :template,           :type => :string, :aliases => "-m",
+                                          :desc => "Path to an #{name} template (can be a filesystem path or URL)"
+
+        class_option :skip_gemfile,       :type => :boolean, :default => false,
+                                          :desc => "Don't create a Gemfile"
+
+        class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
+                                          :desc => "Skip Git ignores and keeps"
+
+        class_option :dev,                :type => :boolean, :default => false,
+                                          :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
+
+        class_option :edge,               :type => :boolean, :default => false,
+                                          :desc => "Setup the #{name} with Gemfile pointing to Rails repository"
+
+        class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
+                                          :desc => "Show this help message and quit"
+      end
+
       def self.say_step(message)
         @step = (@step || 0) + 1
         class_eval <<-METHOD, __FILE__, __LINE__ + 1

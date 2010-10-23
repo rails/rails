@@ -157,31 +157,13 @@ module Rails
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
       JAVASCRIPTS = %w( prototype jquery )
 
-      attr_accessor :rails_template
-      add_shebang_option!
-
-      argument :app_path,               :type => :string
+      add_shared_options_for "application"
 
       class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                         :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
       class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
                                         :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
-
-      class_option :builder,            :type => :string, :aliases => "-b",
-                                        :desc => "Path to an application builder (can be a filesystem path or URL)"
-
-      class_option :template,           :type => :string, :aliases => "-m",
-                                        :desc => "Path to an application template (can be a filesystem path or URL)"
-
-      class_option :dev,                :type => :boolean, :default => false,
-                                        :desc => "Setup the application with Gemfile pointing to your Rails checkout"
-
-      class_option :edge,               :type => :boolean, :default => false,
-                                        :desc => "Setup the application with Gemfile pointing to Rails repository"
-
-      class_option :skip_gemfile,       :type => :boolean, :default => false,
-                                        :desc => "Don't create a Gemfile"
 
       class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
                                         :desc => "Skip Active Record files"
@@ -192,15 +174,9 @@ module Rails
       class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
                                         :desc => "Skip javascript files"
 
-      class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
-                                        :desc => "Skip Git ignores and keeps"
-
       # Add bin/rails options
       class_option :version,            :type => :boolean, :aliases => "-v", :group => :rails,
                                         :desc => "Show Rails version number and quit"
-
-      class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
-                                        :desc => "Show this help message and quit"
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
