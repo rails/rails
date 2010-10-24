@@ -98,10 +98,10 @@ module ActiveModel
       def define_attr_method(name, value=nil, &block)
         sing = singleton_class
         sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-          if method_defined?(:original_#{name})
-            undef :original_#{name}
+          if method_defined?(:'original_#{name}')
+            undef :'original_#{name}'
           end
-          alias_method :original_#{name}, :#{name}
+          alias_method :'original_#{name}', :'#{name}'
         eorb
         if block_given?
           sing.send :define_method, name, &block
@@ -274,8 +274,8 @@ module ActiveModel
                 method_name = matcher.method_name(attr_name)
 
                 generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-                  if method_defined?(:#{method_name})
-                    undef :#{method_name}
+                  if method_defined?(:'#{method_name}')
+                    undef :'#{method_name}'
                   end
                   def #{method_name}(*args)
                     send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
