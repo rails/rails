@@ -256,7 +256,6 @@ module ActiveRecord
       end
 
       def preload_through_records(records, reflection, through_association)
-        through_records = []
         if reflection.options[:source_type]
           interface = reflection.source_reflection.options[:foreign_type]
           preload_options = {:conditions => ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]}
@@ -265,16 +264,15 @@ module ActiveRecord
           records.first.class.preload_associations(records, through_association, preload_options)
 
           # Dont cache the association - we would only be caching a subset
-          records.each do |record|
+          records.map { |record|
             proxy = record.send(through_association)
 
             if proxy.respond_to?(:target)
-              through_records.concat Array.wrap(proxy.target)
-              proxy.reset
+              Array.wrap(proxy.target).tap { proxy.reset }
             else # this is a has_one :through reflection
-              through_records << proxy if proxy
+              [proxy].compact
             end
-          end
+          }.flatten(1)
         else
           options = {}
           options[:include] = reflection.options[:include] || reflection.options[:source] if reflection.options[:conditions]
@@ -282,11 +280,10 @@ module ActiveRecord
           options[:conditions] = reflection.options[:conditions]
           records.first.class.preload_associations(records, through_association, options)
 
-          records.each do |record|
-            through_records.concat Array.wrap(record.send(through_association))
-          end
+          records.map { |record|
+            Array.wrap(record.send(through_association))
+          }.flatten(1)
         end
-        through_records
       end
 
       def preload_belongs_to_association(records, reflection, preload_options={})
