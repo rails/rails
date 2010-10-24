@@ -256,8 +256,6 @@ module ActiveRecord
       end
 
       def preload_through_records(records, reflection, through_association)
-        through_reflection = reflections[through_association]
-
         through_records = []
         if reflection.options[:source_type]
           interface = reflection.source_reflection.options[:foreign_type]
