@@ -223,7 +223,7 @@ module RailsGuides
         code_blocks.push(<<HTML)
 <notextile>
 <div class="code_container">
-<pre class="brush: #{brush}; gutter: false">
+<pre class="brush: #{brush}; gutter: false; toolbar: false">
 #{ERB::Util.h($2).chomp}
 </pre>
 </div>
