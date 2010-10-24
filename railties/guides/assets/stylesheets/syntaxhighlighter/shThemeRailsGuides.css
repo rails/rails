@@ -4,6 +4,8 @@
 .syntaxhighlighter {
   background-color: #eee !important;
   font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace !important;
+  overflow-y: hidden !important;
+  overflow-x: auto !important;
 }
 .syntaxhighlighter .line.alt1 {
   background-color: #eee !important;

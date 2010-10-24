@@ -224,7 +224,7 @@ module RailsGuides
 <notextile>
 <div class="code_container">
 <pre class="brush: #{brush}; gutter: false; toolbar: false">
-#{ERB::Util.h($2).chomp}
+#{ERB::Util.h($2).strip}
 </pre>
 </div>
 </notextile>
