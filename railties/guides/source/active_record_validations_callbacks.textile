@@ -1128,14 +1128,14 @@ As with callback classes, the observer's methods receive the observed model as a
 
 h4. Registering Observers
 
-Observers are conventionally placed inside of your +app/models+ directory and registered in your application's +config/environment.rb+ file. For example, the +UserObserver+ above would be saved as +app/models/user_observer.rb+ and registered in +config/environment.rb+ this way:
+Observers are conventionally placed inside of your +app/models+ directory and registered in your application's +config/application.rb+ file. For example, the +UserObserver+ above would be saved as +app/models/user_observer.rb+ and registered in +config/application.rb+ this way:
 
 <ruby>
 # Activate observers that should always be running
 config.active_record.observers = :user_observer
 </ruby>
 
-As usual, settings in +config/environments+ take precedence over those in +config/environment.rb+. So, if you prefer that an observer doesn't run in all environments, you can simply register it in a specific environment instead.
+As usual, settings in +config/environments+ take precedence over those in +config/application.rb+. So, if you prefer that an observer doesn't run in all environments, you can simply register it in a specific environment instead.
 
 h4. Sharing Observers
 
@@ -1151,7 +1151,7 @@ class MailerObserver < ActiveRecord::Observer
 end
 </ruby>
 
-In this example, the +after_create+ method would be called whenever a +Registration+ or +User+ was created. Note that this new +MailerObserver+ would also need to be registered in +config/environment.rb+ in order to take effect.
+In this example, the +after_create+ method would be called whenever a +Registration+ or +User+ was created. Note that this new +MailerObserver+ would also need to be registered in +config/application.rb+ in order to take effect.
 
 <ruby>
 # Activate observers that should always be running
