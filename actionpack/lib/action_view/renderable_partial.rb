@@ -27,7 +27,7 @@ module ActionView
     def render_partial(view, object = nil, local_assigns = {}, as = nil)
       object ||= local_assigns[:object] || local_assigns[variable_name]
 
-      if object.nil? && view.respond_to?(:controller)
+      if object.nil? && !local_assigns_key?(local_assigns) && view.respond_to?(:controller)
         ivar = :"@#{variable_name}"
         object =
           if view.controller.instance_variable_defined?(ivar)
@@ -43,5 +43,11 @@ module ActionView
 
       render_template(view, local_assigns)
     end
+
+    private
+
+      def local_assigns_key?(local_assigns)
+        local_assigns.key?(:object) || local_assigns.key?(variable_name)
+      end
   end
 end
