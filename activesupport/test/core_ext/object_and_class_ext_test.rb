@@ -134,4 +134,14 @@ class ObjectTryTest < Test::Unit::TestCase
   def test_false_try
     assert_equal 'false', false.try(:to_s)
   end
+
+  def test_try_only_block
+    assert_equal @string.reverse, @string.try { |s| s.reverse }
+  end
+
+  def test_try_only_block_nil
+    ran = false
+    nil.try { ran = true }
+    assert_equal false, ran
+  end
 end
