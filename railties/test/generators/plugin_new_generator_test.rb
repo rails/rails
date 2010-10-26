@@ -63,6 +63,21 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/config/database.yml"
   end
 
+  def test_ensure_that_database_option_is_passed_to_app_generator
+    run_generator [destination_root, "--database", "postgresql"]
+    assert_file "test/dummy/config/database.yml", /postgres/
+  end
+
+  def test_ensure_that_javascript_option_is_passed_to_app_generator
+    run_generator [destination_root, "--javascript", "jquery"]
+    assert_file "test/dummy/public/javascripts/jquery.js"
+  end
+
+  def test_ensure_that_skip_javascript_option_is_passed_to_app_generator
+    run_generator [destination_root, "--skip_javascript"]
+    assert_no_file "test/dummy/public/javascripts/prototype.js"
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])

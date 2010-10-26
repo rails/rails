@@ -45,7 +45,7 @@ module Rails
     end
 
     def generate_test_dummy
-      opts = (options || {}).slice("skip_active_record")
+      opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript)
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts

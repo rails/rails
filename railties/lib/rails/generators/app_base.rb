@@ -8,6 +8,9 @@ require 'uri'
 module Rails
   module Generators
     class AppBase < Base
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      JAVASCRIPTS = %w( prototype jquery )
+
       attr_accessor :rails_template
       add_shebang_option!
 
@@ -26,10 +29,17 @@ module Rails
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
 
-        skip_active_record_desc = "Skip Active Record files"
-        skip_active_record_desc << " for dummy application" if name == "plugin"
         class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
-                                          :desc => skip_active_record_desc
+                                          :desc => "Skip Active Record files"
+
+        class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
+                                          :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+        class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
+                                          :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
+
+        class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
+                                          :desc => "Skip javascript files"
 
         class_option :dev,                :type => :boolean, :default => false,
                                           :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"

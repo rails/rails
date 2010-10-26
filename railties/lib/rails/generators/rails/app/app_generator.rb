@@ -154,22 +154,10 @@ module Rails
                         plugin runner test]
 
     class AppGenerator < AppBase
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      JAVASCRIPTS = %w( prototype jquery )
-
       add_shared_options_for "application"
-
-      class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
-                                        :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-      class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
-                                        :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
 
       class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
                                         :desc => "Skip Test::Unit files"
-
-      class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
-                                        :desc => "Skip javascript files"
 
       # Add bin/rails options
       class_option :version,            :type => :boolean, :aliases => "-v", :group => :rails,
