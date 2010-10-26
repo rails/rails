@@ -26,6 +26,11 @@ module Rails
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
 
+        skip_active_record_desc = "Skip Active Record files"
+        skip_active_record_desc << " for dummy application" if name == "plugin"
+        class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
+                                          :desc => skip_active_record_desc
+
         class_option :dev,                :type => :boolean, :default => false,
                                           :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
 

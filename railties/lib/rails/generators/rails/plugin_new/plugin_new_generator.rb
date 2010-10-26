@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/slice'
 require 'rails/generators/app_base'
 require "rails/generators/rails/app/app_generator"
 
@@ -28,16 +29,26 @@ module Rails
     end
 
     def lib
-      directory "lib"
+      template "lib/%name%.rb"
+      if full?
+        template "lib/%name%/engine.rb"
+      end
     end
 
     def test
-      directory "test"
+      template "test/test_helper.rb"
+      template "test/%name%_test.rb"
+      if full?
+        template "test/integration/navigation_test.rb"
+        template "test/support/integration_case.rb"
+      end
     end
 
     def generate_test_dummy
+      opts = (options || {}).slice("skip_active_record")
+
       invoke Rails::Generators::AppGenerator,
-        [ File.expand_path(dummy_path, destination_root) ], {}
+        [ File.expand_path(dummy_path, destination_root) ], opts
     end
 
     def test_dummy_config
@@ -95,6 +106,9 @@ end
       add_shared_options_for "plugin"
 
       alias_method :plugin_path, :app_path
+
+      class_option :full, :type => :boolean, :default => false,
+                          :desc => "Generate rails engine with integration tests"
 
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
@@ -159,6 +173,10 @@ end
 
     protected
 
+      def full?
+        options[:full]
+      end
+
       def self.banner
         "rails plugin new #{self.arguments.map(&:usage).join(' ')} [options]"
       end
@@ -183,6 +201,7 @@ end
 
       def application_definition
         @application_definition ||= begin
+
           dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
           unless options[:pretend] || !File.exists?(dummy_application_path)
             contents = File.read(dummy_application_path)

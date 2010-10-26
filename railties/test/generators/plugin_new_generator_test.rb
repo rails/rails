@@ -41,13 +41,26 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_generating_test_files
     run_generator
     assert_file "test/test_helper.rb"
-
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
+  end
+
+  def test_generating_test_files_in_full_mode
+    run_generator [destination_root, "--full"]
+    assert_directory "test/support/"
+    assert_directory "test/integration/"
+
+    assert_file "test/integration/navigation_test.rb", /assert_kind_of Dummy::Application, Rails.application/
+    assert_file "test/support/integration_case.rb", /class ActiveSupport::IntegrationCase/
   end
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(Rails.root)
     assert_no_match /It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"])
+  end
+
+  def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
+    run_generator [destination_root, "--skip_active_record"]
+    assert_no_file "test/dummy/config/database.yml"
   end
 
   def test_template_from_dir_pwd
@@ -60,6 +73,19 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd destination_root
     `bundle install`
     assert_match /1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`
+  end
+
+  def test_ensure_that_tests_works_in_full_mode
+    run_generator [destination_root, "--full"]
+    FileUtils.cd destination_root
+    `bundle install`
+    assert_match /2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`
+  end
+
+  def test_creating_engine_in_full_mode
+    run_generator [destination_root, "--full"]
+    assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
+    assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
 
 protected

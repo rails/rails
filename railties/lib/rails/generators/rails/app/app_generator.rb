@@ -165,9 +165,6 @@ module Rails
       class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
                                         :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
 
-      class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
-                                        :desc => "Skip Active Record files"
-
       class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
                                         :desc => "Skip Test::Unit files"
 
