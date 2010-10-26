@@ -46,13 +46,13 @@ module AbstractController
         @view_context_class ||= begin
           controller = self
           Class.new(ActionView::Base) do
+            if controller.respond_to?(:_routes) && controller._routes
+              include controller._routes.url_helpers
+              include controller._routes.mounted_helpers
+            end
+
             if controller.respond_to?(:_helpers)
               include controller._helpers
-
-              if controller.respond_to?(:_routes) && controller._routes
-                include controller._routes.url_helpers
-                include controller._routes.mounted_helpers
-              end
 
               # TODO: Fix RJS to not require this
               self.helpers = controller._helpers
