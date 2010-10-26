@@ -99,8 +99,8 @@ module ActiveRecord
       end
 
       # Returns a bind substitution value given a +column+ and list of current
-      # +bind_values+
-      def substitute_for(column, bind_values)
+      # +binds+
+      def substitute_for(column, binds)
         Arel.sql '?'
       end
 

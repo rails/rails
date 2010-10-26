@@ -326,12 +326,12 @@ module ActiveRecord
         @statements.clear
       end
 
-      def exec(sql, name = 'SQL', bind_values = [])
+      def exec(sql, name = 'SQL', binds = [])
         log(sql, name) do
           result = nil
 
           cache = {}
-          if bind_values.empty?
+          if binds.empty?
             stmt = @connection.prepare(sql)
           else
             cache = @statements[sql] ||= {
@@ -340,7 +340,7 @@ module ActiveRecord
             stmt = cache[:stmt]
           end
 
-          stmt.execute(*bind_values.map { |col, val|
+          stmt.execute(*binds.map { |col, val|
             col ? col.type_cast(val) : val
           })
           if metadata = stmt.result_metadata
@@ -353,7 +353,7 @@ module ActiveRecord
           end
 
           stmt.free_result
-          stmt.close if bind_values.empty?
+          stmt.close if binds.empty?
 
           result
         end

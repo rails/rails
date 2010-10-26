@@ -143,11 +143,11 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def exec(sql, name = nil, bind_values = [])
+      def exec(sql, name = nil, binds = [])
         log(sql, name) do
 
           # Don't cache statements without bind values
-          if bind_values.empty?
+          if binds.empty?
             stmt = @connection.prepare(sql)
             cols = stmt.columns
           else
@@ -157,7 +157,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params bind_values.map { |col, val|
+            stmt.bind_params binds.map { |col, val|
               col ? col.type_cast(val) : val
             }
           end
@@ -313,8 +313,8 @@ module ActiveRecord
       end
 
       protected
-        def select(sql, name = nil, bind_values = []) #:nodoc:
-          exec(sql, name, bind_values).map do |row|
+        def select(sql, name = nil, binds = []) #:nodoc:
+          exec(sql, name, binds).map do |row|
             record = {}
             row.each do |key, value|
               record[key.sub(/^"?\w+"?\./, '')] = value if key.is_a?(String)

@@ -3,12 +3,12 @@ module ActiveRecord
     module DatabaseStatements
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
-      def select_all(sql, name = nil, bind_values = [])
+      def select_all(sql, name = nil, binds = [])
         if supports_statement_cache?
-          select(sql, name, bind_values)
+          select(sql, name, binds)
         else
-          return select(sql, name) if bind_values.empty?
-          binds = bind_values.dup
+          return select(sql, name) if binds.empty?
+          binds = binds.dup
           select sql.gsub('?') {
             quote(*binds.shift.reverse)
           }, name
@@ -48,7 +48,7 @@ module ActiveRecord
       undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
-      # +bind_values+ as the bind substitutes.  +name+ is logged along with
+      # +binds+ as the bind substitutes.  +name+ is logged along with
       # the executed +sql+ statement.
       def exec(sql, name = 'SQL', binds = [])
       end
@@ -274,7 +274,7 @@ module ActiveRecord
       protected
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
-        def select(sql, name = nil, bind_values = [])
+        def select(sql, name = nil, binds = [])
         end
         undef_method :select
 
