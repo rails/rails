@@ -263,6 +263,7 @@ module Arel
       def visit_Fixnum o; o end
       alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
       alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
+      alias :visit_Bignum :visit_Fixnum
 
       def visit_String o; quote(o, @last_column) end
 

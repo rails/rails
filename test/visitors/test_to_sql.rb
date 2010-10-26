@@ -29,6 +29,10 @@ module Arel
         @visitor.accept 2.14
       end
 
+      it "should visit_Bignum" do
+        @visitor.accept 8787878092
+      end
+
       it "should visit_Hash" do
         @visitor.accept({:a => 1})
       end
