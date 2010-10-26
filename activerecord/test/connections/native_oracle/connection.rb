@@ -37,10 +37,10 @@ Course.establish_connection 'arunit2'
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SELECT_SQL = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from ((all|user)_tab_columns|(all|user)_triggers|(all|user)_constraints)/im]
 
-  def select_with_query_record(sql, name = nil, return_column_names = false)
+  def select_with_query_record(sql, name = nil)
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SELECT_SQL.any? { |r| sql =~ r }
-    select_without_query_record(sql, name, return_column_names)
+    select_without_query_record(sql, name)
   end
 
   alias_method_chain :select, :query_record
