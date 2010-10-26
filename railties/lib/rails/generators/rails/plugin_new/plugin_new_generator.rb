@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/slice'
-require 'rails/generators/app_base'
 require "rails/generators/rails/app/app_generator"
 
 module Rails
