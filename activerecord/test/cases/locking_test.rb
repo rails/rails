@@ -257,6 +257,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
     fixtures :people, :readers
 
     def setup
+      Person.connection_pool.clear_reloadable_connections!
       # Avoid introspection queries during tests.
       Person.columns; Reader.columns
     end
@@ -306,8 +307,6 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
     end
 
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-      use_concurrent_connections
-
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }
         assert first.end > second.end

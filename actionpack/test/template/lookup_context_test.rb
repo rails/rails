@@ -100,8 +100,8 @@ class LookupContextTest < ActiveSupport::TestCase
 
     @lookup_context.with_fallbacks do
       assert_equal 3, @lookup_context.view_paths.size
-      assert @lookup_context.view_paths.include?(ActionView::FileSystemResolver.new(""))
-      assert @lookup_context.view_paths.include?(ActionView::FileSystemResolver.new("/"))
+      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new(""))
+      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new("/"))
     end
   end
 
@@ -179,10 +179,6 @@ class LookupContextTest < ActiveSupport::TestCase
     assert @lookup_context.cache
 
     assert_not_equal template, old_template
-  end
-
-  test "can have cache disabled on initialization" do
-    assert !ActionView::LookupContext.new(FIXTURE_LOAD_PATH, :cache => false).cache
   end
 end
 

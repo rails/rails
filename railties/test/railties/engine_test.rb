@@ -394,7 +394,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace Bukkits
+            isolate_namespace Bukkits
           end
         end
       RUBY
@@ -511,7 +511,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace Bukkits
+            isolate_namespace Bukkits
           end
         end
       RUBY
@@ -568,63 +568,6 @@ module RailtiesTest
       assert rack_body(response[2]) =~ /name="post\[title\]"/
     end
 
-    test "creating symlinks" do
-      @plugin.write "lib/bukkits.rb", <<-RUBY
-        module Bukkits
-          class Engine < ::Rails::Engine
-            namespace(Bukkits)
-          end
-        end
-      RUBY
-
-      @plugin.write "public/hello.txt", "foo"
-      @plugin.write "alternate_public/hello.txt", "bar"
-
-      Dir.chdir(app_path) do
-        output = `rake railties:create_symlinks`
-
-        assert_match /Created symlink/, output
-        assert_match /#{app_path}\/public\/bukkits/, output
-        assert_match /#{@plugin.path}\/public/, output
-
-        assert File.symlink?(File.join(app_path, 'public/bukkits'))
-        assert_equal "foo\n", File.read(File.join(app_path, 'public/bukkits/hello.txt'))
-
-        @plugin.write "lib/bukkits.rb", <<-RUBY
-          module Bukkits
-            class Engine < ::Rails::Engine
-              namespace(Bukkits)
-              paths["public"] = "#{File.join(@plugin.path, "alternate_public")}"
-            end
-          end
-        RUBY
-
-        output = `rake railties:create_symlinks`
-
-        assert_match /Created symlink/, output
-        assert_match /#{app_path}\/public\/bukkits/, output
-        assert_match /#{@plugin.path}\/alternate_public/, output
-
-        assert File.symlink?(File.join(app_path, 'public/bukkits'))
-        assert_equal "bar\n", File.read(File.join(app_path, 'public/bukkits/hello.txt'))
-
-        @plugin.write "lib/bukkits.rb", <<-RUBY
-          module Bukkits
-            class Engine < ::Rails::Engine
-              namespace(Bukkits)
-              paths["public"] = "#{File.join(@plugin.path, "not_existing")}"
-            end
-          end
-        RUBY
-
-        FileUtils.rm File.join(app_path, 'public/bukkits')
-
-        output = `rake railties:create_symlinks`
-        assert_no_match /Created symlink/, output
-        assert !File.exist?(File.join(app_path, 'public/bukkits'))
-      end
-    end
-
     test "loading seed data" do
       @plugin.write "db/seeds.rb", <<-RUBY
         Bukkits::Engine.config.bukkits_seeds_loaded = true
@@ -648,12 +591,12 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module AppTemplate
           class Engine < ::Rails::Engine
-            namespace(AppTemplate)
+            isolate_namespace(AppTemplate)
           end
         end
       RUBY
 
-      add_to_config "namespace AppTemplate"
+      add_to_config "isolate_namespace AppTemplate"
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do end
@@ -686,7 +629,7 @@ module RailtiesTest
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            namespace(Bukkits)
+            isolate_namespace(Bukkits)
           end
         end
       RUBY

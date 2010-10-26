@@ -64,7 +64,7 @@ module ActiveSupport #:nodoc:
       # Returns +true+ if _obj_ responds to the given method. Private methods are included in the search
       # only if the optional second parameter evaluates to +true+.
       def respond_to?(method, include_private=false)
-        super || @wrapped_string.respond_to?(method, include_private) || false
+        super || @wrapped_string.respond_to?(method, include_private)
       end
 
       # Enable more predictable duck-typing on String-like classes. See Object#acts_like?.
@@ -270,13 +270,14 @@ module ActiveSupport #:nodoc:
           @wrapped_string[*args] = replace_by
         else
           result = Unicode.u_unpack(@wrapped_string)
-          if args[0].is_a?(Fixnum)
+          case args.first
+          when Fixnum
             raise IndexError, "index #{args[0]} out of string" if args[0] >= result.length
             min = args[0]
             max = args[1].nil? ? min : (min + args[1] - 1)
             range = Range.new(min, max)
             replace_by = [replace_by].pack('U') if replace_by.is_a?(Fixnum)
-          elsif args.first.is_a?(Range)
+          when Range
             raise RangeError, "#{args[0]} out of range" if args[0].min >= result.length
             range = args[0]
           else

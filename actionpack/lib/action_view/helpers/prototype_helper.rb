@@ -1,6 +1,7 @@
 require 'set'
 require 'active_support/json'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Prototype Helpers
@@ -131,7 +132,7 @@ module ActionView
 
         url_options = options[:url]
         url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
-        function << "'#{html_escape(escape_javascript(url_for(url_options)))}'"
+        function << "'#{ERB::Util.html_escape(escape_javascript(url_for(url_options)))}'"
         function << ", #{javascript_options})"
 
         function = "#{options[:before]}; #{function}" if options[:before]

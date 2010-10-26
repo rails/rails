@@ -125,6 +125,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal posts_with_authors_at_address_titles, Post.with_authors_at_address(address).find(:all, :select => 'title')
   end
 
+  def test_scope_with_object
+    objects = Topic.with_object
+    assert_operator objects.length, :>, 0
+    assert objects.all?(&:approved?), 'all objects should be approved'
+  end
+
   def test_extensions
     assert_equal 1, Topic.anonymous_extension.one
     assert_equal 2, Topic.named_extension.two

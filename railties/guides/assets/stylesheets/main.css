@@ -23,8 +23,12 @@ dl { margin: 0 0 1.5em 0; }
 dl dt { font-weight: bold; }
 dd { margin-left: 1.5em;}
 
-pre,code { margin: 1.5em 0; white-space: pre; overflow: auto; }
-pre,code,tt { font: 1em 'andale mono', 'lucida console', monospace; line-height: 1.5; }
+pre,code { margin: 1.5em 0; overflow: auto; color: #222;}
+pre,code,tt {
+    font-size: 1em;
+    font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+    line-height: 1.5;
+}
 
 abbr, acronym { border-bottom: 1px dotted #666; }
 address { margin: 0 0 1.5em; font-style: italic; }
@@ -361,20 +365,9 @@ h6 {
 	font-weight: normal;
 }
 
-tt {
-	font-family: monaco, "Bitstream Vera Sans Mono", "Courier New", courier, monospace;
-}
-
 div.code_container {
 	background: #EEE url(../images/tab_grey.gif) no-repeat left top;
 	padding: 0.25em 1em 0.5em 48px;
-}
-
-code {
-	font-family: monaco, "Bitstream Vera Sans Mono", "Courier New", courier, monospace;
-	border: none;
-	margin: 0.25em 0 1.5em 0;
-	display: block;
 }
 
 .note {

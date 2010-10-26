@@ -36,7 +36,7 @@ module ActiveRecord
 
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
-        reflections.values.select { |reflection| reflection.is_a?(AggregateReflection) }
+        reflections.values.grep(AggregateReflection)
       end
 
       # Returns the AggregateReflection object for the named +aggregation+ (use the symbol).
@@ -58,7 +58,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
       def reflect_on_all_associations(macro = nil)
-        association_reflections = reflections.values.select { |reflection| reflection.is_a?(AssociationReflection) }
+        association_reflections = reflections.values.grep(AssociationReflection)
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 

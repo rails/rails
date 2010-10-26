@@ -10,7 +10,7 @@ module ActionView
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     mattr_accessor :fallbacks
-    @@fallbacks = [FileSystemResolver.new(""), FileSystemResolver.new("/")]
+    @@fallbacks = FallbackFileSystemResolver.instances
 
     mattr_accessor :registered_details
     self.registered_details = []
@@ -61,7 +61,7 @@ module ActionView
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
-      @cache = details.key?(:cache) ? details.delete(:cache) : true
+      @cache = true
 
       self.view_paths = view_paths
       self.registered_detail_setters.each do |key, setter|

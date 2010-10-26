@@ -21,7 +21,8 @@ module ActionView
 
     def render_once(options)
       paths, locals = options[:once], options[:locals] || {}
-      layout, keys, prefix = options[:layout], locals.keys, options[:prefix]
+      layout, keys  = options[:layout], locals.keys
+      prefix = options.fetch(:prefix, @view.controller_prefix)
 
       raise "render :once expects a String or an Array to be given" unless paths
 
@@ -45,7 +46,7 @@ module ActionView
         with_fallbacks { find_template(options[:file], options[:prefix], false, keys) }
       elsif options.key?(:inline)
         handler = Template.handler_class_for_extension(options[:type] || "erb")
-        Template.new(options[:inline], "inline template", handler, { :locals => keys })
+        Template.new(options[:inline], "inline template", handler, :locals => keys)
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
           options[:template] : find_template(options[:template], options[:prefix], false, keys)
@@ -55,7 +56,7 @@ module ActionView
     # Renders the given template. An string representing the layout can be
     # supplied as well.
     def render_template(template, layout_name = nil, locals = {}) #:nodoc:
-      lookup_context.freeze_formats(template.formats, true)
+      freeze_formats(template.formats, true)
       view, locals = @view, locals || {}
 
       render_with_layout(layout_name, locals) do |layout|

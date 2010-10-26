@@ -282,7 +282,7 @@ You actually have a functional Rails application already. To see it, you need to
 $ rails server
 </shell>
 
-This will fire up an instance of the Mongrel web server by default (Rails can also use several other web servers). To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
+This will fire up an instance of the WEBrick web server by default (Rails can also use several other web servers). To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
@@ -727,7 +727,6 @@ After finding the requested post, Rails uses the +edit.html.erb+ view to display
 
 <%= link_to 'Show', @post %> |
 <%= link_to 'Back', posts_path %>
-<% end %>
 </erb>
 
 Again, as with the +new+ action, the +edit+ action is using the +form+ partial, this time however, the form will do a PUT action to the PostsController and the submit button will display "Update Post"

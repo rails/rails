@@ -407,7 +407,7 @@ module ActionController
       # Returns nil if no token is found.
       def authenticate(controller, &login_procedure)
         token, options = token_and_options(controller.request)
-        if !token.blank?
+        unless token.blank?
           login_procedure.call(token, options)
         end
       end

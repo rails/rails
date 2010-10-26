@@ -19,35 +19,30 @@ module ActiveRecord
         end
       end
 
-      (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order]).each do |method|
+      (Relation::MULTI_VALUE_METHODS - [:joins, :where]).each do |method|
         value = r.send(:"#{method}_values")
         merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
       end
 
-      order_value = r.order_values
-      if order_value.present?
-        if r.reorder_flag
-          merged_relation.order_values = order_value
-        else
-          merged_relation.order_values = merged_relation.order_values + order_value
-        end
-      end
-
       merged_relation = merged_relation.joins(r.joins_values)
 
-      merged_wheres = @where_values
+      merged_wheres = @where_values + r.where_values
 
-      r.where_values.each do |w|
+      # Remove duplicates, last one wins.
+      seen = {}
+      merged_wheres = merged_wheres.reverse.reject { |w|
+        nuke = false
         if w.respond_to?(:operator) && w.operator == :==
-          merged_wheres = merged_wheres.reject {|p| p.respond_to?(:operator) && p.operator == :== && p.operand1.name == w.operand1.name }
+          name       = w.left.name
+          nuke       = seen[name]
+          seen[name] = true
         end
-
-        merged_wheres += [w]
-      end
+        nuke
+      }.reverse
 
       merged_relation.where_values = merged_wheres
 
-      Relation::SINGLE_VALUE_METHODS.reject {|m| m == :lock}.each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:lock]).each do |method|
         value = r.send(:"#{method}_value")
         merged_relation.send(:"#{method}_value=", value) unless value.nil?
       end

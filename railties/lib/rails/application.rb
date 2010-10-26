@@ -147,7 +147,7 @@ module Rails
         middleware.use ::Rack::Cache, rack_cache  if rack_cache
 
         middleware.use ::ActionDispatch::Static, config.static_asset_paths if config.serve_static_assets
-        middleware.use ::Rack::Lock if !config.allow_concurrency
+        middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rails::Rack::Logger
         middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local if config.action_dispatch.show_exceptions

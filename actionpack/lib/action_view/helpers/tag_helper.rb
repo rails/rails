@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 require 'set'
 
 module ActionView
@@ -7,8 +8,6 @@ module ActionView
     # Provides methods to generate HTML tags programmatically when you can't use
     # a Builder. By default, they output XHTML compliant tags.
     module TagHelper
-      include ERB::Util
-
       extend ActiveSupport::Concern
       include CaptureHelper
 
@@ -25,9 +24,21 @@ module ActionView
       # escaping.
       #
       # ==== Options
-      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
-      # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
-      # symbols or strings for the attribute names.
+      # You can use symbols or strings for the attribute names.
+      #
+      # Use +true+ with boolean attributes that can render with no value, like
+      # +disabled+ and +readonly+.
+      #
+      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
+      # pointing to a hash of sub-attributes.
+      #
+      # To play nicely with JavaScript conventions sub-attributes are dasherized.
+      # For example, a key +user_id+ would render as <tt>data-user-id</tt> and
+      # thus accessed as <tt>dataset.userId</tt>.
+      #
+      # Values are encoded to JSON, with the exception of strings and symbols.
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()<tt>
+      # from 1.4.3.
       #
       # ==== Examples
       #   tag("br")
@@ -36,14 +47,17 @@ module ActionView
       #   tag("br", nil, true)
       #   # => <br>
       #
-      #   tag("input", { :type => 'text', :disabled => true })
+      #   tag("input", :type => 'text', :disabled => true)
       #   # => <input type="text" disabled="disabled" />
       #
-      #   tag("img", { :src => "open & shut.png" })
+      #   tag("img", :src => "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("img", { :src => "open &amp; shut.png" }, false, false)
+      #   tag("img", {:src => "open &amp; shut.png"}, false, false)
       #   # => <img src="open &amp; shut.png" />
+      #
+      #   tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name, options = nil, open = false, escape = true)
         "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
       end
@@ -118,11 +132,19 @@ module ActionView
           unless options.blank?
             attrs = []
             options.each_pair do |key, value|
-              if BOOLEAN_ATTRIBUTES.include?(key)
+              if key.to_s == 'data' && value.is_a?(Hash)
+                value.each do |k, v|
+                  if !v.is_a?(String) && !v.is_a?(Symbol)
+                    v = v.to_json
+                  end
+                  v = ERB::Util.html_escape(v) if escape
+                  attrs << %(data-#{k.to_s.dasherize}="#{v}")
+                end
+              elsif BOOLEAN_ATTRIBUTES.include?(key)
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
                 final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = html_escape(final_value) if escape
+                final_value = ERB::Util.html_escape(final_value) if escape
                 attrs << %(#{key}="#{final_value}")
               end
             end

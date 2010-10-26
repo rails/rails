@@ -18,6 +18,13 @@ class Topic < ActiveRecord::Base
       1
     end
   end
+
+  scope :with_object, Class.new(Struct.new(:klass)) {
+    def call
+      klass.where(:approved => true)
+    end
+  }.new(self)
+
   module NamedExtension
     def two
       2

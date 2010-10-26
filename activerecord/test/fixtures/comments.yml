@@ -57,3 +57,9 @@ eager_other_comment1:
   post_id: 7
   body: go crazy
   type: SpecialComment
+
+sub_special_comment:
+  id: 12
+  post_id: 4
+  body: Sub special comment
+  type: SubSpecialComment

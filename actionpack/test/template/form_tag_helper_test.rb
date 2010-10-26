@@ -13,19 +13,23 @@ class FormTagHelperTest < ActionView::TestCase
 
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
+    if (method && !['get','post'].include?(method.to_s))
+      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    end
     txt << %{</div>}
   end
 
   def form_text(action = "http://www.example.com", options = {})
-    remote, enctype, html_class, id = options.values_at(:remote, :enctype, :html_class, :id)
+    remote, enctype, html_class, id, method = options.values_at(:remote, :enctype, :html_class, :id, :method)
+
+    method = method.to_s == "get" ? "get" : "post"
 
     txt =  %{<form accept-charset="UTF-8" action="#{action}"}
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
     txt << %{ id="#{id}"} if id
-    txt << %{ method="post">}
+    txt << %{ method="#{method}">}
   end
 
   def whole_form(action = "http://www.example.com", options = {})

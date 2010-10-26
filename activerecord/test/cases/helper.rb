@@ -55,6 +55,14 @@ ActiveRecord::Base.connection.class.class_eval do
   end
 
   alias_method_chain :execute, :query_record
+
+  def exec_with_query_record(sql, name = nil, binds = [], &block)
+    $queries_executed ||= []
+    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
+    exec_without_query_record(sql, name, binds, &block)
+  end
+
+  alias_method_chain :exec, :query_record
 end
 
 ActiveRecord::Base.connection.class.class_eval {

@@ -1,6 +1,7 @@
 require 'action_view/helpers/javascript_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/string/output_safety'
 require 'action_dispatch'
 
 module ActionView
@@ -240,8 +241,8 @@ module ActionView
           href = html_options['href']
           tag_options = tag_options(html_options)
 
-          href_attr = "href=\"#{html_escape(url)}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
+          href_attr = "href=\"#{ERB::Util.html_escape(url)}\"" unless href
+          "<a #{href_attr}#{tag_options}>#{ERB::Util.html_escape(name || url)}</a>".html_safe
         end
       end
 
@@ -326,7 +327,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{ERB::Util.html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 
@@ -472,7 +473,7 @@ module ActionView
       #            :subject => "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
-        email_address = html_escape(email_address)
+        email_address = ERB::Util.html_escape(email_address)
 
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode").to_s
@@ -481,7 +482,7 @@ module ActionView
           option = html_options.delete(item) || next
           "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
         }.compact
-        extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
+        extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
         email_address_obfuscated = email_address.dup
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
@@ -587,10 +588,12 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
+            disable_with = html_options.delete("disable_with")
             confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            add_confirm_to_attributes!(html_options, confirm) if confirm
+            html_options["data-disable-with"] = disable_with if disable_with
+            html_options["data-confirm"] = confirm if confirm
             add_method_to_attributes!(html_options, method)   if method
 
             html_options
@@ -601,13 +604,9 @@ module ActionView
           options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
         end
 
-        def add_confirm_to_attributes!(html_options, confirm)
-          html_options["data-confirm"] = confirm if confirm
-        end
-
         def add_method_to_attributes!(html_options, method)
-          html_options["rel"] = "nofollow" if method && method.to_s.downcase != "get"
-          html_options["data-method"] = method if method
+          html_options["rel"] = "nofollow" if method.to_s.downcase != "get"
+          html_options["data-method"] = method
         end
 
         def options_for_javascript(options)

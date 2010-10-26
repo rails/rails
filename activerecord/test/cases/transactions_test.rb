@@ -263,6 +263,27 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.reload.approved?
   end if Topic.connection.supports_savepoints?
 
+  def test_force_savepoint_on_instance
+    @first.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save!
+      @second.save!
+
+      begin
+        @second.transaction :requires_new => true do
+          @first.happy = false
+          @first.save!
+          raise
+        end
+      rescue
+      end
+    end
+
+    assert @first.reload.approved?
+    assert !@second.reload.approved?
+  end if Topic.connection.supports_savepoints?
+
   def test_no_savepoint_in_nested_transaction_without_force
     Topic.transaction do
       @first.approved = true
@@ -399,7 +420,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_sqlite_add_column_in_transaction
-    return true unless current_adapter?(:SQLite3Adapter, :SQLiteAdapter)
+    return true unless current_adapter?(:SQLite3Adapter)
 
     # Test first if column creation/deletion works correctly when no
     # transaction is in place.
@@ -529,8 +550,6 @@ end if Topic.connection.supports_savepoints?
 
 if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
-    use_concurrent_connections
-
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

@@ -250,15 +250,13 @@ Make sure you have started your web server with the option +--debugger+:
 
 <shell>
 ~/PathTo/rails_project$ rails server --debugger
-=> Booting Mongrel (use 'rails server webrick' to force WEBrick)
+=> Booting WEBrick
 => Rails 3.0.0 application starting on http://0.0.0.0:3000
 => Debugger enabled
 ...
 </shell>
 
 TIP: In development mode, you can dynamically +require \'ruby-debug\'+ instead of restarting the server, if it was started without +--debugger+.
-
-In order to use Rails debugging you'll need to be running either *WEBrick* or *Mongrel*. For the moment, no alternative servers are supported.
 
 h4. The Shell
 

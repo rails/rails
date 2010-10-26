@@ -113,3 +113,9 @@ class PostWithComment < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
 end
+
+class PostForAuthor < ActiveRecord::Base
+  self.table_name = 'posts'
+  cattr_accessor :selected_author
+  default_scope lambda { where(:author_id => PostForAuthor.selected_author) }
+end

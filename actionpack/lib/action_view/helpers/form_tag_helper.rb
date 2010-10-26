@@ -1,6 +1,7 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -287,7 +288,7 @@ module ActionView
         end
 
         escape = options.key?("escape") ? options.delete("escape") : true
-        content = html_escape(content) if escape
+        content = ERB::Util.html_escape(content) if escape
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
@@ -390,7 +391,7 @@ module ActionView
         end
 
         if confirm = options.delete("confirm")
-          add_confirm_to_attributes!(options, confirm)
+          options["data-confirm"] = confirm
         end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
@@ -423,7 +424,7 @@ module ActionView
         options.stringify_keys!
 
         if confirm = options.delete("confirm")
-          add_confirm_to_attributes!(options, confirm)
+          options["data-confirm"] = confirm
         end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)

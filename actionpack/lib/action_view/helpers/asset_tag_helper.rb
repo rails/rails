@@ -4,6 +4,7 @@ require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/file'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -291,9 +292,6 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
       #
       # * = The application.js file is only referenced if it exists
-      #
-      # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason
-      # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
       #
       # You can also include all javascripts in the +javascripts+ directory using <tt>:all</tt> as the source:
       #
@@ -822,7 +820,7 @@ module ActionView
         end
 
         def stylesheet_tag(source, options)
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
         end
 
         def compute_javascript_paths(*args)

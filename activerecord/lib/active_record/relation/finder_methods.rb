@@ -288,11 +288,16 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      record = where(primary_key.eq(id)).first
+      column = primary_key.column
+
+      substitute = connection.substitute_for(column, @bind_values)
+      relation = where(primary_key.eq(substitute))
+      relation.bind_values = [[column, id]]
+      record = relation.first
 
       unless record
-        conditions = arel.wheres.map { |x| x.value }.join(', ')
-        conditions = " [WHERE #{conditions}]" if conditions.present?
+        conditions = arel.where_sql
+        conditions = " [#{conditions}]" if conditions
         raise RecordNotFound, "Couldn't find #{@klass.name} with ID=#{id}#{conditions}"
       end
 
@@ -343,8 +348,11 @@ module ActiveRecord
     end
 
     def column_aliases(join_dependency)
-      join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
-          "#{connection.quote_table_name join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
+      join_dependency.join_parts.collect { |join_part|
+        join_part.column_names_with_alias.collect{ |column_name, aliased_name|
+          "#{connection.quote_table_name join_part.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"
+        }
+      }.flatten.join(", ")
     end
 
     def using_limitable_reflections?(reflections)

@@ -180,8 +180,6 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock;
-    #   otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def xml(*args)
@@ -213,6 +211,12 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
+      # Returns +true+ when the connection adapter supports prepared statement
+      # caching, otherwise returns +false+
+      def supports_statement_cache?
+        true
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
@@ -222,9 +226,17 @@ module ActiveRecord
         @local_tz = nil
         @table_alias_length = nil
         @postgresql_version = nil
+        @statements = {}
 
         connect
         @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
+      end
+
+      def clear_cache!
+        @statements.each_value do |value|
+          @connection.query "DEALLOCATE #{value}"
+        end
+        @statements.clear
       end
 
       # Is this connection alive and ready for queries?
@@ -244,6 +256,7 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         if @connection.respond_to?(:reset)
+          clear_cache!
           @connection.reset
           configure_connection
         else
@@ -252,8 +265,14 @@ module ActiveRecord
         end
       end
 
+      def reset!
+        clear_cache!
+        super
+      end
+
       # Close the connection.
       def disconnect!
+        clear_cache!
         @connection.close rescue nil
       end
 
@@ -376,6 +395,12 @@ module ActiveRecord
         end
       end
 
+      # Set the authorized user for this session
+      def session_auth=(user)
+        clear_cache!
+        exec "SET SESSION AUTHORIZATION #{user}"
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def supports_disable_referential_integrity?() #:nodoc:
@@ -467,8 +492,8 @@ module ActiveRecord
               #  (2) $12.345.678,12
               case data
               when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d\.]/, '')
-              when /^-?\D+[\d\.]+,\d{2}$/  # (2)
+                data.gsub!(/[^-\d.]/, '')
+              when /^-?\D+[\d.]+,\d{2}$/  # (2)
                 data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
               end
             end
@@ -500,6 +525,35 @@ module ActiveRecord
           else
             @connection.exec(sql)
           end
+        end
+      end
+
+      def substitute_for(column, current_values)
+        Arel.sql("$#{current_values.length + 1}")
+      end
+
+      def exec(sql, name = 'SQL', binds = [])
+        return exec_no_cache(sql, name) if binds.empty?
+
+        log(sql, name) do
+          unless @statements.key? sql
+            nextkey = "a#{@statements.length + 1}"
+            @connection.prepare nextkey, sql
+            @statements[sql] = nextkey
+          end
+
+          key = @statements[sql]
+
+          # Clear the queue
+          @connection.get_last_result
+          @connection.send_query_prepared(key, binds.map { |col, val|
+            col ? col.type_cast(val) : val
+          })
+          @connection.block
+          result = @connection.get_last_result
+          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
+          result.clear
+          return ret
         end
       end
 
@@ -851,6 +905,10 @@ module ActiveRecord
         execute "DROP INDEX #{quote_table_name(index_name)}"
       end
 
+      def rename_index(table_name, old_name, new_name)
+        execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+      end
+
       def index_name_length
         63
       end
@@ -918,6 +976,15 @@ module ActiveRecord
         end
 
       private
+      def exec_no_cache(sql, name)
+        log(sql, name) do
+          result = @connection.async_exec(sql)
+          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
+          result.clear
+          ret
+        end
+      end
+
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.
@@ -930,7 +997,7 @@ module ActiveRecord
           PGconn.translate_results = false if PGconn.respond_to?(:translate_results=)
 
           # Ignore async_exec and async_query when using postgres-pr.
-          @async = @config[:allow_concurrency] && @connection.respond_to?(:async_exec)
+          @async = @connection.respond_to?(:async_exec)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
@@ -972,11 +1039,8 @@ module ActiveRecord
 
         # Executes a SELECT query and returns the results, performing any data type
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
-        def select(sql, name = nil)
-          fields, rows = select_raw(sql, name)
-          rows.map do |row|
-            Hash[fields.zip(row)]
-          end
+        def select(sql, name = nil, binds = [])
+          exec(sql, name, binds).to_a
         end
 
         def select_raw(sql, name = nil)

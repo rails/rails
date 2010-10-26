@@ -289,7 +289,8 @@ class NumberHelperTest < ActionView::TestCase
     assert number_to_percentage("asdf".html_safe).html_safe?
 
     assert number_to_phone(1).html_safe?
-    assert !number_to_phone("<script></script>").html_safe?
+    assert_equal "&lt;script&gt;&lt;/script&gt;", number_to_phone("<script></script>")
+    assert number_to_phone("<script></script>").html_safe?
     assert number_to_phone("asdf".html_safe).html_safe?
 
     assert number_with_delimiter(1).html_safe?

@@ -1,6 +1,7 @@
 require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/core_ext/float/rounding'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Number Helpers
@@ -47,36 +48,33 @@ module ActionView
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
       #  => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         begin
           Float(number)
-          is_number_html_safe = true
         rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            is_number_html_safe = number.to_s.html_safe?
-          end
-        end
+          raise InvalidNumberError, number
+        end if options[:raise]
 
         number       = number.to_s.strip
         options      = options.symbolize_keys
-        area_code    = options[:area_code] || nil
+        area_code    = options[:area_code]
         delimiter    = options[:delimiter] || "-"
-        extension    = options[:extension].to_s.strip || nil
-        country_code = options[:country_code] || nil
+        extension    = options[:extension]
+        country_code = options[:country_code]
 
-        str = ""
-        str << "+#{country_code}#{delimiter}" unless country_code.blank?
-        str << if area_code
-          number.gsub!(/([0-9]{1,3})([0-9]{3})([0-9]{4}$)/,"(\\1) \\2#{delimiter}\\3")
+        if area_code
+          number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
         else
-          number.gsub!(/([0-9]{0,3})([0-9]{3})([0-9]{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.starts_with?('-') ? number.slice!(1..-1) : number
+          number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
+          number.slice!(0, 1) if number.starts_with?('-')
         end
+
+        str = []
+        str << "+#{country_code}#{delimiter}" unless country_code.blank?
+        str << number
         str << " x #{extension}" unless extension.blank?
-        is_number_html_safe ? str.html_safe : str
+        ERB::Util.html_escape(str.join)
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
@@ -104,7 +102,7 @@ module ActionView
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         options.symbolize_keys!
 
@@ -149,7 +147,7 @@ module ActionView
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
       def number_to_percentage(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         options.symbolize_keys!
 
@@ -263,7 +261,7 @@ module ActionView
             digits = (Math.log10(number.abs) + 1).floor
             rounded_number = BigDecimal.new((number / 10 ** (digits - precision)).to_s).round.to_f * 10 ** (digits - precision)
           end
-          precision = precision - digits
+          precision -= digits
           precision = precision > 0 ? precision : 0  #don't let it be negative
         else
           rounded_number = BigDecimal.new((number * (10 ** precision)).to_s).round.to_f / 10 ** precision
@@ -447,6 +445,8 @@ module ActionView
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
+        inverted_du = DECIMAL_UNITS.invert
+
         units = options.delete :units
         unit_exponents = case units
         when Hash
@@ -457,7 +457,7 @@ module ActionView
           I18n.translate(:"number.human.decimal_units.units", :locale => options[:locale], :raise => true)
         else
           raise ArgumentError, ":units must be a Hash or String translation scope."
-        end.keys.map{|e_name| DECIMAL_UNITS.invert[e_name] }.sort_by{|e| -e}
+        end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
 
         number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
         display_exponent = unit_exponents.find{|e| number_exponent >= e }

@@ -50,6 +50,7 @@ module ActiveRecord
 
       def initialize(connection, logger, config)
         super(connection, logger)
+        @statements = {}
         @config = config
       end
 
@@ -59,6 +60,12 @@ module ActiveRecord
 
       def supports_ddl_transactions?
         sqlite_version >= '2.0.0'
+      end
+
+      # Returns +true+ when the connection adapter supports prepared statement
+      # caching, otherwise returns +false+
+      def supports_statement_cache?
+        true
       end
 
       def supports_migrations? #:nodoc:
@@ -79,7 +86,12 @@ module ActiveRecord
 
       def disconnect!
         super
+        clear_cache!
         @connection.close rescue nil
+      end
+
+      def clear_cache!
+        @statements.clear
       end
 
       def supports_count_distinct? #:nodoc:
@@ -121,7 +133,7 @@ module ActiveRecord
       # Quote date/time values for use in SQL input. Includes microseconds
       # if the value is a Time responding to usec.
       def quoted_date(value) #:nodoc:
-        if value.acts_like?(:time) && value.respond_to?(:usec)
+        if value.respond_to?(:usec)
           "#{super}.#{sprintf("%06d", value.usec)}"
         else
           super
@@ -130,6 +142,29 @@ module ActiveRecord
 
 
       # DATABASE STATEMENTS ======================================
+
+      def exec(sql, name = nil, binds = [])
+        log(sql, name) do
+
+          # Don't cache statements without bind values
+          if binds.empty?
+            stmt = @connection.prepare(sql)
+            cols = stmt.columns
+          else
+            cache = @statements[sql] ||= {
+              :stmt => @connection.prepare(sql)
+            }
+            stmt = cache[:stmt]
+            cols = cache[:cols] ||= stmt.columns
+            stmt.reset!
+            stmt.bind_params binds.map { |col, val|
+              col ? col.type_cast(val) : val
+            }
+          end
+
+          ActiveRecord::Result.new(cols, stmt.to_a)
+        end
+      end
 
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
@@ -151,9 +186,7 @@ module ActiveRecord
       alias :create :insert_sql
 
       def select_rows(sql, name = nil)
-        execute(sql, name).map do |row|
-          (0...(row.size / 2)).map { |i| row[i] }
-        end
+        exec(sql, name).rows
       end
 
       def begin_db_transaction #:nodoc:
@@ -177,7 +210,7 @@ module ActiveRecord
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
 
-        execute(sql, name).map do |row|
+        exec(sql, name).map do |row|
           row['name']
         end
       end
@@ -189,12 +222,12 @@ module ActiveRecord
       end
 
       def indexes(table_name, name = nil) #:nodoc:
-        execute("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
+        exec("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'].to_i != 0,
-            execute("PRAGMA index_info('#{row['name']}')").map { |col|
+            exec("PRAGMA index_info('#{row['name']}')").map { |col|
               col['name']
             })
         end
@@ -208,11 +241,11 @@ module ActiveRecord
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
-        execute "DROP INDEX #{quote_column_name(index_name)}"
+        exec "DROP INDEX #{quote_column_name(index_name)}"
       end
 
       def rename_table(name, new_name)
-        execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+        exec "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # See: http://www.sqlite.org/lang_altertable.html
@@ -249,7 +282,7 @@ module ActiveRecord
 
       def change_column_null(table_name, column_name, null, default = nil)
         unless null || default.nil?
-          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          exec("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
           definition[column_name].null = null
@@ -280,8 +313,8 @@ module ActiveRecord
       end
 
       protected
-        def select(sql, name = nil) #:nodoc:
-          execute(sql, name).map do |row|
+        def select(sql, name = nil, binds = []) #:nodoc:
+          exec(sql, name, binds).map do |row|
             record = {}
             row.each do |key, value|
               record[key.sub(/^"?\w+"?\./, '')] = value if key.is_a?(String)
@@ -367,11 +400,11 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
           quoted_to = quote_table_name(to)
-          @connection.execute "SELECT * FROM #{quote_table_name(from)}" do |row|
+          exec("SELECT * FROM #{quote_table_name(from)}").each do |row|
             sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
-            @connection.execute sql
+            exec sql
           end
         end
 

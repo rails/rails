@@ -311,6 +311,35 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_default_scope_with_lambda
+    expected = Post.find_all_by_author_id(2)
+    PostForAuthor.selected_author = 2
+    received = PostForAuthor.all
+    assert_equal expected, received
+    expected = Post.find_all_by_author_id(1)
+    PostForAuthor.selected_author = 1
+    received = PostForAuthor.all
+    assert_equal expected, received
+  end
+
+  def test_default_scope_with_thing_that_responds_to_call
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'posts'
+    end
+
+    klass.class_eval do
+      default_scope Class.new(Struct.new(:klass)) {
+        def call
+          klass.where(:author_id => 2)
+        end
+      }.new(self)
+    end
+
+    records = klass.all
+    assert_equal 1, records.length
+    assert_equal 2, records.first.author_id
+  end
+
   def test_default_scope_is_unscoped_on_find
     assert_equal 1, DeveloperCalledDavid.count
     assert_equal 11, DeveloperCalledDavid.unscoped.count
@@ -364,6 +393,23 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 100000,  klass.first.salary
   end
 
+  def test_default_scope_called_twice_in_different_place_merges_where_clause
+    Developer.destroy_all
+    Developer.create!(:name => "David", :salary => 80000)
+    Developer.create!(:name => "David", :salary => 100000)
+    Developer.create!(:name => "Brian", :salary => 100000)
+
+    klass = Class.new(Developer)
+    klass.class_eval do
+      default_scope where("name = 'David'")
+      default_scope where("salary = 100000")
+    end
+
+    assert_equal 1,       klass.count
+    assert_equal "David", klass.first.name
+    assert_equal 100000,  klass.first.salary
+  end
+
   def test_method_scope
     expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
@@ -384,16 +430,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_reorder_overrides_default_scope_order
+  def test_except_and_order_overrides_default_scope_order
     expected = Developer.order('name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.reorder('name DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.except(:order).order('name DESC').collect { |dev| dev.name }
     assert_equal expected, received
-  end
-
-  def test_reordered_scope_overrides_default_scope_order
-    not_expected = DeveloperOrderedBySalary.first # Jamis -> name DESC
-    received = DeveloperOrderedBySalary.reordered_by_name.first # David -> name
-    assert not_expected.id != received.id
   end
 
   def test_nested_exclusive_scope

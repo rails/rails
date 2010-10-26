@@ -133,12 +133,15 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, &block)
+      old_template, view._template = view._template, self
       ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
         compile!(view)
         view.send(method_name, locals, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)
+    ensure
+      view._template = old_template
     end
 
     def mime_type
@@ -154,13 +157,30 @@ module ActionView
     # Notice this method raises an error if the template to be refreshed does not have a
     # virtual path set (true just for inline templates).
     def refresh(view)
-      raise "A template need to have a virtual path in order to be refreshed" unless @virtual_path
+      raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
       lookup  = view.lookup_context
       pieces  = @virtual_path.split("/")
       name    = pieces.pop
-      partial = name.sub!(/^_/, "")
+      partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, pieces.join, partial || false, @locals)
+        lookup.find_template(name, pieces.join('/'), partial, @locals)
+      end
+    end
+
+    # Expires this template by setting his updated_at date to Jan 1st, 1970.
+    def expire!
+      @updated_at = Time.utc(1970)
+    end
+
+    # Receives a view context and renders a template exactly like self by using
+    # the @virtual_path. It raises an error if no @virtual_path was given.
+    def rerender(view)
+      raise "A template needs to have a virtual path in order to be rerendered" unless @virtual_path
+      name = @virtual_path.dup
+      if name.sub!(/(^|\/)_([^\/]*)$/, '\1\2')
+        view.render :partial => name
+      else
+        view.render :template => @virtual_path
       end
     end
 
@@ -255,9 +275,9 @@ module ActionView
         # encoding of the code
         source = <<-end_src
           def #{method_name}(local_assigns)
-            _old_virtual_path, @_virtual_path = @_virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
+            _old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
-            @_virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
+            @output_buffer = _old_output_buffer
           end
         end_src
 

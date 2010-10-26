@@ -1,5 +1,4 @@
 require 'active_support/testing/performance'
-require 'active_support/testing/default'
 
 begin
   module ActionDispatch

@@ -8,11 +8,6 @@ module ActionDispatch
         protocol + host_with_port + fullpath
       end
 
-      # Returns 'https' if this is an SSL request and 'http' otherwise.
-      def scheme
-        ssl? ? 'https' : 'http'
-      end
-
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
       def protocol
         @protocol ||= ssl? ? 'https://' : 'http://'

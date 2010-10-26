@@ -17,6 +17,7 @@ require 'models/tag'
 require 'models/tagging'
 require 'models/treasure'
 require 'models/company'
+require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_should_be_a_valid_option_for_has_one
@@ -169,6 +170,25 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     firm = Firm.find(:first).clone
     firm.account = Account.find(:first).clone
     assert_queries(2) { firm.save! }
+  end
+  
+  def test_callbacks_firing_order_on_create
+    eye = Eye.create(:iris_attributes => {:color => 'honey'})
+    assert_equal [true, false], eye.after_create_callbacks_stack
+  end
+
+  def test_callbacks_firing_order_on_update
+    eye = Eye.create(:iris_attributes => {:color => 'honey'})
+    eye.update_attributes(:iris_attributes => {:color => 'green'})
+    assert_equal [true, false], eye.after_update_callbacks_stack
+  end
+
+  def test_callbacks_firing_order_on_save
+    eye = Eye.create(:iris_attributes => {:color => 'honey'})
+    assert_equal [false, false], eye.after_save_callbacks_stack
+
+    eye.update_attributes(:iris_attributes => {:color => 'blue'})
+    assert_equal [false, false, false, false], eye.after_save_callbacks_stack
   end
 end
 

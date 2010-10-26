@@ -134,6 +134,8 @@ module ActionView
       #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
       #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
       def excerpt(text, phrase, *args)
+        return unless text && phrase
+
         options = args.extract_options!
         unless args.empty?
           options[:radius] = args[0] || 100
@@ -141,21 +143,16 @@ module ActionView
         end
         options.reverse_merge!(:radius => 100, :omission => "...")
 
-        if text && phrase
-          phrase = Regexp.escape(phrase)
+        phrase = Regexp.escape(phrase)
+        return unless found_pos = text.mb_chars =~ /(#{phrase})/i
 
-          if found_pos = text.mb_chars =~ /(#{phrase})/i
-            start_pos = [ found_pos - options[:radius], 0 ].max
-            end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
+        start_pos = [ found_pos - options[:radius], 0 ].max
+        end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
 
-            prefix  = start_pos > 0 ? options[:omission] : ""
-            postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
+        prefix  = start_pos > 0 ? options[:omission] : ""
+        postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
 
-            prefix + text.mb_chars[start_pos..end_pos].strip + postfix
-          else
-            nil
-          end
-        end
+        prefix + text.mb_chars[start_pos..end_pos].strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
@@ -345,10 +342,10 @@ module ActionView
         values.unshift(first_value)
 
         cycle = get_cycle(name)
-        if (cycle.nil? || cycle.values != values)
+        unless cycle && cycle.values == values
           cycle = set_cycle(name, Cycle.new(*values))
         end
-        return cycle.to_s
+        cycle.to_s
       end
 
       # Returns the current cycle string after a cycle has been started. Useful
@@ -389,7 +386,7 @@ module ActionView
       #   </table>
       def reset_cycle(name = "default")
         cycle = get_cycle(name)
-        cycle.reset unless cycle.nil?
+        cycle.reset if cycle
       end
 
       class Cycle #:nodoc:

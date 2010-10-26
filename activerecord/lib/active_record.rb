@@ -33,12 +33,12 @@ require 'active_support/i18n'
 require 'active_model'
 require 'arel'
 
+require 'active_record/version'
+
 module ActiveRecord
   extend ActiveSupport::Autoload
 
   eager_autoload do
-    autoload :VERSION
-
     autoload :ActiveRecordError, 'active_record/errors'
     autoload :ConnectionNotEstablished, 'active_record/errors'
 

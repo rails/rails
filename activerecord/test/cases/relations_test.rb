@@ -19,17 +19,19 @@ class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :taggings, :cars
 
+  def test_bind_values
+    relation = Post.scoped
+    assert_equal [], relation.bind_values
+
+    relation2 = relation.bind 'foo'
+    assert_equal %w{ foo }, relation2.bind_values
+    assert_equal [], relation.bind_values
+  end
+
   def test_two_named_scopes_with_includes_should_not_drop_any_include
     car = Car.incl_engines.incl_tyres.first
     assert_no_queries { car.tyres.length }
     assert_no_queries { car.engines.length }
-  end
-
-  def test_apply_relation_as_where_id
-    posts = Post.arel_table
-    post_authors = posts.where(posts[:author_id].eq(1)).project(posts[:id])
-    assert_equal 5, post_authors.to_a.size
-    assert_equal 5, Post.where(:id => post_authors).size
   end
 
   def test_dynamic_finder
@@ -133,12 +135,6 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order('author_name').order('title')
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
-  end
-
-  def test_finding_with_reorder
-    topics = Topic.order('author_name').order('title').reorder('id')
-    assert_equal 4, topics.to_a.size
-    assert_equal topics(:first).title, topics.first.title
   end
 
   def test_finding_with_order_and_take
