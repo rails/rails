@@ -60,7 +60,7 @@ module ActionController #:nodoc:
     attr_reader :controller
     
     def initialize(controller)
-      @controller, @cookies = controller, controller.request.cookies
+      @controller, @cookies, @secure = controller, controller.request.cookies, controller.request.ssl?
       super()
       update(@cookies)
     end
@@ -81,7 +81,7 @@ module ActionController #:nodoc:
 
       options[:path] = "/" unless options.has_key?(:path)
       super(key.to_s, options[:value])
-      @controller.response.set_cookie(key, options)
+      @controller.response.set_cookie(key, options) if write_cookie?(options)
     end
 
     # Removes the cookie on the client machine by setting the value to an empty string
@@ -126,6 +126,12 @@ module ActionController #:nodoc:
     def signed
       @signed ||= SignedCookieJar.new(self)
     end
+
+    private
+
+      def write_cookie?(cookie)
+        @secure || !cookie[:secure] || defined?(Rails.env) && Rails.env.development?
+      end
   end
   
   class PermanentCookieJar < CookieJar #:nodoc:
