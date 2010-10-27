@@ -22,7 +22,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_queries_with_cache
+  def test_find_queries_with_cache_multi_record
     Task.cache do
       assert_queries(2) { Task.find(1); Task.find(1); Task.find(2) }
     end
