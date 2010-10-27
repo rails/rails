@@ -324,7 +324,6 @@ module Rails
   #   MyEngine::Engine.load_seed
   #
   class Engine < Railtie
-    autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"
 
     class << self
