@@ -41,7 +41,7 @@ module ActiveRecord
         @active = nil
         @connection, @logger = connection, logger
         @query_cache_enabled = false
-        @query_cache = {}
+        @query_cache = Hash.new { |h,sql| h[sql] = {} }
         @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 

@@ -59,14 +59,13 @@ module ActiveRecord
 
       private
         def cache_sql(sql, binds)
-          key = [sql, binds]
           result =
-            if @query_cache.has_key?(key)
+            if @query_cache[sql].key?(binds)
               ActiveSupport::Notifications.instrument("sql.active_record",
                 :sql => sql, :name => "CACHE", :connection_id => self.object_id)
-              @query_cache[key]
+              @query_cache[sql][binds]
             else
-              @query_cache[key] = yield
+              @query_cache[sql][binds] = yield
             end
 
           if Array === result
