@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/duplicable'
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
@@ -68,13 +66,7 @@ module ActiveRecord
               @query_cache[sql][binds] = yield
             end
 
-          if Array === result
-            result.collect { |row| row.dup }
-          else
-            result.duplicable? ? result.dup : result
-          end
-        rescue TypeError
-          result
+          result.collect { |row| row.dup }
         end
     end
   end
