@@ -10,6 +10,7 @@ module Rails
       def initialize(root=nil)
         super()
         @root = root
+        @generators = app_generators
       end
 
       # Returns the middleware stack for the engine.
