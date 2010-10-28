@@ -1,4 +1,4 @@
-<% if full? %>
+<% if full? -%>
 require "<%= name %>/engine"
 
 <% end -%>
