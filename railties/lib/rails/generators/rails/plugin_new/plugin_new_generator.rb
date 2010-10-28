@@ -146,16 +146,22 @@ end
 
       def create_test_dummy_files
         say_status :vendor_app, dummy_path
-        build(:generate_test_dummy)
+        mute do
+          build(:generate_test_dummy)
+        end
       end
 
       def change_config_files
         store_application_definition!
-        build(:test_dummy_config)
+        mute do
+          build(:test_dummy_config)
+        end
       end
 
       def remove_uneeded_rails_files
-        build(:test_dummy_clean)
+        mute do
+          build(:test_dummy_clean)
+        end
       end
 
       def finish_template
@@ -218,6 +224,10 @@ end
         define_method name do
           builder.send(name) if builder.respond_to?(name)
         end
+      end
+
+      def mute(&block)
+        shell.mute(&block)
       end
     end
   end

@@ -103,6 +103,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
 
+  def test_being_quiet_while_creating_dummy_application
+    assert_no_match /create\s+config\/application.rb/, run_generator
+  end
+
 protected
 
   def action(*args, &block)
