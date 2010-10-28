@@ -701,6 +701,9 @@ module RailtiesTest
       generators = Bukkits::Engine.config.generators.options[:rails]
       assert_equal :active_record, generators[:orm]
       assert_equal :rspec        , generators[:test_framework]
+
+      app_generators = Rails.application.config.generators.options[:rails]
+      assert_equal :test_unit    , app_generators[:test_framework]
     end
   end
 end
