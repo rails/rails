@@ -6,7 +6,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     attr_accessor :includes_values, :eager_load_values, :preload_values,
-                  :select_values, :group_values, :order_values, :joins_values, :where_values, :having_values,
+                  :select_values, :group_values, :order_values, :joins_values,
+                  :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value, :from_value
 
     def includes(*args)
@@ -59,6 +60,12 @@ module ActiveRecord
       args.flatten!
       relation.joins_values += args unless args.blank?
 
+      relation
+    end
+
+    def bind(value)
+      relation = clone
+      relation.bind_values += [value]
       relation
     end
 
@@ -117,8 +124,10 @@ module ActiveRecord
       relation
     end
 
-    def extending(*modules, &block)
-      modules << Module.new(&block) if block_given?
+    def extending(*modules)
+      modules << Module.new(&Proc.new) if block_given?
+
+      return self if modules.empty?
 
       relation = clone
       relation.send(:apply_modules, modules.flatten)
@@ -233,7 +242,7 @@ module ActiveRecord
         @implicit_readonly = false
         arel.project(*selects)
       else
-        arel.project(Arel::SqlLiteral.new(@klass.quoted_table_name + '.*'))
+        arel.project(Arel.sql(@klass.quoted_table_name + '.*'))
       end
     end
 

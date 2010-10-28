@@ -100,7 +100,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*:limit}, output
-    elsif current_adapter?(:SQLiteAdapter)
+    elsif current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_1.*:limit => 1}, output
       assert_match %r{c_int_2.*:limit => 2}, output
       assert_match %r{c_int_3.*:limit => 3}, output
@@ -109,7 +109,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{c_int_without_limit.*}, output
     assert_no_match %r{c_int_without_limit.*:limit}, output
 
-    if current_adapter?(:SQLiteAdapter)
+    if current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_5.*:limit => 5}, output
       assert_match %r{c_int_6.*:limit => 6}, output
       assert_match %r{c_int_7.*:limit => 7}, output

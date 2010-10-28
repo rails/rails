@@ -21,11 +21,6 @@ module ActionDispatch
       @store.write(key, value)
     end
 
-    def purge(key)
-      @store.delete(key)
-      nil
-    end
-
     ::Rack::Cache::MetaStore::RAILS = self
   end
 
@@ -56,10 +51,6 @@ module ActionDispatch
       key, size = slurp(body) { |part| buf << part }
       @store.write(key, buf)
       [key, size]
-    end
-
-    def purge(key)
-      @store.delete(key)
     end
 
     ::Rack::Cache::EntityStore::RAILS = self

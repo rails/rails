@@ -98,17 +98,19 @@ module ActionDispatch
       def self.build(request)
         secret = request.env[TOKEN_KEY]
         host = request.host
+        secure = request.ssl?
 
-        new(secret, host).tap do |hash|
+        new(secret, host, secure).tap do |hash|
           hash.update(request.cookies)
         end
       end
 
-      def initialize(secret = nil, host = nil)
+      def initialize(secret = nil, host = nil, secure = false)
         @secret = secret
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
+        @secure = secure
 
         super()
       end
@@ -193,9 +195,15 @@ module ActionDispatch
       end
 
       def write(headers)
-        @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) }
+        @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
       end
+
+      private
+
+        def write_cookie?(cookie)
+          @secure || !cookie[:secure] || defined?(Rails.env) && Rails.env.development?
+        end
     end
 
     class PermanentCookieJar < CookieJar #:nodoc:

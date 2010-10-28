@@ -254,8 +254,6 @@ module ActiveRecord
       alias_method :preload_has_many_association, :preload_has_one_or_has_many_association
 
       def preload_through_records(records, reflection, through_association)
-        through_reflection = reflections[through_association]
-
         # If the same through record is loaded twice, we want to return exactly the same
         # object in the result, rather than two separate instances representing the same
         # record. This is so that we can preload the source association for each record,

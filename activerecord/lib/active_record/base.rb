@@ -448,8 +448,8 @@ module ActiveRecord #:nodoc:
       #   # You can use the same string replacement techniques as you can with ActiveRecord#find
       #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
-      def find_by_sql(sql)
-        connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
+      def find_by_sql(sql, binds = [])
+        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -718,6 +718,7 @@ module ActiveRecord #:nodoc:
       #    end
       #  end
       def reset_column_information
+        connection.clear_cache!
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = @arel_table = nil
@@ -972,14 +973,11 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.scope?
               self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
-                def self.#{method_id}(*args)                        # def self.scoped_by_user_name_and_password(*args)
-                  options = args.extract_options!                   #   options = args.extract_options!
-                  attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
-                    [:#{attribute_names.join(',:')}], args          #     [:user_name, :password], args
-                  )                                                 #   )
-                                                                    #
-                  scoped(:conditions => attributes)                 #   scoped(:conditions => attributes)
-                end                                                 # end
+                def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
+                  attributes = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   attributes = Hash[[:user_name, :password].zip(args)]
+                                                                                #
+                  scoped(:conditions => attributes)                             #   scoped(:conditions => attributes)
+                end                                                             # end
               METHOD
               send(method_id, *arguments)
             end
@@ -988,31 +986,22 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def construct_attributes_from_arguments(attribute_names, arguments)
-          attributes = {}
-          attribute_names.each_with_index { |name, idx| attributes[name] = arguments[idx] }
-          attributes
-        end
-
         # Similar in purpose to +expand_hash_conditions_for_aggregates+.
         def expand_attribute_names_for_aggregates(attribute_names)
-          expanded_attribute_names = []
-          attribute_names.each do |attribute_name|
+          attribute_names.map { |attribute_name|
             unless (aggregation = reflect_on_aggregation(attribute_name.to_sym)).nil?
-              aggregate_mapping(aggregation).each do |field_attr, aggregate_attr|
-                expanded_attribute_names << field_attr
+              aggregate_mapping(aggregation).map do |field_attr, _|
+                field_attr.to_sym
               end
             else
-              expanded_attribute_names << attribute_name
+              attribute_name.to_sym
             end
-          end
-          expanded_attribute_names
+          }.flatten
         end
 
         def all_attributes_exists?(attribute_names)
-          expand_attribute_names_for_aggregates(attribute_names).all? { |name|
-            column_methods_hash.include?(name.to_sym)
-          }
+          (expand_attribute_names_for_aggregates(attribute_names) -
+           column_methods_hash.keys).empty?
         end
 
       protected
@@ -1139,11 +1128,17 @@ MSG
         #   Article.new.published    # => true
         #   Article.create.published # => true
         def default_scope(options = {})
+          reset_scoped_methods
           self.default_scoping << construct_finder_arel(options, default_scoping.pop)
         end
 
         def current_scoped_methods #:nodoc:
-          scoped_methods.last
+          method = scoped_methods.last
+          if method.respond_to?(:call)
+            relation.scoping { method.call }
+          else
+            method
+          end
         end
 
         def reset_scoped_methods #:nodoc:

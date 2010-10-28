@@ -18,8 +18,13 @@ ActiveRecord::Schema.define do
   end
 
 
-  # Please keep these create table statements in alphabetical order
-  # unless the ordering matters.  In which case, define them below
+  # ------------------------------------------------------------------- #
+  #                                                                     #
+  #   Please keep these create table statements in alphabetical order   #
+  #   unless the ordering matters.  In which case, define them below.   #
+  #                                                                     #
+  # ------------------------------------------------------------------- #
+
   create_table :accounts, :force => true do |t|
     t.integer :firm_id
     t.string  :firm_name
@@ -56,7 +61,6 @@ ActiveRecord::Schema.define do
     t.column :favorite_author_id, :integer
   end
 
-
   create_table :auto_id_tests, :force => true, :id => false do |t|
     t.primary_key :auto_id
     t.integer     :value
@@ -79,6 +83,11 @@ ActiveRecord::Schema.define do
 
   create_table :booleans, :force => true do |t|
     t.boolean :value
+  end
+
+  create_table :bulbs, :force => true do |t|
+    t.integer :car_id
+    t.string  :name
   end
 
   create_table "CamelCase", :force => true do |t|
@@ -198,15 +207,6 @@ ActiveRecord::Schema.define do
     t.integer :car_id
   end
 
-  create_table :tyres, :force => true do |t|
-    t.integer :car_id
-  end
-
-  create_table :bulbs, :force => true do |t|
-    t.integer :car_id
-    t.string  :name
-  end
-
   create_table :entrants, :force => true do |t|
     t.string  :name, :null => false
     t.integer :course_id, :null => false
@@ -224,6 +224,9 @@ ActiveRecord::Schema.define do
     t.string :title, :limit => 5
   end
 
+  create_table :eyes, :force => true do |t|
+  end
+
   create_table :funny_jokes, :force => true do |t|
     t.string :name
   end
@@ -233,13 +236,8 @@ ActiveRecord::Schema.define do
     t.string :info
   end
 
-  create_table :invoices, :force => true do |t|
-    t.integer :balance
-    t.datetime :updated_at
-  end
-
-  create_table :items, :force => true do |t|
-    t.column :name, :string
+  create_table :guids, :force => true do |t|
+    t.column :key, :string
   end
 
   create_table :inept_wizards, :force => true do |t|
@@ -248,6 +246,26 @@ ActiveRecord::Schema.define do
     t.column :type, :string
   end
 
+  create_table :integer_limits, :force => true do |t|
+    t.integer :"c_int_without_limit"
+    (1..8).each do |i|
+      t.integer :"c_int_#{i}", :limit => i
+    end
+  end
+
+  create_table :invoices, :force => true do |t|
+    t.integer :balance
+    t.datetime :updated_at
+  end
+
+  create_table :iris, :force => true do |t|
+    t.references :eye
+    t.string     :color
+  end
+
+  create_table :items, :force => true do |t|
+    t.column :name, :string
+  end
 
   create_table :jobs, :force => true do |t|
     t.integer :ideal_reference_id
@@ -302,13 +320,6 @@ ActiveRecord::Schema.define do
 
   create_table :member_types, :force => true do |t|
     t.string :name
-  end
-
-  create_table :references, :force => true do |t|
-    t.integer :person_id
-    t.integer :job_id
-    t.boolean :favourite
-    t.integer :lock_version, :default => 0
   end
 
   create_table :minivans, :force => true, :id => false do |t|
@@ -373,7 +384,6 @@ ActiveRecord::Schema.define do
     t.column :happy_at,   :datetime
     t.string :essay_id
   end
-
 
   create_table :paint_colors, :force => true do |t|
     t.integer :non_poly_one_id
@@ -466,6 +476,13 @@ ActiveRecord::Schema.define do
     t.boolean :skimmer, :default => false
   end
 
+  create_table :references, :force => true do |t|
+    t.integer :person_id
+    t.integer :job_id
+    t.boolean :favourite
+    t.integer :lock_version, :default => 0
+  end
+
   create_table :shape_expressions, :force => true do |t|
     t.string  :paint_type
     t.integer :paint_id
@@ -510,6 +527,19 @@ ActiveRecord::Schema.define do
     t.integer :book_id
   end
 
+  create_table :tags, :force => true do |t|
+    t.column :name, :string
+    t.column :taggings_count, :integer, :default => 0
+  end
+
+  create_table :taggings, :force => true do |t|
+    t.column :tag_id, :integer
+    t.column :super_tag_id, :integer
+    t.column :taggable_type, :string
+    t.column :taggable_id, :integer
+    t.string :comment
+  end
+
   create_table :tasks, :force => true do |t|
     t.datetime :starting
     t.datetime :ending
@@ -537,19 +567,6 @@ ActiveRecord::Schema.define do
     t.string   :group
   end
 
-  create_table :taggings, :force => true do |t|
-    t.column :tag_id, :integer
-    t.column :super_tag_id, :integer
-    t.column :taggable_type, :string
-    t.column :taggable_id, :integer
-    t.string :comment
-  end
-
-  create_table :tags, :force => true do |t|
-    t.column :name, :string
-    t.column :taggings_count, :integer, :default => 0
-  end
-
   create_table :toys, :primary_key => :toy_id ,:force => true do |t|
     t.string :name
     t.integer :pet_id, :integer
@@ -569,6 +586,10 @@ ActiveRecord::Schema.define do
     t.column :looter_type, :string
   end
 
+  create_table :tyres, :force => true do |t|
+    t.integer :car_id
+  end
+
   create_table :variants, :force => true do |t|
     t.references :product
     t.string     :name
@@ -584,17 +605,6 @@ ActiveRecord::Schema.define do
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
     create_table(t, :force => true) { }
-  end
-
-  create_table :guids, :force => true do |t|
-    t.column :key, :string
-  end
-
-  create_table :integer_limits, :force => true do |t|
-    t.integer :"c_int_without_limit"
-    (1..8).each do |i|
-      t.integer :"c_int_#{i}", :limit => i
-    end
   end
 
   # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
@@ -651,7 +661,6 @@ ActiveRecord::Schema.define do
     t.integer :molecule_id
     t.string :name
   end
-
 
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk

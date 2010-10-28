@@ -433,6 +433,10 @@ class UrlHelperControllerTest < ActionController::TestCase
       match 'url_helper_controller_test/url_helper/normalize_recall_params',
         :to => UrlHelperController.action(:normalize_recall),
         :as => :normalize_recall_params
+
+      match '/url_helper_controller_test/url_helper/override_url_helper/default',
+        :to => 'url_helper_controller_test/url_helper#override_url_helper',
+        :as => :override_url_helper
     end
 
     def show
@@ -468,6 +472,15 @@ class UrlHelperControllerTest < ActionController::TestCase
     end
 
     def rescue_action(e) raise e end
+
+    def override_url_helper
+      render :inline => '<%= override_url_helper_path %>'
+    end
+
+    def override_url_helper_path
+      '/url_helper_controller_test/url_helper/override_url_helper/override'
+    end
+    helper_method :override_url_helper_path
   end
 
   tests UrlHelperController
@@ -526,6 +539,11 @@ class UrlHelperControllerTest < ActionController::TestCase
 
     get :show, :name => '123'
     assert_equal 'ok', @response.body
+  end
+
+  def test_url_helper_can_be_overriden
+    get :override_url_helper
+    assert_equal '/url_helper_controller_test/url_helper/override_url_helper/override', @response.body
   end
 end
 

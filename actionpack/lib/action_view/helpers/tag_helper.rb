@@ -24,16 +24,17 @@ module ActionView
       # escaping.
       #
       # ==== Options
+      # You can use symbols or strings for the attribute names.
+      #
       # Use +true+ with boolean attributes that can render with no value, like
       # +disabled+ and +readonly+.
       #
       # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
       # pointing to a hash of sub-attributes.
       #
-      # Sub-attribute keys may be strings or symbols. To play nicely with
-      # JavaScript conventions +dataset+ they will be dasherized so that a key
-      # +user_id+ would render as <tt>data-user-id</tt> and thus accessed as
-      # <tt>dataset.userId</tt>.
+      # To play nicely with JavaScript conventions sub-attributes are dasherized.
+      # For example, a key +user_id+ would render as <tt>data-user-id</tt> and
+      # thus accessed as <tt>dataset.userId</tt>.
       #
       # Values are encoded to JSON, with the exception of strings and symbols.
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()<tt>

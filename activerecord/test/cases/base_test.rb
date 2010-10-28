@@ -1150,6 +1150,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 3, scoped_developers.size
   end
 
+  def test_no_limit_offset
+    assert_nothing_raised do
+      Developer.find(:all, :offset => 2)
+    end
+  end
+
   def test_scoped_find_limit_offset
     scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :offset => 2 }) do
       Developer.find(:all, :order => 'id')
@@ -1456,6 +1462,7 @@ class BasicsTest < ActiveRecord::TestCase
     UnloadablePost.class_eval do
       default_scope order('posts.comments_count ASC')
     end
+    UnloadablePost.scoped_methods # make Thread.current[:UnloadablePost_scoped_methods] not nil
 
     UnloadablePost.unloadable
     assert_not_nil Thread.current[:UnloadablePost_scoped_methods]

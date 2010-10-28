@@ -72,7 +72,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
 
   def test_has_many_callbacks_for_save_on_parent
     jack = Author.new :name => "Jack"
-    post = jack.posts_with_callbacks.build :title => "Call me back!", :body => "Before you wake up and after you sleep"
+    jack.posts_with_callbacks.build :title => "Call me back!", :body => "Before you wake up and after you sleep"
 
     callback_log = ["before_adding<new>", "after_adding#{jack.posts_with_callbacks.first.id}"]
     assert_equal callback_log, jack.post_log
@@ -149,7 +149,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert !@david.unchangable_posts.include?(@authorless)
     begin
       @david.unchangable_posts << @authorless
-    rescue Exception => e
+    rescue Exception
     end
     assert @david.post_log.empty?
     assert !@david.unchangable_posts.include?(@authorless)

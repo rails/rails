@@ -2043,7 +2043,7 @@ module ActiveRecord
               association_proxy = record.send("set_#{join_part.reflection.name}_target", association)
               association_proxy.__send__(:set_inverse_instance, association, record)
             end
-          
+
           # A JoinPart represents a part of a JoinDependency. It is an abstract class, inherited
           # by JoinBase and JoinAssociation. A JoinBase represents the Active Record which 
           # everything else is being joined onto. A JoinAssociation represents an association which
@@ -2055,38 +2055,38 @@ module ActiveRecord
             # this is the actual base model, for a JoinAssociation this is the target model of the
             # association.
             attr_reader :active_record
-            
+
             delegate :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :arel_engine, :to => :active_record
-            
+
             def initialize(active_record)
               @active_record = active_record
               @cached_record = {}
             end
-            
+
             def ==(other)
               raise NotImplementedError
             end
-            
+
             # An Arel::Table for the active_record
             def table
               raise NotImplementedError
             end
-            
+
             # The prefix to be used when aliasing columns in the active_record's table
             def aliased_prefix
               raise NotImplementedError
             end
-            
+
             # The alias for the active_record's table
             def aliased_table_name
               raise NotImplementedError
             end
-            
+
             # The alias for the primary key of the active_record's table
             def aliased_primary_key
               "#{aliased_prefix}_r0"
             end
-            
+
             # An array of [column_name, alias] pairs for the table
             def column_names_with_alias
               unless defined?(@column_names_with_alias)
@@ -2116,7 +2116,7 @@ module ActiveRecord
           class JoinBase < JoinPart # :nodoc:
             # Extra joins provided when the JoinDependency was created
             attr_reader :table_joins
-            
+
             def initialize(active_record, joins = nil)
               super(active_record)
               @table_joins = joins
@@ -2144,16 +2144,16 @@ module ActiveRecord
           class JoinAssociation < JoinPart # :nodoc:
             # The reflection of the association represented
             attr_reader :reflection
-            
+
             # The JoinDependency object which this JoinAssociation exists within. This is mainly
             # relevant for generating aliases which do not conflict with other joins which are 
             # part of the query.
             attr_reader :join_dependency
-            
+
             # A JoinBase instance representing the active record we are joining onto.
             # (So in Author.has_many :posts, the Author would be that base record.)
             attr_reader :parent
-            
+
             # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
             attr_accessor :join_type
             
@@ -2165,7 +2165,7 @@ module ActiveRecord
 
             def initialize(reflection, join_dependency, parent = nil)
               reflection.check_validity!
-              
+
               if reflection.options[:polymorphic]
                 raise EagerLoadPolymorphicError.new(reflection)
               end
@@ -2192,7 +2192,7 @@ module ActiveRecord
                 self.parent == join_part
               end
             end
-            
+
             def join_to(relation)
               # The chain starts with the target table, but we want to end with it here (makes 
               # more sense in this context)
@@ -2282,7 +2282,7 @@ module ActiveRecord
               self.join_type = Arel::OuterJoin
               joining_relation.joins(self)
             end
-            
+
             def table
               if @tables.last.is_a?(Array)
                 @tables.last.first
