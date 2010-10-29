@@ -161,7 +161,7 @@ module ActionView
 
         # JavaScriptGenerator generates blocks of JavaScript code that allow you
         # to change the content and presentation of multiple DOM elements.  Use
-        # this in your Ajax response bodies, either in a <script> tag or as plain
+        # this in your Ajax response bodies, either in a <tt>\<script></tt> tag or as plain
         # JavaScript sent with a Content-type of "text/javascript".
         #
         # Create new instances with PrototypeHelper#update_page or with
@@ -224,7 +224,7 @@ module ActionView
         #
         # You can also use PrototypeHelper#update_page_tag instead of
         # PrototypeHelper#update_page to wrap the generated JavaScript in a
-        # <script> tag.
+        # <tt>\<script></tt> tag.
         module GeneratorMethods
           def to_s #:nodoc:
             (@lines * $/).tap do |javascript|
@@ -582,11 +582,11 @@ module ActionView
         JavaScriptGenerator.new(view_context, &block).to_s.html_safe
       end
 
-      # Works like update_page but wraps the generated JavaScript in a <script>
+      # Works like update_page but wraps the generated JavaScript in a <tt>\<script></tt>
       # tag. Use this to include generated JavaScript in an ERb template.
       # See JavaScriptGenerator for more information.
       #
-      # +html_options+ may be a hash of <script> attributes to be passed
+      # +html_options+ may be a hash of <tt>\<script></tt> attributes to be passed
       # to ActionView::Helpers::JavaScriptHelper#javascript_tag.
       def update_page_tag(html_options = {}, &block)
         javascript_tag update_page(&block), html_options
