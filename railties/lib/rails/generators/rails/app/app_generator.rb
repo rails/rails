@@ -177,9 +177,7 @@ module Rails
         end
       end
 
-      def create_root
-        super
-      end
+      public_task :create_root
 
       def create_root_files
         build(:readme)
@@ -258,13 +256,7 @@ module Rails
         build(:leftovers)
       end
 
-      def apply_rails_template
-        super
-      end
-
-      def bundle_if_dev_or_edge
-        super
-      end
+      public_task :apply_rails_template, :bundle_if_dev_or_edge
 
     protected
 
