@@ -314,13 +314,12 @@ module ActiveRecord
 
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
-          exec(sql, name, binds).map do |row|
-            record = {}
-            row.each do |key, value|
-              record[key.sub(/^"?\w+"?\./, '')] = value
-            end
-            record
-          end
+          result = exec(sql, name, binds)
+          columns = result.columns.map { |column|
+            column.sub(/^"?\w+"?\./, '')
+          }
+
+          result.rows.map { |row| Hash[columns.zip(row)] }
         end
 
         def table_structure(table_name)
