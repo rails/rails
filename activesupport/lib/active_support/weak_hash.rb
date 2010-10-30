@@ -22,16 +22,9 @@ module ActiveSupport
       end
 
       def []=(key, value)
-        key2 = case key
-               when Fixnum, Symbol, true, false, nil
-                 key
-               else
-                 key.dup
-               end
-
-        @rev_cache[value.object_id][key2] = true
-        @cache[key2] = value.object_id
-        @key_map[key.object_id] = key2
+        @rev_cache[value.object_id][key] = true
+        @cache[key] = value.object_id
+        @key_map[key.object_id] = key
 
         ObjectSpace.define_finalizer(value, @reclaim_value)
       end
