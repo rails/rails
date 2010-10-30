@@ -31,10 +31,6 @@ platforms :mri_18 do
   gem 'ruby-prof'
 end
 
-platforms :mri_19 do
-  gem "ruby-debug19"
-end
-
 platforms :ruby do
   gem 'json'
   gem 'yajl-ruby'
