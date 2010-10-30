@@ -226,6 +226,12 @@ class MethodScopingTest < ActiveRecord::TestCase
     assert Post.find(1).comments.include?(new_comment)
   end
 
+  def test_scoped_create_with_join_and_merge
+    (Comment.where(:body => "but Who's Buying?").joins(:post) & Post.where(:body => 'Peace Sells...')).with_scope do
+      assert_equal({:body => "but Who's Buying?"}, Comment.scoped.scope_for_create)
+    end
+  end
+
   def test_immutable_scope
     options = { :conditions => "name = 'David'" }
     Developer.send(:with_scope, :find => options) do
