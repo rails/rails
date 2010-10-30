@@ -30,13 +30,14 @@ module ActiveRecord
 
       unless @where_values.empty?
         # Remove duplicates, last one wins.
-        seen = {}
+        seen = Hash.new { |h,table| h[table] = {} }
         merged_wheres = merged_wheres.reverse.reject { |w|
           nuke = false
           if w.respond_to?(:operator) && w.operator == :==
-            name       = w.left.name
-            nuke       = seen[name]
-            seen[name] = true
+            name              = w.left.name
+            table             = w.left.relation.name
+            nuke              = seen[table][name]
+            seen[table][name] = true
           end
           nuke
         }.reverse
