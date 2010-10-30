@@ -1840,7 +1840,7 @@ module ActiveRecord
 
           def initialize(base, associations, joins)
             @joins                 = [JoinBase.new(base, joins)]
-            @associations          = associations
+            @associations          = {}
             @reflections           = []
             @base_records_hash     = {}
             @base_records_in_order = []
@@ -1852,7 +1852,7 @@ module ActiveRecord
           def graft(*associations)
             associations.each do |association|
               join_associations.detect {|a| association == a} ||
-              build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class)
+              build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_type)
             end
             self
           end
@@ -1920,25 +1920,54 @@ module ActiveRecord
 
           protected
 
-            def build(associations, parent = nil, join_class = Arel::InnerJoin)
+            def cache_joined_association(association)
+              associations = []
+              parent = association.parent
+              while parent != join_base
+                associations.unshift(parent.reflection.name)
+                parent = parent.parent
+              end
+              ref = @associations
+              associations.each do |key|
+                ref = ref[key]
+              end
+              ref[association.reflection.name] ||= {}
+            end
+
+            def build(associations, parent = nil, join_type = Arel::InnerJoin)
               parent ||= @joins.last
               case associations
                 when Symbol, String
                   reflection = parent.reflections[associations.to_s.intern] or
                   raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
-                  @reflections << reflection
-                  @joins << build_join_association(reflection, parent).with_join_class(join_class)
+                  unless join_association = find_join_association(reflection, parent)
+                    @reflections << reflection
+                    join_association = build_join_association(reflection, parent)
+                    join_association.join_type = join_type
+                    @joins << join_association
+                    cache_joined_association(join_association)
+                  end
+                  join_association
                 when Array
                   associations.each do |association|
-                    build(association, parent, join_class)
+                    build(association, parent, join_type)
                   end
                 when Hash
                   associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-                    build(name, parent, join_class)
-                    build(associations[name], nil, join_class)
+                    join_association = build(name, parent, join_type)
+                    build(associations[name], join_association, join_type)
                   end
                 else
                   raise ConfigurationError, associations.inspect
+              end
+            end
+
+            def find_join_association(name_or_reflection, parent)
+              case name_or_reflection
+              when Symbol, String
+                join_associations.detect {|j| (j.reflection.name == name_or_reflection.to_s.intern) && (j.parent == parent)}
+              else
+                join_associations.detect {|j| (j.reflection == name_or_reflection) && (j.parent == parent)}
               end
             end
 
@@ -2020,8 +2049,7 @@ module ActiveRecord
 
             def ==(other)
               other.class == self.class &&
-              other.active_record == active_record &&
-              other.table_joins == table_joins
+              other.active_record == active_record
             end
 
             def aliased_prefix
@@ -2062,7 +2090,9 @@ module ActiveRecord
           end
 
           class JoinAssociation < JoinBase # :nodoc:
-            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name, :join_class
+            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name
+            # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
+            attr_accessor :join_type
             delegate    :options, :klass, :through_reflection, :source_reflection, :to => :reflection
 
             def initialize(reflection, join_dependency, parent = nil)
@@ -2079,7 +2109,7 @@ module ActiveRecord
               @parent_table_name  = parent.active_record.table_name
               @aliased_table_name = aliased_table_name_for(table_name)
               @join               = nil
-              @join_class         = Arel::InnerJoin
+              @join_type          = Arel::InnerJoin
 
               if reflection.macro == :has_and_belongs_to_many
                 @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
@@ -2100,11 +2130,6 @@ module ActiveRecord
               other_join_dependency.joins.detect do |join|
                 self.parent == join
               end
-            end
-
-            def with_join_class(join_class)
-              @join_class = join_class
-              self
             end
 
             def association_join
@@ -2212,8 +2237,9 @@ module ActiveRecord
               end
             end
 
-            def join_relation(joining_relation, join = nil)
-              joining_relation.joins(self.with_join_class(Arel::OuterJoin))
+            def join_relation(joining_relation)
+              self.join_type = Arel::OuterJoin
+              joining_relation.joins(self)
             end
 
             protected
