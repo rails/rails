@@ -1960,12 +1960,13 @@ module ActiveRecord
             end
 
             def find_join_association(name_or_reflection, parent)
-              case name_or_reflection
-              when Symbol, String
-                join_associations.detect {|j| (j.reflection.name == name_or_reflection.to_s.intern) && (j.parent == parent)}
-              else
-                join_associations.detect {|j| (j.reflection == name_or_reflection) && (j.parent == parent)}
+              if String === name_or_reflection
+                name_or_reflection = name_or_reflection.to_sym
               end
+
+              join_associations.detect { |j|
+                j.reflection == name_or_reflection && j.parent == parent
+              }
             end
 
             def remove_uniq_by_reflection(reflection, records)
