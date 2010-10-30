@@ -226,7 +226,7 @@ module ActiveRecord
           IndexDefinition.new(
             table_name,
             row['name'],
-            row['unique'].to_i != 0,
+            row['unique'] != 0,
             exec("PRAGMA index_info('#{row['name']}')").map { |col|
               col['name']
             })
@@ -235,7 +235,7 @@ module ActiveRecord
 
       def primary_key(table_name) #:nodoc:
         column = table_structure(table_name).find { |field|
-          field['pk'].to_i == 1
+          field['pk'] == 1
         }
         column && column['name']
       end
