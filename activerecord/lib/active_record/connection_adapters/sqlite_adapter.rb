@@ -317,7 +317,7 @@ module ActiveRecord
           exec(sql, name, binds).map do |row|
             record = {}
             row.each do |key, value|
-              record[key.sub(/^"?\w+"?\./, '')] = value if key.is_a?(String)
+              record[key.sub(/^"?\w+"?\./, '')] = value
             end
             record
           end
