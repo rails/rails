@@ -1880,7 +1880,7 @@ module ActiveRecord
 
           def initialize(base, associations, joins)
             @join_parts            = [JoinBase.new(base, joins)]
-            @associations          = associations
+            @associations          = {}
             @reflections           = []
             @base_records_hash     = {}
             @base_records_in_order = []
@@ -1949,28 +1949,56 @@ module ActiveRecord
 
           protected
 
+            def cache_joined_association(association)
+              associations = []
+              parent = association.parent
+              while parent != join_base
+                associations.unshift(parent.reflection.name)
+                parent = parent.parent
+              end
+              ref = @associations
+              associations.each do |key|
+                ref = ref[key]
+              end
+              ref[association.reflection.name] ||= {}
+            end
+
             def build(associations, parent = nil, join_type = Arel::InnerJoin)
               parent ||= join_parts.last
               case associations
                 when Symbol, String
                   reflection = parent.reflections[associations.to_s.intern] or
                   raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
-                  @reflections << reflection
-                  join_association = build_join_association(reflection, parent)
-                  join_association.join_type = join_type
-                  @join_parts << join_association
+                  unless join_association = find_join_association(reflection, parent)
+                    @reflections << reflection
+                    join_association = build_join_association(reflection, parent)
+                    join_association.join_type = join_type
+                    @join_parts << join_association
+                    cache_joined_association(join_association)
+                  end
+                  join_association
                 when Array
                   associations.each do |association|
                     build(association, parent, join_type)
                   end
                 when Hash
                   associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-                    build(name, parent, join_type)
-                    build(associations[name], nil, join_type)
+                    join_association = build(name, parent, join_type)
+                    build(associations[name], join_association, join_type)
                   end
                 else
                   raise ConfigurationError, associations.inspect
               end
+            end
+
+            def find_join_association(name_or_reflection, parent)
+              if String === name_or_reflection
+                name_or_reflection = name_or_reflection.to_sym
+              end
+
+              join_associations.detect { |j|
+                j.reflection == name_or_reflection && j.parent == parent
+              }
             end
 
             def remove_uniq_by_reflection(reflection, records)
@@ -2045,7 +2073,7 @@ module ActiveRecord
             end
 
           # A JoinPart represents a part of a JoinDependency. It is an abstract class, inherited
-          # by JoinBase and JoinAssociation. A JoinBase represents the Active Record which 
+          # by JoinBase and JoinAssociation. A JoinBase represents the Active Record which
           # everything else is being joined onto. A JoinAssociation represents an association which
           # is joining to the base. A JoinAssociation may result in more than one actual join
           # operations (for example a has_and_belongs_to_many JoinAssociation would result in
@@ -2124,8 +2152,7 @@ module ActiveRecord
 
             def ==(other)
               other.class == self.class &&
-              other.active_record == active_record &&
-              other.table_joins == table_joins
+              other.active_record == active_record
             end
 
             def aliased_prefix
@@ -2146,7 +2173,7 @@ module ActiveRecord
             attr_reader :reflection
 
             # The JoinDependency object which this JoinAssociation exists within. This is mainly
-            # relevant for generating aliases which do not conflict with other joins which are 
+            # relevant for generating aliases which do not conflict with other joins which are
             # part of the query.
             attr_reader :join_dependency
 
