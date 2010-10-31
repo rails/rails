@@ -4,7 +4,7 @@ class Organization < ActiveRecord::Base
 
   has_many :authors, :primary_key => :name
   has_many :author_essay_categories, :through => :authors, :source => :essay_categories
-  
+
   has_one :author, :primary_key => :name
   has_one :author_owned_essay_category, :through => :author, :source => :owned_essay_category
 

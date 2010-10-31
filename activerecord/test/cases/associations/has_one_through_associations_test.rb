@@ -217,22 +217,22 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       minivan.dashboard
     end
   end
-  
+
   def test_has_one_through_polymorphic_with_primary_key_option
     assert_equal categories(:general), authors(:david).essay_category
-    
+
     authors = Author.joins(:essay_category).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
-    
+
     assert_equal owners(:blackbeard), authors(:david).essay_owner
-    
+
     authors = Author.joins(:essay_owner).where("owners.name = 'blackbeard'")
     assert_equal authors(:david), authors.first
   end
-  
+
   def test_has_one_through_with_primary_key_option
     assert_equal categories(:general), authors(:david).essay_category_2
-    
+
     authors = Author.joins(:essay_category_2).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
   end

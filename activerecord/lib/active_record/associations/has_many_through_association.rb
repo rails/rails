@@ -66,7 +66,7 @@ module ActiveRecord
 
         def insert_record(record, force = true, validate = true)
           ensure_not_nested
-          
+
           if record.new_record?
             if force
               record.save!
@@ -83,7 +83,7 @@ module ActiveRecord
         # TODO - add dependent option support
         def delete_records(records)
           ensure_not_nested
-          
+
           klass = @reflection.through_reflection.klass
           records.each do |associate|
             klass.delete_all(construct_join_attributes(associate))

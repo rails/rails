@@ -96,7 +96,7 @@ class Author < ActiveRecord::Base
   has_many :subscriptions,        :through => :books
   has_many :subscribers,          :through => :subscriptions, :order => "subscribers.nick" # through has_many :through (on through reflection)
   has_many :distinct_subscribers, :through => :subscriptions, :source => :subscriber, :select => "DISTINCT subscribers.*", :order => "subscribers.nick"
-  
+
   has_one :essay, :primary_key => :name, :as => :writer
   has_one :essay_category, :through => :essay, :source => :category
   has_one :essay_owner, :through => :essay, :source => :owner
@@ -107,7 +107,7 @@ class Author < ActiveRecord::Base
   has_many :essays, :primary_key => :name, :as => :writer
   has_many :essay_categories, :through => :essays, :source => :category
   has_many :essay_owners, :through => :essays, :source => :owner
-  
+
   has_many :essays_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
   has_many :essay_categories_2, :through => :essays_2, :source => :category
 
@@ -119,7 +119,7 @@ class Author < ActiveRecord::Base
 
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :category_post_comments, :through => :categories, :source => :post_comments
-  
+
   has_many :misc_posts, :class_name => 'Post', :conditions => "posts.title LIKE 'misc post%'"
   has_many :misc_post_first_blue_tags, :through => :misc_posts, :source => :first_blue_tags
 

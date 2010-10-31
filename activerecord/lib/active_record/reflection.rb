@@ -209,11 +209,11 @@ module ActiveRecord
       def association_foreign_key
         @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
       end
-      
+
       def association_primary_key
         @association_primary_key ||= @options[:primary_key] || klass.primary_key
       end
-      
+
       def active_record_primary_key
         @active_record_primary_key ||= @options[:primary_key] || active_record.primary_key
       end
@@ -249,11 +249,11 @@ module ActiveRecord
       def through_reflection
         false
       end
-      
+
       def through_reflection_chain
         [self]
       end
-      
+
       def through_conditions
         [Array.wrap(options[:conditions])]
       end
@@ -340,7 +340,7 @@ module ActiveRecord
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
       delegate :primary_key_name, :association_foreign_key, :to => :source_reflection
-    
+
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
@@ -367,14 +367,14 @@ module ActiveRecord
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])
       end
-      
+
       # Returns an array of AssociationReflection objects which are involved in this through
       # association. Each item in the array corresponds to a table which will be part of the
       # query for this association.
-      # 
+      #
       # If the source reflection is itself a ThroughReflection, then we don't include self in
       # the chain, but just defer to the source reflection.
-      # 
+      #
       # The chain is built by recursively calling through_reflection_chain on the source
       # reflection and the through reflection. The base case for the recursion is a normal
       # association, which just returns [self] for its through_reflection_chain.
@@ -389,31 +389,31 @@ module ActiveRecord
             # to this reflection directly, and so start the chain here
             chain = [self]
           end
-          
+
           # Recursively build the rest of the chain
           chain += through_reflection.through_reflection_chain
-          
+
           # Finally return the completed chain
           chain
         end
       end
-      
+
       # Consider the following example:
-      # 
+      #
       #   class Person
       #     has_many :articles
       #     has_many :comment_tags, :through => :articles
       #   end
-      # 
+      #
       #   class Article
       #     has_many :comments
       #     has_many :comment_tags, :through => :comments, :source => :tags
       #   end
-      # 
+      #
       #   class Comment
       #     has_many :tags
       #   end
-      # 
+      #
       # There may be conditions on Person.comment_tags, Article.comment_tags and/or Comment.tags,
       # but only Comment.tags will be represented in the through_reflection_chain. So this method
       # creates an array of conditions corresponding to the through_reflection_chain. Each item in
@@ -429,24 +429,24 @@ module ActiveRecord
           else
             conditions = [Array.wrap(source_reflection.options[:conditions])]
           end
-          
+
           # Add to it the conditions from this reflection if necessary.
           conditions.first << options[:conditions] if options[:conditions]
-          
+
           # Recursively fill out the rest of the array from the through reflection
           conditions += through_reflection.through_conditions
-          
+
           # And return
           conditions
         end
       end
-      
+
       # A through association is nested iff there would be more than one join table
       def nested?
         through_reflection_chain.length > 2 ||
         through_reflection.macro == :has_and_belongs_to_many
       end
-      
+
       # We want to use the klass from this reflection, rather than just delegate straight to
       # the source_reflection, because the source_reflection may be polymorphic. We still
       # need to respect the source_reflection's :primary_key option, though.
@@ -458,7 +458,7 @@ module ActiveRecord
           while source_reflection.source_reflection
             source_reflection = source_reflection.source_reflection
           end
-          
+
           source_reflection.options[:primary_key] || klass.primary_key
         end
       end

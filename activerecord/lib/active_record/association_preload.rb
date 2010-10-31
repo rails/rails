@@ -210,9 +210,9 @@ module ActiveRecord
           return if records.first.send("loaded_#{reflection.name}?")
           records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         end
-        
+
         options = reflection.options
-        
+
         if options[:through]
           records_with_through_records = preload_through_records(records, reflection, options[:through])
           all_through_records = records_with_through_records.map(&:last).flatten
@@ -220,10 +220,10 @@ module ActiveRecord
           unless all_through_records.empty?
             source = reflection.source_reflection.name
             all_through_records.first.class.preload_associations(all_through_records, source, options)
-            
+
             records_with_through_records.each do |record, through_records|
               source_records = through_records.map(&source).flatten.compact
-              
+
               case reflection.macro
                 when :has_many, :has_and_belongs_to_many
                   add_preloaded_records_to_collection([record], reflection.name, source_records)
@@ -235,7 +235,7 @@ module ActiveRecord
         else
           id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
           associated_records = find_associated_records(ids, reflection, preload_options)
-          
+
           if reflection.macro == :has_many
             set_association_collection_records(
               id_to_record_map, reflection.name,
@@ -249,7 +249,7 @@ module ActiveRecord
           end
         end
       end
-      
+
       alias_method :preload_has_one_association, :preload_has_one_or_has_many_association
       alias_method :preload_has_many_association, :preload_has_one_or_has_many_association
 
@@ -259,12 +259,12 @@ module ActiveRecord
         # record. This is so that we can preload the source association for each record,
         # and always be able to access the preloaded association regardless of where we
         # refer to the record.
-        # 
+        #
         # Suffices to say, if AR had an identity map built in then this would be unnecessary.
         identity_map = {}
-        
+
         options = {}
-        
+
         if reflection.options[:source_type]
           interface = reflection.source_reflection.options[:foreign_type]
           options[:conditions] = ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]
@@ -272,20 +272,20 @@ module ActiveRecord
         else
           if reflection.options[:conditions]
             options[:include]    = reflection.options[:include] ||
-                                   reflection.options[:source] 
+                                   reflection.options[:source]
             options[:conditions] = reflection.options[:conditions]
           end
-          
+
           options[:order] = reflection.options[:order]
         end
-        
+
         records.first.class.preload_associations(records, through_association, options)
 
         records.map do |record|
           if reflection.options[:source_type]
             # Dont cache the association - we would only be caching a subset
             proxy = record.send(through_association)
-            
+
             if proxy.respond_to?(:target)
               through_records = proxy.target
               proxy.reset
@@ -295,11 +295,11 @@ module ActiveRecord
           else
             through_records = record.send(through_association)
           end
-          
+
           through_records = Array.wrap(through_records).map do |through_record|
             identity_map[through_record] ||= through_record
           end
-          
+
           [record, through_records]
         end
       end

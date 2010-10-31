@@ -456,19 +456,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_polymorphic_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories
-    
+
     authors = Author.joins(:essay_categories).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
-    
+
     assert_equal [owners(:blackbeard)], authors(:david).essay_owners
-    
+
     authors = Author.joins(:essay_owners).where("owners.name = 'blackbeard'")
     assert_equal authors(:david), authors.first
   end
-  
+
   def test_has_many_through_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories_2
-    
+
     authors = Author.joins(:essay_categories_2).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
   end

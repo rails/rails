@@ -46,7 +46,7 @@ class Post < ActiveRecord::Base
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
   has_many :special_comments
   has_many :nonexistant_comments, :class_name => 'Comment', :conditions => 'comments.id < 0'
-  
+
   has_many :special_comments_ratings, :through => :special_comments, :source => :ratings
 
   has_and_belongs_to_many :categories
@@ -65,7 +65,7 @@ class Post < ActiveRecord::Base
   has_many :super_tags, :through => :taggings
   has_many :tags_with_primary_key, :through => :taggings, :source => :tag_with_primary_key
   has_one :tagging, :as => :taggable
-  
+
   has_many :first_taggings, :as => :taggable, :class_name => 'Tagging', :conditions => "taggings.comment = 'first'"
   has_many :first_blue_tags, :through => :first_taggings, :source => :tag, :conditions => "tags.name = 'Blue'"
 

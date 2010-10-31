@@ -56,7 +56,7 @@ module ActiveRecord
       super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
     end
   end
-  
+
   class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
@@ -487,7 +487,7 @@ module ActiveRecord
     #   @group.avatars.delete(@group.avatars.last)  # so would this
     #
     # === Nested Associations
-    # 
+    #
     # You can actually specify *any* association with the <tt>:through</tt> option, including an
     # association which has a <tt>:through</tt> option itself. For example:
     #
@@ -496,15 +496,15 @@ module ActiveRecord
     #     has_many :comments, :through => :posts
     #     has_many :commenters, :through => :comments
     #   end
-    #   
+    #
     #   class Post < ActiveRecord::Base
     #     has_many :comments
     #   end
-    #   
+    #
     #   class Comment < ActiveRecord::Base
     #     belongs_to :commenter
     #   end
-    #   
+    #
     #   @author = Author.first
     #   @author.commenters # => People who commented on posts written by the author
     #
@@ -514,19 +514,19 @@ module ActiveRecord
     #     has_many :posts
     #     has_many :commenters, :through => :posts
     #   end
-    #   
+    #
     #   class Post < ActiveRecord::Base
     #     has_many :comments
     #     has_many :commenters, :through => :comments
     #   end
-    #   
+    #
     #   class Comment < ActiveRecord::Base
     #     belongs_to :commenter
     #   end
     #
     # When using nested association, you will not be able to modify the association because there
     # is not enough information to know what modification to make. For example, if you tried to
-    # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the 
+    # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the
     # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
     #
     # === Polymorphic Associations
@@ -2183,9 +2183,9 @@ module ActiveRecord
 
             # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
             attr_accessor :join_type
-            
+
             attr_reader :aliased_prefix
-            
+
             delegate :options, :through_reflection, :source_reflection, :through_reflection_chain, :to => :reflection
             delegate :table, :table_name, :to => :parent, :prefix => true
             delegate :alias_tracker, :to => :join_dependency
@@ -2198,13 +2198,13 @@ module ActiveRecord
               end
 
               super(reflection.klass)
-              
+
               @reflection         = reflection
               @join_dependency    = join_dependency
               @parent             = parent
               @join_type          = Arel::InnerJoin
               @aliased_prefix     = "t#{ join_dependency.join_parts.size }"
-              
+
               setup_tables
             end
 
@@ -2221,17 +2221,17 @@ module ActiveRecord
             end
 
             def join_to(relation)
-              # The chain starts with the target table, but we want to end with it here (makes 
+              # The chain starts with the target table, but we want to end with it here (makes
               # more sense in this context)
               chain = through_reflection_chain.reverse
-              
+
               foreign_table = parent_table
               index = 0
-              
+
               chain.each do |reflection|
                 table = @tables[index]
                 conditions = []
-                
+
                 if reflection.source_reflection.nil?
                   case reflection.macro
                     when :belongs_to
@@ -2240,25 +2240,25 @@ module ActiveRecord
                     when :has_many, :has_one
                       key         = reflection.primary_key_name
                       foreign_key = reflection.active_record_primary_key
-                      
+
                       conditions << polymorphic_conditions(reflection, table)
                     when :has_and_belongs_to_many
                       # For habtm, we need to deal with the join table at the same time as the
                       # target table (because unlike a :through association, there is no reflection
                       # to represent the join table)
                       table, join_table = table
-                      
+
                       join_key         = reflection.primary_key_name
                       join_foreign_key = reflection.active_record.primary_key
-                      
+
                       relation = relation.join(join_table, join_type).on(
                         join_table[join_key].
                           eq(foreign_table[join_foreign_key])
                       )
-                      
+
                       # We've done the first join now, so update the foreign_table for the second
                       foreign_table = join_table
-                      
+
                       key         = reflection.klass.primary_key
                       foreign_key = reflection.association_foreign_key
                   end
@@ -2267,41 +2267,41 @@ module ActiveRecord
                     when :belongs_to
                       key         = reflection.association_primary_key
                       foreign_key = reflection.primary_key_name
-                      
+
                       conditions << source_type_conditions(reflection, foreign_table)
                     when :has_many, :has_one
                       key         = reflection.primary_key_name
                       foreign_key = reflection.source_reflection.active_record_primary_key
                     when :has_and_belongs_to_many
                       table, join_table = table
-                      
+
                       join_key         = reflection.primary_key_name
                       join_foreign_key = reflection.klass.primary_key
-                      
+
                       relation = relation.join(join_table, join_type).on(
                         join_table[join_key].
                           eq(foreign_table[join_foreign_key])
                       )
-                      
+
                       foreign_table = join_table
-                      
+
                       key         = reflection.klass.primary_key
                       foreign_key = reflection.association_foreign_key
                   end
                 end
-                
+
                 conditions << table[key].eq(foreign_table[foreign_key])
-                
+
                 conditions << reflection_conditions(index, table)
                 conditions << sti_conditions(reflection, table)
-                
+
                 relation = relation.join(table, join_type).on(*conditions.flatten.compact)
-                
+
                 # The current table in this iteration becomes the foreign table in the next
                 foreign_table = table
                 index += 1
               end
-              
+
               relation
             end
 
@@ -2317,11 +2317,11 @@ module ActiveRecord
                 @tables.last
               end
             end
-            
+
             def aliased_table_name
               table.table_alias || table.name
             end
-            
+
             protected
 
               def table_alias_for(reflection, join = false)
@@ -2336,7 +2336,7 @@ module ActiveRecord
               end
 
             private
-            
+
             # Generate aliases and Arel::Table instances for each of the tables which we will
             # later generate joins for. We must do this in advance in order to correctly allocate
             # the proper alias.
@@ -2346,44 +2346,44 @@ module ActiveRecord
                   reflection.table_name,
                   table_alias_for(reflection, reflection != self.reflection)
                 )
-                
+
                 table = Arel::Table.new(
                   reflection.table_name, :engine => arel_engine,
                   :as => aliased_table_name, :columns => reflection.klass.columns
                 )
-                
+
                 # For habtm, we have two Arel::Table instances related to a single reflection, so
                 # we just store them as a pair in the array.
                 if reflection.macro == :has_and_belongs_to_many ||
                      (reflection.source_reflection &&
                       reflection.source_reflection.macro == :has_and_belongs_to_many)
-                  
+
                   join_table_name = (reflection.source_reflection || reflection).options[:join_table]
-                  
+
                   aliased_join_table_name = alias_tracker.aliased_name_for(
                     join_table_name,
                     table_alias_for(reflection, true)
                   )
-                  
+
                   join_table = Arel::Table.new(
                     join_table_name, :engine => arel_engine,
                     :as => aliased_join_table_name
                   )
-                  
+
                   [table, join_table]
                 else
                   table
                 end
               end
-              
+
               # The joins are generated from the through_reflection_chain in reverse order, so
               # reverse the tables too (but it's important to generate the aliases in the 'forward'
               # order, which is why we only do the reversal now.
               @tables.reverse!
-              
+
               @tables
             end
-            
+
             def reflection_conditions(index, table)
               @reflection.through_conditions.reverse[index].map do |condition|
                 Arel.sql(interpolate_sql(sanitize_sql(
@@ -2392,28 +2392,28 @@ module ActiveRecord
                 )))
               end
             end
-            
+
             def sti_conditions(reflection, table)
               unless reflection.klass.descends_from_active_record?
                 sti_column = table[reflection.klass.inheritance_column]
-                
+
                 condition = sti_column.eq(reflection.klass.sti_name)
-                
+
                 reflection.klass.descendants.each do |subclass|
                   condition = condition.or(sti_column.eq(subclass.sti_name))
                 end
-                
+
                 condition
               end
             end
-            
+
             def source_type_conditions(reflection, foreign_table)
               if reflection.options[:source_type]
                 foreign_table[reflection.source_reflection.options[:foreign_type]].
                   eq(reflection.options[:source_type])
               end
            end
-           
+
            def polymorphic_conditions(reflection, table)
              if reflection.options[:as]
                table["#{reflection.options[:as]}_type"].
