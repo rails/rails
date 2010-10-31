@@ -51,24 +51,24 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     categories = Category.joins(:categorizations).includes([{:posts=>:comments}, :authors])
 
     assert_nothing_raised do
-      assert_equal 2, categories.count
-      assert_equal 2, categories.all.uniq.size # Must uniq since instantiating with inner joins will get dupes
+      assert_equal 3, categories.count
+      assert_equal 3, categories.all.uniq.size # Must uniq since instantiating with inner joins will get dupes
     end
   end
 
   def test_cascaded_eager_association_loading_with_duplicated_includes
     categories = Category.includes(:categorizations).includes(:categorizations => :author).where("categorizations.id is not null")
     assert_nothing_raised do
-      assert_equal 2, categories.count
-      assert_equal 2, categories.all.size
+      assert_equal 3, categories.count
+      assert_equal 3, categories.all.size
     end
   end
 
   def test_cascaded_eager_association_loading_with_twice_includes_edge_cases
     categories = Category.includes(:categorizations => :author).includes(:categorizations => :post).where("posts.id is not null")
     assert_nothing_raised do
-      assert_equal 2, categories.count
-      assert_equal 2, categories.all.size
+      assert_equal 3, categories.count
+      assert_equal 3, categories.all.size
     end
   end
 
