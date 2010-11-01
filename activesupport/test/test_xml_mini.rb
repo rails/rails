@@ -18,8 +18,8 @@ class XmlMiniTest < Test::Unit::TestCase
     assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => true)
   end
 
-  def test_rename_key_camelizes_with_camelize_true
-    assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => true)
+  def test_rename_key_lower_camelizes_with_camelize_lower
+    assert_equal "myKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => :lower)
   end
 
   def test_rename_key_does_not_dasherize_leading_underscores

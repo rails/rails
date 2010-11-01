@@ -70,6 +70,13 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<CreatedAt},     @xml
   end
 
+  test "should allow lower-camelized tags" do
+    @xml = @contact.to_xml :root => 'xml_contact', :camelize => :lower
+    assert_match %r{^<xmlContact>},  @xml
+    assert_match %r{</xmlContact>$}, @xml
+    assert_match %r{<createdAt},     @xml
+  end
+
   test "should allow skipped types" do
     @xml = @contact.to_xml :skip_types => true
     assert_match %r{<age>25</age>}, @xml
