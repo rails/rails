@@ -46,11 +46,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_generating_test_files_in_full_mode
     run_generator [destination_root, "--full"]
-    assert_directory "test/support/"
     assert_directory "test/integration/"
 
-    assert_file "test/integration/navigation_test.rb", /assert_kind_of Dummy::Application, Rails.application/
-    assert_file "test/support/integration_case.rb", /class ActiveSupport::IntegrationCase/
+    assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator

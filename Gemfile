@@ -27,9 +27,6 @@ gem "memcache-client", ">= 1.8.5"
 # AM
 gem "text-format", "~> 1.0.0"
 
-# for 'plugin new --full' generator
-gem "capybara"
-
 platforms :mri_18 do
   gem "system_timer"
   gem "ruby-debug", ">= 0.10.3"

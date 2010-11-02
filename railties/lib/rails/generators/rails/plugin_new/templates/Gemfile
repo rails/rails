@@ -3,7 +3,6 @@ source "http://rubygems.org"
 <%= rails_gemfile_entry -%>
 
 <% if full? -%>
-  gem "capybara", ">= 0.3.9"
   gem "sqlite3-ruby", :require => "sqlite3"
 <% end -%>
 

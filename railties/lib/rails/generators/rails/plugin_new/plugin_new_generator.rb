@@ -39,7 +39,6 @@ module Rails
       template "test/%name%_test.rb"
       if full?
         template "test/integration/navigation_test.rb"
-        template "test/support/integration_case.rb"
       end
     end
 
