@@ -30,6 +30,11 @@ module SharedGeneratorTests
     default_files.each{ |path| assert_no_file path }
   end
 
+  def test_invalid_database_option_raises_an_error
+    content = capture(:stderr){ run_generator([destination_root, "-d", "unknown"]) }
+    assert_match /Invalid value for \-\-database option/, content
+  end
+
   def test_options_before_application_name_raises_an_error
     content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
     assert_match /Options should be given after the \w+ name. For details run: rails( plugin)? --help\n/, content

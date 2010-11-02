@@ -2,9 +2,7 @@ source 'http://rubygems.org'
 
 <%= rails_gemfile_entry -%>
 
-<% unless options[:skip_active_record] -%>
-gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= require_for_database %>'<% end %>
-<% end -%>
+<%= database_gemfile_entry -%>
 
 # Use unicorn as the web server
 # gem 'unicorn'

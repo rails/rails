@@ -3,7 +3,7 @@ source "http://rubygems.org"
 <%= rails_gemfile_entry -%>
 
 <% if full? -%>
-  gem "sqlite3-ruby", :require => "sqlite3"
+<%= database_gemfile_entry -%>
 <% end -%>
 
 if RUBY_VERSION < '1.9'

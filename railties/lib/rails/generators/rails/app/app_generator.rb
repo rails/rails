@@ -306,24 +306,6 @@ module Rails
         ActiveSupport::SecureRandom.hex(64)
       end
 
-      def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-        case options[:database]
-        when "oracle"     then "ruby-oci8"
-        when "postgresql" then "pg"
-        when "sqlite3"    then "sqlite3-ruby"
-        when "frontbase"  then "ruby-frontbase"
-        when "mysql"      then "mysql2"
-        else options[:database]
-        end
-      end
-
-      def require_for_database
-        case options[:database]
-        when "sqlite3" then "sqlite3"
-        end
-      end
-
       def mysql_socket
         @mysql_socket ||= [
           "/tmp/mysql.sock",                        # default

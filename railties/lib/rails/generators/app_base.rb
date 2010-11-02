@@ -108,6 +108,15 @@ module Rails
         end
       end
 
+      def database_gemfile_entry
+        entry = ""
+        unless options[:skip_active_record]
+          entry = "gem '#{gem_for_database}'"
+          entry << ", :require => '#{require_for_database}'" if require_for_database
+        end
+        entry
+      end
+
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE
@@ -130,6 +139,24 @@ gem 'rails', '#{Rails::VERSION::STRING}'
 # gem 'arel',  :git => 'git://github.com/rails/arel.git'
 # gem "rack", :git => "git://github.com/rack/rack.git"
           GEMFILE
+        end
+      end
+
+      def gem_for_database
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+        case options[:database]
+        when "oracle"     then "ruby-oci8"
+        when "postgresql" then "pg"
+        when "sqlite3"    then "sqlite3-ruby"
+        when "frontbase"  then "ruby-frontbase"
+        when "mysql"      then "mysql2"
+        else options[:database]
+        end
+      end
+
+      def require_for_database
+        case options[:database]
+        when "sqlite3" then "sqlite3"
         end
       end
 

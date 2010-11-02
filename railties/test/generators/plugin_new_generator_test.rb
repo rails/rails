@@ -56,6 +56,23 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_match /It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"])
   end
 
+  def test_database_entry_is_assed_by_default_in_full_mode
+    run_generator([destination_root, "--full"])
+    assert_file "test/dummy/config/database.yml", /sqlite/
+    assert_file "Gemfile", /^gem\s+["']sqlite3-ruby["'],\s+:require\s+=>\s+["']sqlite3["']$/
+  end
+
+  def test_config_another_database
+    run_generator([destination_root, "-d", "mysql", "--full"])
+    assert_file "test/dummy/config/database.yml", /mysql/
+    assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+  end
+
+  def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+  end
+
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
     assert_no_file "test/dummy/config/database.yml"
