@@ -7,10 +7,6 @@ require "rails/test_help"
 Rails.backtrace_cleaner.remove_silencers!
 
 <% if full? -%>
-ActionMailer::Base.delivery_method = :test
-ActionMailer::Base.perform_deliveries = true
-ActionMailer::Base.default_url_options[:host] = "test.com"
-
 # Configure capybara for integration testing
 require "capybara/rails"
 Capybara.default_driver   = :rack_test
