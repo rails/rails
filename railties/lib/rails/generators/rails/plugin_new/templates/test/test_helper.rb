@@ -6,7 +6,7 @@ require "rails/test_help"
 
 Rails.backtrace_cleaner.remove_silencers!
 
-<% if full? -%>
+<% if full? && !options[:skip_active_record] -%>
 # Run any available migration from application
 ActiveRecord::Migrator.migrate File.expand_path("../dummy/db/migrate/", __FILE__)
 # and from engine

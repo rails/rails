@@ -59,6 +59,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
     assert_no_file "test/dummy/config/database.yml"
+    assert_no_match /ActiveRecord/, File.read(File.join(destination_root, "test/test_helper.rb"))
   end
 
   def test_ensure_that_database_option_is_passed_to_app_generator
