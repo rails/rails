@@ -56,6 +56,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_match /It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"])
   end
 
+  def test_ensure_that_test_dummy_can_be_generated_from_a_template
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test-unit"])
+    assert_file "spec/dummy"
+    assert_no_file "test"
+  end
+
   def test_database_entry_is_assed_by_default_in_full_mode
     run_generator([destination_root, "--full"])
     assert_file "test/dummy/config/database.yml", /sqlite/
@@ -143,9 +150,9 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd(destination_root)
     run_generator([destination_root, "-b", "#{Rails.root}/lib/plugin_builders/spec_builder.rb"])
     assert_file 'spec/spec_helper.rb'
+    assert_file 'spec/dummy'
     assert_file 'Rakefile', /task :default => :spec/
     assert_file 'Rakefile', /# spec tasks in rakefile/
-    assert_file 'spec/dummy'
     assert_file 'script/rails', %r{spec/dummy}
   end
 

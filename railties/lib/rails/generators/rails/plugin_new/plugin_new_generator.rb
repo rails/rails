@@ -37,13 +37,19 @@ module Rails
     def test
       template "test/test_helper.rb"
       template "test/%name%_test.rb"
+      append_file "Rakefile", <<-EOF
+#{rakefile_test_tasks}
+
+task :default => :test
+      EOF
       if full?
         template "test/integration/navigation_test.rb"
       end
     end
 
-    def generate_test_dummy
+    def generate_test_dummy(force = false)
       opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript)
+      opts[:force] = force
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -70,32 +76,11 @@ module Rails
       end
     end
 
-    def script
-      directory "script" do |content|
+    def script(force = false)
+      directory "script", :force => force do |content|
         "#{shebang}\n" + content
       end
       chmod "script", 0755, :verbose => false
-    end
-
-    def rakefile_test_tasks
-      <<-RUBY
-require 'rake/testtask'
-
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
-end
-      RUBY
-    end
-
-    def dummy_path
-      "#{test_path}/dummy"
-    end
-
-    def test_path
-      "test"
     end
   end
 
@@ -143,7 +128,7 @@ end
 
       def create_test_dummy_files
         return if options[:skip_test_unit]
-        create_test_dummy(dummy_path)
+        create_dummy_app
       end
 
       def finish_template
@@ -153,13 +138,17 @@ end
       public_task :apply_rails_template, :bundle_if_dev_or_edge
 
     protected
-      def create_test_dummy(dummy_path)
+      def create_dummy_app(path = nil)
+        dummy_path(path) if path
+
         say_status :vendor_app, dummy_path
         mute do
           build(:generate_test_dummy)
           store_application_definition!
           build(:test_dummy_config)
           build(:test_dummy_clean)
+          # ensure that script/rails has proper dummy_path
+          build(:script, true)
         end
       end
 
@@ -205,10 +194,22 @@ end
         defined?(::PluginBuilder) ? ::PluginBuilder : Rails::PluginBuilder
       end
 
-      [:test_path, :dummy_path, :rakefile_test_tasks].each do |name|
-        define_method name do
-          builder.send(name) if builder.respond_to?(name)
-        end
+      def rakefile_test_tasks
+        <<-RUBY
+require 'rake/testtask'
+
+Rake::TestTask.new(:test) do |t|
+  t.libs << 'lib'
+  t.libs << 'test'
+  t.pattern = 'test/**/*_test.rb'
+  t.verbose = false
+end
+        RUBY
+      end
+
+      def dummy_path(path = nil)
+        @dummy_path = path if path
+        @dummy_path || "test/dummy"
       end
 
       def mute(&block)
