@@ -395,6 +395,20 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
+    with_partial_updates(Topic) do
+      topic = Topic.create!(:content => {:a => "a"})
+      topic.save!
+
+      updated_at = topic.updated_at
+      topic.content[:hello] = 'world'
+      topic.save!
+
+      assert_not_equal updated_at, topic.updated_at
+      assert_equal 'world', topic.content[:hello]
+    end
+  end
+
   def test_save_should_not_save_serialized_attribute_with_partial_updates_if_not_present
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
