@@ -29,8 +29,13 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_capture_escapes_html
-    string = @av.capture { '<strong>foo</strong><em>bar</em>' }
-    assert_equal '&lt;strong&gt;foo&lt;/strong&gt;&lt;em&gt;bar&lt;/em&gt;', string
+    string = @av.capture { '<em>bar</em>' }
+    assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
+  end
+
+  def test_capture_doesnt_escape_twice
+    string = @av.capture { '&lt;em&gt;bar&lt;/em&gt;'.html_safe }
+    assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
   end
 
   def test_content_for
