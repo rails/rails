@@ -11,6 +11,7 @@ DEFAULT_PLUGIN_FILES = %w(
   MIT-LICENSE
   lib
   lib/bukkits.rb
+  lib/tasks/bukkits_tasks.rake
   script/rails
   test/bukkits_test.rb
   test/test_helper.rb
