@@ -142,23 +142,8 @@ end
       end
 
       def create_test_dummy_files
-        say_status :vendor_app, dummy_path
-        mute do
-          build(:generate_test_dummy)
-        end
-      end
-
-      def change_config_files
-        store_application_definition!
-        mute do
-          build(:test_dummy_config)
-        end
-      end
-
-      def remove_uneeded_rails_files
-        mute do
-          build(:test_dummy_clean)
-        end
+        return if options[:skip_test_unit]
+        create_test_dummy(dummy_path)
       end
 
       def finish_template
@@ -168,6 +153,15 @@ end
       public_task :apply_rails_template, :bundle_if_dev_or_edge
 
     protected
+      def create_test_dummy(dummy_path)
+        say_status :vendor_app, dummy_path
+        mute do
+          build(:generate_test_dummy)
+          store_application_definition!
+          build(:test_dummy_config)
+          build(:test_dummy_clean)
+        end
+      end
 
       def full?
         options[:full]

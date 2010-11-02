@@ -156,9 +156,6 @@ module Rails
     class AppGenerator < AppBase
       add_shared_options_for "application"
 
-      class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
-                                        :desc => "Skip Test::Unit files"
-
       # Add bin/rails options
       class_option :version,            :type => :boolean, :aliases => "-v", :group => :rails,
                                         :desc => "Show Rails version number and quit"

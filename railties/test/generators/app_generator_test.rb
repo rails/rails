@@ -138,11 +138,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test"
   end
   
-  def test_test_unit_is_skipped_if_required
-    run_generator [destination_root, "--skip-test-unit"]
-    assert_no_file "test"
-  end
-  
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
     assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/

@@ -35,6 +35,11 @@ module SharedGeneratorTests
     assert_match /Invalid value for \-\-database option/, content
   end
 
+  def test_test_unit_is_skipped_if_required
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_no_file "test"
+  end
+
   def test_options_before_application_name_raises_an_error
     content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
     assert_match /Options should be given after the \w+ name. For details run: rails( plugin)? --help\n/, content
