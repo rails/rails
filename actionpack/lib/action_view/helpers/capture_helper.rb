@@ -39,7 +39,7 @@ module ActionView
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
         if string = buffer.presence || value and string.is_a?(String)
-          NonConcattingString.new(html_escape string)
+          NonConcattingString.new(ERB::Util.html_escape(string))
         end
       end
 
