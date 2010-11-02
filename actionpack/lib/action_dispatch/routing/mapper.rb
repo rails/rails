@@ -1,6 +1,7 @@
 require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
+require 'active_support/inflector'
 
 module ActionDispatch
   module Routing
@@ -186,8 +187,8 @@ module ActionDispatch
 
           def request_method_condition
             if via = @options[:via]
-              via = Array(via).map { |m| m.to_s.upcase }
-              { :request_method => Regexp.union(*via) }
+              via = Array(via).map { |m| m.to_s.dasherize.upcase }
+              { :request_method => %r[^#{via.join('|')}$] }
             else
               { }
             end
