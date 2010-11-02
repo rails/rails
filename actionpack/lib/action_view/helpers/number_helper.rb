@@ -15,7 +15,7 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
 
-      DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :unit => "$", :separator => ".", :delimiter => ",",
+      DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
                                   :precision => 2, :significant => false, :strip_insignificant_zeros => false }
 
       # Raised when argument +number+ param given to the helpers is invalid and
@@ -81,12 +81,13 @@ module ActionView
       # in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>     -  Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  -  Sets the level of precision (defaults to 2).
-      # * <tt>:unit</tt>       - Sets the denomination of the currency (defaults to "$").
-      # * <tt>:separator</tt>  - Sets the separator between the units (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
-      # * <tt>:format</tt>     - Sets the format of the output string (defaults to "%u%n"). The field types are:
+      # * <tt>:locale</tt>           - Sets the locale to be used for formatting (defaults to current locale).
+      # * <tt>:precision</tt>        - Sets the level of precision (defaults to 2).
+      # * <tt>:unit</tt>             - Sets the denomination of the currency (defaults to "$").
+      # * <tt>:separator</tt>        - Sets the separator between the units (defaults to ".").
+      # * <tt>:delimiter</tt>        - Sets the thousands delimiter (defaults to ",").
+      # * <tt>:format</tt>           - Sets the format of the output string (defaults to "%u%n").
+      # * <tt>:negative_format</tt>  - Sets the format of the output string (defaults to "-" + :format). The field types are:
       #
       #     %u  The currency unit
       #     %n  The number
@@ -97,6 +98,8 @@ module ActionView
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
       #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,506 €
       #
+      #  number_to_currency(1234567890.50, :negative_format => "(%u%n)")
+      #  # => ($1,234,567,890.51)
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #  # => &pound;1234567890,50
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
@@ -110,10 +113,16 @@ module ActionView
         currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
+        defaults[:negative_format] = "-" + options[:format] if options[:format]
         options   = defaults.merge!(options)
 
         unit      = options.delete(:unit)
         format    = options.delete(:format)
+
+        if number.to_f < 0
+          format = options.delete(:negative_format)
+          number = number.respond_to?("abs") ? number.abs : number.sub(/^-/, '')
+        end
 
         begin
           value = number_with_precision(number, options.merge(:raise => true))
