@@ -552,6 +552,7 @@ ActiveRecord::Schema.define do
     t.string   :parent_title
     t.string   :type
     t.string   :group
+    t.timestamps
   end
 
   create_table :toys, :primary_key => :toy_id ,:force => true do |t|
