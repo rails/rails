@@ -1,0 +1,4 @@
+module <%= camelized %>
+  class ApplicationController < ActiveController::Base
+  end
+end

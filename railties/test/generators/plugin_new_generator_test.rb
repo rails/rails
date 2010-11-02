@@ -131,6 +131,15 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_match /create\s+config\/application.rb/, run_generator
   end
 
+  def test_create_mountable_application_with_mountable_option
+    run_generator [destination_root, "--mountable"]
+    assert_file "config/routes.rb", /Bukkits::Engine.routes.draw do/
+    assert_file "lib/bukkits/engine.rb", /isolate_namespace Bukkits/
+    assert_file "test/dummy/config/routes.rb", /mount Bukkits::Engine => "\/bukkits"/
+    assert_file "app/controllers/bukkits/application_controller.rb", /module Bukkits\n  class ApplicationController < ActiveController::Base/
+    assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
+  end
+
 protected
 
   def action(*args, &block)

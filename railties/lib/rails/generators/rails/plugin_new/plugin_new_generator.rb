@@ -7,6 +7,10 @@ module Rails
       template "Rakefile"
     end
 
+    def app
+      directory "app" if options[:mountable]
+    end
+
     def readme
       copy_file "README.rdoc"
     end
@@ -35,6 +39,10 @@ module Rails
       end
     end
 
+    def config
+      template "config/routes.rb" if mountable?
+    end
+
     def test
       template "test/test_helper.rb"
       template "test/%name%_test.rb"
@@ -59,6 +67,9 @@ task :default => :test
     def test_dummy_config
       template "rails/boot.rb", "#{dummy_path}/config/boot.rb", :force => true
       template "rails/application.rb", "#{dummy_path}/config/application.rb", :force => true
+      if mountable?
+        template "rails/routes.rb", "#{dummy_path}/config/routes.rb", :force => true
+      end
     end
 
     def test_dummy_clean
@@ -91,8 +102,11 @@ task :default => :test
 
       alias_method :plugin_path, :app_path
 
-      class_option :full, :type => :boolean, :default => false,
-                          :desc => "Generate rails engine with integration tests"
+      class_option :full,       :type => :boolean, :default => false,
+                                :desc => "Generate rails engine with integration tests"
+
+      class_option :mountable,  :type => :boolean, :default => false,
+                                :desc => "Generate mountable isolated application"
 
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
@@ -109,6 +123,10 @@ task :default => :test
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
+      end
+
+      def create_app_files
+        build(:app)
       end
 
       def create_config_files
@@ -154,7 +172,11 @@ task :default => :test
       end
 
       def full?
-        options[:full]
+        options[:full] || options[:mountable]
+      end
+
+      def mountable?
+        options[:mountable]
       end
 
       def self.banner
