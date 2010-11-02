@@ -41,10 +41,6 @@ module ActiveRecord
         end
       end
 
-      def changed?
-        super || (attributes.keys & self.class.serialized_attributes.keys).present?
-      end
-
     private
       # Wrap write_attribute to remember original attribute value.
       def write_attribute(attr, value)
