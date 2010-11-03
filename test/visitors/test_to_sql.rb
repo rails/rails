@@ -45,6 +45,10 @@ module Arel
         @visitor.accept Date.today
       end
 
+      it "should visit_NilClass" do
+        @visitor.accept(nil).must_be_like "NULL"
+      end
+
       it "should visit_Arel_Nodes_And" do
         node = Nodes::And.new @attr.eq(10), @attr.eq(11)
         @visitor.accept(node).must_be_like %{

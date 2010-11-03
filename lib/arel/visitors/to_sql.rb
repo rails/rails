@@ -277,6 +277,7 @@ module Arel
       alias :visit_Symbol :visit_String
       alias :visit_Time :visit_String
       alias :visit_TrueClass :visit_String
+      alias :visit_NilClass :visit_String
 
       def quote value, column = nil
         @connection.quote value, column
