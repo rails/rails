@@ -86,11 +86,13 @@ module ActionView
       # * <tt>:unit</tt>             - Sets the denomination of the currency (defaults to "$").
       # * <tt>:separator</tt>        - Sets the separator between the units (defaults to ".").
       # * <tt>:delimiter</tt>        - Sets the thousands delimiter (defaults to ",").
-      # * <tt>:format</tt>           - Sets the format of the output string (defaults to "%u%n").
-      # * <tt>:negative_format</tt>  - Sets the format of the output string (defaults to "-" + :format). The field types are:
-      #
-      #     %u  The currency unit
-      #     %n  The number
+      # * <tt>:format</tt>           - Sets the format for non-negative numbers (defaults to "%u%n").
+      #                                Fields are <tt>%u</tt> for the currency, and <tt>%n</tt>
+      #                                for the number.
+      # * <tt>:negative_format</tt>  - Sets the format for negative numbers (defaults to prepending
+      #                                an hyphen to the formatted number given by <tt>:format</tt>).
+      #                                Accepts the same fields than <tt>:format</tt>, except
+      #                                <tt>%n</tt> is here the absolute value of the number.
       #
       # ==== Examples
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
