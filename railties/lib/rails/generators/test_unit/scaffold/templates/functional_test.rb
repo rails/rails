@@ -1,5 +1,6 @@
 require 'test_helper'
 
+<% module_namespacing do -%>
 class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   setup do
     @<%= singular_table_name %> = <%= table_name %>(:one)
@@ -47,3 +48,4 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
     assert_redirected_to <%= index_helper %>_path
   end
 end
+<% end -%>
