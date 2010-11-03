@@ -1,13 +1,7 @@
-# A base class with no predefined methods that tries to behave like Builder's
-# BlankSlate in Ruby 1.9. In Ruby pre-1.9, this is actually the
-# Builder::BlankSlate class.
-#
-# Ruby 1.9 introduces BasicObject which differs slightly from Builder's
-# BlankSlate that has been used so far. ActiveSupport::BasicObject provides a
-# barebones base class that emulates Builder::BlankSlate while still relying on
-# Ruby 1.9's BasicObject in Ruby 1.9.
 module ActiveSupport
   if defined? ::BasicObject
+    # A class with no predefined methods that behaves similarly to Builder's
+    # BlankSlate. Used for proxy classes.
     class BasicObject < ::BasicObject
       undef_method :==
       undef_method :equal?
@@ -18,7 +12,10 @@ module ActiveSupport
       end
     end
   else
-    require 'blankslate'
-    BasicObject = BlankSlate
+    class BasicObject #:nodoc:
+      instance_methods.each do |m|
+        undef_method(m) if m.to_s !~ /(?:^__|^nil\?$|^send$|^object_id$)/
+      end
+    end
   end
 end
