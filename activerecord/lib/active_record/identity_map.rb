@@ -71,7 +71,7 @@ module ActiveRecord
       alias identity_map= enabled=
     end
 
-    self.enabled = true
+    self.enabled = false
 
     module InstanceMethods
       # Reinitialize an Identity Map model object from +coder+.
