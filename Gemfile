@@ -6,8 +6,6 @@ else
   gem "arel", :git => "git://github.com/rails/arel.git"
 end
 
-gem "thor", :git => "git://github.com/wycats/thor.git"
-
 gem "rack", :git => "git://github.com/rack/rack.git"
 gem "rails", :path => File.dirname(__FILE__)
 
