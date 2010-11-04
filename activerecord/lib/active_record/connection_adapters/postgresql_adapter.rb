@@ -932,12 +932,12 @@ module ActiveRecord
       # requires that the ORDER BY include the distinct column.
       #
       #   distinct("posts.id", "posts.created_at desc")
-      def distinct(columns, order_by) #:nodoc:
-        return "DISTINCT #{columns}" if order_by.blank?
+      def distinct(columns, orders) #:nodoc:
+        return "DISTINCT #{columns}" if orders.empty?
 
         # Construct a clean list of column names from the ORDER BY clause, removing
         # any ASC/DESC modifiers
-        order_columns = order_by.split(',').collect { |s| s.split.first }
+        order_columns = orders.collect { |s| s.split.first }
         order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 

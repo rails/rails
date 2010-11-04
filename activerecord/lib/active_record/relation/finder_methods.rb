@@ -222,7 +222,7 @@ module ActiveRecord
     end
 
     def construct_limited_ids_condition(relation)
-      orders = relation.order_values.join(", ")
+      orders = relation.order_values
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name @klass.table_name}.#{@klass.primary_key}", orders)
 
       ids_array = relation.select(values).collect {|row| row[@klass.primary_key]}

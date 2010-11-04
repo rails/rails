@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/tag'
 require 'models/tagging'
 require 'models/post'
 require 'models/topic'
@@ -17,7 +18,7 @@ require 'models/tyre'
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :taggings, :cars
+    :tags, :taggings, :cars
 
   def test_bind_values
     relation = Post.scoped
@@ -142,6 +143,26 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 2, entrants.size
     assert_equal entrants(:first).name, entrants.first.name
+  end
+
+  def test_finding_with_complex_order_and_limit
+    if current_adapter?(:SQLite3Adapter)
+      tags = Tag.includes(:taggings).order("MIN(1,2)").limit(1).to_a
+    else
+      tags = Tag.includes(:taggings).order("LEAST(1,COS(1)*COS(-1)*COS(RADIANS(taggings.super_tag_id)))").limit(1).to_a
+    end
+
+    assert_equal 1, tags.length
+  end
+
+  def test_finding_with_complex_order
+    if current_adapter?(:SQLite3Adapter)
+      tags = Tag.includes(:taggings).order("MIN(1,2)").to_a
+    else
+      tags = Tag.includes(:taggings).order("LEAST(1,COS(1)*COS(-1)*COS(RADIANS(taggings.super_tag_id)))").to_a
+    end
+
+    assert_equal 2, tags.length
   end
 
   def test_finding_with_order_limit_and_offset
