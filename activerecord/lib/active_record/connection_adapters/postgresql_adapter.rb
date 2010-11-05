@@ -398,7 +398,7 @@ module ActiveRecord
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        exec "SET SESSION AUTHORIZATION #{user}"
+        exec_query "SET SESSION AUTHORIZATION #{user}"
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -532,7 +532,7 @@ module ActiveRecord
         Arel.sql("$#{current_values.length + 1}")
       end
 
-      def exec(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [])
         return exec_no_cache(sql, name) if binds.empty?
 
         log(sql, name) do
@@ -1040,7 +1040,7 @@ module ActiveRecord
         # Executes a SELECT query and returns the results, performing any data type
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil, binds = [])
-          exec(sql, name, binds).to_a
+          exec_query(sql, name, binds).to_a
         end
 
         def select_raw(sql, name = nil)
