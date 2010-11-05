@@ -48,6 +48,7 @@ module Arel
           ("WHERE #{wheres.map { |x| visit x }.join ' AND '}" unless wheres.empty?)
         ].compact.join ' '
       end
+
       def visit_Arel_Nodes_InsertStatement o
         [
           "INSERT INTO #{visit o.relation}",

@@ -10,6 +10,11 @@ module Arel
         super
       end
 
+      def visit_Arel_Nodes_SelectCore o
+        o.froms ||= Arel.sql('DUAL')
+        super
+      end
+
       def visit_Arel_Nodes_UpdateStatement o
         [
           "UPDATE #{visit o.relation}",

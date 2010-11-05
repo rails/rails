@@ -14,7 +14,13 @@ module Arel
         stmt = Nodes::SelectStatement.new
         stmt.offset = Nodes::Offset.new(1)
         sql = @visitor.accept(stmt)
-        sql.must_be_like "SELECT LIMIT 18446744073709551615 OFFSET 1"
+        sql.must_be_like "SELECT FROM DUAL LIMIT 18446744073709551615 OFFSET 1"
+      end
+
+      it 'uses DUAL for empty from' do
+        stmt = Nodes::SelectStatement.new
+        sql = @visitor.accept(stmt)
+        sql.must_be_like "SELECT FROM DUAL"
       end
     end
   end
