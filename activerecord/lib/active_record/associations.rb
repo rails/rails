@@ -1839,8 +1839,6 @@ module ActiveRecord
             @join_parts            = [JoinBase.new(base, joins)]
             @associations          = {}
             @reflections           = []
-            @base_records_hash     = {}
-            @base_records_in_order = []
             @table_aliases         = Hash.new(0)
             @table_aliases[base.table_name] = 1
             build(associations)
@@ -1875,16 +1873,17 @@ module ActiveRecord
 
           def instantiate(rows)
             primary_key = join_base.aliased_primary_key
+            base_records_hash = {}
 
             rows.each do |model|
               primary_id = model[primary_key]
-              unless @base_records_hash[primary_id]
-                @base_records_in_order << (@base_records_hash[primary_id] = join_base.instantiate(model))
-              end
-              construct(@base_records_hash[primary_id], @associations, join_associations.dup, model)
+              base_records_hash[primary_id] ||= join_base.instantiate(model)
+              construct(base_records_hash[primary_id], @associations, join_associations.dup, model)
             end
-            remove_duplicate_results!(join_base.active_record, @base_records_in_order, @associations)
-            return @base_records_in_order
+
+            records = base_records_hash.values
+            remove_duplicate_results!(join_base.active_record, records, @associations)
+            records
           end
 
           def remove_duplicate_results!(base, records, associations)
