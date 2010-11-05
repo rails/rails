@@ -10,7 +10,9 @@ module FakeRecord
       @columns = {
         'users' => [
           Column.new('id', :integer),
-          Column.new('name', :string)
+          Column.new('name', :string),
+          Column.new('bool', :boolean),
+          Column.new('created_at', :date),
         ]
       }
       @primary_keys = {

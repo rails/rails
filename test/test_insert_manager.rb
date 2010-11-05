@@ -13,11 +13,9 @@ module Arel
         table = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine
 
-        table[:id].column.extend(Module.new { def type; :boolean; end })
-
-        manager.insert [[table[:id], false]]
+        manager.insert [[table[:bool], false]]
         manager.to_sql.must_be_like %{
-          INSERT INTO "users" ("id") VALUES ('f')
+          INSERT INTO "users" ("bool") VALUES ('f')
         }
       end
 
@@ -35,12 +33,11 @@ module Arel
         manager = Arel::InsertManager.new Table.engine
 
         time = Time.now
-        attribute = table[:id]
-        attribute.column.type = :date
+        attribute = table[:created_at]
 
         manager.insert [[attribute, time]]
         manager.to_sql.must_be_like %{
-          INSERT INTO "users" ("id") VALUES (#{Table.engine.connection.quote time})
+          INSERT INTO "users" ("created_at") VALUES (#{Table.engine.connection.quote time})
         }
       end
 

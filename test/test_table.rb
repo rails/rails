@@ -150,8 +150,8 @@ module Arel
     describe 'columns' do
       it 'returns a list of columns' do
         columns = @relation.columns
-        columns.length.must_equal 2
-        columns.map { |x| x.name.to_s }.sort.must_equal %w{ name id }.sort
+        columns.length.must_equal 4
+        columns.map { |x| x.name.to_s }.sort.must_equal %w{ created_at bool name id }.sort
       end
     end
 

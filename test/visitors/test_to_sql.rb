@@ -69,9 +69,8 @@ module Arel
       end
 
       it "should visit_TrueClass" do
-        test = @attr.eq(true)
-        test.left.column.type = :boolean
-        @visitor.accept(test).must_be_like %{ "users"."id" = 't' }
+        test = Table.new(:users)[:bool].eq(true)
+        @visitor.accept(test).must_be_like %{ "users"."bool" = 't' }
       end
 
       describe "Nodes::Ordering" do
@@ -113,6 +112,7 @@ module Arel
         end
 
         it 'uses the same column for escaping values' do
+        @attr = Table.new(:users)[:name]
           visitor = Class.new(ToSql) do
             attr_accessor :expected
 
@@ -124,16 +124,15 @@ module Arel
           in_node = Nodes::In.new @attr, %w{ a b c }
           visitor = visitor.new(Table.engine)
           visitor.expected = @attr.column
-          visitor.accept(in_node).must_equal %("users"."id" IN ('a', 'b', 'c'))
+          visitor.accept(in_node).must_equal %("users"."name" IN ('a', 'b', 'c'))
         end
       end
 
       describe 'Equality' do
         it "should escape strings" do
-          test = @attr.eq 'Aaron Patterson'
-          test.left.column.type = :string
+          test = Table.new(:users)[:name].eq 'Aaron Patterson'
           @visitor.accept(test).must_be_like %{
-            "users"."id" = 'Aaron Patterson'
+            "users"."name" = 'Aaron Patterson'
           }
         end
       end
