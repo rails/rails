@@ -1874,12 +1874,14 @@ module ActiveRecord
           end
 
           def instantiate(rows)
-            rows.each_with_index do |row, i|
-              primary_id = join_base.record_id(row)
+            primary_key = join_base.aliased_primary_key
+
+            rows.each_with_index do |model, i|
+              primary_id = model[primary_key]
               unless @base_records_hash[primary_id]
-                @base_records_in_order << (@base_records_hash[primary_id] = join_base.instantiate(row))
+                @base_records_in_order << (@base_records_hash[primary_id] = join_base.instantiate(model))
               end
-              construct(@base_records_hash[primary_id], @associations, join_associations.dup, row)
+              construct(@base_records_hash[primary_id], @associations, join_associations.dup, model)
             end
             remove_duplicate_results!(join_base.active_record, @base_records_in_order, @associations)
             return @base_records_in_order
