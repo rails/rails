@@ -31,6 +31,11 @@ platforms :mri_18 do
   gem 'ruby-prof'
 end
 
+platforms :mri_19 do
+  # TODO: Remove the conditional when ruby-debug19 supports Ruby >= 1.9.3
+  gem "ruby-debug19" if RUBY_VERSION < "1.9.3"
+end
+
 platforms :ruby do
   gem 'json'
   gem 'yajl-ruby'
