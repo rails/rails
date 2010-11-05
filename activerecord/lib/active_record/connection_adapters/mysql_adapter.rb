@@ -326,7 +326,7 @@ module ActiveRecord
         @statements.clear
       end
 
-      def exec(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [])
         log(sql, name) do
           result = nil
 
@@ -708,7 +708,7 @@ module ActiveRecord
 
         def select(sql, name = nil, binds = [])
           @connection.query_with_result = true
-          rows = exec(sql, name, binds).to_a
+          rows = exec_query(sql, name, binds).to_a
           @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
           rows
         end
