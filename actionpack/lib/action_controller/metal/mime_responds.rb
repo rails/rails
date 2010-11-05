@@ -227,7 +227,7 @@ module ActionController #:nodoc:
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
 
       if response = retrieve_response_from_mimes(&block)
-        options = resources.extract_options!
+        options = resources.size == 1 ? {} : resources.extract_options!
         options.merge!(:default_response => response)
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
