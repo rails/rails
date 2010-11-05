@@ -13,8 +13,8 @@ module Arel
       end
       um.table relation
       um.set values
-      um.take @head.limit
-      um.order(*@head.orders)
+      um.take @ast.limit
+      um.order(*@ast.orders)
       um.wheres = @ctx.wheres
 
       @engine.connection.update um.to_sql, 'AREL'

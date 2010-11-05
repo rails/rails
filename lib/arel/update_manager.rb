@@ -2,40 +2,40 @@ module Arel
   class UpdateManager < Arel::TreeManager
     def initialize engine
       super
-      @head = Nodes::UpdateStatement.new
+      @ast = Nodes::UpdateStatement.new
     end
 
     def take limit
-      @head.limit = limit
+      @ast.limit = limit
       self
     end
 
     def order *expr
-      @head.orders = expr
+      @ast.orders = expr
       self
     end
 
     ###
     # UPDATE +table+
     def table table
-      @head.relation = table
+      @ast.relation = table
       self
     end
 
     def wheres= exprs
-      @head.wheres = exprs
+      @ast.wheres = exprs
     end
 
     def where expr
-      @head.wheres << expr
+      @ast.wheres << expr
       self
     end
 
     def set values
       if String === values
-        @head.values = [values]
+        @ast.values = [values]
       else
-        @head.values = values.map { |column,value|
+        @ast.values = values.map { |column,value|
           Nodes::Assignment.new(
             Nodes::UnqualifiedColumn.new(column),
             value

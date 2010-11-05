@@ -4,13 +4,13 @@ module Arel
 
     def initialize engine, table = nil
       super(engine)
-      @head   = Nodes::SelectStatement.new
-      @ctx    = @head.cores.last
+      @ast   = Nodes::SelectStatement.new
+      @ctx    = @ast.cores.last
       from table
     end
 
     def taken
-      @head.limit
+      @ast.limit
     end
 
     def constraints
@@ -18,7 +18,7 @@ module Arel
     end
 
     def skip amount
-      @head.offset = Nodes::Offset.new(amount)
+      @ast.offset = Nodes::Offset.new(amount)
       self
     end
 
@@ -31,12 +31,12 @@ module Arel
     def lock locking = true
       # FIXME: do we even need to store this?  If locking is +false+ shouldn't
       # we just remove the node from the AST?
-      @head.lock = Nodes::Lock.new
+      @ast.lock = Nodes::Lock.new
       self
     end
 
     def locked
-      @head.lock
+      @ast.lock
     end
 
     def on *exprs
@@ -108,14 +108,14 @@ module Arel
 
     def order *expr
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
-      @head.orders.concat expr.map { |x|
+      @ast.orders.concat expr.map { |x|
         String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
     end
 
     def orders
-      @head.orders
+      @ast.orders
     end
 
     def wheres
@@ -130,7 +130,7 @@ module Arel
     end
 
     def take limit
-      @head.limit = limit
+      @ast.limit = limit
       self
     end
 
@@ -142,7 +142,7 @@ module Arel
     end
 
     def order_clauses
-      Visitors::OrderClauses.new(@engine).accept(@head).map { |x|
+      Visitors::OrderClauses.new(@engine).accept(@ast).map { |x|
         Nodes::SqlLiteral.new x
       }
     end

@@ -130,6 +130,15 @@ module Arel
       end
     end
 
+    describe 'ast' do
+      it 'should return the ast' do
+        table   = Table.new :users
+        mgr = table.from table
+        ast = mgr.ast
+        mgr.visitor.accept(ast).must_equal mgr.to_sql
+      end
+    end
+
     describe 'taken' do
       it 'should return limit' do
         manager = Arel::SelectManager.new Table.engine

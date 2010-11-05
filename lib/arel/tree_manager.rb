@@ -4,6 +4,7 @@ module Arel
     include Arel::Relation
 
     attr_accessor :visitor
+    attr_reader :ast
 
     def initialize engine
       @engine  = engine
@@ -11,16 +12,16 @@ module Arel
     end
 
     def to_dot
-      Visitors::Dot.new.accept @head
+      Visitors::Dot.new.accept @ast
     end
 
     def to_sql
-      @visitor.accept @head
+      @visitor.accept @ast
     end
 
     def initialize_copy other
       super
-      @head = @head.clone
+      @ast = @ast.clone
     end
   end
 end
