@@ -171,14 +171,16 @@ module ActiveRecord
     def exists?(id = nil)
       id = id.id if ActiveRecord::Base === id
 
+      relation = select(primary_key).limit(1)
+
       case id
       when Array, Hash
-        where(id).exists?
+        relation = relation.where(id)
       else
-        relation = select(primary_key).limit(1)
         relation = relation.where(primary_key.eq(id)) if id
-        relation.first ? true : false
       end
+
+      relation.first ? true : false
     end
 
     protected
