@@ -1876,7 +1876,7 @@ module ActiveRecord
           def instantiate(rows)
             primary_key = join_base.aliased_primary_key
 
-            rows.each_with_index do |model, i|
+            rows.each do |model|
               primary_id = model[primary_key]
               unless @base_records_hash[primary_id]
                 @base_records_in_order << (@base_records_hash[primary_id] = join_base.instantiate(model))
