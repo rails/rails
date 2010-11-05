@@ -487,6 +487,10 @@ class RespondWithController < ActionController::Base
     respond_with(resource)
   end
 
+  def using_hash_resource
+    respond_with({:result => resource})
+  end
+
   def using_resource_with_block
     respond_with(resource) do |format|
       format.csv { render :text => "CSV" }
@@ -585,6 +589,18 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_raise ActionView::MissingTemplate do
       get :using_resource
     end
+  end
+
+  def test_using_hash_resource
+    @request.accept = "application/xml"
+    get :using_hash_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <name>david</name>\n</hash>\n", @response.body
+
+    @request.accept = "application/json"
+    get :using_hash_resource
+    assert_equal "application/json", @response.content_type
+    assert_equal %Q[{"result":["david",13]}], @response.body
   end
 
   def test_using_resource_with_block
