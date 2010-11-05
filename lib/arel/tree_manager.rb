@@ -4,7 +4,7 @@ module Arel
     include Arel::Relation
 
     attr_accessor :visitor
-    attr_reader :ast
+    attr_reader :ast, :engine
 
     def initialize engine
       @engine  = engine

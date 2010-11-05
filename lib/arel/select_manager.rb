@@ -22,6 +22,12 @@ module Arel
       self
     end
 
+    ###
+    # Produces an Arel::Nodes::Exists node
+    def exists
+      Arel::Nodes::Exists.new @ast
+    end
+
     def where_clauses
       #warn "where_clauses is deprecated" if $VERBOSE
       to_sql = Visitors::ToSql.new @engine

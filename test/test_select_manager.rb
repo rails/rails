@@ -56,9 +56,7 @@ module Arel
           manager.project SqlLiteral.new '*'
           manager.from table
           manager.order :foo
-          manager.to_sql.must_be_like %{
-          SELECT * FROM "users" ORDER BY foo
-          }
+          manager.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo }
         end
       end
 
@@ -68,9 +66,7 @@ module Arel
           manager = Arel::SelectManager.new Table.engine
           manager.from table
           manager.group :foo
-          manager.to_sql.must_be_like %{
-          SELECT FROM "users" GROUP BY foo
-          }
+          manager.to_sql.must_be_like %{ SELECT FROM "users" GROUP BY foo }
         end
       end
 
@@ -127,6 +123,26 @@ module Arel
         table   = Table.new :users
         mgr = table.from table
         mgr.skip(10).to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+      end
+    end
+
+    describe 'exists' do
+      it 'should create an exists clause' do
+        table = Table.new(:users)
+        manager = Arel::SelectManager.new Table.engine, table
+        manager.project SqlLiteral.new '*'
+        m2 = Arel::SelectManager.new(manager.engine)
+        m2.project manager.exists
+        m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) }
+      end
+
+      it 'can be aliased' do
+        table = Table.new(:users)
+        manager = Arel::SelectManager.new Table.engine, table
+        manager.project SqlLiteral.new '*'
+        m2 = Arel::SelectManager.new(manager.engine)
+        m2.project manager.exists.as('foo')
+        m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) AS foo }
       end
     end
 

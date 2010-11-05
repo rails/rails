@@ -62,7 +62,8 @@ module Arel
       end
 
       def visit_Arel_Nodes_Exists o
-        "EXISTS (#{visit o.select_stmt})"
+        "EXISTS (#{visit o.select_stmt})#{
+          o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
       def visit_Arel_Nodes_Values o
