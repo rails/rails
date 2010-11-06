@@ -14,7 +14,6 @@ module ActionController
         cookies.write(@_response)
       end
       @_response.prepare!
-      @assigns = respond_to?(:view_assigns) ? view_assigns : {}
       ret
     end
 
