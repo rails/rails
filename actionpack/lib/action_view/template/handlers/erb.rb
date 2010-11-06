@@ -40,7 +40,11 @@ module ActionView
         end
 
         def add_expr_escaped(src, code)
-          src << '@output_buffer.append= ' << escaped_expr(code) << ';'
+          if code =~ BLOCK_EXPR
+            src << "@output_buffer.safe_append= " << code
+          else
+            src << "@output_buffer.safe_concat((" << code << ").to_s);"
+          end
         end
 
         def add_postamble(src)
