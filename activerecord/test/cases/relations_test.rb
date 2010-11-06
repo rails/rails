@@ -148,6 +148,8 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_complex_order_and_limit
     if current_adapter?(:SQLite3Adapter)
       tags = Tag.includes(:taggings).order("MIN(1,2)").limit(1).to_a
+    elsif current_adapter?(:OracleAdapter)
+      tags = Tag.includes(:taggings).order("LEAST(1,COS(1)*COS(-1)*COS(taggings.super_tag_id * 3.14159265359/180))").limit(1).to_a
     else
       tags = Tag.includes(:taggings).order("LEAST(1,COS(1)*COS(-1)*COS(RADIANS(taggings.super_tag_id)))").limit(1).to_a
     end
@@ -158,6 +160,8 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_complex_order
     if current_adapter?(:SQLite3Adapter)
       tags = Tag.includes(:taggings).order("MIN(1,2)").to_a
+    elsif current_adapter?(:OracleAdapter)
+      tags = Tag.includes(:taggings).order("LEAST(1,COS(1)*COS(-1)*COS(taggings.super_tag_id * 3.14159265359/180))").to_a
     else
       tags = Tag.includes(:taggings).order("LEAST(1,COS(1)*COS(-1)*COS(RADIANS(taggings.super_tag_id)))").to_a
     end
