@@ -1983,10 +1983,13 @@ module ActiveRecord
             def construct(parent, associations, join_parts, row)
               case associations
               when Symbol, String
+                associations = associations.to_s
+
                 join_part = join_parts.detect { |j|
-                  j.reflection.name.to_s == associations.to_s &&
+                  j.reflection.name.to_s == associations &&
                   j.parent_table_name    == parent.class.table_name }
-                raise(ConfigurationError, "No such association") if join_part.nil?
+
+                raise(ConfigurationError, "No such association") unless join_part
 
                 join_parts.delete(join_part)
                 construct_association(parent, join_part, row)
