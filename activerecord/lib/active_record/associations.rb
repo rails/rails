@@ -1873,15 +1873,15 @@ module ActiveRecord
 
           def instantiate(rows)
             primary_key = join_base.aliased_primary_key
-            base_records_hash = {}
+            parents = {}
 
-            rows.each do |model|
+            records = rows.map { |model|
               primary_id = model[primary_key]
-              base_records_hash[primary_id] ||= join_base.instantiate(model)
-              construct(base_records_hash[primary_id], @associations, join_associations.dup, model)
-            end
+              parent = parents[primary_id] ||= join_base.instantiate(model)
+              construct(parent, @associations, join_associations.dup, model)
+              parent
+            }.uniq
 
-            records = base_records_hash.values
             remove_duplicate_results!(join_base.active_record, records, @associations)
             records
           end
