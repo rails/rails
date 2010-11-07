@@ -451,9 +451,9 @@ module ActionDispatch
         # [:as]
         #  Prefixes the routing helpers in this scope with the specified label.
         #
-        #  scope :as => "sekret" do
-        #    resources :posts
-        #  end
+        #    scope :as => "sekret" do
+        #      resources :posts
+        #    end
         #
         # Helpers such as +posts_path+ will now be +sekret_posts_path+
         def scope(*args)
