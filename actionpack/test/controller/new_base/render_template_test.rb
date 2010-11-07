@@ -8,7 +8,8 @@ module RenderTemplate
       "shared.html.erb"          => "Elastica",
       "locals.html.erb"          => "The secret is <%= secret %>",
       "xml_template.xml.builder" => "xml.html do\n  xml.p 'Hello'\nend",
-      "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>"
+      "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>",
+      "with_implicit_raw.html.erb"=> "Hello <%== '<strong>this is also raw</strong>' %>",
     )]
 
     def index
@@ -41,6 +42,10 @@ module RenderTemplate
 
     def with_raw
       render :template => "with_raw"
+    end
+
+    def with_implicit_raw
+      render :template => "with_implicit_raw"
     end
   end
 
@@ -86,6 +91,11 @@ module RenderTemplate
       get :with_raw
 
       assert_body "Hello <strong>this is raw</strong>"
+      assert_status 200
+
+      get :with_implicit_raw
+
+      assert_body "Hello <strong>this is also raw</strong>"
       assert_status 200
     end
   end
