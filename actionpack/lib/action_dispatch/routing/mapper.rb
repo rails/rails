@@ -468,6 +468,8 @@ module ActionDispatch
         # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
         # to Admin::PostsController:
         #
+        # Examples:
+        #
         #   scope :module => "admin" do
         #     resources :posts
         #   end
