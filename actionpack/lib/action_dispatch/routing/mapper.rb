@@ -467,12 +467,21 @@ module ActionDispatch
 
         # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
         # to Admin::PostsController:
+        # === Supported options
+        # [:module]
+        #   If you want to route /posts (without the prefix /admin) to
+        #   Admin::PostsController, you could use
         #
-        # Examples:
+        #     scope :module => "admin" do
+        #       resources :posts
+        #     end
+        # [:path]
+        #  If you want to prefix the route, you could use
         #
-        #   scope :module => "admin" do
-        #     resources :posts
-        #   end
+        #     scope :path => "/admin" do
+        #       resources :posts
+        #     end
+        # This will prefix all of the +posts+ resource's requests with '/admin'
         def scope(*args)
           options = args.extract_options!
           options = options.dup
