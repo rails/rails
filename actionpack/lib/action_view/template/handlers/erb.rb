@@ -14,6 +14,7 @@ module ActionView
       super(value.to_s)
     end
     alias :append= :<<
+    alias :safe_append= :safe_concat
 
     def append_if_string=(value)
       if value.is_a?(String) && !value.is_a?(NonConcattingString)
