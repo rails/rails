@@ -445,7 +445,17 @@ module ActionDispatch
         #     scope :path => "/admin" do
         #       resources :posts
         #     end
+        #
         # This will prefix all of the +posts+ resource's requests with '/admin'
+        #
+        # [:as]
+        #  Prefixes the routing helpers in this scope with the specified label.
+        #
+        #  scope :as => "sekret" do
+        #    resources :posts
+        #  end
+        #
+        # Helpers such as +posts_path+ will now be +sekret_posts_path+
         def scope(*args)
           options = args.extract_options!
           options = options.dup
