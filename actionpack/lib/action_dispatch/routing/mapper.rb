@@ -570,6 +570,14 @@ module ActionDispatch
         #     # code go here
         #   end
         #
+        # [:as]
+        #  Changes the name used in routing helpers for this namespace.
+        #
+        #  namespace :admin, :as => "sekret" do
+        #    resources :posts
+        #  end
+        #
+        # Routing helpers such as +admin_posts_path+ will now be +sekret_posts_path+.
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
