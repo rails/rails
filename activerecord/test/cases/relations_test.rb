@@ -146,12 +146,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.includes(:taggings).order("REPLACE('abc','a','b')").limit(1).to_a
+    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.includes(:taggings).order("REPLACE('abc','a','b')").to_a
+    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
     assert_equal 2, tags.length
   end
 
