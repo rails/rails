@@ -286,21 +286,41 @@ module ActionDispatch
 
       module HttpHelpers
         # Define a route that only recognizes HTTP GET.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, *args, &block)
         end
 
         # Define a route that only recognizes HTTP POST.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
           map_method(:post, *args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
           map_method(:put, *args, &block)
         end
 
-        # Define a route that only recognizes HTTP DELETE.
+        # Define a route that only recognizes HTTP PUT.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, *args, &block)
         end
