@@ -512,6 +512,17 @@ module ActionDispatch
         #      admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
         #      admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
         #      admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        # === Supported options
+        #
+        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
+        #
+        # [:path]
+        #   The path prefix for the routes.
+        #
+        #   namespace :admin, :path => "sekret" do
+        #     resources :posts
+        #   end
+        #
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
