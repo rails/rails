@@ -513,6 +513,11 @@ class FileStoreTest < ActiveSupport::TestCase
       assert_nil old_cache.read('foo')
     end
   end
+
+  def test_key_transformation
+    key = @cache.send(:key_file_path, "views/index?id=1")
+    assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
