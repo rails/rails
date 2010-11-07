@@ -529,6 +529,21 @@ module ActionDispatch
           scope(options) { yield }
         end
 
+        # Scopes routes to a specific namespace. For example:
+        #
+        #   namespace :admin do
+        #     resources :posts
+        #   end
+        #
+        # This generates the following routes:
+        #
+        #     admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
+        #     admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
+        #  new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
+        # edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
+        #      admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #      admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
+        #      admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
