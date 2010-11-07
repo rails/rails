@@ -1983,10 +1983,10 @@ module ActiveRecord
             def construct(parent, associations, join_parts, row)
               case associations
               when Symbol, String
-                associations = associations.to_s
+                name = associations.to_s
 
                 join_part = join_parts.detect { |j|
-                  j.reflection.name.to_s == associations &&
+                  j.reflection.name.to_s == name &&
                   j.parent_table_name    == parent.class.table_name }
 
                 raise(ConfigurationError, "No such association") unless join_part
@@ -1999,13 +1999,7 @@ module ActiveRecord
                 end
               when Hash
                 associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
-                  join_part = join_parts.detect{ |j|
-                    j.reflection.name.to_s == name.to_s &&
-                    j.parent_table_name    == parent.class.table_name }
-                  raise(ConfigurationError, "No such association") if join_part.nil?
-
-                  association = construct_association(parent, join_part, row)
-                  join_parts.delete(join_part)
+                  association = construct(parent, name, join_parts, row)
                   construct(association, assoc, join_parts, row) if association
                 end
               else
