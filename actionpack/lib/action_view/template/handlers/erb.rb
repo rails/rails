@@ -15,6 +15,7 @@ module ActionView
       super(value.to_s)
     end
     alias :append= :<<
+    alias :safe_append= :safe_concat
   end
 
   class Template

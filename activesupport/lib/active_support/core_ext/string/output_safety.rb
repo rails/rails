@@ -73,7 +73,6 @@ end
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
     alias safe_concat concat
-    alias safe_append= concat
 
     def concat(value)
       if value.html_safe?
