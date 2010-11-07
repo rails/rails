@@ -462,7 +462,7 @@ class UserMailerTest < ActionMailer::TestCase
     user = users(:some_user_in_your_fixtures)
 
     # Send the email, then test that it got queued
-    email = UserMailer.deliver_welcome_email(user)
+    email = UserMailer.welcome_email(user).deliver
     assert !ActionMailer::Base.deliveries.empty?
 
     # Test the body of the sent email contains what we expect it to
