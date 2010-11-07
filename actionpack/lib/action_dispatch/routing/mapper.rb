@@ -534,6 +534,11 @@ module ActionDispatch
           scope(:constraints => constraints) { yield }
         end
 
+        # Allows you to set default parameters for a route, such as this:
+        # defaults :id => 'home' do
+        #   match 'scoped_pages/(:id)', :to => 'pages#show'
+        # end
+        # Using this, the +:id+ parameter here will default to 'home'.
         def defaults(defaults = {})
           scope(:defaults => defaults) { yield }
         end
