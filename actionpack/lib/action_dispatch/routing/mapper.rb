@@ -426,22 +426,22 @@ module ActionDispatch
       #   PUT	    /admin/photos/1
       #   DELETE  /admin/photos/1
       #
-      # If you want to route /photos (without the prefix /admin) to
+      # If you want to route /posts (without the prefix /admin) to
       # Admin::PostsController, you could use
       #
       #   scope :module => "admin" do
-      #     resources :posts, :comments
+      #     resources :posts
       #   end
       #
       # or, for a single case
       #
       #   resources :posts, :module => "admin"
       #
-      # If you want to route /admin/photos to PostsController
+      # If you want to route /admin/posts to PostsController
       # (without the Admin:: module prefix), you could use
       #
       #   scope "/admin" do
-      #     resources :posts, :comments
+      #     resources :posts
       #   end
       #
       # or, for a single case
