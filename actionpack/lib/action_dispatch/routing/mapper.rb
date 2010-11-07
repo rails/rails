@@ -518,6 +518,12 @@ module ActionDispatch
           @scope[:blocks]  = recover[:block]
         end
 
+        # Scopes routes to a specific controller
+        #
+        # Example:
+        #   controller "food" do
+        #     match "bacon", :action => "bacon"
+        #   end
         def controller(controller, options={})
           options[:controller] = controller
           scope(options) { yield }
