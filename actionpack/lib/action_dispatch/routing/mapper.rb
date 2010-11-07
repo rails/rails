@@ -523,6 +523,21 @@ module ActionDispatch
         #     resources :posts
         #   end
         #
+        #   All routes for the above +resources+ will be accessible through +/sekret/posts+, rather than +/admin/posts+
+        #
+        # [:module]
+        #   The namespace for the controllers.
+        #
+        #   namespace :admin, :module => "sekret" do
+        #     resources :posts
+        #   end
+        #
+        #   The +PostsController+ here should go in the +Sekret+ namespace and so it should be defined like this:
+        #
+        #   class Sekret::PostsController < ApplicationController
+        #     # code go here
+        #   end
+        #
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
