@@ -483,7 +483,7 @@ module ActionDispatch
         #       resources :posts
         #     end
         #
-        # This will prefix all of the +posts+ resource's requests with '/admin'
+        #   This will prefix all of the +posts+ resource's requests with '/admin'
         #
         # [:as]
         #  Prefixes the routing helpers in this scope with the specified label.
