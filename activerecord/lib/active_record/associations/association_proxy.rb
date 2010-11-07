@@ -175,10 +175,10 @@ module ActiveRecord
         # If the association is polymorphic the type of the owner is also set.
         def set_belongs_to_association_for(record)
           if @reflection.options[:as]
-            record["#{@reflection.options[:as]}_id"]   = @owner.id unless @owner.new_record?
+            record["#{@reflection.options[:as]}_id"]   = @owner.id if @owner.persisted?
             record["#{@reflection.options[:as]}_type"] = @owner.class.base_class.name.to_s
           else
-            unless @owner.new_record?
+            if @owner.persisted?
               primary_key = @reflection.options[:primary_key] || :id
               record[@reflection.primary_key_name] = @owner.send(primary_key)
             end
@@ -252,7 +252,7 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? and (!@owner.new_record? || foreign_key_present)
+          if !loaded? and (@owner.persisted? || foreign_key_present)
             @target = find_target
           end
 

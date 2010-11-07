@@ -450,11 +450,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_tag = Tag.new(:name => "new")
 
     saved_post.tags << new_tag
-    assert !new_tag.new_record? #consistent with habtm!
-    assert !saved_post.new_record?
+    assert new_tag.persisted? #consistent with habtm!
+    assert saved_post.persisted?
     assert saved_post.tags.include?(new_tag)
 
-    assert !new_tag.new_record?
+    assert new_tag.persisted?
     assert saved_post.reload.tags(true).include?(new_tag)
 
 
@@ -462,16 +462,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     saved_tag = tags(:general)
 
     new_post.tags << saved_tag
-    assert new_post.new_record?
-    assert !saved_tag.new_record?
+    assert !new_post.persisted?
+    assert saved_tag.persisted?
     assert new_post.tags.include?(saved_tag)
 
     new_post.save!
-    assert !new_post.new_record?
+    assert new_post.persisted?
     assert new_post.reload.tags(true).include?(saved_tag)
 
-    assert posts(:thinking).tags.build.new_record?
-    assert posts(:thinking).tags.new.new_record?
+    assert !posts(:thinking).tags.build.persisted?
+    assert !posts(:thinking).tags.new.persisted?
   end
 
   def test_create_associate_when_adding_to_has_many_through

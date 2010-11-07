@@ -59,7 +59,7 @@ module ActiveRecord
         end
 
         def insert_record(record, force = true, validate = true)
-          if record.new_record?
+          unless record.persisted?
             if force
               record.save!
             else

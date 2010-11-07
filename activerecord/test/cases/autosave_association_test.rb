@@ -83,7 +83,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert !firm.build_account_using_primary_key.valid?
 
     assert firm.save
-    assert firm.account_using_primary_key.new_record?
+    assert !firm.account_using_primary_key.persisted?
   end
 
   def test_save_fails_for_invalid_has_one
@@ -114,10 +114,10 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     account = firm.account.build("credit_limit" => 1000)
     assert_equal account, firm.account
-    assert account.new_record?
+    assert !account.persisted?
     assert firm.save
     assert_equal account, firm.account
-    assert !account.new_record?
+    assert account.persisted?
   end
 
   def test_build_before_either_saved
@@ -125,16 +125,16 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm.account = account = Account.new("credit_limit" => 1000)
     assert_equal account, firm.account
-    assert account.new_record?
+    assert !account.persisted?
     assert firm.save
     assert_equal account, firm.account
-    assert !account.new_record?
+    assert account.persisted?
   end
 
   def test_assignment_before_parent_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.find(1)
-    assert firm.new_record?
+    assert !firm.persisted?
     assert_equal a, firm.account
     assert firm.save
     assert_equal a, firm.account
@@ -144,12 +144,12 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   def test_assignment_before_either_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.new("credit_limit" => 1000)
-    assert firm.new_record?
-    assert a.new_record?
+    assert !firm.persisted?
+    assert !a.persisted?
     assert_equal a, firm.account
     assert firm.save
-    assert !firm.new_record?
-    assert !a.new_record?
+    assert firm.persisted?
+    assert a.persisted?
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
   end
@@ -203,7 +203,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert !client.firm.valid?
 
     assert client.save
-    assert client.firm.new_record?
+    assert !client.firm.persisted?
   end
 
   def test_save_fails_for_invalid_belongs_to
@@ -232,10 +232,10 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     apple = Firm.new("name" => "Apple")
     client.firm = apple
     assert_equal apple, client.firm
-    assert apple.new_record?
+    assert !apple.persisted?
     assert client.save
     assert apple.save
-    assert !apple.new_record?
+    assert apple.persisted?
     assert_equal apple, client.firm
     assert_equal apple, client.firm(true)
   end
@@ -244,11 +244,11 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     final_cut = Client.new("name" => "Final Cut")
     apple = Firm.new("name" => "Apple")
     final_cut.firm = apple
-    assert final_cut.new_record?
-    assert apple.new_record?
+    assert !final_cut.persisted?
+    assert !apple.persisted?
     assert final_cut.save
-    assert !final_cut.new_record?
-    assert !apple.new_record?
+    assert final_cut.persisted?
+    assert apple.persisted?
     assert_equal apple, final_cut.firm
     assert_equal apple, final_cut.firm(true)
   end
@@ -348,10 +348,10 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_invalid_adding
     firm = Firm.find(1)
     assert !(firm.clients_of_firm << c = Client.new)
-    assert c.new_record?
+    assert !c.persisted?
     assert !firm.valid?
     assert !firm.save
-    assert c.new_record?
+    assert !c.persisted?
   end
 
   def test_invalid_adding_before_save
@@ -359,12 +359,12 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     no_of_clients = Client.count
     new_firm = Firm.new("name" => "A New Firm, Inc")
     new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
-    assert c.new_record?
+    assert !c.persisted?
     assert !c.valid?
     assert !new_firm.valid?
     assert !new_firm.save
-    assert c.new_record?
-    assert new_firm.new_record?
+    assert !c.persisted?
+    assert !new_firm.persisted?
   end
 
   def test_invalid_adding_with_validate_false
@@ -375,7 +375,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert firm.valid?
     assert !client.valid?
     assert firm.save
-    assert client.new_record?
+    assert !client.persisted?
   end
 
   def test_valid_adding_with_validate_false
@@ -386,22 +386,22 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     assert firm.valid?
     assert client.valid?
-    assert client.new_record?
+    assert !client.persisted?
 
     firm.unvalidated_clients_of_firm << client
 
     assert firm.save
-    assert !client.new_record?
+    assert client.persisted?
     assert_equal no_of_clients + 1, Client.count
   end
 
   def test_invalid_build
     new_client = companies(:first_firm).clients_of_firm.build
-    assert new_client.new_record?
+    assert !new_client.persisted?
     assert !new_client.valid?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert !companies(:first_firm).save
-    assert new_client.new_record?
+    assert !new_client.persisted?
     assert_equal 1, companies(:first_firm).clients_of_firm(true).size
   end
 
@@ -420,8 +420,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_firms, Firm.count      # Firm was not saved to database.
     assert_equal no_of_clients, Client.count  # Clients were not saved to database.
     assert new_firm.save
-    assert !new_firm.new_record?
-    assert !c.new_record?
+    assert new_firm.persisted?
+    assert c.persisted?
     assert_equal new_firm, c.firm
     assert_equal no_of_firms + 1, Firm.count      # Firm was saved to database.
     assert_equal no_of_clients + 2, Client.count  # Clients were saved to database.
@@ -455,7 +455,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     company.name += '-changed'
     assert_queries(2) { assert company.save }
-    assert !new_client.new_record?
+    assert new_client.persisted?
     assert_equal 2, company.clients_of_firm(true).size
   end
 
@@ -475,7 +475,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     company.name += '-changed'
     assert_queries(2) { assert company.save }
-    assert !new_client.new_record?
+    assert new_client.persisted?
     assert_equal 2, company.clients_of_firm(true).size
   end
 
@@ -507,62 +507,62 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     new_account = Account.new("credit_limit" => 1000)
     new_firm = Firm.new("name" => "some firm")
 
-    assert new_firm.new_record?
+    assert !new_firm.persisted?
     new_account.firm = new_firm
     new_account.save!
 
-    assert !new_firm.new_record?
+    assert new_firm.persisted?
 
     new_account = Account.new("credit_limit" => 1000)
     new_autosaved_firm = Firm.new("name" => "some firm")
 
-    assert new_autosaved_firm.new_record?
+    assert !new_autosaved_firm.persisted?
     new_account.unautosaved_firm = new_autosaved_firm
     new_account.save!
 
-    assert new_autosaved_firm.new_record?
+    assert !new_autosaved_firm.persisted?
   end
 
   def test_autosave_new_record_on_has_one_can_be_disabled_per_relationship
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
-    assert account.new_record?
+    assert !account.persisted?
     firm.account = account
     firm.save!
 
-    assert !account.new_record?
+    assert account.persisted?
 
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
     firm.unautosaved_account = account
 
-    assert account.new_record?
+    assert !account.persisted?
     firm.unautosaved_account = account
     firm.save!
 
-    assert account.new_record?
+    assert !account.persisted?
   end
 
   def test_autosave_new_record_on_has_many_can_be_disabled_per_relationship
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
-    assert account.new_record?
+    assert !account.persisted?
     firm.accounts << account
 
     firm.save!
-    assert !account.new_record?
+    assert account.persisted?
 
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
-    assert account.new_record?
+    assert !account.persisted?
     firm.unautosaved_accounts << account
 
     firm.save!
-    assert account.new_record?
+    assert !account.persisted?
   end
 end
 

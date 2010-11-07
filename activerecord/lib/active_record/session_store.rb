@@ -228,7 +228,7 @@ module ActiveRecord
         @session_id     = attributes[:session_id]
         @data           = attributes[:data]
         @marshaled_data = attributes[:marshaled_data]
-        @new_record     = @marshaled_data.nil?
+        @persisted      = !@marshaled_data.nil?
       end
 
       # Lazy-unmarshal session state.
@@ -252,8 +252,8 @@ module ActiveRecord
         marshaled_data = self.class.marshal(data)
         connect        = connection
 
-        if @new_record
-          @new_record = false
+        unless @persisted
+          @persisted = true
           connect.update <<-end_sql, 'Create session'
             INSERT INTO #{table_name} (
               #{connect.quote_column_name(session_id_column)},
@@ -272,7 +272,7 @@ module ActiveRecord
       end
 
       def destroy
-        return if @new_record
+        return unless @persisted
 
         connect = connection
         connect.delete <<-end_sql, 'Destroy session'
