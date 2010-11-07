@@ -438,6 +438,7 @@ module ActionDispatch
         #     scope :module => "admin" do
         #       resources :posts
         #     end
+        #
         # [:path]
         #   If you want to prefix the route, you could use
         #
