@@ -90,6 +90,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter restrict the number of ids you can use in a list. Oracle has a limit of 1000.
+      def ids_in_list_limit
+        nil
+      end
+
       # QUOTING ==================================================
 
       # Override to return the quoted table name. Defaults to column quoting.

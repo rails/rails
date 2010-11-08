@@ -193,13 +193,17 @@ module ActiveRecord
         conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
         conditions << append_conditions(reflection, preload_options)
 
-        associated_records = reflection.klass.unscoped.where([conditions, ids]).
+        associated_records_proxy = reflection.klass.unscoped.
             includes(options[:include]).
             joins("INNER JOIN #{connection.quote_table_name options[:join_table]} t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}").
             select("#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id").
-            order(options[:order]).to_a
+            order(options[:order])
 
-        set_association_collection_records(id_to_record_map, reflection.name, associated_records, 'the_parent_record_id')
+        all_associated_records = associated_records(ids) do |some_ids|
+          associated_records_proxy.where([conditions, ids]).to_a
+        end
+
+        set_association_collection_records(id_to_record_map, reflection.name, all_associated_records, 'the_parent_record_id')
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
@@ -374,13 +378,14 @@ module ActiveRecord
         find_options = {
           :select => preload_options[:select] || options[:select] || Arel::SqlLiteral.new("#{table_name}.*"),
           :include => preload_options[:include] || options[:include],
-          :conditions => [conditions, ids],
           :joins => options[:joins],
           :group => preload_options[:group] || options[:group],
           :order => preload_options[:order] || options[:order]
         }
 
-        reflection.klass.scoped.apply_finder_options(find_options).to_a
+        associated_records(ids) do |some_ids|
+          reflection.klass.scoped.apply_finder_options(find_options.merge(:conditions => [conditions, some_ids])).to_a
+        end
       end
 
 
@@ -397,6 +402,17 @@ module ActiveRecord
 
       def in_or_equals_for_ids(ids)
         ids.size > 1 ? "IN (?)" : "= ?"
+      end
+      
+      # Some databases impose a limit on the number of ids in a list (in Oracle its 1000)
+      # Make several smaller queries if necessary or make one query if the adapter supports it
+      def associated_records(ids)
+        max_ids_in_a_list = connection.ids_in_list_limit || ids.size
+        records = []
+        ids.each_slice(max_ids_in_a_list) do |some_ids|
+          records += yield(some_ids)
+        end
+        records
       end
     end
   end
