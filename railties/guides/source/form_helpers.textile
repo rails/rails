@@ -107,7 +107,7 @@ WARNING: Do not delimit the second hash without doing so with the first hash, ot
 
 h4. Helpers for Generating Form Elements
 
-Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons, and so on. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+, +check_box_tag+, etc., generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
+Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons, and so on. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+, +check_box_tag+, generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
 
 <erb>
 <%= text_field_tag(:query) %>
