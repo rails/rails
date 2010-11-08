@@ -140,6 +140,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
   end
 
+  def test_passing_dummy_path_as_a_parameter
+    run_generator [destination_root, "--dummy_path", "spec/dummy"]
+    assert_file "spec/dummy"
+    assert_file "spec/dummy/config/application.rb"
+    assert_no_file "test/dummy"
+  end
+
 protected
 
   def action(*args, &block)

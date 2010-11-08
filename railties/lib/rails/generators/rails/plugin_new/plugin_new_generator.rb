@@ -102,6 +102,9 @@ task :default => :test
 
       alias_method :plugin_path, :app_path
 
+      class_option :dummy_path, :type => :string, :default => "test/dummy",
+                                :desc => "Create dummy application at given path"
+
       class_option :full,       :type => :boolean, :default => false,
                                 :desc => "Generate rails engine with integration tests"
 
@@ -232,7 +235,7 @@ end
 
       def dummy_path(path = nil)
         @dummy_path = path if path
-        @dummy_path || "test/dummy"
+        @dummy_path || options[:dummy_path]
       end
 
       def mute(&block)
