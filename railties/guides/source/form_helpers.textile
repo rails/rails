@@ -283,7 +283,7 @@ h4. Relying on Record Identification
 The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*:
 
 <ruby>
-map.resources :articles
+resources :articles
 </ruby>
 
 TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#resource-routing-the-rails-default for more information on setting up and using resources.
