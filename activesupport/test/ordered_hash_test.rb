@@ -109,6 +109,14 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @keys, keys
   end
 
+  def test_find_all
+    assert_equal @keys, @ordered_hash.find_all { true }.map(&:first)
+  end
+
+  def test_select
+    assert_equal @keys, @ordered_hash.select { true }.map(&:first)
+  end
+
   def test_delete_if
     copy = @ordered_hash.dup
     copy.delete('pink')

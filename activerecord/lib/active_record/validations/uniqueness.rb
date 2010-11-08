@@ -154,33 +154,25 @@ module ActiveRecord
       #                                      | # title!
       #
       # This could even happen if you use transactions with the 'serializable'
-      # isolation level. There are several ways to get around this problem:
+      # isolation level. The best way to work around this problem is to add a unique
+      # index to the database table using
+      # ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
+      # rare case that a race condition occurs, the database will guarantee
+      # the field's uniqueness.
       #
-      # - By locking the database table before validating, and unlocking it after
-      #   saving. However, table locking is very expensive, and thus not
-      #   recommended.
-      # - By locking a lock file before validating, and unlocking it after saving.
-      #   This does not work if you've scaled your Rails application across
-      #   multiple web servers (because they cannot share lock files, or cannot
-      #   do that efficiently), and thus not recommended.
-      # - Creating a unique index on the field, by using
-      #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
-      #   rare case that a race condition occurs, the database will guarantee
-      #   the field's uniqueness.
+      # When the database catches such a duplicate insertion,
+      # ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
+      # exception. You can either choose to let this error propagate (which
+      # will result in the default Rails exception page being shown), or you
+      # can catch it and restart the transaction (e.g. by telling the user
+      # that the title already exists, and asking him to re-enter the title).
+      # This technique is also known as optimistic concurrency control:
+      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control
       #
-      #   When the database catches such a duplicate insertion,
-      #   ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
-      #   exception. You can either choose to let this error propagate (which
-      #   will result in the default Rails exception page being shown), or you
-      #   can catch it and restart the transaction (e.g. by telling the user
-      #   that the title already exists, and asking him to re-enter the title).
-      #   This technique is also known as optimistic concurrency control:
-      #   http://en.wikipedia.org/wiki/Optimistic_concurrency_control
-      #
-      #   Active Record currently provides no way to distinguish unique
-      #   index constraint errors from other types of database errors, so you
-      #   will have to parse the (database-specific) exception message to detect
-      #   such a case.
+      # Active Record currently provides no way to distinguish unique
+      # index constraint errors from other types of database errors, so you
+      # will have to parse the (database-specific) exception message to detect
+      # such a case.
       #
       def validates_uniqueness_of(*attr_names)
         validates_with UniquenessValidator, _merge_attributes(attr_names)

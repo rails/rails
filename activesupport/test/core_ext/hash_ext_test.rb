@@ -6,6 +6,9 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 
 class HashExtTest < Test::Unit::TestCase
+  class IndifferentHash < HashWithIndifferentAccess
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
@@ -267,13 +270,23 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 1, h['first']
   end
 
-
   def test_indifferent_subhashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
 
     h = {:user => {:id => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+  end
+
+  def test_indifferent_duplication
+    # Should preserve default value
+    h = HashWithIndifferentAccess.new
+    h.default = '1234'
+    assert_equal h.default, h.dup.default
+
+    # Should preserve class for subclasses
+    h = IndifferentHash.new
+    assert_equal h.class, h.dup.class
   end
 
   def test_assert_valid_keys
@@ -486,7 +499,7 @@ class HashExtToParamTests < Test::Unit::TestCase
   def test_to_param_hash_escapes_its_keys_and_values
     assert_equal 'param+1=A+string+with+%2F+characters+%26+that+should+be+%3F+escaped', { 'param 1' => 'A string with / characters & that should be ? escaped' }.to_param
   end
-  
+
   def test_to_param_orders_by_key_in_ascending_order
     assert_equal 'a=2&b=1&c=0', ActiveSupport::OrderedHash[*%w(b 1 c 0 a 2)].to_param
   end
@@ -523,6 +536,13 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal "<Person>", xml.first(8)
     assert xml.include?(%(<StreetName>Paulina</StreetName>))
     assert xml.include?(%(<Name>David</Name>))
+  end
+
+  def test_one_level_camelize_lower
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:camelize => :lower))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<streetName>Paulina</streetName>))
+    assert xml.include?(%(<name>David</name>))
   end
 
   def test_one_level_with_types

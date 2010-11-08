@@ -137,6 +137,8 @@ module ActiveSupport
 
       alias_method :each_pair, :each
 
+      alias_method :select, :find_all
+
       def clear
         super
         @keys.clear

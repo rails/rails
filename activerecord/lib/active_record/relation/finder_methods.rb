@@ -171,14 +171,16 @@ module ActiveRecord
     def exists?(id = nil)
       id = id.id if ActiveRecord::Base === id
 
+      relation = select(primary_key).limit(1)
+
       case id
       when Array, Hash
-        where(id).exists?
+        relation = relation.where(id)
       else
-        relation = select(primary_key).limit(1)
         relation = relation.where(primary_key.eq(id)) if id
-        relation.first ? true : false
       end
+
+      relation.first ? true : false
     end
 
     protected
@@ -222,7 +224,7 @@ module ActiveRecord
     end
 
     def construct_limited_ids_condition(relation)
-      orders = relation.order_values.join(", ")
+      orders = relation.order_values
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name @klass.table_name}.#{@klass.primary_key}", orders)
 
       ids_array = relation.select(values).collect {|row| row[@klass.primary_key]}

@@ -584,8 +584,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_limited_eager_with_multiple_order_columns
-    assert_equal posts(:thinking, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title), posts.id', :limit => 2, :offset => 1)
-    assert_equal posts(:sti_post_and_comments, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC, posts.id', :limit => 2, :offset => 1)
+    assert_equal posts(:thinking, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => ['UPPER(posts.title)', 'posts.id'], :limit => 2, :offset => 1)
+    assert_equal posts(:sti_post_and_comments, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => ['UPPER(posts.title) DESC', 'posts.id'], :limit => 2, :offset => 1)
   end
 
   def test_limited_eager_with_numeric_in_association

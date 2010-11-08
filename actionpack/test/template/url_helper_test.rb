@@ -263,12 +263,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
     assert_equal "<strong>Showing</strong>",
       link_to_unless(true, "Showing", url_hash) { |name|
-        "<strong>#{name}</strong>"
-      }
-
-    assert_equal "<strong>Showing</strong>",
-      link_to_unless(true, "Showing", url_hash) { |name|
-        "<strong>#{name}</strong>"
+        "<strong>#{name}</strong>".html_safe
       }
 
     assert_equal "test",

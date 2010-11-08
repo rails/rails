@@ -294,10 +294,9 @@ module ActionView
       #
       # If you don't need to attach a form to a model instance, then check out
       # FormTagHelper#form_tag.
-      def form_for(record, options = nil, &proc)
+      def form_for(record, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 
-        options ||= {}
         options[:html] ||= {}
 
         case record
