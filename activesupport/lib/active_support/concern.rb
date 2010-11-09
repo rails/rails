@@ -35,6 +35,10 @@ module ActiveSupport
   #     module InstanceMethods
   #       ...
   #     end
+  #
+  #     module SharedMethods   # These become both class and instance methods if you choose to define this module.
+  #       ...
+  #     end
   #   end
   #
   # Moreover, it gracefully handles module dependencies. Given a +Foo+ module and a +Bar+
@@ -118,7 +122,9 @@ module ActiveSupport
         @_dependencies.each { |dep| base.send(:include, dep) }
         super
         base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
+        base.extend const_get("SharedMethods") if const_defined?("SharedMethods")
         base.send :include, const_get("InstanceMethods") if const_defined?("InstanceMethods")
+        base.send :include, const_get("SharedMethods") if const_defined?("SharedMethods")
         base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
       end
     end

@@ -22,6 +22,12 @@ class ConcernTest < Test::Unit::TestCase
     module InstanceMethods
     end
 
+    module SharedMethods
+      def human_class_name
+        "Baz"
+      end
+    end
+
     included do
       self.included_ran = true
     end
@@ -75,6 +81,18 @@ class ConcernTest < Test::Unit::TestCase
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
     assert @klass.included_modules.include?(ConcernTest::Baz::InstanceMethods)
+  end
+
+  def test_shared_methods_are_extended
+    @klass.send(:include, Baz)
+    assert_equal "Baz", @klass.human_class_name
+    assert_equal ConcernTest::Baz::SharedMethods, (class << @klass; self.included_modules; end)[0]
+  end
+
+  def test_shared_methods_are_included
+    @klass.send(:include, Baz)
+    assert_equal "Baz", @klass.new.human_class_name
+    assert @klass.included_modules.include?(ConcernTest::Baz::SharedMethods)
   end
 
   def test_included_block_is_ran
