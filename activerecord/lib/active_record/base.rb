@@ -1368,7 +1368,7 @@ MSG
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
         @attributes_cache = {}
-        @persited = false
+        @persisted = false
         @readonly = false
         @destroyed = false
         @marked_for_destruction = false

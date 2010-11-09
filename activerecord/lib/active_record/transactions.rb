@@ -299,7 +299,6 @@ module ActiveRecord
       @_start_transaction_state ||= {}
       unless @_start_transaction_state.include?(:persisted)
         @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
-        @persisted = false unless defined?(@persisted)
         @_start_transaction_state[:persisted] = @persisted
       end
       unless @_start_transaction_state.include?(:destroyed)
