@@ -4,7 +4,6 @@ module ActiveRecord
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the data store yet; otherwise, returns false.
     def new_record?
-      @persisted = false unless defined?(@persisted)
       !@persisted
     end
 
@@ -16,7 +15,6 @@ module ActiveRecord
     # Returns if the record is persisted, i.e. it's not a new record and it was
     # not destroyed.
     def persisted?
-      @persisted = false unless defined?(@persisted)
       !!@persisted && !destroyed?
     end
 
