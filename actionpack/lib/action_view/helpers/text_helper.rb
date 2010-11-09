@@ -9,6 +9,24 @@ module ActionView
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
     # within your template files.
+    #
+    # ==== Sanitization
+    #
+    # Most text helpers by default sanitize the given content, but do not escape it.
+    # This means HTML tags will appear in the page but all malicious code will be removed.
+    # Let's look at some examples using the +simple_format+ method:
+    #
+    #   simple_format('<a href="http://example.com/">Example</a>')
+    #   # => "<p><a href=\"http://example.com/\">Example</a></p>"
+    #
+    #   simple_format('<a href="javascript:alert('no!')">Example</a>')
+    #   # => "<p><a>Example</a></p>"
+    #
+    # If you want to escape all content, you should invoke the +h+ method before
+    # calling the text helper.
+    #
+    #   simple_format h('<a href="http://example.com/">Example</a>')
+    #   # => "<p>&lt;a href=\"http://example.com/\"&gt;Example&lt;/a&gt;</p>"
     module TextHelper
       extend ActiveSupport::Concern
 
