@@ -15,7 +15,7 @@ module ActiveRecord
     # Returns if the record is persisted, i.e. it's not a new record and it was
     # not destroyed.
     def persisted?
-      !!@persisted && !destroyed?
+      @persisted && !destroyed?
     end
 
     # Saves the model.
