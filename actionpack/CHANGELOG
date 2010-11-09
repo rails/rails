@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
+
 * Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
 
     tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
