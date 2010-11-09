@@ -34,7 +34,8 @@ module ActionDispatch
         if method = conditions[:request_method]
           case method
           when Regexp
-            method.source.upcase
+            source = method.source.upcase
+            source =~ /\A\^[-A-Z|]+\$\Z/ ? source[1..-2] : source
           else
             method.to_s.upcase
           end
