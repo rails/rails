@@ -1,6 +1,6 @@
 *Rails 3.0.2 (unreleased)*
 
-* No changes
+* The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
 
 *Rails 3.0.1 (October 15, 2010)*
 
