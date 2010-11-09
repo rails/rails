@@ -163,7 +163,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship.destroy
     @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger' }
 
-    assert @pirate.ship.new_record?
+    assert !@pirate.ship.persisted?
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
   end
 
@@ -184,7 +184,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_replace_an_existing_record_if_there_is_no_id
     @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger' }
 
-    assert @pirate.ship.new_record?
+    assert !@pirate.ship.persisted?
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
     assert_equal 'Nights Dirty Lightning', @ship.name
   end
@@ -256,7 +256,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_also_work_with_a_HashWithIndifferentAccess
     @pirate.ship_attributes = HashWithIndifferentAccess.new(:id => @ship.id, :name => 'Davy Jones Gold Dagger')
 
-    assert !@pirate.ship.new_record?
+    assert @pirate.ship.persisted?
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
   end
 
@@ -348,7 +348,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.destroy
     @ship.reload.pirate_attributes = { :catchphrase => 'Arr' }
 
-    assert @ship.pirate.new_record?
+    assert !@ship.pirate.persisted?
     assert_equal 'Arr', @ship.pirate.catchphrase
   end
 
@@ -369,7 +369,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_replace_an_existing_record_if_there_is_no_id
     @ship.reload.pirate_attributes = { :catchphrase => 'Arr' }
 
-    assert @ship.pirate.new_record?
+    assert !@ship.pirate.persisted?
     assert_equal 'Arr', @ship.pirate.catchphrase
     assert_equal 'Aye', @pirate.catchphrase
   end
@@ -458,7 +458,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.delete
     @ship.reload.attributes = { :update_only_pirate_attributes => { :catchphrase => 'Arr' } }
 
-    assert @ship.update_only_pirate.new_record?
+    assert !@ship.update_only_pirate.persisted?
   end
 
   def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
@@ -596,10 +596,10 @@ module NestedAttributesOnACollectionAssociationTests
       association_getter => { 'foo' => { :name => 'Grace OMalley' }, 'bar' => { :name => 'Privateers Greed' }}
     }
 
-    assert @pirate.send(@association_name).first.new_record?
+    assert !@pirate.send(@association_name).first.persisted?
     assert_equal 'Grace OMalley', @pirate.send(@association_name).first.name
 
-    assert @pirate.send(@association_name).last.new_record?
+    assert !@pirate.send(@association_name).last.persisted?
     assert_equal 'Privateers Greed', @pirate.send(@association_name).last.name
   end
 
