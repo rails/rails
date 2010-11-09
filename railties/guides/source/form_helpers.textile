@@ -67,7 +67,7 @@ A basic search form
 <% end %>
 </erb>
 
-TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code> This declares path "/search" will be handled by action "search" belonging to controller "search".
+TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code> This declares that path "/search" will be handled by action "search" belonging to controller "search".
 
 The above view code will result in the following markup:
 
