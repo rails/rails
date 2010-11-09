@@ -545,8 +545,7 @@ module ActiveRecord
 
         def fetch_first_or_last_using_find?(args)
           args.first.kind_of?(Hash) || !(loaded? || !@owner.persisted? || @reflection.options[:finder_sql] ||
-                                         @target.any? { |record| !record.persisted? } || args.first.kind_of?(Integer))
-                                         # TODO - would prefer @target.none? { |r| r.persisted? }
+                                         !@target.all? { |record| record.persisted? } || args.first.kind_of?(Integer))
         end
 
         def include_in_memory?(record)
