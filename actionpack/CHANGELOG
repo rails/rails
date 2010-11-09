@@ -1,7 +1,5 @@
 *Rails 3.1.0 (unreleased)*
 
-* The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
-
 * Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
 
     tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
@@ -24,6 +22,10 @@
 * Renames csrf_meta_tag -> csrf_meta_tags, and aliases csrf_meta_tag for backwards compatibility. [fxn]
 
 * Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. [Yehuda Katz, Carl Lerche]
+
+*Rails 3.0.2 (unreleased)*
+
+* The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
 
 *Rails 3.0.1 (October 15, 2010)*
 
