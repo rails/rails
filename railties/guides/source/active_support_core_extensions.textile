@@ -395,39 +395,6 @@ C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
 
 NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 
-h5. +copy_instance_variables_from(object, exclude = [])+
-
-Copies the instance variables of +object+ into +self+.
-
-Instance variable names in the +exclude+ array are ignored. If +object+
-responds to +protected_instance_variables+ the ones returned are
-also ignored. For example, Rails controllers implement that method.
-
-In both arrays strings and symbols are understood, and they have to include
-the at sign.
-
-<ruby>
-class C
-  def initialize(x, y, z)
-    @x, @y, @z = x, y, z
-  end
-
-  def protected_instance_variables
-    %w(@z)
-  end
-end
-
-a = C.new(0, 1, 2)
-b = C.new(3, 4, 5)
-
-a.copy_instance_variables_from(b, [:@y])
-# a is now: @x = 3, @y = 1, @z = 2
-</ruby>
-
-In the example +object+ and +self+ are of the same type, but they don't need to.
-
-NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
-
 h4. Silencing Warnings, Streams, and Exceptions
 
 The methods +silence_warnings+ and +enable_warnings+ change the value of +$VERBOSE+ accordingly for the duration of their block, and reset it afterwards:
