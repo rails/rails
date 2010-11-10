@@ -80,7 +80,7 @@ module ActiveRecord
 
     initializer "active_record.identity_map" do |app|
       config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware" if ActiveRecord::IdentityMap.enabled?
+        "ActiveRecord::IdentityMap::Middleware" if config.active_record.identity_map
     end
 
     config.after_initialize do
