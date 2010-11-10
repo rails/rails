@@ -45,9 +45,9 @@ platforms :ruby do
   gem "sqlite3-ruby", "~> 1.3.1", :require => 'sqlite3'
 
   group :db do
-    gem "pg", ">= 0.9.0"
-    gem "mysql", ">= 2.8.1"
-    gem "mysql2", ">= 0.2.6"
+#    gem "pg", ">= 0.9.0"
+#    gem "mysql", ">= 2.8.1"
+#    gem "mysql2", ">= 0.2.6"
   end
 end
 
