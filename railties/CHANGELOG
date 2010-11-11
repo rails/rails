@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added `rails plugin new` command which generates rails plugin with gemspec, tests and dummy application for testing [Piotr Sarnacki]
+
 * Added -j parameter with jquery/prototype as options. Now you can create your apps with jQuery using `rails new myapp -j jquery`. The default is still Prototype. [siong1987]
 
 * Added Rack::Etag and Rack::ConditionalGet to the default middleware stack [José Valim]
@@ -20,7 +22,7 @@
 
 * Changed ActionDispatch::Static to allow handling multiple directories [Piotr Sarnacki]
 
-* Added namespace() method to Engine, which sets Engine as isolated [Piotr Sarnacki]
+* Added isolate_namespace() method to Engine, which sets Engine as isolated [Piotr Sarnacki]
 
 * Include all helpers from plugins and shared engines in application [Piotr Sarnacki]
 
