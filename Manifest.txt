@@ -59,6 +59,7 @@ lib/arel/nodes/table_alias.rb
 lib/arel/nodes/unqualified_column.rb
 lib/arel/nodes/update_statement.rb
 lib/arel/nodes/values.rb
+lib/arel/predications.rb
 lib/arel/relation.rb
 lib/arel/select_manager.rb
 lib/arel/sql/engine.rb
