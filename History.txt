@@ -1,3 +1,15 @@
+== 2.0.2
+
+* Bug fixes
+
+  * MySQL selects from DUAL on empty FROM
+  * Visitor translates nil to NULL
+  * Visitor translates Bignum properly
+
+== 2.0.1
+
+* Bug fixes
+
 == 2.0.0 / 2010-08-01
 * Enhancements
   
