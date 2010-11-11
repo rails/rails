@@ -1,9 +1,4 @@
-require 'digest/md5'
-require 'active_support/secure_random'
-require 'rails/version' unless defined?(Rails::VERSION)
-require 'rbconfig'
-require 'open-uri'
-require 'uri'
+require 'rails/generators/app_base'
 
 module Rails
   module ActionMethods
@@ -158,59 +153,15 @@ module Rails
     RESERVED_NAMES = %w[application destroy benchmarker profiler
                         plugin runner test]
 
-    class AppGenerator < Base
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      JAVASCRIPTS = %w( prototype jquery )
-
-      attr_accessor :rails_template
-      add_shebang_option!
-
-      argument :app_path,               :type => :string
-
-      class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
-                                        :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-      class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
-                                        :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
-
-      class_option :builder,            :type => :string, :aliases => "-b",
-                                        :desc => "Path to an application builder (can be a filesystem path or URL)"
-
-      class_option :template,           :type => :string, :aliases => "-m",
-                                        :desc => "Path to an application template (can be a filesystem path or URL)"
-
-      class_option :dev,                :type => :boolean, :default => false,
-                                        :desc => "Setup the application with Gemfile pointing to your Rails checkout"
-
-      class_option :edge,               :type => :boolean, :default => false,
-                                        :desc => "Setup the application with Gemfile pointing to Rails repository"
-
-      class_option :skip_gemfile,       :type => :boolean, :default => false,
-                                        :desc => "Don't create a Gemfile"
-
-      class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
-                                        :desc => "Skip Active Record files"
-
-      class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
-                                        :desc => "Skip Test::Unit files"
-
-      class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
-                                        :desc => "Skip javascript files"
-
-      class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
-                                        :desc => "Skip Git ignores and keeps"
+    class AppGenerator < AppBase
+      add_shared_options_for "application"
 
       # Add bin/rails options
       class_option :version,            :type => :boolean, :aliases => "-v", :group => :rails,
                                         :desc => "Show Rails version number and quit"
 
-      class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
-                                        :desc => "Show this help message and quit"
-
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
-
-        @original_wd = Dir.pwd
 
         super
 
@@ -223,14 +174,7 @@ module Rails
         end
       end
 
-      def create_root
-        self.destination_root = File.expand_path(app_path, destination_root)
-        valid_app_const?
-
-        empty_directory '.'
-        set_default_accessors!
-        FileUtils.cd(destination_root) unless options[:pretend]
-      end
+      public_task :create_root
 
       def create_root_files
         build(:readme)
@@ -309,55 +253,12 @@ module Rails
         build(:leftovers)
       end
 
-      def apply_rails_template
-        apply rails_template if rails_template
-      rescue Thor::Error, LoadError, Errno::ENOENT => e
-        raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
-      end
-
-      def bundle_if_dev_or_edge
-        bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
-        run "#{bundle_command} install" if dev_or_edge?
-      end
+      public_task :apply_rails_template, :bundle_if_dev_or_edge
 
     protected
 
       def self.banner
         "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
-      end
-
-      def builder
-        @builder ||= begin
-          if path = options[:builder]
-            if URI(path).is_a?(URI::HTTP)
-              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-            else
-              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
-            end
-
-            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
-            instance_eval(&prok)
-          end
-
-          builder_class = defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
-          builder_class.send(:include, ActionMethods)
-          builder_class.new(self)
-        end
-      end
-
-      def build(meth, *args)
-        builder.send(meth, *args) if builder.respond_to?(meth)
-      end
-
-      def set_default_accessors!
-        self.rails_template = case options[:template]
-          when /^http:\/\//
-            options[:template]
-          when String
-            File.expand_path(options[:template], Dir.pwd)
-          else
-            options[:template]
-        end
       end
 
       # Define file as an alias to create_file for backwards compatibility.
@@ -388,7 +289,7 @@ module Rails
         @app_const ||= "#{app_const_base}::Application"
       end
 
-      def valid_app_const?
+      def valid_const?
         if app_const =~ /^\d/
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(app_name)
@@ -400,28 +301,6 @@ module Rails
 
       def app_secret
         ActiveSupport::SecureRandom.hex(64)
-      end
-
-      def dev_or_edge?
-        options.dev? || options.edge?
-      end
-
-      def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-        case options[:database]
-        when "oracle"     then "ruby-oci8"
-        when "postgresql" then "pg"
-        when "sqlite3"    then "sqlite3-ruby"
-        when "frontbase"  then "ruby-frontbase"
-        when "mysql"      then "mysql2"
-        else options[:database]
-        end
-      end
-
-      def require_for_database
-        case options[:database]
-        when "sqlite3" then "sqlite3"
-        end
       end
 
       def mysql_socket
@@ -441,6 +320,10 @@ module Rails
       def empty_directory_with_gitkeep(destination, config = {})
         empty_directory(destination, config)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      end
+
+      def get_builder_class
+        defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
       end
     end
   end

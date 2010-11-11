@@ -14,7 +14,7 @@ module ActiveRecord
     config.active_record = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, :migration => true,
-                                          :timestamps => true
+                                              :timestamps => true
 
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",
       "ActiveRecord::QueryCache"

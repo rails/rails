@@ -1,5 +1,6 @@
 require 'active_support/deprecation'
 require 'active_support/ordered_options'
+require 'active_support/core_ext/hash/deep_dup'
 require 'rails/paths'
 require 'rails/rack'
 
@@ -49,6 +50,13 @@ module Rails
         @fallbacks = {}
         @templates = []
         @colorize_logging = true
+      end
+
+      def initialize_copy(source)
+        @aliases = @aliases.deep_dup
+        @options = @options.deep_dup
+        @fallbacks = @fallbacks.deep_dup
+        @templates = @templates.dup
       end
 
       def method_missing(method, *args)

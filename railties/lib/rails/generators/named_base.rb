@@ -30,9 +30,15 @@ module Rails
           end
         end
 
+        def without_namespacing(&block)
+          inside_namespace do
+            concat(capture(&block))
+          end
+        end
+
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content.each_line.map {|line| "#{spaces}#{line}" }.join("\n")
+          content = content.each_line.map {|line| "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)

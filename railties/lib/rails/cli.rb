@@ -8,4 +8,9 @@ Rails::ScriptRailsLoader.exec_script_rails!
 require 'rails/ruby_version_check'
 Signal.trap("INT") { puts; exit }
 
-require 'rails/commands/application'
+if ARGV.first == 'plugin'
+  ARGV.shift
+  require 'rails/commands/plugin_new'
+else
+  require 'rails/commands/application'
+end
