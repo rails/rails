@@ -139,6 +139,14 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 'gardening', interest.reload.topic
   end
 
+  def test_reject_if_with_blank_nested_attributes_id
+    # When using a select list to choose an existing 'ship' id, with :include_blank => true
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :id => "" }
+    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
