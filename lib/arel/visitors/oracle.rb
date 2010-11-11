@@ -70,7 +70,23 @@ module Arel
             /DISTINCT.*FIRST_VALUE/ === projection
           end
         end
-        orders   = o.orders.map { |x| visit x }.join(', ').split(',')
+        # FIXME: previous version with join and split broke ORDER BY clause
+        # if it contained functions with several arguments (separated by ',').
+        # Currently splitting is done only if there is no function calls
+        #
+        # orders   = o.orders.map { |x| visit x }.join(', ').split(',')
+        orders   = o.orders.map do |x|
+          string = visit x
+          # if there is function call
+          if string.include?('(')
+            string
+          # if no function call then comma splits several ORDER BY columns
+          elsif string.include?(',')
+            string.split(',')
+          else
+            string
+          end
+        end.flatten
         o.orders = []
         orders.each_with_index do |order, i|
           o.orders <<
