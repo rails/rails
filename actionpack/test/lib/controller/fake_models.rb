@@ -149,3 +149,13 @@ class Author < Comment
   attr_accessor :post
   def post_attributes=(attributes); end
 end
+
+class ArelLike
+  def to_ary
+    true
+  end
+  def each
+    a = Array.new(2) { |id| Comment.new(id + 1) }
+    a.each { |i| yield i }
+  end
+end
