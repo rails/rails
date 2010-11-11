@@ -267,6 +267,16 @@ module RenderTestCases
       @view.render(:layout => "layouts/partial_and_yield") { "Content from block!" }
   end
 
+  def test_render_partial_and_layout_without_block_with_locals
+    assert_equal %(Before (Foo!)\npartial html\nAfter),
+      @view.render(:partial => 'test/partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_partial_and_layout_without_block_with_locals_and_rendering_another_partial
+    assert_equal %(Before (Foo!)\npartial html\npartial with partial\n\nAfter),
+      @view.render(:partial => 'test/partial_with_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
