@@ -130,7 +130,7 @@ def test_reject_if_with_a_proc_which_returns_true_always_for_has_one
      pirate.update_attributes({:ship_attributes => { :name => 's2', :id => ship.id } })
      assert_equal 's1', ship.reload.name
    end
- 
+
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_many
     Man.accepts_nested_attributes_for :interests, :reject_if => proc {|attributes| true }
     man = Man.create(:name => "John")
@@ -138,7 +138,15 @@ def test_reject_if_with_a_proc_which_returns_true_always_for_has_one
     man.update_attributes({:interests_attributes => { :topic => 'gardening', :id => interest.id } })
     assert_equal 'photography', interest.reload.topic
   end
-  
+
+  def test_reject_if_with_blank_nested_attributes_id
+    # When using a select list to choose an existing 'ship' id, with :include_blank => true
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :id => "" }
+    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
