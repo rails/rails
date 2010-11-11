@@ -18,7 +18,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy
 )
 
-
 class PluginNewGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   destination File.join(Rails.root, "tmp/bukkits")

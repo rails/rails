@@ -83,11 +83,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
     assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
-  
+
   def test_rails_update_generates_correct_session_key
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
-    
+
     Rails.application.config.root = app_root
     Rails.application.class.stubs(:name).returns("Myapp")
     Rails.application.stubs(:is_a?).returns(Rails::Application)
@@ -137,7 +137,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/javascripts/rails.js"
     assert_file "test"
   end
-  
+
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
     assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
@@ -145,7 +145,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "public/javascripts/prototype.js"
     assert_no_file "public/javascripts/rails.js"
   end
-  
+
   def test_config_prototype_javascript_library
     run_generator [destination_root, "-j", "prototype"]
     assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
@@ -153,7 +153,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/javascripts/prototype.js"
     assert_file "public/javascripts/rails.js", /prototype/
   end
-  
+
   def test_config_jquery_javascript_library
     run_generator [destination_root, "-j", "jquery"]
     assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
@@ -184,6 +184,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_file_is_added_for_backwards_compatibility
     action :file, 'lib/test_file.rb', 'heres test data'
     assert_file 'lib/test_file.rb', 'heres test data'
+  end
+
+  def test_test_unit_is_removed_from_frameworks_if_skip_test_unit_is_given
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_file "config/application.rb" do |file|
+      assert_match /config.generators.test_framework = false/, file
+    end
   end
 
 protected
