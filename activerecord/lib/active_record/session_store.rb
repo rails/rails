@@ -321,6 +321,7 @@ module ActiveRecord
         if sid = current_session_id(env)
           Base.silence do
             get_session_model(env, sid).destroy
+            env[SESSION_RECORD_KEY] = nil
           end
         end
 
