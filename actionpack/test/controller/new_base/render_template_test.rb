@@ -9,7 +9,7 @@ module RenderTemplate
       "locals.html.erb"          => "The secret is <%= secret %>",
       "xml_template.xml.builder" => "xml.html do\n  xml.p 'Hello'\nend",
       "with_raw.html.erb"        => "Hello <%=raw '<strong>this is raw</strong>' %>",
-      "with_implicit_raw.html.erb"=> "Hello <%== '<strong>this is also raw</strong>' %>",
+      "with_implicit_raw.html.erb"=> "Hello <%== '<strong>this is also raw</strong>' %>"
     )]
 
     def index
