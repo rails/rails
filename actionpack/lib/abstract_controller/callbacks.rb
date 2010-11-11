@@ -81,29 +81,29 @@ module AbstractController
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           # Append a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def #{filter}_filter(*names, &blk)                                                    # def before_filter(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options}
-              options[:if]=(Array.wrap(options[:if]) << "!halted") if #{filter == :after}
-              set_callback(:process_action, :#{filter}, name, options)                          #     set_callback(:process_action, :before_filter, name, options)
-            end                                                                                 #   end
-          end                                                                                   # end
+          def #{filter}_filter(*names, &blk)
+            _insert_callbacks(names, blk) do |name, options|
+              options[:if] = (Array.wrap(options[:if]) << "!halted") if #{filter == :after}
+              set_callback(:process_action, :#{filter}, name, options)
+            end
+          end
 
           # Prepend a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def prepend_#{filter}_filter(*names, &blk)                                            # def prepend_before_filter(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options|
-              options[:if]=(Array.wrap(options[:if]) << "!halted") if #{filter == :after}
-              set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))  #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
-            end                                                                                 #   end
-          end                                                                                   # end
+          def prepend_#{filter}_filter(*names, &blk)
+            _insert_callbacks(names, blk) do |name, options|
+              options[:if] = (Array.wrap(options[:if]) << "!halted") if #{filter == :after}
+              set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))
+            end
+          end
 
           # Skip a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def skip_#{filter}_filter(*names, &blk)                                               # def skip_before_filter(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options|
-              skip_callback(:process_action, :#{filter}, name, options)                         #     skip_callback(:process_action, :before, name, options)
-            end                                                                                 #   end
-          end                                                                                   # end
+          def skip_#{filter}_filter(*names, &blk)
+            _insert_callbacks(names, blk) do |name, options|
+              skip_callback(:process_action, :#{filter}, name, options)
+            end
+          end
 
           # *_filter is the same as append_*_filter
           alias_method :append_#{filter}_filter, :#{filter}_filter
