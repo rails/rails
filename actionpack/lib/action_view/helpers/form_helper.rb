@@ -1277,11 +1277,11 @@ module ActionView
 
           if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
-          elsif !association.is_a?(Array)
+          elsif !association.respond_to?(:to_ary)
             association = @object.send(association_name)
           end
 
-          if association.is_a?(Array)
+          if association.respond_to?(:to_ary)
             explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
             association.each do |child|
