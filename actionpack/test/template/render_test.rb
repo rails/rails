@@ -238,6 +238,25 @@ module RenderTestCases
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield_with_render_inline_inside")
   end
 
+  def test_render_with_layout_which_renders_another_partial
+    assert_equal %(partial html\nHello world!\n),
+      @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield_with_render_partial_inside")
+  end
+
+  def test_render_layout_with_block_and_yield
+    assert_equal %(Content from block!\n),
+      @view.render(:layout => "layouts/yield_only") { "Content from block!" }
+  end
+
+  def test_render_layout_with_block_and_yield_with_params
+    assert_equal %(Yield! Content from block!\n),
+      @view.render(:layout => "layouts/yield_with_params") { |param| "#{param} Content from block!" }
+  end
+
+  def test_render_layout_with_block_which_renders_another_partial_and_yields
+    assert_equal %(partial html\nContent from block!\n),
+      @view.render(:layout => "layouts/partial_and_yield") { "Content from block!" }
+  end
 
   # TODO: Move to deprecated_tests.rb
   def test_render_with_nested_layout_deprecated

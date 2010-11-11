@@ -30,31 +30,31 @@ module ActionView
   #
   # By default PartialRenderer uses the template name for the local name of the object passed into the template.
   # These examples are effectively the same:
-  # 
+  #
   #   <%= render :partial => "contract", :locals => { :contract  => @contract } %>
-  # 
+  #
   #   <%= render :partial => "contract" %>
   #
   # By specifying the :as option we can change the way the local variable is namedin the template.
   # These examples are effectively the same:
-  # 
+  #
   #   <%= render :partial => "contract", :as => :agreement
-  # 
+  #
   #   <%= render :partial => "contract", :locals => { :agreement => @contract }
   #
   # The :object option can be used to directly specify which object is rendered into the partial.
-  # 
+  #
   # Revisiting a previous example we could have written this code.
-  # 
+  #
   #   <%= render :partial => "account", :object => @buyer %>
   #
   #   <% for ad in @advertisements %>
   #     <%= render :partial => "ad", :object => ad %>
   #   <% end %>
-  # 
+  #
   # The :object and :as options can be used together. We might have a partial which we have named genericly,
   # such as 'form'. Using :object and :as together helps us.
-  # 
+  #
   #   <%= render :partial => "form", :object => @contract, :as => :contract %>
   # == Rendering a collection of partials
   #
@@ -70,7 +70,7 @@ module ActionView
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
   #
   # The :as option may be used when rendering partials.
-  # 
+  #
   # Also, you can specify a partial which will be render as a spacer between each element by passing partial name to
   # +:spacer_template+. The following example will render "advertiser/_ad_divider.erb" between each ad partial.
   #
@@ -323,13 +323,13 @@ module ActionView
       end
 
       def render_partial(object = @object)
-        locals, view, template = @locals, @view, @template
+        locals, view, template, block = @locals, @view, @template, @block
 
         object ||= locals[template.variable_name]
         locals[@options[:as] || template.variable_name] = object
 
         template.render(view, locals) do |*name|
-          view._layout_for(*name, &@block)
+          view._layout_for(*name, &block)
         end
       end
 
