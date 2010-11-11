@@ -255,13 +255,15 @@ module ActionView
             render_collection
           end
         else
+          options, locals = @options, @locals
+
           content = ActiveSupport::Notifications.instrument("render_partial.action_view",
             :identifier => identifier) do
             render_partial
           end
 
-          if !@block && (layout = @options[:layout])
-            content = @view._render_layout(find_template(layout), @locals){ content }
+          if !@block && (layout = options[:layout])
+            content = @view._render_layout(find_template(layout), locals){ content }
           end
 
           content
