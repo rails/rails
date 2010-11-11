@@ -325,6 +325,7 @@ module Rails
   #
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
+    autoload :Railties,      "rails/engine/railties"
 
     class << self
       attr_accessor :called_from, :isolated
