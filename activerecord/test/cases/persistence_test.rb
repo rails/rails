@@ -241,6 +241,15 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_nothing_raised { minimalistic.save }
   end
 
+  def test_update_sti_type
+    assert_instance_of Reply, topics(:second)
+
+    topic = topics(:second).becomes(Topic)
+    assert_instance_of Topic, topic
+    topic.save!
+    assert_instance_of Topic, Topic.find(topic.id)
+  end
+
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, 'topic.delete did not return self'

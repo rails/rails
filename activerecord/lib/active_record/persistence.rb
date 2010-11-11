@@ -96,6 +96,7 @@ module ActiveRecord
       became.instance_variable_set("@attributes_cache", @attributes_cache)
       became.instance_variable_set("@persisted", persisted?)
       became.instance_variable_set("@destroyed", destroyed?)
+      became.type = klass.name unless self.class.descends_from_active_record?
       became
     end
 
