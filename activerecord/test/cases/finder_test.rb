@@ -10,6 +10,7 @@ require 'models/entrant'
 require 'models/project'
 require 'models/developer'
 require 'models/customer'
+require 'models/toy'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -1007,6 +1008,15 @@ class FinderTest < ActiveRecord::TestCase
 
     Topic.send(:with_scope, :find => { :from => 'fake_topics' }) do
       assert_equal all_topics, Topic.from('topics').to_a
+    end
+  end
+
+  def test_find_one_message_with_custom_primary_key
+    Toy.set_primary_key :name
+    begin
+      Toy.find 'Hello World!'
+    rescue ActiveRecord::RecordNotFound => e
+      assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
     end
   end
 
