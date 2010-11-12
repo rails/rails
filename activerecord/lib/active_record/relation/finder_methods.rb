@@ -300,7 +300,7 @@ module ActiveRecord
       unless record
         conditions = arel.where_sql
         conditions = " [#{conditions}]" if conditions
-        raise RecordNotFound, "Couldn't find #{@klass.name} with ID=#{id}#{conditions}"
+        raise RecordNotFound, "Couldn't find #{@klass.name} with #{@klass.primary_key}=#{id}#{conditions}"
       end
 
       record
