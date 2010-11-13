@@ -32,7 +32,7 @@ config.filter_parameters << :password
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object:
 
 <ruby>
-config.active_record.colorize_logging = false
+config.active_record.timestamped_migrations = false
 </ruby>
 
 Rails will use that particular setting to configure Active Record.
@@ -44,6 +44,8 @@ h4. Rails General Configuration
 * +config.cache_classes+ controls whether or not application classes should be reloaded on each request.
 
 * +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class.
+
+* +config.colorize_logging+ (true by default) specifies whether or not to use ANSI color codes when logging information.
 
 * +config.controller_paths+ accepts an array of paths that will be searched for controllers. Defaults to +app/controllers+.
 
@@ -104,8 +106,6 @@ h4. Configuring Active Record
 * +config.active_record.table_name_suffix+ lets you set a global string to be appended to table names. If you set this to +_northwest+, then the Customer class will look for +customers_northwest+ as its table. The default is an empty string.
 
 * +config.active_record.pluralize_table_names+ specifies whether Rails will look for singular or plural table names in the database. If set to +true+ (the default), then the Customer class will use the +customers+ table. If set to +false+, then the Customers class will use the +customer+ table.
-
-* +config.active_record.colorize_logging+ (true by default) specifies whether or not to use ANSI color codes when logging information from ActiveRecord.
 
 * +config.active_record.default_timezone+ determines whether to use +Time.local+ (if set to +:local+) or +Time.utc+ (if set to +:utc+) when pulling dates and times from the database. The default is +:local+.
 
