@@ -277,6 +277,21 @@ module RenderTestCases
       @view.render(:partial => 'test/partial_with_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
   end
 
+  def test_render_layout_with_a_nested_render_layout_call
+    assert_equal %(Before (Foo!)\nBefore (Bar!)\npartial html\nAfter\npartial with layout\n\nAfter),
+      @view.render(:partial => 'test/partial_with_layout', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_partial
+    assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  partial html\n\nAfterpartial with layout\n\nAfter),
+      @view.render(:partial => 'test/partial_with_layout_block_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_content
+    assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  Content from inside layout!\n\nAfterpartial with layout\n\nAfter),
+      @view.render(:partial => 'test/partial_with_layout_block_content', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
