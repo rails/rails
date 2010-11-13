@@ -911,6 +911,14 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        # === Supported options
+        # [:path_names]
+        #   Allows you to change the paths of the seven default actions.
+        #   Paths not specified are not changed.
+        #
+        #     resources :posts, :path_names => { :new => "brand_new" }
+        #
+        #   The above example will now change /posts/new to /posts/brand_new
         def resources(*resources, &block)
           options = resources.extract_options!
 
