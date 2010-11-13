@@ -279,7 +279,6 @@ module RenderTestCases
   end
 
   def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_content
-    #debugger
     assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n Content from inside layout!\n\nAfterpartial with layout\n\nAfter),
       @view.render(:partial => 'test/partial_with_layout_block_content', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
   end
