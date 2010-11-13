@@ -65,7 +65,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :show
     wait
     assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
+    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs.first
   end
 
   def test_process_action

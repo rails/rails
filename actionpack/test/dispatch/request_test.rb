@@ -403,7 +403,8 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal [ Mime::HTML ], request.formats
 
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
-                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest",
+                           'HTTP_ACCEPT' => 'application/xml'
     request.expects(:parameters).at_least_once.returns({})
     assert_equal with_set(Mime::XML), request.formats
 

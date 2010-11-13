@@ -43,7 +43,7 @@ module ActionDispatch
       end
 
       def formats
-        accept = @env['HTTP_ACCEPT']
+        accept = (@env['HTTP_ACCEPT'] ||= '*/*')
 
         @env["action_dispatch.request.formats"] ||=
           if parameters[:format]
