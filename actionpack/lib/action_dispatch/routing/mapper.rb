@@ -625,6 +625,9 @@ module ActionDispatch
         #     end
         #
         # Routing helpers such as +admin_posts_path+ will now be +sekret_posts_path+.
+        #
+        # [:shallow_path]
+        #   See the +scope+ method.
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
