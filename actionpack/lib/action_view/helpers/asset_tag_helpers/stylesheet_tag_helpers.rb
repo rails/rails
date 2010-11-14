@@ -1,8 +1,14 @@
+require 'active_support/concern'
+require 'action_view/helpers/asset_tag_helpers/helper_methods'
+
 module ActionView
   module Helpers
     module AssetTagHelper
+
       module StylesheetTagHelpers
         extend ActiveSupport::Concern
+        extend HelperMethods
+        include SharedHelpers
 
         included do
           mattr_accessor :stylesheet_expansions
@@ -37,10 +43,8 @@ module ActionView
         #   stylesheet_path "/dir/style.css" # => /dir/style.css
         #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style
         #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
-        def stylesheet_path(source)
-          compute_public_path(source, 'stylesheets', 'css')
-        end
-        alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
+        asset_path :stylesheet, 'css'
+
 
         # Returns a stylesheet link tag for the sources specified as arguments. If
         # you don't specify an extension, <tt>.css</tt> will be appended automatically.
@@ -159,6 +163,7 @@ module ActionView
           end
 
       end
+
     end
   end
 end

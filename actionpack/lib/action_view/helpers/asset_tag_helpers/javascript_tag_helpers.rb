@@ -1,8 +1,14 @@
+require 'active_support/concern'
+require 'action_view/helpers/asset_tag_helpers/helper_methods'
+
 module ActionView
   module Helpers
     module AssetTagHelper
+
       module JavascriptTagHelpers
         extend ActiveSupport::Concern
+        extend HelperMethods
+        include SharedHelpers
 
         included do
           mattr_accessor :javascript_expansions
@@ -37,10 +43,7 @@ module ActionView
         #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
         #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
         #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
-        def javascript_path(source)
-          compute_public_path(source, 'javascripts', 'js')
-        end
-        alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
+        asset_path :javascript, 'js'
 
         # Returns an HTML script tag for each of the +sources+ provided. You
         # can pass in the filename (.js extension is optional) of JavaScript files
@@ -174,7 +177,9 @@ module ActionView
             end
             return sources
           end
+
       end
+
     end
   end
 end
