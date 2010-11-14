@@ -261,6 +261,13 @@ class LoginsController < ApplicationController
 end
 </ruby>
 
+Note it is also possible to assign a flash message as part of the redirection.
+
+<ruby>
+  redirect_to root_url, :notice => "You have successfully logged out"
+</ruby>
+
+
 The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:
 
 <ruby>
