@@ -264,7 +264,7 @@ end
 Note it is also possible to assign a flash message as part of the redirection.
 
 <ruby>
-  redirect_to root_url, :notice => "You have successfully logged out"
+redirect_to root_url, :notice => "You have successfully logged out"
 </ruby>
 
 
