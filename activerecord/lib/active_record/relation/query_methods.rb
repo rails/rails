@@ -260,7 +260,7 @@ module ActiveRecord
     end
 
     def array_of_strings?(o)
-      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
+      o.respond_to?(:each) && !o.any?{|obj| !obj.respond_to?(:to_str)}
     end
 
   end
