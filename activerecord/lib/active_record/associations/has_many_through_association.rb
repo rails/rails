@@ -68,7 +68,7 @@ module ActiveRecord
           end
 
           through_association = @owner.send(@reflection.through_reflection.name)
-          through_record = through_association.create!(construct_join_attributes(record))
+          through_association.create!(construct_join_attributes(record))
         end
 
         # TODO - add dependent option support
