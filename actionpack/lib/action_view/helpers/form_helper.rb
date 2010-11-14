@@ -1205,6 +1205,7 @@ module ActionView
         self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))
       end
+
       # Add the submit button for the given form. When no value is given, it checks
       # if the object is a new resource or not to create the proper label:
       #
