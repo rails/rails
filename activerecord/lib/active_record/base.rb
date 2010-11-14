@@ -1060,7 +1060,7 @@ module ActiveRecord #:nodoc:
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 
-          if method_scoping.is_a?(Hash)
+          if method_scoping.respond_to?(:[])
             # Dup first and second level of hash (method and params).
             method_scoping = method_scoping.dup
             method_scoping.each do |method, params|
@@ -1566,7 +1566,7 @@ MSG
       def attribute_for_inspect(attr_name)
         value = read_attribute(attr_name)
 
-        if value.is_a?(String) && value.length > 50
+        if value.respond_to?(:to_str) && value.length > 50
           "#{value[0..50]}...".inspect
         elsif value.is_a?(Date) || value.is_a?(Time)
           %("#{value.to_s(:db)}")
@@ -1809,7 +1809,7 @@ MSG
           0
         elsif value == true
           1
-        elsif value.is_a?(String) && value.blank?
+        elsif value.respond_to?(:to_str) && value.blank?
           nil
         else
           value
@@ -1817,7 +1817,7 @@ MSG
       end
 
       def object_from_yaml(string)
-        return string unless string.is_a?(String) && string =~ /^---/
+        return string unless string.respond_to?(:to_str) && string =~ /^---/
         YAML::load(string) rescue string
       end
 
