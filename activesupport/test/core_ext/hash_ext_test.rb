@@ -8,6 +8,9 @@ require 'active_support/core_ext/object/conversions'
 class HashExtTest < Test::Unit::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
+  
+  class SubclassingArray < Array
+  end
 
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
@@ -250,6 +253,20 @@ class HashExtTest < Test::Unit::TestCase
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
+  end
+  
+  def test_should_preserve_array_subclass_when_value_is_array
+    array = SubclassingArray.new
+    array << { "address" => "1" }
+    hash = { "urls" => { "url" => array }}.with_indifferent_access
+    assert_equal SubclassingArray, hash[:urls][:url].class
+  end
+  
+  def test_should_preserve_array_class_when_hash_value_is_frozen_array
+    array = SubclassingArray.new
+    array << { "address" => "1" }
+    hash = { "urls" => { "url" => array.freeze }}.with_indifferent_access
+    assert_equal SubclassingArray, hash[:urls][:url].class
   end
 
   def test_stringify_and_symbolize_keys_on_indifferent_preserves_hash
