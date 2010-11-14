@@ -167,6 +167,12 @@ def log_info(sql, name, ms)
 end
 </ruby>
 
++try+ can also be called without arguments but a block, which will only be executed if the object is not nil:
+
+<ruby>
+@person.try { |p| "#{p.first_name} #{p.last_name}" }
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
 h4. +singleton_class+
