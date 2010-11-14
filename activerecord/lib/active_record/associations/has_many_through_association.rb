@@ -69,7 +69,6 @@ module ActiveRecord
 
           through_association = @owner.send(@reflection.through_reflection.name)
           through_record = through_association.create!(construct_join_attributes(record))
-          through_association.proxy_target << through_record
         end
 
         # TODO - add dependent option support
