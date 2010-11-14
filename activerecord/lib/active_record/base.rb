@@ -681,13 +681,18 @@ module ActiveRecord #:nodoc:
       # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
       # is available.
       def column_methods_hash #:nodoc:
-        @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
-          attr_name = attr.to_s
-          methods[attr.to_sym]       = attr_name
-          methods["#{attr}=".to_sym] = attr_name
-          methods["#{attr}?".to_sym] = attr_name
-          methods["#{attr}_before_type_cast".to_sym] = attr_name
-          methods
+        methods = Hash.new(false)
+        if @dynamic_methods_hash.nil?
+          column_names.each do |attr|
+            attr_name = attr.to_s
+            methods[attr.to_sym]       = attr_name
+            methods["#{attr}=".to_sym] = attr_name
+            methods["#{attr}?".to_sym] = attr_name
+            methods["#{attr}_before_type_cast".to_sym] = attr_name
+          end
+          @dynamic_methods_hash = methods
+        else
+          @dynamic_methods_hash
         end
       end
 
