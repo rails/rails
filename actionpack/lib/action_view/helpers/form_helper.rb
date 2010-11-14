@@ -269,8 +269,8 @@ module ActionView
       #   <%= form_for @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
-      #     <%= text_area :person, :biography %>
-      #     <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     <%= f.text_area :biography %>
+      #     <%= f.check_box :admin %>
       #   <% end %>
       #
       # In this case, if you use this:
