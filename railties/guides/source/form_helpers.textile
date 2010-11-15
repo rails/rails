@@ -67,7 +67,7 @@ A basic search form
 <% end %>
 </erb>
 
-TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code>This declares for path "/search" to call action "search" from controller "search".
+TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code> This declares that path "/search" will be handled by action "search" belonging to controller "search".
 
 The above view code will result in the following markup:
 
@@ -107,7 +107,7 @@ WARNING: Do not delimit the second hash without doing so with the first hash, ot
 
 h4. Helpers for Generating Form Elements
 
-Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons, and so on. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+, +check_box_tag+, etc., generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
+Rails provides a series of helpers for generating form elements such as checkboxes, text fields and radio buttons. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+ and +check_box_tag+ generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
 
 <erb>
 <%= text_field_tag(:query) %>
@@ -127,18 +127,18 @@ Checkboxes are form controls that give the user a set of options they can enable
 
 <erb>
 <%= check_box_tag(:pet_dog) %>
-  <%= label_tag(:pet_dog, "I own a dog") %>
+<%= label_tag(:pet_dog, "I own a dog") %>
 <%= check_box_tag(:pet_cat) %>
-  <%= label_tag(:pet_cat, "I own a cat") %>
+<%= label_tag(:pet_cat, "I own a cat") %>
 </erb>
 
 output:
 
 <html>
 <input id="pet_dog" name="pet_dog" type="checkbox" value="1" />
-  <label for="pet_dog">I own a dog</label>
+<label for="pet_dog">I own a dog</label>
 <input id="pet_cat" name="pet_cat" type="checkbox" value="1" />
-  <label for="pet_cat">I own a cat</label>
+<label for="pet_cat">I own a cat</label>
 </html>
 
 The second parameter to +check_box_tag+ is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the +params+ hash). With the above form you would check the value of +params[:pet_dog]+ and +params[:pet_cat]+ to see which pets the user owns.
@@ -149,18 +149,18 @@ Radio buttons, while similar to checkboxes, are controls that specify a set of o
 
 <erb>
 <%= radio_button_tag(:age, "child") %>
-  <%= label_tag(:age_child, "I am younger than 21") %>
+<%= label_tag(:age_child, "I am younger than 21") %>
 <%= radio_button_tag(:age, "adult") %>
-  <%= label_tag(:age_adult, "I'm over 21") %>
+<%= label_tag(:age_adult, "I'm over 21") %>
 </erb>
 
 output:
 
 <html>
 <input id="age_child" name="age" type="radio" value="child" />
-  <label for="age_child">I am younger than 21</label>
+<label for="age_child">I am younger than 21</label>
 <input id="age_adult" name="age" type="radio" value="adult" />
-  <label for="age_adult">I'm over 21</label>
+<label for="age_adult">I'm over 21</label>
 </html>
 
 As with +check_box_tag+ the second parameter to +radio_button_tag+ is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one and +params[:age]+ will contain either "child" or "adult".
@@ -284,7 +284,7 @@ h4. Relying on Record Identification
 The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*:
 
 <ruby>
-map.resources :articles
+resources :articles
 </ruby>
 
 TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#resource-routing-the-rails-default for more information on setting up and using resources.
