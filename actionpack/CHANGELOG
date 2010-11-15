@@ -1,3 +1,11 @@
+*Rails 3.0.3 (November 15, 2010)*
+
+  * When ActiveRecord::Base objects are sent to predicate methods, the id of
+    the object should be sent to ARel, not the ActiveRecord::Base object.
+
+  * :constraints routing should only do sanity checks against regular
+  expressions.  String arguments are OK.
+
 *Rails 3.0.2 (November 15, 2010)*
 
 * The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
