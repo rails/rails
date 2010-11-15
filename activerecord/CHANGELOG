@@ -1,4 +1,6 @@
-*Rails 3.0.2 (unreleased)*
+*Rails 3.0.2 (November 15, 2010)*
+
+* Dramatic speed increase (see: http://engineering.attinteractive.com/2010/10/arel-two-point-ohhhhh-yaaaaaa/) [Aaron Patterson]
 
 * reorder is deprecated in favor of except(:order).order(...) [Santiago Pastorino]
 
@@ -27,9 +29,11 @@
 
   [Aaron Patterson]
 
+
 *Rails 3.0.1 (October 15, 2010)*
 
 * Introduce a fix for CVE-2010-3993
+
 
 *Rails 3.0.0 (August 29, 2010)*
 
