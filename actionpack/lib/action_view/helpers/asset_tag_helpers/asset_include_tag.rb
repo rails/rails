@@ -2,7 +2,6 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/tag_helper'
-require 'action_view/helpers/asset_tag_helpers/common_asset_helpers'
 require 'action_view/helpers/asset_tag_helpers/asset_id_caching'
 
 
@@ -11,17 +10,14 @@ module ActionView
     module AssetTagHelper
 
       class AssetIncludeTag
-        include CommonAssetHelpers
-        include AssetIdCaching
-
-        attr_reader :config, :controller
+        attr_reader :config, :asset_paths
 
         class_attribute :expansions
         self.expansions = { }
 
-        def initialize(config, controller)
+        def initialize(config, asset_paths)
           @config = config
-          @controller = controller
+          @asset_paths = asset_paths
         end
 
         def asset_name
@@ -64,11 +60,11 @@ module ActionView
         private
 
           def path_to_asset(source)
-            compute_public_path(source, asset_name.to_s.pluralize, extension)
+            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension)
           end
 
           def compute_paths(*args)
-            expand_sources(*args).collect { |source| compute_public_path(source, asset_name.pluralize, extension, false) }
+            expand_sources(*args).collect { |source| asset_paths.compute_public_path(source, asset_name.pluralize, extension, false) }
           end
 
           def expand_sources(sources, recursive)
@@ -83,7 +79,7 @@ module ActionView
 
           def ensure_sources!(sources)
             sources.each do |source|
-              asset_file_path!(compute_public_path(source, asset_name.pluralize, extension))
+              asset_file_path!(path_to_asset(source))
             end
             return sources
           end
@@ -124,7 +120,7 @@ module ActionView
           end
 
           def asset_file_path!(path, error_if_file_is_uri = false)
-            if is_uri?(path)
+            if asset_paths.is_uri?(path)
               raise(Errno::ENOENT, "Asset file #{path} is uri and cannot be merged into single file") if error_if_file_is_uri
             else
               absolute_path = asset_file_path(path)

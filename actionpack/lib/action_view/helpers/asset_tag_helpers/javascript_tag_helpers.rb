@@ -1,7 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/tag_helper'
-require 'action_view/helpers/asset_tag_helpers/common_asset_helpers'
 require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
 module ActionView
@@ -43,9 +42,9 @@ module ActionView
           end
       end
 
+
       module JavascriptTagHelpers
         extend ActiveSupport::Concern
-        include CommonAssetHelpers
 
         module ClassMethods
           # Register one or more javascript files to be included when <tt>symbol</tt>
@@ -76,7 +75,7 @@ module ActionView
         #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
         #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
         def javascript_path(source)
-          compute_public_path(source, 'javascripts', 'js')
+          asset_paths.compute_public_path(source, 'javascripts', 'js')
         end
         alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
@@ -163,7 +162,7 @@ module ActionView
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
         def javascript_include_tag(*sources)
-          @javascript_include ||= JavascriptIncludeTag.new(config, controller)
+          @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
           @javascript_include.include_tag(*sources)
         end
 
