@@ -11,12 +11,11 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     end
 
     def dump_params_keys(hash = params)
-      hash.keys.sort.inject("") do |s, k|
-        value = hash[k]
+      hash.keys.sort.map do |key|
+        value = hash[key]
         value = Hash === value ? "(#{dump_params_keys(value)})" : ""
-        s << ", " unless s.empty?
-        s << "#{k}#{value}"
-      end
+        "#{key}#{value}"
+      end.join(', ')
     end
 
     def rescue_action(e) raise end
