@@ -1,14 +1,32 @@
 require 'active_support/concern'
-require 'action_view/helpers/asset_tag_helpers/helper_methods'
+require 'active_support/core_ext/file'
+require 'action_view/helpers/tag_helper'
+require 'action_view/helpers/asset_tag_helpers/common_asset_helpers'
+require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
 module ActionView
   module Helpers
     module AssetTagHelper
 
+      class StylesheetIncludeTag < AssetIncludeTag
+        include TagHelper
+
+        self.asset_name = 'stylesheet'
+        self.extension  = 'css'
+
+        def asset_tag(source, options)
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_asset(source)) }.merge(options), false, false)
+        end
+
+        def custom_dir
+          config.stylesheets_dir
+        end
+      end
+
       module StylesheetTagHelpers
         extend ActiveSupport::Concern
-        extend HelperMethods
-        include SharedHelpers
+        extend HelperMacros
+        include CommonAssetHelpers
 
         included do
           mattr_accessor :stylesheet_expansions
@@ -115,52 +133,9 @@ module ActionView
         #   stylesheet_link_tag :all, :concat => true
         #
         def stylesheet_link_tag(*sources)
-          options = sources.extract_options!.stringify_keys
-          concat  = options.delete("concat")
-          cache   = concat || options.delete("cache")
-          recursive = options.delete("recursive")
-
-          if concat || (config.perform_caching && cache)
-            joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
-            joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.stylesheets_dir, joined_stylesheet_name)
-
-            unless config.perform_caching && File.exists?(joined_stylesheet_path)
-              write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive))
-            end
-            stylesheet_tag(joined_stylesheet_name, options)
-          else
-            sources = expand_stylesheet_sources(sources, recursive)
-            ensure_stylesheet_sources!(sources) if cache
-            sources.collect { |source| stylesheet_tag(source, options) }.join("\n").html_safe
-          end
+          @stylesheet_include ||= StylesheetIncludeTag.new(config, controller, self.stylesheet_expansions)
+          @stylesheet_include.include_tag(*sources)
         end
-
-        private
-
-          def stylesheet_tag(source, options)
-            tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
-          end
-
-          def compute_stylesheet_paths(*args)
-            expand_stylesheet_sources(*args).collect { |source| compute_public_path(source, 'stylesheets', 'css', false) }
-          end
-
-          def expand_stylesheet_sources(sources, recursive)
-            if sources.first == :all
-              collect_asset_files(config.stylesheets_dir, ('**' if recursive), '*.css')
-            else
-              sources.collect do |source|
-                determine_source(source, self.stylesheet_expansions)
-              end.flatten
-            end
-          end
-
-          def ensure_stylesheet_sources!(sources)
-            sources.each do |source|
-              asset_file_path!(path_to_stylesheet(source))
-            end
-            return sources
-          end
 
       end
 

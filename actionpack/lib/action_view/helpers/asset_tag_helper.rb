@@ -1,14 +1,7 @@
-require 'thread'
-require 'cgi'
-require 'action_view/helpers/url_helper'
-require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/asset_tag_helpers/base_asset_helpers'
 require 'action_view/helpers/asset_tag_helpers/javascript_tag_helpers'
 require 'action_view/helpers/asset_tag_helpers/stylesheet_tag_helpers'
 require 'action_view/helpers/asset_tag_helpers/asset_id_caching'
-require 'active_support/core_ext/file'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -200,9 +193,9 @@ module ActionView
     #   RewriteRule ^/release-\d+/(images|javascripts|stylesheets)/(.*)$ /$1/$2 [L]
     module AssetTagHelper
       include BaseAssetHelpers
+      include AssetIdCaching
       include JavascriptTagHelpers
       include StylesheetTagHelpers
-      include AssetIdCaching
     end
   end
 end

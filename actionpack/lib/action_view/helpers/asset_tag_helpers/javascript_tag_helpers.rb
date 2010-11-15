@@ -1,14 +1,47 @@
 require 'active_support/concern'
-require 'action_view/helpers/asset_tag_helpers/helper_methods'
+require 'active_support/core_ext/file'
+require 'action_view/helpers/tag_helper'
+require 'action_view/helpers/asset_tag_helpers/common_asset_helpers'
+require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
 module ActionView
   module Helpers
     module AssetTagHelper
 
+      class JavascriptIncludeTag < AssetIncludeTag
+        include TagHelper
+
+        self.asset_name = 'javascript'
+        self.extension  = 'js'
+
+        def asset_tag(source, options)
+          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_asset(source) }.merge(options))
+        end
+
+        def custom_dir
+          config.javascripts_dir
+        end
+
+        private
+
+          def expand_sources(sources, recursive = false)
+            if sources.include?(:all)
+              all_asset_files = (collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}") - ['application']) << 'application'
+              ((determine_source(:defaults, expansions).dup & all_asset_files) + all_asset_files).uniq
+            else
+              expanded_sources = sources.collect do |source|
+                determine_source(source, expansions)
+              end.flatten
+              expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(custom_dir, "application.#{extension}"))
+              expanded_sources
+            end
+          end
+      end
+
       module JavascriptTagHelpers
         extend ActiveSupport::Concern
-        extend HelperMethods
-        include SharedHelpers
+        extend HelperMacros
+        include CommonAssetHelpers
 
         included do
           mattr_accessor :javascript_expansions
@@ -128,55 +161,9 @@ module ActionView
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
         def javascript_include_tag(*sources)
-          options = sources.extract_options!.stringify_keys
-          concat  = options.delete("concat")
-          cache   = concat || options.delete("cache")
-          recursive = options.delete("recursive")
-
-          if concat || (config.perform_caching && cache)
-            joined_javascript_name = (cache == true ? "all" : cache) + ".js"
-            joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.javascripts_dir, joined_javascript_name)
-
-            unless config.perform_caching && File.exists?(joined_javascript_path)
-              write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive))
-            end
-            javascript_src_tag(joined_javascript_name, options)
-          else
-            sources = expand_javascript_sources(sources, recursive)
-            ensure_javascript_sources!(sources) if cache
-            sources.collect { |source| javascript_src_tag(source, options) }.join("\n").html_safe
-          end
+          @javascript_include ||= JavascriptIncludeTag.new(config, controller, self.javascript_expansions)
+          @javascript_include.include_tag(*sources)
         end
-
-        private
-
-          def javascript_src_tag(source, options)
-            content_tag("script", "", { "type" => Mime::JS, "src" => path_to_javascript(source) }.merge(options))
-          end
-
-          def compute_javascript_paths(*args)
-            expand_javascript_sources(*args).collect { |source| compute_public_path(source, 'javascripts', 'js', false) }
-          end
-
-          def expand_javascript_sources(sources, recursive = false)
-            if sources.include?(:all)
-              all_javascript_files = (collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js') - ['application']) << 'application'
-              ((determine_source(:defaults, self.javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
-            else
-              expanded_sources = sources.collect do |source|
-                determine_source(source, self.javascript_expansions)
-              end.flatten
-              expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(config.javascripts_dir, "application.js"))
-              expanded_sources
-            end
-          end
-
-          def ensure_javascript_sources!(sources)
-            sources.each do |source|
-              asset_file_path!(path_to_javascript(source))
-            end
-            return sources
-          end
 
       end
 
