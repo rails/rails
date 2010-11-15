@@ -66,6 +66,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'exotic', bulb.name
   end
 
+  def test_no_sql_should_be_fired_if_association_already_loaded
+    car = Car.create(:name => 'honda')
+    bulb = car.bulbs.create
+    bulbs = Car.first.bulbs
+    bulbs.inspect # to load all instances of bulbs
+    assert_no_queries do
+      bulbs.first()
+      bulbs.first({})
+    end
+  end
+
   def test_create_resets_cached_counters
     person = Person.create!(:first_name => 'tenderlove')
     post   = Post.first

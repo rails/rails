@@ -75,6 +75,7 @@ module ActiveRecord
           find(:first, *args)
         else
           load_target unless loaded?
+          args = args[1..-1] if args.first.kind_of?(Hash) && args.first.empty?
           @target.first(*args)
         end
       end
@@ -544,7 +545,7 @@ module ActiveRecord
         end
 
         def fetch_first_or_last_using_find?(args)
-          args.first.kind_of?(Hash) || !(loaded? || !@owner.persisted? || @reflection.options[:finder_sql] ||
+          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || !@owner.persisted? || @reflection.options[:finder_sql] ||
                                          !@target.all? { |record| record.persisted? } || args.first.kind_of?(Integer))
         end
 
