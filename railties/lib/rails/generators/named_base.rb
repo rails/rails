@@ -61,7 +61,7 @@ module Rails
         end
 
         def namespaced?
-          !options[:skip_namespace] && !!namespace
+          !options[:skip_namespace] && namespace
         end
 
         def inside_namespace?
