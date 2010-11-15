@@ -12,14 +12,19 @@ command = aliases[command] || command
 
 case command
 when 'generate', 'destroy', 'plugin'
-  require APP_PATH
-  Rails.application.require_environment!
+  if command == "plugin" && ARGV.first == "new"
+    require "rails/commands/plugin_new"
+  else
+    require APP_PATH
+    Rails.application.require_environment!
 
-  if defined?(ENGINE_PATH)
-    engine = Rails.application.railties.engines.find { |r| r.root.to_s == ENGINE_PATH }
-    Rails.application = engine
+    if defined?(ENGINE_PATH)
+      engine = Rails.application.railties.engines.find { |r| r.root.to_s == ENGINE_PATH }
+      Rails.application = engine
+    end
+
+    require "rails/commands/#{command}"
   end
-  require "rails/commands/#{command}"
 
 when 'benchmarker', 'profiler'
   require APP_PATH
