@@ -306,7 +306,6 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     assert stylesheet_link_tag('dir/file').html_safe?
     assert stylesheet_link_tag('dir/other/file', 'dir/file2').html_safe?
-    assert stylesheet_tag('dir/file', {}).html_safe?
   end
 
   def test_custom_stylesheet_expansions
