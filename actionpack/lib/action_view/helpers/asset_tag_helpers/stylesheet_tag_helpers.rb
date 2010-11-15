@@ -11,8 +11,13 @@ module ActionView
       class StylesheetIncludeTag < AssetIncludeTag
         include TagHelper
 
-        self.asset_name = 'stylesheet'
-        self.extension  = 'css'
+        def asset_name
+          'stylesheet'
+        end
+
+        def extension
+          'css'
+        end
 
         def asset_tag(source, options)
           tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_asset(source)) }.merge(options), false, false)
@@ -25,13 +30,7 @@ module ActionView
 
       module StylesheetTagHelpers
         extend ActiveSupport::Concern
-        extend HelperMacros
         include CommonAssetHelpers
-
-        included do
-          mattr_accessor :stylesheet_expansions
-          self.stylesheet_expansions = { }
-        end
 
         module ClassMethods
           # Register one or more stylesheet files to be included when <tt>symbol</tt>
@@ -46,7 +45,7 @@ module ActionView
           #     <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
           #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
           def register_stylesheet_expansion(expansions)
-            self.stylesheet_expansions.merge!(expansions)
+            StylesheetIncludeTag.expansions.merge!(expansions)
           end
         end
 
@@ -61,8 +60,10 @@ module ActionView
         #   stylesheet_path "/dir/style.css" # => /dir/style.css
         #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style
         #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
-        asset_path :stylesheet, 'css'
-
+        def stylesheet_path(source)
+          compute_public_path(source, 'stylesheets', 'css')
+        end
+        alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
         # Returns a stylesheet link tag for the sources specified as arguments. If
         # you don't specify an extension, <tt>.css</tt> will be appended automatically.
@@ -133,7 +134,7 @@ module ActionView
         #   stylesheet_link_tag :all, :concat => true
         #
         def stylesheet_link_tag(*sources)
-          @stylesheet_include ||= StylesheetIncludeTag.new(config, controller, self.stylesheet_expansions)
+          @stylesheet_include ||= StylesheetIncludeTag.new(config, controller)
           @stylesheet_include.include_tag(*sources)
         end
 

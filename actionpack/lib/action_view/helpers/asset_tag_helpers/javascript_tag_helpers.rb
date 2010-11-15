@@ -11,8 +11,13 @@ module ActionView
       class JavascriptIncludeTag < AssetIncludeTag
         include TagHelper
 
-        self.asset_name = 'javascript'
-        self.extension  = 'js'
+        def asset_name
+          'javascript'
+        end
+
+        def extension
+          'js'
+        end
 
         def asset_tag(source, options)
           content_tag("script", "", { "type" => Mime::JS, "src" => path_to_asset(source) }.merge(options))
@@ -40,13 +45,7 @@ module ActionView
 
       module JavascriptTagHelpers
         extend ActiveSupport::Concern
-        extend HelperMacros
         include CommonAssetHelpers
-
-        included do
-          mattr_accessor :javascript_expansions
-          self.javascript_expansions = { }
-        end
 
         module ClassMethods
           # Register one or more javascript files to be included when <tt>symbol</tt>
@@ -61,7 +60,7 @@ module ActionView
           #     <script type="text/javascript" src="/javascripts/body.js"></script>
           #     <script type="text/javascript" src="/javascripts/tail.js"></script>
           def register_javascript_expansion(expansions)
-            self.javascript_expansions.merge!(expansions)
+            JavascriptIncludeTag.expansions.merge!(expansions)
           end
         end
 
@@ -76,7 +75,10 @@ module ActionView
         #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
         #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
         #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
-        asset_path :javascript, 'js'
+        def javascript_path(source)
+          compute_public_path(source, 'javascripts', 'js')
+        end
+        alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
         # Returns an HTML script tag for each of the +sources+ provided. You
         # can pass in the filename (.js extension is optional) of JavaScript files
@@ -161,7 +163,7 @@ module ActionView
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
         def javascript_include_tag(*sources)
-          @javascript_include ||= JavascriptIncludeTag.new(config, controller, self.javascript_expansions)
+          @javascript_include ||= JavascriptIncludeTag.new(config, controller)
           @javascript_include.include_tag(*sources)
         end
 

@@ -4,16 +4,6 @@ module ActionView
   module Helpers
     module AssetTagHelper
 
-      module HelperMacros
-        private
-        def asset_path(asset_type, extension = nil)
-          define_method("#{asset_type}_path") do |source|
-            compute_public_path(source, asset_type.to_s.pluralize, extension)
-          end
-          alias_method :"path_to_#{asset_type}", :"#{asset_type}_path" # aliased to avoid conflicts with a *_path named route
-        end
-      end
-
       module CommonAssetHelpers
         private
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.

@@ -1,4 +1,4 @@
-require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/tag_helper'
@@ -11,18 +11,25 @@ module ActionView
     module AssetTagHelper
 
       class AssetIncludeTag
-        include AssetIdCaching
         include CommonAssetHelpers
+        include AssetIdCaching
 
-        class_attribute :asset_name
-        class_attribute :extension
+        attr_reader :config, :controller
 
-        attr_reader :config, :controller, :expansions
+        class_attribute :expansions
+        self.expansions = { }
 
-        def initialize(config, controller, expansions)
+        def initialize(config, controller)
           @config = config
           @controller = controller
-          @expansions = expansions
+        end
+
+        def asset_name
+          raise NotImplementedError
+        end
+
+        def extension
+          raise NotImplementedError
         end
 
         def custom_dir

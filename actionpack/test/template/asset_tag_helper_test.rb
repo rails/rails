@@ -274,7 +274,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_reset_javascript_expansions
-    ActionView::Helpers::AssetTagHelper.javascript_expansions.clear
+    JavascriptIncludeTag.expansions.clear
     assert_raise(ArgumentError) { javascript_include_tag(:defaults) }
   end
 
@@ -948,7 +948,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @request = Struct.new(:protocol).new("gopher://")
     @controller.request = @request
 
-    ActionView::Helpers::AssetTagHelper.javascript_expansions.clear
+    JavascriptIncludeTag.expansions.clear
   end
 
   def url_for(options)
