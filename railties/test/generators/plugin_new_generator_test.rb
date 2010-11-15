@@ -146,6 +146,11 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy"
   end
 
+  def test_skipping_gemspec
+    run_generator [destination_root, "--skip-gemspec"]
+    assert_no_file "bukkits.gemspec"
+  end
+
 protected
 
   def action(*args, &block)
