@@ -165,8 +165,8 @@ module ActionDispatch
               end
 
               hash = {}
-              hash[:controller] = controller if controller
-              hash[:action]     = action if action
+              hash[:controller] = controller unless controller.blank?
+              hash[:action]     = action unless action.blank?
               hash
             end
           end
