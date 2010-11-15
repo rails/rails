@@ -556,6 +556,17 @@ class InheritedRespondWithController < RespondWithController
   end
 end
 
+class RenderJsonRespondWithController < RespondWithController
+  clear_respond_to
+  respond_to :json
+
+  def index
+    respond_with(resource) do |format|
+      format.json { render :json => RenderJsonTestException.new('boom') }
+    end
+  end
+end
+
 class EmptyRespondWithController < ActionController::Base
   def index
     respond_with(Customer.new("david", 13))
@@ -867,6 +878,13 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/json"
     get :index
     assert_equal "JSON", @response.body
+  end
+
+  def test_render_json_object_responds_to_str_still_produce_json
+    @controller = RenderJsonRespondWithController.new
+    @request.accept = "application/json"
+    get :index, :format => :json
+    assert_equal %Q{{"message":"boom","error":"RenderJsonTestException"}}, @response.body
   end
 
   def test_no_double_render_is_raised
