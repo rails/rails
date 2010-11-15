@@ -2,8 +2,6 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/tag_helper'
-require 'action_view/helpers/asset_tag_helpers/asset_id_caching'
-
 
 module ActionView
   module Helpers

@@ -1,12 +1,17 @@
 require 'active_support/core_ext/file'
-require 'action_view/helpers/asset_tag_helpers/asset_id_caching'
 
 module ActionView
   module Helpers
     module AssetTagHelper
 
       class AssetPaths
-        include AssetIdCaching
+        # You can enable or disable the asset tag timestamps cache.
+        # With the cache enabled, the asset tag helper methods will make fewer
+        # expensive file system calls. However this prevents you from modifying
+        # any asset files while the server is running.
+        #
+        #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
+        mattr_accessor :cache_asset_timestamps
 
         attr_reader :config, :controller
 
@@ -36,6 +41,12 @@ module ActionView
           source
         end
 
+        def add_to_asset_timestamp_cache(source, asset_id)
+          self.asset_timestamps_cache_guard.synchronize do
+            self.asset_timestamps_cache[source] = asset_id
+          end
+        end
+
         def is_uri?(path)
           path =~ %r{^[-a-z]+://|^cid:}
         end
@@ -62,8 +73,40 @@ module ActionView
               return path.call(source)
             elsif path && path.is_a?(String)
               return path % [source]
+            end
+
+            asset_id = rails_asset_id(source)
+            if asset_id.empty?
+              source
             else
-              handle_asset_id(source)
+              "#{source}?#{asset_id}"
+            end
+          end
+
+          mattr_accessor :asset_timestamps_cache
+          self.asset_timestamps_cache = {}
+
+          mattr_accessor :asset_timestamps_cache_guard
+          self.asset_timestamps_cache_guard = Mutex.new
+
+          # Use the RAILS_ASSET_ID environment variable or the source's
+          # modification time as its cache-busting asset id.
+          def rails_asset_id(source)
+            if asset_id = ENV["RAILS_ASSET_ID"]
+              asset_id
+            else
+              if self.cache_asset_timestamps && (asset_id = self.asset_timestamps_cache[source])
+                asset_id
+              else
+                path = File.join(config.assets_dir, source)
+                asset_id = File.exist?(path) ? File.mtime(path).to_i.to_s : ''
+
+                if self.cache_asset_timestamps
+                  add_to_asset_timestamp_cache(source, asset_id)
+                end
+
+                asset_id
+              end
             end
           end
 
