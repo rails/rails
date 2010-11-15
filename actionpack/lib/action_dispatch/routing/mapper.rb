@@ -164,10 +164,10 @@ module ActionDispatch
                 raise ArgumentError, "missing :action"
               end
 
-              { :controller => controller, :action => action }.tap do |hash|
-                hash.delete(:controller) if hash[:controller].blank?
-                hash.delete(:action)     if hash[:action].blank?
-              end
+              hash = {}
+              hash[:controller] = controller if controller
+              hash[:action]     = action if action
+              hash
             end
           end
 
