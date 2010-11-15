@@ -315,7 +315,7 @@ Now to get this test to pass we can add a model level validation for the _title_
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates_presence_of :title
+  validates :title, :presence => true
 end
 </ruby>
 

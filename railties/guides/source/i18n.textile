@@ -672,11 +672,11 @@ Active Record validation error messages can also be translated easily. Active Re
 
 This gives you quite powerful means to flexibly adjust your messages to your application's needs.
 
-Consider a User model with a +validates_presence_of+ validation for the name attribute like this:
+Consider a User model with a validation for the name attribute like this:
 
 <ruby>
 class User < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 </ruby>
 
@@ -706,7 +706,7 @@ For example, you might have an Admin model inheriting from User:
 
 <ruby>
 class Admin < User
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 </ruby>
 
@@ -733,27 +733,27 @@ So, for example, instead of the default error message +"can not be blank"+ you c
 * +count+, where available, can be used for pluralization if present:
 
 |_. validation                 |_.with option              |_.message                  |_.interpolation|
-| validates_confirmation_of    | -                         | :confirmation             | -|
-| validates_acceptance_of      | -                         | :accepted                 | -|
-| validates_presence_of        | -                         | :blank                    | -|
-| validates_length_of          | :within, :in              | :too_short                | count|
-| validates_length_of          | :within, :in              | :too_long                 | count|
-| validates_length_of          | :is                       | :wrong_length             | count|
-| validates_length_of          | :minimum                  | :too_short                | count|
-| validates_length_of          | :maximum                  | :too_long                 | count|
-| validates_uniqueness_of      | -                         | :taken                    | -|
-| validates_format_of          | -                         | :invalid                  | -|
-| validates_inclusion_of       | -                         | :inclusion                | -|
-| validates_exclusion_of       | -                         | :exclusion                | -|
-| validates_associated         | -                         | :invalid                  | -|
-| validates_numericality_of    | -                         | :not_a_number             | -|
-| validates_numericality_of    | :greater_than             | :greater_than             | count|
-| validates_numericality_of    | :greater_than_or_equal_to | :greater_than_or_equal_to | count|
-| validates_numericality_of    | :equal_to                 | :equal_to                 | count|
-| validates_numericality_of    | :less_than                | :less_than                | count|
-| validates_numericality_of    | :less_than_or_equal_to    | :less_than_or_equal_to    | count|
-| validates_numericality_of    | :odd                      | :odd                      | -|
-| validates_numericality_of    | :even                     | :even                     | -|
+| confirmation    | -                         | :confirmation             | -|
+| acceptance      | -                         | :accepted                 | -|
+| presence        | -                         | :blank                    | -|
+| length          | :within, :in              | :too_short                | count|
+| length          | :within, :in              | :too_long                 | count|
+| length          | :is                       | :wrong_length             | count|
+| length          | :minimum                  | :too_short                | count|
+| length          | :maximum                  | :too_long                 | count|
+| uniqueness      | -                         | :taken                    | -|
+| format          | -                         | :invalid                  | -|
+| inclusion       | -                         | :inclusion                | -|
+| exclusion       | -                         | :exclusion                | -|
+| associated      | -                         | :invalid                  | -|
+| numericality    | -                         | :not_a_number             | -|
+| numericality    | :greater_than             | :greater_than             | count|
+| numericality    | :greater_than_or_equal_to | :greater_than_or_equal_to | count|
+| numericality    | :equal_to                 | :equal_to                 | count|
+| numericality    | :less_than                | :less_than                | count|
+| numericality    | :less_than_or_equal_to    | :less_than_or_equal_to    | count|
+| numericality    | :odd                      | :odd                      | -|
+| numericality    | :even                     | :even                     | -|
 
 h5. Translations for the Active Record +error_messages_for+ Helper
 
