@@ -5,13 +5,14 @@ module ActionView
     module AssetTagHelper
 
       class AssetPaths
-        # You can enable or disable the asset tag timestamps cache.
+        # You can enable or disable the asset tag ids cache.
         # With the cache enabled, the asset tag helper methods will make fewer
-        # expensive file system calls. However this prevents you from modifying
-        # any asset files while the server is running.
+        # expensive file system calls (the default implementation checks the file
+        # system timestamp). However this prevents you from modifying any asset
+        # files while the server is running.
         #
-        #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
-        mattr_accessor :cache_asset_timestamps
+        #   ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids = false
+        mattr_accessor :cache_asset_ids
 
         attr_reader :config, :controller
 
@@ -41,9 +42,12 @@ module ActionView
           source
         end
 
-        def add_to_asset_timestamp_cache(source, asset_id)
-          self.asset_timestamps_cache_guard.synchronize do
-            self.asset_timestamps_cache[source] = asset_id
+        # Add or change an asset id in the asset id cache. This can be used
+        # for SASS on Heroku.
+        # :api: public
+        def add_to_asset_ids_cache(source, asset_id)
+          self.asset_ids_cache_guard.synchronize do
+            self.asset_ids_cache[source] = asset_id
           end
         end
 
@@ -83,11 +87,11 @@ module ActionView
             end
           end
 
-          mattr_accessor :asset_timestamps_cache
-          self.asset_timestamps_cache = {}
+          mattr_accessor :asset_ids_cache
+          self.asset_ids_cache = {}
 
-          mattr_accessor :asset_timestamps_cache_guard
-          self.asset_timestamps_cache_guard = Mutex.new
+          mattr_accessor :asset_ids_cache_guard
+          self.asset_ids_cache_guard = Mutex.new
 
           # Use the RAILS_ASSET_ID environment variable or the source's
           # modification time as its cache-busting asset id.
@@ -95,14 +99,14 @@ module ActionView
             if asset_id = ENV["RAILS_ASSET_ID"]
               asset_id
             else
-              if self.cache_asset_timestamps && (asset_id = self.asset_timestamps_cache[source])
+              if self.cache_asset_ids && (asset_id = self.asset_ids_cache[source])
                 asset_id
               else
                 path = File.join(config.assets_dir, source)
                 asset_id = File.exist?(path) ? File.mtime(path).to_i.to_s : ''
 
-                if self.cache_asset_timestamps
-                  add_to_asset_timestamp_cache(source, asset_id)
+                if self.cache_asset_ids
+                  add_to_asset_ids_cache(source, asset_id)
                 end
 
                 asset_id
