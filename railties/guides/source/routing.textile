@@ -436,6 +436,26 @@ match 'exit' => 'sessions#destroy', :as => :logout
 
 This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
 
+h4. HTTP Verb Constraints
+
+You can use the +:via+ option to constrain the request to one or more HTTP methods:
+
+<ruby>
+match 'photos/show' => 'photos#show', :via => :get
+</ruby>
+
+There is a shorthand version of this as well:
+
+<ruby>
+get 'photos/show'
+</ruby>
+
+You can also permit more than one verb to a single route:
+
+<ruby>
+match 'photos/show' => 'photos#show', :via => [:get, :post]
+</ruby>
+
 h4. Segment Constraints
 
 You can use the +:constraints+ option to enforce a format for a dynamic segment:

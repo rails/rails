@@ -970,7 +970,7 @@ Partial templates - usually just called "partials" - are another device for brea
 
 h5. Naming Partials
 
-To render a partial as part of a view, you use the +render+ method within the view, and include the +:partial+ option:
+To render a partial as part of a view, you use the +render+ method within the view:
 
 <ruby>
 <%= render "menu" %>

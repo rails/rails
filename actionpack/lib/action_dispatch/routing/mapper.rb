@@ -263,6 +263,23 @@ module ActionDispatch
           self
         end
 
+        # Mount a Rack-based application to be used within the application.
+        #
+        # mount SomeRackApp, :at => "some_route"
+        #
+        # Alternatively:
+        #
+        # mount(SomeRackApp => "some_route")
+        #
+        # All mounted applications come with routing helpers to access them.
+        # These are named after the class specified, so for the above example
+        # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
+        # To customize this helper's name, use the +:as+ option:
+        #
+        # mount(SomeRackApp => "some_route", :as => "exciting")
+        #
+        # This will generate the +exciting_path+ and +exciting_url+ helpers
+        # which can be used to navigate to this mounted app.
         def mount(app, options = nil)
           if options
             path = options.delete(:at)
@@ -324,21 +341,41 @@ module ActionDispatch
 
       module HttpHelpers
         # Define a route that only recognizes HTTP GET.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, *args, &block)
         end
 
         # Define a route that only recognizes HTTP POST.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
           map_method(:post, *args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
           map_method(:put, *args, &block)
         end
 
-        # Define a route that only recognizes HTTP DELETE.
+        # Define a route that only recognizes HTTP PUT.
+        # For supported arguments, see +match+.
+        #
+        # Example:
+        #
+        # delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, *args, &block)
         end
@@ -407,22 +444,22 @@ module ActionDispatch
       #   PUT	    /admin/photos/1
       #   DELETE  /admin/photos/1
       #
-      # If you want to route /photos (without the prefix /admin) to
+      # If you want to route /posts (without the prefix /admin) to
       # Admin::PostsController, you could use
       #
       #   scope :module => "admin" do
-      #     resources :posts, :comments
+      #     resources :posts
       #   end
       #
       # or, for a single case
       #
       #   resources :posts, :module => "admin"
       #
-      # If you want to route /admin/photos to PostsController
+      # If you want to route /admin/posts to PostsController
       # (without the Admin:: module prefix), you could use
       #
       #   scope "/admin" do
-      #     resources :posts, :comments
+      #     resources :posts
       #   end
       #
       # or, for a single case
@@ -448,10 +485,51 @@ module ActionDispatch
 
         # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
         # to Admin::PostsController:
+        # === Supported options
+        # [:module]
+        #   If you want to route /posts (without the prefix /admin) to
+        #   Admin::PostsController, you could use
         #
-        #   scope :module => "admin" do
-        #     resources :posts
-        #   end
+        #     scope :module => "admin" do
+        #       resources :posts
+        #     end
+        #
+        # [:path]
+        #   If you want to prefix the route, you could use
+        #
+        #     scope :path => "/admin" do
+        #       resources :posts
+        #     end
+        #
+        #   This will prefix all of the +posts+ resource's requests with '/admin'
+        #
+        # [:as]
+        #  Prefixes the routing helpers in this scope with the specified label.
+        #
+        #    scope :as => "sekret" do
+        #      resources :posts
+        #    end
+        #
+        # Helpers such as +posts_path+ will now be +sekret_posts_path+
+        #
+        # [:shallow_path]
+        #
+        #   Prefixes nested shallow routes with the specified path.
+        #
+        #   scope :shallow_path => "sekret" do
+        #     resources :posts do
+        #       resources :comments, :shallow => true
+        #     end
+        #
+        #   The +comments+ resource here will have the following routes generated for it:
+        #
+        #     post_comments    GET    /sekret/posts/:post_id/comments(.:format)
+        #     post_comments    POST   /sekret/posts/:post_id/comments(.:format)
+        #     new_post_comment GET    /sekret/posts/:post_id/comments/new(.:format)
+        #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
+        #     comment          GET    /sekret/comments/:id(.:format)
+        #     comment          PUT    /sekret/comments/:id(.:format)
+        #     comment          DELETE /sekret/comments/:id(.:format)
         def scope(*args)
           options = args.extract_options!
           options = options.dup
@@ -488,22 +566,139 @@ module ActionDispatch
           @scope[:blocks]  = recover[:block]
         end
 
+        # Scopes routes to a specific controller
+        #
+        # Example:
+        #   controller "food" do
+        #     match "bacon", :action => "bacon"
+        #   end
         def controller(controller, options={})
           options[:controller] = controller
           scope(options) { yield }
         end
 
+        # Scopes routes to a specific namespace. For example:
+        #
+        #   namespace :admin do
+        #     resources :posts
+        #   end
+        #
+        # This generates the following routes:
+        #
+        #     admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
+        #     admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
+        #  new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
+        # edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
+        #      admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #      admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
+        #      admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        # === Supported options
+        #
+        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
+        #
+        # [:path]
+        #   The path prefix for the routes.
+        #
+        #   namespace :admin, :path => "sekret" do
+        #     resources :posts
+        #   end
+        #
+        #   All routes for the above +resources+ will be accessible through +/sekret/posts+, rather than +/admin/posts+
+        #
+        # [:module]
+        #   The namespace for the controllers.
+        #
+        #   namespace :admin, :module => "sekret" do
+        #     resources :posts
+        #   end
+        #
+        #   The +PostsController+ here should go in the +Sekret+ namespace and so it should be defined like this:
+        #
+        #   class Sekret::PostsController < ApplicationController
+        #     # code go here
+        #   end
+        #
+        # [:as]
+        #   Changes the name used in routing helpers for this namespace.
+        #
+        #     namespace :admin, :as => "sekret" do
+        #       resources :posts
+        #     end
+        #
+        # Routing helpers such as +admin_posts_path+ will now be +sekret_posts_path+.
+        #
+        # [:shallow_path]
+        #   See the +scope+ method.
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
                       :shallow_path => path, :shallow_prefix => path }.merge!(options)
           scope(options) { yield }
         end
-
+        
+        # === Parameter Restriction
+        # Allows you to constrain the nested routes based on a set of rules.
+        # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
+        #
+        #   constraints(:id => /\d+\.\d+) do
+        #     resources :posts
+        #   end
+        #
+        # Now routes such as +/posts/1+ will no longer be valid, but +/posts/1.1+ will be.
+        # The +id+ parameter must match the constraint passed in for this example.
+        # 
+        # You may use this to also resrict other parameters:
+        #
+        #   resources :posts do
+        #     constraints(:post_id => /\d+\.\d+) do
+        #       resources :comments
+        #     end
+        #
+        # === Restricting based on IP
+        #
+        # Routes can also be constrained to an IP or a certain range of IP addresses:
+        #
+        #   constraints(:ip => /192.168.\d+.\d+/) do
+        #     resources :posts
+        #   end
+        #
+        # Any user connecting from the 192.168.* range will be able to see this resource,
+        # where as any user connecting outside of this range will be told there is no such route.
+        #
+        # === Dynamic request matching
+        #
+        # Requests to routes can be constrained based on specific critera:
+        #
+        #    constraints(lambda { |req| req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
+        #      resources :iphones
+        #    end
+        #
+        # You are able to move this logic out into a class if it is too complex for routes.
+        # This class must have a +matches?+ method defined on it which either returns +true+
+        # if the user should be given access to that route, or +false+ if the user should not.
+        #
+        #    class Iphone
+        #      def self.matches(request)
+        #        request.env["HTTP_USER_AGENT"] =~ /iPhone/
+        #      end
+        #    end
+        #
+        # An expected place for this code would be +lib/constraints+.
+        #
+        # This class is then used like this:
+        #
+        #    constraints(Iphone) do
+        #      resources :iphones
+        #    end
         def constraints(constraints = {})
           scope(:constraints => constraints) { yield }
         end
 
+        # Allows you to set default parameters for a route, such as this:
+        # defaults :id => 'home' do
+        #   match 'scoped_pages/(:id)', :to => 'pages#show'
+        # end
+        # Using this, the +:id+ parameter here will default to 'home'.
         def defaults(defaults = {})
           scope(:defaults => defaults) { yield }
         end
@@ -771,6 +966,14 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        # === Supported options
+        # [:path_names]
+        #   Allows you to change the paths of the seven default actions.
+        #   Paths not specified are not changed.
+        #
+        #     resources :posts, :path_names => { :new => "brand_new" }
+        #
+        #   The above example will now change /posts/new to /posts/brand_new
         def resources(*resources, &block)
           options = resources.extract_options!
 
