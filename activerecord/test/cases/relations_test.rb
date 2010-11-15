@@ -432,6 +432,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, authors.all.length
   end
 
+  def test_find_with_list_of_ar
+    author = Author.first
+    authors = Author.find([author])
+    assert_equal author, authors.first
+  end
+
+  def test_find_by_id_with_list_of_ar
+    author = Author.first
+    authors = Author.find_by_id([author])
+    assert_equal author, authors
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
