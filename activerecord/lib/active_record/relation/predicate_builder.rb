@@ -25,6 +25,8 @@ module ActiveRecord
             attribute.in(values)
           when Range, Arel::Relation
             attribute.in(value)
+          when ActiveRecord::Base
+            attribute.eq(value.quoted_id)
           else
             attribute.eq(value)
           end
