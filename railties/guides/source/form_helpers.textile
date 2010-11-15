@@ -232,13 +232,13 @@ The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks 
 <%= form_for @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, :size => "60x12" %>
-  <%= submit_tag "Create" %>
+  <%= f.submit "Create" %>
 <% end %>
 </erb>
 
 There are a few things to note here:
 
-# +:article+ is the name of the model and +@article+ is the actual object being edited.
+# +@article+ is the actual object being edited.
 # There is a single hash of options. Routing options are passed in the +:url+ hash, HTML options are passed in the +:html+ hash.
 # The +form_for+ method yields a *form builder* object (the +f+ variable).
 # Methods to create form controls are called *on* the form builder object +f+
@@ -294,13 +294,13 @@ When dealing with RESTful resources, calls to +form_for+ can get significantly e
 <ruby>
 ## Creating a new article
 # long-style:
-form_for(:article, @article, :url => articles_path)
+form_for(@article, :url => articles_path)
 # same thing, short-style (record identification gets used):
 form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(:article, @article, :url => article_path(@article), :html => { :method => "put" })
+form_for(@article, :url => article_path(@article), :html => { :method => "put" })
 # short-style:
 form_for(@article)
 </ruby>

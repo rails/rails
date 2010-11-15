@@ -90,13 +90,14 @@ module ActionView
 
     def collection
       if @options.key?(:collection)
-        @options[:collection] || []
+        collection = @options[:collection]
+        collection.respond_to?(:to_ary) ? collection.to_ary : []
       end
     end
 
     def collection_from_object
       if @object.respond_to?(:to_ary)
-        @object
+        @object.to_ary
       end
     end
 

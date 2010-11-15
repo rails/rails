@@ -17,7 +17,7 @@ class Eye < ActiveRecord::Base
   after_save   :trace_after_save2
   
   def trace_after_create
-    (@after_create_callbacks_stack ||= []) << iris.new_record?
+    (@after_create_callbacks_stack ||= []) << !iris.persisted?
   end
   alias trace_after_create2 trace_after_create
 

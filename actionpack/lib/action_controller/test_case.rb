@@ -411,8 +411,9 @@ module ActionController
         @controller.request = @request
         @controller.params.merge!(parameters)
         build_request_uri(action, parameters)
-        Base.class_eval { include Testing }
+        @controller.class.class_eval { include Testing }
         @controller.process_with_new_base_test(@request, @response)
+        @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
       end
@@ -448,7 +449,7 @@ module ActionController
 
       def build_request_uri(action, parameters)
         unless @request.env["PATH_INFO"]
-          options = @controller.__send__(:url_options).merge(parameters)
+          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
           options.update(
             :only_path => true,
             :action => action,

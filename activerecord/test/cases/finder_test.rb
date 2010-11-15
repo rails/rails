@@ -10,6 +10,7 @@ require 'models/entrant'
 require 'models/project'
 require 'models/developer'
 require 'models/customer'
+require 'models/toy'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -726,7 +727,7 @@ class FinderTest < ActiveRecord::TestCase
     sig38 = Company.find_or_create_by_name("38signals")
     assert_equal number_of_companies + 1, Company.count
     assert_equal sig38, Company.find_or_create_by_name("38signals")
-    assert !sig38.new_record?
+    assert sig38.persisted?
   end
 
   def test_find_or_create_from_two_attributes
@@ -734,7 +735,7 @@ class FinderTest < ActiveRecord::TestCase
     another = Topic.find_or_create_by_title_and_author_name("Another topic","John")
     assert_equal number_of_topics + 1, Topic.count
     assert_equal another, Topic.find_or_create_by_title_and_author_name("Another topic", "John")
-    assert !another.new_record?
+    assert another.persisted?
   end
 
   def test_find_or_create_from_two_attributes_with_one_being_an_aggregate
@@ -742,7 +743,7 @@ class FinderTest < ActiveRecord::TestCase
     created_customer = Customer.find_or_create_by_balance_and_name(Money.new(123), "Elizabeth")
     assert_equal number_of_customers + 1, Customer.count
     assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123), "Elizabeth")
-    assert !created_customer.new_record?
+    assert created_customer.persisted?
   end
 
   def test_find_or_create_from_one_attribute_and_hash
@@ -750,7 +751,7 @@ class FinderTest < ActiveRecord::TestCase
     sig38 = Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
     assert_equal number_of_companies + 1, Company.count
     assert_equal sig38, Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
-    assert !sig38.new_record?
+    assert sig38.persisted?
     assert_equal "38signals", sig38.name
     assert_equal 17, sig38.firm_id
     assert_equal 23, sig38.client_of
@@ -761,7 +762,7 @@ class FinderTest < ActiveRecord::TestCase
     created_customer = Customer.find_or_create_by_balance(Money.new(123))
     assert_equal number_of_customers + 1, Customer.count
     assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123))
-    assert !created_customer.new_record?
+    assert created_customer.persisted?
   end
 
   def test_find_or_create_from_one_aggregate_attribute_and_hash
@@ -771,7 +772,7 @@ class FinderTest < ActiveRecord::TestCase
     created_customer = Customer.find_or_create_by_balance({:balance => balance, :name => name})
     assert_equal number_of_customers + 1, Customer.count
     assert_equal created_customer, Customer.find_or_create_by_balance({:balance => balance, :name => name})
-    assert !created_customer.new_record?
+    assert created_customer.persisted?
     assert_equal balance, created_customer.balance
     assert_equal name, created_customer.name
   end
@@ -779,13 +780,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_or_initialize_from_one_attribute
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
-    assert sig38.new_record?
+    assert !sig38.persisted?
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute
     new_customer = Customer.find_or_initialize_by_balance(Money.new(123))
     assert_equal 123, new_customer.balance.amount
-    assert new_customer.new_record?
+    assert !new_customer.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_should_not_set_attribute_even_when_protected
@@ -793,7 +794,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_not_equal 1000, c.rating
     assert c.valid?
-    assert c.new_record?
+    assert !c.persisted?
   end
 
   def test_find_or_create_from_one_attribute_should_not_set_attribute_even_when_protected
@@ -801,7 +802,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_not_equal 1000, c.rating
     assert c.valid?
-    assert !c.new_record?
+    assert c.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected
@@ -809,7 +810,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?
-    assert c.new_record?
+    assert !c.persisted?
   end
 
   def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected
@@ -817,7 +818,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?
-    assert !c.new_record?
+    assert c.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
@@ -825,7 +826,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?
-    assert c.new_record?
+    assert !c.persisted?
   end
 
   def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
@@ -833,7 +834,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?
-    assert !c.new_record?
+    assert c.persisted?
   end
 
   def test_find_or_initialize_should_set_protected_attributes_if_given_as_block
@@ -841,7 +842,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
     assert c.valid?
-    assert c.new_record?
+    assert !c.persisted?
   end
 
   def test_find_or_create_should_set_protected_attributes_if_given_as_block
@@ -849,7 +850,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
     assert c.valid?
-    assert !c.new_record?
+    assert c.persisted?
   end
 
   def test_find_or_create_should_work_with_block_on_first_call
@@ -860,21 +861,21 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
     assert c.valid?
-    assert !c.new_record?
+    assert c.persisted?
   end
 
   def test_find_or_initialize_from_two_attributes
     another = Topic.find_or_initialize_by_title_and_author_name("Another topic","John")
     assert_equal "Another topic", another.title
     assert_equal "John", another.author_name
-    assert another.new_record?
+    assert !another.persisted?
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute_and_one_not
     new_customer = Customer.find_or_initialize_by_balance_and_name(Money.new(123), "Elizabeth")
     assert_equal 123, new_customer.balance.amount
     assert_equal "Elizabeth", new_customer.name
-    assert new_customer.new_record?
+    assert !new_customer.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_and_hash
@@ -882,7 +883,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "38signals", sig38.name
     assert_equal 17, sig38.firm_id
     assert_equal 23, sig38.client_of
-    assert sig38.new_record?
+    assert !sig38.persisted?
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute_and_hash
@@ -891,7 +892,7 @@ class FinderTest < ActiveRecord::TestCase
     new_customer = Customer.find_or_initialize_by_balance({:balance => balance, :name => name})
     assert_equal balance, new_customer.balance
     assert_equal name, new_customer.name
-    assert new_customer.new_record?
+    assert !new_customer.persisted?
   end
 
   def test_find_with_bad_sql
@@ -1007,6 +1008,15 @@ class FinderTest < ActiveRecord::TestCase
 
     Topic.send(:with_scope, :find => { :from => 'fake_topics' }) do
       assert_equal all_topics, Topic.from('topics').to_a
+    end
+  end
+
+  def test_find_one_message_with_custom_primary_key
+    Toy.set_primary_key :name
+    begin
+      Toy.find 'Hello World!'
+    rescue ActiveRecord::RecordNotFound => e
+      assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
     end
   end
 

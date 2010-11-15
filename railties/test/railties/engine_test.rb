@@ -685,5 +685,25 @@ module RailtiesTest
       assert_equal :haml      , generators[:template_engine]
       assert_equal :rspec     , generators[:test_framework]
     end
+
+    test "engine should get default generators with ability to overwrite them" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            config.generators.test_framework :rspec
+          end
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      generators = Bukkits::Engine.config.generators.options[:rails]
+      assert_equal :active_record, generators[:orm]
+      assert_equal :rspec        , generators[:test_framework]
+
+      app_generators = Rails.application.config.generators.options[:rails]
+      assert_equal :test_unit    , app_generators[:test_framework]
+    end
   end
 end

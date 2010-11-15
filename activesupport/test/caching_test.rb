@@ -356,9 +356,13 @@ module CacheDeleteMatchedBehavior
   def test_delete_matched
     @cache.write("foo", "bar")
     @cache.write("fu", "baz")
+    @cache.write("foo/bar", "baz")
+    @cache.write("fu/baz", "bar")
     @cache.delete_matched(/oo/)
     assert_equal false, @cache.exist?("foo")
     assert_equal true, @cache.exist?("fu")
+    assert_equal false, @cache.exist?("foo/bar")
+    assert_equal true, @cache.exist?("fu/baz")
   end
 end
 
@@ -508,6 +512,11 @@ class FileStoreTest < ActiveSupport::TestCase
       assert_nil old_cache.read('foo', :expires_in => 60)
       assert_nil old_cache.read('foo')
     end
+  end
+
+  def test_key_transformation
+    key = @cache.send(:key_file_path, "views/index?id=1")
+    assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
   end
 end
 

@@ -727,6 +727,17 @@ class AssetTagHelperTest < ActionView::TestCase
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
   end
 
+  def test_caching_javascript_include_tag_when_caching_on_and_javascript_file_is_uri
+    ENV["RAILS_ASSET_ID"] = ""
+    config.perform_caching = true
+
+    assert_raise(Errno::ENOENT) {
+      javascript_include_tag('bank', 'robber', 'https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.js', :cache => true)
+    }
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+  end
+
   def test_caching_javascript_include_tag_when_caching_off_and_missing_javascript_file
     ENV["RAILS_ASSET_ID"] = ""
     config.perform_caching = false

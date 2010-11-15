@@ -137,7 +137,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.find(:first, :include => { :posts => [ :special_comments , :very_special_comment ] }, :order => 'authors.name, comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4')
+    author = Author.find(:first, :include => { :posts => [ :special_comments , :very_special_comment ] }, :order => ['authors.name', 'comments.body', 'very_special_comments_posts.body'], :conditions => 'posts.id = 4')
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments

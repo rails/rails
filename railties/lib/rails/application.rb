@@ -35,7 +35,6 @@ module Rails
   #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
-    autoload :Configurable,   'rails/application/configurable'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'

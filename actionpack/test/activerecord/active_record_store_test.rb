@@ -27,6 +27,12 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def renew
+      env["rack.session.options"][:renew] = true
+      session[:foo] = "baz"
+      head :ok
+    end
+
     def rescue_action(e) raise end
   end
 
@@ -59,6 +65,20 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
           assert_equal 'foo: "baz"', response.body
 
           get '/call_reset_session'
+          assert_response :success
+          assert_not_equal [], headers['Set-Cookie']
+        end
+      end
+    end
+
+    define_method("test_renewing_with_#{class_name}_store") do
+      with_store class_name do
+        with_test_route_set do
+          get '/set_session_value'
+          assert_response :success
+          assert cookies['_session_id']
+
+          get '/renew'
           assert_response :success
           assert_not_equal [], headers['Set-Cookie']
         end

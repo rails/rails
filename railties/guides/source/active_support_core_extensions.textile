@@ -167,6 +167,12 @@ def log_info(sql, name, ms)
 end
 </ruby>
 
++try+ can also be called without arguments but a block, which will only be executed if the object is not nil:
+
+<ruby>
+@person.try { |p| "#{p.first_name} #{p.last_name}" }
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
 h4. +singleton_class+
@@ -392,39 +398,6 @@ end
 
 C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
 </ruby>
-
-NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
-
-h5. +copy_instance_variables_from(object, exclude = [])+
-
-Copies the instance variables of +object+ into +self+.
-
-Instance variable names in the +exclude+ array are ignored. If +object+
-responds to +protected_instance_variables+ the ones returned are
-also ignored. For example, Rails controllers implement that method.
-
-In both arrays strings and symbols are understood, and they have to include
-the at sign.
-
-<ruby>
-class C
-  def initialize(x, y, z)
-    @x, @y, @z = x, y, z
-  end
-
-  def protected_instance_variables
-    %w(@z)
-  end
-end
-
-a = C.new(0, 1, 2)
-b = C.new(3, 4, 5)
-
-a.copy_instance_variables_from(b, [:@y])
-# a is now: @x = 3, @y = 1, @z = 2
-</ruby>
-
-In the example +object+ and +self+ are of the same type, but they don't need to.
 
 NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 

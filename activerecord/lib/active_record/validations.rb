@@ -51,7 +51,7 @@ module ActiveRecord
 
     # Runs all the specified validations and returns true if no errors were added otherwise false.
     def valid?(context = nil)
-      context ||= (new_record? ? :create : :update)
+      context ||= (persisted? ? :update : :create)
       output = super(context)
       errors.empty? && output
     end

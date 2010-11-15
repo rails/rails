@@ -143,7 +143,7 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def exec(sql, name = nil, binds = [])
+      def exec_query(sql, name = nil, binds = [])
         log(sql, name) do
 
           # Don't cache statements without bind values
@@ -186,7 +186,7 @@ module ActiveRecord
       alias :create :insert_sql
 
       def select_rows(sql, name = nil)
-        exec(sql, name).rows
+        exec_query(sql, name).rows
       end
 
       def begin_db_transaction #:nodoc:
@@ -210,7 +210,7 @@ module ActiveRecord
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
 
-        exec(sql, name).map do |row|
+        exec_query(sql, name).map do |row|
           row['name']
         end
       end
@@ -222,12 +222,12 @@ module ActiveRecord
       end
 
       def indexes(table_name, name = nil) #:nodoc:
-        exec("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
+        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'] != 0,
-            exec("PRAGMA index_info('#{row['name']}')").map { |col|
+            exec_query("PRAGMA index_info('#{row['name']}')").map { |col|
               col['name']
             })
         end
@@ -241,11 +241,11 @@ module ActiveRecord
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
-        exec "DROP INDEX #{quote_column_name(index_name)}"
+        exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
       def rename_table(name, new_name)
-        exec "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+        exec_query "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # See: http://www.sqlite.org/lang_altertable.html
@@ -282,7 +282,7 @@ module ActiveRecord
 
       def change_column_null(table_name, column_name, null, default = nil)
         unless null || default.nil?
-          exec("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
           definition[column_name].null = null
@@ -314,7 +314,7 @@ module ActiveRecord
 
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
-          result = exec(sql, name, binds)
+          result = exec_query(sql, name, binds)
           columns = result.columns.map { |column|
             column.sub(/^"?\w+"?\./, '')
           }
@@ -399,11 +399,11 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
           quoted_to = quote_table_name(to)
-          exec("SELECT * FROM #{quote_table_name(from)}").each do |row|
+          exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
             sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
-            exec sql
+            exec_query sql
           end
         end
 

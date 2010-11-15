@@ -36,6 +36,10 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal @twz.object_id, @twz.in_time_zone(ActiveSupport::TimeZone['Eastern Time (US & Canada)']).object_id
   end
 
+  def test_localtime
+    assert_equal @twz.localtime, @twz.utc.getlocal
+  end
+
   def test_utc?
     assert_equal false, @twz.utc?
     assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']).utc?
@@ -761,6 +765,13 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
       time = Time.local(1999, 12, 31, 19) # == Time.utc(2000)
       assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', time.in_time_zone('Alaska').inspect
     end
+  end
+
+  def test_localtime
+    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
+  ensure
+    Time.zone_default = nil
   end
 
   def test_use_zone

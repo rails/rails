@@ -878,7 +878,7 @@ module ActionView
         end
 
         def join_asset_file_contents(paths)
-          paths.collect { |path| File.read(asset_file_path!(path)) }.join("\n\n")
+          paths.collect { |path| File.read(asset_file_path!(path, true)) }.join("\n\n")
         end
 
         def write_asset_file_contents(joined_asset_path, asset_paths)
@@ -896,8 +896,10 @@ module ActionView
           File.join(config.assets_dir, path.split('?').first)
         end
 
-        def asset_file_path!(path)
-          unless is_uri?(path)
+        def asset_file_path!(path, error_if_file_is_uri = false)
+          if is_uri?(path)
+            raise(Errno::ENOENT, "Asset file #{path} is uri and cannot be merged into single file") if error_if_file_is_uri
+          else
             absolute_path = asset_file_path(path)
             raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
             return absolute_path

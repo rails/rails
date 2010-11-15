@@ -1,6 +1,7 @@
 require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
+require 'active_support/inflector'
 
 module ActionDispatch
   module Routing
@@ -186,8 +187,8 @@ module ActionDispatch
 
           def request_method_condition
             if via = @options[:via]
-              via = Array(via).map { |m| m.to_s.upcase }
-              { :request_method => Regexp.union(*via) }
+              via = Array(via).map { |m| m.to_s.dasherize.upcase }
+              { :request_method => %r[^#{via.join('|')}$] }
             else
               { }
             end
@@ -262,6 +263,23 @@ module ActionDispatch
           self
         end
 
+        # Mount a Rack-based application to be used within the application.
+        #
+        # mount SomeRackApp, :at => "some_route"
+        #
+        # Alternatively:
+        #
+        # mount(SomeRackApp => "some_route")
+        #
+        # All mounted applications come with routing helpers to access them.
+        # These are named after the class specified, so for the above example
+        # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
+        # To customize this helper's name, use the +:as+ option:
+        #
+        # mount(SomeRackApp => "some_route", :as => "exciting")
+        #
+        # This will generate the +exciting_path+ and +exciting_url+ helpers
+        # which can be used to navigate to this mounted app.
         def mount(app, options = nil)
           if options
             path = options.delete(:at)
@@ -608,13 +626,70 @@ module ActionDispatch
         #     end
         #
         # Routing helpers such as +admin_posts_path+ will now be +sekret_posts_path+.
+        #
+        # [:shallow_path]
+        #   See the +scope+ method.
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
                       :shallow_path => path, :shallow_prefix => path }.merge!(options)
           scope(options) { yield }
         end
-
+        
+        # === Parameter Restriction
+        # Allows you to constrain the nested routes based on a set of rules.
+        # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
+        #
+        #   constraints(:id => /\d+\.\d+) do
+        #     resources :posts
+        #   end
+        #
+        # Now routes such as +/posts/1+ will no longer be valid, but +/posts/1.1+ will be.
+        # The +id+ parameter must match the constraint passed in for this example.
+        # 
+        # You may use this to also resrict other parameters:
+        #
+        #   resources :posts do
+        #     constraints(:post_id => /\d+\.\d+) do
+        #       resources :comments
+        #     end
+        #
+        # === Restricting based on IP
+        #
+        # Routes can also be constrained to an IP or a certain range of IP addresses:
+        #
+        #   constraints(:ip => /192.168.\d+.\d+/) do
+        #     resources :posts
+        #   end
+        #
+        # Any user connecting from the 192.168.* range will be able to see this resource,
+        # where as any user connecting outside of this range will be told there is no such route.
+        #
+        # === Dynamic request matching
+        #
+        # Requests to routes can be constrained based on specific critera:
+        #
+        #    constraints(lambda { |req| req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
+        #      resources :iphones
+        #    end
+        #
+        # You are able to move this logic out into a class if it is too complex for routes.
+        # This class must have a +matches?+ method defined on it which either returns +true+
+        # if the user should be given access to that route, or +false+ if the user should not.
+        #
+        #    class Iphone
+        #      def self.matches(request)
+        #        request.env["HTTP_USER_AGENT"] =~ /iPhone/
+        #      end
+        #    end
+        #
+        # An expected place for this code would be +lib/constraints+.
+        #
+        # This class is then used like this:
+        #
+        #    constraints(Iphone) do
+        #      resources :iphones
+        #    end
         def constraints(constraints = {})
           scope(:constraints => constraints) { yield }
         end
@@ -891,6 +966,14 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        # === Supported options
+        # [:path_names]
+        #   Allows you to change the paths of the seven default actions.
+        #   Paths not specified are not changed.
+        #
+        #     resources :posts, :path_names => { :new => "brand_new" }
+        #
+        #   The above example will now change /posts/new to /posts/brand_new
         def resources(*resources, &block)
           options = resources.extract_options!
 

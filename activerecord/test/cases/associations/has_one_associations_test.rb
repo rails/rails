@@ -268,7 +268,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_assignment_before_child_saved
     firm = Firm.find(1)
     firm.account = a = Account.new("credit_limit" => 1000)
-    assert !a.new_record?
+    assert a.persisted?
     assert_equal a, firm.account
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
@@ -323,7 +323,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_create_respects_hash_condition
     account = companies(:first_firm).create_account_limit_500_with_hash_conditions
-    assert       !account.new_record?
+    assert       account.persisted?
     assert_equal 500, account.credit_limit
   end
 

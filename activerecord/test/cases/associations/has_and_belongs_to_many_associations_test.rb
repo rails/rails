@@ -251,10 +251,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     no_of_projects = Project.count
     aredridel = Developer.new("name" => "Aredridel")
     aredridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
-    assert aredridel.new_record?
-    assert p.new_record?
+    assert !aredridel.persisted?
+    assert !p.persisted?
     assert aredridel.save
-    assert !aredridel.new_record?
+    assert aredridel.persisted?
     assert_equal no_of_devels+1, Developer.count
     assert_equal no_of_projects+1, Project.count
     assert_equal 2, aredridel.projects.size
@@ -288,22 +288,22 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal devel.projects.last, proj
     assert devel.projects.loaded?
 
-    assert proj.new_record?
+    assert !proj.persisted?
     devel.save
-    assert !proj.new_record?
+    assert proj.persisted?
     assert_equal devel.projects.last, proj
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
 
   def test_build_by_new_record
     devel = Developer.new(:name => "Marcel", :salary => 75000)
-    proj1 = devel.projects.build(:name => "Make bed")
+    devel.projects.build(:name => "Make bed")
     proj2 = devel.projects.build(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
-    assert proj2.new_record?
+    assert !proj2.persisted?
     devel.save
-    assert !devel.new_record?
-    assert !proj2.new_record?
+    assert devel.persisted?
+    assert proj2.persisted?
     assert_equal devel.projects.last, proj2
     assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
@@ -316,19 +316,19 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal devel.projects.last, proj
     assert !devel.projects.loaded?
 
-    assert !proj.new_record?
+    assert proj.persisted?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
 
   def test_create_by_new_record
     devel = Developer.new(:name => "Marcel", :salary => 75000)
-    proj1 = devel.projects.build(:name => "Make bed")
+    devel.projects.build(:name => "Make bed")
     proj2 = devel.projects.build(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
-    assert proj2.new_record?
+    assert !proj2.persisted?
     devel.save
-    assert !devel.new_record?
-    assert !proj2.new_record?
+    assert devel.persisted?
+    assert proj2.persisted?
     assert_equal devel.projects.last, proj2
     assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
@@ -343,7 +343,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # in Oracle '' is saved as null therefore need to save ' ' in not null column
     another_post = categories(:general).post_with_conditions.create(:body => ' ')
 
-    assert        !another_post.new_record?
+    assert        another_post.persisted?
     assert_equal  'Yet Another Testing Title', another_post.title
   end
 
@@ -559,8 +559,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dynamic_find_should_respect_association_order
     # Developers are ordered 'name DESC, id DESC'
-    low_id_jamis = developers(:jamis)
-    middle_id_jamis = developers(:poor_jamis)
     high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
 
     assert_equal high_id_jamis, projects(:active_record).developers.find(:first, :conditions => "name = 'Jamis'")

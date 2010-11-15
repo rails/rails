@@ -398,7 +398,7 @@ module ActiveRecord
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        exec "SET SESSION AUTHORIZATION #{user}"
+        exec_query "SET SESSION AUTHORIZATION #{user}"
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -532,7 +532,7 @@ module ActiveRecord
         Arel.sql("$#{current_values.length + 1}")
       end
 
-      def exec(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [])
         return exec_no_cache(sql, name) if binds.empty?
 
         log(sql, name) do
@@ -714,8 +714,8 @@ module ActiveRecord
       # Returns the list of all column definitions for a table.
       def columns(table_name, name = nil)
         # Limit, precision, and scale are all handled by the superclass.
-        column_definitions(table_name).collect do |name, type, default, notnull|
-          PostgreSQLColumn.new(name, default, type, notnull == 'f')
+        column_definitions(table_name).collect do |column_name, type, default, notnull|
+          PostgreSQLColumn.new(column_name, default, type, notnull == 'f')
         end
       end
 
@@ -932,12 +932,12 @@ module ActiveRecord
       # requires that the ORDER BY include the distinct column.
       #
       #   distinct("posts.id", "posts.created_at desc")
-      def distinct(columns, order_by) #:nodoc:
-        return "DISTINCT #{columns}" if order_by.blank?
+      def distinct(columns, orders) #:nodoc:
+        return "DISTINCT #{columns}" if orders.empty?
 
         # Construct a clean list of column names from the ORDER BY clause, removing
         # any ASC/DESC modifiers
-        order_columns = order_by.split(',').collect { |s| s.split.first }
+        order_columns = orders.collect { |s| s =~ /^(.+)\s+(ASC|DESC)\s*$/i ? $1 : s }
         order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 
@@ -1040,7 +1040,7 @@ module ActiveRecord
         # Executes a SELECT query and returns the results, performing any data type
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil, binds = [])
-          exec(sql, name, binds).to_a
+          exec_query(sql, name, binds).to_a
         end
 
         def select_raw(sql, name = nil)

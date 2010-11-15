@@ -118,7 +118,7 @@ module ActiveRecord
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
-      end unless self.new_record?
+      end if self.persisted?
     end
 
     private
@@ -1839,8 +1839,6 @@ module ActiveRecord
             @join_parts            = [JoinBase.new(base, joins)]
             @associations          = {}
             @reflections           = []
-            @base_records_hash     = {}
-            @base_records_in_order = []
             @table_aliases         = Hash.new(0)
             @table_aliases[base.table_name] = 1
             build(associations)
@@ -1874,15 +1872,18 @@ module ActiveRecord
           end
 
           def instantiate(rows)
-            rows.each_with_index do |row, i|
-              primary_id = join_base.record_id(row)
-              unless @base_records_hash[primary_id]
-                @base_records_in_order << (@base_records_hash[primary_id] = join_base.instantiate(row))
-              end
-              construct(@base_records_hash[primary_id], @associations, join_associations.dup, row)
-            end
-            remove_duplicate_results!(join_base.active_record, @base_records_in_order, @associations)
-            return @base_records_in_order
+            primary_key = join_base.aliased_primary_key
+            parents = {}
+
+            records = rows.map { |model|
+              primary_id = model[primary_key]
+              parent = parents[primary_id] ||= join_base.instantiate(model)
+              construct(parent, @associations, join_associations.dup, model)
+              parent
+            }.uniq
+
+            remove_duplicate_results!(join_base.active_record, records, @associations)
+            records
           end
 
           def remove_duplicate_results!(base, records, associations)
@@ -1982,10 +1983,13 @@ module ActiveRecord
             def construct(parent, associations, join_parts, row)
               case associations
               when Symbol, String
+                name = associations.to_s
+
                 join_part = join_parts.detect { |j|
-                  j.reflection.name.to_s == associations.to_s &&
+                  j.reflection.name.to_s == name &&
                   j.parent_table_name    == parent.class.table_name }
-                raise(ConfigurationError, "No such association") if join_part.nil?
+
+                raise(ConfigurationError, "No such association") unless join_part
 
                 join_parts.delete(join_part)
                 construct_association(parent, join_part, row)
@@ -1995,13 +1999,7 @@ module ActiveRecord
                 end
               when Hash
                 associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
-                  join_part = join_parts.detect{ |j|
-                    j.reflection.name.to_s == name.to_s &&
-                    j.parent_table_name    == parent.class.table_name }
-                  raise(ConfigurationError, "No such association") if join_part.nil?
-
-                  association = construct_association(parent, join_part, row)
-                  join_parts.delete(join_part)
+                  association = construct(parent, name, join_parts, row)
                   construct(association, assoc, join_parts, row) if association
                 end
               else
