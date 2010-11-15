@@ -17,7 +17,7 @@ class EagerLoadIncludeFullStiClassNamesTest < ActiveRecord::TestCase
 
   def generate_test_objects
     post = Namespaced::Post.create( :title => 'Great stuff', :body => 'This is not', :author_id => 1 )
-    tagging = Tagging.create( :taggable => post )
+    Tagging.create( :taggable => post )
   end
 
   def test_class_names

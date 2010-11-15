@@ -73,7 +73,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], person.readers
     assert_nil person.readers.find_by_post_id(post.id)
 
-    reader = person.readers.create(:post_id => post.id)
+    person.readers.create(:post_id => post.id)
 
     assert_equal 1, person.readers.count
     assert_equal 1, person.readers.length
@@ -88,7 +88,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], person.readers
     assert_nil person.readers.find_by_post_id(post.id)
 
-    reader = person.readers.find_or_create_by_post_id(post.id)
+    person.readers.find_or_create_by_post_id(post.id)
 
     assert_equal 1, person.readers.count
     assert_equal 1, person.readers.length
@@ -402,7 +402,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_adding_using_create
     first_firm = companies(:first_firm)
     assert_equal 2, first_firm.plain_clients.size
-    natural = first_firm.plain_clients.create(:name => "Natural Company")
+    first_firm.plain_clients.create(:name => "Natural Company")
     assert_equal 3, first_firm.plain_clients.length
     assert_equal 3, first_firm.plain_clients.size
   end
@@ -483,7 +483,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_followed_by_save_does_not_load_target
-    new_client = companies(:first_firm).clients_of_firm.build("name" => "Another Client")
+    companies(:first_firm).clients_of_firm.build("name" => "Another Client")
     assert companies(:first_firm).save
     assert !companies(:first_firm).clients_of_firm.loaded?
   end
@@ -554,7 +554,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_followed_by_save_does_not_load_target
-    new_client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert companies(:first_firm).save
     assert !companies(:first_firm).clients_of_firm.loaded?
   end
@@ -852,7 +852,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dependence_for_associations_with_hash_condition
     david = authors(:david)
-    post = posts(:thinking).id
     assert_difference('Post.count', -1) { assert david.destroy }
   end
 
@@ -872,7 +871,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_three_levels_of_dependence
     topic = Topic.create "title" => "neat and simple"
     reply = topic.replies.create "title" => "neat and simple", "content" => "still digging it"
-    silly_reply = reply.replies.create "title" => "neat and simple", "content" => "ain't complaining"
+    reply.replies.create "title" => "neat and simple", "content" => "ain't complaining"
 
     assert_nothing_raised { topic.destroy }
   end
@@ -897,7 +896,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_depends_and_nullify
     num_accounts = Account.count
-    num_companies = Company.count
 
     core = companies(:rails_core)
     assert_equal accounts(:rails_core_account), core.account
@@ -914,7 +912,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_restrict
     firm = RestrictedFirm.new(:name => 'restrict')
     firm.save!
-    child_firm = firm.companies.create(:name => 'child')
+    firm.companies.create(:name => 'child')
     assert !firm.companies.empty?
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
   end
