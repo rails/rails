@@ -421,6 +421,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_blank authors.all
   end
 
+  def test_where_with_ar_object
+    author = Author.first
+    authors = Author.scoped.where(:id => author)
+    assert_equal 1, authors.all.length
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
