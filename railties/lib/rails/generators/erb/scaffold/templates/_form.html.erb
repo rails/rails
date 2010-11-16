@@ -1,4 +1,3 @@
-<% without_namespacing do -%>
 <%%= form_for(@<%= singular_table_name %>) do |f| %>
   <%% if @<%= singular_table_name %>.errors.any? %>
     <div id="error_explanation">
@@ -22,4 +21,3 @@
     <%%= f.submit %>
   </div>
 <%% end %>
-<% end -%>

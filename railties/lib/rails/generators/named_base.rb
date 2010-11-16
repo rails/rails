@@ -16,6 +16,14 @@ module Rails
         parse_attributes! if respond_to?(:attributes)
       end
 
+      no_tasks do
+        def template(source, *args, &block)
+          inside_template do
+            super
+          end
+        end
+      end
+
       protected
         attr_reader :file_name
         alias :singular_name :file_name
@@ -23,17 +31,9 @@ module Rails
         # Wrap block with namespace of current application
         # if namespace exists and is not skipped
         def module_namespacing(&block)
-          inside_namespace do
-            content = capture(&block)
-            content = wrap_with_namespace(content) if namespaced?
-            concat(content)
-          end
-        end
-
-        def without_namespacing(&block)
-          inside_namespace do
-            concat(capture(&block))
-          end
+          content = capture(&block)
+          content = wrap_with_namespace(content) if namespaced?
+          concat(content)
         end
 
         def indent(content, multiplier = 2)
@@ -46,12 +46,15 @@ module Rails
           "module #{namespace.name}\n#{content}\nend\n"
         end
 
-        def inside_namespace
-          @inside_namespace = true if namespaced?
-          result = yield
-          result
+        def inside_template
+          @inside_template = true
+          yield
         ensure
-          @inside_namespace = false
+          @inside_template = false
+        end
+
+        def inside_template?
+          @inside_template
         end
 
         def namespace
@@ -64,16 +67,12 @@ module Rails
           !options[:skip_namespace] && namespace
         end
 
-        def inside_namespace?
-          @inside_namespace
-        end
-
         def file_path
           @file_path ||= (class_path + [file_name]).join('/')
         end
 
         def class_path
-          inside_namespace? || !namespaced? ? regular_class_path : namespaced_class_path
+          inside_template? || !namespaced? ? regular_class_path : namespaced_class_path
         end
 
         def regular_class_path
