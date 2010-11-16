@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/duplicable'
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
@@ -49,32 +47,26 @@ module ActiveRecord
         @query_cache.clear
       end
 
-      def select_all(*args)
+      def select_all(sql, name = nil, binds = [])
         if @query_cache_enabled
-          cache_sql(args.first) { super }
+          cache_sql(sql, binds) { super }
         else
           super
         end
       end
 
       private
-        def cache_sql(sql)
+        def cache_sql(sql, binds)
           result =
-            if @query_cache.has_key?(sql)
+            if @query_cache[sql].key?(binds)
               ActiveSupport::Notifications.instrument("sql.active_record",
                 :sql => sql, :name => "CACHE", :connection_id => self.object_id)
-              @query_cache[sql]
+              @query_cache[sql][binds]
             else
-              @query_cache[sql] = yield
+              @query_cache[sql][binds] = yield
             end
 
-          if Array === result
-            result.collect { |row| row.dup }
-          else
-            result.duplicable? ? result.dup : result
-          end
-        rescue TypeError
-          result
+          result.collect { |row| row.dup }
         end
     end
   end

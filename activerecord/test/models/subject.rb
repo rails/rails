@@ -8,7 +8,7 @@ class Subject < ActiveRecord::Base
 
   protected
     def set_email_address
-      if self.new_record?
+      unless self.persisted?
         self.author_email_address = 'test@test.com'
       end
     end

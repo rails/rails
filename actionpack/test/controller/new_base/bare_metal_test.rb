@@ -39,4 +39,11 @@ module BareMetalTest
       assert_equal 404, status
     end
   end
+
+  class BareControllerTest < ActionController::TestCase
+    test "GET index" do
+      get :index
+      assert_equal "Hello world", @response.body
+    end
+  end
 end

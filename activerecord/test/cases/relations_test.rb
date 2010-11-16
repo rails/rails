@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/tag'
 require 'models/tagging'
 require 'models/post'
 require 'models/topic'
@@ -17,7 +18,7 @@ require 'models/tyre'
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :taggings, :cars
+    :tags, :taggings, :cars
 
   def test_bind_values
     relation = Post.scoped
@@ -142,6 +143,16 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 2, entrants.size
     assert_equal entrants(:first).name, entrants.first.name
+  end
+
+  def test_finding_with_complex_order_and_limit
+    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    assert_equal 1, tags.length
+  end
+
+  def test_finding_with_complex_order
+    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    assert_equal 2, tags.length
   end
 
   def test_finding_with_order_limit_and_offset
@@ -372,7 +383,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert lifo.new_record?
+    assert !lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
   end
@@ -382,7 +393,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_create_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert ! lifo.new_record?
+    assert lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
   end
@@ -413,6 +424,31 @@ class RelationTest < ActiveRecord::TestCase
   def test_find_in_empty_array
     authors = Author.scoped.where(:id => [])
     assert_blank authors.all
+  end
+
+  def test_where_with_ar_object
+    author = Author.first
+    authors = Author.scoped.where(:id => author)
+    assert_equal 1, authors.all.length
+  end
+
+  def test_find_with_list_of_ar
+    author = Author.first
+    authors = Author.find([author])
+    assert_equal author, authors.first
+  end
+
+  class Mary < Author; end
+
+  def test_find_by_classname
+    Author.create!(:name => Mary.name)
+    assert_equal 1, Author.where(:name => Mary).size
+  end
+
+  def test_find_by_id_with_list_of_ar
+    author = Author.first
+    authors = Author.find_by_id([author])
+    assert_equal author, authors
   end
 
   def test_exists
@@ -498,6 +534,11 @@ class RelationTest < ActiveRecord::TestCase
     [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
       assert_queries(2) { assert posts.first.author }
     end
+  end
+
+  def test_relation_merging_with_joins
+    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome') & Post.where(:body => 'Such a lovely day')
+    assert_equal 1, comments.count
   end
 
   def test_count
@@ -611,10 +652,10 @@ class RelationTest < ActiveRecord::TestCase
 
     sparrow = birds.create
     assert_kind_of Bird, sparrow
-    assert sparrow.new_record?
+    assert !sparrow.persisted?
 
     hen = birds.where(:name => 'hen').create
-    assert ! hen.new_record?
+    assert hen.persisted?
     assert_equal 'hen', hen.name
   end
 
@@ -625,7 +666,7 @@ class RelationTest < ActiveRecord::TestCase
 
     hen = birds.where(:name => 'hen').create!
     assert_kind_of Bird, hen
-    assert ! hen.new_record?
+    assert hen.persisted?
     assert_equal 'hen', hen.name
   end
 

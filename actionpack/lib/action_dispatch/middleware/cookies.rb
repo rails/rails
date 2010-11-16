@@ -202,7 +202,7 @@ module ActionDispatch
       private
 
         def write_cookie?(cookie)
-          @secure || !cookie[:secure] || Rails.env.development?
+          @secure || !cookie[:secure] || defined?(Rails.env) && Rails.env.development?
         end
     end
 

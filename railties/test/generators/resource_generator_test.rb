@@ -73,6 +73,11 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
     assert_no_match /Plural version of the model detected/, content
   end
 
+  def test_mass_nouns_do_not_throw_warnings
+    content = run_generator ["sheep".freeze]
+    assert_no_match /Plural version of the model detected/, content
+  end
+
   def test_route_is_removed_on_revoke
     run_generator
     run_generator ["account"], :behavior => :revoke

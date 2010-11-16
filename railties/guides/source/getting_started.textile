@@ -919,8 +919,6 @@ So first, we'll wire up the Post show template (+/app/views/posts/show.html.erb+
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -989,8 +987,6 @@ Once we have made the new comment, we send the user back to the original post us
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -1057,8 +1053,6 @@ Then in the +app/views/posts/show.html.erb+ you can change it to look like the f
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -1086,8 +1080,6 @@ Lets also move that new comment section out to it's own partial, again, you crea
 
 <erb>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>

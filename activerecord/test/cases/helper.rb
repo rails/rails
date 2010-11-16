@@ -48,6 +48,10 @@ end
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /SHOW FIELDS/]
 
+  # FIXME: this needs to be refactored so specific database can add their own
+  # ignored SQL.  This ignored SQL is for Oracle.
+  IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from ((all|user)_tab_columns|(all|user)_triggers|(all|user)_constraints)/im]
+
   def execute_with_query_record(sql, name = nil, &block)
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
@@ -56,13 +60,13 @@ ActiveRecord::Base.connection.class.class_eval do
 
   alias_method_chain :execute, :query_record
 
-  def exec_with_query_record(sql, name = nil, binds = [], &block)
+  def exec_query_with_query_record(sql, name = nil, binds = [], &block)
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    exec_without_query_record(sql, name, binds, &block)
+    exec_query_without_query_record(sql, name, binds, &block)
   end
 
-  alias_method_chain :exec, :query_record
+  alias_method_chain :exec_query, :query_record
 end
 
 ActiveRecord::Base.connection.class.class_eval {

@@ -32,13 +32,14 @@ platforms :mri_18 do
 end
 
 platforms :mri_19 do
-  gem "ruby-debug19"
+  # TODO: Remove the conditional when ruby-debug19 supports Ruby >= 1.9.3
+  gem "ruby-debug19" if RUBY_VERSION < "1.9.3"
 end
 
 platforms :ruby do
   gem 'json'
   gem 'yajl-ruby'
-  gem "nokogiri", ">= 1.4.3.1"
+  gem "nokogiri", ">= 1.4.4"
 
   # AR
   gem "sqlite3-ruby", "~> 1.3.1", :require => 'sqlite3'

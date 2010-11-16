@@ -28,6 +28,16 @@ class CaptureHelperTest < ActionView::TestCase
     assert_nil @av.capture { 1 }
   end
 
+  def test_capture_escapes_html
+    string = @av.capture { '<em>bar</em>' }
+    assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
+  end
+
+  def test_capture_doesnt_escape_twice
+    string = @av.capture { '&lt;em&gt;bar&lt;/em&gt;'.html_safe }
+    assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
+  end
+
   def test_content_for
     assert ! content_for?(:title)
     content_for :title, 'title'

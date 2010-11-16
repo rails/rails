@@ -14,7 +14,7 @@ module ActiveRecord
         counter_cache_name = @reflection.counter_cache_column
 
         if record.nil?
-          if counter_cache_name && !@owner.new_record?
+          if counter_cache_name && @owner.persisted?
             @reflection.klass.decrement_counter(counter_cache_name, previous_record_id) if @owner[@reflection.primary_key_name]
           end
 
@@ -22,13 +22,13 @@ module ActiveRecord
         else
           raise_on_type_mismatch(record)
 
-          if counter_cache_name && !@owner.new_record? && record.id != @owner[@reflection.primary_key_name]
+          if counter_cache_name && @owner.persisted? && record.id != @owner[@reflection.primary_key_name]
             @reflection.klass.increment_counter(counter_cache_name, record.id)
             @reflection.klass.decrement_counter(counter_cache_name, @owner[@reflection.primary_key_name]) if @owner[@reflection.primary_key_name]
           end
 
           @target = (AssociationProxy === record ? record.target : record)
-          @owner[@reflection.primary_key_name] = record_id(record) unless record.new_record?
+          @owner[@reflection.primary_key_name] = record_id(record) if record.persisted?
           @updated = true
         end
 
@@ -50,18 +50,20 @@ module ActiveRecord
                           "find"
                         end
 
-          options = @reflection.options.dup
-          (options.keys - [:select, :include, :readonly]).each do |key|
-            options.delete key
-          end
-          options[:conditions] = conditions
+          options = @reflection.options.dup.slice(:select, :include, :readonly)
 
-          the_target = @reflection.klass.send(find_method,
-            @owner[@reflection.primary_key_name],
-            options
-          ) if @owner[@reflection.primary_key_name]
+          the_target = with_scope(:find => @scope[:find]) do
+            @reflection.klass.send(find_method,
+              @owner[@reflection.primary_key_name],
+              options
+            ) if @owner[@reflection.primary_key_name]
+          end
           set_inverse_instance(the_target, @owner)
           the_target
+        end
+        
+        def construct_find_scope
+          { :conditions => conditions }
         end
 
         def foreign_key_present

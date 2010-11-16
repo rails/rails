@@ -96,6 +96,9 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
     assert_equal "rubyonrails.co.uk", request.domain(2)
 
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk", :tld_length => 2
+    assert_equal "rubyonrails.co.uk", request.domain
+
     request = stub_request 'HTTP_HOST' => "192.168.1.200"
     assert_nil request.domain
 

@@ -802,7 +802,7 @@ You can also see if your routes work by running +rake routes+ from your app dire
 
 h3. Generators
 
-Many plugins ship with generators.  When you created the plugin above, you specified the +--with-generator+ option, so you already have the generator stubs in 'vendor/plugins/yaffle/generators/yaffle'.
+Many plugins ship with generators.  When you created the plugin above, you specified the +--generator+ option, so you already have the generator stubs in 'vendor/plugins/yaffle/generators/yaffle'.
 
 Building generators is a complex topic unto itself and this section will cover one small aspect of generators: generating a simple text file.
 

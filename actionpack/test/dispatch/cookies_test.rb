@@ -94,6 +94,16 @@ class CookiesTest < ActionController::TestCase
       cookies.delete(:user_name, :domain => :all)
       head :ok
     end
+
+    def symbol_key
+      cookies[:user_name] = "david"
+      head :ok
+    end
+
+    def string_key
+      cookies['user_name'] = "david"
+      head :ok
+    end
   end
 
   tests TestController
@@ -289,6 +299,14 @@ class CookiesTest < ActionController::TestCase
     get :delete_cookie_with_domain
     assert_response :success
     assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+  end
+
+  def test_cookies_hash_is_indifferent_access
+    [:symbol_key, :string_key].each do |cookie_key|
+      get cookie_key
+      assert_equal "david", cookies[:user_name]
+      assert_equal "david", cookies['user_name']
+    end
   end
 
   private

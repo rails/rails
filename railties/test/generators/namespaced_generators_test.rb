@@ -3,6 +3,7 @@ require 'rails/generators/rails/controller/controller_generator'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/rails/observer/observer_generator'
 require 'rails/generators/mailer/mailer_generator'
+require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   def setup
@@ -200,5 +201,157 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["notifier"]
     assert_file "app/views/test_app/notifier"
+  end
+end
+
+class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
+  include GeneratorsTestHelper
+  arguments %w(product_line title:string price:integer)
+  tests Rails::Generators::ScaffoldGenerator
+
+  setup :copy_routes
+
+  def test_scaffold_on_invoke
+    run_generator
+
+    # Model
+    assert_file "app/models/test_app/product_line.rb", /module TestApp\n  class ProductLine < ActiveRecord::Base/
+    assert_file "test/unit/test_app/product_line_test.rb", /module TestApp\n  class ProductLineTest < ActiveSupport::TestCase/
+    assert_file "test/fixtures/test_app/product_lines.yml"
+    assert_migration "db/migrate/create_test_app_product_lines.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_match(/resources :product_lines$/, route)
+    end
+
+    # Controller
+    assert_file "app/controllers/test_app/product_lines_controller.rb" do |content|
+      assert_match(/module TestApp\n  class ProductLinesController < ApplicationController/, content)
+    end
+
+    assert_file "test/functional/test_app/product_lines_controller_test.rb",
+                /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
+
+    # Views
+    %w(
+      index
+      edit
+      new
+      show
+      _form
+    ).each { |view| assert_file "app/views/test_app/product_lines/#{view}.html.erb" }
+    assert_no_file "app/views/layouts/test_app/product_lines.html.erb"
+
+    # Helpers
+    assert_file "app/helpers/test_app/product_lines_helper.rb"
+    assert_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
+
+    # Stylesheets
+    assert_file "public/stylesheets/scaffold.css"
+  end
+
+  def test_scaffold_on_revoke
+    run_generator
+    run_generator ["product_line"], :behavior => :revoke
+
+    # Model
+    assert_no_file "app/models/test_app/product_line.rb"
+    assert_no_file "test/unit/test_app/product_line_test.rb"
+    assert_no_file "test/fixtures/test_app/product_lines.yml"
+    assert_no_migration "db/migrate/create_test_app_product_lines.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/resources :product_lines$/, route)
+    end
+
+    # Controller
+    assert_no_file "app/controllers/test_app/product_lines_controller.rb"
+    assert_no_file "test/functional/test_app/product_lines_controller_test.rb"
+
+    # Views
+    assert_no_file "app/views/test_app/product_lines"
+    assert_no_file "app/views/test_app/layouts/product_lines.html.erb"
+
+    # Helpers
+    assert_no_file "app/helpers/test_app/product_lines_helper.rb"
+    assert_no_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
+
+    # Stylesheets (should not be removed)
+    assert_file "public/stylesheets/scaffold.css"
+  end
+
+  def test_scaffold_with_namespace_on_invoke
+    run_generator [ "admin/role", "name:string", "description:string" ]
+
+    # Model
+    assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
+    assert_file "test/unit/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/fixtures/test_app/admin/roles.yml"
+    assert_migration "db/migrate/create_test_app_admin_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_match(/namespace :admin do resources :roles end$/, route)
+    end
+
+    # Controller
+    assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
+      assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+    end
+
+    assert_file "test/functional/test_app/admin/roles_controller_test.rb",
+                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+
+    # Views
+    %w(
+      index
+      edit
+      new
+      show
+      _form
+    ).each { |view| assert_file "app/views/test_app/admin/roles/#{view}.html.erb" }
+    assert_no_file "app/views/layouts/admin/roles.html.erb"
+
+    # Helpers
+    assert_file "app/helpers/test_app/admin/roles_helper.rb"
+    assert_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
+
+    # Stylesheets
+    assert_file "public/stylesheets/scaffold.css"
+  end
+
+  def test_scaffold_with_namespace_on_revoke
+    run_generator [ "admin/role", "name:string", "description:string" ]
+    run_generator [ "admin/role" ], :behavior => :revoke
+
+    # Model
+    assert_file "app/models/test_app/admin.rb"	# ( should not be remove )
+    assert_no_file "app/models/test_app/admin/role.rb"
+    assert_no_file "test/unit/test_app/admin/role_test.rb"
+    assert_no_file "test/fixtures/test_app/admin/roles.yml"
+    assert_no_migration "db/migrate/create_test_app_admin_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/namespace :admin do resources :roles end$/, route)
+    end
+
+    # Controller
+    assert_no_file "app/controllers/test_app/admin/roles_controller.rb"
+    assert_no_file "test/functional/test_app/admin/roles_controller_test.rb"
+
+    # Views
+    assert_no_file "app/views/test_app/admin/roles"
+    assert_no_file "app/views/layouts/test_app/admin/roles.html.erb"
+
+    # Helpers
+    assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
+    assert_no_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
+
+    # Stylesheets (should not be removed)
+    assert_file "public/stylesheets/scaffold.css"
   end
 end

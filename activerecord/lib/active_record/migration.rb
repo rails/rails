@@ -387,6 +387,8 @@ module ActiveRecord
       def copy(destination, sources, options = {})
         copied = []
 
+        FileUtils.mkdir_p(destination) unless File.exists?(destination)
+
         destination_migrations = ActiveRecord::Migrator.migrations(destination)
         last = destination_migrations.last
         sources.each do |name, path|

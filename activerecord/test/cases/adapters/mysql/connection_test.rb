@@ -49,18 +49,18 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_exec_no_binds
-    @connection.exec('drop table if exists ex')
-    @connection.exec(<<-eosql)
+    @connection.exec_query('drop table if exists ex')
+    @connection.exec_query(<<-eosql)
       CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
         `data` varchar(255))
     eosql
-    result = @connection.exec('SELECT id, data FROM ex')
+    result = @connection.exec_query('SELECT id, data FROM ex')
     assert_equal 0, result.rows.length
     assert_equal 2, result.columns.length
     assert_equal %w{ id data }, result.columns
 
-    @connection.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
-    result = @connection.exec('SELECT id, data FROM ex')
+    @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    result = @connection.exec_query('SELECT id, data FROM ex')
     assert_equal 1, result.rows.length
     assert_equal 2, result.columns.length
 
@@ -68,13 +68,13 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_exec_with_binds
-    @connection.exec('drop table if exists ex')
-    @connection.exec(<<-eosql)
+    @connection.exec_query('drop table if exists ex')
+    @connection.exec_query(<<-eosql)
       CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
         `data` varchar(255))
     eosql
-    @connection.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
-    result = @connection.exec(
+    @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    result = @connection.exec_query(
       'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
 
     assert_equal 1, result.rows.length
@@ -84,15 +84,15 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_exec_typecasts_bind_vals
-    @connection.exec('drop table if exists ex')
-    @connection.exec(<<-eosql)
+    @connection.exec_query('drop table if exists ex')
+    @connection.exec_query(<<-eosql)
       CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
         `data` varchar(255))
     eosql
-    @connection.exec('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
     column = @connection.columns('ex').find { |col| col.name == 'id' }
 
-    result = @connection.exec(
+    result = @connection.exec_query(
       'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
 
     assert_equal 1, result.rows.length

@@ -1,5 +1,6 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/module/introspection'
 
 module ActiveModel
   class Name < String

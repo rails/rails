@@ -4,6 +4,7 @@ require 'strscan'
 
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
+require 'active_support/inflector'
 require 'action_dispatch/http/headers'
 
 module ActionDispatch
@@ -44,8 +45,24 @@ module ActionDispatch
       @env.key?(key)
     end
 
-    HTTP_METHODS = %w(get head put post delete options)
-    HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
+    # List of HTTP request methods from the following RFCs:
+    # Hypertext Transfer Protocol -- HTTP/1.1 (http://www.ietf.org/rfc/rfc2616.txt)
+    # HTTP Extensions for Distributed Authoring -- WEBDAV (http://www.ietf.org/rfc/rfc2518.txt)
+    # Versioning Extensions to WebDAV (http://www.ietf.org/rfc/rfc3253.txt)
+    # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
+    # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
+    # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
+    # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
+    RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
+    RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
+    RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
+    RFC3648 = %w(ORDERPATCH)
+    RFC3744 = %w(ACL)
+    RFC5323 = %w(SEARCH)
+    RFC5789 = %w(PATCH)
+
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
+    HTTP_METHOD_LOOKUP = Hash.new { |h, m| h[m] = m.underscore.to_sym if HTTP_METHODS.include?(m) }
 
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware

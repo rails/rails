@@ -1,5 +1,4 @@
 require "cgi"
-require "active_support/core_ext/cgi"
 
 module Rails
   module Info

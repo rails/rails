@@ -17,7 +17,7 @@ module Rails
       def initialize(*args) #:nodoc:
         super
 
-        if name == name.pluralize && !options[:force_plural]
+        if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]
           unless ResourceHelpers.skip_warn
             say "Plural version of the model detected, using singularized version. Override with --force-plural."
             ResourceHelpers.skip_warn = true
@@ -34,7 +34,7 @@ module Rails
         attr_reader :controller_name
 
         def controller_class_path
-          @class_path
+          class_path
         end
 
         def controller_file_name
@@ -46,7 +46,7 @@ module Rails
         end
 
         def controller_class_name
-          @controller_class_name ||= (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
+          (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
         end
 
         def controller_i18n_scope

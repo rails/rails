@@ -1,5 +1,6 @@
 require 'active_support/core_ext/file/atomic'
 require 'active_support/core_ext/string/conversions'
+require 'rack/utils'
 
 module ActiveSupport
   module Cache
@@ -11,8 +12,6 @@ module ActiveSupport
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
-      ESCAPE_FILENAME_CHARS = /[^a-z0-9_.-]/i
-      UNESCAPE_FILENAME_CHARS = /%[0-9A-F]{2}/
 
       def initialize(cache_path, options = nil)
         super(options)
@@ -136,7 +135,7 @@ module ActiveSupport
 
         # Translate a key into a file path.
         def key_file_path(key)
-          fname = key.to_s.gsub(ESCAPE_FILENAME_CHARS){|match| "%#{match.ord.to_s(16).upcase}"}
+          fname = Rack::Utils.escape(key)
           hash = Zlib.adler32(fname)
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
@@ -156,7 +155,7 @@ module ActiveSupport
         # Translate a file path into a key.
         def file_path_key(path)
           fname = path[cache_path.size, path.size].split(File::SEPARATOR, 4).last
-          fname.gsub(UNESCAPE_FILENAME_CHARS){|match| $1.ord.to_s(16)}
+          Rack::Utils.unescape(fname)
         end
 
         # Delete empty directories in the cache.

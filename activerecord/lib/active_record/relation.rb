@@ -319,8 +319,13 @@ module ActiveRecord
     end
 
     def where_values_hash
-      Hash[@where_values.find_all {|w| w.respond_to?(:operator) && w.operator == :== }.map {|where|
-        [where.operand1.name, where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2]
+      Hash[@where_values.find_all { |w|
+        w.respond_to?(:operator) && w.operator == :== && w.left.relation.name == table_name
+      }.map { |where|
+        [
+          where.left.name,
+          where.right.respond_to?(:value) ? where.right.value : where.right
+        ]
       }]
     end
 

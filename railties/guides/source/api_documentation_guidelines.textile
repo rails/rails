@@ -116,14 +116,12 @@ Use fixed-width fonts for:
 * file names
 
 <ruby>
-# Copies the instance variables of +object+ into +self+.
-#
-# Instance variable names in the +exclude+ array are ignored. If +object+
-# responds to <tt>protected_instance_variables</tt> the ones returned are
-# also ignored. For example, Rails controllers implement that method.
-# ...
-def copy_instance_variables_from(object, exclude = [])
-  ...
+class Array
+  # Calls <tt>to_param</tt> on all its elements and joins the result with
+  # slashes. This is used by <tt>url_for</tt> in Action Pack.
+  def to_param
+    collect { |e| e.to_param }.join '/'
+  end
 end
 </ruby>
 
