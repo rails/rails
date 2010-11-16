@@ -3,7 +3,6 @@ require 'rdoc'
 
 require 'rake'
 require 'rdoc/task'
-require 'rake/gempackagetask'
 require 'net/http'
 
 # RDoc skips some files in the Rails tree due to its binary? predicate. This is a quick
@@ -53,27 +52,6 @@ task :smoke do
     system %(cd #{project} && #{$0} test:isolated)
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test)
-end
-
-spec = eval(File.read('rails.gemspec'))
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
-desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
-task :release => :release_projects do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
-end
-
-desc "Release all components to gemcutter."
-task :release_projects => :package do
-  errors = []
-  PROJECTS.each do |project|
-    system(%(cd #{project} && #{$0} release)) || errors << project
-  end
-  fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
 
 desc "Install gems for all projects."
