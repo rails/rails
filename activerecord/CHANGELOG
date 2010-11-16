@@ -1,3 +1,7 @@
+*Rails 3.0.3 (November 15, 2010)*
+
+* Support find by class like this: Post.where(:name => Post)
+
 *Rails 3.0.2 (November 15, 2010)*
 
 * Dramatic speed increase (see: http://engineering.attinteractive.com/2010/10/arel-two-point-ohhhhh-yaaaaaa/) [Aaron Patterson]
