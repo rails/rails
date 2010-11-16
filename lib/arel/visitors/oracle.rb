@@ -96,8 +96,12 @@ module Arel
         array = []
         i = 0
         string.split(',').each do |part|
-          array[i] ||= ""
-          array[i] << part
+          if array[i]
+            array[i] << ',' << part
+          else
+            # to ensure that array[i] will be String and not Arel::Nodes::SqlLiteral
+            array[i] = '' << part
+          end
           i += 1 if array[i].count('(') == array[i].count(')')
         end
         array
