@@ -1,6 +1,7 @@
-*Rails 3.0.3 (November 15, 2010)*
+*Rails 3.0.3 (November 16, 2010)*
 
 * Support find by class like this: Post.where(:name => Post)
+
 
 *Rails 3.0.2 (November 15, 2010)*
 

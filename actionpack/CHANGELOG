@@ -1,10 +1,9 @@
-*Rails 3.0.3 (November 15, 2010)*
+*Rails 3.0.3 (November 16, 2010)*
 
-  * When ActiveRecord::Base objects are sent to predicate methods, the id of
-    the object should be sent to ARel, not the ActiveRecord::Base object.
+* When ActiveRecord::Base objects are sent to predicate methods, the id of the object should be sent to ARel, not the ActiveRecord::Base object.
 
-  * :constraints routing should only do sanity checks against regular
-  expressions.  String arguments are OK.
+* :constraints routing should only do sanity checks against regular expressions.  String arguments are OK.
+
 
 *Rails 3.0.2 (November 15, 2010)*
 
