@@ -3,8 +3,8 @@ module ActiveRecord
     MAJOR = 3
     MINOR = 1
     TINY  = 0
-    BUILD = "beta"
+    PRE   = "beta"
 
-    STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
+    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
 end
