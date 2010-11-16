@@ -1585,9 +1585,9 @@ MSG
       # Returns true if the +comparison_object+ is the same object, or is of the same type and has the same id.
       def ==(comparison_object)
         comparison_object.equal?(self) ||
-          persisted? &&
-            (comparison_object.instance_of?(self.class) &&
-              comparison_object.id == id)
+          comparison_object.instance_of?(self.class) &&
+          id.present? &&
+          comparison_object.id == id
       end
 
       # Delegates to ==

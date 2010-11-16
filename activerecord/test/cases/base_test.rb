@@ -397,6 +397,15 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal Topic.new, Topic.new
   end
 
+  def test_equality_of_destroyed_records
+    topic_1 = Topic.new(:title => 'test_1')
+    topic_1.save
+    topic_2 = Topic.find(topic_1.id)
+    topic_1.destroy
+    assert_equal topic_1, topic_2
+    assert_equal topic_2, topic_1
+  end
+
   def test_hashing
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
