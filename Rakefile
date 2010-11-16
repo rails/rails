@@ -5,6 +5,15 @@ require 'rake'
 require 'rdoc/task'
 require 'net/http'
 
+$:.unshift File.expand_path('..', __FILE__)
+require "tasks/release"
+
+desc "Build gem files for all projects"
+task :build => "all:build"
+
+desc "Release all gems to gemcutter and create a tag"
+task :release => ["all:release", "git:tag"]
+
 # RDoc skips some files in the Rails tree due to its binary? predicate. This is a quick
 # hack for edge docs, until we decide which is the correct way to address this issue.
 # If not fixed in RDoc itself, via an option or something, we should probably move this
