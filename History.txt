@@ -1,3 +1,10 @@
+== 2.0.3
+
+* Bug fixes
+
+  * Fixing Oracle support
+  * Added a visitor for "Class" objects
+
 == 2.0.2
 
 * Bug fixes

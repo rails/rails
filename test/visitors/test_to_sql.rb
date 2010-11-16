@@ -21,6 +21,10 @@ module Arel
         end
       end
 
+      it "should visit_Class" do
+        @visitor.accept(DateTime).must_equal "'DateTime'"
+      end
+
       it "should visit_DateTime" do
         @visitor.accept DateTime.now
       end
