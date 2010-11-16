@@ -464,24 +464,24 @@ I18n.t 'message'
 The +translate+ method also takes a +:scope+ option which can contain one or more additional keys that will be used to specify a “namespace” or scope for a translation key:
 
 <ruby>
-I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
+I18n.t :record_invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
-This looks up the +:invalid+ message in the Active Record error messages.
+This looks up the +:record_invalid+ message in the Active Record error messages.
 
 Additionally, both the key and scopes can be specified as dot-separated keys as in:
 
 <ruby>
-I18n.translate :"activerecord.errors.messages.invalid"
+I18n.translate "activerecord.errors.messages.record_invalid"
 </ruby>
 
 Thus the following calls are equivalent:
 
 <ruby>
-I18n.t 'activerecord.errors.messages.invalid'
-I18n.t 'errors.messages.invalid', :scope => :active_record
-I18n.t :invalid, :scope => 'activerecord.errors.messages'
-I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
+I18n.t 'activerecord.errors.messages.record_invalid'
+I18n.t 'errors.messages.record_invalid', :scope => :active_record
+I18n.t :record_invalid, :scope => 'activerecord.errors.messages'
+I18n.t :record_invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
 h5. Defaults
@@ -697,7 +697,7 @@ activerecord.errors.models.user.attributes.name.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 errors.attributes.name.blank
-errors.messagges.blank
+errors.messages.blank
 </ruby>
 
 When your models are additionally using inheritance then the messages are looked up in the inheritance chain.
@@ -719,7 +719,7 @@ activerecord.errors.models.user.attributes.title.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 errors.attributes.title.blank
-errors.messagges.blank
+errors.messages.blank
 </ruby>
 
 This way you can provide special translations for various error messages at different points in your models inheritance chain and in the attributes, models, or default scopes.
