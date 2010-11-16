@@ -212,13 +212,10 @@ module ActiveRecord
       association     = @klass.reflect_on_association(group_attr.first.to_sym)
       associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
       group_fields  = Array(associated ? association.primary_key_name : group_attr)
-      group_aliases = []
-      group_columns = {}
-      
-      group_fields.each do |field|
-        group_aliases << column_alias_for(field)
-        group_columns[column_alias_for(field)] = column_for(field)
-      end
+      group_aliases = group_fields.map { |field| column_alias_for(field) }
+      group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
+        [aliaz, column_for(field)]
+      }
 
       group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
 
@@ -228,9 +225,19 @@ module ActiveRecord
         aggregate_alias = column_alias_for(operation, column_name)
       end
 
+      select_values = [
+        operation_over_aggregate_column(
+          aggregate_column(column_name),
+          operation,
+          distinct).as(aggregate_alias)
+      ]
+
+      select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
+        "#{field} AS #{aliaz}"
+      }
+
       relation = except(:group).group(group.join(','))
-      relation.select_values = [ operation_over_aggregate_column(aggregate_column(column_name), operation, distinct).as(aggregate_alias) ]
-      group_fields.each_index{ |i| relation.select_values << "#{group_fields[i]} AS #{group_aliases[i]}" }
+      relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation.to_sql)
 
@@ -241,7 +248,9 @@ module ActiveRecord
       end
 
       ActiveSupport::OrderedHash[calculated_data.map do |row|
-        key   = group_aliases.map{|group_alias| type_cast_calculated_value(row[group_alias], group_columns[group_alias])}
+        key   = group_columns.map { |aliaz, column|
+          type_cast_calculated_value(row[aliaz], column)
+        }
         key   = key.first if key.size == 1
         key = key_records[key] if associated
         [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
