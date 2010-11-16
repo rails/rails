@@ -8,7 +8,7 @@ module Rails
 
       def show_deprecation
         return unless behavior == :invoke
-        message = "Plugin generator is depreacted, please use 'rails plugin new' command to generate plugin structure."
+        message = "Plugin generator is deprecated, please use 'rails plugin new' command to generate plugin structure."
         ActiveSupport::Deprecation.warn message
       end
 
