@@ -372,7 +372,7 @@ module ActiveRecord
         def load_target
           if @owner.persisted? || foreign_key_present
             begin
-              if !loaded?
+              unless loaded?
                 if @target.is_a?(Array) && @target.any?
                   @target = find_target.map do |f|
                     i = @target.index(f)
