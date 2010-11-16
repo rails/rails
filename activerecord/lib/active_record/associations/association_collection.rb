@@ -332,13 +332,10 @@ module ActiveRecord
       end
 
       def uniq(collection = self)
-        seen = Set.new
-        collection.map do |record|
-          unless seen.include?(record.id)
-            seen << record.id
-            record
-          end
-        end.compact
+        seen = {}
+        collection.find_all do |record|
+          seen[record.id] = true unless seen.key?(record.id)
+        end
       end
 
       # Replace this collection with +other_array+
