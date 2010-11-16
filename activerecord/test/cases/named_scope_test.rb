@@ -122,7 +122,7 @@ class NamedScopeTest < ActiveRecord::TestCase
       :joins => 'JOIN authors ON authors.id = posts.author_id',
       :conditions => [ 'authors.author_address_id = ?', address.id ]
     )
-    assert_equal posts_with_authors_at_address_titles, Post.with_authors_at_address(address).find(:all, :select => 'title')
+    assert_equal posts_with_authors_at_address_titles.map(&:title), Post.with_authors_at_address(address).find(:all, :select => 'title').map(&:title)
   end
 
   def test_extensions
