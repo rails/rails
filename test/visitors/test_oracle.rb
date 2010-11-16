@@ -43,6 +43,18 @@ module Arel
         }
       end
 
+      it 'splits orders with commas and function calls' do
+        # *sigh*
+        select = "DISTINCT foo.id, FIRST_VALUE(projects.name) OVER (foo) AS alias_0__"
+        stmt = Nodes::SelectStatement.new
+        stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
+        stmt.orders << Nodes::SqlLiteral.new('NVL(LOWER(bar, foo), foo) DESC, UPPER(baz)')
+        sql = @visitor.accept(stmt)
+        sql.must_be_like %{
+          SELECT #{select} ORDER BY alias_0__ DESC, alias_1__
+        }
+      end
+
       describe 'Nodes::SelectStatement' do
         describe 'limit' do
           it 'adds a rownum clause' do

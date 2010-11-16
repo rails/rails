@@ -70,19 +70,14 @@ module Arel
             /DISTINCT.*FIRST_VALUE/ === projection
           end
         end
-        # FIXME: previous version with join and split broke ORDER BY clause
+        # Previous version with join and split broke ORDER BY clause
         # if it contained functions with several arguments (separated by ',').
-        # Currently splitting is done only if there is no function calls
         #
         # orders   = o.orders.map { |x| visit x }.join(', ').split(',')
         orders   = o.orders.map do |x|
           string = visit x
-          # if there is function call
-          if string.include?('(')
-            string
-          # if no function call then comma splits several ORDER BY columns
-          elsif string.include?(',')
-            string.split(',')
+          if string.include?(',')
+            split_order_string(string)
           else
             string
           end
@@ -94,6 +89,20 @@ module Arel
         end
         o
       end
+
+      # Split string by commas but count opening and closing brackets
+      # and ignore commas inside brackets.
+      def split_order_string(string)
+        array = []
+        i = 0
+        string.split(',').each do |part|
+          array[i] ||= ""
+          array[i] << part
+          i += 1 if array[i].count('(') == array[i].count(')')
+        end
+        array
+      end
+
     end
   end
 end
