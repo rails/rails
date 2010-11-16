@@ -408,11 +408,7 @@ module ActiveRecord
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            if block_given?
-              super { |*block_args| yield(*block_args) }
-            else
-              super
-            end
+            super
           elsif @reflection.klass.scopes[method]
             @_named_scopes_cache ||= {}
             @_named_scopes_cache[method] ||= {}
