@@ -4,6 +4,7 @@ require 'rdoc'
 require 'rake'
 require 'rdoc/task'
 require 'rake/gempackagetask'
+require 'net/http'
 
 # RDoc skips some files in the Rails tree due to its binary? predicate. This is a quick
 # hack for edge docs, until we decide which is the correct way to address this issue.
@@ -170,5 +171,29 @@ task :update_versions do
         f.write version_file.gsub(/Rails/, constants[project])
       end
     end
+  end
+end
+
+#
+# We have a webhook configured in Github that gets invoked after pushes.
+# This hook triggers the following tasks:
+#
+#   * updates the local checkout
+#   * updates Rails Contributors
+#   * generates and publishes edge docs
+#   * if there's a new stable tag, generates and publishes stable docs
+#
+# Everything is automated and you do NOT need to run this task normally.
+#
+# We publish a new verion by tagging, and pushing a tag does not trigger
+# that webhook. Stable docs would be updated by any subsequent regular
+# push, but if you want that to happen right away just run this.
+#
+desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
+task :publish_docs do
+  Net::HTTP.new('rails-hooks.hashref.com').start do |http|
+    request  = Net::HTTP::Post.new('/rails-master-hook')
+    response = http.request(request)
+    puts response.body
   end
 end
