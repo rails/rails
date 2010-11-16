@@ -3,6 +3,11 @@ require 'helper'
 module Arel
   describe 'Attributes' do
     describe 'for' do
+      it 'deals with unknown column types' do
+        column = Struct.new(:type).new :crazy
+        Attributes.for(column).must_equal Attributes::Undefined
+      end
+
       it 'returns the correct constant for strings' do
         [:string, :text, :binary].each do |type|
           column = Struct.new(:type).new type

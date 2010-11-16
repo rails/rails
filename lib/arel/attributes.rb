@@ -13,7 +13,7 @@ module Arel
       when :date, :datetime, :timestamp, :time then Time
       when :boolean                            then Boolean
       else
-        raise NotImplementedError, "Column type `#{column.type}` is not currently handled"
+        Undefined
       end
     end
   end
