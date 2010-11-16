@@ -182,7 +182,7 @@ module ActiveRecord
           unless options.blank?
             raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
           end
-          
+
           @reflection.klass.count_by_sql(custom_counter_sql)
         else
 
@@ -435,10 +435,10 @@ module ActiveRecord
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
             counter_sql = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
-          
+
           interpolate_sql(counter_sql)
         end
-        
+
         def custom_finder_sql
           interpolate_sql(@reflection.options[:finder_sql])
         end
