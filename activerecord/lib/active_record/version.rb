@@ -3,7 +3,8 @@ module ActiveRecord
     MAJOR = 3
     MINOR = 0
     TINY  = 1
-        
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    PRE   = nil
+
+    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
 end
