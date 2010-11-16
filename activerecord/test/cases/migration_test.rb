@@ -2024,6 +2024,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       clear
     end
 
+    def test_copying_migrations_to_non_existing_directory
+      @migrations_path = MIGRATIONS_ROOT + "/non_existing"
+      @existing_migrations = []
+
+      Time.travel_to(created_at = Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert_equal 2, copied.length
+      end
+    ensure
+      clear
+      Dir.delete(@migrations_path)
+    end
+
     def test_copying_migrations_to_empty_directory
       @migrations_path = MIGRATIONS_ROOT + "/empty"
       @existing_migrations = []
