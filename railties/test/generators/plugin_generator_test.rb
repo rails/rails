@@ -66,6 +66,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_deprecation
     output = capture(:stderr) { run_generator }
-    assert_match /Plugin generator is depreacted, please use 'rails plugin new' command to generate plugin structure./, output
+    assert_match /Plugin generator is deprecated, please use 'rails plugin new' command to generate plugin structure./, output
   end
 end
