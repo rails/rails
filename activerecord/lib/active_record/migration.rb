@@ -316,115 +316,115 @@ module ActiveRecord
       self.class.down
     end
 
-      # Execute this migration in the named direction
-      def migrate(direction)
-        return unless respond_to?(direction)
+    # Execute this migration in the named direction
+    def migrate(direction)
+      return unless respond_to?(direction)
 
-        case direction
-          when :up   then announce "migrating"
-          when :down then announce "reverting"
+      case direction
+      when :up   then announce "migrating"
+      when :down then announce "reverting"
+      end
+
+      result = nil
+      time = Benchmark.measure { result = send(direction) }
+
+      case direction
+      when :up   then announce "migrated (%.4fs)" % time.real; write
+      when :down then announce "reverted (%.4fs)" % time.real; write
+      end
+
+      result
+    end
+
+    def write(text="")
+      puts(text) if verbose
+    end
+
+    def announce(message)
+      version = defined?(@version) ? @version : nil
+
+      text = "#{version} #{name}: #{message}"
+      length = [0, 75 - text.length].max
+      write "== %s %s" % [text, "=" * length]
+    end
+
+    def say(message, subitem=false)
+      write "#{subitem ? "   ->" : "--"} #{message}"
+    end
+
+    def say_with_time(message)
+      say(message)
+      result = nil
+      time = Benchmark.measure { result = yield }
+      say "%.4fs" % time.real, :subitem
+      say("#{result} rows", :subitem) if result.is_a?(Integer)
+      result
+    end
+
+    def suppress_messages
+      save, self.verbose = verbose, false
+      yield
+    ensure
+      self.verbose = save
+    end
+
+    def connection
+      ActiveRecord::Base.connection
+    end
+
+    def method_missing(method, *arguments, &block)
+      arg_list = arguments.map{ |a| a.inspect } * ', '
+
+      say_with_time "#{method}(#{arg_list})" do
+        unless arguments.empty? || method == :execute
+          arguments[0] = Migrator.proper_table_name(arguments.first)
         end
-
-        result = nil
-        time = Benchmark.measure { result = send(direction) }
-
-        case direction
-          when :up   then announce "migrated (%.4fs)" % time.real; write
-          when :down then announce "reverted (%.4fs)" % time.real; write
-        end
-
-        result
+        return super unless connection.respond_to?(method)
+        connection.send(method, *arguments, &block)
       end
+    end
 
-      def write(text="")
-        puts(text) if verbose
-      end
+    def copy(destination, sources, options = {})
+      copied = []
 
-      def announce(message)
-        version = defined?(@version) ? @version : nil
+      FileUtils.mkdir_p(destination) unless File.exists?(destination)
 
-        text = "#{version} #{name}: #{message}"
-        length = [0, 75 - text.length].max
-        write "== %s %s" % [text, "=" * length]
-      end
+      destination_migrations = ActiveRecord::Migrator.migrations(destination)
+      last = destination_migrations.last
+      sources.each do |name, path|
+        source_migrations = ActiveRecord::Migrator.migrations(path)
 
-      def say(message, subitem=false)
-        write "#{subitem ? "   ->" : "--"} #{message}"
-      end
+        source_migrations.each do |migration|
+          source = File.read(migration.filename)
+          source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
 
-      def say_with_time(message)
-        say(message)
-        result = nil
-        time = Benchmark.measure { result = yield }
-        say "%.4fs" % time.real, :subitem
-        say("#{result} rows", :subitem) if result.is_a?(Integer)
-        result
-      end
-
-      def suppress_messages
-        save, self.verbose = verbose, false
-        yield
-      ensure
-        self.verbose = save
-      end
-
-      def connection
-        ActiveRecord::Base.connection
-      end
-
-      def method_missing(method, *arguments, &block)
-        arg_list = arguments.map{ |a| a.inspect } * ', '
-
-        say_with_time "#{method}(#{arg_list})" do
-          unless arguments.empty? || method == :execute
-            arguments[0] = Migrator.proper_table_name(arguments.first)
+          if duplicate = destination_migrations.detect { |m| m.name == migration.name }
+            options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
+            next
           end
-          return super unless connection.respond_to?(method)
-          connection.send(method, *arguments, &block)
+
+          migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
+          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
+          old_path, migration.filename = migration.filename, new_path
+          last = migration
+
+          FileUtils.cp(old_path, migration.filename)
+          copied << migration
+          options[:on_copy].call(name, migration, old_path) if options[:on_copy]
+          destination_migrations << migration
         end
       end
 
-      def copy(destination, sources, options = {})
-        copied = []
+      copied
+    end
 
-        FileUtils.mkdir_p(destination) unless File.exists?(destination)
-
-        destination_migrations = ActiveRecord::Migrator.migrations(destination)
-        last = destination_migrations.last
-        sources.each do |name, path|
-          source_migrations = ActiveRecord::Migrator.migrations(path)
-
-          source_migrations.each do |migration|
-            source = File.read(migration.filename)
-            source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
-
-            if duplicate = destination_migrations.detect { |m| m.name == migration.name }
-              options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
-              next
-            end
-
-            migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
-            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
-            old_path, migration.filename = migration.filename, new_path
-            last = migration
-
-            FileUtils.cp(old_path, migration.filename)
-            copied << migration
-            options[:on_copy].call(name, migration, old_path) if options[:on_copy]
-            destination_migrations << migration
-          end
-        end
-
-        copied
+    def next_migration_number(number)
+      if ActiveRecord::Base.timestamped_migrations
+        [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
+      else
+        "%.3d" % number
       end
-
-      def next_migration_number(number)
-        if ActiveRecord::Base.timestamped_migrations
-          [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
-        else
-          "%.3d" % number
-        end
-      end
+    end
   end
 
   # MigrationProxy is used to defer loading of the actual migration classes
