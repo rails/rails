@@ -1,5 +1,14 @@
 *Rails 3.1.0 (unreleased)*
 
+* Migrations should use instance methods rather than class methods:
+    class FooMigration < ActiveRecord::Migration
+      def up
+        ...
+      end
+    end
+
+  [Aaron Patterson]
+
 * has_one maintains the association with separate after_create/after_update instead
   of a single after_save. [fxn]
 
