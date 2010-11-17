@@ -316,14 +316,6 @@ module ActiveRecord
       self.class.down
     end
 
-      def up_with_benchmarks #:nodoc:
-        migrate(:up)
-      end
-
-      def down_with_benchmarks #:nodoc:
-        migrate(:down)
-      end
-
       # Execute this migration in the named direction
       def migrate(direction)
         return unless respond_to?(direction)
