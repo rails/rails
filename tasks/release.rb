@@ -2,6 +2,7 @@ FRAMEWORKS = %w( activesupport activemodel activerecord activeresource actionpac
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
+tag     = "v#{version}"
 
 directory "dist"
 
@@ -52,15 +53,28 @@ directory "dist"
       sh "gem install #{gem}"
     end
 
+    task :prep_release => [:ensure_clean_state, :build]
+
     task :push => :build do
       sh "gem push #{gem}"
     end
   end
 end
 
-namespace :git do
+namespace :release do
+  task :ensure_clean_state do
+    unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
+      abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
+    end
+
+    unless ENV['SKIP_TAG'] || `git tag | grep #{tag}`.strip.empty?
+      abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
+            "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
+    end
+  end
+
   task :tag do
-    sh "git tag v#{version}"
+    sh "git tag #{tag}"
   end
 end
 
