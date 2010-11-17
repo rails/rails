@@ -306,11 +306,13 @@ module ActiveRecord
 
     def up
       self.class.delegate = self
+      return unless self.class.respond_to?(:up)
       self.class.up
     end
 
     def down
       self.class.delegate = self
+      return unless self.class.respond_to?(:down)
       self.class.down
     end
 
