@@ -156,7 +156,7 @@ module Arel
     end
 
     it "should have a name" do
-      @relation.name.must_equal :users
+      @relation.name.must_equal 'users'
     end
 
     it "should have an engine" do
@@ -175,6 +175,17 @@ module Arel
       describe 'when table does not exist' do
         it 'returns nil' do
           @relation[:foooo].must_be_nil
+        end
+      end
+    end
+  end
+
+  describe Table do
+    describe 'when checking existence of a table' do
+      it 'should be precent in the table cache despite the class of its name' do
+        [ 'users', :users ].each do |name|
+          relation = Table.new name
+          relation.send(:tables).key?(relation.name).must_equal true
         end
       end
     end

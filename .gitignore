@@ -5,3 +5,4 @@ spec/support/fixtures/*database*
 debug.log
 pkg
 .bundle
+*.swp
