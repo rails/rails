@@ -4,6 +4,7 @@ require 'hoe'
 
 Hoe.plugin :minitest
 Hoe.plugin :gemspec # `gem install hoe-gemspec`
+Hoe.plugin :git     # `gem install hoe-git`
 
 Hoe.spec 'arel' do
   developer('Aaron Patterson', 'aaron@tenderlovemaking.com')
