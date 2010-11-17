@@ -287,10 +287,30 @@ module ActiveRecord
   # In application.rb.
   #
   class Migration
-    @@verbose = true
-    cattr_accessor :verbose
-
     class << self
+      attr_accessor :verbose
+      attr_accessor :delegate # :nodoc:
+      def method_missing(name, *args, &block) # :nodoc:
+        (delegate || superclass.delegate).send(name, *args, &block)
+      end
+    end
+    self.delegate = new
+    self.verbose  = true
+
+    def name
+      self.class.name
+    end
+
+    def up
+      self.class.delegate = self
+      self.class.up
+    end
+
+    def down
+      self.class.delegate = self
+      self.class.down
+    end
+
       def up_with_benchmarks #:nodoc:
         migrate(:up)
       end
@@ -309,7 +329,7 @@ module ActiveRecord
         end
 
         result = nil
-        time = Benchmark.measure { result = send("#{direction}_without_benchmarks") }
+        time = Benchmark.measure { result = send("#{direction}") }
 
         case direction
           when :up   then announce "migrated (%.4fs)" % time.real; write
@@ -380,8 +400,17 @@ module ActiveRecord
           unless arguments.empty? || method == :execute
             arguments[0] = Migrator.proper_table_name(arguments.first)
           end
+          return super unless connection.respond_to?(method)
           connection.send(method, *arguments, &block)
         end
+      end
+
+      def verbose
+        self.class.verbose
+      end
+
+      def verbose= verbosity
+        self.class.verbose = verbosity
       end
 
       def copy(destination, sources, options = {})
@@ -425,7 +454,6 @@ module ActiveRecord
           "%.3d" % number
         end
       end
-    end
   end
 
   # MigrationProxy is used to defer loading of the actual migration classes
@@ -451,7 +479,7 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize
+        name.constantize.new
       end
 
   end
