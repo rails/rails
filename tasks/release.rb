@@ -88,7 +88,7 @@ namespace :release do
     sh "git tag #{tag}"
   end
 
-  task :full => %w(ensure_clean_state all:build commit)
+  task :full => %w(ensure_clean_state all:build commit tag all:push)
 end
 
 namespace :all do
