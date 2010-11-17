@@ -297,8 +297,11 @@ module ActiveRecord
     self.delegate = new
     self.verbose  = true
 
-    def name
-      self.class.name
+    attr_accessor :name, :version
+
+    def initialize
+      @name    = self.class.name
+      @version = nil
     end
 
     def up
@@ -338,8 +341,6 @@ module ActiveRecord
     end
 
     def announce(message)
-      version = defined?(@version) ? @version : nil
-
       text = "#{version} #{name}: #{message}"
       length = [0, 75 - text.length].max
       write "== %s %s" % [text, "=" * length]
