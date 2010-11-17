@@ -12,11 +12,8 @@ command = aliases[command] || command
 
 case command
 when 'generate', 'destroy', 'plugin'
-  if command == "plugin" && ARGV.first == "new"
+  if command == 'plugin' && ARGV.first == 'new'
     require "rails/commands/plugin_new"
-  elsif command == 'generate' && ARGV.first == "plugin_new"
-    puts "This generator should not be used directly as a generator. You should use `rails plugin new` command instead"
-    exit(1)
   else
     require APP_PATH
     Rails.application.require_environment!
