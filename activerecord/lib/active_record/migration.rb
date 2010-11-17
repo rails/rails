@@ -288,12 +288,15 @@ module ActiveRecord
   #
   class Migration
     class << self
-      attr_accessor :verbose
       attr_accessor :delegate # :nodoc:
-      def method_missing(name, *args, &block) # :nodoc:
-        (delegate || superclass.delegate).send(name, *args, &block)
-      end
     end
+
+    def self.method_missing(name, *args, &block) # :nodoc:
+      (delegate || superclass.delegate).send(name, *args, &block)
+    end
+
+    cattr_accessor :verbose
+
     self.delegate = new
     self.verbose  = true
 

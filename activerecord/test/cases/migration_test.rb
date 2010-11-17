@@ -19,6 +19,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     class <<self
       attr_accessor :message_count
     end
+
     def puts(text="")
       self.class.message_count ||= 0
       self.class.message_count += 1

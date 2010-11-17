@@ -46,11 +46,12 @@ module ActiveRecord
     #     ...
     #   end
     def self.define(info={}, &block)
-      new.instance_eval(&block)
+      schema = new
+      schema.instance_eval(&block)
 
       unless info[:version].blank?
         initialize_schema_migrations_table
-        assume_migrated_upto_version(info[:version], migrations_path)
+        assume_migrated_upto_version(info[:version], schema.migrations_path)
       end
     end
   end
