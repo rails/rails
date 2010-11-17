@@ -1,3 +1,9 @@
+== 2.0.4
+
+* Bug fixes
+
+  * Speed improvements for Range queries.  Thanks Rolf Timmermans!
+
 == 2.0.3
 
 * Bug fixes
