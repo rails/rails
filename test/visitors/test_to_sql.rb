@@ -132,6 +132,52 @@ module Arel
         end
       end
 
+      describe "Nodes::NotIn" do
+        it "should know how to visit" do
+          node = @attr.not_in [1, 2, 3]
+          @visitor.accept(node).must_be_like %{
+            "users"."id" NOT IN (1, 2, 3)
+          }
+        end
+
+        it "should turn empty right to NULL" do
+          node = @attr.not_in []
+          @visitor.accept(node).must_be_like %{
+            "users"."id" NOT IN (NULL)
+          }
+        end
+
+        it 'can handle two dot ranges' do
+          node = @attr.not_in 1..3
+          @visitor.accept(node).must_be_like %{
+            "users"."id" < 1 OR "users"."id" > 3
+          }
+        end
+
+        it 'can handle three dot ranges' do
+          node = @attr.not_in 1...3
+          @visitor.accept(node).must_be_like %{
+            "users"."id" < 1 OR "users"."id" >= 3
+          }
+        end
+
+        it 'uses the same column for escaping values' do
+        @attr = Table.new(:users)[:name]
+          visitor = Class.new(ToSql) do
+            attr_accessor :expected
+
+            def quote value, column = nil
+              raise unless column == expected
+              super
+            end
+          end
+          in_node = Nodes::NotIn.new @attr, %w{ a b c }
+          visitor = visitor.new(Table.engine)
+          visitor.expected = @attr.column
+          visitor.accept(in_node).must_equal %("users"."name" NOT IN ('a', 'b', 'c'))
+        end
+      end
+
       describe 'Equality' do
         it "should escape strings" do
           test = Table.new(:users)[:name].eq 'Aaron Patterson'
