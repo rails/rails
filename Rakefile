@@ -172,7 +172,7 @@ end
 #
 # Everything is automated and you do NOT need to run this task normally.
 #
-# We publish a new verion by tagging, and pushing a tag does not trigger
+# We publish a new version by tagging, and pushing a tag does not trigger
 # that webhook. Stable docs would be updated by any subsequent regular
 # push, but if you want that to happen right away just run this.
 #
