@@ -332,7 +332,7 @@ module ActiveRecord
         end
 
         result = nil
-        time = Benchmark.measure { result = send("#{direction}") }
+        time = Benchmark.measure { result = send(direction) }
 
         case direction
           when :up   then announce "migrated (%.4fs)" % time.real; write
@@ -340,24 +340,6 @@ module ActiveRecord
         end
 
         result
-      end
-
-      # Because the method added may do an alias_method, it can be invoked
-      # recursively. We use @ignore_new_methods as a guard to indicate whether
-      # it is safe for the call to proceed.
-      def singleton_method_added(sym) #:nodoc:
-        return if defined?(@ignore_new_methods) && @ignore_new_methods
-
-        begin
-          @ignore_new_methods = true
-
-          case sym
-            when :up, :down
-              singleton_class.send(:alias_method_chain, sym, "benchmarks")
-          end
-        ensure
-          @ignore_new_methods = false
-        end
       end
 
       def write(text="")
