@@ -181,8 +181,8 @@ module Arel
   end
 
   describe Table do
-    describe 'when checking existence of a table' do
-      it 'should be precent in the table cache despite the class of its name' do
+    describe 'when checking the existence of a table' do
+      it 'should be present in the table cache despite the class of its name' do
         [ 'users', :users ].each do |name|
           relation = Table.new name
           relation.send(:tables).key?(relation.name).must_equal true
