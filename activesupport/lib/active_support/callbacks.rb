@@ -1,6 +1,6 @@
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 
@@ -437,7 +437,7 @@ module ActiveSupport
 
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
           chain = target.send("_#{name}_callbacks")
-          yield chain, type, filters, options
+          yield target, chain.dup, type, filters, options
           target.__define_runner(name)
         end
       end
@@ -473,7 +473,7 @@ module ActiveSupport
       def set_callback(name, *filter_list, &block)
         mapped = nil
 
-        __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
+        __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           mapped ||= filters.map do |filter|
             Callback.new(chain, filter, type, options.dup, self)
           end
@@ -483,6 +483,8 @@ module ActiveSupport
           end
 
           options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
+
+          target.send("_#{name}_callbacks=", chain)
         end
       end
 
@@ -493,7 +495,7 @@ module ActiveSupport
       #   end
       #
       def skip_callback(name, *filter_list, &block)
-        __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
+        __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           filters.each do |filter|
             filter = chain.find {|c| c.matches?(type, filter) }
 
@@ -505,6 +507,7 @@ module ActiveSupport
 
             chain.delete(filter)
           end
+          target.send("_#{name}_callbacks=", chain)
         end
       end
 
@@ -514,12 +517,14 @@ module ActiveSupport
         callbacks = send("_#{symbol}_callbacks")
 
         ActiveSupport::DescendantsTracker.descendants(self).each do |target|
-          chain = target.send("_#{symbol}_callbacks")
+          chain = target.send("_#{symbol}_callbacks").dup
           callbacks.each { |c| chain.delete(c) }
+          target.send("_#{symbol}_callbacks=", chain)
           target.__define_runner(symbol)
         end
 
-        callbacks.clear
+        self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
+
         __define_runner(symbol)
       end
 
@@ -589,9 +594,8 @@ module ActiveSupport
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|
-          extlib_inheritable_reader("_#{callback}_callbacks") do
-            CallbackChain.new(callback, config)
-          end
+          class_attribute "_#{callback}_callbacks"
+          send("_#{callback}_callbacks=", CallbackChain.new(callback, config))
           __define_runner(callback)
         end
       end
