@@ -30,11 +30,11 @@ module Arel
         Nodes::In.new self, other.to_a.map { |x| x.id }
       when Range
         if other.exclude_end?
-          left  = Nodes::GreaterThanOrEqual.new(self, other.min)
-          right = Nodes::LessThan.new(self, other.max + 1)
+          left  = Nodes::GreaterThanOrEqual.new(self, other.begin)
+          right = Nodes::LessThan.new(self, other.end)
           Nodes::And.new left, right
         else
-          Nodes::Between.new(self, Nodes::And.new(other.min, other.max))
+          Nodes::Between.new(self, Nodes::And.new(other.begin, other.end))
         end
       else
         Nodes::In.new self, other
@@ -55,12 +55,12 @@ module Arel
         Nodes::NotIn.new self, other.to_a.map { |x| x.id }
       when Range
         if other.exclude_end?
-          left  = Nodes::LessThan.new(self, other.min)
-          right = Nodes::GreaterThanOrEqual.new(self, other.max)
+          left  = Nodes::LessThan.new(self, other.begin)
+          right = Nodes::GreaterThanOrEqual.new(self, other.end)
           Nodes::Or.new left, right
         else
-          left  = Nodes::LessThan.new(self, other.min)
-          right = Nodes::GreaterThan.new(self, other.max)
+          left  = Nodes::LessThan.new(self, other.begin)
+          right = Nodes::GreaterThan.new(self, other.end)
           Nodes::Or.new left, right
         end
       else
