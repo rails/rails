@@ -66,6 +66,18 @@ module ActionDispatch
             end
 
             @options.merge!(default_controller_and_action(to_shorthand))
+
+            requirements.each do |name, requirement|
+              # segment_keys.include?(k.to_s) || k == :controller
+              next unless Regexp === requirement && !constraints[name]
+
+              if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
+                raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+              end
+              if requirement.multiline?
+                raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
+              end
+            end
           end
 
           # match "account/overview"
@@ -113,15 +125,6 @@ module ActionDispatch
             @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
-
-              requirements.values.grep(Regexp).each do |requirement|
-                if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
-                  raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
-                end
-                if requirement.multiline?
-                  raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
-                end
-              end
             end
           end
 
