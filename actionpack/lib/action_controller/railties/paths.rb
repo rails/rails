@@ -13,7 +13,9 @@ module ActionController
             end
 
             klass.helpers_path = paths
-            klass.helper :all if klass.superclass == ActionController::Base
+            if klass.superclass == ActionController::Base && ActionController::Base.include_all_helpers
+              klass.helper :all
+            end
           end
         end
       end
