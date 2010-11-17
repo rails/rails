@@ -61,7 +61,11 @@ directory "dist"
   end
 end
 
-namespace :release do
+namespace :all do
+  task :build   => FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
+  task :install => FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']
+  task :push    => FRAMEWORKS.map { |f| "#{f}:push"    } + ['rails:push']
+
   task :ensure_clean_state do
     unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
@@ -88,11 +92,5 @@ namespace :release do
     sh "git tag #{tag}"
   end
 
-  task :full => %w(ensure_clean_state all:build commit tag all:push)
-end
-
-namespace :all do
-  task :build   => FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
-  task :install => FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']
-  task :push    => FRAMEWORKS.map { |f| "#{f}:push"    } + ['rails:push']
+  task :release => %w(ensure_clean_state build commit tag push)
 end

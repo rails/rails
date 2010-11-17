@@ -12,7 +12,7 @@ desc "Build gem files for all projects"
 task :build => "all:build"
 
 desc "Release all gems to gemcutter and create a tag"
-task :release => ["all:release", "git:tag"]
+task :release => "all:release"
 
 # RDoc skips some files in the Rails tree due to its binary? predicate. This is a quick
 # hack for edge docs, until we decide which is the correct way to address this issue.
