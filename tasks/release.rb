@@ -73,9 +73,22 @@ namespace :release do
     end
   end
 
+  task :commit do
+    File.open('dist/commit_message.txt', 'w') do |f|
+      f.puts "# Preparing for #{version} release\n"
+      f.puts
+      f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
+    end
+
+    sh "git add . && git commit --verbose --template=dist/commit_message.txt"
+    rm_f "dist/commit_message.txt"
+  end
+
   task :tag do
     sh "git tag #{tag}"
   end
+
+  task :full => %w(ensure_clean_state all:build commit)
 end
 
 namespace :all do
