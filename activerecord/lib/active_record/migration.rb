@@ -135,7 +135,7 @@ module ActiveRecord
   # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the
   # UTC formatted date and time that the migration was generated.
   #
-  # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
+  # You may then edit the <tt>up</tt> and <tt>down</tt> methods of
   # MyNewMigration.
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
@@ -220,7 +220,7 @@ module ActiveRecord
   # latest column data from after the new column was added. Example:
   #
   #   class AddPeopleSalary < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
   #       Person.find(:all).each do |p|
@@ -240,7 +240,7 @@ module ActiveRecord
   # You can also insert your own messages and benchmarks by using the +say_with_time+
   # method:
   #
-  #   def self.up
+  #   def up
   #     ...
   #     say_with_time "Updating salaries..." do
   #       Person.find(:all).each do |p|
