@@ -30,18 +30,18 @@ module ActiveRecord
           if dependent? && !dont_save
             case @reflection.options[:dependent]
             when :delete
-              @target.delete unless @target.new_record?
+              @target.delete if @target.persisted?
               @owner.clear_association_cache
             when :destroy
-              @target.destroy unless @target.new_record?
+              @target.destroy if @target.persisted?
               @owner.clear_association_cache
             when :nullify
               @target[@reflection.primary_key_name] = nil
-              @target.save unless @owner.new_record? || @target.new_record?
+              @target.save if @owner.persisted? && @target.persisted?
             end
           else
             @target[@reflection.primary_key_name] = nil
-            @target.save unless @owner.new_record? || @target.new_record?
+            @target.save if @owner.persisted? && @target.persisted?
           end
         end
 
@@ -56,7 +56,7 @@ module ActiveRecord
         set_inverse_instance(obj, @owner)
         @loaded = true
 
-        unless @owner.new_record? or obj.nil? or dont_save
+        unless !@owner.persisted? or obj.nil? or dont_save
           return (obj.save ? self : false)
         else
           return (obj.nil? ? nil : self)
@@ -113,7 +113,7 @@ module ActiveRecord
           if replace_existing
             replace(record, true)
           else
-            record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+            record[@reflection.primary_key_name] = @owner.id if @owner.persisted?
             self.target = record
             set_inverse_instance(record, @owner)
           end

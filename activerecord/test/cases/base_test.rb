@@ -182,7 +182,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_initialize_with_invalid_attribute
     begin
-      topic = Topic.new({ "title" => "test",
+      Topic.new({ "title" => "test",
         "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
     rescue ActiveRecord::MultiparameterAssignmentErrors => ex
       assert_equal(1, ex.errors.size)
@@ -395,6 +395,15 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
+  end
+
+  def test_equality_of_destroyed_records
+    topic_1 = Topic.new(:title => 'test_1')
+    topic_1.save
+    topic_2 = Topic.find(topic_1.id)
+    topic_1.destroy
+    assert_equal topic_1, topic_2
+    assert_equal topic_2, topic_1
   end
 
   def test_hashing
@@ -656,8 +665,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_new_record_returns_boolean
-    assert_equal true, Topic.new.new_record?
-    assert_equal false, Topic.find(1).new_record?
+    assert_equal false, Topic.new.persisted?
+    assert_equal true, Topic.find(1).persisted?
   end
 
   def test_clone
@@ -665,7 +674,7 @@ class BasicsTest < ActiveRecord::TestCase
     cloned_topic = nil
     assert_nothing_raised { cloned_topic = topic.clone }
     assert_equal topic.title, cloned_topic.title
-    assert cloned_topic.new_record?
+    assert !cloned_topic.persisted?
 
     # test if the attributes have been cloned
     topic.title = "a"
@@ -684,7 +693,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     # test if saved clone object differs from original
     cloned_topic.save
-    assert !cloned_topic.new_record?
+    assert cloned_topic.persisted?
     assert_not_equal cloned_topic.id, topic.id
 
     cloned_topic.reload
@@ -700,7 +709,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nothing_raised { clone = dev.clone }
     assert_kind_of DeveloperSalary, clone.salary
     assert_equal dev.salary.amount, clone.salary.amount
-    assert clone.new_record?
+    assert !clone.persisted?
 
     # test if the attributes have been cloned
     original_amount = clone.salary.amount
@@ -708,7 +717,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal original_amount, clone.salary.amount
 
     assert clone.save
-    assert !clone.new_record?
+    assert clone.persisted?
     assert_not_equal clone.id, dev.id
   end
 
@@ -963,7 +972,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_nil_serialized_attribute_with_class_constraint
-    myobj = MyObject.new('value1', 'value2')
     topic = Topic.new
     assert_nil topic.content
   end

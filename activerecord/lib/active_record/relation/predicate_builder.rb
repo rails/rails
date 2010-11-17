@@ -25,6 +25,11 @@ module ActiveRecord
             attribute.in(values)
           when Range, Arel::Relation
             attribute.in(value)
+          when ActiveRecord::Base
+            attribute.eq(value.quoted_id)
+          when Class
+            # FIXME: I think we need to deprecate this behavior
+            attribute.eq(value.name)
           else
             attribute.eq(value)
           end

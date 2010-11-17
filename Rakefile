@@ -3,7 +3,16 @@ require 'rdoc'
 
 require 'rake'
 require 'rdoc/task'
-require 'rake/gempackagetask'
+require 'net/http'
+
+$:.unshift File.expand_path('..', __FILE__)
+require "tasks/release"
+
+desc "Build gem files for all projects"
+task :build => "all:build"
+
+desc "Release all gems to gemcutter and create a tag"
+task :release => "all:release"
 
 # RDoc skips some files in the Rails tree due to its binary? predicate. This is a quick
 # hack for edge docs, until we decide which is the correct way to address this issue.
@@ -52,27 +61,6 @@ task :smoke do
     system %(cd #{project} && #{$0} test:isolated)
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test)
-end
-
-spec = eval(File.read('rails.gemspec'))
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
-desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
-task :release => :release_projects do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
-end
-
-desc "Release all components to gemcutter."
-task :release_projects => :package do
-  errors = []
-  PROJECTS.each do |project|
-    system(%(cd #{project} && #{$0} release)) || errors << project
-  end
-  fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
 
 desc "Install gems for all projects."
@@ -170,5 +158,29 @@ task :update_versions do
         f.write version_file.gsub(/Rails/, constants[project])
       end
     end
+  end
+end
+
+#
+# We have a webhook configured in Github that gets invoked after pushes.
+# This hook triggers the following tasks:
+#
+#   * updates the local checkout
+#   * updates Rails Contributors
+#   * generates and publishes edge docs
+#   * if there's a new stable tag, generates and publishes stable docs
+#
+# Everything is automated and you do NOT need to run this task normally.
+#
+# We publish a new verion by tagging, and pushing a tag does not trigger
+# that webhook. Stable docs would be updated by any subsequent regular
+# push, but if you want that to happen right away just run this.
+#
+desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
+task :publish_docs do
+  Net::HTTP.new('rails-hooks.hashref.com').start do |http|
+    request  = Net::HTTP::Post.new('/rails-master-hook')
+    response = http.request(request)
+    puts response.body
   end
 end

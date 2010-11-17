@@ -3,10 +3,11 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
-      # Returns this record's primary key value wrapped in an Array
-      # or nil if the record is a new_record?
+      # Returns this record's primary key value wrapped in an Array or nil if
+      # the record is not persisted? or has just been destroyed.
       def to_key
-        new_record? ? nil : [ id ]
+        key = send(self.class.primary_key)
+        [key] if key
       end
 
       module ClassMethods

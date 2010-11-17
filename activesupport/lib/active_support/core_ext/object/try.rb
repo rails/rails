@@ -8,6 +8,8 @@ class Object
   # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
   # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
   #
+  # If try is called without a method to call, it will yield any given block with the object.
+  #
   # ==== Examples
   #
   # Without try
@@ -21,10 +23,20 @@ class Object
   # +try+ also accepts arguments and/or a block, for the method it is trying
   #   Person.try(:find, 1)
   #   @people.try(:collect) {|p| p.name}
+  #
+  # Without a method argument try will yield to the block unless the reciever is nil.
+  #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
   #--
   # +try+ behaves like +Object#send+, unless called on +NilClass+.
 
-  alias_method :try, :__send__
+  def try(*a, &b)
+    if a.empty? && block_given?
+      yield self
+    else
+      __send__(*a, &b)
+    end
+  end
+
 end
 
 class NilClass #:nodoc:

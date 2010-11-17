@@ -239,7 +239,7 @@ class LoginsController < ApplicationController
   # "Delete" a login, aka "log the user out"
   def destroy
     # Remove the user id from the session
-    session[:current_user_id] = nil
+    @_current_user = session[:current_user_id] = nil
     redirect_to root_url
   end
 end
@@ -260,6 +260,13 @@ class LoginsController < ApplicationController
   end
 end
 </ruby>
+
+Note it is also possible to assign a flash message as part of the redirection.
+
+<ruby>
+redirect_to root_url, :notice => "You have successfully logged out"
+</ruby>
+
 
 The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:
 

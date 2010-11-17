@@ -247,6 +247,51 @@ module RenderTestCases
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield_with_render_inline_inside")
   end
 
+  def test_render_with_layout_which_renders_another_partial
+    assert_equal %(partial html\nHello world!\n),
+      @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield_with_render_partial_inside")
+  end
+
+  def test_render_layout_with_block_and_yield
+    assert_equal %(Content from block!\n),
+      @view.render(:layout => "layouts/yield_only") { "Content from block!" }
+  end
+
+  def test_render_layout_with_block_and_yield_with_params
+    assert_equal %(Yield! Content from block!\n),
+      @view.render(:layout => "layouts/yield_with_params") { |param| "#{param} Content from block!" }
+  end
+
+  def test_render_layout_with_block_which_renders_another_partial_and_yields
+    assert_equal %(partial html\nContent from block!\n),
+      @view.render(:layout => "layouts/partial_and_yield") { "Content from block!" }
+  end
+
+  def test_render_partial_and_layout_without_block_with_locals
+    assert_equal %(Before (Foo!)\npartial html\nAfter),
+      @view.render(:partial => 'test/partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_partial_and_layout_without_block_with_locals_and_rendering_another_partial
+    assert_equal %(Before (Foo!)\npartial html\npartial with partial\n\nAfter),
+      @view.render(:partial => 'test/partial_with_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_layout_with_a_nested_render_layout_call
+    assert_equal %(Before (Foo!)\nBefore (Bar!)\npartial html\nAfter\npartial with layout\n\nAfter),
+      @view.render(:partial => 'test/partial_with_layout', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_partial
+    assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  partial html\n\nAfterpartial with layout\n\nAfter),
+      @view.render(:partial => 'test/partial_with_layout_block_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_content
+    assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  Content from inside layout!\n\nAfterpartial with layout\n\nAfter),
+      @view.render(:partial => 'test/partial_with_layout_block_content', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")

@@ -112,6 +112,7 @@ module ActionView
       #     <%= f.text_field :version %><br />
       #     <%= f.label :author, 'Author' %>:
       #     <%= f.text_field :author %><br />
+      #     <%= f.submit %>
       #   <% end %>
       #
       # There, +form_for+ is able to generate the rest of RESTful form
@@ -129,6 +130,7 @@ module ActionView
       #     Last name : <%= f.text_field :last_name %><br />
       #     Biography : <%= f.text_area :biography %><br />
       #     Admin?    : <%= f.check_box :admin %><br />
+      #     <%= f.submit %>
       #   <% end %>
       #
       # There, the argument is a symbol or string with the name of the
@@ -160,6 +162,7 @@ module ActionView
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
       #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     <%= f.submit %>
       #   <% end %>
       #
       # This also works for the methods in FormOptionHelper and DateHelper that
@@ -269,8 +272,9 @@ module ActionView
       #   <%= form_for @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
-      #     <%= text_area :person, :biography %>
-      #     <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     <%= f.text_area :biography %>
+      #     <%= f.check_box :admin %>
+      #     <%= f.submit %>
       #   <% end %>
       #
       # In this case, if you use this:
@@ -347,6 +351,8 @@ module ActionView
       #     <%= fields_for @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
+      #
+      #     <%= f.submit %>
       #   <% end %>
       #
       # ...or if you have an object that needs to be represented as a different
@@ -408,6 +414,7 @@ module ActionView
       #       Street  : <%= address_fields.text_field :street %>
       #       Zip code: <%= address_fields.text_field :zip_code %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # When address is already an association on a Person you can use
@@ -437,6 +444,7 @@ module ActionView
       #       ...
       #       Delete: <%= address_fields.check_box :_destroy %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # ==== One-to-many
@@ -466,6 +474,7 @@ module ActionView
       #         Name: <%= project_fields.text_field :name %>
       #       <% end %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # It's also possible to specify the instance to be used:
@@ -479,6 +488,7 @@ module ActionView
       #         <% end %>
       #       <% end %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # Or a collection to be used:
@@ -488,6 +498,7 @@ module ActionView
       #     <%= person_form.fields_for :projects, @active_projects do |project_fields| %>
       #       Name: <%= project_fields.text_field :name %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # When projects is already an association on Person you can use
@@ -517,6 +528,7 @@ module ActionView
       #     <%= person_form.fields_for :projects do |project_fields| %>
       #       Delete: <%= project_fields.check_box :_destroy %>
       #     <% end %>
+      #     ...
       #   <% end %>
       def fields_for(record, record_object = nil, options = nil, &block)
         capture(instantiate_builder(record, record_object, options, &block), &block)
@@ -1205,6 +1217,7 @@ module ActionView
         self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))
       end
+
       # Add the submit button for the given form. When no value is given, it checks
       # if the object is a new resource or not to create the proper label:
       #
@@ -1277,11 +1290,11 @@ module ActionView
 
           if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
-          elsif !association.is_a?(Array)
+          elsif !association.respond_to?(:to_ary)
             association = @object.send(association_name)
           end
 
-          if association.is_a?(Array)
+          if association.respond_to?(:to_ary)
             explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
             association.each do |child|

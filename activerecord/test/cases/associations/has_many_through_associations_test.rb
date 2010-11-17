@@ -472,4 +472,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     authors = Author.joins(:essay_categories_2).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
   end
+
+  def test_size_of_through_association_should_increase_correctly_when_has_many_association_is_added
+    post = posts(:thinking)
+    readers = post.readers.size
+    post.people << people(:michael)
+    assert_equal readers + 1, post.readers.size
+  end
 end

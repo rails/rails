@@ -144,7 +144,7 @@ module ActiveSupport
         when Hash
           self.class.new_from_hash_copying_default(value)
         when Array
-          value.collect { |e| e.is_a?(Hash) ? self.class.new_from_hash_copying_default(e) : e }
+          value.dup.replace(value.collect { |e| e.is_a?(Hash) ? self.class.new_from_hash_copying_default(e) : e })
         else
           value
         end

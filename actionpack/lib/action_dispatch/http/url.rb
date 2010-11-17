@@ -2,6 +2,7 @@ module ActionDispatch
   module Http
     module URL
       mattr_accessor :tld_length
+      self.tld_length = 1
 
       # Returns the complete URL used for this request.
       def url
@@ -67,7 +68,7 @@ module ActionDispatch
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
       # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
-      def domain(tld_length = 1)
+      def domain(tld_length = @@tld_length)
         return nil unless named_host?(host)
 
         host.split('.').last(1 + tld_length).join('.')

@@ -38,5 +38,14 @@ module ApplicationTests
       assert_match "Code LOC: 5     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path){ `rake stats` }
     end
+
+    def test_rake_routes_output_strips_anchors_from_http_verbs
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get '/cart', :to => 'cart#show'
+        end
+      RUBY
+      assert_match 'cart GET /cart(.:format)', Dir.chdir(app_path){ `rake routes` }
+    end
   end
 end

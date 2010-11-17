@@ -192,7 +192,6 @@ class PersistencesTest < ActiveRecord::TestCase
     topic = Topic.create("title" => "New Topic") do |t|
       t.author_name = "David"
     end
-    topicReloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic.title)
     assert_equal("David", topic.author_name)
   end
@@ -241,6 +240,15 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_nothing_raised { minimalistic.save }
   end
 
+  def test_update_sti_type
+    assert_instance_of Reply, topics(:second)
+
+    topic = topics(:second).becomes(Topic)
+    assert_instance_of Topic, topic
+    topic.save!
+    assert_instance_of Topic, Topic.find(topic.id)
+  end
+
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, 'topic.delete did not return self'
@@ -261,7 +269,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_record_not_found_exception
-    assert_raise(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
   end
 
   def test_update_all

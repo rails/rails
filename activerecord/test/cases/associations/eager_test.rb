@@ -323,7 +323,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_many_through_a_belongs_to_association
     author = authors(:mary)
-    post = Post.create!(:author => author, :title => "TITLE", :body => "BODY")
+    Post.create!(:author => author, :title => "TITLE", :body => "BODY")
     author.author_favorites.create(:favorite_author_id => 1)
     author.author_favorites.create(:favorite_author_id => 2)
     posts_with_author_favorites = author.posts.find(:all, :include => :author_favorites)
@@ -521,7 +521,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_inheritance
-    posts = SpecialPost.find(:all, :include => [ :comments ])
+    SpecialPost.find(:all, :include => [ :comments ])
   end
 
   def test_eager_has_one_with_association_inheritance
@@ -561,16 +561,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_invalid_association_reference
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      post = Post.find(6, :include=> :monkeys )
+      Post.find(6, :include=> :monkeys )
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      post = Post.find(6, :include=>[ :monkeys ])
+      Post.find(6, :include=>[ :monkeys ])
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      post = Post.find(6, :include=>[ 'monkeys' ])
+      Post.find(6, :include=>[ 'monkeys' ])
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
-      post = Post.find(6, :include=>[ :monkeys, :elephants ])
+      Post.find(6, :include=>[ :monkeys, :elephants ])
     }
   end
 

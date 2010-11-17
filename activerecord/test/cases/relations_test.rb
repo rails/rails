@@ -383,7 +383,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert lifo.new_record?
+    assert !lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
   end
@@ -393,7 +393,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_create_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert ! lifo.new_record?
+    assert lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
   end
@@ -424,6 +424,31 @@ class RelationTest < ActiveRecord::TestCase
   def test_find_in_empty_array
     authors = Author.scoped.where(:id => [])
     assert_blank authors.all
+  end
+
+  def test_where_with_ar_object
+    author = Author.first
+    authors = Author.scoped.where(:id => author)
+    assert_equal 1, authors.all.length
+  end
+
+  def test_find_with_list_of_ar
+    author = Author.first
+    authors = Author.find([author])
+    assert_equal author, authors.first
+  end
+
+  class Mary < Author; end
+
+  def test_find_by_classname
+    Author.create!(:name => Mary.name)
+    assert_equal 1, Author.where(:name => Mary).size
+  end
+
+  def test_find_by_id_with_list_of_ar
+    author = Author.first
+    authors = Author.find_by_id([author])
+    assert_equal author, authors
   end
 
   def test_exists
@@ -627,10 +652,10 @@ class RelationTest < ActiveRecord::TestCase
 
     sparrow = birds.create
     assert_kind_of Bird, sparrow
-    assert sparrow.new_record?
+    assert !sparrow.persisted?
 
     hen = birds.where(:name => 'hen').create
-    assert ! hen.new_record?
+    assert hen.persisted?
     assert_equal 'hen', hen.name
   end
 
@@ -641,7 +666,7 @@ class RelationTest < ActiveRecord::TestCase
 
     hen = birds.where(:name => 'hen').create!
     assert_kind_of Bird, hen
-    assert ! hen.new_record?
+    assert hen.persisted?
     assert_equal 'hen', hen.name
   end
 
