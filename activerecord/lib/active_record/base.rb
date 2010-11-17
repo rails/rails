@@ -736,15 +736,12 @@ module ActiveRecord #:nodoc:
       def lookup_ancestors #:nodoc:
         klass = self
         classes = [klass]
+        return classes if klass == ActiveRecord::Base
+
         while klass != klass.base_class
           classes << klass = klass.superclass
         end
         classes
-      rescue
-        # OPTIMIZE this rescue is to fix this test: ./test/cases/reflection_test.rb:56:in `test_human_name_for_column'
-        # Apparently the method base_class causes some trouble.
-        # It now works for sure.
-        [self]
       end
 
       # Set the i18n scope to overwrite ActiveModel.
