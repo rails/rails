@@ -392,14 +392,6 @@ module ActiveRecord
         end
       end
 
-      def verbose
-        self.class.verbose
-      end
-
-      def verbose= verbosity
-        self.class.verbose = verbosity
-      end
-
       def copy(destination, sources, options = {})
         copied = []
 
