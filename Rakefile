@@ -51,7 +51,6 @@ task :default => %w(test test:isolated)
     PROJECTS.each do |project|
       system(%(cd #{project} && #{$0} #{task_name})) || errors << project
     end
-    system(%(#{$0} #{task_name})) || errors << 'rails' if task_name == 'gem'
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
 end
