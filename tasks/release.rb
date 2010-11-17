@@ -24,7 +24,7 @@ directory "dist"
       ruby = File.read(file)
 
       major, minor, tiny, pre = version.split('.')
-      pre ||= "nil"
+      pre = pre ? pre.inspect : "nil"
 
       ruby.gsub! /^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}"
       raise "Could not insert MAJOR in #{file}" unless $1
