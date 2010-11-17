@@ -185,7 +185,7 @@ module Arel
       it 'should be present in the table cache despite the class of its name' do
         [ 'users', :users ].each do |name|
           relation = Table.new name
-          relation.send(:tables).key?(relation.name).must_equal true
+          Table.table_cache(relation.engine).key?(relation.name).must_equal true
         end
       end
     end
