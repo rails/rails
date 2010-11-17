@@ -1283,7 +1283,7 @@ MSG
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         def sanitize_sql_array(ary)
           statement, *values = ary
-          if values.first.is_a?(Hash) and statement =~ /:\w+/
+          if values.first.is_a?(Hash) && statement =~ /:\w+/
             replace_named_bind_variables(statement, values.first)
           elsif statement.include?('?')
             replace_bind_variables(statement, values)
