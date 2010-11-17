@@ -1,6 +1,3 @@
-require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/module/aliasing'
-
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
   class IrreversibleMigration < ActiveRecordError
@@ -43,11 +40,11 @@ module ActiveRecord
   # Example of a simple migration:
   #
   #   class AddSsl < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
   #     end
   #
-  #     def self.down
+  #     def down
   #       remove_column :accounts, :ssl_enabled
   #     end
   #   end
@@ -63,7 +60,7 @@ module ActiveRecord
   # Example of a more complex migration that also needs to initialize data:
   #
   #   class AddSystemSettings < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
   #         t.string  :label
@@ -77,7 +74,7 @@ module ActiveRecord
   #                             :value => 1
   #     end
   #
-  #     def self.down
+  #     def down
   #       drop_table :system_settings
   #     end
   #   end
@@ -147,11 +144,11 @@ module ActiveRecord
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       add_column :tablenames, :fieldname, :string
   #     end
   #
-  #     def self.down
+  #     def down
   #       remove_column :tablenames, :fieldname
   #     end
   #   end
@@ -179,11 +176,11 @@ module ActiveRecord
   # Not all migrations change the schema. Some just fix the data:
   #
   #   class RemoveEmptyTags < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       Tag.find(:all).each { |tag| tag.destroy if tag.pages.empty? }
   #     end
   #
-  #     def self.down
+  #     def down
   #       # not much we can do to restore deleted data
   #       raise ActiveRecord::IrreversibleMigration, "Can't recover the deleted tags"
   #     end
@@ -192,12 +189,12 @@ module ActiveRecord
   # Others remove columns when they migrate up instead of down:
   #
   #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
   #     end
   #
-  #     def self.down
+  #     def down
   #       add_column :items, :incomplete_items_count
   #       add_column :items, :completed_items_count
   #     end
@@ -206,11 +203,11 @@ module ActiveRecord
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
   #   class MakeJoinUnique < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
   #
-  #     def self.down
+  #     def down
   #       execute "ALTER TABLE `pages_linked_pages` DROP INDEX `page_id_linked_page_id`"
   #     end
   #   end
