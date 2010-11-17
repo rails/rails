@@ -58,7 +58,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_inserts
-    topics = create_fixtures("topics")
+    create_fixtures("topics")
     first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM topics WHERE author_name = 'David'")
     assert_equal("The First Topic", first_row["title"])
 
@@ -114,7 +114,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_insert_with_datetime
-    topics = create_fixtures("tasks")
+    create_fixtures("tasks")
     first = Task.find(1)
     assert first
   end
@@ -240,7 +240,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
 
     def test_create_fixtures_resets_sequences_when_not_cached
       @instances.each do |instance|
-        max_id = create_fixtures(instance.class.table_name).inject(0) do |_max_id, (name, fixture)|
+        max_id = create_fixtures(instance.class.table_name).inject(0) do |_max_id, (_, fixture)|
           fixture_id = fixture['id'].to_i
           fixture_id > _max_id ? fixture_id : _max_id
         end

@@ -60,7 +60,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   def test_validates_uniqueness_with_validates
     Topic.validates :title, :uniqueness => true
-    t = Topic.create!('title' => 'abc')
+    Topic.create!('title' => 'abc')
 
     t2 = Topic.new('title' => 'abc')
     assert !t2.valid?
@@ -201,7 +201,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   def test_validate_case_sensitive_uniqueness_with_attribute_passed_as_integer
     Topic.validates_uniqueness_of(:title, :case_sensitve => true)
-    t = Topic.create!('title' => 101)
+    Topic.create!('title' => 101)
 
     t2 = Topic.new('title' => 101)
     assert !t2.valid?

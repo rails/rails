@@ -120,7 +120,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_force_reload_is_uncached
     firm = Firm.create!("name" => "A New Firm, Inc")
-    client = Client.create!("name" => "TheClient.com", :firm => firm)
+    Client.create!("name" => "TheClient.com", :firm => firm)
     ActiveRecord::Base.cache do
       firm.clients.each {}
       assert_queries(0) { assert_not_nil firm.clients.each {} }
