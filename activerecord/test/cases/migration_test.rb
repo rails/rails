@@ -1312,20 +1312,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count > 0
+      assert_operator PeopleHaveLastNames.message_count, :>, 0
       PeopleHaveLastNames.message_count = 0
 
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count > 0
+      assert_operator PeopleHaveLastNames.message_count, :>, 0
       PeopleHaveLastNames.message_count = 0
     end
 
     def test_migrator_verbosity_off
       PeopleHaveLastNames.verbose = false
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, PeopleHaveLastNames.message_count
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, PeopleHaveLastNames.message_count
     end
 
     def test_migrator_going_down_due_to_version_target
