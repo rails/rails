@@ -215,6 +215,17 @@ module TestHelpers
       end
     end
 
+    def remove_from_config(str)
+      application_file = "#{app_path}/config/application.rb"
+      environment = File.read(application_file)
+      lines = File.readlines(application_file)
+      if environment =~ /(\n\s*end\s*end\s*)\Z/
+        File.open(application_file, 'w') do |f|
+          lines.each {|line| f.puts(line) unless line =~ /#{str}/ }
+        end
+      end
+    end
+
     def app_file(path, contents)
       FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
       File.open("#{app_path}/#{path}", 'w') do |f|
@@ -231,6 +242,7 @@ module TestHelpers
                     :activemodel,
                     :activerecord,
                     :activeresource] - arr
+      remove_from_config "config.active_record" if to_remove.include? :activerecord
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
