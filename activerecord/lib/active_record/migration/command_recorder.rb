@@ -18,7 +18,13 @@ module ActiveRecord
       end
 
       # Returns a list that represents commands that are the inverse of the
-      # commands stored in +commands+.
+      # commands stored in +commands+.  For example:
+      #
+      #   recorder.record(:rename_table, [:old, :new])
+      #   recorder.inverse # => [:rename_table, [:new, :old]]
+      #
+      # This method will raise an IrreversibleMigration exception if it cannot
+      # invert the +commands+.
       def inverse
         @commands.reverse.map { |name, args|
           method = :"invert_#{name}"
