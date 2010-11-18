@@ -141,7 +141,7 @@ module ActiveRecord
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
         reverse_sql_order(order_clause).join(', ')
 
-      except(:order).order(Arel::SqlLiteral.new(order))
+      except(:order).order(Arel.sql(order))
     end
 
     def arel
