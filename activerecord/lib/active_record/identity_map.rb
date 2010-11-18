@@ -1,5 +1,3 @@
-require "active_support/weak_hash"
-
 module ActiveRecord
   # = Active Record Identity Map
   #
@@ -22,8 +20,8 @@ module ActiveRecord
     class << self
       attr_accessor :enabled
 
-      def repository
-        Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = ActiveSupport::WeakHash.new }
+      def current
+        Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = Weakling::WeakHash.new }
       end
 
       def use
