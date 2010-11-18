@@ -366,6 +366,20 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert comment.save
   end
 
+  def test_find_using_select_and_identity_map
+    author_id, author = Author.select('id').first, Author.first
+
+    assert_equal author_id, author
+    assert_same author_id, author
+    assert_not_nil author.name
+
+    post, post_id = Post.first, Post.select('id').first
+
+    assert_equal post_id, post
+    assert_same post_id, post
+    assert_not_nil post.title
+  end
+
 # Currently AR is not allowing changing primary key (see Persistence#update)
 # So we ignore it. If this changes, this test needs to be uncommented.
 #  def test_updating_of_pkey
