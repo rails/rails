@@ -20,8 +20,8 @@ module ActiveRecord
     class << self
       attr_accessor :enabled
 
-      def current
-        Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = Weakling::WeakHash.new }
+      def repository
+        Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = {} }
       end
 
       def use
