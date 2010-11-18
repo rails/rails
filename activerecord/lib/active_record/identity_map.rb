@@ -9,10 +9,10 @@ module ActiveRecord
   #
   # == Configuration
   #
-  # In order to disable IdentityMap, set <tt>config.active_record.identity_map = false</tt>
+  # In order to enable IdentityMap, set <tt>config.active_record.identity_map = true</tt>
   # in your <tt>config/application.rb</tt> file.
   #
-  # IdentityMap is enabled by default.
+  # IdentityMap is disabled by default.
   #
   module IdentityMap
     extend ActiveSupport::Concern
