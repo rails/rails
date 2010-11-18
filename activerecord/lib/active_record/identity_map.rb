@@ -18,14 +18,21 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     class << self
-      attr_accessor :enabled
+      def enabled=(flag)
+        Thread.current[:identity_map_enabled] = flag
+      end
+
+      def enabled
+        Thread.current[:identity_map_enabled]
+      end
+      alias enabled? enabled
 
       def repository
         Thread.current[:identity_map] ||= Hash.new { |h,k| h[k] = {} }
       end
 
       def use
-        old, self.enabled = self.enabled, true
+        old, self.enabled = enabled, true
 
         yield if block_given?
       ensure
@@ -34,7 +41,7 @@ module ActiveRecord
       end
 
       def without
-        old, self.enabled = self.enabled, false
+        old, self.enabled = enabled, false
 
         yield if block_given?
       ensure
@@ -61,11 +68,7 @@ module ActiveRecord
       def clear
         repository.clear
       end
-
-      alias enabled? enabled
     end
-
-    self.enabled = false
 
     module InstanceMethods
       # Reinitialize an Identity Map model object from +coder+.
