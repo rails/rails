@@ -92,6 +92,8 @@ else
   `#{mysqldump_bin} -u #{conn[:username]} #{"-p#{conn[:password]}" unless conn[:password].blank?} #{conn[:database]} exhibits users > #{sqlfile}`
 end
 
+ActiveRecord::IdentityMap.enabled = true unless ENV['IM'] == "disabled"
+
 RBench.run(TIMES) do
   column :times
   column :ar
