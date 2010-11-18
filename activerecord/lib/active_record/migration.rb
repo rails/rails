@@ -284,6 +284,8 @@ module ActiveRecord
   # In application.rb.
   #
   class Migration
+    autoload :CommandRecorder, 'active_record/migration/command_recorder'
+
     class << self
       attr_accessor :delegate # :nodoc:
     end
