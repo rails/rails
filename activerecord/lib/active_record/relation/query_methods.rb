@@ -143,7 +143,7 @@ module ActiveRecord
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
         reverse_sql_order(order_clause)
 
-      relation.order(Arel::SqlLiteral.new(order))
+      relation.order(Arel.sql(order))
     end
 
     def arel
