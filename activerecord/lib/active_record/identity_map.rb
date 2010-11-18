@@ -37,7 +37,7 @@ module ActiveRecord
         yield if block_given?
       ensure
         self.enabled = old
-        ActiveRecord::IdentityMap.clear
+        clear
       end
 
       def without
