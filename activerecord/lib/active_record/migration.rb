@@ -300,8 +300,9 @@ module ActiveRecord
     attr_accessor :name, :version
 
     def initialize
-      @name    = self.class.name
-      @version = nil
+      @name       = self.class.name
+      @version    = nil
+      @connection = nil
     end
 
     def up
@@ -326,7 +327,12 @@ module ActiveRecord
       end
 
       result = nil
-      time = Benchmark.measure { result = send(direction) }
+      time   = nil
+      ActiveRecord::Base.connection_pool.with_connection do |conn|
+        @connection = conn
+        time = Benchmark.measure { result = send(direction) }
+        @connection = nil
+      end
 
       case direction
       when :up   then announce "migrated (%.4fs)" % time.real; write
@@ -367,7 +373,7 @@ module ActiveRecord
     end
 
     def connection
-      ActiveRecord::Base.connection
+      @connection || ActiveRecord::Base.connection
     end
 
     def method_missing(method, *arguments, &block)
