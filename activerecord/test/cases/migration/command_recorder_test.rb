@@ -20,6 +20,13 @@ module ActiveRecord
         assert_equal 2, @recorder.inverse.length
       end
 
+      def test_inverted_commands_are_reveresed
+        @recorder.record :create_table, [:hello]
+        @recorder.record :create_table, [:world]
+        tables = @recorder.inverse.map(&:last)
+        assert_equal [[:world], [:hello]], tables
+      end
+
       def test_invert_create_table
         @recorder.record :create_table, [:system_settings]
         drop_table = @recorder.inverse.first
