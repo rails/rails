@@ -460,6 +460,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [david], relation.all
   end
 
+  def test_find_all_with_multiple_ors
+    david = authors(:david)
+    relation = [
+      { :name => david.name },
+      { :name => 'Santiago' },
+      { :name => 'tenderlove' },
+    ].inject(Author.unscoped) do |memo, param|
+      memo.where(param)
+    end
+    assert_equal [david], relation.all
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
