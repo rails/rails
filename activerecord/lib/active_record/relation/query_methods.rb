@@ -199,15 +199,12 @@ module ActiveRecord
       equalities = wheres.grep(Arel::Nodes::Equality)
 
       groups = equalities.group_by do |equality|
-        left = equality.left
-        # table,             column
-        [left.relation.name, left.name]
+        equality.left
       end
 
       groups.each do |_, eqls|
-        head = eqls.first
-        test = eqls.inject(head) do |memo, expr|
-          expr == head ? expr : memo.or(expr)
+        test = eqls.inject(eqls.shift) do |memo, expr|
+          memo.or(expr)
         end
         arel = arel.where(test)
       end
