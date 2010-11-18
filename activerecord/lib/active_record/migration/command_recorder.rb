@@ -43,6 +43,11 @@ module ActiveRecord
       def invert_rename_column(args)
         [:rename_column, [args.first] + args.last(2).reverse]
       end
+
+      def invert_add_index(args)
+        table, columns, _ = *args
+        [:remove_index, [table, {:column => columns}]]
+      end
     end
   end
 end
