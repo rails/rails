@@ -102,7 +102,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = Post.find(:all, :include=>:categories)
     assert_equal 7, posts.size
   end
-  
+
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
     Post.connection.expects(:ids_in_list_limit).at_least_once.returns(nil)
     Post.expects(:i_was_called).with([1,2,3,4,5,6,7]).returns([1])
