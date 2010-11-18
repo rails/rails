@@ -781,23 +781,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_for_without_object
-    form_for(:post, :html => { :id => 'create-post' }) do |f|
-      concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
-    end
-
-    expected = whole_form("/", "create-post") do
-      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
-      "<input name='post[secret]' type='hidden' value='0' />" +
-      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  end
-
   def test_form_for_with_index
     form_for(@post, :as => "post[]") do |f|
       concat f.label(:title)
@@ -860,22 +843,6 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
       "<input name='commit' id='post_submit' type='submit' value='Confirm Post changes' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
-  end
-
-  def test_submit_without_object_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
-
-    form_for(:post) do |f|
-      concat f.submit :class => "extra"
-    end
-
-    expected = whole_form do
-      "<input name='commit' class='extra' id='post_submit' type='submit' value='Save changes' />"
     end
 
     assert_dom_equal expected, output_buffer

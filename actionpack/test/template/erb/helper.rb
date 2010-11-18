@@ -4,6 +4,8 @@ module ERBTest
     include ActionView::Helpers::TagHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::FormHelper
+    include ActionView::Context
+    include ActionController::RecordIdentifier
 
     attr_accessor :output_buffer, :controller
 

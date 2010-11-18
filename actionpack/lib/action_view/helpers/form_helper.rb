@@ -303,15 +303,9 @@ module ActionView
 
         options[:html] ||= {}
 
-        case record
-        when String, Symbol
-          object_name = record
-          object      = nil
-        else
-          object      = record.is_a?(Array) ? record.last : record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
-          apply_form_for_options!(record, options)
-        end
+        object      = record.is_a?(Array) ? record.last : record
+        object_name = options[:as] || ActiveModel::Naming.param_key(object)
+        apply_form_for_options!(record, options)
 
         options[:html][:remote] = options.delete(:remote)
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
