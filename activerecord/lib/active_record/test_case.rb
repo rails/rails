@@ -10,7 +10,7 @@ module ActiveRecord
     end
 
     def cleanup_identity_map
-      ActiveRecord::Base.identity_map.clear
+      ActiveRecord::IdentityMap.clear
     end
 
     def assert_date_from_db(expected, actual, message = nil)

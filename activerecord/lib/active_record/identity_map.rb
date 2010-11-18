@@ -63,7 +63,6 @@ module ActiveRecord
       end
 
       alias enabled? enabled
-      alias identity_map= enabled=
     end
 
     self.enabled = false
@@ -82,12 +81,6 @@ module ActiveRecord
         _run_find_callbacks
 
         self
-      end
-    end
-
-    module ClassMethods
-      def identity_map
-        ActiveRecord::IdentityMap
       end
     end
 

@@ -411,6 +411,10 @@ module ActiveRecord #:nodoc:
     class_attribute :store_full_sti_class
     self.store_full_sti_class = true
 
+    # Determine whether or not to use IdentityMap.
+    class_attribute :identity_map
+    self.identity_map = false
+
     # Stores the default scope for the class
     class_inheritable_accessor :default_scoping, :instance_writer => false
     self.default_scoping = []
@@ -425,7 +429,6 @@ module ActiveRecord #:nodoc:
       delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :except, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
-      delegate :identity_map=, :to => :identity_map
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -894,11 +897,11 @@ module ActiveRecord #:nodoc:
             if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
               record_id = record_id.to_i
             end
-            if instance = identity_map.get(sti_class, record_id)
+            if instance = IdentityMap.get(sti_class, record_id)
               instance.reinit_with('attributes' => record)
             else
               instance = sti_class.allocate.init_with('attributes' => record)
-              identity_map.add(instance)
+              IdentityMap.add(instance)
             end
           else
             instance = sti_class.allocate.init_with('attributes' => record)
