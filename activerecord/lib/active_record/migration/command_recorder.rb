@@ -48,6 +48,14 @@ module ActiveRecord
         table, columns, _ = *args
         [:remove_index, [table, {:column => columns}]]
       end
+
+      def invert_remove_timestamps(args)
+        [:add_timestamps, args]
+      end
+
+      def invert_add_timestamps(args)
+        [:remove_timestamps, args]
+      end
     end
   end
 end
