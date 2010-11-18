@@ -42,11 +42,7 @@ module ActiveRecord
       end
 
       def get(klass, primary_key)
-        if obj = repository[klass.symbolized_base_class][primary_key]
-          return obj if obj.id == primary_key && klass == obj.class
-        end
-
-        nil
+        repository[klass.symbolized_base_class][primary_key]
       end
 
       def add(record)
