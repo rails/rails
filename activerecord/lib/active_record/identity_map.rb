@@ -42,7 +42,8 @@ module ActiveRecord
       end
 
       def get(klass, primary_key)
-        repository[klass.symbolized_base_class][primary_key]
+        obj = repository[klass.symbolized_base_class][primary_key]
+        obj.is_a?(klass) ? obj : nil
       end
 
       def add(record)
