@@ -856,8 +856,7 @@ module ActiveRecord #:nodoc:
       #     limit(10) # Fires "SELECT * FROM posts LIMIT 10"
       #   }
       #
-      # It is recommended to use block form of unscoped because chaining unscoped with <tt>named_scope</tt>
-      # does not work. Assuming that <tt>published</tt> is a <tt>named_scope</tt> following two statements are same.
+      # Assuming that <tt>published</tt> is a <tt>named_scope</tt> following two statements are same.
       #
       # Post.unscoped.published
       # Post.published
