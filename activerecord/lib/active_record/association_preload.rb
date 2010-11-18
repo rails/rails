@@ -387,7 +387,7 @@ module ActiveRecord
       def in_or_equals_for_ids(ids)
         ids.size > 1 ? "IN (?)" : "= ?"
       end
-      
+
       # Some databases impose a limit on the number of ids in a list (in Oracle its 1000)
       # Make several smaller queries if necessary or make one query if the adapter supports it
       def associated_records(ids)
