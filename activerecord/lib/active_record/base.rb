@@ -411,10 +411,6 @@ module ActiveRecord #:nodoc:
     class_attribute :store_full_sti_class
     self.store_full_sti_class = true
 
-    # Determine whether or not to use IdentityMap.
-    class_attribute :identity_map
-    self.identity_map = false
-
     # Stores the default scope for the class
     class_inheritable_accessor :default_scoping, :instance_writer => false
     self.default_scoping = []
