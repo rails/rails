@@ -7,6 +7,13 @@ module ActiveRecord
         @recorder = CommandRecorder.new
       end
 
+      def test_unknown_commands_raise_exception
+        @recorder.record :execute, ['some sql']
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse
+        end
+      end
+
       def test_record
         @recorder.record :create_table, [:system_settings]
         assert_equal 1, @recorder.commands.length

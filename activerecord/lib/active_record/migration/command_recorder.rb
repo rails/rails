@@ -20,7 +20,11 @@ module ActiveRecord
       # Returns a list that represents commands that are the inverse of the
       # commands stored in +commands+.
       def inverse
-        @commands.reverse.map { |name, args| send(:"invert_#{name}", args) }
+        @commands.reverse.map { |name, args|
+          method = :"invert_#{name}"
+          raise IrreversibleMigration unless respond_to?(method, true)
+          send(method, args)
+        }
       end
 
       private
