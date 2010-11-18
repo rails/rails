@@ -34,6 +34,22 @@ module ApplicationTests
       assert_match "SuperMiddleware", Dir.chdir(app_path){ `rake middleware` }
     end
 
+    def test_initializers_are_executed_in_rake_tasks
+      add_to_config <<-RUBY
+        initializer "do_something" do
+          puts "Doing something..."
+        end
+
+        rake_tasks do
+          task :do_nothing => :environment do
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `rake do_nothing` }
+      assert_match "Doing something...", output
+    end
+
     def test_code_statistics_sanity
       assert_match "Code LOC: 5     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path){ `rake stats` }
