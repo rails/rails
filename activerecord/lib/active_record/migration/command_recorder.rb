@@ -1,7 +1,17 @@
 module ActiveRecord
   class Migration
     # ActiveRecord::Migration::CommandRecorder records commands done during
-    # a migration and knows how to reverse those commands.
+    # a migration and knows how to reverse those commands.  The CommandRecorder
+    # knows how to invert the following commands:
+    #
+    # * add_column
+    # * add_index
+    # * add_timestamp
+    # * create_table
+    # * remove_timestamps
+    # * rename_column
+    # * rename_index
+    # * rename_table
     class CommandRecorder
       attr_accessor :commands, :delegate
 
