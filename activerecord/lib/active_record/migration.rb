@@ -294,9 +294,6 @@ module ActiveRecord
 
     cattr_accessor :verbose
 
-    self.delegate = new
-    self.verbose  = true
-
     attr_accessor :name, :version
 
     def initialize
@@ -304,6 +301,10 @@ module ActiveRecord
       @version    = nil
       @connection = nil
     end
+
+    # instantiate the delegate object after initialize is defined
+    self.verbose  = true
+    self.delegate = new
 
     def up
       self.class.delegate = self
