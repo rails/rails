@@ -119,7 +119,7 @@ module AbstractController
       controller_path
     end
 
-  private
+    private
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
