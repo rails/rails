@@ -21,11 +21,6 @@ module ActiveRecord
       end
     end
 
-    def test_invertable?
-      migration = InvertableMigration.new
-      assert migration.invertable?, 'should be invertable'
-    end
-
     def test_up
       migration = InvertableMigration.new
       migration.migrate(:up)

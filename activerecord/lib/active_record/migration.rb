@@ -332,7 +332,25 @@ module ActiveRecord
       time   = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
         @connection = conn
-        time = Benchmark.measure { send(direction) }
+        if respond_to?(:change)
+          if direction == :down
+            recorder = CommandRecorder.new(@connection)
+            suppress_messages do
+              @connection = recorder
+              change
+            end
+            @connection = conn
+            time = Benchmark.measure {
+              recorder.inverse.each do |cmd, args|
+                send(cmd, *args)
+              end
+            }
+          else
+            time = Benchmark.measure { change }
+          end
+        else
+          time = Benchmark.measure { send(direction) }
+        end
         @connection = nil
       end
 

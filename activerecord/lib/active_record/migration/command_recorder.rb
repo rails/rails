@@ -3,7 +3,7 @@ module ActiveRecord
     # ActiveRecord::Migration::CommandRecorder records commands done during
     # a migration and knows how to reverse those commands.
     class CommandRecorder
-      attr_reader :commands, :delegate
+      attr_accessor :commands, :delegate
 
       def initialize(delegate = nil)
         @commands = []
