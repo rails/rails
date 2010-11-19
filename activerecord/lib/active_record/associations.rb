@@ -4,6 +4,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -1810,12 +1811,12 @@ module ActiveRecord
           callbacks.each do |callback_name|
             full_callback_name = "#{callback_name}_for_#{association_name}"
             defined_callbacks = options[callback_name.to_sym]
-            if options.has_key?(callback_name.to_sym)
-              class_inheritable_reader full_callback_name.to_sym
-              write_inheritable_attribute(full_callback_name.to_sym, [defined_callbacks].flatten)
-            else
-              write_inheritable_attribute(full_callback_name.to_sym, [])
-            end
+
+            full_callback_value = options.has_key?(callback_name.to_sym) ? [defined_callbacks].flatten : []
+
+            # TODO : why do i need method_defined? I think its because of the inheritance chain
+            class_attribute full_callback_name.to_sym unless method_defined?(full_callback_name)
+            self.send("#{full_callback_name}=", full_callback_value)
           end
         end
 

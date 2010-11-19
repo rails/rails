@@ -1,6 +1,7 @@
 require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/class/attribute'
 
 module ActionController
   module TemplateAssertions
@@ -325,11 +326,11 @@ module ActionController
 
         def controller_class=(new_class)
           prepare_controller_class(new_class) if new_class
-          write_inheritable_attribute(:controller_class, new_class)
+          self._controller_class = new_class
         end
 
         def controller_class
-          if current_controller_class = read_inheritable_attribute(:controller_class)
+          if current_controller_class = self._controller_class
             current_controller_class
           else
             self.controller_class = determine_default_controller_class(name)
@@ -442,6 +443,7 @@ module ActionController
       included do
         include ActionController::TemplateAssertions
         include ActionDispatch::Assertions
+        class_attribute :_controller_class
         setup :setup_controller_request_and_response
       end
 

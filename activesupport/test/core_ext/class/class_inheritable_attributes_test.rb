@@ -3,7 +3,12 @@ require 'active_support/core_ext/class/inheritable_attributes'
 
 class ClassInheritableAttributesTest < Test::Unit::TestCase
   def setup
+    ActiveSupport::Deprecation.silenced = true
     @klass = Class.new
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.silenced = false
   end
 
   def test_reader_declaration

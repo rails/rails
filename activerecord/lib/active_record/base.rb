@@ -7,7 +7,7 @@ require 'active_support/time'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/indifferent_access'
@@ -412,13 +412,16 @@ module ActiveRecord #:nodoc:
     self.store_full_sti_class = true
 
     # Stores the default scope for the class
-    class_inheritable_accessor :default_scoping, :instance_writer => false
+    class_attribute :default_scoping, :instance_writer => false
     self.default_scoping = []
 
     # Returns a hash of all the attributes that have been specified for serialization as
     # keys and their class restriction as values.
     class_attribute :serialized_attributes
     self.serialized_attributes = {}
+
+    class_attribute :_attr_readonly, :instance_writer => false
+    self._attr_readonly = []
 
     class << self # Class methods
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
@@ -504,12 +507,12 @@ module ActiveRecord #:nodoc:
       # Attributes listed as readonly will be used to create a new record but update operations will
       # ignore these fields.
       def attr_readonly(*attributes)
-        write_inheritable_attribute(:attr_readonly, Set.new(attributes.map { |a| a.to_s }) + (readonly_attributes || []))
+        self._attr_readonly = Set.new(attributes.map { |a| a.to_s }) + (self._attr_readonly || [])
       end
 
       # Returns an array of all the attributes that have been specified as readonly.
       def readonly_attributes
-        read_inheritable_attribute(:attr_readonly) || []
+        self._attr_readonly
       end
 
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
@@ -724,8 +727,8 @@ module ActiveRecord #:nodoc:
         @arel_engine = @relation = @arel_table = nil
       end
 
-      def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
-        descendants.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
+      def reset_column_information_for_all_subclasses#:nodoc:
+        descendants.each { |klass| klass.reset_column_information }
       end
 
       def attribute_method?(attribute)
@@ -1126,7 +1129,8 @@ MSG
         #   Article.create.published # => true
         def default_scope(options = {})
           reset_scoped_methods
-          self.default_scoping << construct_finder_arel(options, default_scoping.pop)
+          default_scoping = self.default_scoping.dup
+          self.default_scoping = default_scoping << construct_finder_arel(options, default_scoping.pop)
         end
 
         def current_scoped_methods #:nodoc:
@@ -1579,7 +1583,7 @@ MSG
         self.class.columns_hash[name.to_s]
       end
 
-      # Returns true if +comparison_object+ is the same exact object, or +comparison_object+ 
+      # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
       # is of the same type and +self+ has an ID and it is equal to +comparison_object.id+.
       #
       # Note that new records are different from any other record by definition, unless the

@@ -1,8 +1,10 @@
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/deprecation'
 
 # Retained for backward compatibility.  Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
+  DEPRECATION_WARNING_MESSAGE = "class_inheritable_attribute is deprecated, please use class_attribute method instead. Notice their behavior are slightly different, so refer to class_attribute documentation first"
 end
 
 # It is recommended to use <tt>class_attribute</tt> over methods defined in this file. Please
@@ -36,6 +38,7 @@ end
 #   Person.new.hair_colors             # => NoMethodError
 class Class # :nodoc:
   def class_inheritable_reader(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       next if sym.is_a?(Hash)
@@ -54,6 +57,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_writer(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -71,6 +75,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_array_writer(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -88,6 +93,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_hash_writer(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -124,6 +130,7 @@ class Class # :nodoc:
   end
 
   def write_inheritable_attribute(key, value)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
       @inheritable_attributes = {}
     end
@@ -141,10 +148,12 @@ class Class # :nodoc:
   end
 
   def read_inheritable_attribute(key)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     inheritable_attributes[key]
   end
 
   def reset_inheritable_attributes
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     @inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
   end
 
