@@ -1595,7 +1595,7 @@ MSG
 
       # Delegates to ==
       def eql?(comparison_object)
-        self == (comparison_object)
+        self == comparison_object
       end
 
       # Delegates to id in order to allow two records of the same type and id to work with something like:
