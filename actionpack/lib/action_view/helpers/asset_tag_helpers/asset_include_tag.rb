@@ -57,8 +57,8 @@ module ActionView
 
         private
 
-          def path_to_asset(source)
-            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension)
+          def path_to_asset(source, include_host = true)
+            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension, include_host)
           end
 
           def compute_paths(*args)
@@ -77,7 +77,7 @@ module ActionView
 
           def ensure_sources!(sources)
             sources.each do |source|
-              asset_file_path!(path_to_asset(source))
+              asset_file_path!(path_to_asset(source, false))
             end
             return sources
           end
