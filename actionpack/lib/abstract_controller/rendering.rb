@@ -138,7 +138,7 @@ module AbstractController
       case action
       when NilClass
       when Hash
-        options, action = action, nil
+        options = action
       when String, Symbol
         action = action.to_s
         key = action.include?(?/) ? :file : :action
