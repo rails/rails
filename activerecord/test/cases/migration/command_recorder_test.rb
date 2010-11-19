@@ -7,6 +7,28 @@ module ActiveRecord
         @recorder = CommandRecorder.new
       end
 
+      def test_respond_to_delegates
+        recorder = CommandRecorder.new(Class.new {
+          def america; end
+        }.new)
+        assert recorder.respond_to?(:america)
+      end
+
+      def test_send_calls_super
+        assert_raises(NoMethodError) do
+          @recorder.send(:create_table, :horses)
+        end
+      end
+
+      def test_send_delegates_to_record
+        recorder = CommandRecorder.new(Class.new {
+          def create_table(name); end
+        }.new)
+        assert recorder.respond_to?(:create_table), 'respond_to? create_table'
+        recorder.send(:create_table, :horses)
+        assert_equal [[:create_table, [:horses]]], recorder.commands
+      end
+
       def test_unknown_commands_raise_exception
         @recorder.record :execute, ['some sql']
         assert_raises(ActiveRecord::IrreversibleMigration) do

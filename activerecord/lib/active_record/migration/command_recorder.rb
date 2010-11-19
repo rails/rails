@@ -3,10 +3,11 @@ module ActiveRecord
     # ActiveRecord::Migration::CommandRecorder records commands done during
     # a migration and knows how to reverse those commands.
     class CommandRecorder
-      attr_reader :commands
+      attr_reader :commands, :delegate
 
-      def initialize
+      def initialize(delegate = nil)
         @commands = []
+        @delegate = delegate
       end
 
       # record +command+.  +command+ should be a method name and arguments.
@@ -29,8 +30,17 @@ module ActiveRecord
         @commands.reverse.map { |name, args|
           method = :"invert_#{name}"
           raise IrreversibleMigration unless respond_to?(method, true)
-          send(method, args)
+          __send__(method, args)
         }
+      end
+
+      def respond_to?(*args) # :nodoc:
+        super || delegate.respond_to?(*args)
+      end
+
+      def send(method, *args) # :nodoc:
+        return super unless respond_to?(method)
+        record(method, args)
       end
 
       private
