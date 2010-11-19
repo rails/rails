@@ -363,8 +363,6 @@ Fallbacks allow your generators to have a single responsibility, increasing code
 
 h3. Changelog
 
-"Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/102
-
 * August 23, 2010: Edit pass by "Xavier Noria":credits.html#fxn
 
 * April 30, 2010: Reviewed by José Valim

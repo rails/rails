@@ -767,8 +767,6 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1
-
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 
 h3. Authors

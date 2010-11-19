@@ -590,6 +590,3 @@ h5. Miscellaneous Tasks
 
  +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
-h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/29
