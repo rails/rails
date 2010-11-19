@@ -27,7 +27,7 @@ module ActiveRecord
       end
     end
 
-    def treardown
+    def teardown
       if ActiveRecord::Base.connection.table_exists?("horses")
         ActiveRecord::Base.connection.drop_table("horses")
       end
