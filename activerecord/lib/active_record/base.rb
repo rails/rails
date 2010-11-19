@@ -727,10 +727,6 @@ module ActiveRecord #:nodoc:
         @arel_engine = @relation = @arel_table = nil
       end
 
-      def reset_column_information_for_all_subclasses#:nodoc:
-        descendants.each { |klass| klass.reset_column_information }
-      end
-
       def attribute_method?(attribute)
         super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
       end
