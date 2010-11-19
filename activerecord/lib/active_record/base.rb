@@ -1569,8 +1569,7 @@ MSG
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
-        value = read_attribute(attribute)
-        !value.blank?
+        !read_attribute(attribute).blank?
       end
 
       # Returns the column object for the named attribute.
