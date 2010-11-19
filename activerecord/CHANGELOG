@@ -1,5 +1,23 @@
 *Rails 3.1.0 (unreleased)*
 
+* Migrations can be defined as reversible, meaning that the migration system
+will figure out how to reverse your migration.  To use reversible migrations,
+just define the "change" method.  For example:
+
+    class MyMigration < ActiveRecord::Migration
+      def change
+        create_table(:horses) do
+          t.column :content, :text
+          t.column :remind_at, :datetime
+	end
+      end
+    end
+
+Some things cannot be automatically reversed for you.  If you know how to
+reverse those things, you should define 'up' and 'down' in your migration.  If
+you define something in `change` that cannot be reversed, an
+IrreversibleMigration exception will be raised when going down.
+
 * Migrations should use instance methods rather than class methods:
     class FooMigration < ActiveRecord::Migration
       def up
