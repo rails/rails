@@ -1,6 +1,6 @@
 h2. Contribute to the Rails Guides
 
-Rails Guides aim to improve the Rails documentation and to make the barrier to entry as low as possible. A reasonably experienced developer should be able to use the Guides to come up to speed on Rails quickly. You can track the overall effort at the "Rails Guides Lighthouse":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets. Our sponsors have contributed prizes for those who write an entire guide, but there are many other ways to contribute.
+Rails Guides aim to improve the Rails documentation and to make the barrier to entry as low as possible. A reasonably experienced developer should be able to use the guides to come up to speed on Rails quickly. Our sponsors have contributed prizes for those who write an entire guide, but there are many other ways to contribute.
 
 endprologue.
 

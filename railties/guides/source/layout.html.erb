@@ -106,6 +106,31 @@
     <div class="wrapper">
       <div id="mainCol">
         <%= yield.html_safe %>
+        
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help in keeping the quality of this guide.
+        </p>
+        <p>
+          If you see any typos or factual errors you are confident to
+          patch please clone <%= link_to 'docrails', 'https://github.com/lifo/docrails' %>
+          and push the change yourself. That branch of Rails has public write access.
+          Commits are still reviewed, but that happens after you've submitted your
+          contribution. <%= link_to 'docrails', 'https://github.com/lifo/docrails' %> is
+          cross-merged with master periodically.
+        </p>
+        <p>
+          You may also find incomplete content, or stuff that is not up to date.
+          Please do add any missing documentation for master. Check the
+          <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
+          guide for style and conventions.
+        </p>
+        <p>
+          Issues may also be reported <%= link_to 'in Github', 'https://github.com/lifo/docrails/issues' %>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'http://groups.google.com/group/rubyonrails-docs' %>.
+        </p>
       </div>
     </div>
   </div>

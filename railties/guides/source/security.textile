@@ -979,6 +979,4 @@ The security landscape shifts and it is important to keep up to date, because mi
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/7
-
 * November 1, 2008: First approved version by Heiko Webers
