@@ -94,9 +94,14 @@ end
 
 ActiveRecord::IdentityMap.enabled = true unless ENV['IM'] == "disabled"
 
+def clear_identity_map!
+  ActiveRecord::IdentityMap.clear
+end
+
 RBench.run(TIMES) do
   column :times
   column :ar
+
 
   report 'Model#id', (TIMES * 100).ceil do
     ar_obj = Exhibit.find(1)
@@ -114,18 +119,22 @@ RBench.run(TIMES) do
   end
 
   report 'Model.first' do
+    clear_identity_map!
     ar { Exhibit.first.look }
   end
 
   report 'Model.all limit(100)', (TIMES / 10).ceil do
+    clear_identity_map!
     ar { Exhibit.look Exhibit.limit(100) }
   end
 
   report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
+    clear_identity_map!
     ar { Exhibit.feel Exhibit.limit(100).includes(:user) }
   end
 
   report 'Model.all limit(10,000)', (TIMES / 1000).ceil do
+    clear_identity_map!
     ar { Exhibit.look Exhibit.limit(10000) }
   end
 
@@ -136,41 +145,50 @@ RBench.run(TIMES) do
   }
 
   report 'Model.create' do
+    clear_identity_map!
     ar { Exhibit.create(exhibit) }
   end
 
   report 'Resource#attributes=' do
+    clear_identity_map!
     attrs_first  = { :name => 'sam' }
     attrs_second = { :name => 'tom' }
     ar { exhibit = Exhibit.new(attrs_first); exhibit.attributes = attrs_second }
   end
 
   report 'Resource#update' do
+    clear_identity_map!
     ar { Exhibit.first.update_attributes(:name => 'bob') }
   end
 
   report 'Resource#destroy' do
+    clear_identity_map!
     ar { Exhibit.first.destroy }
   end
 
   report 'Model.transaction' do
+    clear_identity_map!
     ar { Exhibit.transaction { Exhibit.new } }
   end
 
   report 'Model.find(id)' do
+    clear_identity_map!
     id = Exhibit.first.id
     ar { Exhibit.find(id) }
   end
 
   report 'Model.find_by_sql' do
+    clear_identity_map!
     ar { Exhibit.find_by_sql("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}").first }
   end
 
   report 'Model.log', (TIMES * 10) do
+    clear_identity_map!
     ar { Exhibit.connection.send(:log, "hello", "world") {} }
   end
 
   report 'AR.execute(query)', (TIMES / 2) do
+    clear_identity_map!
     ar { ActiveRecord::Base.connection.execute("Select * from exhibits where id = #{(rand * 1000 + 1).to_i}") }
   end
 
