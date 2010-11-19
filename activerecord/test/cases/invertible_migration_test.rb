@@ -1,14 +1,14 @@
 require "cases/helper"
 
 module ActiveRecord
-  class InvertableMigrationTest < ActiveRecord::TestCase
+  class InvertibleMigrationTest < ActiveRecord::TestCase
     class SilentMigration < ActiveRecord::Migration
       def write(text = '')
         # sssshhhhh!!
       end
     end
 
-    class InvertableMigration < SilentMigration
+    class InvertibleMigration < SilentMigration
       def change
         create_table("horses") do |t|
           t.column :content, :text
@@ -17,7 +17,7 @@ module ActiveRecord
       end
     end
 
-    class NonInvertableMigration < SilentMigration
+    class NonInvertibleMigration < SilentMigration
       def change
         create_table("horses") do |t|
           t.column :content, :text
@@ -34,7 +34,7 @@ module ActiveRecord
     end
 
     def test_no_reverse
-      migration = NonInvertableMigration.new
+      migration = NonInvertibleMigration.new
       migration.migrate(:up)
       assert_raises(IrreversibleMigration) do
         migration.migrate(:down)
@@ -42,13 +42,13 @@ module ActiveRecord
     end
 
     def test_up
-      migration = InvertableMigration.new
+      migration = InvertibleMigration.new
       migration.migrate(:up)
       assert migration.connection.table_exists?("horses"), "horses should exist"
     end
 
     def test_down
-      migration = InvertableMigration.new
+      migration = InvertibleMigration.new
       migration.migrate :up
       migration.migrate :down
       assert !migration.connection.table_exists?("horses")
