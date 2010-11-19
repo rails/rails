@@ -2,22 +2,42 @@ require "cases/helper"
 
 module ActiveRecord
   class InvertableMigrationTest < ActiveRecord::TestCase
-    class InvertableMigration < ActiveRecord::Migration
+    class SilentMigration < ActiveRecord::Migration
+      def write(text = '')
+        # sssshhhhh!!
+      end
+    end
+
+    class InvertableMigration < SilentMigration
       def change
         create_table("horses") do |t|
           t.column :content, :text
           t.column :remind_at, :datetime
         end
       end
+    end
 
-      def write(text = '')
-        # sssshhhhh!!
+    class NonInvertableMigration < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :content, :text
+          t.column :remind_at, :datetime
+        end
+        remove_column "horses", :content
       end
     end
 
     def treardown
       if ActiveRecord::Base.connection.table_exists?("horses")
         ActiveRecord::Base.connection.drop_table("horses")
+      end
+    end
+
+    def test_no_reverse
+      migration = NonInvertableMigration.new
+      migration.migrate(:up)
+      assert_raises(IrreversibleMigration) do
+        migration.migrate(:down)
       end
     end
 
