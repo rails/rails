@@ -144,7 +144,7 @@ module AbstractController
         key = action.include?(?/) ? :file : :action
         options[key] = action
       else
-        options.merge!(:partial => action)
+        options[:partial] = action
       end
 
       options
