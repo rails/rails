@@ -327,11 +327,10 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      result = nil
       time   = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
         @connection = conn
-        time = Benchmark.measure { result = send(direction) }
+        time = Benchmark.measure { send(direction) }
         @connection = nil
       end
 
@@ -339,8 +338,6 @@ module ActiveRecord
       when :up   then announce "migrated (%.4fs)" % time.real; write
       when :down then announce "reverted (%.4fs)" % time.real; write
       end
-
-      result
     end
 
     def write(text="")
