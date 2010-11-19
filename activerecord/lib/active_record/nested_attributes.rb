@@ -446,8 +446,7 @@ module ActiveRecord
     end
 
     def raise_nested_attributes_record_not_found(association_name, record_id)
-      reflection = self.class.reflect_on_association(association_name)
-      raise RecordNotFound, "Couldn't find #{reflection.klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+      raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
     end
   end
 end
