@@ -60,6 +60,12 @@ class ValidatesTest < ActiveModel::TestCase
     assert person.valid?
   end
 
+  def test_validates_raises_error_on_invalid_option
+    assert_raises ArgumentError do
+      Person.validates :karma, :length => 5
+    end
+  end
+
   def test_validates_with_regexp
     Person.validates :karma, :format => /positive|negative/
     person = Person.new

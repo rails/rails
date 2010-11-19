@@ -103,6 +103,8 @@ module ActiveModel
           { :with => options }
         when Range, Array
           { :in => options }
+        else
+          raise ArgumentError, "#{options.inspect} is an invalid option. Expecting true, Hash, Regexp, Range, or Array"
         end
       end
     end
