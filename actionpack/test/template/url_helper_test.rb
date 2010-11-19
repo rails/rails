@@ -50,6 +50,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
   end
 
+  def test_button_to_with_form_class
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"custom-class\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com", :form_class => 'custom-class')
+  end
+
   def test_button_to_with_query
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com/q1=v1&amp;q2=v2\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
   end
