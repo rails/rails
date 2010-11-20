@@ -404,10 +404,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def supports_disable_referential_integrity?() #:nodoc:
-        version = query("SHOW server_version")[0][0].split('.')
-        version[0].to_i >= 8 && version[1].to_i >= 1
-      rescue
-        return false
+        postgresql_version >= 80100
       end
 
       def disable_referential_integrity #:nodoc:
