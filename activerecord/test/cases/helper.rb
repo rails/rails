@@ -13,11 +13,6 @@ require 'active_record'
 require 'active_support/dependencies'
 require 'connection'
 
-begin
-  require 'ruby-debug'
-rescue LoadError
-end
-
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
