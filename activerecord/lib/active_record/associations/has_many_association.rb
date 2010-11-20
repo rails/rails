@@ -46,7 +46,7 @@ module ActiveRecord
             count = [ @reflection.options[:limit], count ].min
           end
 
-          return count
+          count
         end
 
         def has_cached_counter?
