@@ -14,17 +14,14 @@ module ActiveRecord
 
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
-        table = finder_class.unscoped
-
-        table_name   = record.class.quoted_table_name
 
         if value && record.class.serialized_attributes.key?(attribute.to_s)
           value = YAML.dump value
         end
 
-        sql, params  = mount_sql_and_params(finder_class, table_name, attribute, value)
+        sql, params = mount_sql_and_params(finder_class, record.class.quoted_table_name, attribute, value)
 
-        relation = table.where(sql, *params)
+        relation = finder_class.unscoped.where(sql, *params)
 
         Array.wrap(options[:scope]).each do |scope_item|
           scope_value = record.send(scope_item)
