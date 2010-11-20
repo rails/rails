@@ -141,7 +141,7 @@ end
 
 h4(#validations_overview-errors). +errors[]+
 
-To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+. It returns an array of all the errors for +:attribue+. If there are no errors on the specified attribute, an empty array is returned.
+To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+. It returns an array of all the errors for +:attribute+. If there are no errors on the specified attribute, an empty array is returned.
 
 This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +ActiveRecord::Base#invalid?+ method explained above because it doesn't verify the validity of the object as a whole. It only checks to see whether there are errors found on an individual attribute of the object.
 
