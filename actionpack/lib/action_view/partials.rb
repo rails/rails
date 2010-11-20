@@ -75,6 +75,11 @@ module ActionView
   #
   #   <%= render :partial => "ad", :collection => @advertisements, :spacer_template => "ad_divider" %>
   #
+  # If the given <tt>:collection</tt> is nil or empty, <tt>render</tt> will return nil. This will allow you
+  # to specify a text which will displayed instead by using this form:
+  #
+  #   <%= render(:partial => "ad", :collection => @advertisements) || "There's no ad to be displayed" %>
+  #
   # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
   # just keep domain objects, like Active Records, in there.
   #
