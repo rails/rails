@@ -110,12 +110,9 @@ module ActiveRecord
           return super unless locking_enabled?
 
           if persisted?
-            lock_col = self.class.locking_column
-            previous_value = send(lock_col).to_i
-
             table = self.class.arel_table
             predicate = table[self.class.primary_key].eq(id)
-            predicate = predicate.and(table[self.class.locking_column].eq(previous_value))
+            predicate = predicate.and(table[self.class.locking_column].eq(send(self.class.locking_column).to_i))
 
             affected_rows = self.class.unscoped.where(predicate).delete_all
 
