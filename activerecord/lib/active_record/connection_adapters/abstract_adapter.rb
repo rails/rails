@@ -204,8 +204,7 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name)
-          name ||= "SQL"
+        def log(sql, name = "SQL")
           @instrumenter.instrument("sql.active_record",
             :sql => sql, :name => name, :connection_id => object_id) do
             yield
