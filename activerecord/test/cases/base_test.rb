@@ -148,6 +148,10 @@ class BasicsTest < ActiveRecord::TestCase
     relation.table.engine = engine
   end
 
+  def test_returning_arel_attribute_instance_using_bracket
+    assert_equal Topic.arel_table[:id], Topic[:id]
+  end
+
   def test_preserving_time_objects
     assert_kind_of(
       Time, Topic.find(1).bonus_time,

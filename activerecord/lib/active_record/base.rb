@@ -867,6 +867,11 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      # Returns an instance of Arel::Attributes which you can call ARel's method on it.
+      def [](column_name)
+        @arel_table[column_name]
+      end
+
       # Returns a scope for this class without taking into account the default_scope.
       #
       #   class Post < ActiveRecord::Base
