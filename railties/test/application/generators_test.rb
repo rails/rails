@@ -25,6 +25,11 @@ module ApplicationTests
       yield app_const.config
     end
 
+    test "allow running plugin new generator inside Rails app directory" do
+      FileUtils.cd(rails_root){ `ruby script/rails plugin new vendor/plugins/bukkits` }
+      assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
+    end
+
     test "generators default values" do
       with_bare_config do |c|
         assert_equal(true, c.generators.colorize_logging)

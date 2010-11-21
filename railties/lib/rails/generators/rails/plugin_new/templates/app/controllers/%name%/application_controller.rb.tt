@@ -1,4 +1,4 @@
 module <%= camelized %>
-  class ApplicationController < ActiveController::Base
+  class ApplicationController < ActionController::Base
   end
 end

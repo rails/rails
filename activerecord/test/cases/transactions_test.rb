@@ -163,7 +163,7 @@ class TransactionTest < ActiveRecord::TestCase
         @first.author_name += '_this_should_not_end_up_in_the_db'
         @first.save!
         flunk
-      rescue => e
+      rescue
         assert_equal original_author_name, @first.reload.author_name
         assert_equal nbooks_before_save, Book.count
       ensure

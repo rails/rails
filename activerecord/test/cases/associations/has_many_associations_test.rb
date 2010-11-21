@@ -1282,4 +1282,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     comment = post.comments.build
     assert post.comments.include?(comment)
   end
+
+  def test_load_target_respects_protected_attributes
+    topic = Topic.create!
+    reply = topic.replies.create(:title => "reply 1")
+    reply.approved = false
+    reply.save!
+
+    # Save with a different object instance, so the instance that's still held
+    # in topic.relies doesn't know about the changed attribute.
+    reply2 = Reply.find(reply.id)
+    reply2.approved = true
+    reply2.save!
+
+    # Force loading the collection from the db. This will merge the existing
+    # object (reply) with what gets loaded from the db (which includes the
+    # changed approved attribute). approved is a protected attribute, so if mass
+    # assignment is used, it won't get updated and will still be false.
+    first = topic.replies.to_a.first
+    assert_equal reply.id, first.id
+    assert_equal true, first.approved?
+  end
 end

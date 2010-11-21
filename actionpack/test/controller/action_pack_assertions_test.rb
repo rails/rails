@@ -171,6 +171,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     end
   end
 
+  def test_string_constraint
+    with_routing do |set|
+      set.draw do
+        match "photos", :to => 'action_pack_assertions#nothing', :constraints => {:subdomain => "admin"}
+      end
+    end
+  end
+
   def test_assert_redirect_to_named_route_failure
     with_routing do |set|
       set.draw do

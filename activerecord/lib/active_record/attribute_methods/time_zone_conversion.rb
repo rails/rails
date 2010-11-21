@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
@@ -7,7 +9,7 @@ module ActiveRecord
         cattr_accessor :time_zone_aware_attributes, :instance_writer => false
         self.time_zone_aware_attributes = false
 
-        class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
+        class_attribute :skip_time_zone_conversion_for_attributes, :instance_writer => false
         self.skip_time_zone_conversion_for_attributes = []
       end
 
@@ -54,7 +56,7 @@ module ActiveRecord
 
         private
           def create_time_zone_conversion_attribute?(name, column)
-            time_zone_aware_attributes && !skip_time_zone_conversion_for_attributes.include?(name.to_sym) && [:datetime, :timestamp].include?(column.type)
+            time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) && [:datetime, :timestamp].include?(column.type)
           end
       end
     end

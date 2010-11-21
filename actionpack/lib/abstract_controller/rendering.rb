@@ -119,7 +119,7 @@ module AbstractController
       controller_path
     end
 
-  private
+    private
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
@@ -128,7 +128,7 @@ module AbstractController
       hash = {}
       variables  = instance_variable_names
       variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
-      variables.each { |name| hash[name.to_s[1..-1]] = instance_variable_get(name) }
+      variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
       hash
     end
 
@@ -138,13 +138,13 @@ module AbstractController
       case action
       when NilClass
       when Hash
-        options, action = action, nil
+        options = action
       when String, Symbol
         action = action.to_s
         key = action.include?(?/) ? :file : :action
         options[key] = action
       else
-        options.merge!(:partial => action)
+        options[:partial] = action
       end
 
       options

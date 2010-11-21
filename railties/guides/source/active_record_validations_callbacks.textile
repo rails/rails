@@ -1160,8 +1160,6 @@ config.active_record.observers = :mailer_observer
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
-
 * July 20, 2010: Fixed typos and rephrased some paragraphs for clarity. "Jaime Iniesta":http://jaimeiniesta.com
 * May 24, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * May 15, 2010: Validation Errors section updated by "Emili Parreño":http://www.eparreno.com

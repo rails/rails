@@ -355,8 +355,6 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_invalid_adding_before_save
-    no_of_firms = Firm.count
-    no_of_clients = Client.count
     new_firm = Firm.new("name" => "A New Firm, Inc")
     new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
     assert !c.persisted?
@@ -461,7 +459,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_before_save
     company = companies(:first_firm)
-    new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
@@ -481,7 +479,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_via_block_before_save
     company = companies(:first_firm)
-    new_clients = assert_no_queries do
+    assert_no_queries do
       company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
         client.name = "changed"
       end

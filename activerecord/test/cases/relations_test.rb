@@ -426,6 +426,52 @@ class RelationTest < ActiveRecord::TestCase
     assert_blank authors.all
   end
 
+  def test_where_with_ar_object
+    author = Author.first
+    authors = Author.scoped.where(:id => author)
+    assert_equal 1, authors.all.length
+  end
+
+  def test_find_with_list_of_ar
+    author = Author.first
+    authors = Author.find([author])
+    assert_equal author, authors.first
+  end
+
+  class Mary < Author; end
+
+  def test_find_by_classname
+    Author.create!(:name => Mary.name)
+    assert_equal 1, Author.where(:name => Mary).size
+  end
+
+  def test_find_by_id_with_list_of_ar
+    author = Author.first
+    authors = Author.find_by_id([author])
+    assert_equal author, authors
+  end
+
+  def test_find_all_using_where_twice_should_or_the_relation
+    david = authors(:david)
+    relation = Author.unscoped
+    relation = relation.where(:name => david.name)
+    relation = relation.where(:name => 'Santiago')
+    relation = relation.where(:id => david.id)
+    assert_equal [david], relation.all
+  end
+
+  def test_find_all_with_multiple_ors
+    david = authors(:david)
+    relation = [
+      { :name => david.name },
+      { :name => 'Santiago' },
+      { :name => 'tenderlove' },
+    ].inject(Author.unscoped) do |memo, param|
+      memo.where(param)
+    end
+    assert_equal [david], relation.all
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?

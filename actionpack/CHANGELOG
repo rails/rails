@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added config.action_controller.include_all_helpers. By default 'helper :all' is done in ActionController::Base, which includes all the helpers by default. Setting include_all_helpers to false will result in including only application_helper and helper corresponding to controller (like foo_helper for foo_controller). [Piotr Sarnacki]
+
 * Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
 
     tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})

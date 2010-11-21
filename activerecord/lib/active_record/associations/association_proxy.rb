@@ -211,12 +211,12 @@ module ActiveRecord
             :create => construct_create_scope
           }
         end
-        
+
         # Implemented by subclasses
         def construct_find_scope
           raise NotImplementedError
         end
-        
+
         # Implemented by (some) subclasses
         def construct_create_scope
           {}

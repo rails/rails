@@ -65,6 +65,66 @@ module ApplicationTests
       assert_equal ["notify"], Foo.action_methods
     end
 
+    test "allows to not load all helpers for controllers" do
+      add_to_config "config.action_controller.include_all_helpers = false"
+
+      app_file "app/controllers/application_controller.rb", <<-RUBY
+        class ApplicationController < ActionController::Base
+        end
+      RUBY
+
+      app_file "app/controllers/foo_controller.rb", <<-RUBY
+        class FooController < ApplicationController
+          def included_helpers
+            render :inline => "<%= from_app_helper -%> <%= from_foo_helper %>"
+          end
+
+          def not_included_helper
+            render :inline => "<%= respond_to?(:from_bar_helper) -%>"
+          end
+        end
+      RUBY
+
+      app_file "app/helpers/application_helper.rb", <<-RUBY
+        module ApplicationHelper
+          def from_app_helper
+            "from_app_helper"
+          end
+        end
+      RUBY
+
+      app_file "app/helpers/foo_helper.rb", <<-RUBY
+        module FooHelper
+          def from_foo_helper
+            "from_foo_helper"
+          end
+        end
+      RUBY
+
+      app_file "app/helpers/bar_helper.rb", <<-RUBY
+        module BarHelper
+          def from_bar_helper
+            "from_bar_helper"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match "/:controller(/:action)"
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/foo/included_helpers"
+      assert_equal "from_app_helper from_foo_helper", last_response.body
+
+      get "/foo/not_included_helper"
+      assert_equal "false", last_response.body
+    end
+
     # AD
     test "action_dispatch extensions are applied to ActionDispatch" do
       add_to_config "config.action_dispatch.tld_length = 2"

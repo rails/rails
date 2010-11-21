@@ -192,7 +192,6 @@ class PersistencesTest < ActiveRecord::TestCase
     topic = Topic.create("title" => "New Topic") do |t|
       t.author_name = "David"
     end
-    topicReloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic.title)
     assert_equal("David", topic.author_name)
   end
@@ -270,7 +269,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_record_not_found_exception
-    assert_raise(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
   end
 
   def test_update_all

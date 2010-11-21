@@ -39,7 +39,7 @@ end
 platforms :ruby do
   gem 'json'
   gem 'yajl-ruby'
-  gem "nokogiri", ">= 1.4.3.1"
+  gem "nokogiri", ">= 1.4.4"
 
   # AR
   gem "sqlite3-ruby", "~> 1.3.1", :require => 'sqlite3'

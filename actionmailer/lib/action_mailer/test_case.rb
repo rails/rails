@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
     def initialize(name)
@@ -15,11 +17,11 @@ module ActionMailer
 
       module ClassMethods
         def tests(mailer)
-          write_inheritable_attribute(:mailer_class, mailer)
+          self._mailer_class = mailer
         end
 
         def mailer_class
-          if mailer = read_inheritable_attribute(:mailer_class)
+          if mailer = self._mailer_class
             mailer
           else
             tests determine_default_mailer(name)
@@ -65,6 +67,7 @@ module ActionMailer
       end
 
       included do
+        class_attribute :_mailer_class
         setup :initialize_test_deliveries
         setup :set_expected_mail
       end

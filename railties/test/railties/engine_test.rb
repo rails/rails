@@ -224,31 +224,13 @@ module RailtiesTest
         end
       RUBY
 
-      @plugin.write "app/views/foo/index.html.erb", <<-RUBY
-        <%= compute_public_path("/foo", "") %>
+      @plugin.write "app/views/foo/index.html.erb", <<-ERB
         <%= image_path("foo.png") %>
         <%= javascript_include_tag("foo") %>
         <%= stylesheet_link_tag("foo") %>
-      RUBY
-
-
-      app_file "app/controllers/bar_controller.rb", <<-RUBY
-        class BarController < ActionController::Base
-          def index
-            render :index
-          end
-        end
-      RUBY
-
-      app_file "app/views/bar/index.html.erb", <<-RUBY
-        <%= compute_public_path("/foo", "") %>
-      RUBY
+      ERB
 
       add_to_config 'config.asset_path = "/omg%s"'
-
-      @plugin.write 'public/touch.txt', <<-RUBY
-        touch
-      RUBY
 
       boot_rails
 
@@ -259,11 +241,10 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/foo")
       response = Bukkits::Engine.call(env)
-      stripped_body = response[2].body.split("\n").map(&:strip).join("\n")
+      stripped_body = response[2].body.split("\n").map(&:strip).join
 
-      expected =  "/omg/bukkits/foo\n" +
-                  "/omg/bukkits/images/foo.png\n" +
-                  "<script src=\"/omg/bukkits/javascripts/foo.js\" type=\"text/javascript\"></script>\n" +
+      expected =  "/omg/bukkits/images/foo.png" +
+                  "<script src=\"/omg/bukkits/javascripts/foo.js\" type=\"text/javascript\"></script>" +
                   "<link href=\"/omg/bukkits/stylesheets/foo.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"
       assert_equal expected, stripped_body
     end
@@ -278,12 +259,9 @@ module RailtiesTest
       @plugin.write "app/controllers/foo_controller.rb", <<-RUBY
         class FooController < ActionController::Base
           def index
+            render :inline => '<%= image_path("foo.png") %>'
           end
         end
-      RUBY
-
-      @plugin.write "app/views/foo/index.html.erb", <<-RUBY
-        <%= compute_public_path("/foo", "") %>
       RUBY
 
       boot_rails
@@ -292,7 +270,7 @@ module RailtiesTest
       response = Bukkits::Engine.call(env)
       stripped_body = response[2].body.strip
 
-      expected =  "/bukkits/foo"
+      expected =  "/bukkits/images/foo.png"
       assert_equal expected, stripped_body
     end
 

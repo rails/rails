@@ -1,6 +1,6 @@
 require 'active_support'
 require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/module/attr_accessor_with_default'
@@ -263,6 +263,8 @@ module ActiveResource
     # The logger for diagnosing and tracing Active Resource calls.
     cattr_accessor :logger
 
+    class_attribute :_format
+
     class << self
       # Creates a schema for this resource - setting the attributes that are
       # known prior to fetching an instance from the remote system.
@@ -492,13 +494,13 @@ module ActiveResource
         format = mime_type_reference_or_format.is_a?(Symbol) ?
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
-        write_inheritable_attribute(:format, format)
+        self._format = format
         connection.format = format if site
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
       def format
-        read_inheritable_attribute(:format) || ActiveResource::Formats::XmlFormat
+        self._format || ActiveResource::Formats::XmlFormat
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.

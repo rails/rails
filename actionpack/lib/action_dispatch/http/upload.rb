@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/blank'
-
 module ActionDispatch
   module Http
     class UploadedFile
@@ -11,6 +9,14 @@ module ActionDispatch
         @headers           = hash[:head]
         @tempfile          = hash[:tempfile]
         raise(ArgumentError, ':tempfile is required') unless @tempfile
+      end
+
+      def open
+        @tempfile.open
+      end
+
+      def path
+        @tempfile.path
       end
 
       def read(*args)

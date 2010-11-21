@@ -18,10 +18,11 @@ if ActiveRecord::Base.connection.supports_migrations?
   class ActiveRecord::Migration
     class <<self
       attr_accessor :message_count
-      def puts(text="")
-        self.message_count ||= 0
-        self.message_count += 1
-      end
+    end
+
+    def puts(text="")
+      self.class.message_count ||= 0
+      self.class.message_count += 1
     end
   end
 
@@ -1165,6 +1166,44 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
+    class MockMigration < ActiveRecord::Migration
+      attr_reader :went_up, :went_down
+      def initialize
+        @went_up   = false
+        @went_down = false
+      end
+
+      def up
+        @went_up = true
+        super
+      end
+
+      def down
+        @went_down = true
+        super
+      end
+    end
+
+    def test_instance_based_migration_up
+      migration = MockMigration.new
+      assert !migration.went_up, 'have not gone up'
+      assert !migration.went_down, 'have not gone down'
+
+      migration.migrate :up
+      assert migration.went_up, 'have gone up'
+      assert !migration.went_down, 'have not gone down'
+    end
+
+    def test_instance_based_migration_down
+      migration = MockMigration.new
+      assert !migration.went_up, 'have not gone up'
+      assert !migration.went_down, 'have not gone down'
+
+      migration.migrate :down
+      assert !migration.went_up, 'have gone up'
+      assert migration.went_down, 'have not gone down'
+    end
+
     def test_migrator_one_up
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
@@ -1312,20 +1351,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count > 0
+      assert_operator PeopleHaveLastNames.message_count, :>, 0
       PeopleHaveLastNames.message_count = 0
 
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count > 0
+      assert_operator PeopleHaveLastNames.message_count, :>, 0
       PeopleHaveLastNames.message_count = 0
     end
 
     def test_migrator_verbosity_off
       PeopleHaveLastNames.verbose = false
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, PeopleHaveLastNames.message_count
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, PeopleHaveLastNames.message_count
     end
 
     def test_migrator_going_down_due_to_version_target
@@ -1947,7 +1986,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-      Time.travel_to(created_at = Time.utc(2010, 7, 26, 10, 10, 10)) do
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
@@ -1972,7 +2011,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
       sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_timestamps2"
 
-      Time.travel_to(created_at = Time.utc(2010, 7, 26, 10, 10, 10)) do
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, sources)
         assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
@@ -1992,7 +2031,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-      Time.travel_to(created_at = Time.utc(2010, 2, 20, 10, 10, 10)) do
+      Time.travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
         ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.rb")
         assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.rb")
@@ -2024,11 +2063,26 @@ if ActiveRecord::Base.connection.supports_migrations?
       clear
     end
 
+    def test_copying_migrations_to_non_existing_directory
+      @migrations_path = MIGRATIONS_ROOT + "/non_existing"
+      @existing_migrations = []
+
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert_equal 2, copied.length
+      end
+    ensure
+      clear
+      Dir.delete(@migrations_path)
+    end
+
     def test_copying_migrations_to_empty_directory
       @migrations_path = MIGRATIONS_ROOT + "/empty"
       @existing_migrations = []
 
-      Time.travel_to(created_at = Time.utc(2010, 7, 26, 10, 10, 10)) do
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")

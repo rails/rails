@@ -102,14 +102,17 @@ task :default => :test
 
       alias_method :plugin_path, :app_path
 
-      class_option :dummy_path, :type => :string, :default => "test/dummy",
-                                :desc => "Create dummy application at given path"
+      class_option :dummy_path,     :type => :string, :default => "test/dummy",
+                                    :desc => "Create dummy application at given path"
 
-      class_option :full,       :type => :boolean, :default => false,
-                                :desc => "Generate rails engine with integration tests"
+      class_option :full,           :type => :boolean, :default => false,
+                                    :desc => "Generate rails engine with integration tests"
 
-      class_option :mountable,  :type => :boolean, :default => false,
-                                :desc => "Generate mountable isolated application"
+      class_option :mountable,      :type => :boolean, :default => false,
+                                    :desc => "Generate mountable isolated application"
+
+      class_option :skip_gemspec,   :type => :boolean, :default => false,
+                                    :desc => "Skip gemspec file"
 
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
@@ -122,7 +125,7 @@ task :default => :test
       def create_root_files
         build(:readme)
         build(:rakefile)
-        build(:gemspec)
+        build(:gemspec)   unless options[:skip_gemspec]
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]

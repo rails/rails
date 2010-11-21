@@ -102,6 +102,12 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_no_match /^  app$/, output
   end
 
+  def test_rails_generators_help_does_not_include_app_nor_plugin_new
+    output = capture(:stdout){ Rails::Generators.help }
+    assert_no_match /app/, output
+    assert_no_match /plugin_new/, output
+  end
+
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }
     assert_match /Fixjour:/, output

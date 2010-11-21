@@ -182,7 +182,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_initialize_with_invalid_attribute
     begin
-      topic = Topic.new({ "title" => "test",
+      Topic.new({ "title" => "test",
         "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
     rescue ActiveRecord::MultiparameterAssignmentErrors => ex
       assert_equal(1, ex.errors.size)
@@ -395,6 +395,15 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
+  end
+
+  def test_equality_of_destroyed_records
+    topic_1 = Topic.new(:title => 'test_1')
+    topic_1.save
+    topic_2 = Topic.find(topic_1.id)
+    topic_1.destroy
+    assert_equal topic_1, topic_2
+    assert_equal topic_2, topic_1
   end
 
   def test_hashing
@@ -963,7 +972,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_nil_serialized_attribute_with_class_constraint
-    myobj = MyObject.new('value1', 'value2')
     topic = Topic.new
     assert_nil topic.content
   end

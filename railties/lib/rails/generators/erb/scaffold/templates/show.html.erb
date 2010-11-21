@@ -1,4 +1,3 @@
-<% without_namespacing do -%>
 <p id="notice"><%%= notice %></p>
 
 <% for attribute in attributes -%>
@@ -11,4 +10,3 @@
 
 <%%= link_to 'Edit', edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
 <%%= link_to 'Back', <%= index_helper %>_path %>
-<% end -%>

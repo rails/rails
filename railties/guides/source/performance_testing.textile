@@ -524,7 +524,5 @@ Rails has been lucky to have two startups dedicated to Rails specific performanc
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4
-
 * January 9, 2009: Complete rewrite by "Pratik":credits.html#lifo
 * September 6, 2008: Initial version by Matthew Bergman
