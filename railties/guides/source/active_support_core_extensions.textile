@@ -1216,6 +1216,12 @@ To insert something verbatim use the +raw+ helper rather than calling +html_safe
 <%= raw @cms.current_template %> <%# inserts @cms.current_template as is %>
 </erb>
 
+or, equivalently, use <tt><%==</tt>:
+
+<erb>
+<%== @cms.current_template %> <%# inserts @cms.current_template as is %>
+</erb>
+
 The +raw+ helper calls +html_safe+ for you:
 
 <ruby>
