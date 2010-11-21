@@ -363,6 +363,10 @@ module ActionDispatch
         integration_session.url_options
       end
 
+      def respond_to?(method, include_private = false)
+        @integration_session.respond_to?(method, include_private) || super
+      end
+
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
         reset! unless integration_session
