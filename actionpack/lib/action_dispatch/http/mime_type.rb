@@ -175,7 +175,7 @@ module Mime
       # returend value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM
       def parse_data_with_trailing_star(input)
         keys = Mime::LOOKUP.keys.select{|k| k.include?(input)}
-        Mime::LOOKUP.select {|k,_| keys.include?(k)}.collect{|i| i[1]}.inject([]){|all,e| all.include?(e) ? all : all << e}
+        Mime::LOOKUP.values_at(*keys).uniq
       end
     end
 
