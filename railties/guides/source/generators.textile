@@ -92,7 +92,7 @@ class InitializerGenerator < Rails::Generators::NamedBase
 end
 </ruby>
 
-First, notice that we are inheriting from +Rails::Generators::NamedBase+ instead of +Rails::Generators::Base+. This means that our generator expects at least one argument, which will be the name of the initializer.
+First, notice that we are inheriting from +Rails::Generators::NamedBase+ instead of +Rails::Generators::Base+. This means that our generator expects at least one argument, which will be the name of the initializer, and will be available in our code in the variable +name+.
 
 We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
 
