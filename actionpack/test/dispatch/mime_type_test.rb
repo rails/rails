@@ -6,7 +6,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse single" do
     Mime::LOOKUP.keys.each do |mime_type|
-      unless image_type == 'image/*'
+      unless mime_type == 'image/*'
         assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
       end
     end
@@ -14,7 +14,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star star" do
     accept = "text/*"
-    expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS
+    expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
     parsed = Mime::Type.parse(accept)
     assert_equal 9, parsed.size
     assert_equal expect, parsed
@@ -22,7 +22,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse application with trailing star star" do
     accept = "application/*"
-    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::R
+    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::PDF, Mime::URL_ENCODED_FORM]
     parsed = Mime::Type.parse(accept)
     assert_equal 9, parsed.size
     assert_equal expect, parsed
