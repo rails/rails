@@ -6,8 +6,34 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse single" do
     Mime::LOOKUP.keys.each do |mime_type|
-      assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
+      unless image_type == 'image/*'
+        assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
+      end
     end
+  end
+
+  test "parse text with trailing star star" do
+    accept = "text/*"
+    expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS
+    parsed = Mime::Type.parse(accept)
+    assert_equal 9, parsed.size
+    assert_equal expect, parsed
+  end
+
+  test "parse application with trailing star star" do
+    accept = "application/*"
+    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::R
+    parsed = Mime::Type.parse(accept)
+    assert_equal 9, parsed.size
+    assert_equal expect, parsed
+  end
+
+  test "parse image with trailing star star" do
+    accept = "image/*"
+    parsed = Mime::Type.parse(accept)
+    assert_equal 2, parsed.size
+    assert parsed.include?(Mime::PNG)
+    assert_equal 'image/*', parsed[1].instance_variable_get('@string')
   end
 
   test "parse without q" do
