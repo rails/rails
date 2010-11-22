@@ -12,7 +12,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
-  test "parse text with trailing star star" do
+  test "parse text with trailing star" do
     accept = "text/*"
     expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
     parsed = Mime::Type.parse(accept)
@@ -20,7 +20,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, parsed
   end
 
-  test "parse application with trailing star star" do
+  test "parse application with trailing star" do
     accept = "application/*"
     expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::PDF, Mime::URL_ENCODED_FORM]
     parsed = Mime::Type.parse(accept)
@@ -28,7 +28,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, parsed
   end
 
-  test "parse image with trailing star star" do
+  test "parse image with trailing star" do
     accept = "image/*"
     parsed = Mime::Type.parse(accept)
     assert_equal 2, parsed.size
