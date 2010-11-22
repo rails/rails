@@ -4,6 +4,27 @@ module ActionDispatch
       mattr_accessor :tld_length
       self.tld_length = 1
 
+      def self.extract_domain(host, tld_length = @@tld_length)
+        return nil unless named_host?(host)
+
+        host.split('.').last(1 + tld_length).join('.')
+      end
+
+      def self.extract_subdomains(host, tld_length = @@tld_length)
+        return [] unless named_host?(host)
+        parts = host.split('.')
+        parts[0..-(tld_length+2)]
+      end
+
+      def self.extract_subdomain(host, tld_length = @@tld_length)
+        extract_subdomains(host, tld_length).join('.')
+      end
+
+      def self.named_host?(host)
+        !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+      end
+
+
       # Returns the complete URL used for this request.
       def url
         protocol + host_with_port + fullpath
@@ -31,15 +52,18 @@ module ActionDispatch
       # Returns a \host:\port string for this request, such as "example.com" or
       # "example.com:8080".
       def host_with_port
-        "#{host}#{port_string}"
+        opt_port = optional_port ? ":#{optional_port}" : nil
+        "#{host}#{opt_port}"
       end
 
       # Returns the port number of this request as an integer.
       def port
-        if raw_host_with_port =~ /:(\d+)$/
-          $1.to_i
-        else
-          standard_port
+        @port ||= begin
+          if raw_host_with_port =~ /:(\d+)$/
+            $1.to_i
+          else
+            standard_port
+          end
         end
       end
 
@@ -56,10 +80,10 @@ module ActionDispatch
         port == standard_port
       end
 
-      # Returns a \port suffix like ":8080" if the \port number of this request
+      # Returns a \port suffix like "8080" if the \port number of this request
       # is not the default HTTP \port 80 or HTTPS \port 443.
-      def port_string
-        port == standard_port ? '' : ":#{port}"
+      def optional_port
+        standard_port? ? nil : port
       end
 
       def server_port
@@ -69,9 +93,7 @@ module ActionDispatch
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
       # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
       def domain(tld_length = @@tld_length)
-        return nil unless named_host?(host)
-
-        host.split('.').last(1 + tld_length).join('.')
+        ActionDispatch::Http::URL.extract_domain(host, tld_length)
       end
 
       # Returns all the \subdomains as an array, so <tt>["dev", "www"]</tt> would be
@@ -79,20 +101,17 @@ module ActionDispatch
       # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
       # in "www.rubyonrails.co.uk".
       def subdomains(tld_length = @@tld_length)
-        return [] unless named_host?(host)
-        parts = host.split('.')
-        parts[0..-(tld_length+2)]
+        ActionDispatch::Http::URL.extract_subdomains(host, tld_length)
       end
 
+      # Returns all the \subdomains as a string, so <tt>"dev.www"</tt> would be
+      # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
+      # such as 2 to catch <tt>["www"]</tt> instead of <tt>"www.rubyonrails"</tt>
+      # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
-        subdomains(tld_length).join('.')
+        subdomains(tld_length)
       end
 
-    private
-
-      def named_host?(host)
-        !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
-      end
     end
   end
 end

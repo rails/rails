@@ -6,7 +6,8 @@ module ActionController
 
     def url_options
       @_url_options ||= super.reverse_merge(
-        :host => request.host_with_port,
+        :host => request.host,
+        :port => request.optional_port,
         :protocol => request.protocol,
         :_path_segments => request.symbolized_path_parameters
       ).freeze
@@ -20,5 +21,6 @@ module ActionController
         @_url_options
       end
     end
+
   end
 end

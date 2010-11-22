@@ -164,12 +164,12 @@ class RequestTest < ActiveSupport::TestCase
     assert !request.standard_port?
   end
 
-  test "port string" do
+  test "optional port" do
     request = stub_request 'HTTP_HOST' => 'www.example.org:80'
-    assert_equal "", request.port_string
+    assert_equal nil, request.optional_port
 
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
-    assert_equal ":8080", request.port_string
+    assert_equal 8080, request.optional_port
   end
 
   test "full path" do

@@ -485,7 +485,8 @@ module ActionDispatch
         Generator.new(options, recall, self, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name]
+      RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
+                          :trailing_slash, :script_name, :anchor, :params, :only_path ]
 
       def _generate_prefix(options = {})
         nil
@@ -504,11 +505,8 @@ module ActionDispatch
           rewritten_url << (options[:protocol] || "http")
           rewritten_url << "://" unless rewritten_url.match("://")
           rewritten_url << rewrite_authentication(options)
-
-          raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
-
-          rewritten_url << options[:host]
-          rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
+          rewritten_url << host_from_options(options)
+          rewritten_url << ":#{options.delete(:port)}" if options[:port]
         end
 
         script_name = options.delete(:script_name)
@@ -562,6 +560,34 @@ module ActionDispatch
       end
 
       private
+
+        def host_from_options(options)
+          computed_host = subdomain_and_domain(options) || options[:host]
+          unless computed_host
+            raise ArgumentError, "Missing host to link to! Please provide :host parameter or set default_url_options[:host]"
+          end
+          computed_host
+        end
+
+        def subdomain_and_domain(options)
+          tld_length = options[:tld_length] || ActionDispatch::Http::URL.tld_length
+
+          current_domain    = ActionDispatch::Http::URL.extract_domain(options[:host], tld_length)
+          current_subdomain = ActionDispatch::Http::URL.extract_subdomain(options[:host], tld_length)
+
+          domain_parts = if options[:subdomain] && options[:domain]
+            [options[:subdomain], options[:domain]]
+          elsif options[:subdomain]
+            [options[:subdomain], current_domain]
+          elsif options[:domain]
+            [current_subdomain, options[:domain]]
+          else
+            nil
+          end
+
+          domain_parts ? domain_parts.join('.') : nil
+        end
+
         def handle_positional_args(options)
           return unless args = options.delete(:_positional_args)
 
