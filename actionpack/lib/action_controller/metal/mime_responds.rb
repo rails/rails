@@ -291,7 +291,7 @@ module ActionController #:nodoc:
       alias :all :any
 
       def custom(mime_type, &block)
-        mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
+        mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
         @order << mime_type
         @responses[mime_type] ||= block
       end
