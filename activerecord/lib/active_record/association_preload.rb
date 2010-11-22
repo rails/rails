@@ -391,9 +391,9 @@ module ActiveRecord
       # Some databases impose a limit on the number of ids in a list (in Oracle its 1000)
       # Make several smaller queries if necessary or make one query if the adapter supports it
       def associated_records(ids)
-        max_ids_in_a_list = connection.ids_in_list_limit || ids.size
+        in_clause_length = connection.in_clause_length || ids.size
         records = []
-        ids.each_slice(max_ids_in_a_list) do |some_ids|
+        ids.each_slice(in_clause_length) do |some_ids|
           records += yield(some_ids)
         end
         records
