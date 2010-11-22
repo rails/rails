@@ -329,6 +329,7 @@ module Rails
 
     class << self
       attr_accessor :called_from, :isolated
+      alias :isolated? :isolated
       alias :engine_name :railtie_name
 
       def inherited(base)
@@ -367,10 +368,6 @@ module Rails
             end
          end
         end
-      end
-
-      def isolated?
-        !!isolated
       end
     end
 

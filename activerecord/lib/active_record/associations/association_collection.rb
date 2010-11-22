@@ -182,7 +182,7 @@ module ActiveRecord
           unless options.blank?
             raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
           end
-          
+
           @reflection.klass.count_by_sql(custom_counter_sql)
         else
 
@@ -332,13 +332,10 @@ module ActiveRecord
       end
 
       def uniq(collection = self)
-        seen = Set.new
-        collection.map do |record|
-          unless seen.include?(record.id)
-            seen << record.id
-            record
-          end
-        end.compact
+        seen = {}
+        collection.find_all do |record|
+          seen[record.id] = true unless seen.key?(record.id)
+        end
       end
 
       # Replace this collection with +other_array+
@@ -375,14 +372,16 @@ module ActiveRecord
         def load_target
           if @owner.persisted? || foreign_key_present
             begin
-              if !loaded?
+              unless loaded?
                 if @target.is_a?(Array) && @target.any?
                   @target = find_target.map do |f|
                     i = @target.index(f)
                     if i
                       @target.delete_at(i).tap do |t|
                         keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                        t.attributes = f.attributes.except(*keys)
+                        f.attributes.except(*keys).each do |k,v|
+                          t.send("#{k}=", v)
+                        end
                       end
                     else
                       f
@@ -409,11 +408,7 @@ module ActiveRecord
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            if block_given?
-              super { |*block_args| yield(*block_args) }
-            else
-              super
-            end
+            super
           elsif @reflection.klass.scopes[method]
             @_named_scopes_cache ||= {}
             @_named_scopes_cache[method] ||= {}
@@ -436,10 +431,10 @@ module ActiveRecord
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
             counter_sql = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
-          
+
           interpolate_sql(counter_sql)
         end
-        
+
         def custom_finder_sql
           interpolate_sql(@reflection.options[:finder_sql])
         end
@@ -535,7 +530,7 @@ module ActiveRecord
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
-          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
+          @owner.class.send(full_callback_name.to_sym) || []
         end
 
         def ensure_owner_is_not_new

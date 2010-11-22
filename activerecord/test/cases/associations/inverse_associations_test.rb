@@ -551,8 +551,8 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   def test_that_we_can_load_associations_that_have_the_same_reciprocal_name_from_different_models
     assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
       i = Interest.find(:first)
-      z = i.zine
-      m = i.man
+      i.zine
+      i.man
     end
   end
 

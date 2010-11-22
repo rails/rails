@@ -92,7 +92,7 @@ class InitializerGenerator < Rails::Generators::NamedBase
 end
 </ruby>
 
-First, notice that we are inheriting from +Rails::Generators::NamedBase+ instead of +Rails::Generators::Base+. This means that our generator expects at least one argument, which will be the name of the initializer.
+First, notice that we are inheriting from +Rails::Generators::NamedBase+ instead of +Rails::Generators::Base+. This means that our generator expects at least one argument, which will be the name of the initializer, and will be available in our code in the variable +name+.
 
 We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
 
@@ -201,7 +201,7 @@ config.generators do |g|
 end
 </ruby>
 
-If we generate another resource with the scaffold generator, we can notice that neither stylesheets nor fixtures are created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
+If we generate another resource with the scaffold generator, we can see that neither stylesheets nor fixtures are created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
 
 To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator:
 
@@ -362,8 +362,6 @@ $ rails generate scaffold Comment body:text
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
 
 h3. Changelog
-
-"Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/102
 
 * August 23, 2010: Edit pass by "Xavier Noria":credits.html#fxn
 

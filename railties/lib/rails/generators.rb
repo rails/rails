@@ -228,6 +228,7 @@ module Rails
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
       rails.delete("app")
+      rails.delete("plugin_new")
       print_list("rails", rails)
 
       hidden_namespaces.each {|n| groups.delete(n.to_s) }

@@ -1,9 +1,16 @@
+
 require 'rails/generators/rails/generator/generator_generator'
 
 module Rails
   module Generators
     class PluginGenerator < NamedBase
       class_option :tasks, :desc => "When supplied creates tasks base files."
+
+      def show_deprecation
+        return unless behavior == :invoke
+        message = "Plugin generator is deprecated, please use 'rails plugin new' command to generate plugin structure."
+        ActiveSupport::Deprecation.warn message
+      end
 
       check_class_collision
 

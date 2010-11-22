@@ -1,5 +1,3 @@
-
-
 class Object
   # Alias of <tt>to_s</tt>.
   def to_param
@@ -41,7 +39,7 @@ class Hash
   # ==== Examples
   #   { :name => 'David', :nationality => 'Danish' }.to_param # => "name=David&nationality=Danish"
   #
-  #   { :name => 'David', :nationality => 'Danish' }.to_param('user') # => "user[name]=David&user[nationality]=Danish"
+  #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
   def to_param(namespace = nil)
     collect do |key, value|
       value.to_query(namespace ? "#{namespace}[#{key}]" : key)

@@ -1,9 +1,3 @@
-require 'rails/version'
-if %w(--version -v).include? ARGV.first
-  puts "Rails #{Rails::VERSION::STRING}"
-  exit(0)
-end
-
 if ARGV.first != "new"
   ARGV[0] = "--help"
 else

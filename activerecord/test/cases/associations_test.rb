@@ -120,7 +120,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_force_reload_is_uncached
     firm = Firm.create!("name" => "A New Firm, Inc")
-    client = Client.create!("name" => "TheClient.com", :firm => firm)
+    Client.create!("name" => "TheClient.com", :firm => firm)
     ActiveRecord::Base.cache do
       firm.clients.each {}
       assert_queries(0) { assert_not_nil firm.clients.each {} }
@@ -270,17 +270,17 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 
   def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
-    callbacks = PeopleList.read_inheritable_attribute(:before_add_for_has_and_belongs_to_many)
+    callbacks = PeopleList.before_add_for_has_and_belongs_to_many
     assert_equal([:enlist], callbacks)
-    callbacks = DifferentPeopleList.read_inheritable_attribute(:before_add_for_has_and_belongs_to_many)
+    callbacks = DifferentPeopleList.before_add_for_has_and_belongs_to_many
     assert_equal([], callbacks)
   end
 
   def test_has_many_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
-    callbacks = PeopleList.read_inheritable_attribute(:before_add_for_has_many)
+    callbacks = PeopleList.before_add_for_has_many
     assert_equal([:enlist], callbacks)
-    callbacks = DifferentPeopleList.read_inheritable_attribute(:before_add_for_has_many)
+    callbacks = DifferentPeopleList.before_add_for_has_many
     assert_equal([], callbacks)
   end
 

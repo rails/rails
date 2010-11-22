@@ -194,7 +194,7 @@ end
 or, for a single case
 
 <ruby>
-resources :posts, :path => "/admin"
+resources :posts, :path => "/admin/posts"
 </ruby>
 
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
@@ -852,8 +852,6 @@ assert_routing({ :path => "photos", :method => :post }, { :controller => "photos
 </ruby>
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3
 
 * April 10, 2010: Updated guide to remove outdated and superfluous information, and to provide information about new features, by "Yehuda Katz":http://www.yehudakatz.com
 * April 2, 2010: Updated guide to match new Routing DSL in Rails 3, by "Rizwan Reza":http://www.rizwanreza.com/

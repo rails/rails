@@ -277,8 +277,6 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/28
-
 * August 13, 2009: Updated with config syntax and added general configuration options by "John Pignata"
 * January 3, 2009: First reasonably complete draft by "Mike Gunderloy":credits.html#mgunderloy
 * November 5, 2008: Rough outline by "Mike Gunderloy":credits.html#mgunderloy
