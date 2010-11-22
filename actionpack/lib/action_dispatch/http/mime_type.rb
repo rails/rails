@@ -80,6 +80,9 @@ module Mime
     end
 
     class << self
+
+      TRAILING_STAR_REGEXP = /(\w+)\/\*/
+
       def lookup(string)
         LOOKUP[string]
       end
@@ -103,11 +106,10 @@ module Mime
         ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
       end
 
-
       def parse(accept_header)
         if accept_header !~ /,/
-          if result = Regexp.new('(\w+)\/\*').match(accept_header)
-            parse_data_with_trailing_star(result[1])
+          if accept_header =~ TRAILING_STAR_REGEXP
+            parse_data_with_trailing_star($1)
           else
             [Mime::Type.lookup(accept_header)]
           end
