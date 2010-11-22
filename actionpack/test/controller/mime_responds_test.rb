@@ -2,6 +2,14 @@ require 'abstract_unit'
 require 'controller/fake_models'
 require 'active_support/core_ext/hash/conversions'
 
+class StarStarMimeController < ActionController::Base
+  layout nil
+
+  def index
+    render
+  end
+end
+
 class RespondToController < ActionController::Base
   layout :set_layout
 
@@ -158,6 +166,32 @@ class RespondToController < ActionController::Base
         "respond_to/layouts/missing"
       end
     end
+end
+
+class StarStarMimeControllerTest < ActionController::TestCase
+  tests StarStarMimeController
+
+  def setup;    super; end
+  def teardown; super; end
+
+  def test_javascript_with_format
+    @request.accept = "text/javascript"
+    get :index, :format => 'js'
+    assert_match "function addition(a,b){ return a+b; }", @response.body
+  end
+
+  def test_javascript_with_no_format
+    @request.accept = "text/javascript"
+    get :index
+    assert_match "function addition(a,b){ return a+b; }", @response.body
+  end
+
+  def test_javascript_with_no_format_only_star_star
+    @request.accept = "*/*"
+    get :index
+    assert_match "function addition(a,b){ return a+b; }", @response.body
+  end
+
 end
 
 class RespondToControllerTest < ActionController::TestCase
