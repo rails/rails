@@ -49,10 +49,8 @@ module ActionController
       extend ActiveSupport::Concern
       include Renderers
 
-      INCLUDED = []
       included do
         self._renderers = RENDERERS
-        INCLUDED << self
       end
     end
 
