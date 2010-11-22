@@ -80,31 +80,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(5)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.find(:all, :include=>:comments)
     assert_equal 7, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(nil)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.find(:all, :include=>:comments)
     assert_equal 7, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(5)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.find(:all, :include=>:categories)
     assert_equal 7, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(nil)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.find(:all, :include=>:categories)
     assert_equal 7, posts.size
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(nil)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     Post.expects(:i_was_called).with([1,2,3,4,5,6,7]).returns([1])
     associated_records = Post.send(:associated_records, [1,2,3,4,5,6,7]) do |some_ids|
       Post.i_was_called(some_ids)
@@ -113,7 +113,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_several_queries_when_many_ids_passed
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(5)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     Post.expects(:i_was_called).with([1,2,3,4,5]).returns([1])
     Post.expects(:i_was_called).with([6,7]).returns([6])
     associated_records = Post.send(:associated_records, [1,2,3,4,5,6,7]) do |some_ids|
@@ -123,7 +123,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    Post.connection.expects(:ids_in_list_limit).at_least_once.returns(5)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     Post.expects(:i_was_called).with([1,2,3]).returns([1])
     associated_records = Post.send(:associated_records, [1,2,3]) do |some_ids|
       Post.i_was_called(some_ids)
