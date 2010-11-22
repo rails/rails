@@ -31,9 +31,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "parse image with trailing star" do
     accept = "image/*"
     parsed = Mime::Type.parse(accept)
-    assert_equal 2, parsed.size
     assert parsed.include?(Mime::PNG)
-    assert_equal 'image/*', parsed[1].instance_variable_get('@string')
   end
 
   test "parse without q" do
