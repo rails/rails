@@ -103,9 +103,14 @@ module Mime
         ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
       end
 
+
       def parse(accept_header)
         if accept_header !~ /,/
-          [Mime::Type.lookup(accept_header)]
+          if result = Regexp.new('(\w+)\/\*').match(accept_header)
+            parse_data_with_trailing_star(result[1])
+          else
+            [Mime::Type.lookup(accept_header)]
+          end
         else
           # keep track of creation order to keep the subsequent sort stable
           list = []
@@ -159,6 +164,16 @@ module Mime
           list.map! { |i| Mime::Type.lookup(i.name) }.uniq!
           list
         end
+      end
+
+      # input: 'text'
+      # returend value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+      #
+      # input: 'application'
+      # returend value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM
+      def parse_data_with_trailing_star(input)
+        keys = Mime::LOOKUP.keys.select{|k| Regexp.new(input).match(k)}
+        Mime::LOOKUP.select {|k,_| keys.include?(k)}.collect{|i| i[1]}.inject([]){|all,e| all.include?(e) ? all : all << e}
       end
     end
 
