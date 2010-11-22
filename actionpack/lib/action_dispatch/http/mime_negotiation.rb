@@ -42,13 +42,15 @@ module ActionDispatch
         formats.first
       end
 
+      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+
       def formats
         accept = @env['HTTP_ACCEPT']
 
         @env["action_dispatch.request.formats"] ||=
           if parameters[:format]
             Array(Mime[parameters[:format]])
-          elsif xhr? || (accept && accept !~ /,\s*\*\/\*|\*\/\*\s*,/)
+          elsif xhr? || (accept && accept !~ BROWSER_LIKE_ACCEPTS)
             accepts
           else
             [Mime::HTML]
