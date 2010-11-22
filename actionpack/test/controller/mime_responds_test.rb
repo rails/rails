@@ -97,7 +97,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-  Mime::Type.register("text/x-mobile", :mobile)
 
   def custom_constant_handling
     respond_to do |type|
@@ -134,7 +133,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-  Mime::Type.register_alias("text/html", :iphone)
 
   def iphone_with_html_response_type
     request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
@@ -200,10 +198,16 @@ class RespondToControllerTest < ActionController::TestCase
   def setup
     super
     @request.host = "www.example.com"
+    Mime::Type.register_alias("text/html", :iphone)
+    Mime::Type.register("text/x-mobile", :mobile)
   end
 
   def teardown
     super
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
+    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
+    Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
+    Mime::LOOKUP.reject!{|key,_| key == 'text/iphone'}
   end
 
   def test_html
@@ -616,6 +620,10 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def teardown
     super
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
+    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
+    Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
+    Mime::LOOKUP.reject!{|key,_| key == 'text/iphone'}
   end
 
   def test_using_resource
@@ -996,6 +1004,15 @@ class MimeControllerLayoutsTest < ActionController::TestCase
   def setup
     super
     @request.host = "www.example.com"
+    Mime::Type.register_alias("text/html", :iphone)
+  end
+
+  def teardown
+    super
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
+    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
+    Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
+    Mime::LOOKUP.reject!{|key,_| key == 'text/iphone'}
   end
 
   def test_missing_layout_renders_properly
