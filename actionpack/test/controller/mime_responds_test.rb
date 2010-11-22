@@ -216,6 +216,12 @@ class RespondToControllerTest < ActionController::TestCase
     assert_response 406
   end
 
+  def test_json_or_yaml_with_leading_star_star
+    @request.accept = "*/*, application/json"
+    get :json_xml_or_html
+    assert_equal 'HTML', @response.body
+  end
+
   def test_json_or_yaml
     xhr :get, :json_or_yaml
     assert_equal 'JSON', @response.body
