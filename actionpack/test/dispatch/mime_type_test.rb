@@ -71,6 +71,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       end
     ensure
       Mime.module_eval { remove_const :GIF if const_defined?(:GIF) }
+      Mime::LOOKUP.reject!{|key,_| key == 'image/gif'}
     end
   end
 
