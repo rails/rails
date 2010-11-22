@@ -254,6 +254,10 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "*/*, application/json"
     get :json_xml_or_html
     assert_equal 'HTML', @response.body
+
+    @request.accept = "*/* , application/json"
+    get :json_xml_or_html
+    assert_equal 'HTML', @response.body
   end
 
   def test_json_or_yaml
