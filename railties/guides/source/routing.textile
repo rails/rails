@@ -194,7 +194,7 @@ end
 or, for a single case
 
 <ruby>
-resources :posts, :path => "/admin"
+resources :posts, :path => "/admin/posts"
 </ruby>
 
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
