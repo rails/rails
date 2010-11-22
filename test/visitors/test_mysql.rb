@@ -22,6 +22,13 @@ module Arel
         sql = @visitor.accept(stmt)
         sql.must_be_like "SELECT FROM DUAL"
       end
+
+      it 'uses FOR UPDATE when locking' do
+        stmt = Nodes::SelectStatement.new
+        stmt.lock = Nodes::Lock.new
+        sql = @visitor.accept(stmt)
+        sql.must_be_like "SELECT FROM DUAL FOR UPDATE"
+      end
     end
   end
 end

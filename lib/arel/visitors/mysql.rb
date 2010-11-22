@@ -2,6 +2,10 @@ module Arel
   module Visitors
     class MySQL < Arel::Visitors::ToSql
       private
+      def visit_Arel_Nodes_Lock o
+        "FOR UPDATE"
+      end
+
       ###
       # :'(
       # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
