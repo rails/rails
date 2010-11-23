@@ -934,6 +934,21 @@ module ActionDispatch
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
         #
+        # Resources can also be nested infinitely by using this block syntax:
+        #
+        #   resources :photos do
+        #     resources :comments
+        #   end
+        #
+        # This generates the following comments routes:
+        #
+        #   GET     /photos/:id/comments/new
+        #   POST    /photos/:id/comments
+        #   GET     /photos/:id/comments/:id
+        #   GET     /photos/:id/comments/:id/edit
+        #   PUT     /photos/:id/comments/:id
+        #   DELETE  /photos/:id/comments/:id
+        #
         # === Supported options
         # [:path_names]
         #   Allows you to change the paths of the seven default actions.
