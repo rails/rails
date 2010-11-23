@@ -983,6 +983,14 @@ module ActionDispatch
         #     resources :posts, :module => "admin"
         #
         #   All requests to the posts resources will now go to +Admin::PostsController+.
+        #
+        # [:path]
+        #
+        #  Set a path prefix for this resource.
+        #
+        #     resources :posts, :path => "admin"
+        #
+        #  All actions for this resource will now be at +/admin/posts+.
         def resources(*resources, &block)
           options = resources.extract_options!
 
