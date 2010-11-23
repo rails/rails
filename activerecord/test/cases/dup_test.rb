@@ -2,7 +2,7 @@ require "cases/helper"
 require 'models/topic'
 
 module ActiveRecord
-  class DuplicationTest < ActiveRecord::TestCase
+  class DupTest < ActiveRecord::TestCase
     fixtures :topics
 
     def test_dup
