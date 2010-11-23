@@ -14,11 +14,18 @@ require 'models/bird'
 require 'models/car'
 require 'models/engine'
 require 'models/tyre'
+require 'models/minivan'
 
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :tags, :taggings, :cars
+    :tags, :taggings, :cars, :minivans
+
+  def test_do_not_double_quote_string_id
+    van = Minivan.last
+    assert van
+    assert_equal van.id, Minivan.where(:minivan_id => van).to_a.first.minivan_id
+  end
 
   def test_bind_values
     relation = Post.scoped
