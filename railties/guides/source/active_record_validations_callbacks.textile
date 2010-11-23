@@ -355,7 +355,7 @@ This helper validates that the specified attributes are not empty. It uses the +
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true, :login, :email
+  validates :name, :login, :email, :presence => true
 end
 </ruby>
 
