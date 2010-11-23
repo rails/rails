@@ -23,31 +23,6 @@ module ActiveRecord
       assert_nil duped.id
     end
 
-    def test_clone_persisted
-      topic = Topic.first
-      cloned = topic.clone
-      assert topic.persisted?, 'topic persisted'
-      assert cloned.persisted?, 'topic persisted'
-      assert !cloned.new_record?, 'topic is not new'
-    end
-
-    def test_clone_keeps_frozen
-      topic = Topic.first
-      topic.freeze
-
-      cloned = topic.clone
-      assert cloned.persisted?, 'topic persisted'
-      assert !cloned.new_record?, 'topic is not new'
-      assert cloned.frozen?, 'topic should be frozen'
-    end
-
-    def test_clone_is_shallow
-      topic = Topic.first
-      cloned = topic.clone
-      topic.author_name = 'Aaron'
-      assert_equal 'Aaron', cloned.author_name
-    end
-
     def test_dup_with_modified_attributes
       topic = Topic.first
       topic.author_name = 'Aaron'
