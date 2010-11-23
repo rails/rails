@@ -364,7 +364,7 @@ module ActionDispatch
       end
 
       def respond_to?(method, include_private = false)
-        @integration_session.respond_to?(method, include_private) || super
+        integration_session.respond_to?(method, include_private) || super
       end
 
       # Delegate unhandled messages to the current session instance.
