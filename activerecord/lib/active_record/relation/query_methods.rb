@@ -13,7 +13,7 @@ module ActiveRecord
     def includes(*args)
       args.reject! {|a| a.blank? }
 
-      return clone if args.empty?
+      return self if args.empty?
 
       relation = clone
       relation.includes_values = (relation.includes_values + args).flatten.uniq
@@ -21,14 +21,18 @@ module ActiveRecord
     end
 
     def eager_load(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.eager_load_values += args unless args.blank?
+      relation.eager_load_values += args
       relation
     end
 
     def preload(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.preload_values += args unless args.blank?
+      relation.preload_values += args
       relation
     end
 
@@ -43,22 +47,28 @@ module ActiveRecord
     end
 
     def group(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.group_values += args.flatten unless args.blank?
+      relation.group_values += args.flatten
       relation
     end
 
     def order(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.order_values += args.flatten unless args.blank?
+      relation.order_values += args.flatten
       relation
     end
 
     def joins(*args)
+      return self if args.blank?
+
       relation = clone
 
       args.flatten!
-      relation.joins_values += args unless args.blank?
+      relation.joins_values += args
 
       relation
     end
@@ -70,14 +80,18 @@ module ActiveRecord
     end
 
     def where(opts, *rest)
+      return self if opts.blank?
+
       relation = clone
-      relation.where_values += build_where(opts, rest) unless opts.blank?
+      relation.where_values += build_where(opts, rest)
       relation
     end
 
     def having(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.having_values += build_where(*args) unless args.blank?
+      relation.having_values += build_where(*args)
       relation
     end
 
