@@ -486,8 +486,6 @@ module ActionDispatch
           super
         end
 
-        # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
-        # to Admin::PostsController:
         # === Supported options
         # [:module]
         #   If you want to route /posts (without the prefix /admin) to
