@@ -16,7 +16,7 @@ module ActiveRecord
           :readonly   => @reflection.options[:readonly]
         }
       end
-      
+
       def construct_create_scope
         construct_owner_attributes(@reflection)
       end
@@ -51,7 +51,7 @@ module ActiveRecord
 
       def construct_select(custom_select = nil)
         distinct = "DISTINCT " if @reflection.options[:uniq]
-        selected = custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
+        custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
       end
 
       def construct_joins(custom_joins = nil)

@@ -67,8 +67,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_no_sql_should_be_fired_if_association_already_loaded
-    car = Car.create(:name => 'honda')
-    bulb = car.bulbs.create
+    Car.create(:name => 'honda')
     bulbs = Car.first.bulbs
     bulbs.inspect # to load all instances of bulbs
     assert_no_queries do

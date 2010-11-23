@@ -354,7 +354,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_through_a_belongs_to_association_where_the_association_doesnt_exist
-    author = authors(:mary)
     post = Post.create!(:title => "TITLE", :body => "BODY")
     assert_equal [], post.author_favorites
   end
