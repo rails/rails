@@ -54,5 +54,15 @@ module ActiveRecord
       duped = topic.dup
       assert_equal topic.changes, duped.changes
     end
+
+    def test_dup_topics_are_independent
+      topic = Topic.first
+      topic.author_name = 'Aaron'
+      duped = topic.dup
+
+      duped.author_name = 'meow'
+
+      assert_not_equal topic.changes, duped.changes
+    end
   end
 end
