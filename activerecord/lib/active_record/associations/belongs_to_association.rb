@@ -61,7 +61,7 @@ module ActiveRecord
           set_inverse_instance(the_target, @owner)
           the_target
         end
-        
+
         def construct_find_scope
           { :conditions => conditions }
         end
