@@ -1443,10 +1443,6 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = original_logger
   end
 
-  def test_dup
-    assert !Minimalistic.new.freeze.dup.frozen?
-  end
-
   def test_compute_type_success
     assert_equal Author, ActiveRecord::Base.send(:compute_type, 'Author')
   end

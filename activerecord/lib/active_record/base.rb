@@ -1420,7 +1420,7 @@ MSG
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @readonly = @destroyed = @marked_for_destruction = false
-        @persisted = true
+        @persisted = false
         _run_find_callbacks
         _run_initialize_callbacks
       end
@@ -1615,11 +1615,15 @@ MSG
         @attributes.frozen?
       end
 
+      def initialize_dup(other)
+        super
+        init_with 'attributes' => other.attributes
+        self
+      end
+
       # Returns duplicated record with unfreezed attributes.
       def dup
-        obj = super
-        obj.instance_variable_set('@attributes', @attributes.dup)
-        obj
+        super
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
