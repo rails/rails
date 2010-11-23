@@ -1591,18 +1591,27 @@ MSG
         @attributes.frozen?
       end
 
+      # Backport dup from 1.9 so that initialize_dup() gets called
+      unless Object.respond_to?(:initialize_dup)
+        def dup # :nodoc:
+          copy = super
+          copy.initialize_dup(self)
+          copy
+        end
+      end
+
       # Duped objects have no id assigned and are treated as new records. Note
       # that this is a "shallow" copy as it copies the object's attributes
       # only, not its associations. The extent of a "deep" copy is application
       # specific and is therefore left to the application to implement according
       # to its need.
       def initialize_dup(other)
-        super
-        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
 
         @attributes = cloned_attributes
+
+        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
 
         @changed_attributes = {}
         attributes_from_column_definition.each do |attr, orig_value|
@@ -1612,7 +1621,7 @@ MSG
         clear_aggregation_cache
         clear_association_cache
         @attributes_cache   = {}
-        @persisted          = false
+        @persisted  = false
 
         ensure_proper_type
         populate_with_current_scope_attributes

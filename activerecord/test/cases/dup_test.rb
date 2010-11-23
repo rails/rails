@@ -9,6 +9,21 @@ module ActiveRecord
       assert !Topic.new.freeze.dup.frozen?
     end
 
+    def test_not_readonly
+      topic = Topic.first
+
+      duped = topic.dup
+      assert !topic.readonly?, 'should not be readonly'
+    end
+
+    def test_is_readonly
+      topic = Topic.first
+      topic.readonly!
+
+      duped = topic.dup
+      assert topic.readonly?, 'should be readonly'
+    end
+
     def test_dup_not_persisted
       topic = Topic.first
       duped = topic.dup
