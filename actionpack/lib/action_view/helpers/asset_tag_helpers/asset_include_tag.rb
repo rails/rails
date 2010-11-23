@@ -79,7 +79,6 @@ module ActionView
             sources.each do |source|
               asset_file_path!(path_to_asset(source, false))
             end
-            return sources
           end
 
           def collect_asset_files(*path)
