@@ -26,8 +26,7 @@ module ActiveRecord
           when Range, Arel::Relation
             attribute.in(value)
           when ActiveRecord::Base
-            sanitized_id = attribute.class == Arel::Attributes::String ? value.id : value.quoted_id
-            attribute.eq(sanitized_id)
+            attribute.eq(Arel.sql(value.quoted_id))
           when Class
             # FIXME: I think we need to deprecate this behavior
             attribute.eq(value.name)
