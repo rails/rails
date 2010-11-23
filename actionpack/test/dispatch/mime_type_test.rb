@@ -12,6 +12,23 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "unregister" do
+    begin
+      Mime::Type.register("text/x-mobile", :mobile)
+      assert defined?(Mime::MOBILE)
+      assert_equal Mime::MOBILE, Mime::LOOKUP['text/x-mobile']
+      assert_equal Mime::MOBILE, Mime::EXTENSION_LOOKUP['mobile']
+
+      Mime::Type.unregister("text/x-mobile", :mobile)
+      assert !defined?(Mime::MOBILE), "Mime::MOBILE should not be defined"
+      assert !Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile]"
+      assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
+    ensure
+      Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
+      Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
+    end
+  end
+
   test "parse text with trailing star" do
     accept = "text/*"
     expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT].sort_by(&:to_s)

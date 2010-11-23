@@ -177,6 +177,18 @@ module Mime
         keys = Mime::LOOKUP.keys.select{|k| k.include?(input)}
         Mime::LOOKUP.values_at(*keys).uniq
       end
+
+      # This method is opposite of register method.
+      #
+      # Usage:
+      #
+      # Mime::Type.unregister("text/x-mobile", :mobile)
+      def unregister(string, symbol)
+        EXTENSION_LOOKUP.delete(symbol.to_s)
+        LOOKUP.delete(string)
+        symbol = symbol.to_s.upcase.intern
+        Mime.module_eval { remove_const(symbol) if const_defined?(symbol) }
+      end
     end
 
     def initialize(string, symbol = nil, synonyms = [])
