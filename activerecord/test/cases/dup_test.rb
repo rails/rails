@@ -31,9 +31,12 @@ module ActiveRecord
     end
 
     def test_dup_with_changes
-      topic = Topic.first
-      topic.author_name = 'Aaron'
-      duped = topic.dup
+      dbtopic = Topic.first
+      topic = Topic.new
+
+      topic.attributes = dbtopic.attributes
+
+      duped = dbtopic.dup
       assert_equal topic.changes, duped.changes
     end
 

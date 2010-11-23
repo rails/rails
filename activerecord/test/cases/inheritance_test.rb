@@ -16,7 +16,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_class_with_blank_sti_name
     company = Company.find(:first)
-    company = company.clone
+    company = company.dup
     company.extend(Module.new {
       def read_attribute(name)
         return '  ' if name == 'type'

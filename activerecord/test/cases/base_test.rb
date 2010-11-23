@@ -701,24 +701,24 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal({'a' => 'c'}.to_s, duped_topic.title)
   end
 
-  def test_clone_with_aggregate_of_same_name_as_attribute
+  def test_dup_with_aggregate_of_same_name_as_attribute
     dev = DeveloperWithAggregate.find(1)
     assert_kind_of DeveloperSalary, dev.salary
 
-    clone = nil
-    assert_nothing_raised { clone = dev.clone }
-    assert_kind_of DeveloperSalary, clone.salary
-    assert_equal dev.salary.amount, clone.salary.amount
-    assert !clone.persisted?
+    dup = nil
+    assert_nothing_raised { dup = dev.dup }
+    assert_kind_of DeveloperSalary, dup.salary
+    assert_equal dev.salary.amount, dup.salary.amount
+    assert !dup.persisted?
 
-    # test if the attributes have been cloned
-    original_amount = clone.salary.amount
+    # test if the attributes have been dupd
+    original_amount = dup.salary.amount
     dev.salary.amount = 1
-    assert_equal original_amount, clone.salary.amount
+    assert_equal original_amount, dup.salary.amount
 
-    assert clone.save
-    assert clone.persisted?
-    assert_not_equal clone.id, dev.id
+    assert dup.save
+    assert dup.persisted?
+    assert_not_equal dup.id, dev.id
   end
 
   def test_dup_does_not_copy_associations
@@ -766,22 +766,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
-  def test_clone_of_saved_object_marks_attributes_as_dirty
+  def test_dup_of_saved_object_marks_attributes_as_dirty
     developer = Developer.create! :name => 'Bjorn', :salary => 100000
     assert !developer.name_changed?
     assert !developer.salary_changed?
 
-    cloned_developer = developer.clone
+    cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # both attributes differ from defaults
     assert cloned_developer.salary_changed?
   end
 
-  def test_clone_of_saved_object_marks_as_dirty_only_changed_attributes
+  def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! :name => 'Bjorn'
     assert !developer.name_changed?           # both attributes of saved object should be threated as not changed
     assert !developer.salary_changed?
 
-    cloned_developer = developer.clone
+    cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
     assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be threated as not changed on cloned instance
   end

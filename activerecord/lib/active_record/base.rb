@@ -1592,8 +1592,8 @@ MSG
       end
 
       # Duped objects have no id assigned and are treated as new records. Note
-      # that this is a "shallow" clone as it copies the object's attributes
-      # only, not its associations. The extent of a "deep" dup is application
+      # that this is a "shallow" copy as it copies the object's attributes
+      # only, not its associations. The extent of a "deep" copy is application
       # specific and is therefore left to the application to implement according
       # to its need.
       def initialize_dup(other)
@@ -1602,8 +1602,12 @@ MSG
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
 
-        @attributes         = cloned_attributes
-        @changed_attributes = other.changed_attributes.dup
+        @attributes = cloned_attributes
+
+        @changed_attributes = {}
+        attributes_from_column_definition.each do |attr, orig_value|
+          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        end
 
         clear_aggregation_cache
         clear_association_cache
