@@ -201,10 +201,8 @@ class RespondToControllerTest < ActionController::TestCase
 
   def teardown
     super
-    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
-    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
-    Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
-    Mime::LOOKUP.reject!{|key,_| key == 'text/iphone'}
+    Mime::Type.unregister('text/x-mobile', :iphone)
+    Mime::Type.unregister('text/iphone', :mobile)
   end
 
   def test_html
@@ -617,10 +615,8 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def teardown
     super
-    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
-    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
-    Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
-    Mime::LOOKUP.reject!{|key,_| key == 'text/iphone'}
+    Mime::Type.unregister('text/x-mobile', :iphone)
+    Mime::Type.unregister('text/iphone', :mobile)
   end
 
   def test_using_resource
@@ -1006,10 +1002,8 @@ class MimeControllerLayoutsTest < ActionController::TestCase
 
   def teardown
     super
-    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
-    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
-    Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
-    Mime::LOOKUP.reject!{|key,_| key == 'text/iphone'}
+    Mime::Type.unregister('text/x-mobile', :iphone)
+    Mime::Type.unregister('text/iphone', :mobile)
   end
 
   def test_missing_layout_renders_properly
