@@ -6,7 +6,7 @@ module ActiveRecord
     fixtures :topics
 
     def test_dup
-      assert !Minimalistic.new.freeze.dup.frozen?
+      assert !Topic.new.freeze.dup.frozen?
     end
 
     def test_dup_not_persisted
@@ -26,6 +26,7 @@ module ActiveRecord
     def test_clone_persisted
       topic = Topic.first
       cloned = topic.clone
+      assert topic.persisted?, 'topic persisted'
       assert cloned.persisted?, 'topic persisted'
       assert !cloned.new_record?, 'topic is not new'
     end
@@ -37,7 +38,21 @@ module ActiveRecord
       cloned = topic.clone
       assert cloned.persisted?, 'topic persisted'
       assert !cloned.new_record?, 'topic is not new'
-      assert cloned.frozen?, 'topic is frozen'
+      assert cloned.frozen?, 'topic should be frozen'
+    end
+
+    def test_dup_with_modified_attributes
+      topic = Topic.first
+      topic.author_name = 'Aaron'
+      duped = topic.dup
+      assert_equal 'Aaron', duped.author_name
+    end
+
+    def test_dup_with_changes
+      topic = Topic.first
+      topic.author_name = 'Aaron'
+      duped = topic.dup
+      assert_equal topic.changes, duped.changes
     end
   end
 end

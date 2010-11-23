@@ -1382,30 +1382,6 @@ MSG
         result
       end
 
-      # Cloned objects have no id assigned and are treated as new records. Note that this is a "shallow" clone
-      # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
-      # application specific and is therefore left to the application to implement according to its need.
-      def initialize_copy(other)
-        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
-        cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-        cloned_attributes.delete(self.class.primary_key)
-
-        @attributes = cloned_attributes
-
-        @changed_attributes = {}
-        attributes_from_column_definition.each do |attr, orig_value|
-          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
-        end
-
-        clear_aggregation_cache
-        clear_association_cache
-        @attributes_cache = {}
-        @persisted = false
-        ensure_proper_type
-
-        populate_with_current_scope_attributes
-      end
-
       # Initialize an empty model object from +coder+.  +coder+ must contain
       # the attributes necessary for initializing an empty model object.  For
       # example:
@@ -1420,7 +1396,7 @@ MSG
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @readonly = @destroyed = @marked_for_destruction = false
-        @persisted = false
+        @persisted = true
         _run_find_callbacks
         _run_initialize_callbacks
       end
@@ -1615,15 +1591,32 @@ MSG
         @attributes.frozen?
       end
 
+      # Duped objects have no id assigned and are treated as new records. Note
+      # that this is a "shallow" clone as it copies the object's attributes
+      # only, not its associations. The extent of a "deep" dup is application
+      # specific and is therefore left to the application to implement according
+      # to its need.
       def initialize_dup(other)
         super
-        init_with 'attributes' => other.attributes
+        cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+        cloned_attributes.delete(self.class.primary_key)
+
+        @attributes         = cloned_attributes
+        @changed_attributes = other.changed_attributes.dup
+        @attributes_cache   = {}
+        @persisted          = false
+
+        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
+        clear_aggregation_cache
+        clear_association_cache
+        ensure_proper_type
+        populate_with_current_scope_attributes
         self
       end
 
-      # Returns duplicated record with unfreezed attributes.
-      def dup
+      def initialize_clone(other)
         super
+        @persisted = other.persisted?
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
