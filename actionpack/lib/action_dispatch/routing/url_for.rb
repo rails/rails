@@ -119,8 +119,9 @@ module ActionDispatch
       #   to split the domain from the host.
       # * <tt>:domain</tt> - Specifies the domain of the link, using the +tld_length+
       #   to split the subdomain from the host.
-      # * <tt>:tld_length</tt> - Optionally specify the tld length (only used if :subdomain
-      #   or :domain are supplied).
+      # * <tt>:tld_length</tt> - Number of labels the TLD id composed of, only used if
+      #   <tt>:subdomain</tt> or <tt>:domain</tt> are supplied. Defaults to
+      #   <tt>ActionDispatch::Http::URL.tld_length</tt>, which in turn defaults to 1.
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
