@@ -933,6 +933,7 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        #
         # === Supported options
         # [:path_names]
         #   Allows you to change the paths of the seven default actions.
@@ -941,6 +942,13 @@ module ActionDispatch
         #     resources :posts, :path_names => { :new => "brand_new" }
         #
         #   The above example will now change /posts/new to /posts/brand_new
+        #
+        # [:module]
+        #   Set the module where the controller can be found. Defaults to nothing.
+        #
+        #     resources :posts, :module => "admin"
+        #
+        #   All requests to the posts resources will now go to +Admin::PostsController+.
         def resources(*resources, &block)
           options = resources.extract_options!
 
