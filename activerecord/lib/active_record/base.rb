@@ -1598,20 +1598,20 @@ MSG
       # to its need.
       def initialize_dup(other)
         super
+        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
 
         @attributes         = cloned_attributes
         @changed_attributes = other.changed_attributes.dup
+
+        clear_aggregation_cache
+        clear_association_cache
         @attributes_cache   = {}
         @persisted          = false
 
-        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
-        clear_aggregation_cache
-        clear_association_cache
         ensure_proper_type
         populate_with_current_scope_attributes
-        self
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back

@@ -669,36 +669,36 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal true, Topic.find(1).persisted?
   end
 
-  def test_clone
+  def test_dup
     topic = Topic.find(1)
-    cloned_topic = nil
-    assert_nothing_raised { cloned_topic = topic.clone }
-    assert_equal topic.title, cloned_topic.title
-    assert !cloned_topic.persisted?
+    duped_topic = nil
+    assert_nothing_raised { duped_topic = topic.dup }
+    assert_equal topic.title, duped_topic.title
+    assert !duped_topic.persisted?
 
-    # test if the attributes have been cloned
+    # test if the attributes have been duped
     topic.title = "a"
-    cloned_topic.title = "b"
+    duped_topic.title = "b"
     assert_equal "a", topic.title
-    assert_equal "b", cloned_topic.title
+    assert_equal "b", duped_topic.title
 
-    # test if the attribute values have been cloned
+    # test if the attribute values have been duped
     topic.title = {"a" => "b"}
-    cloned_topic = topic.clone
-    cloned_topic.title["a"] = "c"
+    duped_topic = topic.dup
+    duped_topic.title["a"] = "c"
     assert_equal "b", topic.title["a"]
 
-    # test if attributes set as part of after_initialize are cloned correctly
-    assert_equal topic.author_email_address, cloned_topic.author_email_address
+    # test if attributes set as part of after_initialize are duped correctly
+    assert_equal topic.author_email_address, duped_topic.author_email_address
 
     # test if saved clone object differs from original
-    cloned_topic.save
-    assert cloned_topic.persisted?
-    assert_not_equal cloned_topic.id, topic.id
+    duped_topic.save
+    assert duped_topic.persisted?
+    assert_not_equal duped_topic.id, topic.id
 
-    cloned_topic.reload
+    duped_topic.reload
     # FIXME: I think this is poor behavior, and will fix it with #5686
-    assert_equal({'a' => 'c'}.to_s, cloned_topic.title)
+    assert_equal({'a' => 'c'}.to_s, duped_topic.title)
   end
 
   def test_clone_with_aggregate_of_same_name_as_attribute
@@ -721,12 +721,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal clone.id, dev.id
   end
 
-  def test_clone_does_not_clone_associations
+  def test_dup_does_not_copy_associations
     author = authors(:david)
     assert_not_equal [], author.posts
+    author.send(:clear_association_cache)
 
-    author_clone = author.clone
-    assert_equal [], author_clone.posts
+    author_dup = author.dup
+    assert_equal [], author_dup.posts
   end
 
   def test_clone_preserves_subtype
