@@ -439,13 +439,13 @@ module ActionDispatch
       # This will create a number of routes for each of the posts and comments
       # controller. For Admin::PostsController, Rails will create:
       #
-      #   GET	    /admin/photos
-      #   GET	    /admin/photos/new
-      #   POST	  /admin/photos
-      #   GET	    /admin/photos/1
-      #   GET	    /admin/photos/1/edit
-      #   PUT	    /admin/photos/1
-      #   DELETE  /admin/photos/1
+      #   GET	    /admin/posts
+      #   GET	    /admin/posts/new
+      #   POST	  /admin/posts
+      #   GET	    /admin/posts/1
+      #   GET	    /admin/posts/1/edit
+      #   PUT	    /admin/posts/1
+      #   DELETE  /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
       # Admin::PostsController, you could use
@@ -473,13 +473,13 @@ module ActionDispatch
       # not use scope. In the last case, the following paths map to
       # PostsController:
       #
-      #   GET	    /admin/photos
-      #   GET	    /admin/photos/new
-      #   POST	  /admin/photos
-      #   GET	    /admin/photos/1
-      #   GET	    /admin/photos/1/edit
-      #   PUT	    /admin/photos/1
-      #   DELETE  /admin/photos/1
+      #   GET	    /admin/posts
+      #   GET	    /admin/posts/new
+      #   POST	  /admin/posts
+      #   GET	    /admin/posts/1
+      #   GET	    /admin/posts/1/edit
+      #   PUT	    /admin/posts/1
+      #   DELETE  /admin/posts/1
       module Scoping
         def initialize(*args) #:nodoc:
           @scope = {}
