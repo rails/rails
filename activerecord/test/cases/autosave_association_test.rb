@@ -163,15 +163,15 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     firm.account = Account.find(:first)
     assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
-    firm = Firm.find(:first).clone
+    firm = Firm.find(:first).dup
     firm.account = Account.find(:first)
     assert_queries(2) { firm.save! }
 
-    firm = Firm.find(:first).clone
-    firm.account = Account.find(:first).clone
+    firm = Firm.find(:first).dup
+    firm.account = Account.find(:first).dup
     assert_queries(2) { firm.save! }
   end
-  
+
   def test_callbacks_firing_order_on_create
     eye = Eye.create(:iris_attributes => {:color => 'honey'})
     assert_equal [true, false], eye.after_create_callbacks_stack
