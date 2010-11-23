@@ -169,9 +169,6 @@ end
 class StarStarMimeControllerTest < ActionController::TestCase
   tests StarStarMimeController
 
-  def setup;    super; end
-  def teardown; super; end
-
   def test_javascript_with_format
     @request.accept = "text/javascript"
     get :index, :format => 'js'
