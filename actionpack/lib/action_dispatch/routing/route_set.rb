@@ -570,22 +570,14 @@ module ActionDispatch
         end
 
         def subdomain_and_domain(options)
+          return nil unless options[:subdomain] || options[:domain]
           tld_length = options[:tld_length] || ActionDispatch::Http::URL.tld_length
 
-          current_domain    = ActionDispatch::Http::URL.extract_domain(options[:host], tld_length)
-          current_subdomain = ActionDispatch::Http::URL.extract_subdomain(options[:host], tld_length)
-
-          domain_parts = if options[:subdomain] && options[:domain]
-            [options[:subdomain], options[:domain]]
-          elsif options[:subdomain]
-            [options[:subdomain], current_domain]
-          elsif options[:domain]
-            [current_subdomain, options[:domain]]
-          else
-            nil
-          end
-
-          domain_parts ? domain_parts.join('.') : nil
+          host = ""
+          host << (options[:subdomain] || ActionDispatch::Http::URL.extract_subdomain(options[:host], tld_length))
+          host << "."
+          host << (options[:domain] || ActionDispatch::Http::URL.extract_domain(options[:host], tld_length))
+          host
         end
 
         def handle_positional_args(options)
