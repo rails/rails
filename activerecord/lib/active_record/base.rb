@@ -1614,11 +1614,6 @@ MSG
         self
       end
 
-      def initialize_clone(other)
-        super
-        @persisted = other.persisted?
-      end
-
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
       # attributes will be marked as read only since they cannot be saved.
       def readonly?
