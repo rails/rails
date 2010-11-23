@@ -89,7 +89,7 @@ module ActiveRecord
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.create(:body => 'hello world')
   #   post.comments[0].body = 'hi everyone'
-  #   post.save # => saves both post and comment, with 'hi everyone' as title
+  #   post.save # => saves both post and comment, with 'hi everyone' as body
   #
   # Destroying one of the associated models as part of the parent's save action
   # is as simple as marking it for destruction:
