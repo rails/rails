@@ -33,10 +33,11 @@ module ActiveRecord
           join_parts.first
         end
 
-        def columns(connection)
+        def columns
           join_parts.collect { |join_part|
+            table = Arel::Nodes::TableAlias.new join_part.aliased_table_name, nil
             join_part.column_names_with_alias.collect{ |column_name, aliased_name|
-              "#{connection.quote_table_name join_part.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"
+              table[column_name].as aliased_name
             }
           }.flatten
         end
