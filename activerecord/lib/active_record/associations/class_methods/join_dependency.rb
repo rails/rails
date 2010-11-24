@@ -38,7 +38,7 @@ module ActiveRecord
             join_part.column_names_with_alias.collect{ |column_name, aliased_name|
               "#{connection.quote_table_name join_part.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"
             }
-          }.flatten.join(", ")
+          }.flatten
         end
 
         def count_aliases_from_table_joins(name)
