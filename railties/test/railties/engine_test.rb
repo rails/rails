@@ -90,7 +90,7 @@ module RailtiesTest
       env = Rack::MockRequest.env_for("/bukkits")
       response = Rails.application.call(env)
 
-      assert_equal rack_body(["HELLO WORLD"]), rack_body(response[2])
+      assert_body "HELLO WORLD", response
     end
 
     test "it provides routes as default endpoint" do
@@ -117,7 +117,7 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = Rails.application.call(env)
-      assert_equal rack_body(["foo"]), rack_body(response[2])
+      assert_body "foo", response
     end
 
     test "engine can load its own plugins" do
@@ -293,23 +293,15 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/app.html")
       response = Rails.application.call(env)
-      assert_equal rack_body(response[2]), rack_body(File.open(File.join(app_path, "public/app.html")))
+      assert_body File.read(File.join(app_path, "public/app.html")), response
 
       env = Rack::MockRequest.env_for("/bukkits/bukkits.html")
       response = Rails.application.call(env)
-      assert_equal rack_body(response[2]), rack_body(File.open(File.join(@plugin.path, "public/bukkits.html")))
+      assert_body File.read(File.join(@plugin.path, "public/bukkits.html")), response
 
       env = Rack::MockRequest.env_for("/bukkits/file_from_app.html")
       response = Rails.application.call(env)
-      assert_equal rack_body(response[2]), rack_body(File.open(File.join(app_path, "public/bukkits/file_from_app.html")))
-    end
-
-    def rack_body(obj)
-      buffer = ""
-      obj.each do |part|
-        buffer << part
-      end
-      buffer
+      assert_body File.read(File.join(app_path, "public/bukkits/file_from_app.html")), response
     end
 
     test "shared engine should include application's helpers and own helpers" do
@@ -357,17 +349,17 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/foo")
       response = Rails.application.call(env)
-      assert_equal rack_body(["Something... Something... Something..."]), rack_body(response[2])
+      assert_body "Something... Something... Something...", response
       response[2].close
 
       env = Rack::MockRequest.env_for("/foo/show")
       response = Rails.application.call(env)
-      assert_equal rack_body(["/foo"]), rack_body(response[2])
+      assert_body "/foo", response
       response[2].close
 
       env = Rack::MockRequest.env_for("/foo/bar")
       response = Rails.application.call(env)
-      assert_equal rack_body(["It's a bar."]), rack_body(response[2])
+      assert_body "It's a bar.", response
       response[2].close
     end
 
@@ -469,27 +461,27 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/from_app")
       response = AppTemplate::Application.call(env)
-      assert_equal rack_body(["false"]), rack_body(response[2])
+      assert_body "false", response
       response[2].close
 
       env = Rack::MockRequest.env_for("/bukkits/foo/show")
       response = AppTemplate::Application.call(env)
-      assert_equal rack_body(["/bukkits/foo"]), rack_body(response[2])
+      assert_body "/bukkits/foo", response
       response[2].close
 
       env = Rack::MockRequest.env_for("/bukkits/foo")
       response = AppTemplate::Application.call(env)
-      assert_equal rack_body(["Helped."]), rack_body(response[2])
+      assert_body "Helped.", response
       response[2].close
 
       env = Rack::MockRequest.env_for("/bukkits/routes_helpers_in_view")
       response = AppTemplate::Application.call(env)
-      assert_equal rack_body(["/bukkits/foo, /bar"]), rack_body(response[2])
+      assert_body "/bukkits/foo, /bar", response
       response[2].close
 
       env = Rack::MockRequest.env_for("/bukkits/polymorphic_path_without_namespace")
       response = AppTemplate::Application.call(env)
-      assert_equal rack_body(["/bukkits/posts/1"]), rack_body(response[2])
+      assert_body "/bukkits/posts/1", response
       response[2].close
     end
 
@@ -551,7 +543,7 @@ module RailtiesTest
 
       env = Rack::MockRequest.env_for("/bukkits/posts/new")
       response = AppTemplate::Application.call(env)
-      assert rack_body(response[2]) =~ /name="post\[title\]"/
+      assert extract_body(response) =~ /name="post\[title\]"/
     end
 
     test "loading seed data" do
