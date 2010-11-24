@@ -45,12 +45,6 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, parsed.sort_by(&:to_s)
   end
 
-  test "parse image with trailing star" do
-    accept = "image/*"
-    parsed = Mime::Type.parse(accept)
-    assert parsed.include?(Mime::PNG)
-  end
-
   test "parse without q" do
     accept = "text/xml,application/xhtml+xml,text/yaml,application/xml,text/html,image/png,text/plain,application/pdf,*/*"
     expect = [Mime::HTML, Mime::XML, Mime::YAML, Mime::PNG, Mime::TEXT, Mime::PDF, Mime::ALL]

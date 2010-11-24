@@ -81,7 +81,7 @@ module Mime
 
     class << self
 
-      TRAILING_STAR_REGEXP = /(\w+)\/\*/
+      TRAILING_STAR_REGEXP = /(text|application)\/\*/
 
       def lookup(string)
         LOOKUP[string]
