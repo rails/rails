@@ -172,6 +172,14 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal 8080, request.optional_port
   end
 
+  test "port string" do
+    request = stub_request 'HTTP_HOST' => 'www.example.org:80'
+    assert_equal '', request.port_string
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
+    assert_equal ':8080', request.port_string
+  end
+
   test "full path" do
     request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri', 'QUERY_STRING' => 'mapped=1'
     assert_equal "/path/of/some/uri?mapped=1", request.fullpath
@@ -392,7 +400,7 @@ class RequestTest < ActiveSupport::TestCase
     mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
     request = nil
     begin
-      request = stub_request(mock_rack_env) 
+      request = stub_request(mock_rack_env)
       request.parameters
     rescue TypeError => e
       # rack will raise a TypeError when parsing this query string

@@ -52,8 +52,7 @@ module ActionDispatch
       # Returns a \host:\port string for this request, such as "example.com" or
       # "example.com:8080".
       def host_with_port
-        opt_port = optional_port ? ":#{optional_port}" : nil
-        "#{host}#{opt_port}"
+        "#{host}#{port_string}"
       end
 
       # Returns the port number of this request as an integer.
@@ -80,10 +79,16 @@ module ActionDispatch
         port == standard_port
       end
 
-      # Returns a \port suffix like "8080" if the \port number of this request
+      # Returns a number \port suffix like 8080 if the \port number of this request
       # is not the default HTTP \port 80 or HTTPS \port 443.
       def optional_port
         standard_port? ? nil : port
+      end
+
+      # Returns a string \port suffix, including colon, like ":8080" if the \port
+      # number of this request is not the default HTTP \port 80 or HTTPS \port 443.
+      def port_string
+        standard_port? ? '' : ":#{port}"
       end
 
       def server_port
