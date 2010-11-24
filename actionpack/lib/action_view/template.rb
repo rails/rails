@@ -184,6 +184,11 @@ module ActionView
       end
     end
 
+    # Used to store template data by template handlers.
+    def data
+      @data ||= {}
+    end
+
     def inspect
       @inspect ||=
         if defined?(Rails.root)
