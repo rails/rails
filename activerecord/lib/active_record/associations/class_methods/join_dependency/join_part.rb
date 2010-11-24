@@ -19,6 +19,7 @@ module ActiveRecord
           def initialize(active_record)
             @active_record = active_record
             @cached_record = {}
+            @column_names_with_alias = nil
           end
 
           def aliased_table
@@ -51,14 +52,13 @@ module ActiveRecord
 
           # An array of [column_name, alias] pairs for the table
           def column_names_with_alias
-            unless defined?(@column_names_with_alias)
+            unless @column_names_with_alias
               @column_names_with_alias = []
 
               ([primary_key] + (column_names - [primary_key])).each_with_index do |column_name, i|
                 @column_names_with_alias << [column_name, "#{aliased_prefix}_r#{i}"]
               end
             end
-
             @column_names_with_alias
           end
 
