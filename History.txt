@@ -3,6 +3,7 @@
 * Bug fixes
 
   * #lock will lock SELECT statements "FOR UPDATE" on mysql
+  * Nodes::Node#not factory method added for creating Nodes::Not nodes
 
 == 2.0.4
 

@@ -4,6 +4,13 @@ module Arel
     # Abstract base class for all AST nodes
     class Node
       ###
+      # Factory method to create a Nodes::Not node that has the recipient of
+      # the caller as a child.
+      def not
+        Nodes::Not.new self
+      end
+
+      ###
       # Factory method to create a Nodes::Grouping node that has an Nodes::Or
       # node as a child.
       def or right

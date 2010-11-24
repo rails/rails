@@ -191,6 +191,10 @@ module Arel
         "ON #{visit o.expr}"
       end
 
+      def visit_Arel_Nodes_Not o
+        "NOT #{visit o.expr}"
+      end
+
       def visit_Arel_Table o
         if o.table_alias
           "#{quote_table_name o.name} #{quote_table_name o.table_alias}"

@@ -33,6 +33,11 @@ module Arel
         @visitor.accept 2.14
       end
 
+      it "should visit_Not" do
+        sql = @visitor.accept Nodes::Not.new(Arel.sql("foo"))
+        sql.must_be_like "NOT foo"
+      end
+
       it "should visit_Bignum" do
         @visitor.accept 8787878092
       end

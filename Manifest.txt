@@ -43,6 +43,7 @@ lib/arel/nodes/matches.rb
 lib/arel/nodes/max.rb
 lib/arel/nodes/min.rb
 lib/arel/nodes/node.rb
+lib/arel/nodes/not.rb
 lib/arel/nodes/not_equal.rb
 lib/arel/nodes/not_in.rb
 lib/arel/nodes/offset.rb
@@ -84,6 +85,7 @@ test/nodes/test_count.rb
 test/nodes/test_delete_statement.rb
 test/nodes/test_equality.rb
 test/nodes/test_insert_statement.rb
+test/nodes/test_not.rb
 test/nodes/test_or.rb
 test/nodes/test_select_core.rb
 test/nodes/test_select_statement.rb
