@@ -51,7 +51,12 @@ module ActiveRecord
 
       topic.attributes = dbtopic.attributes
 
+      #duped has no timestamp values
       duped = dbtopic.dup
+
+      #clear topic timestamp values
+      topic.send(:clear_timestamp_attributes)
+
       assert_equal topic.changes, duped.changes
     end
 
@@ -75,5 +80,24 @@ module ActiveRecord
       assert_equal 'Aaron', topic.author_name
       assert_equal 'meow', duped.author_name
     end
+
+    def test_dup_timestamps_are_cleared
+      topic = Topic.first
+      assert_not_nil topic.updated_at
+      assert_not_nil topic.created_at
+
+      # temporary change to the topic object
+      topic.updated_at -= 3.days
+
+      #dup should not preserve the timestamps if present
+      new_topic = topic.dup
+      assert_nil new_topic.updated_at
+      assert_nil new_topic.created_at
+
+      new_topic.save
+      assert_not_nil new_topic.updated_at
+      assert_not_nil new_topic.created_at
+    end
+
   end
 end
