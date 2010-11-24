@@ -1833,7 +1833,7 @@ MSG
         end
       end
 
-      # Clear attributes and changged_attributes
+      # Clear attributes and changed_attributes
       def clear_timestamp_attributes
         %w(created_at created_on updated_at updated_on).each do |attribute_name|
           if self.has_attribute?(attribute_name)
