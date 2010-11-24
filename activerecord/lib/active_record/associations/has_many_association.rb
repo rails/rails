@@ -42,7 +42,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded if count == 0
 
-          @reflection.options[:limit] ? [@reflection.options[:limit], count].min : count
+          [@reflection.options[:limit], count].compact.min
         end
 
         def has_cached_counter?
