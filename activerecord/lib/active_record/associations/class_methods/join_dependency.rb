@@ -33,6 +33,14 @@ module ActiveRecord
           join_parts.first
         end
 
+        def columns(connection)
+          join_parts.collect { |join_part|
+            join_part.column_names_with_alias.collect{ |column_name, aliased_name|
+              "#{connection.quote_table_name join_part.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"
+            }
+          }.flatten.join(", ")
+        end
+
         def count_aliases_from_table_joins(name)
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = join_base.active_record.connection.quote_table_name(name.downcase).downcase

@@ -202,7 +202,7 @@ module ActiveRecord
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(column_aliases(join_dependency))
+      relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns(connection))
       apply_join_dependency(relation, join_dependency)
     end
 
@@ -349,17 +349,8 @@ module ActiveRecord
       end
     end
 
-    def column_aliases(join_dependency)
-      join_dependency.join_parts.collect { |join_part|
-        join_part.column_names_with_alias.collect{ |column_name, aliased_name|
-          "#{connection.quote_table_name join_part.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"
-        }
-      }.flatten.join(", ")
-    end
-
     def using_limitable_reflections?(reflections)
       reflections.none? { |r| r.collection? }
     end
-
   end
 end
