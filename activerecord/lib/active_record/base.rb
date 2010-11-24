@@ -1605,6 +1605,7 @@ MSG
       # only, not its associations. The extent of a "deep" copy is application
       # specific and is therefore left to the application to implement according
       # to its need.
+      # The dup method does not preserve the timestamps (created|updated)_(at|on).
       def initialize_dup(other)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
