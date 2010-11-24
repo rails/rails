@@ -102,7 +102,7 @@ module ActiveRecord
 
       def reset
         reset_target!
-        reset_named_scopes_cache!
+        reset_scopes_cache!
         @loaded = false
       end
 
@@ -160,7 +160,7 @@ module ActiveRecord
         load_target
         delete(@target)
         reset_target!
-        reset_named_scopes_cache!
+        reset_scopes_cache!
       end
 
       # Calculate sum using SQL, not Enumerable
@@ -253,7 +253,7 @@ module ActiveRecord
         load_target
         destroy(@target).tap do
           reset_target!
-          reset_named_scopes_cache!
+          reset_scopes_cache!
         end
       end
 
@@ -409,9 +409,9 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           elsif @reflection.klass.scopes[method]
-            @_named_scopes_cache ||= {}
-            @_named_scopes_cache[method] ||= {}
-            @_named_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
+            @_scopes_cache ||= {}
+            @_scopes_cache[method] ||= {}
+            @_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
           else
             with_scope(@scope) do
               if block_given?
@@ -442,8 +442,8 @@ module ActiveRecord
           @target = Array.new
         end
 
-        def reset_named_scopes_cache!
-          @_named_scopes_cache = {}
+        def reset_scopes_cache!
+          @_scopes_cache = {}
         end
 
         def find_target

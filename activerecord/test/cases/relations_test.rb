@@ -36,7 +36,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [], relation.bind_values
   end
 
-  def test_two_named_scopes_with_includes_should_not_drop_any_include
+  def test_two_scopes_with_includes_should_not_drop_any_include
     car = Car.incl_engines.incl_tyres.first
     assert_no_queries { car.tyres.length }
     assert_no_queries { car.engines.length }
@@ -248,7 +248,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_respond_to_class_methods_and_named_scopes
+  def test_respond_to_class_methods_and_scopes
     assert DeveloperOrderedBySalary.scoped.respond_to?(:all_ordered_by_name)
     assert Topic.scoped.respond_to?(:by_lifo)
   end
@@ -754,7 +754,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'zyke', FastCar.order('name desc').find(:first, :order => 'id').name
   end
 
-  def test_default_scope_order_with_named_scope_order
+  def test_default_scope_order_with_scope_order
     assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
     assert_equal 'zyke', CoolCar.order_using_old_style.limit(1).first.name
     assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
