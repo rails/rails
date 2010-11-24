@@ -17,6 +17,7 @@ lib/arel/expressions.rb
 lib/arel/insert_manager.rb
 lib/arel/nodes.rb
 lib/arel/nodes/and.rb
+lib/arel/nodes/as.rb
 lib/arel/nodes/assignment.rb
 lib/arel/nodes/avg.rb
 lib/arel/nodes/between.rb
@@ -81,6 +82,7 @@ lib/arel/visitors/visitor.rb
 lib/arel/visitors/where_sql.rb
 test/attributes/test_attribute.rb
 test/helper.rb
+test/nodes/test_as.rb
 test/nodes/test_count.rb
 test/nodes/test_delete_statement.rb
 test/nodes/test_equality.rb

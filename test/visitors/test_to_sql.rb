@@ -38,6 +38,12 @@ module Arel
         sql.must_be_like "NOT foo"
       end
 
+      it "should visit_As" do
+        as = Nodes::As.new(Arel.sql("foo"), Arel.sql("bar"))
+        sql = @visitor.accept as
+        sql.must_be_like "foo AS bar"
+      end
+
       it "should visit_Bignum" do
         @visitor.accept 8787878092
       end

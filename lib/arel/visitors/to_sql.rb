@@ -250,6 +250,10 @@ module Arel
         end
       end
 
+      def visit_Arel_Nodes_As o
+        "#{visit o.left} AS #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_UnqualifiedColumn o
         "#{quote_column_name o.name}"
       end

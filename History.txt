@@ -4,6 +4,7 @@
 
   * #lock will lock SELECT statements "FOR UPDATE" on mysql
   * Nodes::Node#not factory method added for creating Nodes::Not nodes
+  * Added an As node
 
 == 2.0.4
 
