@@ -1,12 +1,10 @@
-# encoding: UTF-8
-require 'rubygems'
+#!/usr/bin/env rake
 begin
   require 'bundler/setup'
 rescue LoadError
   puts 'You must `gem install bundler` and `bundle install` to run rake tasks'
 end
 
-require 'rake'
 require 'rake/rdoctask'
 
 Rake::RDocTask.new(:rdoc) do |rdoc|
