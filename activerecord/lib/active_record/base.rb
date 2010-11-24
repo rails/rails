@@ -1625,6 +1625,7 @@ MSG
 
         ensure_proper_type
         populate_with_current_scope_attributes
+        clear_timestamp_attributes
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -1829,6 +1830,16 @@ MSG
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
           create_with.each { |att,value| self.respond_to?(:"#{att}=") && self.send("#{att}=", value) } if create_with
+        end
+      end
+
+      # Clear attributes and changged_attributes
+      def clear_timestamp_attributes
+        %w(created_at created_on updated_at updated_on).each do |attribute_name|
+          if self.has_attribute?(attribute_name)
+            self[attribute_name] = nil
+            self.changed_attributes.delete(attribute_name)
+          end
         end
       end
   end
