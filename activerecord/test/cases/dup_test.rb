@@ -13,7 +13,7 @@ module ActiveRecord
       topic = Topic.first
 
       duped = topic.dup
-      assert !topic.readonly?, 'should not be readonly'
+      assert !duped.readonly?, 'should not be readonly'
     end
 
     def test_is_readonly
@@ -21,7 +21,7 @@ module ActiveRecord
       topic.readonly!
 
       duped = topic.dup
-      assert topic.readonly?, 'should be readonly'
+      assert duped.readonly?, 'should be readonly'
     end
 
     def test_dup_not_persisted
