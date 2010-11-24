@@ -120,7 +120,11 @@ module Mime
             params, q = header.split(/;\s*q=/)
             if params
               params.strip!
-              list << AcceptItem.new(index, params, q) unless params.empty?
+              if params =~ TRAILING_STAR_REGEXP
+                parse_data_with_trailing_star($1).each { |m| list << AcceptItem.new(index, m.to_s, q) }
+              else
+                list << AcceptItem.new(index, params, q) unless params.empty?
+              end
             end
           end
           list.sort!

@@ -29,6 +29,26 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "parse text with trailing star at the beginning" do
+    accept = "text/*, text/html, application/json, multipart/form-data"
+    expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::TEXT, Mime::YAML, Mime::JS, Mime::MULTIPART_FORM]
+    parsed = Mime::Type.parse(accept)
+    assert_equal expect.size, parsed.size
+    Range.new(0,expect.size-1).to_a.each do |index|
+      assert_equal expect[index], parsed[index], "Failed for index number #{index}"
+    end
+  end
+
+  test "parse text with trailing star in the end" do
+    accept = "text/html, application/json, multipart/form-data, text/*"
+    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::XML, Mime::ICS, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+    parsed = Mime::Type.parse(accept)
+    assert_equal 10, parsed.size
+    Range.new(0,expect.size-1).to_a.each do |index|
+      assert_equal expect[index], parsed[index], "Failed for index number #{index}"
+    end
+  end
+
   test "parse text with trailing star" do
     accept = "text/*"
     expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT].sort_by(&:to_s)
