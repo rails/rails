@@ -108,7 +108,7 @@ module ActiveRecord
         end
 
         def we_can_set_the_inverse_on_this?(record)
-          !@reflection.inverse_of.nil?
+          @reflection.inverse_of
         end
     end
   end
