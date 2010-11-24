@@ -35,7 +35,7 @@ module ActiveRecord
 
         def columns
           join_parts.collect { |join_part|
-            table = Arel::Nodes::TableAlias.new join_part.aliased_table_name, nil
+            table = join_part.aliased_table
             join_part.column_names_with_alias.collect{ |column_name, aliased_name|
               table[column_name].as aliased_name
             }

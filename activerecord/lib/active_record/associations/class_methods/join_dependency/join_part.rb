@@ -21,6 +21,10 @@ module ActiveRecord
             @cached_record = {}
           end
 
+          def aliased_table
+            Arel::Nodes::TableAlias.new aliased_table_name, table
+          end
+
           def ==(other)
             raise NotImplementedError
           end
