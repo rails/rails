@@ -235,12 +235,12 @@ module ActiveRecord
 
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
-        return self if length.zero? # forces load_target if it hasn't happened already
-
-        if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
-          destroy_all
-        else
-          delete_all
+        unless length.zero? # forces load_target if it hasn't happened already
+          if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
+            destroy_all
+          else
+            delete_all
+          end
         end
 
         self
