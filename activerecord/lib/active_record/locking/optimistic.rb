@@ -70,7 +70,7 @@ module ActiveRecord
             result[self.class.locking_column] ||= 0
           end
 
-          return result
+          result
         end
 
         def update(attribute_names = @attributes.keys) #:nodoc:
