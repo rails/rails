@@ -89,7 +89,7 @@ module ActiveRecord
 
             affected_rows = relation.where(
               relation.table[self.class.primary_key].eq(quoted_id).and(
-                relation.table[self.class.locking_column].eq(quote_value(previous_value))
+                relation.table[lock_col].eq(quote_value(previous_value))
               )
             ).arel.update(arel_attributes_values(false, false, attribute_names))
 
@@ -111,8 +111,9 @@ module ActiveRecord
 
           if persisted?
             table = self.class.arel_table
-            predicate = table[self.class.primary_key].eq(id)
-            predicate = predicate.and(table[self.class.locking_column].eq(send(self.class.locking_column).to_i))
+            lock_col = self.class.locking_column
+            predicate = table[self.class.primary_key].eq(id).
+              and(table[lock_col].eq(send(lock_col).to_i))
 
             affected_rows = self.class.unscoped.where(predicate).delete_all
 
