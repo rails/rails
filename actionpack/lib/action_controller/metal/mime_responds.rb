@@ -278,7 +278,7 @@ module ActionController #:nodoc:
 
       def initialize(mimes, &block)
         @order, @responses, @default_response = [], {}, block
-        mimes.each { |mime| self.send(mime) }
+        mimes.each { |mime| send(mime) }
       end
 
       def any(*args, &block)
