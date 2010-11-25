@@ -357,8 +357,7 @@ module ActiveRecord
         return false unless record.is_a?(@reflection.klass)
         return include_in_memory?(record) unless record.persisted?
         load_target if @reflection.options[:finder_sql] && !loaded?
-        return @target.include?(record) if loaded?
-        exists?(record)
+        loaded? ? @target.include?(record) : exists?(record)
       end
 
       def proxy_respond_to?(method, include_private = false)
