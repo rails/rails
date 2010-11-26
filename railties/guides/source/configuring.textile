@@ -247,8 +247,6 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 * +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
-* +ENV['RAILS_GEM_VERSION']+ defines the version of the Rails gems to use, if +RAILS_GEM_VERSION+ is not defined in your +environment.rb+ file.
-
 h3. Changelog
 
 * August 13, 2009: Updated with config syntax and added general configuration options by "John Pignata"
