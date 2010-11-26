@@ -16,17 +16,23 @@ module ActionDispatch
   # Examples for writing:
   #
   #   # Sets a simple session cookie.
+  #   # This cookie will be deleted when the user's browser is closed.
   #   cookies[:user_name] = "david"
+  #
+  #   # Assign an array of values to a cookie.
+  #   cookies[:lat_lon] = [47.68, -122.37]
   #
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents a user from tampering with its value.
-  #   # You must specify a value in ActionController::Base.cookie_verifier_secret.
-  #   cookies.signed[:remember_me] = [current_user.id, current_user.salt]
+  #   # The cookie is signed by your app's <tt>config.secret_token</tt> value.
+  #   # Rails generates this value by default when you create a new Rails app.
+  #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets a "permanent" cookie (which expires in 20 years from now).
   #   cookies.permanent[:login] = "XJ-122"
+  #
   #   # You can also chain these methods:
   #   cookies.permanent.signed[:login] = "XJ-122"
   #
@@ -34,6 +40,7 @@ module ActionDispatch
   #
   #   cookies[:user_name] # => "david"
   #   cookies.size        # => 2
+  #   cookies[:lat_lon]   # => [47.68, -122.37]
   #
   # Example for deleting:
   #
@@ -275,7 +282,7 @@ module ActionDispatch
             "integrity hash for cookie session data. Use " +
             "config.secret_token = \"some secret phrase of at " +
             "least #{SECRET_MIN_LENGTH} characters\"" +
-            "in config/application.rb"
+            "in config/initializers/secret_token.rb"
         end
 
         if secret.length < SECRET_MIN_LENGTH
