@@ -121,8 +121,6 @@ h4. Configuring Action Controller
 
 WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
-* +config.action_controller.param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
-
 * +config.action_controller.default_charset+ specifies the default character set for all renders. The default is "utf-8".
 
 * +config.action_controller.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
