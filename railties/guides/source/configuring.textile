@@ -32,14 +32,14 @@ In general, the work of configuring Rails means configuring the components of Ra
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object:
 
 <ruby>
-config.active_record.timestamped_migrations = false
+  config.active_record.timestamped_migrations = false
 </ruby>
 
 Rails will use that particular setting to configure Active Record.
 
 h4. Rails General Configuration
 
-* +config.cache_classes+ controls whether or not application classes should be reloaded on each request.
+* +config.cache_classes+ controls whether or not application classes should be reloaded on each request. Defaults to _true_ in development, _false_ in test and production.
 
 * +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class.
 
