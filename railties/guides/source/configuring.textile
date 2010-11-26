@@ -67,8 +67,6 @@ h4. Rails General Configuration
 
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* +config.view_path+ sets the path of the root of an application's views. Defaults to +app/views+.
-
 * +config.whiny_nils+ enables or disabled warnings when an methods of nil are invoked. Defaults to _false_.
 
 h4. Configuring i18n
