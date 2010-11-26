@@ -13,7 +13,7 @@ Rails offers (at least) four good spots to place initialization code:
 
 * application.rb
 * Environment-specific Configuration Files
-* Initializers (load_application_initializers)
+* Initializers
 * After-Initializers
 
 h3. Running Code Before Rails
