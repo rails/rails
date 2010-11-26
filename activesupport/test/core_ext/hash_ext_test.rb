@@ -6,6 +6,15 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 
 class HashExtTest < Test::Unit::TestCase
+  class IndifferentHash < HashWithIndifferentAccess
+  end
+  
+  class SubclassingArray < Array
+  end
+
+  class SubclassingHash < Hash
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
@@ -97,6 +106,11 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @strings, @symbols.with_indifferent_access.dup.stringify_keys!
     assert_equal @strings, @strings.with_indifferent_access.dup.stringify_keys!
     assert_equal @strings, @mixed.with_indifferent_access.dup.stringify_keys!
+  end
+
+  def test_hash_subclass
+    flash = { "foo" => SubclassingHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of SubclassingHash, flash["foo"]
   end
 
   def test_indifferent_assorted
