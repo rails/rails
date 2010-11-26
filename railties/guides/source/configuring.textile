@@ -23,10 +23,10 @@ To run some code before Rails itself is loaded, simply put it above the call to
 
 h3. Configuring Rails Components
 
-In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The +application.rb+ and environment-specific configuration files (such as +config/environments/production.rb+) allow you to specify the various settings that you want to pass down to all of the components. For example, the default Rails 2.3 +application.rb+ file includes one setting:
+In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The +application.rb+ and environment-specific configuration files (such as +config/environments/production.rb+) allow you to specify the various settings that you want to pass down to all of the components. For example, the default Rails 3.0 +application.rb+ file includes this setting:
 
 <ruby>
-config.filter_parameters << :password
+  config.filter_parameters += [:password]
 </ruby>
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object:
