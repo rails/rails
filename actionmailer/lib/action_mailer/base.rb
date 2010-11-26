@@ -234,8 +234,8 @@ module ActionMailer #:nodoc:
   #     default :sender => 'system@example.com'
   #   end
   #
-  # You can pass in any header value that a <tt>Mail::Message</tt>, out of the box, <tt>ActionMailer::Base</tt>
-  # sets the following:
+  # You can pass in any header value that a <tt>Mail::Message</tt> accepts. Out of the box,
+  # <tt>ActionMailer::Base</tt> sets the following:
   #
   # * <tt>:mime_version => "1.0"</tt>
   # * <tt>:charset      => "UTF-8",</tt>
