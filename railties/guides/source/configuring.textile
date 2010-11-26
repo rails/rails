@@ -132,6 +132,29 @@ Every Rails application comes with a standard set of middleware which it uses in
 * +ActionDispatch::Head+ converts HEAD requests to GET requests and serves them as so.
 * +ActionDispatch::BestStandardsSupport+ enables "best standards support" so that IE8 renders some elements correctly.
 
+Besides these usual middleware, you can add your own by using the +config.middleware.use+ method:
+
+<ruby>
+  config.middleware.use Magical::Unicorns
+</ruby>
+
+This will put the +Magical::Unicorns+ middleware on the end of the stack. If you wish to put this middleware before another use +insert_before+:
+
+<ruby>
+  config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
+</ruby>
+
+There's also +insert_after+ which will insert a middleware _after_ another:
+
+<ruby>
+  config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
+</ruby>
+
+Middlewares can also be completely swapped out and replaced with others:
+
+<ruby>
+  config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
+</ruby>
 
 h4. Configuring i18n
 
