@@ -53,14 +53,11 @@ h4. Rails General Configuration
 
 * +config.eager_load_paths+ accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. All elements of this array must also be in +load_paths+.
 
-
 * +config.log_level+ defines the verbosity of the Rails logger. In production mode, this defaults to +:info+. In development mode, it defaults to +:debug+.
 
 * +config.log_path+ overrides the path to the log file to use. Defaults to +log/#{environment}.log+ (e.g. log/development.log or log/production.log).
 
 * +config.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
-
-* +config.plugin_loader+ overrides the class that handles loading each plugin. Defaults to +Rails::Plugin::Loader+.
 
 * +config.plugin_locators+ overrides the class that handle finding the desired plugins that you‘d like to load for your application. By default it is the +Rails::Plugin::FileSystemLocator+.
 
