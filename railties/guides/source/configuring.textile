@@ -59,8 +59,6 @@ h4. Rails General Configuration
 
 * +config.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
 
-* +config.plugin_paths+ overrides the path to the root of the plugins directory. Defaults to +vendor/plugins+.
-
 * +config.plugins+ accepts the list of plugins to load. If this is set to nil, all plugins will be loaded. If this is set to [], no plugins will be loaded. Otherwise, plugins will be loaded in the order specified.
 
 * +config.preload_frameworks+ enables or disables preloading all frameworks at startup.
