@@ -127,8 +127,6 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 
 * +config.action_controller.request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
 
-* +config.action_controller.optimise_named_routes+ turns on some optimizations in generating the routing table. It is set to +true+ by default.
-
 * +config.action_controller.allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
 
 * +config.action_controller.relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
