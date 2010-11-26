@@ -65,8 +65,6 @@ h4. Rails General Configuration
 
 * +config.reload_plugins+ enables or disables plugin reloading.
 
-* +config.root_path+ configures the root path of the application.
-
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.view_path+ sets the path of the root of an application's views. Defaults to +app/views+.
