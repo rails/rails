@@ -127,7 +127,7 @@ You can now run tests as you did for +sqlite3+:
 rake test_mysql
 </shell>
 
-You can also +myqsl+ with +postgresql+, +jdbcmysql+, +jdbcsqlite3+ or +jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
+You can also replace +myqsl+ with +postgresql+, +jdbcmysql+, +jdbcsqlite3+ or +jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
 
 NOTE: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite 3. Subtle differences between the various Active Record database adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
