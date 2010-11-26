@@ -271,10 +271,10 @@ end
 
 <ruby>
 scope 'es' do
-  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'projeto'
+  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'proyecto'
 end
 
-# Gives you the edit action with /es/projeto/1/cambiar
+# Gives you the edit action with /es/proyecto/1/cambiar
 </ruby>
 
 * Added +root+ method to the router as a short cut for <tt>match '/', :to => path</tt>.

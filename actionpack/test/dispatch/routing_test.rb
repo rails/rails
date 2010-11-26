@@ -155,6 +155,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :replies do
+        collection do
+          get 'page/:page' => 'replies#index', :page => %r{\d+}
+          get ':page' => 'replies#index', :page => %r{\d+}
+        end
+
         new do
           post :preview
         end
@@ -1246,6 +1251,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/shorthand', account_shorthand_path
       get '/account/shorthand'
       assert_equal 'account#shorthand', @response.body
+    end
+  end
+
+  def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
+    with_test_routes do
+      assert_equal '/replies', replies_path
     end
   end
 

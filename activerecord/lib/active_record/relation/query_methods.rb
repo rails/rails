@@ -143,7 +143,7 @@ module ActiveRecord
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
         reverse_sql_order(order_clause)
 
-      relation.order(Arel::SqlLiteral.new(order))
+      relation.order(Arel.sql(order))
     end
 
     def arel
@@ -176,10 +176,7 @@ module ActiveRecord
 
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
-      (@where_values - ['']).uniq.each do |where|
-        where = Arel.sql(where) if String === where
-        arel = arel.where(Arel::Nodes::Grouping.new(where))
-      end
+      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
 
       arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
@@ -199,6 +196,27 @@ module ActiveRecord
     end
 
     private
+
+    def collapse_wheres(arel, wheres)
+      equalities = wheres.grep(Arel::Nodes::Equality)
+
+      groups = equalities.group_by do |equality|
+        equality.left
+      end
+
+      groups.each do |_, eqls|
+        test = eqls.inject(eqls.shift) do |memo, expr|
+          memo.or(expr)
+        end
+        arel = arel.where(test)
+      end
+
+      (wheres - equalities).each do |where|
+        where = Arel.sql(where) if String === where
+        arel = arel.where(Arel::Nodes::Grouping.new(where))
+      end
+      arel
+    end
 
     def build_where(opts, other = [])
       case opts

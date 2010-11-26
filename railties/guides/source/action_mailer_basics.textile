@@ -478,4 +478,4 @@ In the test we send the email and store the returned object in the +email+ varia
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/25
+* September 30, 2010: Fixed typos and reformatted Action Mailer configuration table for better understanding. "Jaime Iniesta":http://jaimeiniesta.com

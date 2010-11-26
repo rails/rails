@@ -127,7 +127,7 @@ If you want to translate your Rails application to a *single language other than
 
 However, you would probably like to *provide support for more locales* in your application. In such case, you need to set and pass the locale between requests.
 
-WARNING: You may be tempted to store the chosen locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "_RESTful_":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
+WARNING: You may be tempted to store the chosen locale in a _session_ or a <em>cookie</em>. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "<em>RESTful</em>":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
 
 The _setting part_ is easy. You can set the locale in a +before_filter+ in the +ApplicationController+ like this:
 
@@ -253,7 +253,7 @@ match '/:locale' => 'dashboard#index'
 
 Do take special care about the *order of your routes*, so this route declaration does not "eat" other ones. (You may want to add it directly before the +root :to+ declaration.)
 
-IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitly, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master. See also the page "How to encode the current locale in the URL":http://rails-i18n.org/wiki/wikipages/how-to-encode-the-current-locale-in-the-url in the Rails i18n Wiki.
+NOTE: Have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master.
 
 h4. Setting the Locale from the Client Supplied Information
 
@@ -278,7 +278,7 @@ def extract_locale_from_accept_language_header
 end
 </ruby>
 
-Of course, in a production environment you would need much more robust code, and could use a plugin such as Iain Hecker's "http_accept_language":http://github.com/iain/http_accept_language/tree/master or even Rack middleware such as Ryan Tomayko's "locale":http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb.
+Of course, in a production environment you would need much more robust code, and could use a plugin such as Iain Hecker's "http_accept_language":http://github.com/iain/http_accept_language/tree/master or even Rack middleware such as Ryan Tomayko's "locale":http://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/locale.rb.
 
 h5. Using GeoIP (or Similar) Database
 
@@ -464,24 +464,24 @@ I18n.t 'message'
 The +translate+ method also takes a +:scope+ option which can contain one or more additional keys that will be used to specify a “namespace” or scope for a translation key:
 
 <ruby>
-I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
+I18n.t :record_invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
-This looks up the +:invalid+ message in the Active Record error messages.
+This looks up the +:record_invalid+ message in the Active Record error messages.
 
 Additionally, both the key and scopes can be specified as dot-separated keys as in:
 
 <ruby>
-I18n.translate :"activerecord.errors.messages.invalid"
+I18n.translate "activerecord.errors.messages.record_invalid"
 </ruby>
 
 Thus the following calls are equivalent:
 
 <ruby>
-I18n.t 'activerecord.errors.messages.invalid'
-I18n.t 'errors.messages.invalid', :scope => :active_record
-I18n.t :invalid, :scope => 'activerecord.errors.messages'
-I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
+I18n.t 'activerecord.errors.messages.record_invalid'
+I18n.t 'errors.messages.record_invalid', :scope => :active_record
+I18n.t :record_invalid, :scope => 'activerecord.errors.messages'
+I18n.t :record_invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
 h5. Defaults
@@ -697,7 +697,7 @@ activerecord.errors.models.user.attributes.name.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 errors.attributes.name.blank
-errors.messagges.blank
+errors.messages.blank
 </ruby>
 
 When your models are additionally using inheritance then the messages are looked up in the inheritance chain.
@@ -719,7 +719,7 @@ activerecord.errors.models.user.attributes.title.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 errors.attributes.title.blank
-errors.messagges.blank
+errors.messages.blank
 </ruby>
 
 This way you can provide special translations for various error messages at different points in your models inheritance chain and in the attributes, models, or default scopes.
@@ -889,8 +889,3 @@ fn1. Or, to quote "Wikipedia":http://en.wikipedia.org/wiki/Internationalization_
 fn2. Other backends might allow or require to use other formats, e.g. a GetText backend might allow to read GetText files.
 
 fn3. One of these reasons is that we don't want to imply any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
-
-
-h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/23

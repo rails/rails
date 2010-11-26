@@ -1216,6 +1216,12 @@ To insert something verbatim use the +raw+ helper rather than calling +html_safe
 <%= raw @cms.current_template %> <%# inserts @cms.current_template as is %>
 </erb>
 
+or, equivalently, use <tt><%==</tt>:
+
+<erb>
+<%== @cms.current_template %> <%# inserts @cms.current_template as is %>
+</erb>
+
 The +raw+ helper calls +html_safe+ for you:
 
 <ruby>
@@ -3406,8 +3412,6 @@ end
 NOTE: Defined in +active_support/core_ext/load_error.rb+.
 
 h3. Changelog
-
-"Lighthouse ticket":https://rails.lighthouseapp.com/projects/16213/tickets/67
 
 * August 10, 2010: Starts to take shape, added to the index.
 * April 18, 2009: Initial version by "Xavier Noria":credits.html#fxn

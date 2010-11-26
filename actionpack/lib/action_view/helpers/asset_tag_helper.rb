@@ -375,7 +375,10 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/body.js"></script>
       #     <script type="text/javascript" src="/javascripts/tail.js"></script>
       def self.register_javascript_expansion(expansions)
-        @@javascript_expansions.merge!(expansions)
+        expansions.each do |key, values|
+          @@javascript_expansions[key] ||= []
+          @@javascript_expansions[key] += Array(values)
+        end
       end
 
       # Register one or more stylesheet files to be included when <tt>symbol</tt>
@@ -390,7 +393,10 @@ module ActionView
       #     <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
       def self.register_stylesheet_expansion(expansions)
-        @@stylesheet_expansions.merge!(expansions)
+        expansions.each do |key, values|
+          @@stylesheet_expansions[key] ||= []
+          @@stylesheet_expansions[key] += Array(values)
+        end
       end
 
       def self.reset_javascript_include_default
@@ -860,7 +866,7 @@ module ActionView
         def determine_source(source, collection)
           case source
           when Symbol
-            collection[source] || raise(ArgumentError, "No expansion found for #{source.inspect}")
+            collection[source].present? ? collection[source] : raise(ArgumentError, "No expansion found for #{source.inspect}")
           else
             source
           end

@@ -12,9 +12,3 @@ ActiveSupport::Deprecation.debug = true
 
 require 'rubygems'
 require 'test/unit'
-
-begin
-  require 'ruby-debug'
-  Debugger.start
-rescue LoadError
-end

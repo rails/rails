@@ -817,8 +817,6 @@ NOTE: Certain exceptions are only rescuable from the +ApplicationController+ cla
 
 h3. Changelog
 
-"Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/17
-
 * February 17, 2009: Yet another proofread by Xavier Noria.
 
 * November 4, 2008: First release version by Tore Darell

@@ -590,7 +590,5 @@ Although Active Record does not provide any tools for working directly with such
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/6
-
 * July 15, 2010: minor typos corrected by "Jaime Iniesta":http://jaimeiniesta.com
 * September 14, 2008: initial version by "Frederick Cheung":credits.html#fcheung

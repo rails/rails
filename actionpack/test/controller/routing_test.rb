@@ -875,7 +875,15 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
   end
 
-  def test_route_requirements_with_anchor_chars_are_invalid
+  def test_route_constraints_on_request_object_with_anchors_are_valid
+    assert_nothing_raised do
+      set.draw do
+        match 'page/:id' => 'pages#show', :constraints => { :host => /^foo$/ }
+      end
+    end
+  end
+
+  def test_route_constraints_with_anchor_chars_are_invalid
     assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /^\d+/

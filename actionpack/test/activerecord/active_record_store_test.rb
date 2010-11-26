@@ -23,6 +23,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     def call_reset_session
       session[:foo]
       reset_session
+      reset_session if params[:twice]
       session[:foo] = "baz"
       head :ok
     end
@@ -71,6 +72,17 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_calling_reset_session_twice_does_not_raise_errors
+    with_test_route_set do
+      get '/call_reset_session', :twice => "true"
+      assert_response :success
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "baz"', response.body
     end
   end
 

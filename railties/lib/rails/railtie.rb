@@ -98,7 +98,7 @@ module Rails
   # If your railtie has rake tasks, you can tell Rails to load them through the method
   # rake tasks:
   #
-  #   class MyRailtie < Railtie
+  #   class MyRailtie < Rails::Railtie
   #     rake_tasks do
   #       load "path/to/my_railtie.tasks"
   #     end
@@ -108,7 +108,7 @@ module Rails
   # your generators at a different location, you can specify in your Railtie a block which
   # will load them during normal generators lookup:
   #
-  #   class MyRailtie < Railtie
+  #   class MyRailtie < Rails::Railtie
   #     generators do
   #       require "path/to/my_railtie_generator"
   #     end

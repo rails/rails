@@ -36,7 +36,7 @@ module ActionDispatch
       #
       #   GET /posts/5.xml   | request.format => Mime::XML
       #   GET /posts/5.xhtml | request.format => Mime::HTML
-      #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
+      #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
       #
       def format(view_path = [])
         formats.first
