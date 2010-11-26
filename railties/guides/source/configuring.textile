@@ -39,8 +39,6 @@ Rails will use that particular setting to configure Active Record.
 
 h4. Rails General Configuration
 
-* +config.routes_configuration_file+ overrides the default path for the routes configuration file. This defaults to +config/routes.rb+.
-
 * +config.cache_classes+ controls whether or not application classes should be reloaded on each request.
 
 * +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class.
