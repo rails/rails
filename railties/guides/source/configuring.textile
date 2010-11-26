@@ -195,10 +195,6 @@ There are a number of settings available on +config.action_mailer+:
   :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
 </ruby>
 
-* +config.action_mailer.default_implicit_parts_order+ - When a message is built implicitly (i.e. multiple parts are assembled from templates
-which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to +["text/html", "text/enriched", "text/plain"]+. Items that appear first in the array have higher priority in the mail client
-and appear last in the mime encoded message.
-
 h4. Configuring Active Resource
 
 There is a single configuration setting available on +config.active_resource+:
