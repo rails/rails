@@ -47,6 +47,8 @@ h4. Rails General Configuration
   end
 </ruby>
 
+* +config.app_generators+ alternate name for +config.generators+. See the "Configuring Generators" section below for how to use this.
+
 * +config.autoload_once_paths+ accepts an array of paths from which Rails will automatically load from only once. All elements of this array must also be in +autoload_paths+.
 
 * +config.autoload_paths+ accepts an array of additional paths to prepend to the load path. By default, all app, lib, vendor and mock paths are included in this list.
@@ -78,6 +80,31 @@ h4. Rails General Configuration
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.whiny_nils+ enables or disabled warnings when an methods of nil are invoked. Defaults to _false_.
+
+h4. Configuring Generators
+
+Rails 3 allows you to alter what generators are used with the +config.generators+ method. This method takes a block:
+
+<ruby>
+  config.generators do |g|
+    g.orm :active_record
+    g.test_framework :test_unit
+  end
+</ruby>
+
+The full set of methods that can be used in this block are as follows:
+
+* +force_plural+ allows pluralized model names. Defaults to _false_.
+* +helper+ defines whether or not to generate helpers. Defaults to _true_
+* +orm+ defines which orm to use. Defaults to _nil_, so will use Active Record by default.
+* +integration_tool+ defines which integration tool to use. Defaults to _nil_
+* +performance_tool+ defines which performance tool to use. Defaults to _nil_
+* +resource_controller+ defines which generator to use for generating a controller when using +rails generate resource+. Defaults to +:controller+.
+* +scaffold_controller+ different from +resource_controller+, defines which generator to use for generating a _scaffolded_ controller when using +rails generate scaffold+. Defaults to +:scaffold_controller+
+* +stylesheets+ turns on the hook for stylesheets in generators. Used in Rails for when the +scaffold+ generator is ran, but this hook can be used in other generates as well.
+* +test_framework+ defines which test framework to use. Defaults to _nil_, so will use Test::Unit by default.
+* +template_engine+ defines which template engine to use, such as ERB or Haml. Defaults to +:erb+.
+
 
 h4. Configuring i18n
 
