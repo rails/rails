@@ -195,8 +195,6 @@ There are a number of settings available on +config.action_mailer+:
 
 * +config.action_mailer.perform_deliveries+ specifies whether mail will actually be delivered. By default this is +true+; it can be convenient to set it to +false+ for testing.
 
-* +config.action_mailer.default_content_type+ specifies the default content type used for the main part of the message. It defaults to "text/plain"
-
 * +config.action_mailer.default_mime_version+ is the default MIME version for the message. It defaults to +1.0+.
 
 * +config.action_mailer.default_implicit_parts_order+ - When a message is built implicitly (i.e. multiple parts are assembled from templates
