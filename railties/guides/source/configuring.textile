@@ -77,6 +77,8 @@ h4. Rails General Configuration
 
 * +config.root+ configures the root path of the application.
 
+* +config.serve_static_assets+ configures Rails to serve static assets. Defaults to _true_, but in the production environment is turned off. The server software used to run the application should be used to serve the assets instead.
+
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.whiny_nils+ enables or disabled warnings when an methods of nil are invoked. Defaults to _false_.
