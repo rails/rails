@@ -430,6 +430,7 @@ ActiveRecord::Schema.define do
     t.references :number1_fan
     t.integer    :lock_version, :null => false, :default => 0
     t.string     :comments
+    t.timestamps
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|

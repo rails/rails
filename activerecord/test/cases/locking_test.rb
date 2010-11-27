@@ -99,6 +99,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, p1.lock_version
   end
 
+  def test_touch_existing_lock
+    p1 = Person.find(1)
+    assert_equal 0, p1.lock_version
+
+    p1.touch
+    assert_equal 1, p1.lock_version
+  end
+
 
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)
