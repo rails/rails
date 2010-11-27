@@ -439,13 +439,13 @@ module ActionDispatch
       # This will create a number of routes for each of the posts and comments
       # controller. For Admin::PostsController, Rails will create:
       #
-      #   GET	    /admin/photos
-      #   GET	    /admin/photos/new
-      #   POST	  /admin/photos
-      #   GET	    /admin/photos/1
-      #   GET	    /admin/photos/1/edit
-      #   PUT	    /admin/photos/1
-      #   DELETE  /admin/photos/1
+      #   GET	    /admin/posts
+      #   GET	    /admin/posts/new
+      #   POST	  /admin/posts
+      #   GET	    /admin/posts/1
+      #   GET	    /admin/posts/1/edit
+      #   PUT	    /admin/posts/1
+      #   DELETE  /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
       # Admin::PostsController, you could use
@@ -473,21 +473,19 @@ module ActionDispatch
       # not use scope. In the last case, the following paths map to
       # PostsController:
       #
-      #   GET	    /admin/photos
-      #   GET	    /admin/photos/new
-      #   POST	  /admin/photos
-      #   GET	    /admin/photos/1
-      #   GET	    /admin/photos/1/edit
-      #   PUT	    /admin/photos/1
-      #   DELETE  /admin/photos/1
+      #   GET	    /admin/posts
+      #   GET	    /admin/posts/new
+      #   POST	  /admin/posts
+      #   GET	    /admin/posts/1
+      #   GET	    /admin/posts/1/edit
+      #   PUT	    /admin/posts/1
+      #   DELETE  /admin/posts/1
       module Scoping
         def initialize(*args) #:nodoc:
           @scope = {}
           super
         end
 
-        # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
-        # to Admin::PostsController:
         # === Supported options
         # [:module]
         #   If you want to route /posts (without the prefix /admin) to
@@ -588,13 +586,13 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #     admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
-        #     admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
-        #  new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
-        # edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
-        #      admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
-        #      admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
-        #      admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        #      admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
+        #      admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
+        #   new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
+        #  edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
+        #       admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #       admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
+        #       admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         # === Supported options
         #
         # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
@@ -969,6 +967,22 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        #
+        # Resources can also be nested infinitely by using this block syntax:
+        #
+        #   resources :photos do
+        #     resources :comments
+        #   end
+        #
+        # This generates the following comments routes:
+        #
+        #   GET     /photos/:id/comments/new
+        #   POST    /photos/:id/comments
+        #   GET     /photos/:id/comments/:id
+        #   GET     /photos/:id/comments/:id/edit
+        #   PUT     /photos/:id/comments/:id
+        #   DELETE  /photos/:id/comments/:id
+        #
         # === Supported options
         # [:path_names]
         #   Allows you to change the paths of the seven default actions.
@@ -977,6 +991,21 @@ module ActionDispatch
         #     resources :posts, :path_names => { :new => "brand_new" }
         #
         #   The above example will now change /posts/new to /posts/brand_new
+        #
+        # [:module]
+        #   Set the module where the controller can be found. Defaults to nothing.
+        #
+        #     resources :posts, :module => "admin"
+        #
+        #   All requests to the posts resources will now go to +Admin::PostsController+.
+        #
+        # [:path]
+        #
+        #  Set a path prefix for this resource.
+        #
+        #     resources :posts, :path => "admin"
+        #
+        #  All actions for this resource will now be at +/admin/posts+.
         def resources(*resources, &block)
           options = resources.extract_options!
 
