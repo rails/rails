@@ -102,7 +102,7 @@ module Rails
 
       def set_default_accessors!
         self.rails_template = case options[:template]
-          when /^http:\/\//
+          when /^https:\/\//
             options[:template]
           when String
             File.expand_path(options[:template], Dir.pwd)
