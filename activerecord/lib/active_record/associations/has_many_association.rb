@@ -42,11 +42,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded if count == 0
 
-          if @reflection.options[:limit]
-            count = [ @reflection.options[:limit], count ].min
-          end
-
-          return count
+          [@reflection.options[:limit], count].compact.min
         end
 
         def has_cached_counter?
@@ -112,8 +108,7 @@ module ActiveRecord
         end
 
         def we_can_set_the_inverse_on_this?(record)
-          inverse = @reflection.inverse_of
-          return !inverse.nil?
+          @reflection.inverse_of
         end
     end
   end

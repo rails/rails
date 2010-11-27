@@ -28,6 +28,18 @@ module ActionDispatch
       assert_equal 'foo', uf.tempfile
     end
 
+    def test_delegates_path_to_tempfile
+      tf = Class.new { def path; 'thunderhorse' end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse', uf.path
+    end
+
+    def test_delegates_open_to_tempfile
+      tf = Class.new { def open; 'thunderhorse' end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse', uf.open
+    end
+
     def test_delegates_to_tempfile
       tf = Class.new { def read; 'thunderhorse' end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)

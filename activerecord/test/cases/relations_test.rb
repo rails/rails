@@ -14,11 +14,18 @@ require 'models/bird'
 require 'models/car'
 require 'models/engine'
 require 'models/tyre'
+require 'models/minivan'
 
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :tags, :taggings, :cars
+    :tags, :taggings, :cars, :minivans
+
+  def test_do_not_double_quote_string_id
+    van = Minivan.last
+    assert van
+    assert_equal van.id, Minivan.where(:minivan_id => van).to_a.first.minivan_id
+  end
 
   def test_bind_values
     relation = Post.scoped
@@ -449,6 +456,27 @@ class RelationTest < ActiveRecord::TestCase
     author = Author.first
     authors = Author.find_by_id([author])
     assert_equal author, authors
+  end
+
+  def test_find_all_using_where_twice_should_or_the_relation
+    david = authors(:david)
+    relation = Author.unscoped
+    relation = relation.where(:name => david.name)
+    relation = relation.where(:name => 'Santiago')
+    relation = relation.where(:id => david.id)
+    assert_equal [david], relation.all
+  end
+
+  def test_find_all_with_multiple_ors
+    david = authors(:david)
+    relation = [
+      { :name => david.name },
+      { :name => 'Santiago' },
+      { :name => 'tenderlove' },
+    ].inject(Author.unscoped) do |memo, param|
+      memo.where(param)
+    end
+    assert_equal [david], relation.all
   end
 
   def test_exists

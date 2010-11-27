@@ -683,5 +683,24 @@ module RailtiesTest
       app_generators = Rails.application.config.generators.options[:rails]
       assert_equal :test_unit    , app_generators[:test_framework]
     end
+
+    test "do not create table_name_prefix method if it already exists" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          def self.table_name_prefix
+            "foo"
+          end
+
+          class Engine < ::Rails::Engine
+            isolate_namespace(Bukkits)
+          end
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      assert_equal "foo", Bukkits.table_name_prefix
+    end
   end
 end

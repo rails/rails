@@ -363,8 +363,10 @@ module Rails
               _railtie
             end
 
-            define_method(:table_name_prefix) do
-              "#{name}_"
+            unless mod.respond_to?(:table_name_prefix)
+              define_method(:table_name_prefix) do
+                "#{name}_"
+              end
             end
          end
         end

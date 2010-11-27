@@ -1,6 +1,3 @@
-require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/module/aliasing'
-
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
   class IrreversibleMigration < ActiveRecordError
@@ -43,11 +40,11 @@ module ActiveRecord
   # Example of a simple migration:
   #
   #   class AddSsl < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
   #     end
   #
-  #     def self.down
+  #     def down
   #       remove_column :accounts, :ssl_enabled
   #     end
   #   end
@@ -63,7 +60,7 @@ module ActiveRecord
   # Example of a more complex migration that also needs to initialize data:
   #
   #   class AddSystemSettings < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
   #         t.string  :label
@@ -77,7 +74,7 @@ module ActiveRecord
   #                             :value => 1
   #     end
   #
-  #     def self.down
+  #     def down
   #       drop_table :system_settings
   #     end
   #   end
@@ -138,7 +135,7 @@ module ActiveRecord
   # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the
   # UTC formatted date and time that the migration was generated.
   #
-  # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
+  # You may then edit the <tt>up</tt> and <tt>down</tt> methods of
   # MyNewMigration.
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
@@ -147,11 +144,11 @@ module ActiveRecord
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       add_column :tablenames, :fieldname, :string
   #     end
   #
-  #     def self.down
+  #     def down
   #       remove_column :tablenames, :fieldname
   #     end
   #   end
@@ -179,11 +176,11 @@ module ActiveRecord
   # Not all migrations change the schema. Some just fix the data:
   #
   #   class RemoveEmptyTags < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       Tag.find(:all).each { |tag| tag.destroy if tag.pages.empty? }
   #     end
   #
-  #     def self.down
+  #     def down
   #       # not much we can do to restore deleted data
   #       raise ActiveRecord::IrreversibleMigration, "Can't recover the deleted tags"
   #     end
@@ -192,12 +189,12 @@ module ActiveRecord
   # Others remove columns when they migrate up instead of down:
   #
   #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
   #     end
   #
-  #     def self.down
+  #     def down
   #       add_column :items, :incomplete_items_count
   #       add_column :items, :completed_items_count
   #     end
@@ -206,11 +203,11 @@ module ActiveRecord
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
   #   class MakeJoinUnique < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
   #
-  #     def self.down
+  #     def down
   #       execute "ALTER TABLE `pages_linked_pages` DROP INDEX `page_id_linked_page_id`"
   #     end
   #   end
@@ -223,7 +220,7 @@ module ActiveRecord
   # latest column data from after the new column was added. Example:
   #
   #   class AddPeopleSalary < ActiveRecord::Migration
-  #     def self.up
+  #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
   #       Person.find(:all).each do |p|
@@ -243,7 +240,7 @@ module ActiveRecord
   # You can also insert your own messages and benchmarks by using the +say_with_time+
   # method:
   #
-  #   def self.up
+  #   def up
   #     ...
   #     say_with_time "Updating salaries..." do
   #       Person.find(:all).each do |p|
@@ -286,144 +283,200 @@ module ActiveRecord
   #
   # In application.rb.
   #
+  # == Reversible Migrations
+  #
+  # Starting with Rails 3.1, you will be able to define reversible migrations.
+  # Reversible migrations are migrations that know how to go +down+ for you.
+  # You simply supply the +up+ logic, and the Migration system will figure out
+  # how to execute the down commands for you.
+  #
+  # To define a reversible migration, define the +change+ method in your
+  # migration like this:
+  #
+  #   class TenderloveMigration < ActiveRecord::Migration
+  #     def change
+  #       create_table(:horses) do
+  #         t.column :content, :text
+  #         t.column :remind_at, :datetime
+  #       end
+  #     end
+  #   end
+  #
+  # This migration will create the horses table for you on the way up, and
+  # automatically figure out how to drop the table on the way down.
+  #
+  # Some commands like +remove_column+ cannot be reversed.  If you care to
+  # define how to move up and down in these cases, you should define the +up+
+  # and +down+ methods as before.
+  #
+  # If a command cannot be reversed, an
+  # <tt>ActiveRecord::IrreversibleMigration</tt> exception will be raised when
+  # the migration is moving down.
+  #
+  # For a list of commands that are reversible, please see
+  # <tt>ActiveRecord::Migration::CommandRecorder</tt>.
   class Migration
-    @@verbose = true
-    cattr_accessor :verbose
+    autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
     class << self
-      def up_with_benchmarks #:nodoc:
-        migrate(:up)
+      attr_accessor :delegate # :nodoc:
+    end
+
+    def self.method_missing(name, *args, &block) # :nodoc:
+      (delegate || superclass.delegate).send(name, *args, &block)
+    end
+
+    cattr_accessor :verbose
+
+    attr_accessor :name, :version
+
+    def initialize
+      @name       = self.class.name
+      @version    = nil
+      @connection = nil
+    end
+
+    # instantiate the delegate object after initialize is defined
+    self.verbose  = true
+    self.delegate = new
+
+    def up
+      self.class.delegate = self
+      return unless self.class.respond_to?(:up)
+      self.class.up
+    end
+
+    def down
+      self.class.delegate = self
+      return unless self.class.respond_to?(:down)
+      self.class.down
+    end
+
+    # Execute this migration in the named direction
+    def migrate(direction)
+      return unless respond_to?(direction)
+
+      case direction
+      when :up   then announce "migrating"
+      when :down then announce "reverting"
       end
 
-      def down_with_benchmarks #:nodoc:
-        migrate(:down)
-      end
-
-      # Execute this migration in the named direction
-      def migrate(direction)
-        return unless respond_to?(direction)
-
-        case direction
-          when :up   then announce "migrating"
-          when :down then announce "reverting"
-        end
-
-        result = nil
-        time = Benchmark.measure { result = send("#{direction}_without_benchmarks") }
-
-        case direction
-          when :up   then announce "migrated (%.4fs)" % time.real; write
-          when :down then announce "reverted (%.4fs)" % time.real; write
-        end
-
-        result
-      end
-
-      # Because the method added may do an alias_method, it can be invoked
-      # recursively. We use @ignore_new_methods as a guard to indicate whether
-      # it is safe for the call to proceed.
-      def singleton_method_added(sym) #:nodoc:
-        return if defined?(@ignore_new_methods) && @ignore_new_methods
-
-        begin
-          @ignore_new_methods = true
-
-          case sym
-            when :up, :down
-              singleton_class.send(:alias_method_chain, sym, "benchmarks")
-          end
-        ensure
-          @ignore_new_methods = false
-        end
-      end
-
-      def write(text="")
-        puts(text) if verbose
-      end
-
-      def announce(message)
-        version = defined?(@version) ? @version : nil
-
-        text = "#{version} #{name}: #{message}"
-        length = [0, 75 - text.length].max
-        write "== %s %s" % [text, "=" * length]
-      end
-
-      def say(message, subitem=false)
-        write "#{subitem ? "   ->" : "--"} #{message}"
-      end
-
-      def say_with_time(message)
-        say(message)
-        result = nil
-        time = Benchmark.measure { result = yield }
-        say "%.4fs" % time.real, :subitem
-        say("#{result} rows", :subitem) if result.is_a?(Integer)
-        result
-      end
-
-      def suppress_messages
-        save, self.verbose = verbose, false
-        yield
-      ensure
-        self.verbose = save
-      end
-
-      def connection
-        ActiveRecord::Base.connection
-      end
-
-      def method_missing(method, *arguments, &block)
-        arg_list = arguments.map{ |a| a.inspect } * ', '
-
-        say_with_time "#{method}(#{arg_list})" do
-          unless arguments.empty? || method == :execute
-            arguments[0] = Migrator.proper_table_name(arguments.first)
-          end
-          connection.send(method, *arguments, &block)
-        end
-      end
-
-      def copy(destination, sources, options = {})
-        copied = []
-
-        FileUtils.mkdir_p(destination) unless File.exists?(destination)
-
-        destination_migrations = ActiveRecord::Migrator.migrations(destination)
-        last = destination_migrations.last
-        sources.each do |name, path|
-          source_migrations = ActiveRecord::Migrator.migrations(path)
-
-          source_migrations.each do |migration|
-            source = File.read(migration.filename)
-            source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
-
-            if duplicate = destination_migrations.detect { |m| m.name == migration.name }
-              options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
-              next
+      time   = nil
+      ActiveRecord::Base.connection_pool.with_connection do |conn|
+        @connection = conn
+        if respond_to?(:change)
+          if direction == :down
+            recorder = CommandRecorder.new(@connection)
+            suppress_messages do
+              @connection = recorder
+              change
             end
-
-            migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
-            new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
-            old_path, migration.filename = migration.filename, new_path
-            last = migration
-
-            FileUtils.cp(old_path, migration.filename)
-            copied << migration
-            options[:on_copy].call(name, migration, old_path) if options[:on_copy]
-            destination_migrations << migration
+            @connection = conn
+            time = Benchmark.measure {
+              recorder.inverse.each do |cmd, args|
+                send(cmd, *args)
+              end
+            }
+          else
+            time = Benchmark.measure { change }
           end
+        else
+          time = Benchmark.measure { send(direction) }
         end
-
-        copied
+        @connection = nil
       end
 
-      def next_migration_number(number)
-        if ActiveRecord::Base.timestamped_migrations
-          [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
-        else
-          "%.3d" % number
+      case direction
+      when :up   then announce "migrated (%.4fs)" % time.real; write
+      when :down then announce "reverted (%.4fs)" % time.real; write
+      end
+    end
+
+    def write(text="")
+      puts(text) if verbose
+    end
+
+    def announce(message)
+      text = "#{version} #{name}: #{message}"
+      length = [0, 75 - text.length].max
+      write "== %s %s" % [text, "=" * length]
+    end
+
+    def say(message, subitem=false)
+      write "#{subitem ? "   ->" : "--"} #{message}"
+    end
+
+    def say_with_time(message)
+      say(message)
+      result = nil
+      time = Benchmark.measure { result = yield }
+      say "%.4fs" % time.real, :subitem
+      say("#{result} rows", :subitem) if result.is_a?(Integer)
+      result
+    end
+
+    def suppress_messages
+      save, self.verbose = verbose, false
+      yield
+    ensure
+      self.verbose = save
+    end
+
+    def connection
+      @connection || ActiveRecord::Base.connection
+    end
+
+    def method_missing(method, *arguments, &block)
+      arg_list = arguments.map{ |a| a.inspect } * ', '
+
+      say_with_time "#{method}(#{arg_list})" do
+        unless arguments.empty? || method == :execute
+          arguments[0] = Migrator.proper_table_name(arguments.first)
         end
+        return super unless connection.respond_to?(method)
+        connection.send(method, *arguments, &block)
+      end
+    end
+
+    def copy(destination, sources, options = {})
+      copied = []
+
+      FileUtils.mkdir_p(destination) unless File.exists?(destination)
+
+      destination_migrations = ActiveRecord::Migrator.migrations(destination)
+      last = destination_migrations.last
+      sources.each do |name, path|
+        source_migrations = ActiveRecord::Migrator.migrations(path)
+
+        source_migrations.each do |migration|
+          source = File.read(migration.filename)
+          source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
+
+          if duplicate = destination_migrations.detect { |m| m.name == migration.name }
+            options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
+            next
+          end
+
+          migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
+          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
+          old_path, migration.filename = migration.filename, new_path
+          last = migration
+
+          FileUtils.cp(old_path, migration.filename)
+          copied << migration
+          options[:on_copy].call(name, migration, old_path) if options[:on_copy]
+          destination_migrations << migration
+        end
+      end
+
+      copied
+    end
+
+    def next_migration_number(number)
+      if ActiveRecord::Base.timestamped_migrations
+        [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
+      else
+        "%.3d" % number
       end
     end
   end
@@ -451,7 +504,7 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize
+        name.constantize.new
       end
 
   end

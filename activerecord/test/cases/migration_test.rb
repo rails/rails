@@ -18,10 +18,11 @@ if ActiveRecord::Base.connection.supports_migrations?
   class ActiveRecord::Migration
     class <<self
       attr_accessor :message_count
-      def puts(text="")
-        self.message_count ||= 0
-        self.message_count += 1
-      end
+    end
+
+    def puts(text="")
+      self.class.message_count ||= 0
+      self.class.message_count += 1
     end
   end
 
@@ -1165,6 +1166,44 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
+    class MockMigration < ActiveRecord::Migration
+      attr_reader :went_up, :went_down
+      def initialize
+        @went_up   = false
+        @went_down = false
+      end
+
+      def up
+        @went_up = true
+        super
+      end
+
+      def down
+        @went_down = true
+        super
+      end
+    end
+
+    def test_instance_based_migration_up
+      migration = MockMigration.new
+      assert !migration.went_up, 'have not gone up'
+      assert !migration.went_down, 'have not gone down'
+
+      migration.migrate :up
+      assert migration.went_up, 'have gone up'
+      assert !migration.went_down, 'have not gone down'
+    end
+
+    def test_instance_based_migration_down
+      migration = MockMigration.new
+      assert !migration.went_up, 'have not gone up'
+      assert !migration.went_down, 'have not gone down'
+
+      migration.migrate :down
+      assert !migration.went_up, 'have gone up'
+      assert migration.went_down, 'have not gone down'
+    end
+
     def test_migrator_one_up
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
@@ -1312,20 +1351,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count > 0
+      assert_operator PeopleHaveLastNames.message_count, :>, 0
       PeopleHaveLastNames.message_count = 0
 
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count > 0
+      assert_operator PeopleHaveLastNames.message_count, :>, 0
       PeopleHaveLastNames.message_count = 0
     end
 
     def test_migrator_verbosity_off
       PeopleHaveLastNames.verbose = false
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, PeopleHaveLastNames.message_count
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, PeopleHaveLastNames.message_count
     end
 
     def test_migrator_going_down_due_to_version_target

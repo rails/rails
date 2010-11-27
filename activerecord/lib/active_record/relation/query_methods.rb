@@ -13,7 +13,7 @@ module ActiveRecord
     def includes(*args)
       args.reject! {|a| a.blank? }
 
-      return clone if args.empty?
+      return self if args.empty?
 
       relation = clone
       relation.includes_values = (relation.includes_values + args).flatten.uniq
@@ -21,14 +21,18 @@ module ActiveRecord
     end
 
     def eager_load(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.eager_load_values += args unless args.blank?
+      relation.eager_load_values += args
       relation
     end
 
     def preload(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.preload_values += args unless args.blank?
+      relation.preload_values += args
       relation
     end
 
@@ -43,22 +47,28 @@ module ActiveRecord
     end
 
     def group(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.group_values += args.flatten unless args.blank?
+      relation.group_values += args.flatten
       relation
     end
 
     def order(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.order_values += args.flatten unless args.blank?
+      relation.order_values += args.flatten
       relation
     end
 
     def joins(*args)
+      return self if args.blank?
+
       relation = clone
 
       args.flatten!
-      relation.joins_values += args unless args.blank?
+      relation.joins_values += args
 
       relation
     end
@@ -70,14 +80,18 @@ module ActiveRecord
     end
 
     def where(opts, *rest)
+      return self if opts.blank?
+
       relation = clone
-      relation.where_values += build_where(opts, rest) unless opts.blank?
+      relation.where_values += build_where(opts, rest)
       relation
     end
 
     def having(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.having_values += build_where(*args) unless args.blank?
+      relation.having_values += build_where(*args)
       relation
     end
 
@@ -141,7 +155,7 @@ module ActiveRecord
         "#{@klass.table_name}.#{@klass.primary_key} DESC" :
         reverse_sql_order(order_clause).join(', ')
 
-      except(:order).order(Arel::SqlLiteral.new(order))
+      except(:order).order(Arel.sql(order))
     end
 
     def arel
@@ -174,10 +188,7 @@ module ActiveRecord
 
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
-      (@where_values - ['']).uniq.each do |where|
-        where = Arel.sql(where) if String === where
-        arel = arel.where(Arel::Nodes::Grouping.new(where))
-      end
+      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
 
       arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
@@ -197,6 +208,27 @@ module ActiveRecord
     end
 
     private
+
+    def collapse_wheres(arel, wheres)
+      equalities = wheres.grep(Arel::Nodes::Equality)
+
+      groups = equalities.group_by do |equality|
+        equality.left
+      end
+
+      groups.each do |_, eqls|
+        test = eqls.inject(eqls.shift) do |memo, expr|
+          memo.or(expr)
+        end
+        arel = arel.where(test)
+      end
+
+      (wheres - equalities).each do |where|
+        where = Arel.sql(where) if String === where
+        arel = arel.where(Arel::Nodes::Grouping.new(where))
+      end
+      arel
+    end
 
     def build_where(opts, other = [])
       case opts

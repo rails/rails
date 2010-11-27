@@ -105,11 +105,16 @@ mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
        to 'rails'@'localhost';
 </shell>
 
-Then ensure you run bundle install without the +--without db+ option:
+Now you'll have to install Active Record dependencies. This step is a little tricky because just running +bundle install+ without the +--without db+ parameter won't get those dependencies installed. It turns out that bundler remembers the +--without db+ parameter between calls so you'll have to manually override this. (See the "+bundle_install+ man page":http://gembundler.com/man/bundle-install.1.html for details)
+
+The easiest way to do this is to remove bundler's config file and then run +install+ again:
 
 <shell>
+rm .bundle/config
 bundle install
 </shell>
+
+INFO: If you don't feel comfortable deleting bundler's config file, you can achieve the same effect by manually removing the "+BUNDLE_WITHOUT: db+" line on +.bundle/config+.
 
 Finally, enter this from the +activerecord+ directory to create the test databases:
 
@@ -127,7 +132,7 @@ You can now run tests as you did for +sqlite3+:
 rake test_mysql
 </shell>
 
-You can also +myqsl+ with +postgresql+, +jdbcmysql+, +jdbcsqlite3+ or +jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
+You can also replace +myqsl+ with +postgresql+, +jdbcmysql+, +jdbcsqlite3+ or +jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
 
 NOTE: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite 3. Subtle differences between the various Active Record database adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
@@ -189,7 +194,7 @@ h3. Contributing to the Rails Documentation
 
 Another area where you can help out if you're not yet ready to take the plunge to writing Rails core code is with Rails documentation. You can help with the Rails Guides or the Rails API documentation.
 
-TIP: "docrails":http://github.com/lifo/docrails/tree/master is the documentation branch for Rails with an *open commit policy*. You can simply PM "lifo":http://github.com/lifo on Github and ask for the commit rights. Documentation changes made as part of the "docrails":http://github.com/lifo/docrails/tree/master project are merged back to the Rails master code from time to time. Check out the "original announcement":http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch for more details.
+TIP: "docrails":http://github.com/lifo/docrails/tree/master is the documentation branch for Rails with an *open commit policy*, it has public write access. Documentation changes made as part of the "docrails":http://github.com/lifo/docrails/tree/master project are merged back to the Rails master code from time to time. Check out the "original announcement":http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch for more details.
 
 h4. The Rails Guides
 
@@ -299,8 +304,6 @@ It’s entirely possible that the feedback you get will suggest changes. Don’t
 And then...think about your next contribution!
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/64
 
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy

@@ -67,7 +67,7 @@ module ActiveRecord
             relation.insert(attributes)
           end
 
-          return true
+          true
         end
 
         def delete_records(records)
@@ -80,7 +80,7 @@ module ActiveRecord
             ).delete
           end
         end
-        
+
         def construct_joins
           "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end

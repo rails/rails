@@ -17,7 +17,7 @@ module AbstractController
       end
 
       def test_exception_is_thrown_without_host
-        assert_raise RuntimeError do
+        assert_raise ArgumentError do
           W.new.url_for :controller => 'c', :action => 'a', :id => 'i'
         end
       end
@@ -57,6 +57,27 @@ module AbstractController
         add_host!
         assert_equal('http://37signals.basecamphq.com/c/a/i',
           W.new.url_for(:host => '37signals.basecamphq.com', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_subdomain_may_be_changed
+        add_host!
+        assert_equal('http://api.basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => 'api', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_domain_may_be_changed
+        add_host!
+        assert_equal('http://www.37signals.com/c/a/i',
+          W.new.url_for(:domain => '37signals.com', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_tld_length_may_be_changed
+        add_host!
+        assert_equal('http://mobile.www.basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => 'mobile', :tld_length => 2, :controller => 'c', :action => 'a', :id => 'i')
         )
       end
 

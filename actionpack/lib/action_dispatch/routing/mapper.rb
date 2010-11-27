@@ -439,13 +439,13 @@ module ActionDispatch
       # This will create a number of routes for each of the posts and comments
       # controller. For Admin::PostsController, Rails will create:
       #
-      #   GET	    /admin/photos
-      #   GET	    /admin/photos/new
-      #   POST	  /admin/photos
-      #   GET	    /admin/photos/1
-      #   GET	    /admin/photos/1/edit
-      #   PUT	    /admin/photos/1
-      #   DELETE  /admin/photos/1
+      #   GET	    /admin/posts
+      #   GET	    /admin/posts/new
+      #   POST	  /admin/posts
+      #   GET	    /admin/posts/1
+      #   GET	    /admin/posts/1/edit
+      #   PUT	    /admin/posts/1
+      #   DELETE  /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
       # Admin::PostsController, you could use
@@ -473,21 +473,19 @@ module ActionDispatch
       # not use scope. In the last case, the following paths map to
       # PostsController:
       #
-      #   GET	    /admin/photos
-      #   GET	    /admin/photos/new
-      #   POST	  /admin/photos
-      #   GET	    /admin/photos/1
-      #   GET	    /admin/photos/1/edit
-      #   PUT	    /admin/photos/1
-      #   DELETE  /admin/photos/1
+      #   GET	    /admin/posts
+      #   GET	    /admin/posts/new
+      #   POST	  /admin/posts
+      #   GET	    /admin/posts/1
+      #   GET	    /admin/posts/1/edit
+      #   PUT	    /admin/posts/1
+      #   DELETE  /admin/posts/1
       module Scoping
         def initialize(*args) #:nodoc:
           @scope = {}
           super
         end
 
-        # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
-        # to Admin::PostsController:
         # === Supported options
         # [:module]
         #   If you want to route /posts (without the prefix /admin) to
@@ -588,13 +586,13 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #     admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
-        #     admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
-        #  new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
-        # edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
-        #      admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
-        #      admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
-        #      admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        #      admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
+        #      admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
+        #   new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
+        #  edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
+        #       admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #       admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
+        #       admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         # === Supported options
         #
         # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
@@ -707,61 +705,61 @@ module ActionDispatch
         end
 
         private
-          def scope_options
+          def scope_options #:nodoc:
             @scope_options ||= private_methods.grep(/^merge_(.+)_scope$/) { $1.to_sym }
           end
 
-          def merge_path_scope(parent, child)
+          def merge_path_scope(parent, child) #:nodoc:
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_shallow_path_scope(parent, child)
+          def merge_shallow_path_scope(parent, child) #:nodoc:
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_as_scope(parent, child)
+          def merge_as_scope(parent, child) #:nodoc:
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_shallow_prefix_scope(parent, child)
+          def merge_shallow_prefix_scope(parent, child) #:nodoc:
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_module_scope(parent, child)
+          def merge_module_scope(parent, child) #:nodoc:
             parent ? "#{parent}/#{child}" : child
           end
 
-          def merge_controller_scope(parent, child)
+          def merge_controller_scope(parent, child) #:nodoc:
             child
           end
 
-          def merge_path_names_scope(parent, child)
+          def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
 
-          def merge_constraints_scope(parent, child)
+          def merge_constraints_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
 
-          def merge_defaults_scope(parent, child)
+          def merge_defaults_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
 
-          def merge_blocks_scope(parent, child)
+          def merge_blocks_scope(parent, child) #:nodoc:
             merged = parent ? parent.dup : []
             merged << child if child
             merged
           end
 
-          def merge_options_scope(parent, child)
+          def merge_options_scope(parent, child) #:nodoc:
             (parent || {}).except(*override_keys(child)).merge(child)
           end
 
-          def merge_shallow_scope(parent, child)
+          def merge_shallow_scope(parent, child) #:nodoc:
             child ? true : false
           end
 
-          def override_keys(child)
+          def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
           end
       end
@@ -969,6 +967,22 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        #
+        # Resources can also be nested infinitely by using this block syntax:
+        #
+        #   resources :photos do
+        #     resources :comments
+        #   end
+        #
+        # This generates the following comments routes:
+        #
+        #   GET     /photos/:id/comments/new
+        #   POST    /photos/:id/comments
+        #   GET     /photos/:id/comments/:id
+        #   GET     /photos/:id/comments/:id/edit
+        #   PUT     /photos/:id/comments/:id
+        #   DELETE  /photos/:id/comments/:id
+        #
         # === Supported options
         # [:path_names]
         #   Allows you to change the paths of the seven default actions.
@@ -977,6 +991,21 @@ module ActionDispatch
         #     resources :posts, :path_names => { :new => "brand_new" }
         #
         #   The above example will now change /posts/new to /posts/brand_new
+        #
+        # [:module]
+        #   Set the module where the controller can be found. Defaults to nothing.
+        #
+        #     resources :posts, :module => "admin"
+        #
+        #   All requests to the posts resources will now go to +Admin::PostsController+.
+        #
+        # [:path]
+        #
+        #  Set a path prefix for this resource.
+        #
+        #     resources :posts, :path => "admin"
+        #
+        #  All actions for this resource will now be at +/admin/posts+.
         def resources(*resources, &block)
           options = resources.extract_options!
 
@@ -1167,7 +1196,7 @@ module ActionDispatch
             @scope[:scope_level_resource]
           end
 
-          def apply_common_behavior_for(method, resources, options, &block)
+          def apply_common_behavior_for(method, resources, options, &block) #:nodoc:
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
               return true
@@ -1197,23 +1226,23 @@ module ActionDispatch
             false
           end
 
-          def action_options?(options)
+          def action_options?(options) #:nodoc:
             options[:only] || options[:except]
           end
 
-          def scope_action_options?
+          def scope_action_options? #:nodoc:
             @scope[:options].is_a?(Hash) && (@scope[:options][:only] || @scope[:options][:except])
           end
 
-          def scope_action_options
+          def scope_action_options #:nodoc:
             @scope[:options].slice(:only, :except)
           end
 
-          def resource_scope?
+          def resource_scope? #:nodoc:
             [:resource, :resources].include?(@scope[:scope_level])
           end
 
-          def resource_method_scope?
+          def resource_method_scope? #:nodoc:
             [:collection, :member, :new].include?(@scope[:scope_level])
           end
 
@@ -1239,7 +1268,7 @@ module ActionDispatch
             @scope[:scope_level_resource] = old_resource
           end
 
-          def resource_scope(resource)
+          def resource_scope(resource) #:nodoc:
             with_scope_level(resource.is_a?(SingletonResource) ? :resource : :resources, resource) do
               scope(parent_resource.resource_scope) do
                 yield
@@ -1247,30 +1276,30 @@ module ActionDispatch
             end
           end
 
-          def nested_options
+          def nested_options #:nodoc:
             {}.tap do |options|
               options[:as] = parent_resource.member_name
               options[:constraints] = { "#{parent_resource.singular}_id".to_sym => id_constraint } if id_constraint?
             end
           end
 
-          def id_constraint?
+          def id_constraint? #:nodoc:
             @scope[:constraints] && @scope[:constraints][:id].is_a?(Regexp)
           end
 
-          def id_constraint
+          def id_constraint #:nodoc:
             @scope[:constraints][:id]
           end
 
-          def canonical_action?(action, flag)
+          def canonical_action?(action, flag) #:nodoc:
             flag && resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
-          def shallow_scoping?
+          def shallow_scoping? #:nodoc:
             shallow? && @scope[:scope_level] == :member
           end
 
-          def path_for_action(action, path)
+          def path_for_action(action, path) #:nodoc:
             prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
@@ -1281,11 +1310,11 @@ module ActionDispatch
             end
           end
 
-          def action_path(name, path = nil)
+          def action_path(name, path = nil) #:nodoc:
             path || @scope[:path_names][name.to_sym] || name.to_s
           end
 
-          def prefix_name_for_action(as, action)
+          def prefix_name_for_action(as, action) #:nodoc:
             if as
               as.to_s
             elsif !canonical_action?(action, @scope[:scope_level])
@@ -1293,12 +1322,14 @@ module ActionDispatch
             end
           end
 
-          def name_for_action(as, action)
+          def name_for_action(as, action) #:nodoc:
             prefix = prefix_name_for_action(as, action)
             prefix = Mapper.normalize_name(prefix) if prefix
             name_prefix = @scope[:as]
 
             if parent_resource
+              return nil if as.nil? && action.nil?
+
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
             end
@@ -1323,7 +1354,7 @@ module ActionDispatch
           end
       end
 
-      module Shorthand
+      module Shorthand #:nodoc:
         def match(*args)
           if args.size == 1 && args.last.is_a?(Hash)
             options  = args.pop

@@ -237,7 +237,5 @@ h4. Understanding Middlewares
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/58
-
 * February 7, 2009: Second version by "Pratik":credits.html#lifo
 * January 11, 2009: First version by "Pratik":credits.html#lifo

@@ -70,7 +70,7 @@ module ActiveRecord
             result[self.class.locking_column] ||= 0
           end
 
-          return result
+          result
         end
 
         def update(attribute_names = @attributes.keys) #:nodoc:
@@ -89,7 +89,7 @@ module ActiveRecord
 
             affected_rows = relation.where(
               relation.table[self.class.primary_key].eq(quoted_id).and(
-                relation.table[self.class.locking_column].eq(quote_value(previous_value))
+                relation.table[lock_col].eq(quote_value(previous_value))
               )
             ).arel.update(arel_attributes_values(false, false, attribute_names))
 
@@ -110,12 +110,10 @@ module ActiveRecord
           return super unless locking_enabled?
 
           if persisted?
-            lock_col = self.class.locking_column
-            previous_value = send(lock_col).to_i
-
             table = self.class.arel_table
-            predicate = table[self.class.primary_key].eq(id)
-            predicate = predicate.and(table[self.class.locking_column].eq(previous_value))
+            lock_col = self.class.locking_column
+            predicate = table[self.class.primary_key].eq(id).
+              and(table[lock_col].eq(send(lock_col).to_i))
 
             affected_rows = self.class.unscoped.where(predicate).delete_all
 

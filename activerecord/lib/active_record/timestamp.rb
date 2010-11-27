@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActiveRecord
   # = Active Record Timestamp
   #
@@ -29,14 +31,14 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_inheritable_accessor :record_timestamps, :instance_writer => false
+      class_attribute :record_timestamps, :instance_writer => false
       self.record_timestamps = true
     end
 
   private
 
     def create #:nodoc:
-      if record_timestamps
+      if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
@@ -61,7 +63,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      record_timestamps && (!partial_updates? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
+      self.record_timestamps && (!partial_updates? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
     end
 
     def timestamp_attributes_for_update_in_model

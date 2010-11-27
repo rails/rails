@@ -634,7 +634,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_preload_nil_polymorphic_belongs_to
     assert_nothing_raised do
-      taggings = Tagging.find(:all, :include => :taggable, :conditions => ['taggable_type IS NULL'])
+      Tagging.find(:all, :include => :taggable, :conditions => ['taggable_type IS NULL'])
     end
   end
 

@@ -164,12 +164,20 @@ class RequestTest < ActiveSupport::TestCase
     assert !request.standard_port?
   end
 
-  test "port string" do
+  test "optional port" do
     request = stub_request 'HTTP_HOST' => 'www.example.org:80'
-    assert_equal "", request.port_string
+    assert_equal nil, request.optional_port
 
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
-    assert_equal ":8080", request.port_string
+    assert_equal 8080, request.optional_port
+  end
+
+  test "port string" do
+    request = stub_request 'HTTP_HOST' => 'www.example.org:80'
+    assert_equal '', request.port_string
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
+    assert_equal ':8080', request.port_string
   end
 
   test "full path" do
@@ -392,7 +400,7 @@ class RequestTest < ActiveSupport::TestCase
     mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
     request = nil
     begin
-      request = stub_request(mock_rack_env) 
+      request = stub_request(mock_rack_env)
       request.parameters
     rescue TypeError => e
       # rack will raise a TypeError when parsing this query string

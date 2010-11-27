@@ -36,14 +36,6 @@ require 'active_record'
 require 'action_controller/caching'
 require 'action_controller/caching/sweeping'
 
-begin
-  require 'ruby-debug'
-  Debugger.settings[:autoeval] = true
-  Debugger.start
-rescue LoadError
-  # Debugging disabled. `gem install ruby-debug` to enable.
-end
-
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails

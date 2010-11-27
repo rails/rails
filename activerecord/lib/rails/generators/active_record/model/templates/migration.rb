@@ -1,5 +1,5 @@
 class <%= migration_class_name %> < ActiveRecord::Migration
-  def self.up
+  def up
     create_table :<%= table_name %> do |t|
 <% for attribute in attributes -%>
       t.<%= attribute.type %> :<%= attribute.name %>
@@ -10,7 +10,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
     end
   end
 
-  def self.down
+  def down
     drop_table :<%= table_name %>
   end
 end

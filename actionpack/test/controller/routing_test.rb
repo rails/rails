@@ -1444,7 +1444,7 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_expand_array_build_query_string
-    assert_uri_equal '/foo?x[]=1&x[]=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
+    assert_uri_equal '/foo?x%5B%5D=1&x%5B%5D=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
   end
 
   def test_escape_spaces_build_query_string_selected_keys
@@ -1744,9 +1744,9 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal '/posts', @routes.generate({:controller => 'posts'}, {:controller => 'posts', :action => 'index'})
     assert_equal '/posts/create', @routes.generate({:action => 'create'}, {:controller => 'posts'})
     assert_equal '/posts?foo=bar', @routes.generate(:controller => 'posts', :foo => 'bar')
-    assert_equal '/posts?foo[]=bar&foo[]=baz', @routes.generate(:controller => 'posts', :foo => ['bar', 'baz'])
+    assert_equal '/posts?foo%5B%5D=bar&foo%5B%5D=baz', @routes.generate(:controller => 'posts', :foo => ['bar', 'baz'])
     assert_equal '/posts?page=2', @routes.generate(:controller => 'posts', :page => 2)
-    assert_equal '/posts?q[foo][a]=b', @routes.generate(:controller => 'posts', :q => { :foo => { :a => 'b'}})
+    assert_equal '/posts?q%5Bfoo%5D%5Ba%5D=b', @routes.generate(:controller => 'posts', :q => { :foo => { :a => 'b'}})
 
     assert_equal '/news.rss', @routes.generate(:controller => 'news', :action => 'index', :format => 'rss')
 

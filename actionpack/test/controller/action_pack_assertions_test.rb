@@ -173,7 +173,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_string_constraint
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         match "photos", :to => 'action_pack_assertions#nothing', :constraints => {:subdomain => "admin"}
       end
     end

@@ -235,12 +235,12 @@ module ActiveRecord
 
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
-        return self if length.zero? # forces load_target if it hasn't happened already
-
-        if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
-          destroy_all
-        else
-          delete_all
+        unless length.zero? # forces load_target if it hasn't happened already
+          if @reflection.options[:dependent] == :destroy
+            destroy_all
+          else
+            delete_all
+          end
         end
 
         self
@@ -357,8 +357,7 @@ module ActiveRecord
         return false unless record.is_a?(@reflection.klass)
         return include_in_memory?(record) unless record.persisted?
         load_target if @reflection.options[:finder_sql] && !loaded?
-        return @target.include?(record) if loaded?
-        exists?(record)
+        loaded? ? @target.include?(record) : exists?(record)
       end
 
       def proxy_respond_to?(method, include_private = false)
@@ -530,7 +529,7 @@ module ActiveRecord
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
-          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
+          @owner.class.send(full_callback_name.to_sym) || []
         end
 
         def ensure_owner_is_not_new

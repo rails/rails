@@ -26,15 +26,8 @@ module ApplicationTests
     end
 
     test "allow running plugin new generator inside Rails app directory" do
-      FileUtils.cd rails_root
-      `./script/rails plugin new vendor/plugins/bukkits`
+      FileUtils.cd(rails_root){ `ruby script/rails plugin new vendor/plugins/bukkits` }
       assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
-    end
-
-    test "don't allow running plugin_new generator as a generator" do
-      FileUtils.cd rails_root
-      output =  `./script/rails g plugin_new vendor/plugins/bukkits`
-      assert_match /This generator should not be used directly as a generator. You should use `rails plugin new` command instead/, output
     end
 
     test "generators default values" do
