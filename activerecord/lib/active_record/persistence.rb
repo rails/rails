@@ -224,12 +224,19 @@ module ActiveRecord
     def touch(name = nil)
       attributes = timestamp_attributes_for_update_in_model
       attributes << name if name
+
       unless attributes.empty?
         current_time = current_time_from_proper_timezone
         changes = {}
 
         attributes.each do |column|
           changes[column.to_s] = write_attribute(column.to_s, current_time)
+        end
+
+        if locking_enabled?
+          lock_col = self.class.locking_column.to_s
+          previous_value = send(lock_col).to_i
+          changes[lock_col] = write_attribute(lock_col, previous_value + 1)
         end
 
         @changed_attributes.except!(*changes.keys)
