@@ -221,6 +221,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_match /It works!/, silence(:stdout){ generator.invoke_all }
   end
 
+  def test_template_is_executed_when_supplied_an_https_path
+    path = "https://gist.github.com/103208.txt"
+    template = %{ say "It works!" }
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    assert_match /It works!/, silence(:stdout){ generator.invoke_all }
+  end
+
   def test_usage_read_from_file
     File.expects(:read).returns("USAGE FROM FILE")
     assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
