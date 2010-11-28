@@ -19,7 +19,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       assert_equal Mime::MOBILE, Mime::LOOKUP['text/x-mobile']
       assert_equal Mime::MOBILE, Mime::EXTENSION_LOOKUP['mobile']
 
-      Mime::Type.unregister("text/x-mobile", :mobile)
+      Mime::Type.unregister(:mobile)
       assert !defined?(Mime::MOBILE), "Mime::MOBILE should not be defined"
       assert !Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile]"
       assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
@@ -52,10 +52,9 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse application with trailing star" do
     accept = "application/*"
-    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::PDF, Mime::URL_ENCODED_FORM].sort_by(&:to_s)
+    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::RSS, Mime::ATOM, Mime::YAML, Mime::URL_ENCODED_FORM, Mime::JSON, Mime::PDF]
     parsed = Mime::Type.parse(accept)
-    assert_equal 9, parsed.size
-    assert_equal expect, parsed.sort_by(&:to_s)
+    assert_equal expect, parsed
   end
 
   test "parse without q" do
@@ -92,7 +91,7 @@ class MimeTypeTest < ActiveSupport::TestCase
         assert_equal Mime::GIF, Mime::SET.last
       end
     ensure
-      Mime::Type.unregister('image/gif', :gif)
+      Mime::Type.unregister(:gif)
     end
   end
 

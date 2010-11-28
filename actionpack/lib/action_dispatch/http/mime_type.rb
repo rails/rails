@@ -190,12 +190,15 @@ module Mime
       #
       # Usage:
       #
-      # Mime::Type.unregister("text/x-mobile", :mobile)
-      def unregister(string, symbol)
-        EXTENSION_LOOKUP.delete(symbol.to_s)
-        LOOKUP.delete(string)
-        symbol = symbol.to_s.upcase.intern
-        Mime.module_eval { remove_const(symbol) if const_defined?(symbol) }
+      # Mime::Type.unregister(:mobile)
+      def unregister(symbol)
+        symbol = symbol.to_s.upcase
+        mime = Mime.const_get(symbol)
+        Mime.instance_eval { remove_const(symbol) }
+
+        SET.delete_if { |v| v.eql?(mime) }
+        LOOKUP.delete_if { |k,v| v.eql?(mime) }
+        EXTENSION_LOOKUP.delete_if { |k,v| v.eql?(mime) }
       end
     end
 
