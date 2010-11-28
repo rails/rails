@@ -884,7 +884,8 @@ class RespondWithControllerTest < ActionController::TestCase
     @controller = RenderJsonRespondWithController.new
     @request.accept = "application/json"
     get :index, :format => :json
-    assert_equal %Q{{"message":"boom","error":"RenderJsonTestException"}}, @response.body
+    assert_match(/"message":"boom"/, @response.body)
+    assert_match(/"error":"RenderJsonTestException"/, @response.body)
   end
 
   def test_no_double_render_is_raised
