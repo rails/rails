@@ -187,7 +187,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     another = author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
     assert_equal number_of_posts + 1, Post.count
     assert_equal another, author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
-    assert another.persisted?
+    assert !another.new_record?
   end
 
   def test_cant_save_has_many_readonly_association
@@ -453,7 +453,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients_of_firm.loaded?
 
     assert_equal "Another Client", new_client.name
-    assert !new_client.persisted?
+    assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
   end
 
@@ -508,7 +508,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients_of_firm.loaded?
 
     assert_equal "Another Client", new_client.name
-    assert !new_client.persisted?
+    assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
   end
 
@@ -543,7 +543,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_create
     force_signal37_to_load_all_clients_of_firm
     new_client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    assert new_client.persisted?
+    assert !new_client.new_record?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert_equal new_client, companies(:first_firm).clients_of_firm(true).last
   end
@@ -563,7 +563,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     the_client = companies(:first_firm).clients.find_or_initialize_by_name("Yet another client")
     assert_equal companies(:first_firm).id, the_client.firm_id
     assert_equal "Yet another client", the_client.name
-    assert !the_client.persisted?
+    assert the_client.new_record?
   end
 
   def test_find_or_create_updates_size
@@ -752,7 +752,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     another_ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.create
 
-    assert        another_ms_client.persisted?
+    assert        !another_ms_client.new_record?
     assert_equal  'Microsoft', another_ms_client.name
   end
 

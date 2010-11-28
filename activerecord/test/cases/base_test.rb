@@ -656,8 +656,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_new_record_returns_boolean
-    assert_equal false, Topic.new.persisted?
-    assert_equal true, Topic.find(1).persisted?
+    assert_equal true, Topic.new.new_record?
+    assert_equal false, Topic.find(1).new_record?
   end
 
   def test_clone
@@ -665,7 +665,7 @@ class BasicsTest < ActiveRecord::TestCase
     cloned_topic = nil
     assert_nothing_raised { cloned_topic = topic.clone }
     assert_equal topic.title, cloned_topic.title
-    assert !cloned_topic.persisted?
+    assert cloned_topic.new_record?
 
     # test if the attributes have been cloned
     topic.title = "a"
@@ -684,7 +684,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     # test if saved clone object differs from original
     cloned_topic.save
-    assert cloned_topic.persisted?
+    assert !cloned_topic.new_record?
     assert_not_equal cloned_topic.id, topic.id
   end
 
@@ -696,7 +696,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nothing_raised { clone = dev.clone }
     assert_kind_of DeveloperSalary, clone.salary
     assert_equal dev.salary.amount, clone.salary.amount
-    assert !clone.persisted?
+    assert clone.new_record?
 
     # test if the attributes have been cloned
     original_amount = clone.salary.amount
@@ -704,7 +704,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal original_amount, clone.salary.amount
 
     assert clone.save
-    assert clone.persisted?
+    assert !clone.new_record?
     assert_not_equal clone.id, dev.id
   end
 

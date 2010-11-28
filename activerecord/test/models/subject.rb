@@ -5,7 +5,7 @@ class Subject < ActiveRecord::Base
     # added initialization of author_email_address in the same way as in Topic class
     # as otherwise synonym test was failing
     def after_initialize
-      unless self.persisted?
+      if self.new_record?
         self.author_email_address = 'test@test.com'
       end
     end

@@ -378,7 +378,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert !lifo.persisted?
+    assert lifo.new_record?
 
     assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
   end
@@ -388,7 +388,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_create_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert lifo.persisted?
+    assert ! lifo.new_record?
 
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
   end
@@ -668,10 +668,10 @@ class RelationTest < ActiveRecord::TestCase
 
     sparrow = birds.create
     assert_kind_of Bird, sparrow
-    assert !sparrow.persisted?
+    assert sparrow.new_record?
 
     hen = birds.where(:name => 'hen').create
-    assert hen.persisted?
+    assert ! hen.new_record?
     assert_equal 'hen', hen.name
   end
 
@@ -682,7 +682,7 @@ class RelationTest < ActiveRecord::TestCase
 
     hen = birds.where(:name => 'hen').create!
     assert_kind_of Bird, hen
-    assert hen.persisted?
+    assert ! hen.new_record?
     assert_equal 'hen', hen.name
   end
 

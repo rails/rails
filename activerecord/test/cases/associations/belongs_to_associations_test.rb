@@ -278,10 +278,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     final_cut = Client.new("name" => "Final Cut")
     firm = Firm.find(1)
     final_cut.firm = firm
-    assert !final_cut.persisted?
+    assert final_cut.new_record?
     assert final_cut.save
-    assert final_cut.persisted?
-    assert firm.persisted?
+    assert !final_cut.new_record?
+    assert !firm.new_record?
     assert_equal firm, final_cut.firm
     assert_equal firm, final_cut.firm(true)
   end
@@ -290,10 +290,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     final_cut = Client.new("name" => "Final Cut")
     firm = Firm.find(1)
     final_cut.firm_with_primary_key = firm
-    assert !final_cut.persisted?
+    assert final_cut.new_record?
     assert final_cut.save
-    assert final_cut.persisted?
-    assert firm.persisted?
+    assert !final_cut.new_record?
+    assert !firm.new_record?
     assert_equal firm, final_cut.firm_with_primary_key
     assert_equal firm, final_cut.firm_with_primary_key(true)
   end
