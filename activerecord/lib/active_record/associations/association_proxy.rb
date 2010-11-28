@@ -252,7 +252,7 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? and (@owner.persisted? || foreign_key_present)
+          if !loaded? && (!@owner.new_record? || foreign_key_present)
             @target = find_target
           end
 

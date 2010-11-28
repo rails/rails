@@ -34,7 +34,7 @@ module ActiveRecord
         end
 
         def insert_record(record, force = true, validate = true)
-          unless record.persisted?
+          if record.new_record?
             if force
               record.save!
             else
@@ -113,7 +113,7 @@ module ActiveRecord
       private
         def create_record(attributes, &block)
           # Can't use Base.create because the foreign key may be a protected attribute.
-          ensure_owner_is_not_new
+          ensure_owner_is_persisted!
           if attributes.is_a?(Array)
             attributes.collect { |attr| create(attr) }
           else
