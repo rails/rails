@@ -115,15 +115,20 @@ module Mime
           end
         else
           # keep track of creation order to keep the subsequent sort stable
-          list = []
-          accept_header.split(/,/).each_with_index do |header, index|
+          list, index = [], 0
+          accept_header.split(/,/).each do |header|
             params, q = header.split(/;\s*q=/)
-            if params
+            if params.present?
               params.strip!
+
               if params =~ TRAILING_STAR_REGEXP
-                parse_data_with_trailing_star($1).each { |m| list << AcceptItem.new(index, m.to_s, q) }
+                parse_data_with_trailing_star($1).each do |m|
+                  list << AcceptItem.new(index, m.to_s, q)
+                  index += 1
+                end
               else
-                list << AcceptItem.new(index, params, q) unless params.empty?
+                list << AcceptItem.new(index, params, q)
+                index += 1
               end
             end
           end
@@ -178,8 +183,7 @@ module Mime
       # input: 'application'
       # returend value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM
       def parse_data_with_trailing_star(input)
-        keys = Mime::LOOKUP.keys.select{|k| k.include?(input)}
-        Mime::LOOKUP.values_at(*keys).uniq
+        Mime::SET.select { |m| m =~ input }
       end
 
       # This method is opposite of register method.
