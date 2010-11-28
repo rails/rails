@@ -6,6 +6,7 @@ require 'active_support/core_ext/object/instance_variables'
 class Contact
   extend ActiveModel::Naming
   include ActiveModel::Serializers::JSON
+  include ActiveModel::Validations
 
   def attributes
     instance_values
@@ -105,15 +106,15 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should return OrderedHash for errors" do
-    car = Automobile.new
-
-    # run the validation
-    car.valid?
+    contact = Contact.new
+    contact.errors.add :name, "can't be blank"
+    contact.errors.add :name, "is too short (minimum is 2 characters)"
+    contact.errors.add :age, "must be 16 or over"
 
     hash = ActiveSupport::OrderedHash.new
-    hash[:make]  = "can't be blank"
-    hash[:model] = "is too short (minimum is 2 characters)"
-    assert_equal hash.to_json, car.errors.to_json
+    hash[:name] = ["can't be blank", "is too short (minimum is 2 characters)"]
+    hash[:age]  = ["must be 16 or over"]
+    assert_equal hash.to_json, contact.errors.to_json
   end
 
   test "serializable_hash should not modify options passed in argument" do

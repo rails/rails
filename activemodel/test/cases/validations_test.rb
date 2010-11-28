@@ -174,8 +174,8 @@ class ValidationsTest < ActiveModel::TestCase
     assert_match %r{<error>Content can't be blank</error>}, xml
 
     hash = ActiveSupport::OrderedHash.new
-    hash[:title] = "can't be blank"
-    hash[:content] = "can't be blank"
+    hash[:title] = ["can't be blank"]
+    hash[:content] = ["can't be blank"]
     assert_equal t.errors.to_json, hash.to_json
   end
 
