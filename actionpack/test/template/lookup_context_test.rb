@@ -47,7 +47,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "handles */* formats" do
-    @lookup_context.formats = [:"*/*"]
+    @lookup_context.formats = ["*/*"]
     assert_equal Mime::SET, @lookup_context.formats
   end
 

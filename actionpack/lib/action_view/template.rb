@@ -117,7 +117,7 @@ module ActionView
       @method_names       = {}
 
       format   = details[:format] || :html
-      @formats = Array.wrap(format).map(&:to_sym)
+      @formats = Array.wrap(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
       @virtual_path = details[:virtual_path].try(:sub, ".#{format}", "")
     end
 

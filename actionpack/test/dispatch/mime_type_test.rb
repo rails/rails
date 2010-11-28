@@ -85,6 +85,13 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
   end
 
+  test "references gives preference to symbols before strings" do
+    assert_equal :html, Mime::HTML.ref
+    another = Mime::Type.lookup("foo/bar")
+    assert_nil another.to_sym
+    assert_equal "foo/bar", another.ref
+  end
+
   test "regexp matcher" do
     assert Mime::JS =~ "text/javascript"
     assert Mime::JS =~ "application/javascript"

@@ -176,7 +176,11 @@ module Mime
     end
 
     def to_sym
-      @symbol || @string.to_sym
+      @symbol
+    end
+
+    def ref
+      to_sym || to_s
     end
 
     def ===(list)
