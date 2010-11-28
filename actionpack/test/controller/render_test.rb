@@ -130,6 +130,10 @@ class TestController < ActionController::Base
     render :action => "hello_world"
   end
 
+  def render_action_upcased_hello_world
+    render :action => "Hello_world"
+  end
+
   def render_action_hello_world_as_string
     render "hello_world"
   end
@@ -734,6 +738,12 @@ class RenderTest < ActionController::TestCase
   def test_render_action
     get :render_action_hello_world
     assert_template "test/hello_world"
+  end
+
+  def test_render_action_upcased
+    assert_raise ActionView::MissingTemplate do
+      get :render_action_upcased_hello_world
+    end
   end
 
   # :ported:
