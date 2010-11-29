@@ -12,7 +12,7 @@ module Arel
           node.expr.left.must_equal left
           node.expr.right.must_equal right
 
-          knot = node.or(right).not
+          node.or(right).not
         end
       end
     end
