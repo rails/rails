@@ -339,7 +339,7 @@ SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 
 h4. Ordering
 
-To retrieve records from the database in a specific order, you can specify the +:order+ option to the +find+ call.
+To retrieve records from the database in a specific order, you can use the +order+ method.
 
 For example, if you're getting a set of records and want to order them in ascending order by the +created_at+ field in your table:
 
