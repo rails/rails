@@ -49,8 +49,6 @@ h4. Rails General Configuration
 
 * +config.allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
 
-* +config.app_generators+ alternate name for +config.generators+. See the "Configuring Generators" section below for how to use this.
-
 * +config.autoload_once_paths+ accepts an array of paths from which Rails will automatically load from only once. All elements of this array must also be in +autoload_paths+.
 
 * +config.autoload_paths+ accepts an array of additional paths to prepend to the load path. By default, all app, lib, vendor and mock paths are included in this list.
