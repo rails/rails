@@ -49,6 +49,14 @@ h4. Rails General Configuration
 
 * +config.allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
 
+* +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
+
+* +config.asset_path+ takes a block which configures where assets can be found.
+
+<ruby>
+  config.asset_path = proc { |asset_path| "assets/#{asset_path}" }
+</ruby>
+
 * +config.autoload_once_paths+ accepts an array of paths from which Rails will automatically load from only once. All elements of this array must also be in +autoload_paths+.
 
 * +config.autoload_paths+ accepts an array of additional paths to prepend to the load path. By default, all app, lib, vendor and mock paths are included in this list.
