@@ -85,9 +85,9 @@ h4. Rails General Configuration
 
 * +config.log_path+ overrides the path to the log file to use. Defaults to +log/#{environment}.log+ (e.g. log/development.log or log/production.log).
 
-* +config.middleware+ allows you to configure the application's middleware. This is covered in depth in the "Configuring Middleware" section below.
-
 * +config.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
+
+* +config.middleware+ allows you to configure the application's middleware. This is covered in depth in the "Configuring Middleware" section below.
 
 * +config.plugins+ accepts the list of plugins to load. If this is set to nil, all plugins will be loaded. If this is set to [], no plugins will be loaded. Otherwise, plugins will be loaded in the order specified.
 
