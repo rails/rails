@@ -79,6 +79,8 @@ h4. Rails General Configuration
 
 * +config.filter_parameters+ used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
 
+* +config.helper_paths+ configures where Rails can find helpers for this application.
+
 * +config.log_level+ defines the verbosity of the Rails logger. In production mode, this defaults to +:info+. In development mode, it defaults to +:debug+.
 
 * +config.log_path+ overrides the path to the log file to use. Defaults to +log/#{environment}.log+ (e.g. log/development.log or log/production.log).
