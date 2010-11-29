@@ -1,4 +1,5 @@
 require 'arel/nodes/node'
+require 'arel/nodes/unary'
 require 'arel/nodes/binary'
 require 'arel/nodes/equality'
 require 'arel/nodes/between'

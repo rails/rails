@@ -130,6 +130,9 @@ module Arel
         @visitor.accept stmt
         assert_equal [:a, :b, stmt.columns, :c, stmt], @collector.calls
       end
+
+      def test_offset
+      end
     end
   end
 end

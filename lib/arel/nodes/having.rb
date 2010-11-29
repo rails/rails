@@ -1,11 +1,6 @@
 module Arel
   module Nodes
-    class Having
-      attr_accessor :expr
-
-      def initialize expr
-        @expr = expr
-      end
+    class Having < Arel::Nodes::Unary
     end
   end
 end

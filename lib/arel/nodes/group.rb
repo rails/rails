@@ -1,11 +1,6 @@
 module Arel
   module Nodes
-    class Group
-      attr_accessor :expr
-
-      def initialize expr
-        @expr = expr
-      end
+    class Group < Arel::Nodes::Unary
     end
   end
 end

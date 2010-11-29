@@ -1,10 +1,11 @@
 module Arel
   module Nodes
-    class Ordering < Arel::Nodes::Node
-      attr_accessor :expr, :direction
+    class Ordering < Arel::Nodes::Binary
+      alias :expr :left
+      alias :direction :right
 
-      def initialize expression, direction = :asc
-        @expr, @direction = expression, direction
+      def initialize expr, direction = :asc
+        super
       end
 
       def ascending?

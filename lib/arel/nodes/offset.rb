@@ -1,11 +1,7 @@
 module Arel
   module Nodes
-    class Offset
-      attr_accessor :value
-
-      def initialize value
-        @value = value
-      end
+    class Offset < Arel::Nodes::Unary
+      alias :value :expr
     end
   end
 end

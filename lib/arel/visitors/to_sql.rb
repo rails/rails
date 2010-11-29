@@ -97,7 +97,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Offset o
-        "OFFSET #{visit o.value}"
+        "OFFSET #{visit o.expr}"
       end
 
       # FIXME: this does nothing on SQLLite3, but should do things on other
