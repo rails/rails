@@ -997,6 +997,22 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.serialize(:content)
   end
 
+  def test_serialized_boolean_value_true
+    Topic.serialize(:content)
+    topic = Topic.new(:content => true)
+    assert topic.save
+    topic = topic.reload
+    assert_equal topic.content, true
+  end
+
+  def test_serialized_boolean_value_false
+    Topic.serialize(:content)
+    topic = Topic.new(:content => false)
+    assert topic.save
+    topic = topic.reload
+    assert_equal topic.content, false
+  end
+
   def test_quote
     author_name = "\\ \001 ' \n \\n \""
     topic = Topic.create('author_name' => author_name)

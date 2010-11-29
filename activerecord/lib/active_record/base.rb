@@ -1680,7 +1680,7 @@ MSG
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
               value = read_attribute(name)
 
-              if value && self.class.serialized_attributes.key?(name)
+              if !value.nil? && self.class.serialized_attributes.key?(name)
                 value = YAML.dump value
               end
               attrs[self.class.arel_table[name]] = value
