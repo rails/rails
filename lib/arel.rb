@@ -21,6 +21,7 @@ require 'arel/update_manager'
 require 'arel/delete_manager'
 require 'arel/nodes'
 
+
 #### these are deprecated
 require 'arel/deprecated'
 require 'arel/sql/engine'
@@ -33,4 +34,6 @@ module Arel
   def self.sql raw_sql
     Arel::Nodes::SqlLiteral.new raw_sql
   end
+  ## Convenience Alias
+  Node = Arel::Nodes::Node
 end
