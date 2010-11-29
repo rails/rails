@@ -55,13 +55,13 @@ h4. Rails General Configuration
 
 * +config.autoload_paths+ accepts an array of additional paths to prepend to the load path. By default, all app, lib, vendor and mock paths are included in this list.
 
-* +config.cache_classes+ controls whether or not application classes should be reloaded on each request. Defaults to _true_ in development, _false_ in test and production.
+* +config.cache_classes+ controls whether or not application classes should be reloaded on each request. Defaults to _true_ in development, _false_ in test and production. Can also be enabled with +threadsafe!+.
 
 * +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class.
 
 * +config.colorize_logging+ (true by default) specifies whether or not to use ANSI color codes when logging information.
 
-* +config.dependency_loading+ enables or disables dependency loading during the request cycle. Setting dependency_loading to _true_ will allow new classes to be loaded during a request and setting it to _false_ will disable this behavior.
+* +config.dependency_loading+ enables or disables dependency loading during the request cycle. Setting dependency_loading to _true_ will allow new classes to be loaded during a request and setting it to _false_ will disable this behavior. Can also be enabled with +threadsafe!+.
 
 * +config.eager_load_paths+ accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. All elements of this array must also be in +load_paths+.
 
@@ -77,7 +77,7 @@ h4. Rails General Configuration
 
 * +config.plugins+ accepts the list of plugins to load. If this is set to nil, all plugins will be loaded. If this is set to [], no plugins will be loaded. Otherwise, plugins will be loaded in the order specified.
 
-* +config.preload_frameworks+ enables or disables preloading all frameworks at startup.
+* +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Can also be enabled with +threadsafe!+.
 
 * +config.reload_plugins+ enables or disables plugin reloading.
 
@@ -86,6 +86,8 @@ h4. Rails General Configuration
 * +config.secret_token+ used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering.
 
 * +config.serve_static_assets+ configures Rails to serve static assets. Defaults to _true_, but in the production environment is turned off. The server software used to run the application should be used to serve the assets instead.
+
+* +config.threadsafe!+ enables +allow_concurrency+, +cache_classes+, +dependency_loading+ and +preload_frameworks+ to make the application threadsafe.
 
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
