@@ -7,14 +7,55 @@ module Arel
 
       private
 
+      def unary o
+        visit o.expr
+        @block.call o
+      end
+      alias :visit_Arel_Nodes_Group             :unary
+      alias :visit_Arel_Nodes_Grouping          :unary
+      alias :visit_Arel_Nodes_Having            :unary
+      alias :visit_Arel_Nodes_Not               :unary
+      alias :visit_Arel_Nodes_Offset            :unary
+      alias :visit_Arel_Nodes_On                :unary
+      alias :visit_Arel_Nodes_UnqualifiedColumn :unary
+
+      def function o
+        visit o.expressions
+        visit o.alias
+        @block.call o
+      end
+      alias :visit_Arel_Nodes_Avg    :function
+      alias :visit_Arel_Nodes_Exists :function
+      alias :visit_Arel_Nodes_Max    :function
+      alias :visit_Arel_Nodes_Min    :function
+      alias :visit_Arel_Nodes_Sum    :function
+
+      def visit_Arel_Nodes_Count o
+        visit o.expressions
+        visit o.alias
+        visit o.distinct
+        @block.call o
+      end
+
+      def join o
+        visit o.left
+        visit o.right
+        visit o.constraint
+        @block.call o
+      end
+      alias :visit_Arel_Nodes_InnerJoin :join
+      alias :visit_Arel_Nodes_OuterJoin :join
+
       def binary o
         visit o.left
         visit o.right
         @block.call o
       end
       alias :visit_Arel_Nodes_And                :binary
+      alias :visit_Arel_Nodes_As                 :binary
       alias :visit_Arel_Nodes_Assignment         :binary
       alias :visit_Arel_Nodes_Between            :binary
+      alias :visit_Arel_Nodes_DeleteStatement    :binary
       alias :visit_Arel_Nodes_DoesNotMatch       :binary
       alias :visit_Arel_Nodes_Equality           :binary
       alias :visit_Arel_Nodes_GreaterThan        :binary
@@ -26,6 +67,10 @@ module Arel
       alias :visit_Arel_Nodes_NotEqual           :binary
       alias :visit_Arel_Nodes_NotIn              :binary
       alias :visit_Arel_Nodes_Or                 :binary
+      alias :visit_Arel_Nodes_Ordering           :binary
+      alias :visit_Arel_Nodes_StringJoin         :binary
+      alias :visit_Arel_Nodes_TableAlias         :binary
+      alias :visit_Arel_Nodes_Values             :binary
 
       def visit_Arel_Attribute o
         visit o.relation
@@ -38,6 +83,7 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Attribute :visit_Arel_Attribute
+      alias :visit_Arel_Attributes_Decimal :visit_Arel_Attribute
 
       def visit_Arel_Table o
         visit o.name
@@ -47,19 +93,24 @@ module Arel
       def terminal o
         @block.call o
       end
-      alias :visit_Arel_Nodes_SqlLiteral :terminal
-      alias :visit_Arel_SqlLiteral       :terminal
-      alias :visit_BigDecimal            :terminal
-      alias :visit_Date                  :terminal
-      alias :visit_DateTime              :terminal
-      alias :visit_FalseClass            :terminal
-      alias :visit_Fixnum                :terminal
-      alias :visit_Float                 :terminal
-      alias :visit_NilClass              :terminal
-      alias :visit_String                :terminal
-      alias :visit_Symbol                :terminal
-      alias :visit_Time                  :terminal
-      alias :visit_TrueClass             :terminal
+      alias :visit_ActiveSupport_Multibyte_Chars :terminal
+      alias :visit_ActiveSupport_StringInquirer  :terminal
+      alias :visit_Arel_Nodes_Lock               :terminal
+      alias :visit_Arel_Nodes_SqlLiteral         :terminal
+      alias :visit_Arel_SqlLiteral               :terminal
+      alias :visit_BigDecimal                    :terminal
+      alias :visit_Bignum                        :terminal
+      alias :visit_Class                         :terminal
+      alias :visit_Date                          :terminal
+      alias :visit_DateTime                      :terminal
+      alias :visit_FalseClass                    :terminal
+      alias :visit_Fixnum                        :terminal
+      alias :visit_Float                         :terminal
+      alias :visit_NilClass                      :terminal
+      alias :visit_String                        :terminal
+      alias :visit_Symbol                        :terminal
+      alias :visit_Time                          :terminal
+      alias :visit_TrueClass                     :terminal
 
       def visit_Arel_Nodes_InsertStatement o
         visit o.relation

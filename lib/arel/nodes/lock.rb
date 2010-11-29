@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class Lock
+    class Lock < Arel::Nodes::Node
     end
   end
 end

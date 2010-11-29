@@ -14,6 +14,62 @@ module Arel
         @visitor = Visitors::DepthFirst.new @collector
       end
 
+      # unary ops
+      [
+        Arel::Nodes::Not,
+        Arel::Nodes::Group,
+        Arel::Nodes::On,
+        Arel::Nodes::Grouping,
+        Arel::Nodes::Offset,
+        Arel::Nodes::Having,
+        Arel::Nodes::UnqualifiedColumn,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          op = klass.new(:a)
+          @visitor.accept op
+          assert_equal [:a, op], @collector.calls
+        end
+      end
+
+      # functions
+      [
+        Arel::Nodes::Exists,
+        Arel::Nodes::Avg,
+        Arel::Nodes::Min,
+        Arel::Nodes::Max,
+        Arel::Nodes::Sum,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          func = klass.new(:a, :b)
+          @visitor.accept func
+          assert_equal [:a, :b, func], @collector.calls
+        end
+      end
+
+      def test_lock
+        lock = Nodes::Lock.new
+        @visitor.accept lock
+        assert_equal [lock], @collector.calls
+      end
+
+      def test_count
+        count = Nodes::Count.new :a, :b, :c
+        @visitor.accept count
+        assert_equal [:a, :c, :b, count], @collector.calls
+      end
+
+      def test_inner_join
+        join = Nodes::InnerJoin.new :a, :b, :c
+        @visitor.accept join
+        assert_equal [:a, :b, :c, join], @collector.calls
+      end
+
+      def test_outer_join
+        join = Nodes::OuterJoin.new :a, :b, :c
+        @visitor.accept join
+        assert_equal [:a, :b, :c, join], @collector.calls
+      end
+
       [
         Arel::Nodes::And,
         Arel::Nodes::Assignment,
@@ -29,6 +85,12 @@ module Arel
         Arel::Nodes::NotEqual,
         Arel::Nodes::NotIn,
         Arel::Nodes::Or,
+        Arel::Nodes::StringJoin,
+        Arel::Nodes::TableAlias,
+        Arel::Nodes::Values,
+        Arel::Nodes::As,
+        Arel::Nodes::DeleteStatement,
+        Arel::Nodes::Ordering,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
@@ -129,9 +191,6 @@ module Arel
 
         @visitor.accept stmt
         assert_equal [:a, :b, stmt.columns, :c, stmt], @collector.calls
-      end
-
-      def test_offset
       end
     end
   end

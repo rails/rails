@@ -1,11 +1,13 @@
 module Arel
   module Nodes
-    class Values
-      attr_accessor :expressions, :columns
+    class Values < Arel::Nodes::Binary
+      alias :expressions :left
+      alias :expressions= :left=
+      alias :columns :right
+      alias :columns= :right=
 
       def initialize exprs, columns = []
-        @expressions = exprs
-        @columns = columns
+        super
       end
     end
   end

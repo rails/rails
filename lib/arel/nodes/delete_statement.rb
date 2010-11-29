@@ -1,16 +1,18 @@
 module Arel
   module Nodes
-    class DeleteStatement
-      attr_accessor :relation, :wheres
+    class DeleteStatement < Arel::Nodes::Binary
+      alias :relation :left
+      alias :relation= :left=
+      alias :wheres :right
+      alias :wheres= :right=
 
-      def initialize
-        @from   = nil
-        @wheres = []
+      def initialize relation = nil, wheres = []
+        super
       end
 
       def initialize_copy other
         super
-        @wheres = @wheres.clone
+        @right = @right.clone
       end
     end
   end

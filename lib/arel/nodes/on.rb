@@ -1,11 +1,6 @@
 module Arel
   module Nodes
-    class On
-      attr_accessor :expr
-
-      def initialize expr
-        @expr = expr
-      end
+    class On < Arel::Nodes::Unary
     end
   end
 end

@@ -58,6 +58,7 @@ lib/arel/nodes/sql_literal.rb
 lib/arel/nodes/string_join.rb
 lib/arel/nodes/sum.rb
 lib/arel/nodes/table_alias.rb
+lib/arel/nodes/unary.rb
 lib/arel/nodes/unqualified_column.rb
 lib/arel/nodes/update_statement.rb
 lib/arel/nodes/values.rb
@@ -70,6 +71,7 @@ lib/arel/table.rb
 lib/arel/tree_manager.rb
 lib/arel/update_manager.rb
 lib/arel/visitors.rb
+lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
 lib/arel/visitors/join_sql.rb
 lib/arel/visitors/mysql.rb
@@ -103,6 +105,7 @@ test/test_insert_manager.rb
 test/test_select_manager.rb
 test/test_table.rb
 test/test_update_manager.rb
+test/visitors/test_depth_first.rb
 test/visitors/test_join_sql.rb
 test/visitors/test_mysql.rb
 test/visitors/test_oracle.rb

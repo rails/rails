@@ -1,18 +1,15 @@
 module Arel
   module Nodes
-    class UnqualifiedColumn
-      attr_accessor :attribute
-
-      def initialize attribute
-        @attribute = attribute
-      end
+    class UnqualifiedColumn < Arel::Nodes::Unary
+      alias :attribute :expr
+      alias :attribute= :expr=
 
       def column
-        @attribute.column
+        @expr.column
       end
 
       def name
-        @attribute.name
+        @expr.name
       end
     end
   end

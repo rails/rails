@@ -1,13 +1,9 @@
 module Arel
   module Nodes
-    class TableAlias
-      attr_reader :name, :relation
+    class TableAlias < Arel::Nodes::Binary
+      alias :name :left
+      alias :relation :right
       alias :table_alias :name
-
-      def initialize name, relation
-        @name     = name
-        @relation = relation
-      end
 
       def [] name
         Attribute.new self, name
