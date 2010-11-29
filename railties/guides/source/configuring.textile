@@ -222,10 +222,6 @@ h4. Configuring Action Controller
 
 <tt>config.action_controller</tt> includes a number of configuration settings:
 
-* +config.action_controller.asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
-
-* +config.action_controller.asset_path+ allows you to override the default asset path generation by providing your own instructions.
-
 * +config.action_controller.default_charset+ specifies the default character set for all renders. The default is "utf-8".
 
 * +config.action_controller.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
