@@ -93,6 +93,7 @@ module Arel
       alias :visit_ActiveSupport_Multibyte_Chars :terminal
       alias :visit_ActiveSupport_StringInquirer  :terminal
       alias :visit_Arel_Nodes_Lock               :terminal
+      alias :visit_Arel_Nodes_Node               :terminal
       alias :visit_Arel_Nodes_SqlLiteral         :terminal
       alias :visit_Arel_SqlLiteral               :terminal
       alias :visit_BigDecimal                    :terminal

@@ -192,6 +192,12 @@ module Arel
         @visitor.accept stmt
         assert_equal [:a, :b, stmt.columns, :c, stmt], @collector.calls
       end
+
+      def test_node
+        node = Nodes::Node.new
+        @visitor.accept node
+        assert_equal [node], @collector.calls
+      end
     end
   end
 end

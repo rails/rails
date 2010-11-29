@@ -1,5 +1,10 @@
 == 2.0.5 (unreleased)
 
+* Enhancements
+
+  * Arel::Visitors::DepthFirst can walk your AST depth first
+  * Arel::Nodes::Node is enumerable, depth first
+
 * Bug fixes
 
   * #lock will lock SELECT statements "FOR UPDATE" on mysql
