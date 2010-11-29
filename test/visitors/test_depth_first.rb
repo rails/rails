@@ -71,6 +71,19 @@ module Arel
         @visitor.accept hash
         assert_equal [:a, :b, node, :a, :b, node, hash], @collector.calls
       end
+
+      def test_update_statement
+        stmt = Nodes::UpdateStatement.new
+        stmt.relation = :a
+        stmt.values << :b
+        stmt.wheres << :c
+        stmt.orders << :d
+        stmt.limit = :e
+
+        @visitor.accept stmt
+        assert_equal [:a, :b, stmt.values, :c, stmt.wheres, :d, stmt.orders,
+          :e, stmt], @collector.calls
+      end
     end
   end
 end

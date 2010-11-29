@@ -61,6 +61,15 @@ module Arel
       alias :visit_Time                  :terminal
       alias :visit_TrueClass             :terminal
 
+      def visit_Arel_Nodes_UpdateStatement o
+        visit o.relation
+        visit o.values
+        visit o.wheres
+        visit o.orders
+        visit o.limit
+        @block.call o
+      end
+
       def visit_Array o
         o.each { |i| visit i }
         @block.call o
