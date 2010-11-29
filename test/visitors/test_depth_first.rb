@@ -102,6 +102,24 @@ module Arel
           :e,
           core], @collector.calls
       end
+
+      def test_select_statement
+        ss = Nodes::SelectStatement.new
+        ss.cores.replace [:a]
+        ss.orders << :b
+        ss.limit = :c
+        ss.lock = :d
+        ss.offset = :e
+
+        @visitor.accept ss
+        assert_equal [
+          :a, ss.cores,
+          :b, ss.orders,
+          :c,
+          :d,
+          :e,
+          ss], @collector.calls
+      end
     end
   end
 end

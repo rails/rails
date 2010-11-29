@@ -70,6 +70,15 @@ module Arel
         @block.call o
       end
 
+      def visit_Arel_Nodes_SelectStatement o
+        visit o.cores
+        visit o.orders
+        visit o.limit
+        visit o.lock
+        visit o.offset
+        @block.call o
+      end
+
       def visit_Arel_Nodes_UpdateStatement o
         visit o.relation
         visit o.values
