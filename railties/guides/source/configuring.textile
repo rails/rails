@@ -49,9 +49,9 @@ h4. Rails General Configuration
 
 * +config.allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
 
-* +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
+* +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself. Shorter version of +config.action_controller.asset_host+.
 
-* +config.asset_path+ takes a block which configures where assets can be found.
+* +config.asset_path+ takes a block which configures where assets can be found. Shorter version of +config.action_controller.asset_path+.
 
 <ruby>
   config.asset_path = proc { |asset_path| "assets/#{asset_path}" }
@@ -221,6 +221,10 @@ The schema dumper adds one additional configuration option:
 h4. Configuring Action Controller
 
 <tt>config.action_controller</tt> includes a number of configuration settings:
+
+* +config.action_controller.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
+
+* +config.action_controller.asset_path+ takes a block which configures where assets can be found. Shorter version of +config.action_controller.asset_path+.
 
 * +config.action_controller.default_charset+ specifies the default character set for all renders. The default is "utf-8".
 
