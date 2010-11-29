@@ -102,10 +102,6 @@ module ActiveRecord
             ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
           end
 
-          def interpolate_sql(sql)
-            instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
-          end
-
           private
 
           def allocate_aliases
@@ -120,7 +116,7 @@ module ActiveRecord
           end
 
           def process_conditions(conditions, table_name)
-            Arel.sql(interpolate_sql(sanitize_sql(conditions, table_name)))
+            Arel.sql(sanitize_sql(conditions, table_name))
           end
 
           def sanitize_sql(condition, table_name)
