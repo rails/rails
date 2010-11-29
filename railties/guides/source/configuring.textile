@@ -91,6 +91,8 @@ h4. Rails General Configuration
 
 * +config.threadsafe!+ enables +allow_concurrency+, +cache_classes+, +dependency_loading+ and +preload_frameworks+ to make the application threadsafe.
 
+WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
+
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.whiny_nils+ enables or disabled warnings when an methods of nil are invoked. Defaults to _false_.
@@ -211,8 +213,6 @@ h4. Configuring Action Controller
 * +config.action_controller.asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
 
 * +config.action_controller.asset_path+ allows you to override the default asset path generation by providing your own instructions.
-
-WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
 * +config.action_controller.default_charset+ specifies the default character set for all renders. The default is "utf-8".
 
