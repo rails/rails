@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class InsertStatement
+    class InsertStatement < Arel::Nodes::Node
       attr_accessor :relation, :columns, :values
 
       def initialize

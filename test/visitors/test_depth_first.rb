@@ -120,6 +120,16 @@ module Arel
           :e,
           ss], @collector.calls
       end
+
+      def test_insert_statement
+        stmt = Nodes::InsertStatement.new
+        stmt.relation = :a
+        stmt.columns << :b
+        stmt.values = :c
+
+        @visitor.accept stmt
+        assert_equal [:a, :b, stmt.columns, :c, stmt], @collector.calls
+      end
     end
   end
 end

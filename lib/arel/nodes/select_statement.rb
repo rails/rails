@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class SelectStatement
+    class SelectStatement < Arel::Nodes::Node
       attr_reader :cores
       attr_accessor :limit, :orders, :lock, :offset
 

@@ -61,6 +61,13 @@ module Arel
       alias :visit_Time                  :terminal
       alias :visit_TrueClass             :terminal
 
+      def visit_Arel_Nodes_InsertStatement o
+        visit o.relation
+        visit o.columns
+        visit o.values
+        @block.call o
+      end
+
       def visit_Arel_Nodes_SelectCore o
         visit o.projections
         visit o.froms
