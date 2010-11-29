@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class UpdateStatement
+    class UpdateStatement < Arel::Nodes::Node
       attr_accessor :relation, :wheres, :values, :orders, :limit
 
       def initialize

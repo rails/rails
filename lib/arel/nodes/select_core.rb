@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class SelectCore
+    class SelectCore < Arel::Nodes::Node
       attr_accessor :froms, :projections, :wheres, :groups
       attr_accessor :having
 

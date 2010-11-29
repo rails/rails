@@ -89,6 +89,7 @@ test/nodes/test_count.rb
 test/nodes/test_delete_statement.rb
 test/nodes/test_equality.rb
 test/nodes/test_insert_statement.rb
+test/nodes/test_node.rb
 test/nodes/test_not.rb
 test/nodes/test_or.rb
 test/nodes/test_select_core.rb

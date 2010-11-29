@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class Join
+    class Join < Arel::Nodes::Node
       attr_accessor :left, :right, :constraint
 
       def initialize left, right, constraint
