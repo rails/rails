@@ -84,6 +84,24 @@ module Arel
         assert_equal [:a, :b, stmt.values, :c, stmt.wheres, :d, stmt.orders,
           :e, stmt], @collector.calls
       end
+
+      def test_select_core
+        core = Nodes::SelectCore.new
+        core.projections << :a
+        core.froms = :b
+        core.wheres << :c
+        core.groups << :d
+        core.having = :e
+
+        @visitor.accept core
+        assert_equal [
+          :a, core.projections,
+          :b,
+          :c, core.wheres,
+          :d, core.groups,
+          :e,
+          core], @collector.calls
+      end
     end
   end
 end
