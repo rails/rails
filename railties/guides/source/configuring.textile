@@ -226,6 +226,10 @@ h4. Configuring Action Controller
 
 * +config.action_controller.asset_path+ takes a block which configures where assets can be found. Shorter version of +config.action_controller.asset_path+.
 
+* +config.action_controller.page_cache_directory+ should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>. For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your web server to look in the new location for cached files.
+
+* +config.action_controller.page_cache_extension+ configures the extension used for cached pages saved to +page_cache_directory+. Defaults to +.html+
+
 * +config.action_controller.default_charset+ specifies the default character set for all renders. The default is "utf-8".
 
 * +config.action_controller.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
