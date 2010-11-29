@@ -123,6 +123,10 @@ module ActiveRecord
             Arel.sql(interpolate_sql(sanitize_sql(conditions, table_name)))
           end
 
+          def sanitize_sql(condition, table_name)
+            active_record.send(:sanitize_sql, condition, table_name)
+          end
+
           def join_target_table(relation, *conditions)
             relation = relation.join(target_table, join_type)
 
