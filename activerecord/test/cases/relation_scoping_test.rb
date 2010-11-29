@@ -464,6 +464,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
   end
 
+  def test_default_scope_attribute
+    jamis = PoorDeveloperCalledJamis.new(:name => 'David')
+    assert_equal 50000, jamis.salary
+  end
+
   def test_scope_composed_by_limit_and_then_offset_is_equal_to_scope_composed_by_offset_and_then_limit
     posts_limit_offset = Post.limit(3).offset(2)
     posts_offset_limit = Post.offset(2).limit(3)
