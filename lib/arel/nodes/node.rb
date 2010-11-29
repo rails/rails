@@ -3,6 +3,8 @@ module Arel
     ###
     # Abstract base class for all AST nodes
     class Node
+      include Enumerable
+
       ###
       # Factory method to create a Nodes::Not node that has the recipient of
       # the caller as a child.
@@ -31,6 +33,11 @@ module Arel
       def to_sql engine = Table.engine
         viz = Visitors.for engine
         viz.accept self
+      end
+
+      # Iterate through AST, nodes will be yielded depth-first
+      def each &block
+        Visitors::DepthFirst.new(block).accept self
       end
     end
   end
