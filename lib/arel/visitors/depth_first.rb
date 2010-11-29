@@ -7,9 +7,13 @@ module Arel
 
       private
 
+      def visit o
+        super
+        @block.call o
+      end
+
       def unary o
         visit o.expr
-        @block.call o
       end
       alias :visit_Arel_Nodes_Group             :unary
       alias :visit_Arel_Nodes_Grouping          :unary
@@ -22,7 +26,6 @@ module Arel
       def function o
         visit o.expressions
         visit o.alias
-        @block.call o
       end
       alias :visit_Arel_Nodes_Avg    :function
       alias :visit_Arel_Nodes_Exists :function
@@ -34,14 +37,12 @@ module Arel
         visit o.expressions
         visit o.alias
         visit o.distinct
-        @block.call o
       end
 
       def join o
         visit o.left
         visit o.right
         visit o.constraint
-        @block.call o
       end
       alias :visit_Arel_Nodes_InnerJoin :join
       alias :visit_Arel_Nodes_OuterJoin :join
@@ -49,7 +50,6 @@ module Arel
       def binary o
         visit o.left
         visit o.right
-        @block.call o
       end
       alias :visit_Arel_Nodes_And                :binary
       alias :visit_Arel_Nodes_As                 :binary
@@ -75,7 +75,6 @@ module Arel
       def visit_Arel_Attribute o
         visit o.relation
         visit o.name
-        @block.call o
       end
       alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Float :visit_Arel_Attribute
@@ -87,11 +86,9 @@ module Arel
 
       def visit_Arel_Table o
         visit o.name
-        @block.call o
       end
 
       def terminal o
-        @block.call o
       end
       alias :visit_ActiveSupport_Multibyte_Chars :terminal
       alias :visit_ActiveSupport_StringInquirer  :terminal
@@ -116,7 +113,6 @@ module Arel
         visit o.relation
         visit o.columns
         visit o.values
-        @block.call o
       end
 
       def visit_Arel_Nodes_SelectCore o
@@ -125,7 +121,6 @@ module Arel
         visit o.wheres
         visit o.groups
         visit o.having
-        @block.call o
       end
 
       def visit_Arel_Nodes_SelectStatement o
@@ -134,7 +129,6 @@ module Arel
         visit o.limit
         visit o.lock
         visit o.offset
-        @block.call o
       end
 
       def visit_Arel_Nodes_UpdateStatement o
@@ -143,17 +137,14 @@ module Arel
         visit o.wheres
         visit o.orders
         visit o.limit
-        @block.call o
       end
 
       def visit_Array o
         o.each { |i| visit i }
-        @block.call o
       end
 
       def visit_Hash o
         o.each { |k,v| visit(k); visit(v) }
-        @block.call o
       end
     end
   end
