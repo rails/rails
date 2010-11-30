@@ -2,6 +2,7 @@ require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 require 'active_support/inflector'
+require 'action_dispatch/routing/redirection'
 
 module ActionDispatch
   module Routing
@@ -383,39 +384,6 @@ module ActionDispatch
           map_method(:delete, *args, &block)
         end
 
-        # Redirect any path to another path:
-        #
-        #   match "/stories" => redirect("/posts")
-        def redirect(*args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
-
-          path      = args.shift || Proc.new
-          path_proc = path.is_a?(Proc) ? path : proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
-          status    = options[:status] || 301
-
-          lambda do |env|
-            req = Request.new(env)
-
-            params = [req.symbolized_path_parameters]
-            params << req if path_proc.arity > 1
-
-            uri = URI.parse(path_proc.call(*params))
-            uri.scheme ||= req.scheme
-            uri.host   ||= req.host
-            uri.port   ||= req.port unless req.standard_port?
-
-            body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
-
-            headers = {
-              'Location' => uri.to_s,
-              'Content-Type' => 'text/html',
-              'Content-Length' => body.length.to_s
-            }
-
-            [ status, headers, [body] ]
-          end
-        end
-
         private
           def map_method(method, *args, &block)
             options = args.extract_options!
@@ -638,7 +606,7 @@ module ActionDispatch
                       :shallow_path => path, :shallow_prefix => path }.merge!(options)
           scope(options) { yield }
         end
-        
+
         # === Parameter Restriction
         # Allows you to constrain the nested routes based on a set of rules.
         # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
@@ -649,7 +617,7 @@ module ActionDispatch
         #
         # Now routes such as +/posts/1+ will no longer be valid, but +/posts/1.1+ will be.
         # The +id+ parameter must match the constraint passed in for this example.
-        # 
+        #
         # You may use this to also resrict other parameters:
         #
         #   resources :posts do
@@ -1340,6 +1308,7 @@ module ActionDispatch
 
       include Base
       include HttpHelpers
+      include Redirection
       include Scoping
       include Resources
       include Shorthand
