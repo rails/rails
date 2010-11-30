@@ -339,7 +339,7 @@ module ActiveRecord
       when Relation
         other.to_sql == to_sql
       when Array
-        to_a == other.to_a
+        to_a == other
       end
     end
 
