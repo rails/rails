@@ -65,6 +65,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'new_documentation', :to => redirect(:path => '/documentation/new')
       match 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
 
+      match 'stores/:name',        :to => redirect(:subdomain => 'stores', :path => '/%{name}')
+      match 'stores/:name(*rest)', :to => redirect(:subdomain => 'stores', :path => '/%{name}%{rest}')
+
       match 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
 
       constraints(lambda { |req| true }) do
@@ -705,6 +708,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/super_new_documentation?section=top'
       verify_redirect 'http://super-docs.com/super_new_documentation?section=top'
+    end
+  end
+
+  def test_redirect_hash_path_substitution
+    with_test_routes do
+      get '/stores/iernest'
+      verify_redirect 'http://stores.example.com/iernest'
+    end
+  end
+
+  def test_redirect_hash_path_substitution_with_catch_all
+    with_test_routes do
+      get '/stores/iernest/products'
+      verify_redirect 'http://stores.example.com/iernest/products'
     end
   end
 
