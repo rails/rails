@@ -356,6 +356,10 @@ module ActiveRecord
       to_a.inspect
     end
 
+    def table_name
+      @klass.table_name
+    end
+
     protected
 
     def method_missing(method, *args, &block)
