@@ -2,6 +2,7 @@ require "rubygems"
 gem 'hoe', '>= 2.1.0'
 require 'hoe'
 
+Hoe.plugins.delete :rubyforge
 Hoe.plugin :minitest
 Hoe.plugin :gemspec # `gem install hoe-gemspec`
 Hoe.plugin :git     # `gem install hoe-git`
