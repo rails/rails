@@ -327,13 +327,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= begin
-        if @create_with_value
-          where_values_hash.merge @create_with_value
-        else
-          where_values_hash
-        end
-      end
+      @scope_for_create ||= where_values_hash.merge(@create_with_value || {})
     end
 
     def eager_loading?
