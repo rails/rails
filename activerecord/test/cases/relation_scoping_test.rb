@@ -469,6 +469,17 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 50000, jamis.salary
   end
 
+  def test_where_attribute
+    aaron = PoorDeveloperCalledJamis.where(:salary => 20).new(:name => 'Aaron')
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_where_attribute_merge
+    aaron = PoorDeveloperCalledJamis.where(:name => 'foo').new(:name => 'Aaron')
+    assert_equal 'Aaron', aaron.name
+  end
+
   def test_scope_composed_by_limit_and_then_offset_is_equal_to_scope_composed_by_offset_and_then_limit
     posts_limit_offset = Post.limit(3).offset(2)
     posts_offset_limit = Post.offset(2).limit(3)
