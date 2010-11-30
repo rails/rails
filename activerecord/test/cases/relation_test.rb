@@ -80,6 +80,15 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_tree_is_not_traversed
+      relation = Relation.new Post, Post.arel_table
+      left     = relation.table[:id].eq(10)
+      right    = relation.table[:id].eq(10)
+      combine  = left.and right
+      relation.where_values << combine
+      assert_equal({}, relation.where_values_hash)
+    end
+
     def test_table_name_delegates_to_klass
       relation = Relation.new FakeKlass.new('foo'), :b
       assert_equal 'foo', relation.table_name
