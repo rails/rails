@@ -2,6 +2,9 @@ require "cases/helper"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
+    class FakeTable < Struct.new(:table_name)
+    end
+
     def test_construction
       relation = nil
       assert_nothing_raised do
@@ -51,6 +54,24 @@ module ActiveRecord
     def test_extensions
       relation = Relation.new :a, :b
       assert_equal [], relation.extensions
+    end
+
+    def test_where_values_hash
+      relation = Relation.new :a, :b
+      assert_equal({}, relation.where_values_hash)
+
+      relation.where_values << :hello
+      assert_equal({}, relation.where_values_hash)
+    end
+
+    def test_table_name_delegates_to_klass
+      relation = Relation.new FakeTable.new('foo'), :b
+      assert_equal 'foo', relation.table_name
+    end
+
+    def test_scope_for_create
+      relation = Relation.new :a, :b
+      assert_equal({}, relation.scope_for_create)
     end
   end
 end
