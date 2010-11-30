@@ -112,5 +112,17 @@ module ActiveRecord
       relation.create_with_value = {:hello => 'world'}
       assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
     end
+
+    # FIXME: is this really wanted or expected behavior?
+    def test_scope_for_create_is_cached
+      relation = Relation.new Post, Post.arel_table
+      assert_equal({}, relation.scope_for_create)
+
+      relation.where_values << relation.table[:id].eq(10)
+      assert_equal({}, relation.scope_for_create)
+
+      relation.create_with_value = {:hello => 'world'}
+      assert_equal({}, relation.scope_for_create)
+    end
   end
 end
