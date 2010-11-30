@@ -8,7 +8,7 @@ module Arel
       private
 
       DISPATCH = Hash.new do |hash, klass|
-        hash[klass] = "visit_#{klass.name.gsub('::', '_')}"
+        hash[klass] = "visit_#{(klass.name || '').gsub('::', '_')}"
       end
 
       def visit object
