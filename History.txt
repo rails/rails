@@ -11,6 +11,11 @@
   * Nodes::Node#not factory method added for creating Nodes::Not nodes
   * Added an As node
 
+* Deprecations
+
+  * Support for Subclasses of core classes will be removed in ARel version
+    2.2.0
+
 == 2.0.4
 
 * Bug fixes

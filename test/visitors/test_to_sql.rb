@@ -21,6 +21,11 @@ module Arel
         end
       end
 
+      it "should visit string subclass" do
+        @visitor.accept(Class.new(String).new(":'("))
+        @visitor.accept(Class.new(Class.new(String)).new(":'("))
+      end
+
       it "should visit_Class" do
         @visitor.accept(DateTime).must_equal "'DateTime'"
       end
