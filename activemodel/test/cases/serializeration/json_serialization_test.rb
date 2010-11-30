@@ -60,6 +60,35 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
+  test "should include root in json when root is true" do
+    begin
+      Contact.include_root_in_json = false
+      json = @contact.to_json(:root => true)
+
+      assert_match %r{^\{"contact":\{}, json
+      assert_match %r{"name":"Konata Izumi"}, json
+      assert_match %r{"age":16}, json
+      assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+      assert_match %r{"awesome":true}, json
+      assert_match %r{"preferences":\{"shows":"anime"\}}, json
+    ensure
+      Contact.include_root_in_json = true
+    end
+  end
+
+  test "should not include root in json when root is false" do
+    begin
+      json = @contact.to_json(:root => false)
+
+      assert_no_match %r{^\{"contact":\{}, json
+      assert_match %r{"name":"Konata Izumi"}, json
+      assert_match %r{"age":16}, json
+      assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+      assert_match %r{"awesome":true}, json
+      assert_match %r{"preferences":\{"shows":"anime"\}}, json
+    end
+  end
+
   test "should encode all encodable attributes" do
     json = @contact.to_json
 
