@@ -1,8 +1,12 @@
 require "cases/helper"
+require 'models/post'
+require 'models/comment'
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    class FakeTable < Struct.new(:table_name)
+    fixtures :posts, :comments
+
+    class FakeKlass < Struct.new(:table_name)
     end
 
     def test_construction
@@ -56,7 +60,7 @@ module ActiveRecord
       assert_equal [], relation.extensions
     end
 
-    def test_where_values_hash
+    def test_empty_where_values_hash
       relation = Relation.new :a, :b
       assert_equal({}, relation.where_values_hash)
 
@@ -64,8 +68,20 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_has_values
+      relation = Relation.new Post, Post.arel_table
+      relation.where_values << relation.table[:id].eq(10)
+      assert_equal({:id => 10}, relation.where_values_hash)
+    end
+
+    def test_values_wrong_table
+      relation = Relation.new Post, Post.arel_table
+      relation.where_values << Comment.arel_table[:id].eq(10)
+      assert_equal({}, relation.where_values_hash)
+    end
+
     def test_table_name_delegates_to_klass
-      relation = Relation.new FakeTable.new('foo'), :b
+      relation = Relation.new FakeKlass.new('foo'), :b
       assert_equal 'foo', relation.table_name
     end
 
