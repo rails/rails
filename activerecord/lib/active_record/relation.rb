@@ -319,13 +319,13 @@ module ActiveRecord
     end
 
     def where_values_hash
-      Hash[@where_values.find_all { |w|
-        w.respond_to?(:operator) && w.operator == :== && w.left.relation.name == table_name
-      }.map { |where|
-        [
-          where.left.name,
-          where.right.respond_to?(:value) ? where.right.value : where.right
-        ]
+      equalities = @where_values.grep(Arel::Nodes::Equality).find_all { |node|
+        node.left.relation.name == table_name
+      }
+
+      Hash[equalities.map { |where|
+        left, right = where.left, where.right
+        [ left.name, right.respond_to?(:value) ? right.value : right ]
       }]
     end
 
