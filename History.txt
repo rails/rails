@@ -1,4 +1,4 @@
-== 2.0.5 (unreleased)
+== 2.0.5 11/30/2010
 
 * Enhancements
 
