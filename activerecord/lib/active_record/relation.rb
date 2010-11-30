@@ -323,10 +323,7 @@ module ActiveRecord
         node.left.relation.name == table_name
       }
 
-      Hash[equalities.map { |where|
-        left, right = where.left, where.right
-        [ left.name, right.respond_to?(:value) ? right.value : right ]
-      }]
+      Hash[equalities.map { |where| [where.left.name, where.right] }]
     end
 
     def scope_for_create
