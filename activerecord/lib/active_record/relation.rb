@@ -329,7 +329,7 @@ module ActiveRecord
     def scope_for_create
       @scope_for_create ||= begin
         if @create_with_value
-          @create_with_value.reverse_merge(where_values_hash)
+          where_values_hash.merge @create_with_value
         else
           where_values_hash
         end

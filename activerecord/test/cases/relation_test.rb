@@ -20,8 +20,8 @@ module ActiveRecord
     end
 
     def test_single_values
-      assert_equal [:limit, :offset, :lock, :readonly, :create_with, :from].sort,
-        Relation::SINGLE_VALUE_METHODS.sort
+      assert_equal [:limit, :offset, :lock, :readonly, :create_with, :from].map(&:to_s).sort,
+        Relation::SINGLE_VALUE_METHODS.map(&:to_s).sort
     end
 
     def test_initialize_single_values
@@ -32,8 +32,8 @@ module ActiveRecord
     end
 
     def test_association_methods
-      assert_equal [:includes, :eager_load, :preload].sort,
-        Relation::ASSOCIATION_METHODS.sort
+      assert_equal [:includes, :eager_load, :preload].map(&:to_s).sort,
+        Relation::ASSOCIATION_METHODS.map(&:to_s).sort
     end
 
     def test_initialize_association_methods
@@ -44,8 +44,8 @@ module ActiveRecord
     end
 
     def test_multi_value_methods
-      assert_equal [:select, :group, :order, :joins, :where, :having, :bind].sort,
-        Relation::MULTI_VALUE_METHODS.sort
+      assert_equal [:select, :group, :order, :joins, :where, :having, :bind].map(&:to_s).sort,
+        Relation::MULTI_VALUE_METHODS.map(&:to_s).sort
     end
 
     def test_multi_value_initialize
