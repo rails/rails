@@ -32,6 +32,22 @@ module ActiveModel
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true}
       #
+      # The <tt>include_root_in_json</tt> option can be overriden when calling
+      # +to_json+ to include or omit the default root as well as changing the root.
+      #
+      #   konata.as_json(:root => false)
+      #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
+      #         "created_at": "2006/08/01", "awesome": true}
+      #
+      #   ActiveRecord::Base.include_root_in_json = false
+      #   konata.as_json(:root => true)
+      #   # => { "user": {"id": 1, "name": "Konata Izumi", "age": 16,
+      #                   "created_at": "2006/08/01", "awesome": true} }
+      #
+      #   konata.as_json(:root => 'person')
+      #   # => { "person": {"id": 1, "name": "Konata Izumi", "age": 16,
+      #                   "created_at": "2006/08/01", "awesome": true} }
+      #
       # The remainder of the examples in this section assume +include_root_in_json+
       # is false.
       #
