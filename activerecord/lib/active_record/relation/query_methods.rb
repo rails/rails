@@ -162,7 +162,7 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
-    def custom_join_sql(*joins)
+    def custom_join_sql(joins)
       arel = table.select_manager
 
       joins.each do |join|
@@ -254,7 +254,7 @@ module ActiveRecord
       stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
-      custom_joins = custom_join_sql(*non_association_joins)
+      custom_joins = custom_join_sql(non_association_joins)
 
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
 
