@@ -235,9 +235,7 @@ module ActionDispatch
       # Set the host name to use in the next request.
       #
       #   session.host! "www.example.com"
-      def host!(name)
-        @host = name
-      end
+      alias :host! :host=
 
       private
         def _mock_session
