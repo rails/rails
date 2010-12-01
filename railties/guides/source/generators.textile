@@ -451,6 +451,167 @@ The above code will put the following line into +Gemfile+:
 </ruby>
 
 
+h4. +add_source+
+
+Adds a specified source to +Gemfile+:
+
+<ruby>
+  add_source "http://gems.github.com"
+</ruby>
+
+h4. +application+
+
+Adds a line to +config/application.rb+ directly after the application class definition.
+
+<ruby>
+  application "config.asset_host = 'http://example.com'"
+</ruby>
+
+This method can also take a block:
+
+<ruby>
+  application do
+    "config.asset_host = 'http://example.com'"
+    end
+  end
+</ruby>
+
+Available options are:
+
+* +:env+ - Specify an environment for this configuration option. If you wish to use this option with the block syntax the recommended syntax is as follows:
+
+<ruby>
+  application(nil, :env => "development") do
+    "config.asset_host = 'http://localhost:3000'"
+  end
+</ruby>
+
+h4. +git+
+
+Runs the specified git command:
+
+<ruby>
+  git :init
+  git :add => "."
+  git :commit => "-m First commit!"
+  git :add => "onefile.rb", :rm => "badfile.cxx"
+</ruby>
+
+The values of the hash here being the arguments or options passed to the specific git command. As per the final example shown here, multiple git commands can be specified at a time, but the order of their running is not guaranteed to be the same as the order that they were specified in.
+
+h4. +vendor+
+
+Places a file into +vendor+ which contains the specified code.
+
+<ruby>
+  vendor("sekrit.rb", '#top secret stuff')
+</ruby>
+
+This method also takes a block:
+
+<ruby>
+  vendor("seeds.rb") do
+    "puts 'in ur app, seeding ur database'"
+  end
+</ruby>
+
+h4. +lib+
+
+Places a file into +lib+ which contains the specified code.
+
+<ruby>
+  lib("special.rb", 'p Rails.root')
+</ruby>
+
+This method also takes a block:
+
+<ruby>
+  lib("super_special.rb") do
+    puts "Super special!"
+  end
+</ruby>
+
+h4. +rakefile+
+
+Creates a Rake file in the +lib/tasks+ directory of the application.
+
+<ruby>
+  rakefile("test.rake", 'hello there')
+</ruby>
+
+This method also takes a block:
+
+<ruby>
+  rakefile("test.rake") do
+    %Q{
+     task :rock => :environment do
+       puts "Rockin'"
+     end 
+    }
+  end
+</ruby>
+
+h4. +initializer+
+
+Creates an initializer in the +config/initializers+ directory of the application:
+
+<ruby>
+  initializer("begin.rb", "puts 'this is the beginning'")
+</ruby>
+
+This method also takes a block:
+
+<ruby>
+  initializer("begin.rb") do
+    puts "Almost done!"
+  end
+</ruby>
+
+h4. +generate+
+
+Runs the specified generator where the first argument is the generator name and the remaining arguments are passed directly to the generator.
+
+<ruby>
+  generate("scaffold", "forums title:string description:text")
+</ruby>
+
+
+h4. +rake+
+
+Runs the specified Rake task.
+
+<ruby>
+  rake("db:migrate")
+</ruby>
+
+Available options are:
+
+* +:env+ - Specifies the environment in which to run this rake task.
+* +:sudo+ - Whether or not to run this task using +sudo+. Defaults to +false+.
+
+h4. +capify!+
+
+Runs the +capify+ command from Capistrano at the root of the application which generates Capistrano configuration.
+
+<ruby>
+  capify!
+</ruby>
+
+h4. +route+
+
+Adds text to the +config/routes.rb+ file:
+
+<ruby>
+  route("resources :people")
+</ruby>
+
+h4. +readme+
+
+Output the contents of a file in the template's +source_path+, usually a README.
+
+<ruby>
+  readme("README")
+</ruby>
 
 h3. Changelog
 
