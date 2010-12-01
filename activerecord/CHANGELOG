@@ -1,5 +1,9 @@
 *Rails 3.1.0 (unreleased)*
 
+* The `schema_migrations` table now contains a column `name` which stores the
+name of the migration that was executed, and `migrated_at` which stores the date
+when the migration was executed.  (Thanks Josh Susser!)
+
 * ActiveRecord::Base#dup and ActiveRecord::Base#clone semantics have changed
 to closer match normal Ruby dup and clone semantics.
 
