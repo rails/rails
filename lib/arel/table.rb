@@ -45,6 +45,10 @@ module Arel
     end
 
     def joins manager
+      if $VERBOSE
+        warn "joins is deprecated and will be removed in 2.2"
+        warn "please remove your call to joins from #{caller.first}"
+      end
       nil
     end
 
