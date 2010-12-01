@@ -47,8 +47,9 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_migration_adds_row_to_migrations_table
-      ActiveRecord::Schema.migration("123001")
-      ActiveRecord::Schema.migration("123002", "add_magic_power_to_unicorns")
+      schema = ActiveRecord::Schema.new
+      schema.migration("123001")
+      schema.migration("123002", "add_magic_power_to_unicorns")
       rows = @connection.select_all("SELECT * FROM #{@connection.quote_table_name(@sm_table)}")
       assert_equal 2, rows.length
 

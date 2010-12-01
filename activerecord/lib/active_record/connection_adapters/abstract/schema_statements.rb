@@ -464,7 +464,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          execute "INSERT INTO #{sm_table} (version,migrated_at) VALUES ('#{version}','#{Time.now.to_s(:db)}')"
         end
 
         inserted = Set.new
@@ -472,7 +472,7 @@ module ActiveRecord
           if inserted.include?(v)
             raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
           elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+            execute "INSERT INTO #{sm_table} (version,migrated_at) VALUES ('#{v}','#{Time.now.to_s(:db)}')"
             inserted << v
           end
         end

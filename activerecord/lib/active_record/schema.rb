@@ -55,7 +55,7 @@ module ActiveRecord
       assume_migrated_upto_version(info[:version], schema.migrations_path) unless info[:version].blank?
     end
 
-    def self.migration(version, name="", options={})
+    def migration(version, name="", options={})
       name, options = "", name if name.is_a?(Hash)
 
       table = Arel::Table.new(ActiveRecord::Migrator.schema_migrations_table_name)
