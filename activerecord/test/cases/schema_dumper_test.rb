@@ -18,6 +18,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_includes_migrations
+    $".delete_if do |fname|
+      fname == (MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+    end
+
     conn = ActiveRecord::Base.connection
     sm_table = ActiveRecord::Migrator.schema_migrations_table_name
     conn.execute "DELETE FROM #{conn.quote_table_name(sm_table)}"
