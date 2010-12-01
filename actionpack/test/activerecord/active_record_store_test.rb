@@ -32,12 +32,6 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       head :ok
     end
 
-    def set_session_value_and_cookie
-      cookies["foo"] = "bar"
-      session[:foo] = "bar"
-      render :nothing => true
-    end
-
     def rescue_action(e) raise end
   end
 
@@ -198,15 +192,6 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       assert_response :success
       assert_equal 'foo: "baz"', response.body
       assert_equal session_id, cookies['_session_id']
-    end
-  end
-
-  def test_setting_session_value_and_cookie
-    with_test_route_set do
-      get '/set_session_value_and_cookie'
-      assert_response :success
-      assert !cookies["\n_session_id"]
-      assert_equal({"_session_id" => request.session_options[:id], "foo" => "bar"}, cookies)
     end
   end
 
