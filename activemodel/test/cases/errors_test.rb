@@ -61,15 +61,5 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
 
   end
-  
-  test 'to_json should return valid json string' do
-    person = Person.new
-    person.errors.add(:name, "can not be blank")
-    person.errors.add(:name, "can not be nil")
-    
-    hash = ActiveSupport::OrderedHash[:name, ["can not be blank", "can not be nil"]]
-    
-    assert_equal person.errors.to_json, hash.to_json
-  end
 
 end
