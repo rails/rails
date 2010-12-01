@@ -1,3 +1,9 @@
+== 2.1.0 (unreleased)
+
+* Enhancements
+
+  * AST is now Enumerable
+
 == 2.0.6 12/01/2010
 
 * Bug Fixes

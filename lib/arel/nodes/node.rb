@@ -3,6 +3,8 @@ module Arel
     ###
     # Abstract base class for all AST nodes
     class Node
+      include Enumerable
+
       ###
       # Factory method to create a Nodes::Not node that has the recipient of
       # the caller as a child.
