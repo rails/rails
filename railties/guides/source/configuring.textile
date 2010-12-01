@@ -340,8 +340,8 @@ Rails has 4 initialization events which can be hooked into (listed in order that
 
 * +before_configuration+: This is run as soon as the application constant inherits from +Rails::Application+. The +config+ calls are evaluated before this happens.
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ enviroment.
-* +before_initialize+ This is run directly before the initialization process of the application occurs.
-* +after_initialize+ Run directly after the initialization of the application, but before the application initializers are run.
+* +before_initialize+: This is run directly before the initialization process of the application occurs.
+* +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
 
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 
