@@ -1,4 +1,4 @@
-h2. Creating and Customizing Rails Generators
+h2. Creating and Customizing Rails Generators & Templates
 
 Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
 
@@ -10,6 +10,7 @@ In this guide you will:
 * Customize your scaffold by creating new generators
 * Customize your scaffold by changing generator templates
 * Learn how to use fallbacks to avoid overwriting a huge set of generators
+* Learn how to create an application template
 
 endprologue.
 
@@ -363,7 +364,46 @@ $ rails generate scaffold Comment body:text
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
 
+h3. Application templates
+
+Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template".
+
+<ruby>
+  gem("rspec-rails", :group => "test")
+  gem("cucumber-rails", :group => "test")
+
+  if yes?("Would you like to install Devise?")
+    gem("devise")
+    generate("devise:install")
+    model_name = ask("What would you like the user model to be called? [user]")
+    model_name = "user" if model_name.blank?
+    generate("devise", model_name)
+  end
+</ruby>
+
+In the above template we specify that the application relies on the +rspec-rails+ and +cucumber-rails+ gem so these two will be added to the +test+ group in the +Gemfile+. Then we pose a question to the user about whether or not they would like to install Devise. If the user replies "y" or "yes" to this question, then the template will add Devise to the +Gemfile+ outside of any group and then runs the +devise:install+ generator. This template then takes the users input and runs the  +devise+ generator, with the user's answer from the last question being passed to this generator.
+
+Imagine that this template was in a file called +template.rb+. We can use it to modify the outcome of the +rails new+ command by using the +-m+ option and passing in the filename:
+
+<shell>
+  rails new thud -m template.rb
+</shell>
+
+This command will generate the +Thud+ application, and then apply the template to the generated output.
+
+Templates don't have to be stored on the local system, the +-m+ option also supports online templates:
+
+<shell>
+  rails new thud -m https://gist.github.com/722911
+</shell>
+
+Whilst the remainder of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself.
+
+
+
 h3. Changelog
+
+* December 1, 2010: Addition of Rails application templates by "Ryan Bigg"
 
 * August 23, 2010: Edit pass by "Xavier Noria":credits.html#fxn
 
