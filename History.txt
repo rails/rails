@@ -1,3 +1,9 @@
+== 2.0.6 12/01/2010
+
+* Bug Fixes
+
+  * Rails 3.0.x does not like that Node is Enumerable, so removing for now.
+
 == 2.0.5 11/30/2010
 
 * Enhancements

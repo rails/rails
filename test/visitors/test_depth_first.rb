@@ -14,6 +14,13 @@ module Arel
         @visitor = Visitors::DepthFirst.new @collector
       end
 
+      def test_raises_with_object
+        assert_raises(TypeError) do
+          @visitor.accept(Object.new)
+        end
+      end
+
+
       # unary ops
       [
         Arel::Nodes::Not,

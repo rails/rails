@@ -18,6 +18,7 @@ module Arel
         superklass = object.class.ancestors.find { |klass|
           respond_to?(DISPATCH[klass], true)
         }
+        raise(TypeError, "Cannot visit #{object.class}") unless superklass
         DISPATCH[object.class] = DISPATCH[superklass]
         retry
       end
