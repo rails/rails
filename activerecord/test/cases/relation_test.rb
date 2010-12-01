@@ -124,5 +124,16 @@ module ActiveRecord
       relation.create_with_value = {:hello => 'world'}
       assert_equal({}, relation.scope_for_create)
     end
+
+    def test_empty_eager_loading?
+      relation = Relation.new :a, :b
+      assert !relation.eager_loading?
+    end
+
+    def test_eager_load_values
+      relation = Relation.new :a, :b
+      relation.eager_load_values << :b
+      assert relation.eager_loading?
+    end
   end
 end
