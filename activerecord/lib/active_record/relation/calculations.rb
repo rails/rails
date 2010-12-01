@@ -166,7 +166,7 @@ module ActiveRecord
       if operation == "count"
         column_name ||= (select_for_count || :all)
 
-        if arel.joins(arel) =~ /LEFT OUTER/i
+        if arel.join_sql =~ /LEFT OUTER/i
           distinct = true
           column_name = @klass.primary_key if column_name == :all
         end

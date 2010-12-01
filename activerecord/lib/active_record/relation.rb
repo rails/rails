@@ -376,7 +376,7 @@ module ActiveRecord
 
     def references_eager_loaded_tables?
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      joined_tables = (tables_in_string(arel.joins(arel)) + [table.name, table.table_alias]).compact.map{ |t| t.downcase }.uniq
+      joined_tables = (tables_in_string(arel.join_sql) + [table.name, table.table_alias]).compact.map{ |t| t.downcase }.uniq
       (tables_in_string(to_sql) - joined_tables).any?
     end
 
