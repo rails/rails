@@ -423,6 +423,34 @@ Available options are:
 * +:svn+ - Takes the path to the svn repository where this plugin can be found.
 * +:revision+ - The revision of the plugin in an SVN repository.
 
+h4. +gem+
+
+Specifies a gem dependency of the application.
+
+<ruby>
+  gem("rspec", :group => "test", :version => "2.1.0")
+  gem("devise", "1.1.5")
+</ruby>
+
+Available options are:
+
+* +:group+ - The group in the +Gemfile+ where this gem should go.
+* +:version+ - The version string of the gem you want to use. Can also be specified as the second argument to the method.
+* +:git+ - The URL to the git repository for this gem.
+
+Any additional options passed to this method are put on the end of the line:
+
+<ruby>
+  gem("devise", :git => "git://github.com/plataformatec/devise", :branch => "master")
+</ruby>
+
+The above code will put the following line into +Gemfile+:
+
+<ruby>
+  gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
+</ruby>
+
+
 
 h3. Changelog
 
