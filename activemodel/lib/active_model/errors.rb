@@ -167,16 +167,6 @@ module ActiveModel
     def as_json(options=nil)
       self
     end
-    
-    def encode_json(encoder)
-      errors = []
-      each_pair do |key, value|
-        value = value.first if value.size == 1
-        errors << "#{encoder.encode(key.to_s)}:#{encoder.encode(value, false)}"
-      end
-
-      "{#{errors * ','}}"
-    end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
     # <tt>on(attribute)</tt> for the same attribute. More than one error can be added to the same
