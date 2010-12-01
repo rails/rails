@@ -45,7 +45,7 @@ module ActionView
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], options[:prefix], false, keys) }
       elsif options.key?(:inline)
-        handler = Template.handler_class_for_extension(options[:type] || "erb")
+        handler = Template.handler_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, :locals => keys)
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
