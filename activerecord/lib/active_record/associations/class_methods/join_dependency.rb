@@ -9,7 +9,8 @@ module ActiveRecord
         attr_reader :join_parts, :reflections, :table_aliases
 
         def initialize(base, associations, joins)
-          @join_parts            = [JoinBase.new(base, joins)]
+          @table_joins           = joins || ''
+          @join_parts            = [JoinBase.new(base)]
           @associations          = {}
           @reflections           = []
           @table_aliases         = Hash.new(0)
@@ -45,7 +46,7 @@ module ActiveRecord
         def count_aliases_from_table_joins(name)
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = join_base.active_record.connection.quote_table_name(name.downcase).downcase
-          join_sql = join_base.table_joins.to_s.downcase
+          join_sql = @table_joins.downcase
           join_sql.blank? ? 0 :
             # Table names
             join_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
