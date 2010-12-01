@@ -129,7 +129,7 @@ module ActionView
     def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
-      handler = Template.handler_class_for_extension(pieces.pop)
+      handler = Template.handler_for_extension(pieces.pop)
       format  = pieces.last && Mime[pieces.last]
       [handler, format]
     end

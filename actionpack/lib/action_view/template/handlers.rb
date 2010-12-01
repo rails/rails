@@ -44,7 +44,13 @@ module ActionView #:nodoc:
       end
 
       def handler_class_for_extension(extension)
-        (extension && registered_template_handler(extension.to_sym)) || @@default_template_handlers
+        ActiveSupport::Deprecation.warn "handler_class_for_extension is deprecated. " <<
+          "Please use handler_for_extension instead", caller
+        handler_for_extension(extension)
+      end
+
+      def handler_for_extension(extension)
+        registered_template_handler(extension) || @@default_template_handlers
       end
     end
   end
