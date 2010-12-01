@@ -848,13 +848,12 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   def test_attr_accessor_of_child_should_be_value_provided_during_update_attributes
     @owner = owners(:ashley)
     @pet1 = pets(:chew)
-    assert_equal nil, $current_user
     attributes = {:pets_attributes => { "1"=> { :id => @pet1.id,
                                                 :name => "Foo2",
                                                 :current_user => "John",
                                                 :_destroy=>true }}}
     @owner.update_attributes(attributes)
-    assert_equal 'John', $after_destroy_callback_output
+    assert_equal 'John', Pet.after_destroy_output
   end
 
 end
