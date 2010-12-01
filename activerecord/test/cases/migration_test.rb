@@ -1507,7 +1507,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       rows = conn.select_all("SELECT * FROM #{conn.quote_table_name(sm_table)}")
       rows.each do |row|
-        assert_match( /^2\d\d\d-/, row["migrated_at"], "missing migrated_at" )
+        assert_match(/^2\d\d\d-/, row["migrated_at"].to_s, "missing migrated_at")
       end
       assert_equal "people_have_last_names",  rows[0]["name"]
       assert_equal "we_need_reminders",       rows[1]["name"]

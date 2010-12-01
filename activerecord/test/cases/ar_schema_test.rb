@@ -55,11 +55,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       assert_equal "123001", rows[0]["version"]
       assert_equal "", rows[0]["name"]
-      assert_match(/^2\d\d\d-/, rows[0]["migrated_at"])
+      assert_match(/^2\d\d\d-/, rows[0]["migrated_at"].to_s)
 
       assert_equal "123002", rows[1]["version"]
       assert_equal "add_magic_power_to_unicorns", rows[1]["name"]
-      assert_match(/^2\d\d\d-/, rows[1]["migrated_at"])
+      assert_match(/^2\d\d\d-/, rows[1]["migrated_at"].to_s)
     end
 
     def test_define_clears_schema_migrations
