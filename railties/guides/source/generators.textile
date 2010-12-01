@@ -134,6 +134,8 @@ $ rails generate initializer core_extensions
 
 We can see that now a initializer named core_extensions was created at +config/initializers/core_extensions.rb+ with the contents of our template. That means that +copy_file+ copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
 
+The methods that are available for generators are covered in the "final section":#generator_methods of this guide.
+
 h3. Generators Lookup
 
 When you run +rails generate initializer core_extensions+ Rails requires these files in turn until one is found:
@@ -397,13 +399,35 @@ Templates don't have to be stored on the local system, the +-m+ option also supp
   rails new thud -m https://gist.github.com/722911
 </shell>
 
-Whilst the remainder of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself.
+Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
 
+h3. Generator methods
+
+The following are methods available for both generators and templates for Rails. 
+
+NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
+
+h4. +plugin+
+
++plugin+ will install a plugin into the current application.
+
+<ruby>
+  plugin("dynamic-form", :git => "git://github.com/rails/dynamic-form.git")
+</ruby>
+
+Available options are:
+
+* +:git+ - Takes the path to the git repository where this plugin can be found.
+* +:branch+ - The name of the branch of the git repository where the plugin is found.
+* +:submodule+ - Set to +true+ for the plugin to be installed as a submodule. Defaults to +false+.
+* +:svn+ - Takes the path to the svn repository where this plugin can be found.
+* +:revision+ - The revision of the plugin in an SVN repository.
 
 
 h3. Changelog
 
-* December 1, 2010: Addition of Rails application templates by "Ryan Bigg"
+* December 1, 2010: Documenting the available methods and options for generators and templates by "Ryan Bigg":http://ryanbigg.com
+* December 1, 2010: Addition of Rails application templates by "Ryan Bigg":http://ryanbigg.com
 
 * August 23, 2010: Edit pass by "Xavier Noria":credits.html#fxn
 
