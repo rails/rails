@@ -628,7 +628,7 @@ module ActiveRecord
       raise UnknownMigrationVersionError.new(@target_version) if target.nil?
       unless (up? && migrated.include?(target.version.to_i)) || (down? && !migrated.include?(target.version.to_i))
         target.migrate(@direction)
-        record_version_state_after_migrating(target)
+        record_version_state_after_migrating(target.version)
       end
     end
 
@@ -664,7 +664,7 @@ module ActiveRecord
         begin
           ddl_transaction do
             migration.migrate(@direction)
-            record_version_state_after_migrating(migration)
+            record_version_state_after_migrating(migration.version)
           end
         rescue => e
           canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
@@ -690,20 +690,16 @@ module ActiveRecord
     end
 
     private
-      def record_version_state_after_migrating(target)
+      def record_version_state_after_migrating(version)
         table = Arel::Table.new(self.class.schema_migrations_table_name)
 
         @migrated_versions ||= []
         if down?
-          @migrated_versions.delete(target.version)
-          table.where(table["version"].eq(target.version.to_s)).delete
+          @migrated_versions.delete(version)
+          table.where(table["version"].eq(version.to_s)).delete
         else
-          @migrated_versions.push(target.version).sort!
-          table.insert(
-            table["version"]     => target.version.to_s,
-            table["name"]        => File.basename(target.filename,'.rb').gsub(/^\d+_/,''),
-            table["migrated_at"] => Time.now
-          )
+          @migrated_versions.push(version).sort!
+          table.insert table["version"] => version.to_s
         end
       end
 

@@ -39,39 +39,4 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 
-  class ActiveRecordSchemaMigrationsTest < ActiveRecordSchemaTest
-    def setup
-      super
-      @sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-      @connection.execute "DELETE FROM #{@connection.quote_table_name(@sm_table)}"
-    end
-
-    def test_migration_adds_row_to_migrations_table
-      schema = ActiveRecord::Schema.new
-      schema.migration("123001")
-      schema.migration("123002", "add_magic_power_to_unicorns")
-      rows = @connection.select_all("SELECT * FROM #{@connection.quote_table_name(@sm_table)}")
-      assert_equal 2, rows.length
-
-      assert_equal "123001", rows[0]["version"]
-      assert_equal "", rows[0]["name"]
-      assert_not_nil(rows[0]["migrated_at"])
-
-      assert_equal "123002", rows[1]["version"]
-      assert_equal "add_magic_power_to_unicorns", rows[1]["name"]
-      assert_not_nil(rows[1]["migrated_at"])
-    end
-
-    def test_define_clears_schema_migrations
-      assert_nothing_raised do
-        ActiveRecord::Schema.define do
-          migration("123001")
-        end
-        ActiveRecord::Schema.define do
-          migration("123001")
-        end
-      end
-    end
-  end
-
 end
