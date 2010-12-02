@@ -250,7 +250,8 @@ module ActiveRecord
     def update(attribute_names = @attributes.keys)
       attributes_with_values = arel_attributes_values(false, false, attribute_names)
       return 0 if attributes_with_values.empty?
-      self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).arel.update(attributes_with_values)
+      klass = self.class
+      klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.update(attributes_with_values)
     end
 
     # Creates a record with values matching those of the instance attributes
