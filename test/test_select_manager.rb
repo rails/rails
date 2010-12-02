@@ -390,9 +390,9 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new engine
         manager.from table
-        manager.delete
+        stmt = manager.compile_delete
 
-        engine.executed.last.must_be_like %{ DELETE FROM "users" }
+        stmt.to_sql.must_be_like %{ DELETE FROM "users" }
       end
 
       it "copies where" do
@@ -401,9 +401,9 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.from table
         manager.where table[:id].eq 10
-        manager.delete
+        stmt = manager.compile_delete
 
-        engine.executed.last.must_be_like %{
+        stmt.to_sql.must_be_like %{
           DELETE FROM "users" WHERE "users"."id" = 10
         }
       end

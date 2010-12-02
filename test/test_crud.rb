@@ -57,10 +57,8 @@ module Arel
         table = Table.new :users
         fc = FakeCrudder.new
         fc.from table
-        fc.delete
-        fc.engine.calls.find { |method, _|
-          method == :delete
-        }.wont_be_nil
+        stmt = fc.compile_delete
+        assert_instance_of Arel::DeleteManager, stmt
       end
     end
   end

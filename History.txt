@@ -12,6 +12,9 @@
   * Calls to `update` are deprecated. Please use `compile_update` then call
   `to_sql` on the resulting object and execute that SQL.
 
+  * Calls to `delete` are deprecated. Please use `compile_delete` then call
+  `to_sql` on the resulting object and execute that SQL.
+
 == 2.0.6 12/01/2010
 
 * Bug Fixes

@@ -48,11 +48,21 @@ switch to `compile_insert`
       @engine.connection.insert compile_insert(values).to_sql
     end
 
-    def delete
+    def compile_delete
       dm = DeleteManager.new @engine
       dm.wheres = @ctx.wheres
       dm.from @ctx.froms
-      @engine.connection.delete dm.to_sql, 'AREL'
+      dm
+    end
+
+    def delete
+      if $VERBOSE
+        warn <<-eowarn
+delete (#{caller.first}) is deprecated and will be removed in ARel 2.2.0. Please
+switch to `compile_delete`
+        eowarn
+      end
+      @engine.connection.delete compile_delete.to_sql, 'AREL'
     end
   end
 end
