@@ -326,6 +326,19 @@ There are a few configuration options available in Active Support:
 
 * +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
 
+
+h3. Rails Environment Settings
+
+Some parts of Rails can also be configured externally by supplying environment variables. The following environment variables are recognized by various parts of Rails:
+
+* +ENV['RAILS_ENV']+ defines the Rails environment (production, development, test, and so on) that Rails will run under.
+
+* +ENV['RAILS_RELATIVE_URL_ROOT']+ is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
+
+* +ENV["RAILS_ASSET_ID"]+ will override the default cache-busting timestamps that Rails generates for downloadable assets.
+
+* +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
+
 h3. Initialization events
 
 Rails has 5 initialization events which can be hooked into (listed in order that they are ran):
@@ -363,18 +376,6 @@ After loading the framework and any gems and plugins in your application, Rails 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the +initializers+ folder on down.
 
 TIP: If you have any ordering dependency in your initializers, you can control the load order by naming. For example, +01_critical.rb+ will be loaded before +02_normal.rb+.
-
-h3. Rails Environment Settings
-
-Some parts of Rails can also be configured externally by supplying environment variables. The following environment variables are recognized by various parts of Rails:
-
-* +ENV['RAILS_ENV']+ defines the Rails environment (production, development, test, and so on) that Rails will run under.
-
-* +ENV['RAILS_RELATIVE_URL_ROOT']+ is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
-
-* +ENV["RAILS_ASSET_ID"]+ will override the default cache-busting timestamps that Rails generates for downloadable assets.
-
-* +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
 h3. Changelog
 
