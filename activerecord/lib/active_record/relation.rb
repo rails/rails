@@ -271,7 +271,14 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
-      conditions ? where(conditions).delete_all : arel.delete.tap { reset }
+      if conditions
+        where(conditions).delete_all
+      else
+        statement = arel.compile_delete
+        affected = @klass.connection.delete statement.to_sql
+        reset
+        affected
+      end
     end
 
     # Deletes the row with a primary key matching the +id+ argument, using a
