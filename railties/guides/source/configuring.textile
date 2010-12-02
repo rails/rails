@@ -328,7 +328,7 @@ There are a few configuration options available in Active Support:
 
 h3. Initialization events
 
-Rails has 4 initialization events which can be hooked into (listed in order that they are ran):
+Rails has 5 initialization events which can be hooked into (listed in order that they are ran):
 
 * +before_configuration+: This is run as soon as the application constant inherits from +Rails::Application+. The +config+ calls are evaluated before this happens.
 * +before_initialize+: This is run directly before the initialization process of the application occurs.
