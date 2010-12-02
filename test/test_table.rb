@@ -6,6 +6,18 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    it 'should return an insert manager' do
+      im = @relation.compile_insert 'VALUES(NULL)'
+      assert_kind_of Arel::InsertManager, im
+      assert_equal 'INSERT INTO NULL VALUES(NULL)', im.to_sql
+    end
+
+    it 'should return IM from insert_manager' do
+      im = @relation.insert_manager
+      assert_kind_of Arel::InsertManager, im
+      assert_equal im.engine, @relation.engine
+    end
+
     describe 'skip' do
       it 'should add an offset' do
         sm = @relation.skip 2

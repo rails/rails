@@ -8,6 +8,6 @@ Arel::Table.engine = Arel::Sql::Engine.new(FakeRecord::Base.new)
 
 class Object
   def must_be_like other
-    self.gsub(/\s+/, ' ').strip.must_equal other.gsub(/\s+/, ' ').strip
+    gsub(/\s+/, ' ').strip.must_equal other.gsub(/\s+/, ' ').strip
   end
 end

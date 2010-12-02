@@ -20,11 +20,21 @@ module Arel
       @engine.connection.update um.to_sql, 'AREL'
     end
 
-    # FIXME: this method should go away
-    def insert values
+    def compile_insert values
       im = InsertManager.new @engine
       im.insert values
-      @engine.connection.insert im.to_sql
+      im
+    end
+
+    # FIXME: this method should go away
+    def insert values
+      if $VERBOSE
+        warn <<-eowarn
+insert (#{caller.first}) is deprecated and will be removed in ARel 2.2.0. Please
+switch to `compile_insert`
+        eowarn
+      end
+      @engine.connection.insert compile_insert(values).to_sql
     end
 
     def delete

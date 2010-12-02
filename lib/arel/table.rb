@@ -108,6 +108,10 @@ module Arel
       SelectManager.new(@engine)
     end
 
+    def insert_manager
+      InsertManager.new(@engine)
+    end
+
     private
 
     def attributes_for columns
