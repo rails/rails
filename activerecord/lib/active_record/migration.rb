@@ -699,7 +699,8 @@ module ActiveRecord
           table.where(table["version"].eq(version.to_s)).delete
         else
           @migrated_versions.push(version).sort!
-          table.insert table["version"] => version.to_s
+          stmt = table.compile_insert table["version"] => version.to_s
+          Base.connection.insert stmt.to_sql
         end
       end
 
