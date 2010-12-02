@@ -156,7 +156,8 @@ module ActiveRecord
       else
         # Apply limit and order only if they're both present
         if @limit_value.present? == @order_values.present?
-          arel.update(Arel::SqlLiteral.new(@klass.send(:sanitize_sql_for_assignment, updates)))
+          stmt = arel.compile_update(Arel::SqlLiteral.new(@klass.send(:sanitize_sql_for_assignment, updates)))
+          @klass.connection.update stmt.to_sql
         else
           except(:limit, :order).update_all(updates)
         end
