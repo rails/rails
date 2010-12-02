@@ -332,13 +332,33 @@ Rails has 5 initialization events which can be hooked into (listed in order that
 
 * +before_configuration+: This is run as soon as the application constant inherits from +Rails::Application+. The +config+ calls are evaluated before this happens.
 * +before_initialize+: This is run directly before the initialization process of the application occurs.
-* +to_prepare+: Run after the initializers are ran for all Railties, but before eager loading and the middleware stack is built. 
+* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built. 
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ enviroment.
 * +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
 
+
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 
-After loading the framework and any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of Ruby code stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+Rails has several initializers that run on startup that are all defined by using the +initializer+ method from +Rails::Railtie+. Here's an example of the +initialize_whiny_nils+ initializer from Active Support:
+
+<ruby>
+  initializer "active_support.initialize_whiny_nils" do |app|
+    require 'active_support/whiny_nil' if app.config.whiny_nils
+  end
+</ruby>
+
+
+The +initializer+ method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The +:before+ key in the options hash can be specified to specify which initializer this new initializer must run before, and the +:after+ key will specify which initializer to run this initializer _after_. 
+
+Initializers defined using the +initializer+ method will be ran in the order they are defined in, with the exception of ones that use the +:before+ or +:after+ methods.
+
+WARNING: You may put your initializer before or after any other initializer in the chain, as long as it is logical. Say you have 4 initializers called "one" through "four" (defined in that order) and you define "four" to go _before_ "four" but _after_ "three", that just isn't logical and Rails will not be able to determine your initializer order.
+
+The block's argument of the +initialize+ is the instance of the application itself, and so we can access the configuration on it by using the +config+ method as this initializer does.
+
+h4. Initializer files
+
+After loading the framework and any gems and plugins in your application, Rails turns to loading initialization code from +config/initializers+. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the +initializers+ folder on down.
 
