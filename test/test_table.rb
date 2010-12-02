@@ -48,12 +48,6 @@ module Arel
     end
 
     describe 'backwards compat' do
-      describe 'joins' do
-        it 'returns nil' do
-          @relation.joins(nil).must_equal nil
-        end
-      end
-
       describe 'join' do
         it 'noops on nil' do
           mgr = @relation.join nil

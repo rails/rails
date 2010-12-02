@@ -312,7 +312,6 @@ module Arel
         manager.join_sql.must_be_like %{
           INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
-        manager.joins(manager).must_equal manager.join_sql
       end
 
       it 'returns outer join sql' do
@@ -323,7 +322,6 @@ module Arel
         manager.join_sql.must_be_like %{
           LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
-        manager.joins(manager).must_equal manager.join_sql
       end
 
       it 'returns string join sql' do
@@ -331,7 +329,6 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::StringJoin.new(table, 'hello')
         manager.join_sql.must_be_like %{ 'hello' }
-        manager.joins(manager).must_equal manager.join_sql
       end
 
       it 'returns nil join sql' do
@@ -436,9 +433,9 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.from table
         manager.take 1
-        manager.update(SqlLiteral.new('foo = bar'))
+        stmt = manager.compile_update(SqlLiteral.new('foo = bar'))
 
-        engine.executed.last.must_be_like %{
+        stmt.to_sql.must_be_like %{
           UPDATE "users" SET foo = bar
           WHERE "users"."id" IN (SELECT "users"."id" FROM "users" LIMIT 1)
         }
@@ -450,9 +447,9 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.from table
         manager.order :foo
-        manager.update(SqlLiteral.new('foo = bar'))
+        stmt = manager.compile_update(SqlLiteral.new('foo = bar'))
 
-        engine.executed.last.must_be_like %{
+        stmt.to_sql.must_be_like %{
           UPDATE "users" SET foo = bar
           WHERE "users"."id" IN (SELECT "users"."id" FROM "users" ORDER BY foo)
         }
@@ -463,9 +460,9 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new engine
         manager.from table
-        manager.update(SqlLiteral.new('foo = bar'))
+        stmt = manager.compile_update(SqlLiteral.new('foo = bar'))
 
-        engine.executed.last.must_be_like %{ UPDATE "users" SET foo = bar }
+        stmt.to_sql.must_be_like %{ UPDATE "users" SET foo = bar }
       end
 
       it 'copies where clauses' do
@@ -474,9 +471,9 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.where table[:id].eq 10
         manager.from table
-        manager.update(table[:id] => 1)
+        stmt = manager.compile_update(table[:id] => 1)
 
-        engine.executed.last.must_be_like %{
+        stmt.to_sql.must_be_like %{
           UPDATE "users" SET "id" = 1 WHERE "users"."id" = 10
         }
       end
@@ -486,9 +483,9 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new engine
         manager.from table
-        manager.update(table[:id] => 1)
+        stmt = manager.compile_update(table[:id] => 1)
 
-        engine.executed.last.must_be_like %{
+        stmt.to_sql.must_be_like %{
           UPDATE "users" SET "id" = 1
         }
       end

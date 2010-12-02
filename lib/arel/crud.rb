@@ -2,8 +2,7 @@ module Arel
   ###
   # FIXME hopefully we can remove this
   module Crud
-    # FIXME: this method should go away
-    def update values
+    def compile_update values
       um = UpdateManager.new @engine
 
       if Nodes::SqlLiteral === values
@@ -16,7 +15,19 @@ module Arel
       um.take @ast.limit
       um.order(*@ast.orders)
       um.wheres = @ctx.wheres
+      um
+    end
 
+    # FIXME: this method should go away
+    def update values
+      if $VERBOSE
+        warn <<-eowarn
+update (#{caller.first}) is deprecated and will be removed in ARel 2.2.0. Please
+switch to `compile_update`
+        eowarn
+      end
+
+      um = compile_update values
       @engine.connection.update um.to_sql, 'AREL'
     end
 

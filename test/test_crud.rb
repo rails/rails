@@ -47,10 +47,8 @@ module Arel
         table = Table.new :users
         fc = FakeCrudder.new
         fc.from table
-        fc.update [[table[:id], 'foo']]
-        fc.engine.calls.find { |method, _|
-          method == :update
-        }.wont_be_nil
+        stmt = fc.compile_update [[table[:id], 'foo']]
+        assert_instance_of Arel::UpdateManager, stmt
       end
     end
 
