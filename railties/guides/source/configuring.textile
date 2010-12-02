@@ -360,6 +360,8 @@ Rails has 5 initialization events which can be hooked into (listed in order that
 
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 
+h4. +Rails::Railtie#initializer+
+
 Rails has several initializers that run on startup that are all defined by using the +initializer+ method from +Rails::Railtie+. Here's an example of the +initialize_whiny_nils+ initializer from Active Support:
 
 <ruby>
