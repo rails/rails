@@ -52,7 +52,7 @@ module ActiveRecord
 
           def find_parent_in(other_join_dependency)
             other_join_dependency.join_parts.detect do |join_part|
-              self.parent == join_part
+              parent == join_part
             end
           end
 
