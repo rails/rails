@@ -49,7 +49,7 @@ module ActiveRecord
             timestamps = record_timestamp_columns(record)
             timezone   = record.send(:current_time_from_proper_timezone) if timestamps.any?
 
-            attributes = Hash[columns.map do |column|
+            attributes = columns.map do |column|
               name = column.name
               value = case name.to_s
                 when @reflection.primary_key_name.to_s
@@ -62,9 +62,10 @@ module ActiveRecord
                   @owner.send(:quote_value, record[name], column) if record.has_attribute?(name)
               end
               [relation[name], value] unless value.nil?
-            end]
+            end
 
-            relation.insert(attributes)
+            stmt = relation.compile_insert Hash[attributes]
+            @owner.connection.insert stmt.to_sql
           end
 
           true
