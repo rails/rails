@@ -251,7 +251,8 @@ module ActiveRecord
       attributes_with_values = arel_attributes_values(false, false, attribute_names)
       return 0 if attributes_with_values.empty?
       klass = self.class
-      klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.update(attributes_with_values)
+      stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
+      klass.connection.update stmt.to_sql
     end
 
     # Creates a record with values matching those of the instance attributes
