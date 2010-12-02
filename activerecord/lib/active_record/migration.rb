@@ -696,7 +696,8 @@ module ActiveRecord
         @migrated_versions ||= []
         if down?
           @migrated_versions.delete(version)
-          table.where(table["version"].eq(version.to_s)).delete
+          stmt = table.where(table["version"].eq(version.to_s)).compile_delete
+          Base.connection.delete stmt.to_sql
         else
           @migrated_versions.push(version).sort!
           stmt = table.compile_insert table["version"] => version.to_s
