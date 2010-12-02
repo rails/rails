@@ -1455,9 +1455,9 @@ MSG
         @attributes.has_key?(attr_name.to_s)
       end
 
-      # Returns an array of names for the attributes available on this object sorted alphabetically.
+      # Returns an array of names for the attributes available on this object.
       def attribute_names
-        @attributes.keys.sort
+        @attributes.keys
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,

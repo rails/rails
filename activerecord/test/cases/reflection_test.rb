@@ -25,7 +25,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_read_attribute_names
     assert_equal(
       %w( id title author_name author_email_address bonus_time written_on last_read content group approved replies_count parent_id parent_title type created_at updated_at ).sort,
-      @first.attribute_names
+      @first.attribute_names.sort
     )
   end
 
