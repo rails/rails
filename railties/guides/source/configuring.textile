@@ -268,6 +268,10 @@ h4. Configuring Action Dispatch
 
 * +config.action_dispatch.session_store+ sets the name of the store for session data. The default is +:cookie_store+; other valid options include +:active_record_store+, +:mem_cache_store+ or the name of your own custom class.
 
+* +ActionDispatch::Callbacks.before+ takes a block of code to run before the request. 
+* +ActionDispatch::Callbacks.to_prepare+ takes a block to run after +ActionDispatch::Callbacks.before+, but before the request. Runs for every request in +development+ mode, but only once for +production+ or environments with +cache_classes+ set to +true+.
+* +ActionDispatch::Callbacks.after+ takes a block of code to run after the request. 
+
 h4. Configuring Action View
 
 There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
