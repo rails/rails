@@ -290,6 +290,8 @@ There are only a few configuration options for Action View, starting with four o
 
 * +config.action_view.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+. See the "ERB documentation":http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/ for more information.
 
+* +ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
+
 h4. Configuring Action Mailer
 
 There are a number of settings available on +config.action_mailer+:
