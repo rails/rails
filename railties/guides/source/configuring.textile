@@ -370,7 +370,6 @@ There are a few configuration options available in Active Support:
 
 * +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
 
-
 h3. Rails Environment Settings
 
 Some parts of Rails can also be configured externally by supplying environment variables. The following environment variables are recognized by various parts of Rails:
@@ -388,7 +387,7 @@ h3. Initialization events
 Rails has 5 initialization events which can be hooked into (listed in order that they are ran):
 
 * +before_configuration+: This is run as soon as the application constant inherits from +Rails::Application+. The +config+ calls are evaluated before this happens.
-* +before_initialize+: This is run directly before the initialization process of the application occurs.
+* +before_initialize+: This is run directly before the initialization process of the application occurs with the +:bootstrap_hook+ initializer near the beginning of the Rails initialization process.
 * +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built. 
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ enviroment.
 * +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
@@ -406,7 +405,6 @@ Rails has several initializers that run on startup that are all defined by using
   end
 </ruby>
 
-
 The +initializer+ method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The +:before+ key in the options hash can be specified to specify which initializer this new initializer must run before, and the +:after+ key will specify which initializer to run this initializer _after_. 
 
 Initializers defined using the +initializer+ method will be ran in the order they are defined in, with the exception of ones that use the +:before+ or +:after+ methods.
@@ -414,6 +412,104 @@ Initializers defined using the +initializer+ method will be ran in the order the
 WARNING: You may put your initializer before or after any other initializer in the chain, as long as it is logical. Say you have 4 initializers called "one" through "four" (defined in that order) and you define "four" to go _before_ "four" but _after_ "three", that just isn't logical and Rails will not be able to determine your initializer order.
 
 The block's argument of the +initialize+ is the instance of the application itself, and so we can access the configuration on it by using the +config+ method as this initializer does.
+
+Because +Rails::Application+ inherits from +Rails::Railtie+ (indirectly), you can use the +initializer+ method in +config/application.rb+ to define initializers for the application.
+
+Below is a comprehensive list of all the initializers found in Rails in the order that they are defined (and therefore run in, unless otherwise stated).
+
+h4. +load_environment_hook+
+
+Serves as a placeholder so that +:load_environment_config+ can be defined to run before it.
+
+h4. +load_active_support+
+
+Requires +active_support/dependencies+ which sets up the basis for Active Support. Optionally requires +active_support/all+ if +config.active_support.bare+ is un-truthful, which is the default.
+
+h4. +preload_frameworks+
+
+Will load all autoload dependencies of Rails automatically if +config.preload_frameworks+ is +true+ or "truthful". By default this configuration option is disabled. In Rails, when internal classes are referenced for the first time they are autoloaded. +:preload_frameworks+ loads all of this at once on initialization.
+
+h4. +initialize_logger+
+
+Initializes the logger (an +ActiveSupport::BufferedLogger+ object) for the application and makes it accessible at +Rails.logger+, providing that there's no initializer inserted before this point that has defined +Rails.logger+.
+
+h4. +initialize_cache+
+
+If +RAILS_CACHE+ isn't yet set, initializes the cache by referencing the value in +config.cache_store+ and stores the outcome as +RAILS_CACHE+. If this object responds to the +middleware+ method, its middleware is inserted before +Rack::Runtime+ in the middleware stack.
+
+h4. +set_clear_dependencies_hook+
+
+Provides a hook for +active_record.set_dispatch_hooks+ to use, which will run before this initializer.
+
+This initializer -- which runs only if +cache_classes+ is set to +false+ -- uses +ActionDispatch::Callbacks.after+ to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
+
+h4. +initialize_dependency_mechanism+
+
+If +config.cache_classes+ is set to +true+, configures +ActiveSupport::Dependencies.mechanism+ to +require+ dependencies rather than +load+ them.
+
+h4. +bootstrap_hook+
+
+Runs all configured +before_initialize+ blocks.
+
+h4. +i18n.callbacks+
+
+In the development environment, sets up a +to_prepare+ callback which will call +I18n.reload!+ if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
+
+h4. +active_support.initialize_whiny_nils+
+
+Will require +active_support/whiny_nil+ if +config.whiny_nil+ is set to +true+. This file will output errors such as:
+
+<text>
+  Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id
+</text>
+
+And:
+
+<text>
+  You have a nil object when you didn't expect it!
+  You might have expected an instance of Array.
+  The error occurred while evaluating nil.each
+</text>
+
+h4. +active_support.deprecation_behavior+
+
+Sets up deprecation reporting for environments, defaulting to +log+ for development, +notify+ for production and +stderr+ for test. If a value isn't set for +config.active_support.deprecation+ then this initializer will prompt the user to configure this line in the current environment's +config/environments+ file.
+
+h4. +active_support.initialize_time_zone+
+
+Sets the default time zone for the application based off the +config.time_zone+ setting, which defaults to "UTC".
+
+h4. +action_dispatch.configure+
+
+Configures the +ActionDispatch::Http::URL.tld_length+ to be set to the value of +config.action_dispatch.tld_length+.
+
+h4. +action_view.cache_asset_ids+
+
+Will set +ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids+ to +false+ when Active Support loads, but only if +config.cache_classes+ is too.
+
+h4. +action_view.javascript_expansions+
+
+Registers the expansions set up by +config.action_view.javascript_expansions+ and +config.action_view.stylesheet_expansions+ to be recognised by Action View and therefore usable in the views.
+
+h4. +action_view.set_configs+
+
+Sets up Action View by using the settings in +config.action_view+ by +send+'ing the method names as setters to +ActionView::Base+ and passing the values through.
+
+h4. +action_controller.logger+
+
+Sets +ActionController::Base.logger+ -- if it's not already set --  to +Rails.logger+.
+
+h4. +action_controller.initialize_framework_caches+
+
+Sets +ActionController::Base.cache_store+ -- if it's not already set --  to +RAILS_CACHE+.
+
+h4. +action_controller.set_configs+
+
+Sets up Action View by using the settings in +config.action_controller+ by +send+'ing the method names as setters to +ActionController::Base+ and passing the values through.
+
+h4 +active_record.initialize_timezone+
+
+Sets +ActiveRecord::Base.time_zone_aware_attributes+ to true, as well as setting +ActiveRecord::Base.default_timezone+ to UTC.
 
 h4. Initializer files
 
@@ -425,7 +521,8 @@ TIP: If you have any ordering dependency in your initializers, you can control t
 
 h3. Changelog
 
-* November 26, 2010: Removed all config settings not available in Rails 3 (Ryan Bigg)
+* December 3, 2010: Added initialization events for Rails 3 ("Ryan Bigg":http://ryanbigg.com)
+* November 26, 2010: Removed all config settings not available in Rails 3 ("Ryan Bigg":http://ryanbigg.com)
 * August 13, 2009: Updated with config syntax and added general configuration options by "John Pignata"
 * January 3, 2009: First reasonably complete draft by "Mike Gunderloy":credits.html#mgunderloy
 * November 5, 2008: Rough outline by "Mike Gunderloy":credits.html#mgunderloy
