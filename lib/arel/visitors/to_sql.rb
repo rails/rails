@@ -10,6 +10,7 @@ module Arel
         @last_column    = nil
         @quoted_tables  = {}
         @quoted_columns = {}
+        @column_cache   = {}
       end
 
       def accept object
@@ -66,9 +67,17 @@ module Arel
           o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
+      def column_for relation, name
+        name    = name.to_s
+        table   = relation.name
+
+        columns = @connection.columns(table, "#{table} Columns")
+        columns.find { |col| col.name.to_s == name }
+      end
+
       def visit_Arel_Nodes_Values o
         "VALUES (#{o.expressions.zip(o.columns).map { |value, attr|
-          quote(value, attr && attr.column)
+          quote(value, attr && column_for(attr.relation, attr.name))
         }.join ', '})"
       end
 
