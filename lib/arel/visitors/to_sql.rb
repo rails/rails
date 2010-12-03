@@ -67,8 +67,8 @@ module Arel
       end
 
       def visit_Arel_Nodes_Values o
-        "VALUES (#{o.expressions.zip(o.columns).map { |value, column|
-          quote(value, column && column.column)
+        "VALUES (#{o.expressions.zip(o.columns).map { |value, attr|
+          quote(value, attr && attr.column)
         }.join ', '})"
       end
 
