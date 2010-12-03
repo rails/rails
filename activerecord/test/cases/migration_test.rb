@@ -1652,10 +1652,6 @@ if ActiveRecord::Base.connection.supports_migrations?
   end
 
   class InterleavedMigrationsTest < ActiveRecord::TestCase
-    def setup
-      #Object.send(:remove_const, :PeopleHaveLastNames)
-    end
-
     def test_migrator_interleaved_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
 
