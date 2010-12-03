@@ -290,7 +290,7 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      column = primary_key.column
+      column = columns_hash[primary_key.name.to_s]
 
       substitute = connection.substitute_for(column, @bind_values)
       relation = where(primary_key.eq(substitute))
