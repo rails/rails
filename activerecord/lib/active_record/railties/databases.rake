@@ -2,7 +2,7 @@ namespace :db do
   task :load_config => :rails_env do
     require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-    ActiveRecord::Migrator.migrations_path = Rails.application.paths["db/migrate"].first
+    ActiveRecord::Migrator.migrations_paths = Rails.application.paths["db/migrate"].to_a
   end
 
   namespace :create do
@@ -140,7 +140,7 @@ namespace :db do
   desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
   task :migrate => :environment do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
-    ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_path, ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
+    ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
@@ -163,7 +163,7 @@ namespace :db do
     task :up => :environment do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
-      ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_path, version)
+      ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_paths, version)
       Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
@@ -171,7 +171,7 @@ namespace :db do
     task :down => :environment do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
-      ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_path, version)
+      ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
       Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
@@ -209,14 +209,14 @@ namespace :db do
   desc 'Rolls the schema back to the previous version (specify steps w/ STEP=n).'
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
-    ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_path, step)
+    ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_paths, step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task :forward => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
-    ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_path, step)
+    ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_paths, step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
@@ -261,7 +261,7 @@ namespace :db do
   # desc "Raises an error if there are pending migrations"
   task :abort_if_pending_migrations => :environment do
     if defined? ActiveRecord
-      pending_migrations = ActiveRecord::Migrator.new(:up, ActiveRecord::Migrator.migrations_path).pending_migrations
+      pending_migrations = ActiveRecord::Migrator.new(:up, ActiveRecord::Migrator.migrations_paths).pending_migrations
 
       if pending_migrations.any?
         puts "You have #{pending_migrations.size} pending migrations:"
@@ -501,7 +501,7 @@ namespace :railties do
         puts "Copied migration #{migration.basename} from #{name}"
       end
 
-      ActiveRecord::Migration.copy( ActiveRecord::Migrator.migrations_path, railties,
+      ActiveRecord::Migration.copy( ActiveRecord::Migrator.migrations_paths.first, railties,
                                     :on_skip => on_skip, :on_copy => on_copy)
     end
   end
