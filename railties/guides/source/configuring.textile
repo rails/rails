@@ -91,7 +91,7 @@ h4. Rails General Configuration
 
 * +config.plugins+ accepts the list of plugins to load. If this is set to nil, all plugins will be loaded. If this is set to [], no plugins will be loaded. Otherwise, plugins will be loaded in the order specified.
 
-* +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Can also be enabled with +threadsafe!+.
+* +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Can also be enabled with +threadsafe!+. Defaults to +nil+, so is disabled.
 
 * +config.reload_plugins+ enables or disables plugin reloading.
 
