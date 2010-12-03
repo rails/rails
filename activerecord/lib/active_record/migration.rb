@@ -518,6 +518,7 @@ module ActiveRecord
           when target_version.nil?
             up(migrations_path, target_version)
           when current_version == 0 && target_version == 0
+            []
           when current_version > target_version
             down(migrations_path, target_version)
           else
@@ -647,6 +648,7 @@ module ActiveRecord
       # skip the last migration if we're headed down, but not ALL the way down
       runnable.pop if down? && target
 
+      ran = []
       runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
@@ -666,11 +668,13 @@ module ActiveRecord
             migration.migrate(@direction)
             record_version_state_after_migrating(migration.version)
           end
+          ran << migration
         rescue => e
           canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
           raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
       end
+      ran
     end
 
     def migrations

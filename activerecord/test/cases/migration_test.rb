@@ -5,10 +5,8 @@ require 'models/person'
 require 'models/topic'
 require 'models/developer'
 
-require MIGRATIONS_ROOT + "/valid/1_people_have_last_names"
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
-require MIGRATIONS_ROOT + "/interleaved/pass_3/2_i_raise_on_down"
 
 if ActiveRecord::Base.connection.supports_migrations?
   class BigNumber < ActiveRecord::Base; end
@@ -21,8 +19,8 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def puts(text="")
-      self.class.message_count ||= 0
-      self.class.message_count += 1
+      ActiveRecord::Migration.message_count ||= 0
+      ActiveRecord::Migration.message_count += 1
     end
   end
 
@@ -52,7 +50,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def setup
       ActiveRecord::Migration.verbose = true
-      PeopleHaveLastNames.message_count = 0
+      ActiveRecord::Migration.message_count = 0
     end
 
     def teardown
@@ -1271,7 +1269,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
 
-      [[1, 'PeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+      [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
         assert_equal migrations[i].version, pair.first
         assert_equal migrations[i].name, pair.last
       end
@@ -1283,39 +1281,30 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       assert_equal 1, migrations.size
       assert_equal migrations[0].version, 3
-      assert_equal migrations[0].name, 'InnocentJointable'
+      assert_equal migrations[0].name, 'InterleavedInnocentJointable'
     end
 
     def test_relative_migrations
-      $".delete_if do |fname|
-        fname == (MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
-      end
-      Object.send(:remove_const, :PeopleHaveLastNames)
-
-      Dir.chdir(MIGRATIONS_ROOT) do
+      list = Dir.chdir(MIGRATIONS_ROOT) do
         ActiveRecord::Migrator.up("valid/", 1)
       end
 
-      assert defined?(PeopleHaveLastNames)
+      migration_proxy = list.find { |item|
+        item.name == 'ValidPeopleHaveLastNames'
+      }
+      assert migration_proxy, 'should find pending migration'
     end
 
     def test_only_loads_pending_migrations
       # migrate up to 1
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
 
-      # now unload the migrations that have been defined
-      Object.send(:remove_const, :PeopleHaveLastNames)
+      proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
 
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
-
-      assert !defined? PeopleHaveLastNames
-
-      %w(WeNeedReminders, InnocentJointable).each do |migration|
-        assert defined? migration
-      end
-
-    ensure
-      load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+      names = proxies.map(&:name)
+      assert !names.include?('ValidPeopleHaveLastNames')
+      assert names.include?('WeNeedReminders')
+      assert names.include?('InnocentJointable')
     end
 
     def test_target_version_zero_should_run_only_once
@@ -1325,16 +1314,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       # migrate down to 0
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
 
-      # now unload the migrations that have been defined
-      PeopleHaveLastNames.unloadable
-      ActiveSupport::Dependencies.remove_unloadable_constants!
-
       # migrate down to 0 again
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-
-      assert !defined? PeopleHaveLastNames
-    ensure
-      load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+      proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
+      assert_equal [], proxies
     end
 
     def test_migrator_db_has_no_schema_migrations_table
@@ -1351,20 +1333,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert_operator PeopleHaveLastNames.message_count, :>, 0
-      PeopleHaveLastNames.message_count = 0
+      assert_not_equal 0, ActiveRecord::Migration.message_count
+      ActiveRecord::Migration.message_count = 0
 
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert_operator PeopleHaveLastNames.message_count, :>, 0
-      PeopleHaveLastNames.message_count = 0
+      assert_not_equal 0, ActiveRecord::Migration.message_count
+      ActiveRecord::Migration.message_count = 0
     end
 
     def test_migrator_verbosity_off
-      PeopleHaveLastNames.verbose = false
+      ActiveRecord::Migration.verbose = false
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert_equal 0, PeopleHaveLastNames.message_count
+      assert_equal 0, ActiveRecord::Migration.message_count
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert_equal 0, PeopleHaveLastNames.message_count
+      assert_equal 0, ActiveRecord::Migration.message_count
     end
 
     def test_migrator_going_down_due_to_version_target
@@ -1658,10 +1640,6 @@ if ActiveRecord::Base.connection.supports_migrations?
   end # SexyMigrationsTest
 
   class MigrationLoggerTest < ActiveRecord::TestCase
-    def setup
-      Object.send(:remove_const, :InnocentJointable)
-    end
-
     def test_migration_should_be_run_without_logger
       previous_logger = ActiveRecord::Base.logger
       ActiveRecord::Base.logger = nil
@@ -1675,7 +1653,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
   class InterleavedMigrationsTest < ActiveRecord::TestCase
     def setup
-      Object.send(:remove_const, :PeopleHaveLastNames)
+      #Object.send(:remove_const, :PeopleHaveLastNames)
     end
 
     def test_migrator_interleaved_migrations
@@ -1688,10 +1666,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
 
-      Object.send(:remove_const, :PeopleHaveLastNames)
-      Object.send(:remove_const, :InnocentJointable)
       assert_nothing_raised do
-        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/interleaved/pass_3")
+        proxies = ActiveRecord::Migrator.down(
+          MIGRATIONS_ROOT + "/interleaved/pass_3")
+        names = proxies.map(&:name)
+        assert names.include?('InterleavedPeopleHaveLastNames')
+        assert names.include?('InterleavedInnocentJointable')
       end
     end
   end
