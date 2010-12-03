@@ -63,7 +63,7 @@ h4. Rails General Configuration
 
 * +config.cache_classes+ controls whether or not application classes should be reloaded on each request. Defaults to _true_ in development, _false_ in test and production. Can also be enabled with +threadsafe!+.
 
-* +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class.
+* +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class. Defaults to +:file_store+.
 
 * +config.colorize_logging+ specifies whether or not to use ANSI color codes when logging information. Defaults to _true_.
 
