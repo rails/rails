@@ -331,7 +331,7 @@ module ActiveSupport #:nodoc:
         if load?
           log "loading #{file_name}"
 
-          # Enable warnings iff this file has not been loaded before and
+          # Enable warnings if this file has not been loaded before and
           # warnings_on_first_load is set.
           load_args = ["#{file_name}.rb"]
           load_args << const_path unless const_path.nil?
