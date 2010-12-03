@@ -143,8 +143,8 @@ module Arel
     def join_sql
       return nil unless @ctx.froms
 
-      viz = Visitors::JoinSql.new @engine
-      Nodes::SqlLiteral.new viz.accept @ctx
+      sql = @visitor.dup.extend(Visitors::JoinSql).accept @ctx
+      Nodes::SqlLiteral.new sql
     end
 
     def order_clauses

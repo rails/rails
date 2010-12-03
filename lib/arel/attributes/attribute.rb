@@ -1,6 +1,6 @@
 module Arel
   module Attributes
-    class Attribute < Struct.new :relation, :name, :column
+    class Attribute < Struct.new :relation, :name
       include Arel::Expressions
       include Arel::Predications
     end

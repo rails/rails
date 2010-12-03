@@ -84,7 +84,7 @@ module Arel
       end
 
       it "should visit visit_Arel_Attributes_Time" do
-        attr = Attributes::Time.new(@attr.relation, @attr.name, @attr.column)
+        attr = Attributes::Time.new(@attr.relation, @attr.name)
         @visitor.accept attr
       end
 
@@ -143,7 +143,9 @@ module Arel
           end
           in_node = Nodes::In.new @attr, %w{ a b c }
           visitor = visitor.new(Table.engine)
-          visitor.expected = @attr.column
+          visitor.expected = Table.engine.connection.columns(:users).find { |x|
+            x.name == 'name'
+          }
           visitor.accept(in_node).must_equal %("users"."name" IN ('a', 'b', 'c'))
         end
       end
@@ -189,7 +191,9 @@ module Arel
           end
           in_node = Nodes::NotIn.new @attr, %w{ a b c }
           visitor = visitor.new(Table.engine)
-          visitor.expected = @attr.column
+          visitor.expected = Table.engine.connection.columns(:users).find { |x|
+            x.name == 'name'
+          }
           visitor.accept(in_node).must_equal %("users"."name" NOT IN ('a', 'b', 'c'))
         end
       end

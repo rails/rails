@@ -174,13 +174,6 @@ module Arel
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           column = @relation[:id]
           column.name.must_equal :id
-          column.must_be_kind_of Attributes::Integer
-        end
-      end
-
-      describe 'when table does not exist' do
-        it 'returns nil' do
-          @relation[:foooo].must_be_nil
         end
       end
     end

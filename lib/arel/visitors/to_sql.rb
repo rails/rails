@@ -10,7 +10,8 @@ module Arel
         @last_column    = nil
         @quoted_tables  = {}
         @quoted_columns = {}
-        @column_cache   = {}
+        @column_cache   = Hash.new { |h,k| h[k] = {} }
+        @table_exists   = {}
       end
 
       def accept object
@@ -67,17 +68,35 @@ module Arel
           o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def column_for relation, name
-        name    = name.to_s
-        table   = relation.name
+      def table_exists? name
+        return true if @table_exists.key? name
+        if @connection.table_exists?(name)
+          @table_exists[name] = true
+        else
+          false
+        end
+      end
 
-        columns = @connection.columns(table, "#{table} Columns")
-        columns.find { |col| col.name.to_s == name }
+      def column_for attr
+        name    = attr.name.to_sym
+        table   = attr.relation.name
+
+        return nil unless table_exists? table
+
+        # If we don't have this column cached, get a list of columns and
+        # cache them for this table
+        unless @column_cache.key? table
+          #$stderr.puts "MISS: #{self.class.name} #{object_id} #{table.inspect} : #{name.inspect}"
+          columns = @connection.columns(table, "#{table}(#{name}) Columns")
+          @column_cache[table] = Hash[columns.map { |c| [c.name.to_sym, c] }]
+        end
+
+        @column_cache[table][name]
       end
 
       def visit_Arel_Nodes_Values o
         "VALUES (#{o.expressions.zip(o.columns).map { |value, attr|
-          quote(value, attr && column_for(attr.relation, attr.name))
+          quote(value, attr && column_for(attr))
         }.join ', '})"
       end
 
@@ -235,7 +254,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Assignment o
-        right = quote(o.right, o.left.column)
+        right = quote(o.right, column_for(o.left))
         "#{visit o.left} = #{right}"
       end
 
@@ -268,7 +287,7 @@ module Arel
       end
 
       def visit_Arel_Attributes_Attribute o
-        @last_column = o.column
+        @last_column = column_for o
         join_name = o.relation.table_alias || o.relation.name
         "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end

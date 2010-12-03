@@ -4,6 +4,10 @@ module Arel
       alias :attribute :expr
       alias :attribute= :expr=
 
+      def relation
+        @expr.relation
+      end
+
       def column
         @expr.column
       end

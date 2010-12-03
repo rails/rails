@@ -8,7 +8,7 @@ module Arel
     #
     # This visitor is used in SelectManager#join_sql and is for backwards
     # compatibility with Arel V1.0
-    class JoinSql < Arel::Visitors::ToSql
+    module JoinSql
       private
 
       def visit_Arel_Nodes_SelectCore o

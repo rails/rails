@@ -326,7 +326,7 @@ module Arel
 
       describe '#eq' do
         it 'should return an equality node' do
-          attribute = Attribute.new nil, nil, nil
+          attribute = Attribute.new nil, nil
           equality = attribute.eq 1
           equality.left.must_equal attribute
           equality.right.must_equal 1
@@ -485,7 +485,7 @@ module Arel
         end
 
         it 'should return an in node' do
-          attribute = Attribute.new nil, nil, nil
+          attribute = Attribute.new nil, nil
           node = Nodes::In.new attribute, [1,2,3]
           node.left.must_equal attribute
           node.right.must_equal [1, 2, 3]
@@ -538,7 +538,7 @@ module Arel
         end
 
         it 'should return a NotIn node' do
-          attribute = Attribute.new nil, nil, nil
+          attribute = Attribute.new nil, nil
           node = Nodes::NotIn.new attribute, [1,2,3]
           node.left.must_equal attribute
           node.right.must_equal [1, 2, 3]

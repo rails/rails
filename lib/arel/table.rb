@@ -17,7 +17,6 @@ module Arel
 
       if Hash === engine
         @engine  = engine[:engine] || Table.engine
-        @columns = attributes_for engine[:columns]
 
         # Sometime AR sends an :as parameter to table, to let the table know
         # that it is an Alias.  We may want to override new, and return a
@@ -93,15 +92,18 @@ module Arel
     end
 
     def columns
+      if $VERBOSE
+        warn <<-eowarn
+(#{caller.first}) Arel::Table#columns is deprecated and will be removed in 
+Arel 2.2.0 with no replacement.
+        eowarn
+      end
       @columns ||=
         attributes_for @engine.connection.columns(@name, "#{@name} Columns")
     end
 
     def [] name
-      return nil unless table_exists?
-
-      name = name.to_sym
-      columns.find { |column| column.name == name }
+      ::Arel::Attribute.new self, name.to_sym
     end
 
     def select_manager
@@ -118,7 +120,7 @@ module Arel
       return nil unless columns
 
       columns.map do |column|
-        Attributes.for(column).new self, column.name.to_sym, column
+        Attributes.for(column).new self, column.name.to_sym
       end
     end
 

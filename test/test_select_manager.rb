@@ -26,6 +26,13 @@ module Arel
     def quote_table_name thing; @engine.connection.quote_table_name thing end
     def quote_column_name thing; @engine.connection.quote_column_name thing end
     def quote thing, column; @engine.connection.quote thing, column end
+    def columns table, message = nil
+      @engine.connection.columns table, message
+    end
+
+    def table_exists? name
+      @engine.connection.table_exists? name
+    end
 
     def execute sql, name = nil, *args
       @executed << sql
