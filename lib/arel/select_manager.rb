@@ -155,7 +155,7 @@ module Arel
 
     def joins manager
       if $VERBOSE
-        warn "joins is deprecated and will be removed in 2.2"
+        warn "joins is deprecated and will be removed in 3.0.0"
         warn "please remove your call to joins from #{caller.first}"
       end
       manager.join_sql

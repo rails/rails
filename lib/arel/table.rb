@@ -45,7 +45,7 @@ module Arel
 
     def joins manager
       if $VERBOSE
-        warn "joins is deprecated and will be removed in 2.2"
+        warn "joins is deprecated and will be removed in 3.0.0"
         warn "please remove your call to joins from #{caller.first}"
       end
       nil
@@ -95,7 +95,7 @@ module Arel
       if $VERBOSE
         warn <<-eowarn
 (#{caller.first}) Arel::Table#columns is deprecated and will be removed in
-Arel 2.2.0 with no replacement.  PEW PEW PEW!!!
+Arel 3.0.0 with no replacement.  PEW PEW PEW!!!
         eowarn
       end
       @columns ||=
@@ -129,7 +129,7 @@ Arel 2.2.0 with no replacement.  PEW PEW PEW!!!
       if $VERBOSE
         warn <<-eowarn
 (#{caller.first}) Arel::Table.table_cache is deprecated and will be removed in
-Arel 2.2.0 with no replacement.  PEW PEW PEW!!!
+Arel 3.0.0 with no replacement.  PEW PEW PEW!!!
         eowarn
       end
       @@table_cache ||= Hash[engine.connection.tables.map { |x| [x,true] }]

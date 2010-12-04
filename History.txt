@@ -15,13 +15,13 @@
   * Calls to `delete` are deprecated. Please use `compile_delete` then call
   `to_sql` on the resulting object and execute that SQL.
 
-  * Arel::Table#joins is deprecated and will be removed in 2.2.0 with no
+  * Arel::Table#joins is deprecated and will be removed in 3.0.0 with no
   replacement.
 
-  * Arel::Table#columns is deprecated and will be removed in 2.2.0 with no
+  * Arel::Table#columns is deprecated and will be removed in 3.0.0 with no
   replacement.
 
-  * Arel::Table.table_cache is deprecated and will be removed in 2.2.0 with no
+  * Arel::Table.table_cache is deprecated and will be removed in 3.0.0 with no
   replacement.
 
 == 2.0.6 12/01/2010
