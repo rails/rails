@@ -44,7 +44,7 @@ module ActionView
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
-        options[:rescue_format] ||= :html
+        options.merge!(:rescue_format => :html) unless options.key?(:rescue_format)
         translation = I18n.translate(scope_key_by_partial(key), options)
         if html_safe_translation_key?(key) && translation.respond_to?(:html_safe)
           translation.html_safe
