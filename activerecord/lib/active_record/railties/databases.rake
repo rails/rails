@@ -1,4 +1,4 @@
-namespace :db do
+db_namespace = namespace :db do
   task :load_config => :rails_env do
     require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
@@ -141,18 +141,18 @@ namespace :db do
   task :migrate => [:environment, :load_config] do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
-    Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+    db_namespace["schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
   namespace :migrate do
     # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
     task :redo => [:environment, :load_config] do
       if ENV["VERSION"]
-        Rake::Task["db:migrate:down"].invoke
-        Rake::Task["db:migrate:up"].invoke
+        db_namespace["migrate:down"].invoke
+        db_namespace["migrate:up"].invoke
       else
-        Rake::Task["db:rollback"].invoke
-        Rake::Task["db:migrate"].invoke
+        db_namespace["rollback"].invoke
+        db_namespace["migrate"].invoke
       end
     end
 
@@ -164,7 +164,7 @@ namespace :db do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_paths, version)
-      Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+      db_namespace["schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
@@ -172,7 +172,7 @@ namespace :db do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
-      Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+      db_namespace["schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
     desc "Display status of migrations"
@@ -210,14 +210,14 @@ namespace :db do
   task :rollback => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_paths, step)
-    Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+    db_namespace["schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task :forward => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_paths, step)
-    Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+    db_namespace["schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
   # desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
@@ -321,12 +321,12 @@ namespace :db do
 
   namespace :schema do
     desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
-    task :dump => :environment do
+    task :dump => :load_config do
       require 'active_record/schema_dumper'
       File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
-      Rake::Task["db:schema:dump"].reenable
+      db_namespace["schema:dump"].reenable
     end
 
     desc "Load a schema.rb file into the database"
@@ -383,7 +383,7 @@ namespace :db do
     task :load => 'db:test:purge' do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
       ActiveRecord::Schema.verbose = false
-      Rake::Task["db:schema:load"].invoke
+      db_namespace["schema:load"].invoke
     end
 
     # desc "Recreate the test database from the current environment's database schema"
@@ -457,7 +457,7 @@ namespace :db do
     # desc 'Check for pending migrations and load the test schema'
     task :prepare => 'db:abort_if_pending_migrations' do
       if defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
-        Rake::Task[{ :sql  => "db:test:clone_structure", :ruby => "db:test:load" }[ActiveRecord::Base.schema_format]].invoke
+        db_namespace[{ :sql  => "test:clone_structure", :ruby => "test:load" }[ActiveRecord::Base.schema_format]].invoke
       end
     end
   end
