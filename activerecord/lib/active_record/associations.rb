@@ -1223,12 +1223,14 @@ module ActiveRecord
 
         if reflection.options[:polymorphic]
           association_accessor_methods(reflection, BelongsToPolymorphicAssociation)
+          association_foreign_type_setter_method(reflection)
         else
           association_accessor_methods(reflection, BelongsToAssociation)
           association_constructor_method(:build,  reflection, BelongsToAssociation)
           association_constructor_method(:create, reflection, BelongsToAssociation)
         end
 
+        association_foreign_key_setter_method(reflection)
         add_counter_cache_callbacks(reflection)          if options[:counter_cache]
         add_touch_callbacks(reflection, options[:touch]) if options[:touch]
 
@@ -1553,6 +1555,41 @@ module ActiveRecord
               association.send(constructor, attributees)
             end
           end
+        end
+
+        def association_foreign_key_setter_method(reflection)
+          setters = reflect_on_all_associations(:belongs_to).map do |belongs_to_reflection|
+            if belongs_to_reflection.primary_key_name == reflection.primary_key_name
+              "association_instance_set(:#{belongs_to_reflection.name}, nil);"
+            end
+          end.compact.join
+
+          class_eval <<-FILE, __FILE__, __LINE__ + 1
+            def #{reflection.primary_key_name}=(new_id)
+              write_attribute :#{reflection.primary_key_name}, new_id
+              if #{reflection.primary_key_name}_changed?
+                #{ setters }
+              end
+            end
+          FILE
+        end
+
+        def association_foreign_type_setter_method(reflection)
+          setters = reflect_on_all_associations(:belongs_to).map do |belongs_to_reflection|
+            if belongs_to_reflection.options[:foreign_type] == reflection.options[:foreign_type]
+              "association_instance_set(:#{belongs_to_reflection.name}, nil);"
+            end
+          end.compact.join
+
+          field = reflection.options[:foreign_type]
+          class_eval <<-FILE, __FILE__, __LINE__ + 1
+            def #{field}=(new_id)
+              write_attribute :#{field}, new_id
+              if #{field}_changed?
+                #{ setters }
+              end
+            end
+          FILE
         end
 
         def add_counter_cache_callbacks(reflection)
