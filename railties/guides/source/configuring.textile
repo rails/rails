@@ -505,11 +505,75 @@ Sets +ActionController::Base.cache_store+ -- if it's not already set --  to +RAI
 
 h4. +action_controller.set_configs+
 
-Sets up Action View by using the settings in +config.action_controller+ by +send+'ing the method names as setters to +ActionController::Base+ and passing the values through.
+Sets up Action Controller by using the settings in +config.action_controller+ by +send+'ing the method names as setters to +ActionController::Base+ and passing the values through.
 
-h4 +active_record.initialize_timezone+
+h4. +action_controller.compile_config_methods+
 
-Sets +ActiveRecord::Base.time_zone_aware_attributes+ to true, as well as setting +ActiveRecord::Base.default_timezone+ to UTC.
+Initializes methods for the config settings specified so that they are quicker to access.
+
+h4. +active_record.initialize_timezone+
+
+Sets +ActiveRecord::Base.time_zone_aware_attributes+ to true, as well as setting +ActiveRecord::Base.default_timezone+ to UTC. When attributes are read from the database, they will be converted into the time zone specified by +Time.zone+.
+
+h4. +active_record.logger+
+
+Sets +ActiveRecord::Base.logger+ -- if it's not already set -- to +Rails.logger+.
+
+h4. +active_record.set_configs+
+
+Sets up Active Record by using the settings in +config.active_record+ by +send+'ing the method names as setters to +ActiveRecord::Base+ and passing the values through.
+
+h4. +active_record.initialize_database+
+
+Loads the database configuration (by default) from +config/database.yml+ and establishes a connection for the current environment.
+
+h4. +active_record.log_runtime+
+
+Includes +ActiveRecord::Railties::ControllerRuntime+ which is responsible for reporting the length of time Active Record calls took for the request back to the logger.
+
+h4. +active_record.set_dispatch_hooks+
+
+If +config.cache_classes+ is set to false, all reloadable connections to the database will be reset.
+
+h4. +action_mailer.logger+
+
+Sets +ActionMailer::Base.logger+ -- if it's not already set -- to +Rails.logger+.
+
+h4. +action_mailer.set_configs+
+
+Sets up Action Mailer by using the settings in +config.action_mailer+ by +send+'ing the method names as setters to +ActionMailer::Base+ and passing the values through.
+
+h4. +action_mailer.compile_config_methods+
+
+Initializes methods for the config settings specified so that they are quicker to access.
+
+h4. +active_resource.set_configs+
+
+Sets up Active Resource by using the settings in +config.active_resource+ by +send+'ing the method names as setters to +ActiveResource::Base+ and passing the values through.
+
+h4. +set_load_path+
+
+This initializer runs before +bootstrap_hook+. Adds the +vendor+, +lib+, all directories of +app+ and any paths specified by +config.load_paths+ to +$LOAD_PATH+.
+
+h4. +set_autoload_path+
+
+This initializer runs before +bootstrap_hook+. Adds all sub-directories of +app+ and paths specified by +config.autoload_paths+ to +ActiveSupport::Dependencies.autoload_paths+.
+
+h4. +add_routing_paths+
+
+Loads (by default) all +config/routes.rb+ files (in the application and railties, including engines) and sets up the routes for the application.
+
+h4. +add_locales+
+
+Adds the files in +config/locales+ (from the application, railties and engines) to +I18n.load_path+, making available the translations in these files.
+
+h4. +add_view_paths+
+
+Adds the directory +app/views+ from the application, railties and engines to the lookup path for view files for the application.
+
+h4. +load_environment_config+
+
+
 
 h4. Initializer files
 
