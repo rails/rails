@@ -40,6 +40,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal expected, translate(:"translations.missing")
   end
 
+  def test_returns_missing_translation_message_using_nil_as_rescue_format
+    expected = 'translation missing: en.translations.missing'
+    assert_equal expected, translate(:"translations.missing", :rescue_format => nil)
+  end
+
   def test_translation_returning_an_array
     expected = %w(foo bar)
     assert_equal expected, translate(:"translations.array")
