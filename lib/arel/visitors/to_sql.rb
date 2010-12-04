@@ -70,11 +70,12 @@ module Arel
 
       def table_exists? name
         return true if @table_exists.key? name
-        if @connection.table_exists?(name)
-          @table_exists[name] = true
-        else
-          false
+
+        @connection.tables.each do |table|
+          @table_exists[table] = true
         end
+
+        @table_exists.key? name
       end
 
       def column_for attr

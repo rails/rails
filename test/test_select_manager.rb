@@ -34,6 +34,10 @@ module Arel
       @engine.connection.table_exists? name
     end
 
+    def tables
+      @engine.connection.tables
+    end
+
     def execute sql, name = nil, *args
       @executed << sql
     end

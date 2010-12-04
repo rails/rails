@@ -94,8 +94,8 @@ module Arel
     def columns
       if $VERBOSE
         warn <<-eowarn
-(#{caller.first}) Arel::Table#columns is deprecated and will be removed in 
-Arel 2.2.0 with no replacement.
+(#{caller.first}) Arel::Table#columns is deprecated and will be removed in
+Arel 2.2.0 with no replacement.  PEW PEW PEW!!!
         eowarn
       end
       @columns ||=
@@ -124,16 +124,14 @@ Arel 2.2.0 with no replacement.
       end
     end
 
-    def table_exists?
-      @table_exists ||= tables.key?(@name) || engine.connection.table_exists?(name)
-    end
-
-    def tables
-      self.class.table_cache(@engine)
-    end
-
     @@table_cache = nil
     def self.table_cache engine # :nodoc:
+      if $VERBOSE
+        warn <<-eowarn
+(#{caller.first}) Arel::Table.table_cache is deprecated and will be removed in
+Arel 2.2.0 with no replacement.  PEW PEW PEW!!!
+        eowarn
+      end
       @@table_cache ||= Hash[engine.connection.tables.map { |x| [x,true] }]
     end
   end
