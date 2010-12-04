@@ -221,7 +221,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Not o
-        "NOT #{visit o.expr}"
+        "NOT (#{visit o.expr})"
       end
 
       def visit_Arel_Table o
