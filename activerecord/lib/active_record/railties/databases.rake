@@ -138,7 +138,7 @@ namespace :db do
 
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
-  task :migrate => :environment do
+  task :migrate => [:environment, :load_config] do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
@@ -146,7 +146,7 @@ namespace :db do
 
   namespace :migrate do
     # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
-    task :redo => :environment do
+    task :redo => [:environment, :load_config] do
       if ENV["VERSION"]
         Rake::Task["db:migrate:down"].invoke
         Rake::Task["db:migrate:up"].invoke
@@ -160,7 +160,7 @@ namespace :db do
     task :reset => ["db:drop", "db:create", "db:migrate"]
 
     # desc 'Runs the "up" for a given migration VERSION.'
-    task :up => :environment do
+    task :up => [:environment, :load_config] do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_paths, version)
@@ -168,7 +168,7 @@ namespace :db do
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
-    task :down => :environment do
+    task :down => [:environment, :load_config] do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
@@ -176,7 +176,7 @@ namespace :db do
     end
 
     desc "Display status of migrations"
-    task :status => :environment do
+    task :status => [:environment, :load_config] do
       config = ActiveRecord::Base.configurations[Rails.env || 'development']
       ActiveRecord::Base.establish_connection(config)
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
@@ -207,14 +207,14 @@ namespace :db do
   end
 
   desc 'Rolls the schema back to the previous version (specify steps w/ STEP=n).'
-  task :rollback => :environment do
+  task :rollback => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_paths, step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
-  task :forward => :environment do
+  task :forward => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_paths, step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
