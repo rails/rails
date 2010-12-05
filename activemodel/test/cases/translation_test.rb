@@ -21,6 +21,10 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'name default attribute', Person.human_attribute_name('name', :default => "name default attribute")
   end
 
+  def test_translated_model_attributes_falling_back_to_default
+    assert_equal 'Name', Person.human_attribute_name('name')
+  end
+
   def test_translated_model_attributes_with_symbols
     I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:name => 'person name attribute'} } }
     assert_equal 'person name attribute', Person.human_attribute_name(:name)
