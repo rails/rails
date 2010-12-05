@@ -178,10 +178,10 @@ module Mime
       end
 
       # input: 'text'
-      # returend value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+      # returned value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
       #
       # input: 'application'
-      # returend value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM
+      # returned value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]
       def parse_data_with_trailing_star(input)
         Mime::SET.select { |m| m =~ input }
       end
