@@ -581,15 +581,62 @@ Adds the directory +app/views+ from the application, railties and engines to the
 
 h4. +load_environment_config+
 
+Loads the +config/environments+ file for the current environment.
 
+h4. +append_asset_paths+
 
-h4. Initializer files
+Finds asset paths for the application and all attached railties and keeps a track of the available directories in +config.static_asset_paths+.
 
-After loading the framework and any gems and plugins in your application, Rails turns to loading initialization code from +config/initializers+. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+h4. +prepend_helpers_path+
+
+Adds the directory +app/helpers+ from the application, railties and engines to the lookup path for helpers for the application.
+
+h4. +load_config_initializers+
+
+Loads all files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the +initializers+ folder on down.
 
 TIP: If you have any ordering dependency in your initializers, you can control the load order by naming. For example, +01_critical.rb+ will be loaded before +02_normal.rb+.
+
+h4. +engines_blank_point+
+
+Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are ran.
+
+h4. +add_generator_templates+
+
+Finds templates for generators at +lib/templates+ for the application, railities and engines and adds these to the +config.generators.templates+ setting, which will make the templates available for all generators to reference.
+
+h4. +ensure_autoload_once_paths_as_subset+
+
+Ensures that the +config.autoload_once_paths+ only contains paths from +config.autoload_paths+. If it contains extra paths, then an exception will be raised.
+
+h4. +add_to_prepare_blocks+
+
+The block for every +config.to_prepare+ call in the application, a railtie or engine is added to the +to_prepare+ callbacks for Action Dispatch which will be ran per request in development, or before the first request in production.
+
+h4. +add_builtin_route+
+
+If the application is running under the development environment then this will append the route for +rails/info/properties+ to the application routes. This route provides the detailed information such as Rails and Ruby version for +public/index.html+ in a default Rails application.
+
+h4. +build_middleware_stack+
+
+Builds the middleware stack for the application, returning an object which has a +call+ method which takes a Rack environment object for the request.
+
+h4. +eager_load!+
+
+If +config.cache_classes+ is +true+, runs the +config.before_eager_load+ hooks and then calls +eager_load!+ which will load all the Ruby files from +config.eager_load_paths+.
+
+h4. +finisher_hook+
+
+Provides a hook for after the initialization of process of the application is complete, as well as running all the +config.after_initialize+ blocks for the application, railties and engines.
+
+h4. +set_routes_reloader+
+
+Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
+
+h4. +disable_dependency_loading+
+
 
 h3. Changelog
 
