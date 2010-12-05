@@ -48,7 +48,8 @@ module ActiveModel
       end
 
       defaults << :"attributes.#{attribute}"
-      defaults << (options[:default] ? options.delete(:default) : attribute.to_s.humanize)
+      defaults << options.delete(:default) if options[:default]
+      defaults << attribute.to_s.humanize
 
       options.reverse_merge! :count => 1, :default => defaults
       I18n.translate(defaults.shift, options)
