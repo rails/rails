@@ -84,9 +84,16 @@ module Arel
         visit_edge o, "attribute"
       end
 
-      def visit_Arel_Nodes_Offset o
-        visit_edge o, "value"
+      def unary o
+        visit_edge o, "expr"
       end
+      alias :visit_Arel_Nodes_Group             :unary
+      alias :visit_Arel_Nodes_Grouping          :unary
+      alias :visit_Arel_Nodes_Having            :unary
+      alias :visit_Arel_Nodes_Not               :unary
+      alias :visit_Arel_Nodes_Offset            :unary
+      alias :visit_Arel_Nodes_On                :unary
+      alias :visit_Arel_Nodes_UnqualifiedColumn :unary
 
       def visit_Arel_Nodes_InsertStatement o
         visit_edge o, "relation"

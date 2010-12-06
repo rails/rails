@@ -7,7 +7,7 @@ module Arel
       # Factory method to create a Nodes::Not node that has the recipient of
       # the caller as a child.
       def not
-        Nodes::Not.new self
+        Nodes::Not.new Nodes::Grouping.new self
       end
 
       ###
