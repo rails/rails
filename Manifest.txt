@@ -107,6 +107,7 @@ test/test_select_manager.rb
 test/test_table.rb
 test/test_update_manager.rb
 test/visitors/test_depth_first.rb
+test/visitors/test_dot.rb
 test/visitors/test_join_sql.rb
 test/visitors/test_mysql.rb
 test/visitors/test_oracle.rb
