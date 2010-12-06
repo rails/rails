@@ -71,6 +71,11 @@ module ActionController #:nodoc:
     # If you pass :layout => false, it will only cache your action
     # content. It is useful when your layout has dynamic information.
     #
+    # Note: If action caching is being performed for different MIME types
+    # and those MIME types are being determined by HTTP_ACCEPT header atttribute
+    # and noth using params[:format] then both the cached data and the content-type
+    # of the response could be wrong. The safest way to use action caching is to
+    # pass non-html attribute as params[:format] .
     module Actions
       extend ActiveSupport::Concern
 
