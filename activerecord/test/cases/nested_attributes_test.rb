@@ -808,13 +808,7 @@ class TestHasManyAutosaveAssoictaionWhichItselfHasAutosaveAssociations < ActiveR
     @part = @ship.parts.create!(:name => "Mast")
     @trinket = @part.trinkets.create!(:name => "Necklace")
   end
-
-  test "if association is not loaded and association record is saved and then in memory record attributes should be saved" do
-    @ship.parts_attributes=[{:id => @part.id,:name =>'Deck'}]
-    assert_equal 1, @ship.parts.proxy_target.size
-    assert_equal 'Deck', @ship.parts[0].name
-  end  
-
+  
   test "when grandchild changed in memory, saving parent should save grandchild" do
     @trinket.name = "changed"
     @ship.save
