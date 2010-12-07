@@ -12,7 +12,8 @@ module Arel
       private
 
       def visit_Arel_Nodes_SelectCore o
-        [o.froms].grep(Nodes::Join).map { |x| visit x }.join ', '
+        return '' unless Nodes::Join === o.from
+        visit o.from
       end
 
       def visit_Arel_Nodes_StringJoin o
