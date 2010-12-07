@@ -66,8 +66,8 @@ module Arel
       # FIXME: this is a hack to support
       # test_with_two_tables_in_from_without_getting_double_quoted
       # from the AR tests.
-      if @ctx.froms
-        source = @ctx.froms
+      if @ctx.from
+        source = @ctx.from
 
         if Nodes::SqlLiteral === table && Nodes::Join === source
           source.left = table
@@ -75,7 +75,7 @@ module Arel
         end
       end
 
-      @ctx.froms = table
+      @ctx.from = table
       self
     end
 
