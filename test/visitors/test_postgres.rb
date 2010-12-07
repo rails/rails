@@ -12,6 +12,14 @@ module Arel
           FOR UPDATE
         }
       end
+
+      it "should escape LIMIT" do
+        sc = Arel::Nodes::SelectStatement.new
+        sc.limit = "omg"
+        sc.cores.first.projections << 'DISTINCT ON'
+        sc.orders << "xyz"
+        assert_match(/LIMIT 'omg'/, @visitor.accept(sc))
+      end
     end
   end
 end

@@ -30,6 +30,12 @@ module Arel
         @visitor.accept(DateTime).must_equal "'DateTime'"
       end
 
+      it "should escape LIMIT" do
+        sc = Arel::Nodes::SelectStatement.new
+        sc.limit = "omg"
+        assert_match(/LIMIT 'omg'/, @visitor.accept(sc))
+      end
+
       it "should visit_DateTime" do
         @visitor.accept DateTime.now
       end

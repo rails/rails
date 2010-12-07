@@ -17,6 +17,12 @@ module Arel
         sql.must_be_like "SELECT FROM DUAL LIMIT 18446744073709551615 OFFSET 1"
       end
 
+      it "should escape LIMIT" do
+        sc = Arel::Nodes::UpdateStatement.new
+        sc.limit = "omg"
+        assert_match(/LIMIT 'omg'/, @visitor.accept(sc))
+      end
+
       it 'uses DUAL for empty from' do
         stmt = Nodes::SelectStatement.new
         sql = @visitor.accept(stmt)
