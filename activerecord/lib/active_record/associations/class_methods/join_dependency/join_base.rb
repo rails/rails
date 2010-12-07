@@ -13,7 +13,7 @@ module ActiveRecord
           end
 
           def table
-            Arel::Table.new(table_name, :engine => arel_engine, :columns => active_record.columns)
+            Arel::Table.new(table_name, arel_engine)
           end
 
           def aliased_table_name
