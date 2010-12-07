@@ -3,6 +3,7 @@ module Arel
     def initialize engine
       super
       @ast = Nodes::UpdateStatement.new
+      @ctx = @ast
     end
 
     def take limit
