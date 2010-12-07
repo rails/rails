@@ -388,7 +388,7 @@ module ActiveSupport
       # key. See #define_callbacks for more information.
       #
       def __define_runner(symbol) #:nodoc:
-        body = send("_#{symbol}_callbacks").compile(nil)
+        body = send("_#{symbol}_callbacks").compile
 
         silence_warnings do
           undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
