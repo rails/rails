@@ -79,6 +79,10 @@ module Arel
       self
     end
 
+    def froms
+      @ast.cores.map { |x| x.from }.compact
+    end
+
     def join relation, klass = Nodes::InnerJoin
       return self unless relation
 

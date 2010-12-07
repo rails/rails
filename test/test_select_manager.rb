@@ -277,6 +277,11 @@ module Arel
       end
     end
 
+    it 'should hand back froms' do
+      relation = Arel::SelectManager.new Table.engine
+      assert_equal [], relation.froms
+    end
+
     it 'should create join nodes' do
       relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar', 'baz'
