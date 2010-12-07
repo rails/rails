@@ -10,7 +10,7 @@ module ActiveRecord
 
         def initialize(base, associations, joins)
           @active_record         = base
-          @table_joins           = joins || ''
+          @table_joins           = joins
           @join_parts            = [JoinBase.new(base)]
           @associations          = {}
           @reflections           = []
@@ -45,12 +45,13 @@ module ActiveRecord
         end
 
         def count_aliases_from_table_joins(name)
+          return 0 unless @table_joins
+
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = active_record.connection.quote_table_name(name.downcase).downcase
           join_sql = @table_joins.downcase
-          join_sql.blank? ? 0 :
-            # Table names
-            join_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
+          # Table names
+          join_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
             # Table aliases
             join_sql.scan(/join(?:\s+\w+)?\s+\S+\s+#{quoted_name}\son/).size
         end
