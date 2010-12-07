@@ -414,15 +414,11 @@ module ActiveSupport
       # which callbacks can be omitted because of per_key conditions.
       #
       def __create_keyed_callback(name, kind, object, &blk) #:nodoc:
-        @_keyed_callbacks ||= {}
-        @_keyed_callbacks[name] ||= begin
-          str = send("_#{kind}_callbacks").compile(name, object)
-          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{name}() #{str} end
-            protected :#{name}
-          RUBY_EVAL
-          true
-        end
+        method_body = send("_#{kind}_callbacks").compile(name, object)
+        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+          def #{name}() #{method_body} end
+          protected :#{name}
+        RUBY_EVAL
       end
 
       # This is used internally to append, prepend and skip callbacks to the
