@@ -14,6 +14,7 @@ lib/arel/delete_manager.rb
 lib/arel/deprecated.rb
 lib/arel/expression.rb
 lib/arel/expressions.rb
+lib/arel/factory_methods.rb
 lib/arel/insert_manager.rb
 lib/arel/nodes.rb
 lib/arel/nodes/and.rb

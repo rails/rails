@@ -6,6 +6,22 @@ module Arel
       @relation = Table.new(:users)
     end
 
+    it 'should create join nodes' do
+      join = @relation.create_join 'foo', 'bar', 'baz'
+      assert_kind_of Arel::Nodes::InnerJoin, join
+      assert_equal 'foo', join.left
+      assert_equal 'bar', join.right
+      assert_equal 'baz', join.constraint
+    end
+
+    it 'should create join nodes with a klass' do
+      join = @relation.create_join 'foo', 'bar', 'baz', Arel::Nodes::OuterJoin
+      assert_kind_of Arel::Nodes::OuterJoin, join
+      assert_equal 'foo', join.left
+      assert_equal 'bar', join.right
+      assert_equal 'baz', join.constraint
+    end
+
     it 'should return an insert manager' do
       im = @relation.compile_insert 'VALUES(NULL)'
       assert_kind_of Arel::InsertManager, im

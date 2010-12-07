@@ -277,6 +277,24 @@ module Arel
       end
     end
 
+    it 'should create join nodes' do
+      relation = Arel::SelectManager.new Table.engine
+      join = relation.create_join 'foo', 'bar', 'baz'
+      assert_kind_of Arel::Nodes::InnerJoin, join
+      assert_equal 'foo', join.left
+      assert_equal 'bar', join.right
+      assert_equal 'baz', join.constraint
+    end
+
+    it 'should create join nodes with a klass' do
+      relation = Arel::SelectManager.new Table.engine
+      join = relation.create_join 'foo', 'bar', 'baz', Arel::Nodes::OuterJoin
+      assert_kind_of Arel::Nodes::OuterJoin, join
+      assert_equal 'foo', join.left
+      assert_equal 'bar', join.right
+      assert_equal 'baz', join.constraint
+    end
+
     describe 'join' do
       it 'responds to join' do
         left      = Table.new :users

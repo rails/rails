@@ -1,4 +1,5 @@
 require 'arel/crud'
+require 'arel/factory_methods'
 
 require 'arel/expressions'
 require 'arel/predications'

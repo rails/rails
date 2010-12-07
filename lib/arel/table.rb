@@ -1,6 +1,7 @@
 module Arel
   class Table
     include Arel::Crud
+    include Arel::FactoryMethods
 
     @engine = nil
     class << self; attr_accessor :engine; end
@@ -57,10 +58,10 @@ module Arel
       case relation
       when String, Nodes::SqlLiteral
         raise if relation.blank?
-        from Nodes::StringJoin.new(self, relation)
-      else
-        from klass.new(self, relation, nil)
+        klass = Nodes::StringJoin
       end
+
+      from create_join(self, relation, nil, klass)
     end
 
     def group *columns

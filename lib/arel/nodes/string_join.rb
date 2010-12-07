@@ -3,8 +3,8 @@ module Arel
     class StringJoin < Arel::Nodes::Join
       undef :constraint
 
-      def initialize left, right
-        super(left, right, nil)
+      def initialize left, right, on = nil
+        super
       end
     end
   end
