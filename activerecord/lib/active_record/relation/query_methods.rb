@@ -163,13 +163,15 @@ module ActiveRecord
     end
 
     def custom_join_sql(joins)
+      joins = joins.reject { |join| join.blank? }
+
+      return if joins.empty?
+
+      @implicit_readonly = true
+
       arel = table.select_manager
 
       joins.each do |join|
-        next if join.blank?
-
-        @implicit_readonly = true
-
         case join
         when Array
           join = Arel.sql(join.join(' ')) if array_of_strings?(join)
