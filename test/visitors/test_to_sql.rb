@@ -143,6 +143,15 @@ module Arel
           }
         end
 
+        it 'can handle subqueries' do
+          table = Table.new(:users)
+          subquery = table.project(:id).where(table[:name].eq('Aaron'))
+          node = @attr.in subquery
+          @visitor.accept(node).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
+          }
+        end
+
         it 'uses the same column for escaping values' do
         @attr = Table.new(:users)[:name]
           visitor = Class.new(ToSql) do
@@ -186,6 +195,15 @@ module Arel
           node = @attr.not_in 1...3
           @visitor.accept(node).must_be_like %{
             "users"."id" < 1 OR "users"."id" >= 3
+          }
+        end
+
+        it 'can handle subqueries' do
+          table = Table.new(:users)
+          subquery = table.project(:id).where(table[:name].eq('Aaron'))
+          node = @attr.not_in subquery
+          @visitor.accept(node).must_be_like %{
+            "users"."id" NOT IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
 
