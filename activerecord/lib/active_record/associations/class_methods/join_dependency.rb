@@ -6,9 +6,10 @@ module ActiveRecord
   module Associations
     module ClassMethods
       class JoinDependency # :nodoc:
-        attr_reader :join_parts, :reflections, :table_aliases
+        attr_reader :join_parts, :reflections, :table_aliases, :active_record
 
         def initialize(base, associations, joins)
+          @active_record         = base
           @table_joins           = joins || ''
           @join_parts            = [JoinBase.new(base)]
           @associations          = {}
@@ -45,7 +46,7 @@ module ActiveRecord
 
         def count_aliases_from_table_joins(name)
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-          quoted_name = join_base.active_record.connection.quote_table_name(name.downcase).downcase
+          quoted_name = active_record.connection.quote_table_name(name.downcase).downcase
           join_sql = @table_joins.downcase
           join_sql.blank? ? 0 :
             # Table names
@@ -61,11 +62,11 @@ module ActiveRecord
           records = rows.map { |model|
             primary_id = model[primary_key]
             parent = parents[primary_id] ||= join_base.instantiate(model)
-            construct(parent, @associations, join_associations.dup, model)
+            construct(parent, @associations, join_associations, model)
             parent
           }.uniq
 
-          remove_duplicate_results!(join_base.active_record, records, @associations)
+          remove_duplicate_results!(active_record, records, @associations)
           records
         end
 
