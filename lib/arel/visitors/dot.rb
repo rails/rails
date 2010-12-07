@@ -28,10 +28,6 @@ module Arel
       end
 
       private
-      def visit_Arel_Nodes_Grouping o
-        visit_edge o, "expr"
-      end
-
       def visit_Arel_Nodes_Ordering o
         visit_edge o, "expr"
         visit_edge o, "direction"
@@ -55,10 +51,6 @@ module Arel
         visit_edge o, "distinct"
       end
 
-      def visit_Arel_Nodes_On o
-        visit_edge o, "expr"
-      end
-
       def visit_Arel_Nodes_Values o
         visit_edge o, "expressions"
       end
@@ -78,10 +70,6 @@ module Arel
       def visit_Arel_Nodes_DeleteStatement o
         visit_edge o, "relation"
         visit_edge o, "wheres"
-      end
-
-      def visit_Arel_Nodes_UnqualifiedColumn o
-        visit_edge o, "attribute"
       end
 
       def unary o
