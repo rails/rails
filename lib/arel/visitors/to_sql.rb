@@ -101,6 +101,10 @@ module Arel
         }.join ', '})"
       end
 
+      def visit_Arel_SelectManager o
+        o.to_sql
+      end
+
       def visit_Arel_Nodes_SelectStatement o
         [
           o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
@@ -233,17 +237,11 @@ module Arel
       end
 
       def visit_Arel_Nodes_In o
-        right = o.right
-        "#{visit o.left} IN (#{
-          right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
-        })"
+      "#{visit o.left} IN (#{visit o.right})"
       end
 
       def visit_Arel_Nodes_NotIn o
-        right = o.right
-        "#{visit o.left} NOT IN (#{
-          right.empty? ? 'NULL' : right.map { |x| visit x }.join(', ')
-        })"
+      "#{visit o.left} NOT IN (#{visit o.right})"
       end
 
       def visit_Arel_Nodes_And o
@@ -319,6 +317,10 @@ module Arel
       alias :visit_NilClass :visit_String
       alias :visit_ActiveSupport_StringInquirer :visit_String
       alias :visit_Class :visit_String
+
+      def visit_Array o
+        o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
+      end
 
       def quote value, column = nil
         @connection.quote value, column
