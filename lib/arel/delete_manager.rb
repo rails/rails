@@ -3,15 +3,11 @@ module Arel
     def initialize engine
       super
       @ast = Nodes::DeleteStatement.new
+      @ctx = @ast
     end
 
     def from relation
       @ast.relation = relation
-      self
-    end
-
-    def where expression
-      @ast.wheres << expression
       self
     end
 

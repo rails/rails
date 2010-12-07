@@ -31,7 +31,7 @@ module Arel
     def in other
       case other
       when Arel::SelectManager
-        Arel::Nodes::In.new(self, other)
+        Arel::Nodes::In.new(self, other.ast)
       when Range
         if other.exclude_end?
           left  = Nodes::GreaterThanOrEqual.new(self, other.begin)
@@ -56,7 +56,7 @@ module Arel
     def not_in other
       case other
       when Arel::SelectManager
-        Arel::Nodes::NotIn.new(self, other)
+        Arel::Nodes::NotIn.new(self, other.ast)
       when Range
         if other.exclude_end?
           left  = Nodes::LessThan.new(self, other.begin)

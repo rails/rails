@@ -107,11 +107,6 @@ module Arel
       self
     end
 
-    def where expr
-      @ctx.wheres << expr
-      self
-    end
-
     def order *expr
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
       @ast.orders.concat expr.map { |x|

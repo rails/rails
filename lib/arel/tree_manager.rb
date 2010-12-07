@@ -9,6 +9,7 @@ module Arel
     def initialize engine
       @engine  = engine
       @visitor = Visitors.visitor_for @engine
+      @ctx     = nil
     end
 
     def to_dot
@@ -22,6 +23,14 @@ module Arel
     def initialize_copy other
       super
       @ast = @ast.clone
+    end
+
+    def where expr
+      if Arel::TreeManager === expr
+        expr = expr.ast
+      end
+      @ctx.wheres << expr
+      self
     end
   end
 end

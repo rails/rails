@@ -72,10 +72,6 @@ module Arel
         }.join ', '})"
       end
 
-      def visit_Arel_SelectManager o
-        o.to_sql
-      end
-
       def visit_Arel_Nodes_SelectStatement o
         [
           o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
