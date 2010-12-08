@@ -296,7 +296,12 @@ module ActiveRecord
       if Arel::Table === relation
         relation.from(ast || relation)
       else
-        relation.join(custom_joins)
+        if relation.froms.length > 0 && ast
+          ast.left = relation.froms.first
+          relation.from ast
+        else
+          relation.join(custom_joins)
+        end
       end
     end
 
