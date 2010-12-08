@@ -162,28 +162,31 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
-    def custom_join_sql(joins)
-      joins = joins.reject { |join| join.blank? }
+    def build_arel
+      arel = table
 
-      return if joins.empty?
+      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
-      @implicit_readonly = true
+      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
 
-      arel = table.select_manager
+      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
-      joins.each do |join|
-        case join
-        when Array
-          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
-        when String
-          join = Arel.sql(join)
-        end
+      arel = arel.take(@limit_value) if @limit_value
+      arel = arel.skip(@offset_value) if @offset_value
 
-        arel.join(join)
-      end
+      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
-      arel.join_sql
+      arel = arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
+
+      arel = build_select(arel, @select_values.uniq)
+
+      arel = arel.from(@from_value) if @from_value
+      arel = arel.lock(@lock_value) if @lock_value
+
+      arel
     end
+
+    private
 
     def custom_join_ast(table, joins)
       joins = joins.reject { |join| join.blank? }
@@ -210,32 +213,6 @@ module ActiveRecord
 
       head
     end
-
-    def build_arel
-      arel = table
-
-      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
-
-      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
-
-      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
-
-      arel = arel.take(@limit_value) if @limit_value
-      arel = arel.skip(@offset_value) if @offset_value
-
-      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
-
-      arel = arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
-
-      arel = build_select(arel, @select_values.uniq)
-
-      arel = arel.from(@from_value) if @from_value
-      arel = arel.lock(@lock_value) if @lock_value
-
-      arel
-    end
-
-    private
 
     def collapse_wheres(arel, wheres)
       equalities = wheres.grep(Arel::Nodes::Equality)
@@ -280,10 +257,9 @@ module ActiveRecord
       stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
-      custom_joins = custom_join_sql(non_association_joins)
-      ast = custom_join_ast(relation, non_association_joins)
+      join_ast = custom_join_ast(relation, non_association_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, ast)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_ast)
 
       join_dependency.graft(*stashed_association_joins)
 
@@ -294,15 +270,15 @@ module ActiveRecord
       end
 
       if Arel::Table === relation
-        relation.from(ast || relation)
+        relation.from(join_ast || relation)
       else
-        if relation.froms.length > 0 && ast
-          ast.left = relation.froms.first
-          relation.from ast
-        elsif relation.froms.length == 0 && ast
-          relation.from(ast)
+        if relation.froms.length > 0 && join_ast
+          join_ast.left = relation.froms.first
+          relation.from join_ast
+        elsif relation.froms.length == 0 && join_ast
+          relation.from(join_ast)
         else
-          relation.join(custom_joins)
+          relation
         end
       end
     end
