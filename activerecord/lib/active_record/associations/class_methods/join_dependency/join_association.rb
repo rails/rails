@@ -79,16 +79,15 @@ module ActiveRecord
           def aliased_table_name_for(name, suffix = nil)
             aliases = @join_dependency.table_aliases
 
-            if !aliases[name].zero? # We need an alias
+            if aliases[name] != 0 # We need an alias
               connection = active_record.connection
 
               name = connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
-              aliases[name] += 1
-              table_index = aliases[name]
+              table_index = aliases[name] + 1
               name = name[0, connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
-            else
-              aliases[name] += 1
             end
+
+            aliases[name] += 1
 
             name
           end
