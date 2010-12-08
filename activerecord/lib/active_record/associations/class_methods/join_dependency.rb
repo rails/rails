@@ -49,10 +49,16 @@ module ActiveRecord
 
           return count_aliases_from_string(@table_joins.downcase, name) if String === @table_joins
 
-          @table_joins.grep(Arel::Table).find_all { |table|
-            table.name.downcase == name
-          }.length + @table_joins.grep(String).map { |s|
-            count_aliases_from_string(s, name)
+          @table_joins.grep(Arel::Nodes::Join).map { |join|
+            right = join.right
+            case right
+            when Arel::Table
+              right.name.downcase == name ? 1 : 0
+            when String
+              count_aliases_from_string(right.downcase, name)
+            else
+              0
+            end
           }.sum
         end
 

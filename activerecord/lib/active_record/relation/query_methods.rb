@@ -185,6 +185,20 @@ module ActiveRecord
       arel.join_sql
     end
 
+    def custom_join_ast(joins)
+      joins = joins.reject { |join| join.blank? }
+
+      return if joins.empty?
+
+      @implicit_readonly = true
+
+      head = table.create_string_join(table, joins.shift)
+
+      joins.inject(head) do |ast, join|
+        ast.right = table.create_string_join(ast.right, join)
+      end
+    end
+
     def build_arel
       arel = table
 
@@ -256,7 +270,7 @@ module ActiveRecord
       non_association_joins = (joins - association_joins - stashed_association_joins)
       custom_joins = custom_join_sql(non_association_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_join_ast(non_association_joins))
 
       join_dependency.graft(*stashed_association_joins)
 
