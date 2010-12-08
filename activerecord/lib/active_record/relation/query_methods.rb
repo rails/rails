@@ -299,6 +299,8 @@ module ActiveRecord
         if relation.froms.length > 0 && ast
           ast.left = relation.froms.first
           relation.from ast
+        elsif relation.froms.length == 0 && ast
+          relation.from(ast)
         else
           relation.join(custom_joins)
         end
