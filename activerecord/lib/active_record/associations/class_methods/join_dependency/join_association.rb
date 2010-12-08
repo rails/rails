@@ -42,6 +42,9 @@ module ActiveRecord
             # depends on the state of the join dependency, but we want it to work the same way
             # every time.
             allocate_aliases
+            @table = Arel::Table.new(
+              table_name, :as => aliased_table_name, :engine => arel_engine
+            )
           end
 
           def ==(other)
@@ -65,12 +68,7 @@ module ActiveRecord
             joining_relation.joins(self)
           end
 
-          def table
-            @table ||= Arel::Table.new(
-              table_name, :as => aliased_table_name, :engine => arel_engine
-            )
-          end
-
+          attr_reader :table
           # More semantic name given we are talking about associations
           alias_method :target_table, :table
 
