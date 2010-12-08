@@ -67,8 +67,7 @@ module ActiveRecord
 
           def table
             @table ||= Arel::Table.new(
-              table_name, :as => aliased_table_name,
-              :engine => arel_engine, :columns => active_record.columns
+              table_name, :as => aliased_table_name, :engine => arel_engine
             )
           end
 
