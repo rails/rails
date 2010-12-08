@@ -471,7 +471,8 @@ module ActionView
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
 
         if encode == "javascript"
-          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');".each_byte do |c|
+          html = content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:"+html_escape(email_address)+extras }))
+          "document.write('#{escape_javascript(html)}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>"
