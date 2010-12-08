@@ -1,5 +1,8 @@
 *Rails 3.1.0 (unreleased)*
 
+* Setting the id of a belongs_to object will update the reference to the
+object. [#2989 state:resolved]
+
 * ActiveRecord::Base#dup and ActiveRecord::Base#clone semantics have changed
 to closer match normal Ruby dup and clone semantics.
 
