@@ -77,10 +77,6 @@ module ActiveRecord
           protected
 
           def aliased_table_name_for(name, suffix = nil)
-            if @join_dependency.table_aliases[name].zero?
-              @join_dependency.table_aliases[name] = @join_dependency.count_aliases_from_table_joins(name)
-            end
-
             if !@join_dependency.table_aliases[name].zero? # We need an alias
               name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
               @join_dependency.table_aliases[name] += 1

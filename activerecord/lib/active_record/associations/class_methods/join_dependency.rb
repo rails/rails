@@ -14,7 +14,9 @@ module ActiveRecord
           @join_parts            = [JoinBase.new(base)]
           @associations          = {}
           @reflections           = []
-          @table_aliases         = Hash.new(0)
+          @table_aliases         = Hash.new do |h,name|
+            h[name] = count_aliases_from_table_joins(name)
+          end
           @table_aliases[base.table_name] = 1
           build(associations)
         end
