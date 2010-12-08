@@ -265,6 +265,7 @@ module ActiveRecord
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
+      # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
         relation = association.join_to(relation)
       end
