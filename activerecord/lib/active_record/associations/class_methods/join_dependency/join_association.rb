@@ -80,10 +80,12 @@ module ActiveRecord
             aliases = @join_dependency.table_aliases
 
             if !aliases[name].zero? # We need an alias
-              name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
+              connection = active_record.connection
+
+              name = connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
               aliases[name] += 1
               table_index = aliases[name]
-              name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
+              name = name[0, connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
             else
               aliases[name] += 1
             end
