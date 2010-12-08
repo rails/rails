@@ -70,16 +70,6 @@ task :default => :test
       if mountable?
         template "rails/routes.rb", "#{dummy_path}/config/routes.rb", :force => true
       end
-
-      if full? && !options[:skip_active_record]
-        append_file "#{dummy_path}/Rakefile", <<-EOF
-
-task :"db:load_config" do
-  ActiveRecord::Migrator.migrations_paths = Rails.application.config.paths["db/migrate"].to_a +
-                                            <%= camelized %>::Engine.config.paths["db/migrate"].to_a
-end
-        EOF
-      end
     end
 
     def test_dummy_clean

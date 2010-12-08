@@ -3,6 +3,12 @@ db_namespace = namespace :db do
     require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
     ActiveRecord::Migrator.migrations_paths = Rails.application.paths["db/migrate"].to_a
+
+    if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
+      if engine.paths["db/migrate"].existent
+        ActiveRecord::Migrator.migrations_paths += engine.paths["db/migrate"].to_a
+      end
+    end
   end
 
   namespace :create do
