@@ -1564,6 +1564,10 @@ module ActiveRecord
             end
           end.compact.join
 
+          if method_defined?(:"#{reflection.primary_key_name}=")
+            undef_method :"#{reflection.primary_key_name}="
+          end
+
           class_eval <<-FILE, __FILE__, __LINE__ + 1
             def #{reflection.primary_key_name}=(new_id)
               write_attribute :#{reflection.primary_key_name}, new_id
