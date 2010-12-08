@@ -45,11 +45,20 @@ module ActiveRecord
         end
 
         def count_aliases_from_table_joins(name)
-          return 0 unless @table_joins
+          return 0 if !@table_joins || Arel::Table === @table_joins
 
+          return count_aliases_from_string(@table_joins.downcase, name) if String === @table_joins
+
+          @table_joins.grep(Arel::Table).find_all { |table|
+            table.name.downcase == name
+          }.length + @table_joins.grep(String).map { |s|
+            count_aliases_from_string(s, name)
+          }.sum
+        end
+
+        def count_aliases_from_string(join_sql, name)
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = active_record.connection.quote_table_name(name.downcase).downcase
-          join_sql = @table_joins.downcase
           # Table names
           join_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
             # Table aliases
