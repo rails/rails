@@ -47,8 +47,6 @@ module ActiveRecord
         def count_aliases_from_table_joins(name)
           return 0 if !@table_joins || Arel::Table === @table_joins
 
-          return count_aliases_from_string(@table_joins.downcase, name) if String === @table_joins
-
           @table_joins.grep(Arel::Nodes::Join).map { |join|
             right = join.right
             case right
