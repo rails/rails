@@ -140,7 +140,8 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   User.find(:all)  # => empty
+    #   User.find(:all)  # => Return both Kotori and Nemu, because inner transaction do not rollback
+    #                    # without :requiers_new => true option, and Rollback exception do not reraise
     #
     # It is also possible to requires a sub-transaction by passing
     # <tt>:requires_new => true</tt>. If anything goes wrong, the
