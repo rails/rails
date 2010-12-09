@@ -702,5 +702,24 @@ module RailtiesTest
 
       assert_equal "foo", Bukkits.table_name_prefix
     end
+
+    test "fetching engine by path" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      assert_equal Bukkits::Engine.instance, Rails::Engine.find(@plugin.path)
+
+      # check expanding paths
+      engine_dir = @plugin.path.chomp("/").split("/").last
+      engine_path = File.join(@plugin.path, '..', engine_dir)
+      assert_equal Bukkits::Engine.instance, Rails::Engine.find(engine_path)
+    end
   end
 end

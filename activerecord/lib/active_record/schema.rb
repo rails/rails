@@ -30,8 +30,8 @@ module ActiveRecord
   # ActiveRecord::Schema is only supported by database adapters that also
   # support migrations, the two features being very similar.
   class Schema < Migration
-    def migrations_path
-      ActiveRecord::Migrator.migrations_path
+    def migrations_paths
+      ActiveRecord::Migrator.migrations_paths
     end
 
     # Eval the given block. All methods available to the current connection
@@ -51,7 +51,7 @@ module ActiveRecord
 
       unless info[:version].blank?
         initialize_schema_migrations_table
-        assume_migrated_upto_version(info[:version], schema.migrations_path)
+        assume_migrated_upto_version(info[:version], schema.migrations_paths)
       end
     end
   end

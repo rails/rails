@@ -114,7 +114,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_ensure_that_tests_works_in_full_mode
-    run_generator [destination_root, "--full"]
+    run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     `bundle install`
     assert_match /2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`

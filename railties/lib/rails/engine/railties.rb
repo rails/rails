@@ -18,6 +18,16 @@ module Rails
           Plugin.all(plugin_names, @config.paths["vendor/plugins"].existent)
         end
       end
+
+      def self.railties
+        @railties ||= ::Rails::Railtie.subclasses.map(&:instance)
+      end
+
+      def self.engines
+        @engines ||= ::Rails::Engine.subclasses.map(&:instance)
+      end
+
+      delegate :railties, :engines, :to => "self.class"
     end
   end
 end

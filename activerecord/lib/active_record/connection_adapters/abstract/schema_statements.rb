@@ -442,12 +442,14 @@ module ActiveRecord
         end
       end
 
-      def assume_migrated_upto_version(version, migrations_path = ActiveRecord::Migrator.migrations_path)
+      def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
+        migrations_paths = [migrations_paths] unless migrations_paths.kind_of?(Array)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map { |v| v.to_i }
-        versions = Dir["#{migrations_path}/[0-9]*_*.rb"].map do |filename|
+        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+        versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
 

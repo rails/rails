@@ -14,3 +14,11 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('README.rdoc')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
+<% if full? && !options[:skip_active_record] -%>
+namespace :app do
+  ENGINE_PATH = File.expand_path("..", __FILE__)
+  load File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
+end
+<% end -%>
+
