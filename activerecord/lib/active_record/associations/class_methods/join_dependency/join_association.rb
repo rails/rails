@@ -136,7 +136,7 @@ module ActiveRecord
               conditions << process_conditions(options[:conditions], aliased_table_name)
             end
 
-            relation = relation.on(*conditions)
+            relation.on(*conditions)
           end
 
           def join_has_and_belongs_to_many_to(relation)
