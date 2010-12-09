@@ -19,8 +19,8 @@ module ActionMailer
       options.stylesheets_dir ||= paths["public/stylesheets"].first
 
       # make sure readers methods get compiled
-      options.asset_path           ||= nil
-      options.asset_host           ||= nil
+      options.asset_path           ||= app.config.asset_path
+      options.asset_host           ||= app.config.asset_host
 
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor

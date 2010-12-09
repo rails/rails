@@ -4,12 +4,12 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :cache_classes, :cache_store,
+      attr_accessor :allow_concurrency, :asset_host, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
-                    :filter_parameters,  :log_level, :logger,
+                    :filter_parameters, :helpers_paths, :log_level, :logger,
                     :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
-                    :time_zone, :whiny_nils, :helpers_paths
+                    :time_zone, :whiny_nils
 
       def initialize(*)
         super
@@ -24,20 +24,7 @@ module Rails
         @session_options = {}
         @time_zone = "UTC"
         @middleware = app_middleware
-        @asset_path = '/'
         @generators = app_generators
-      end
-
-      def asset_path=(value)
-        action_mailer.asset_path = value if respond_to?(:action_mailer) && action_mailer
-        action_controller.asset_path = value if respond_to?(:action_controller) && action_controller
-        super(value)
-      end
-
-      def asset_host=(value)
-        action_mailer.asset_host = value if action_mailer
-        action_controller.asset_host = value if action_controller
-        super(value)
       end
 
       def compiled_asset_path
