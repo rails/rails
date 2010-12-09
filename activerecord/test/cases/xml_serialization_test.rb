@@ -4,6 +4,7 @@ require 'models/post'
 require 'models/author'
 require 'models/comment'
 require 'models/company_in_module'
+require 'models/toy'
 
 class XmlSerializationTest < ActiveRecord::TestCase
   def test_should_serialize_default_root
@@ -80,6 +81,26 @@ class DefaultXmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_serialize_hash
     assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @xml
+  end
+end
+
+class DefaultXmlSerializationTimezoneTest < ActiveRecord::TestCase
+  def test_should_serialize_datetime_with_timezone
+    timezone, Time.zone = Time.zone, "Pacific Time (US & Canada)"
+
+    toy = Toy.create(:name => 'Mickey', :updated_at => Time.utc(2006, 8, 1))
+    assert_match %r{<updated-at type=\"datetime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
+  ensure
+    Time.zone = timezone
+  end
+
+  def test_should_serialize_datetime_with_timezone_reloaded
+    timezone, Time.zone = Time.zone, "Pacific Time (US & Canada)"
+
+    toy = Toy.create(:name => 'Minnie', :updated_at => Time.utc(2006, 8, 1)).reload
+    assert_match %r{<updated-at type=\"datetime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
+  ensure
+    Time.zone = timezone
   end
 end
 
