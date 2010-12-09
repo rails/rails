@@ -121,14 +121,13 @@ module ActiveRecord
             # If the target table is an STI model then we must be sure to only include records of
             # its type and its sub-types.
             unless active_record.descends_from_active_record?
-              sti_column = target_table[active_record.inheritance_column]
-
+              sti_column    = target_table[active_record.inheritance_column]
+              subclasses    = active_record.descendants
               sti_condition = sti_column.eq(active_record.sti_name)
-              active_record.descendants.each do |subclass|
-                sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name))
-              end
 
-              conditions << sti_condition
+              conditions << subclasses.inject(sti_condition) { |attr,subclass|
+                attr.or(sti_column.eq(subclass.sti_name))
+              }
             end
 
             # If the reflection has conditions, add them
