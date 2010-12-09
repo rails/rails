@@ -89,10 +89,10 @@ module Arel
       case relation
       when String, Nodes::SqlLiteral
         raise if relation.blank?
-        from Nodes::StringJoin.new(@ctx.froms, relation)
-      else
-        from klass.new(@ctx.froms, relation, nil)
+        klass = Nodes::StringJoin
       end
+
+      from create_join(@ctx.froms, relation, nil, klass)
     end
 
     def having expr
