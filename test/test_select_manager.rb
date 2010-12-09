@@ -282,6 +282,14 @@ module Arel
       assert_equal [], relation.froms
     end
 
+    it 'should create and nodes' do
+      relation = Arel::SelectManager.new Table.engine
+      children = ['foo', 'bar', 'baz']
+      clause = relation.create_and children
+      assert_kind_of Arel::Nodes::And, clause
+      assert_equal children, clause.children
+    end
+
     it 'should create join nodes' do
       relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar', 'baz'

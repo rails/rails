@@ -198,7 +198,7 @@ module Arel
     def collapse exprs
       return exprs.first if exprs.length == 1
 
-      Nodes::And.new exprs.compact.map { |expr|
+      create_and exprs.compact.map { |expr|
         if String === expr
           Arel.sql(expr)
         else

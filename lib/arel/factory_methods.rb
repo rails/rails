@@ -9,5 +9,9 @@ module Arel
     def create_string_join from, to
       create_join from, to, nil, Nodes::StringJoin
     end
+
+    def create_and clauses
+      Nodes::And.new clauses
+    end
   end
 end
