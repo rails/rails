@@ -116,8 +116,6 @@ module ActiveRecord
           end
 
           def join_target_table(relation, *conditions)
-            relation = relation.join(target_table, join_type)
-
             # If the target table is an STI model then we must be sure to only include records of
             # its type and its sub-types.
             unless active_record.descends_from_active_record?
@@ -135,7 +133,9 @@ module ActiveRecord
               conditions << process_conditions(options[:conditions], aliased_table_name)
             end
 
-            relation.on(*conditions)
+            join = relation.join(target_table, join_type)
+
+            join.on(*conditions)
           end
 
           def join_has_and_belongs_to_many_to(relation)
