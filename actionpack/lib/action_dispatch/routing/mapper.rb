@@ -268,18 +268,18 @@ module ActionDispatch
 
         # Mount a Rack-based application to be used within the application.
         #
-        # mount SomeRackApp, :at => "some_route"
+        #   mount SomeRackApp, :at => "some_route"
         #
         # Alternatively:
         #
-        # mount(SomeRackApp => "some_route")
+        #   mount(SomeRackApp => "some_route")
         #
         # All mounted applications come with routing helpers to access them.
         # These are named after the class specified, so for the above example
         # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
         # To customize this helper's name, use the +:as+ option:
         #
-        # mount(SomeRackApp => "some_route", :as => "exciting")
+        #   mount(SomeRackApp => "some_route", :as => "exciting")
         #
         # This will generate the +exciting_path+ and +exciting_url+ helpers
         # which can be used to navigate to this mounted app.
