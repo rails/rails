@@ -1,19 +1,19 @@
-# == Active Model Lint Tests
-#
-# You can test whether an object is compliant with the Active Model API by
-# including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will include
-# tests that tell you whether your object is fully compliant, or if not,
-# which aspects of the API are not implemented.
-#
-# These tests do not attempt to determine the semantic correctness of the
-# returned values. For instance, you could implement valid? to always
-# return true, and the tests would pass. It is up to you to ensure that
-# the values are semantically meaningful.
-#
-# Objects you pass in are expected to return a compliant object from a
-# call to to_model. It is perfectly fine for to_model to return self.
 module ActiveModel
   module Lint
+    # == Active Model Lint Tests
+    #
+    # You can test whether an object is compliant with the Active Model API by
+    # including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will include
+    # tests that tell you whether your object is fully compliant, or if not,
+    # which aspects of the API are not implemented.
+    #
+    # These tests do not attempt to determine the semantic correctness of the
+    # returned values. For instance, you could implement valid? to always
+    # return true, and the tests would pass. It is up to you to ensure that
+    # the values are semantically meaningful.
+    #
+    # Objects you pass in are expected to return a compliant object from a
+    # call to to_model. It is perfectly fine for to_model to return self.
     module Tests
 
       # == Responds to <tt>to_key</tt>
