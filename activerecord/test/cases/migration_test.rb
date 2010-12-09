@@ -1279,11 +1279,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       directories = [MIGRATIONS_ROOT + '/valid_with_timestamps', MIGRATIONS_ROOT + '/to_copy_with_timestamps']
       migrations = ActiveRecord::Migrator.new(:up, directories).migrations
 
-      [[20090101010101, "PeopleHaveHobbies"], [20090101010202, "PeopleHaveDescriptions"], 
-       [20100101010101, "PeopleHaveLastNames"], [20100201010101, "WeNeedReminders"], 
-       [20100301010101, "InnocentJointable"]].each_with_index do |pair, i|
-        assert_equal migrations[i].version, pair.first
-        assert_equal migrations[i].name, pair.last
+      [[20090101010101, "PeopleHaveHobbies"],
+       [20090101010202, "PeopleHaveDescriptions"],
+       [20100101010101, "ValidWithTimestampsPeopleHaveLastNames"],
+       [20100201010101, "ValidWithTimestampsWeNeedReminders"],
+       [20100301010101, "ValidWithTimestampsInnocentJointable"]].each_with_index do |pair, i|
+        assert_equal pair.first, migrations[i].version
+        assert_equal pair.last, migrations[i].name
       end
     end
 
