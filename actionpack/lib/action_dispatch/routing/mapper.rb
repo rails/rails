@@ -246,6 +246,8 @@ module ActionDispatch
         #
         #   root :to => 'pages#main'
         #
+        # For options, see the +match+ method's documentation, as +root+ uses it internally.
+        #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
