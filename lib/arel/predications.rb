@@ -36,9 +36,9 @@ module Arel
         if other.exclude_end?
           left  = Nodes::GreaterThanOrEqual.new(self, other.begin)
           right = Nodes::LessThan.new(self, other.end)
-          Nodes::And.new left, right
+          Nodes::And.new [left, right]
         else
-          Nodes::Between.new(self, Nodes::And.new(other.begin, other.end))
+          Nodes::Between.new(self, Nodes::And.new([other.begin, other.end]))
         end
       else
         Nodes::In.new self, other
@@ -174,7 +174,7 @@ module Arel
       first = send method_id, others.shift
 
       Nodes::Grouping.new others.inject(first) { |memo,expr|
-        Nodes::And.new(memo, send(method_id, expr))
+        Nodes::And.new([memo, send(method_id, expr)])
       }
     end
   end

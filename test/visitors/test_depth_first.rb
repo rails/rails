@@ -78,7 +78,6 @@ module Arel
       end
 
       [
-        Arel::Nodes::And,
         Arel::Nodes::Assignment,
         Arel::Nodes::Between,
         Arel::Nodes::DoesNotMatch,
@@ -101,6 +100,17 @@ module Arel
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
+          @visitor.accept binary
+          assert_equal [:a, :b, binary], @collector.calls
+        end
+      end
+
+      # N-ary
+      [
+        Arel::Nodes::And,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          binary = klass.new([:a, :b])
           @visitor.accept binary
           assert_equal [:a, :b, binary], @collector.calls
         end

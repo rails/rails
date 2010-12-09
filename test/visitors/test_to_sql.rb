@@ -50,7 +50,7 @@ module Arel
       end
 
       it "should apply Not to the whole expression" do
-        node = Nodes::And.new @attr.eq(10), @attr.eq(11)
+        node = Nodes::And.new [@attr.eq(10), @attr.eq(11)]
         sql = @visitor.accept Nodes::Not.new(node)
         sql.must_be_like %{NOT ("users"."id" = 10 AND "users"."id" = 11)}
       end
@@ -82,7 +82,7 @@ module Arel
       end
 
       it "should visit_Arel_Nodes_And" do
-        node = Nodes::And.new @attr.eq(10), @attr.eq(11)
+        node = Nodes::And.new [@attr.eq(10), @attr.eq(11)]
         @visitor.accept(node).must_be_like %{
           "users"."id" = 10 AND "users"."id" = 11
         }
