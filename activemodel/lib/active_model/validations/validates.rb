@@ -55,6 +55,10 @@ module ActiveModel
       #     validates :name, :title => true
       #   end
       #
+      # Additionally validator classes may be in another namespace and still used within any class.
+      #
+      #   validates :name, :'file/title' => true
+      #
       # The validators hash can also handle regular expressions, ranges, 
       # arrays and strings in shortcut form, e.g.
       #
@@ -86,8 +90,10 @@ module ActiveModel
         defaults.merge!(:attributes => attributes)
 
         validations.each do |key, options|
+          key = "#{key.to_s.camelize}Validator"
+
           begin
-            validator = const_get("#{key.to_s.camelize}Validator")
+            validator = key.include?('::') ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
