@@ -15,7 +15,7 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_template.
-    def find_all(name, prefix=nil, partial=false, details={}, locals=[], key=nil)
+    def find_all(name, prefix=nil, partial=false, details={}, key=nil, locals=[])
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
