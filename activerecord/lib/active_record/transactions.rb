@@ -141,7 +141,8 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   User.find(:all)  # => empty
+    #   User.find(:all)  # => Returns Kotori and Nemu, because
+    #     AcriveRecord::Rollback do not re-raise
     #
     # It is also possible to requires a sub-transaction by passing
     # <tt>:requires_new => true</tt>. If anything goes wrong, the
