@@ -24,6 +24,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects
 
+  def setup
+    # preheat table existence caches
+    Comment.find_by_id(1)
+  end
+
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
     post = posts.find { |p| p.id == 1 }
