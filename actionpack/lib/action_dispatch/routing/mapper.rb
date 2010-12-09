@@ -247,7 +247,9 @@ module ActionDispatch
         #
         #   root :to => 'pages#main'
         #
-        # You should put the root route at the end of <tt>config/routes.rb</tt>.
+        # You should put the root route at the top of <tt>config/routes.rb</tt>,
+        # because this means it will be matched first. As this is the most popular route
+        # of most Rails applications, this is beneficial.
         def root(options = {})
           match '/', options.reverse_merge(:as => :root)
         end
