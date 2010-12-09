@@ -95,6 +95,11 @@ module ApplicationTests
       assert AppTemplate::Application.config.allow_concurrency
     end
 
+    test "asset_path defaults to nil for application" do
+      require "#{app_path}/config/environment"
+      assert_equal nil, AppTemplate::Application.config.asset_path
+    end
+
     test "the application can be marked as threadsafe when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
