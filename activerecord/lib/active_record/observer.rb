@@ -90,15 +90,11 @@ module ActiveRecord
   #
   class Observer < ActiveModel::Observer
 
-    def initialize
-      super
-      observed_descendants.each { |klass| add_observer!(klass) }
-    end
-
     protected
 
-      def observed_descendants
-        observed_classes.map { |klass| klass.descendants }.flatten
+      def observed_classes
+        klasses = super
+        klasses + klasses.map { |klass| klass.descendants }.flatten
       end
 
       def add_observer!(klass)
