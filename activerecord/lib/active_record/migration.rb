@@ -573,7 +573,7 @@ module ActiveRecord
       def migrations_paths
         @migrations_paths ||= ['db/migrate']
         # just to not break things if someone uses: migration_path = some_string
-        @migrations_paths.kind_of?(Array) ? @migrations_paths : [@migrations_paths]
+        Array.wrap(@migrations_paths)
       end
 
       def migrations_path
@@ -581,7 +581,7 @@ module ActiveRecord
       end
 
       def migrations(paths)
-        paths = [paths] unless paths.kind_of?(Array)
+        paths = Array.wrap(paths)
 
         files = Dir[*paths.map { |p| "#{p}/[0-9]*_*.rb" }]
 

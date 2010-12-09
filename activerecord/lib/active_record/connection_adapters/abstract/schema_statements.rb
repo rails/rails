@@ -443,7 +443,7 @@ module ActiveRecord
       end
 
       def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
-        migrations_paths = [migrations_paths] unless migrations_paths.kind_of?(Array)
+        migrations_paths = Array.wrap(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
