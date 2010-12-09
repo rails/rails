@@ -71,9 +71,9 @@ module ActionController #:nodoc:
 
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
-        def cache_page(content, path)
+        def cache_page(content, path, extension = nil)
           return unless perform_caching
-          path = page_cache_path(path)
+          path = page_cache_path(path, extension)
 
           instrument_page_cache :write_page, path do
             FileUtils.makedirs(File.dirname(path))
@@ -98,14 +98,16 @@ module ActionController #:nodoc:
         end
 
         private
-          def page_cache_file(path)
+          def page_cache_file(path, extension)
             name = (path.empty? || path == "/") ? "/index" : URI.unescape(path.chomp('/'))
-            name << page_cache_extension unless (name.split('/').last || name).include? '.'
+            unless (name.split('/').last || name).include? '.'
+              name << (extension || self.page_cache_extension)
+            end
             return name
           end
 
-          def page_cache_path(path)
-            page_cache_directory + page_cache_file(path)
+          def page_cache_path(path, extension = nil)
+            page_cache_directory + page_cache_file(path, extension)
           end
 
           def instrument_page_cache(name, path)
@@ -146,7 +148,12 @@ module ActionController #:nodoc:
             request.path
         end
 
-        self.class.cache_page(content || response.body, path)
+
+        if (type = Mime::LOOKUP[self.content_type]) && (type_symbol = type.symbol).present?
+          extension = ".#{type_symbol}"
+        end
+
+        self.class.cache_page(content || response.body, path, extension)
       end
 
       private
