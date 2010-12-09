@@ -98,7 +98,7 @@ module ActiveRecord
     protected
 
       def observed_descendants
-        observed_classes.sum([]) { |klass| klass.descendants }
+        observed_classes.map { |klass| klass.descendants }.flatten
       end
 
       def add_observer!(klass)
