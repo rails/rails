@@ -10,8 +10,14 @@ module Arel
         @last_column    = nil
         @quoted_tables  = {}
         @quoted_columns = {}
-        @column_cache   = Hash.new { |h,k| h[k] = {} }
-        @table_exists   = {}
+        @column_cache   = Hash.new { |h,conn|
+          h[conn] = Hash.new { |conn_h,column|
+            conn_h[column] = {}
+          }
+        }
+        @table_exists   = Hash.new { |h,conn|
+          h[conn] = {}
+        }
       end
 
       def accept object
@@ -69,13 +75,17 @@ module Arel
       end
 
       def table_exists? name
-        return true if @table_exists.key? name
+        return true if table_exists.key? name
 
         @connection.tables.each do |table|
-          @table_exists[table] = true
+          table_exists[table] = true
         end
 
-        @table_exists.key? name
+        table_exists.key? name
+      end
+
+      def table_exists
+        @table_exists[@connection]
       end
 
       def column_for attr
@@ -86,13 +96,16 @@ module Arel
 
         # If we don't have this column cached, get a list of columns and
         # cache them for this table
-        unless @column_cache.key? table
-          #$stderr.puts "MISS: #{self.class.name} #{object_id} #{table.inspect} : #{name.inspect}"
+        unless column_cache.key? table
           columns = @connection.columns(table, "#{table}(#{name}) Columns")
-          @column_cache[table] = Hash[columns.map { |c| [c.name.to_sym, c] }]
+          column_cache[table] = Hash[columns.map { |c| [c.name.to_sym, c] }]
         end
 
-        @column_cache[table][name]
+        column_cache[table][name]
+      end
+
+      def column_cache
+        @column_cache[@connection]
       end
 
       def visit_Arel_Nodes_Values o
