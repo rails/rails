@@ -22,7 +22,7 @@ module Arel
       ###
       # Factory method to create an Nodes::And node.
       def and right
-        Nodes::And.new self, right
+        Nodes::And.new [self, right]
       end
 
       # FIXME: this method should go away.  I don't like people calling

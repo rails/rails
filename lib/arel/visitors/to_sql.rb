@@ -254,7 +254,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_And o
-        "#{visit o.left} AND #{visit o.right}"
+        o.children.map { |x| visit x }.join ' AND '
       end
 
       def visit_Arel_Nodes_Or o

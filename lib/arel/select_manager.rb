@@ -198,14 +198,12 @@ module Arel
     def collapse exprs
       return exprs.first if exprs.length == 1
 
-      right = exprs.pop
-      left  = exprs.pop
-
-      right = Nodes::SqlLiteral.new(right) if String === right
-
-      right = Nodes::And.new left, right
-      exprs.reverse.inject(right) { |memo,expr|
-        Nodes::And.new(expr, memo)
+      Nodes::And.new exprs.compact.map { |expr|
+        if String === expr
+          Arel.sql(expr)
+        else
+          expr
+        end
       }
     end
   end
