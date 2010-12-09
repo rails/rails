@@ -131,8 +131,11 @@ module ActionDispatch
         options[:path] ||= "/"
 
         if options[:domain] == :all
-          @host =~ DOMAIN_REGEXP
-          options[:domain] = ".#{$1}.#{$2}"
+          # if host is not ip and matches domain regexp
+          # (ip confirms to domain regexp so we explicitly check for ip)
+          options[:domain] = if (@host !~ /^[\d.]+$/) && (@host =~ DOMAIN_REGEXP)
+            ".#{$1}.#{$2}"
+          end
         end
       end
 
