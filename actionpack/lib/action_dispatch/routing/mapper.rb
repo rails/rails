@@ -1089,6 +1089,7 @@ module ActionDispatch
           end
         end
 
+        # See ActionDispatch::Routing::Mapper::Scoping#namespace
         def namespace(path, options = {})
           if resource_scope?
             nested { super }
