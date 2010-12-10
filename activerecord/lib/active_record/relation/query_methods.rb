@@ -270,17 +270,13 @@ module ActiveRecord
         manager = association.join_to(manager)
       end
 
-      if Arel::Table === manager
-        manager.from(join_ast || manager)
+      if manager.froms.length > 0 && join_ast
+        join_ast.left = manager.froms.first
+        manager.from join_ast
+      elsif manager.froms.length == 0 && join_ast
+        manager.from(join_ast)
       else
-        if manager.froms.length > 0 && join_ast
-          join_ast.left = manager.froms.first
-          manager.from join_ast
-        elsif manager.froms.length == 0 && join_ast
-          manager.from(join_ast)
-        else
-          manager
-        end
+        manager
       end
     end
 
