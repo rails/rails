@@ -37,6 +37,7 @@ module ActiveRecord
             @join_dependency = join_dependency
             @parent          = parent
             @join_type       = Arel::InnerJoin
+            @aliased_prefix  = "t#{ join_dependency.join_parts.size }"
 
             # This must be done eagerly upon initialisation because the alias which is produced
             # depends on the state of the join dependency, but we want it to work the same way
@@ -97,7 +98,6 @@ module ActiveRecord
           private
 
           def allocate_aliases
-            @aliased_prefix     = "t#{ join_dependency.join_parts.size }"
             @aliased_table_name = aliased_table_name_for(table_name)
 
             if reflection.macro == :has_and_belongs_to_many
