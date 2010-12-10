@@ -163,7 +163,7 @@ module ActiveRecord
     end
 
     def build_arel
-      arel = table
+      arel = table.from table
 
       arel = build_joins(arel, @joins_values) unless @joins_values.empty?
 
@@ -247,7 +247,7 @@ module ActiveRecord
       end
     end
 
-    def build_joins(relation, joins)
+    def build_joins(manager, joins)
       joins = joins.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
 
       association_joins = joins.find_all do |join|
@@ -257,7 +257,7 @@ module ActiveRecord
       stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
-      join_ast = custom_join_ast(relation, non_association_joins)
+      join_ast = custom_join_ast(manager.froms.first, non_association_joins)
 
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_ast)
 
@@ -267,19 +267,19 @@ module ActiveRecord
 
       # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
-        relation = association.join_to(relation)
+        manager = association.join_to(manager)
       end
 
-      if Arel::Table === relation
-        relation.from(join_ast || relation)
+      if Arel::Table === manager
+        manager.from(join_ast || manager)
       else
-        if relation.froms.length > 0 && join_ast
-          join_ast.left = relation.froms.first
-          relation.from join_ast
-        elsif relation.froms.length == 0 && join_ast
-          relation.from(join_ast)
+        if manager.froms.length > 0 && join_ast
+          join_ast.left = manager.froms.first
+          manager.from join_ast
+        elsif manager.froms.length == 0 && join_ast
+          manager.from(join_ast)
         else
-          relation
+          manager
         end
       end
     end
