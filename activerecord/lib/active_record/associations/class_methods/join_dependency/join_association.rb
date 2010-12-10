@@ -135,9 +135,15 @@ module ActiveRecord
               conditions << process_conditions(options[:conditions], aliased_table_name)
             end
 
-            join = relation.join(target_table, join_type)
+            ands = relation.create_and(conditions)
 
-            join.on(*conditions)
+            join = relation.create_join(
+              relation.froms.first,
+              target_table,
+              relation.create_on(ands),
+              join_type)
+
+            relation.from join
           end
 
           def join_has_and_belongs_to_many_to(relation)

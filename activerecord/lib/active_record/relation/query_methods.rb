@@ -266,7 +266,7 @@ module ActiveRecord
 
       # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
-        manager = association.join_to(manager)
+        association.join_to(manager)
       end
 
       return manager unless join_ast
