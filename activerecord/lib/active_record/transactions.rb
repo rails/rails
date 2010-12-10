@@ -131,7 +131,7 @@ module ActiveRecord
     #
     # +transaction+ calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
-    # transaction. For example:
+    # transaction. For example, the following behavior may be surprising:
     #
     #   User.transaction do
     #     User.create(:username => 'Kotori')
@@ -141,13 +141,15 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   User.find(:all)  # => Return both Kotori and Nemu, because inner transaction do not rollback
-    #                    # without :requiers_new => true option, and Rollback exception do not reraise
+    # creates both "Kotori" and "Nemu". Reason is the <tt>ActiveRecord::Rollback</tt>
+    # exception in the nested block does not issue a ROLLBACK. Since these exceptions
+    # are captured in transaction blocks, the parent block does not see it and the
+    # real transaction is committed.
     #
-    # It is also possible to requires a sub-transaction by passing
-    # <tt>:requires_new => true</tt>. If anything goes wrong, the
-    # database rolls back to the beginning of the sub-transaction
-    # without rolling back the parent transaction. For example:
+    # In order to get a ROLLBACK for the nested transaction you may ask for a real
+    # sub-transaction by passing <tt>:requires_new => true</tt>. If anything goes wrong,
+    # the database rolls back to the beginning of the sub-transaction without rolling
+    # back the parent transaction. If we add it to the previous example:
     #
     #   User.transaction do
     #     User.create(:username => 'Kotori')
@@ -157,12 +159,12 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   User.find(:all)  # => Returns only Kotori
+    # only "Kotori" is created. (This works on MySQL and PostgreSQL, but not on SQLite3.)
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
-    # transactions by using savepoints. See
+    # transactions by using savepoints on MySQL and PostgreSQL. See
     # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
     # for more information about savepoints.
     #
