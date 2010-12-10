@@ -115,7 +115,9 @@ module ActiveRecord
             active_record.send(:sanitize_sql, condition, table_name)
           end
 
-          def join_target_table(relation, *conditions)
+          def join_target_table(relation, condition)
+            conditions = [condition]
+
             # If the target table is an STI model then we must be sure to only include records of
             # its type and its sub-types.
             unless active_record.descends_from_active_record?
@@ -247,9 +249,9 @@ module ActiveRecord
             join_target_table(
               relation,
               target_table["#{reflection.options[:as]}_id"].
-              eq(parent_table[parent.primary_key]),
+              eq(parent_table[parent.primary_key]).and(
               target_table["#{reflection.options[:as]}_type"].
-              eq(parent.active_record.base_class.name)
+              eq(parent.active_record.base_class.name))
             )
           end
 
