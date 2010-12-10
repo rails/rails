@@ -181,9 +181,8 @@ module ActiveRecord
 
           def join_has_many_through_to(relation)
             join_table = Arel::Table.new(
-              through_reflection.klass.table_name, :engine => arel_engine,
-              :as => @aliased_join_table_name
-            )
+              through_reflection.klass.table_name
+            ).alias @aliased_join_table_name
 
             jt_conditions = []
             jt_foreign_key = first_key = second_key = nil
