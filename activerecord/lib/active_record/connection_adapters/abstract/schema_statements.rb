@@ -12,7 +12,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0..table_alias_length-1].gsub(/\./, '_')
+        table_name[0...table_alias_length].gsub(/\./, '_')
       end
 
       # def tables(name = nil) end
