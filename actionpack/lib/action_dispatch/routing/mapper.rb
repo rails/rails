@@ -247,7 +247,11 @@ module ActionDispatch
         #
         #   root :to => 'pages#main'
         #
-        # You should put the root route at the end of <tt>config/routes.rb</tt>.
+        # For options, see the +match+ method's documentation, as +root+ uses it internally.
+        #
+        # You should put the root route at the top of <tt>config/routes.rb</tt>,
+        # because this means it will be matched first. As this is the most popular route
+        # of most Rails applications, this is beneficial.
         def root(options = {})
           match '/', options.reverse_merge(:as => :root)
         end
@@ -269,18 +273,18 @@ module ActionDispatch
 
         # Mount a Rack-based application to be used within the application.
         #
-        # mount SomeRackApp, :at => "some_route"
+        #   mount SomeRackApp, :at => "some_route"
         #
         # Alternatively:
         #
-        # mount(SomeRackApp => "some_route")
+        #   mount(SomeRackApp => "some_route")
         #
         # All mounted applications come with routing helpers to access them.
         # These are named after the class specified, so for the above example
         # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
         # To customize this helper's name, use the +:as+ option:
         #
-        # mount(SomeRackApp => "some_route", :as => "exciting")
+        #   mount(SomeRackApp => "some_route", :as => "exciting")
         #
         # This will generate the +exciting_path+ and +exciting_url+ helpers
         # which can be used to navigate to this mounted app.
@@ -563,7 +567,7 @@ module ActionDispatch
         #       admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         # === Supported options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
+        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ options all default to the name of the namespace.
         #
         # [:path]
         #   The path prefix for the routes.
@@ -1085,6 +1089,7 @@ module ActionDispatch
           end
         end
 
+        # See ActionDispatch::Routing::Mapper::Scoping#namespace
         def namespace(path, options = {})
           if resource_scope?
             nested { super }
