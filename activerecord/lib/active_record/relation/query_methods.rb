@@ -270,12 +270,11 @@ module ActiveRecord
         manager = association.join_to(manager)
       end
 
-      if manager.froms.length > 0 && join_ast
-        join_ast.left = manager.froms.first
-        manager.from join_ast
-      else
-        manager
-      end
+      return manager unless join_ast
+
+      join_ast.left = manager.froms.first
+      manager.from join_ast
+      manager
     end
 
     def build_select(arel, selects)
