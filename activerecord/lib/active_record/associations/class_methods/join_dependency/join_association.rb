@@ -22,7 +22,7 @@ module ActiveRecord
           attr_reader :aliased_prefix, :aliased_table_name
 
           delegate :options, :through_reflection, :source_reflection, :to => :reflection
-          delegate :table, :table_name, :to => :parent, :prefix => true
+          delegate :table, :table_name, :to => :parent, :prefix => :parent
 
           def initialize(reflection, join_dependency, parent = nil)
             reflection.check_validity!
