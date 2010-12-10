@@ -1500,9 +1500,7 @@ MSG
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes
-        attrs = {}
-        attribute_names.each { |name| attrs[name] = read_attribute(name) }
-        attrs
+        Hash[@attributes.map { |name, _| [name, read_attribute(name)] }]
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the

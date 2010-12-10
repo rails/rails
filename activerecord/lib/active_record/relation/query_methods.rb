@@ -162,27 +162,6 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
-    def custom_join_sql(joins)
-      arel = table.select_manager
-
-      joins.each do |join|
-        next if join.blank?
-
-        @implicit_readonly = true
-
-        case join
-        when Array
-          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
-        when String
-          join = Arel.sql(join)
-        end
-
-        arel.join(join)
-      end
-
-      arel.join_sql
-    end
-
     def build_arel
       arel = table
 
@@ -208,6 +187,32 @@ module ActiveRecord
     end
 
     private
+
+    def custom_join_ast(table, joins)
+      joins = joins.reject { |join| join.blank? }
+
+      return if joins.empty?
+
+      @implicit_readonly = true
+
+      joins.map! do |join|
+        case join
+        when Array
+          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
+        when String
+          join = Arel.sql(join)
+        end
+        join
+      end
+
+      head = table.create_string_join(table, joins.shift)
+
+      joins.inject(head) do |ast, join|
+        ast.right = table.create_string_join(ast.right, join)
+      end
+
+      head
+    end
 
     def collapse_wheres(arel, wheres)
       equalities = wheres.grep(Arel::Nodes::Equality)
@@ -252,19 +257,31 @@ module ActiveRecord
       stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
-      custom_joins = custom_join_sql(non_association_joins)
+      join_ast = custom_join_ast(relation, non_association_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_ast)
 
       join_dependency.graft(*stashed_association_joins)
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
+      # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
         relation = association.join_to(relation)
       end
 
-      relation.join(custom_joins)
+      if Arel::Table === relation
+        relation.from(join_ast || relation)
+      else
+        if relation.froms.length > 0 && join_ast
+          join_ast.left = relation.froms.first
+          relation.from join_ast
+        elsif relation.froms.length == 0 && join_ast
+          relation.from(join_ast)
+        else
+          relation
+        end
+      end
     end
 
     def build_select(arel, selects)

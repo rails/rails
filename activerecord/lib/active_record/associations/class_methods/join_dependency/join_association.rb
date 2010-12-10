@@ -67,8 +67,7 @@ module ActiveRecord
 
           def table
             @table ||= Arel::Table.new(
-              table_name, :as => aliased_table_name,
-              :engine => arel_engine, :columns => active_record.columns
+              table_name, :as => aliased_table_name, :engine => arel_engine
             )
           end
 
@@ -78,22 +77,17 @@ module ActiveRecord
           protected
 
           def aliased_table_name_for(name, suffix = nil)
-            if @join_dependency.table_aliases[name].zero?
-              @join_dependency.table_aliases[name] = @join_dependency.count_aliases_from_table_joins(name)
+            aliases = @join_dependency.table_aliases
+
+            if aliases[name] != 0 # We need an alias
+              connection = active_record.connection
+
+              name = connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
+              table_index = aliases[name] + 1
+              name = name[0, connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
             end
 
-            if !@join_dependency.table_aliases[name].zero? # We need an alias
-              name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
-              @join_dependency.table_aliases[name] += 1
-              if @join_dependency.table_aliases[name] == 1 # First time we've seen this name
-                # Also need to count the aliases from the table_aliases to avoid incorrect count
-                @join_dependency.table_aliases[name] += @join_dependency.count_aliases_from_table_joins(name)
-              end
-              table_index = @join_dependency.table_aliases[name]
-              name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
-            else
-              @join_dependency.table_aliases[name] += 1
-            end
+            aliases[name] += 1
 
             name
           end
