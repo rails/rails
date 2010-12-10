@@ -273,8 +273,6 @@ module ActiveRecord
       if manager.froms.length > 0 && join_ast
         join_ast.left = manager.froms.first
         manager.from join_ast
-      elsif manager.froms.length == 0 && join_ast
-        manager.from(join_ast)
       else
         manager
       end
