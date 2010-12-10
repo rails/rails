@@ -92,7 +92,7 @@ module Arel
         klass = Nodes::StringJoin
       end
 
-      from create_join(@ctx.froms, relation, nil, klass)
+      from create_join(@ctx.from, relation, nil, klass)
     end
 
     def having expr

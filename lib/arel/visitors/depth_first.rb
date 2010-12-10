@@ -47,11 +47,15 @@ module Arel
       alias :visit_Arel_Nodes_InnerJoin :join
       alias :visit_Arel_Nodes_OuterJoin :join
 
+      def nary o
+        o.children.each { |child| visit child }
+      end
+      alias :visit_Arel_Nodes_And :nary
+
       def binary o
         visit o.left
         visit o.right
       end
-      alias :visit_Arel_Nodes_And                :binary
       alias :visit_Arel_Nodes_As                 :binary
       alias :visit_Arel_Nodes_Assignment         :binary
       alias :visit_Arel_Nodes_Between            :binary

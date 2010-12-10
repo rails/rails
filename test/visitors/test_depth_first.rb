@@ -110,9 +110,9 @@ module Arel
         Arel::Nodes::And,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
-          binary = klass.new([:a, :b])
+          binary = klass.new([:a, :b, :c])
           @visitor.accept binary
-          assert_equal [:a, :b, binary], @collector.calls
+          assert_equal [:a, :b, :c, binary], @collector.calls
         end
       end
 

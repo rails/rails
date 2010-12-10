@@ -123,11 +123,17 @@ module Arel
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Attribute :visit_Arel_Attribute
 
+      def nary o
+        o.children.each_with_index do |x,i|
+          edge(i) { visit x }
+        end
+      end
+      alias :visit_Arel_Nodes_And :nary
+
       def visit_Arel_Nodes_Equality o
         visit_edge o, "left"
         visit_edge o, "right"
       end
-      alias :visit_Arel_Nodes_And                :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_Or                 :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_NotEqual           :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_GreaterThan        :visit_Arel_Nodes_Equality
