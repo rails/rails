@@ -1,3 +1,5 @@
+require "active_support/core_ext/array/wrap"
+
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
   class IrreversibleMigration < ActiveRecordError
