@@ -142,9 +142,8 @@ module ActiveRecord
 
           def join_has_and_belongs_to_many_to(relation)
             join_table = Arel::Table.new(
-              options[:join_table], :engine => arel_engine,
-              :as => @aliased_join_table_name
-            )
+              options[:join_table]
+            ).alias(@aliased_join_table_name)
 
             fk       = options[:foreign_key]             || reflection.active_record.to_s.foreign_key
             klass_fk = options[:association_foreign_key] || reflection.klass.to_s.foreign_key
