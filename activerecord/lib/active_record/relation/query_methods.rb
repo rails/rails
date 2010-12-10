@@ -225,14 +225,13 @@ module ActiveRecord
         test = eqls.inject(eqls.shift) do |memo, expr|
           memo.or(expr)
         end
-        arel = arel.where(test)
+        arel.where(test)
       end
 
       (wheres - equalities).each do |where|
         where = Arel.sql(where) if String === where
-        arel = arel.where(Arel::Nodes::Grouping.new(where))
+        arel.where(Arel::Nodes::Grouping.new(where))
       end
-      arel
     end
 
     def build_where(opts, other = [])
