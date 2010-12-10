@@ -3,7 +3,7 @@ h2. Rails Routing from the Outside In
 This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:
 
 * Understand the code in +routes.rb+
-* Construct your own routes, using either the preferred resourceful style or with the <tt>match</tt> method
+* Construct your own routes, using either the preferred resourceful style or the <tt>match</tt> method
 * Identify what parameters to expect an action to receive
 * Automatically create paths and URLs using route helpers
 * Use advanced techniques such as constraints and Rack endpoints
@@ -50,7 +50,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 h4. Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as +GET+, +POST+, +PUT+ and +DELETE+. Each method is a request to perform an operation on the resource. A resource route maps a number of related request to the actions in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as +GET+, +POST+, +PUT+ and +DELETE+. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
 
 When your Rails application receives an incoming request for
 
@@ -470,7 +470,7 @@ This route would match paths such as +/photos/A12345+. You can more succinctly e
 match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 </ruby>
 
-+:constraints+ takes regular expression. However note that regexp anchors can't be used within constraints. For example following route will not work:
++:constraints+ takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 <ruby>
 match '/:id' => 'posts#show', :constraints => {:id => /^\d/}
@@ -536,7 +536,7 @@ match 'photos/*other' => 'photos#unknown'
 
 This route would match +photos/12+ or +/photos/long/path/to/12+, setting +params[:other]+ to +"12"+ or +"long/path/to/12"+.
 
-Wildcard segments do not need to be last in a route. For example
+Wildcard segments can occur anywhere in a route. For example,
 
 <ruby>
 match 'books/*section/:title' => 'books#show'
@@ -544,7 +544,7 @@ match 'books/*section/:title' => 'books#show'
 
 would match +books/some/section/last-words-a-memoir+ with +params[:section]+ equals +"some/section"+, and +params[:title]+ equals +"last-words-a-memoir"+.
 
-Techincally a route can have even more than one wildard segment indeed, the matcher assigns segments to parameters in an intuitive way. For instance
+Technically a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example,
 
 <ruby>
 match '*a/foo/*b' => 'test#index'
@@ -641,7 +641,7 @@ constraints(:id => /[A-Z][A-Z][0-9]+/) do
 end
 </ruby>
 
-NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context
+NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context.
 
 h4. Overriding the Named Helpers
 
@@ -651,7 +651,7 @@ The +:as+ option lets you override the normal naming for the named route helpers
 resources :photos, :as => "images"
 </ruby>
 
-will recognize incoming paths beginning with +/photos+ and route the requests to +PhotosController+:
+will recognize incoming paths beginning with +/photos+ and route the requests to +PhotosController+, but use the value of the :as option to name the helpers.
 
 |_.HTTP verb|_.Path          |_.action |_.named helper   |
 |GET        |/photos         |index    | images_path     |
@@ -679,7 +679,7 @@ This would cause the routing to recognize paths such as
 
 NOTE: The actual action names aren't changed by this option. The two paths shown would still route to the +new+ and +edit+ actions.
 
-TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope:
+TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope.
 
 <ruby>
 scope :path_names => { :new => "make" } do
@@ -715,7 +715,7 @@ NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ an
 
 h4. Restricting the Routes Created
 
-By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option tells Rails to create only the specified routes:
+By default, Rails creates routes for the seven default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option tells Rails to create only the specified routes:
 
 <ruby>
 resources :photos, :only => [:index, :show]
@@ -816,7 +816,7 @@ Routes should be included in your testing strategy (just like the rest of your a
 
 h5. The +assert_generates+ Assertion
 
-Use +assert_generates+ to assert that a particular set of options generate a particular path. You can use this with default routes or custom routes
++assert_generates+ asserts that a particular set of options generate a particular path and can be used with default routes or custom routes.
 
 <ruby>
 assert_generates "/photos/1", { :controller => "photos", :action => "show", :id => "1" }
@@ -825,7 +825,7 @@ assert_generates "/about", :controller => "pages", :action => "about"
 
 h5. The +assert_recognizes+ Assertion
 
-The +assert_recognizes+ assertion is the inverse of +assert_generates+. It asserts that Rails recognizes the given path and routes it to a particular spot in your application.
++assert_recognizes+ is the inverse of +assert_generates+. It asserts that a given path is recognized and routes it to a particular spot in your application.
 
 <ruby>
 assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photos/1")
