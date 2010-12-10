@@ -13,5 +13,9 @@ module Arel
     def create_and clauses
       Nodes::And.new clauses
     end
+
+    def create_on expr
+      Nodes::On.new expr
+    end
   end
 end
