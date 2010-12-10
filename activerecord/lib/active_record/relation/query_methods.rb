@@ -165,23 +165,23 @@ module ActiveRecord
     def build_arel
       arel = table.from table
 
-      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
+      build_joins(arel, @joins_values) unless @joins_values.empty?
 
-      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
+      collapse_wheres(arel, (@where_values - ['']).uniq)
 
-      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
+      arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
-      arel = arel.take(@limit_value) if @limit_value
-      arel = arel.skip(@offset_value) if @offset_value
+      arel.take(@limit_value) if @limit_value
+      arel.skip(@offset_value) if @offset_value
 
-      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+      arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
-      arel = arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
+      arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
 
-      arel = build_select(arel, @select_values.uniq)
+      build_select(arel, @select_values.uniq)
 
-      arel = arel.from(@from_value) if @from_value
-      arel = arel.lock(@lock_value) if @lock_value
+      arel.from(@from_value) if @from_value
+      arel.lock(@lock_value) if @lock_value
 
       arel
     end
