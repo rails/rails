@@ -745,14 +745,14 @@ end
 
 Rails now creates routes to the +CategoriesController+.
 
-|_.HTTP verb|_.Path                     |_.action |
-|GET        |/kategorien                |index    |
-|GET        |/kategorien/neu            |new      |
-|POST       |/kategorien                |create   |
-|GET        |/kategorien/1              |show     |
-|GET        |/kategorien/:id/bearbeiten |edit     |
-|PUT        |/kategorien/1              |update   |
-|DELETE     |/kategorien/1              |destroy  |
+|_.HTTP verb|_.Path                     |_.action | .named helper      |
+|GET        |/kategorien                |index    | categories_path    |
+|GET        |/kategorien/neu            |new      | new_category_path  |
+|POST       |/kategorien                |create   | categories_path    |
+|GET        |/kategorien/1              |show     | category_path      |
+|GET        |/kategorien/:id/bearbeiten |edit     | edit_category_path |
+|PUT        |/kategorien/1              |update   | category_path      |
+|DELETE     |/kategorien/1              |destroy  | category_path      |
 
 h4. Overriding the Singular Form
 
