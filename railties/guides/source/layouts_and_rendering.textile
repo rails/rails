@@ -106,7 +106,7 @@ Perhaps the simplest thing you can do with +render+ is to render nothing at all:
 render :nothing => true
 </ruby>
 
-If you look at the response for this using Curl you will see the following:
+If you look at the response for this using cURL, you will see the following:
 
 <shell>
  $ curl -i 127.0.0.1:3000/books
@@ -123,7 +123,7 @@ Cache-Control: no-cache
  $
 </shell>
 
-We see there is an empty response (no data after the +Cache-Control+ line), but the request was successful because Rails has set the response to 200 OK.  You can set the +:status+ options on render to change this response. Rendering nothing can be useful for AJAX requests where all you want to send back to the browser is an acknowledgement that the request was completed.
+We see there is an empty response (no data after the +Cache-Control+ line), but the request was successful because Rails has set the response to 200 OK. You can set the +:status+ option on render to change this response. Rendering nothing can be useful for AJAX requests where all you want to send back to the browser is an acknowledgement that the request was completed.
 
 TIP: You should probably be using the +head+ method, discussed later in this guide, instead of +render :nothing+. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
 
@@ -346,7 +346,7 @@ render :status => 500
 render :status => :forbidden
 </ruby>
 
-Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in +actionpack/lib/action_controller/status_codes.rb+. You can also see there how Rails maps symbols to status codes.
+Rails understands both numeric status codes and symbols for status codes.
 
 h6. The +:location+ Option
 
@@ -604,7 +604,7 @@ Which would detect that there are no books, populate the +@books+ instance varia
 
 h4. Using +head+ To Build Header-Only Responses
 
-The +head+ method exists to let you send back responses to the browser that have only headers. It provides a more obvious alternative to calling +render :nothing+. The +head+ method takes one response, which is interpreted as a hash of header names and values. For example, you can return only an error header:
+The +head+ method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling +render :nothing+. The +head+ method takes one parameter, which is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 <ruby>
 head :bad_request
@@ -651,11 +651,9 @@ When Rails renders a view as a response, it does so by combining the view with t
 * +yield+ and +content_for+
 * Partials
 
-I'll discuss each of these in turn.
-
 h4. Asset Tags
 
-Asset tags provide methods for generating HTML that links views to assets like images, videos, audio, JavaScript, stylesheets, and feeds. There are six types of include tag:
+Asset tags provide methods for generating HTML that links views to feeds, JavaScript, stylesheets, images, videos and audios. These are the six asset tags available in Rails:
 
 * +auto_discovery_link_tag+
 * +javascript_include_tag+
@@ -680,7 +678,7 @@ The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsread
 There are three tag options available for +auto_discovery_link_tag+:
 
 * +:rel+ specifies the +rel+ value in the link (defaults to "alternate")
-* +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically
+* +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
 * +:title+ specifies the title of the link
 
 h5. Linking to Javascript Files with +javascript_include_tag+
@@ -829,7 +827,7 @@ You can also supply an alternate image to show on mouseover:
 <%= image_tag "home.gif", :onmouseover => "menu/home_highlight.gif" %>
 </erb>
 
-Or alternate text if the user has rendering images turned off in their browser, if you do not specify an explicit alt tag, it defaults to the file name of the file, capitalized and with no extension, for example, these two image tags would return the same code:
+You can supply alternate text for the image which will be used if the user has images turned off in their browser. If you do not specify an alt text explicitly, it defaults to the file name of the file, capitalized and with no extension. For example, these two image tags would return the same code:
 
 <erb>
 <%= image_tag "home.gif" %>
@@ -939,7 +937,7 @@ The main body of the view will always render into the unnamed +yield+. To render
 
 h4. Using +content_for+
 
-The +content_for+ method allows you to insert content into a +yield+ block in your layout. You only use +content_for+ to insert content in named yields. For example, this view would work with the layout that you just saw:
+The +content_for+ method allows you to insert content into a named +yield+ block in your layout. For example, this view would work with the layout that you just saw:
 
 <erb>
 <% content_for :head do %>
@@ -966,7 +964,7 @@ The +content_for+ method is very helpful when your layout contains distinct regi
 
 h4. Using Partials
 
-Partial templates - usually just called "partials" - are another device for breaking apart the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
+Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
 
 h5. Naming Partials
 
@@ -1086,14 +1084,12 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered.
 
-In Rails 3.0, there is also a shorthand for this. Assuming +@products+ is a collection of +product+ instances, you can simply write this in the +index.html.erb+:
+In Rails 3.0, there is also a shorthand for this. Assuming +@products+ is a collection of +product+ instances, you can simply write this in the +index.html.erb+ to produce the same result:
 
 <erb>
 <h1>Products</h1>
 <%= render @products %>
 </erb>
-
-To produce the same result.
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
 
