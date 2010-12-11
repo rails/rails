@@ -745,7 +745,7 @@ end
 
 Rails now creates routes to the +CategoriesController+.
 
-|_.HTTP verb|_.Path                     |_.action | .named helper      |
+|_.HTTP verb|_.Path                     |_.action |_.named helper      |
 |GET        |/kategorien                |index    | categories_path    |
 |GET        |/kategorien/neu            |new      | new_category_path  |
 |POST       |/kategorien                |create   | categories_path    |
