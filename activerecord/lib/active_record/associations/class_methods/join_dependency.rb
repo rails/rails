@@ -66,10 +66,8 @@ module ActiveRecord
         end
 
         def count_aliases_from_string(join_sql, name)
-          # Table names
-          join_sql.scan(/join(?:\s+\w+)?\s+#{name}\son/).size +
-            # Table aliases
-            join_sql.scan(/join(?:\s+\w+)?\s+\S+\s+#{name}\son/).size
+          # Table names + table aliases
+          join_sql.scan(/join(?:\s+\w+)?\s+(\S+\s+)?#{name}\son/).size
         end
 
         def instantiate(rows)
