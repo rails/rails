@@ -452,6 +452,18 @@ module ActionDispatch
           super
         end
 
+        # Used to scope a set of routes to particular constraints.
+        #
+        # Take the following route definition as an example:
+        #
+        #   scope :path => ":account_id", :as => "account" do
+        #     resources :projects
+        #   end
+        #
+        # This generates helpers such as +account_projects_path+, just like +resources+ does.
+        # The difference here being that the routes generated are like /rails/projects/2,
+        # rather than /accounts/rails/projects/2.
+        #
         # === Supported options
         # [:module]
         #   If you want to route /posts (without the prefix /admin) to
