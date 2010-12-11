@@ -208,16 +208,16 @@ end
 
 If we generate another resource with the scaffold generator, we can see that neither stylesheets nor fixtures are created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
 
-To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator:
+To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator within the rails namespace, as this is where rails searches for generators used as hooks:
 
 <shell>
-$ rails generate generator my_helper
+$ rails generate generator rails/my_helper
 </shell>
 
 After that, we can delete both the +templates+ directory and the +source_root+ class method from our new generators, because we are not going to need them. So our new generator looks like the following:
 
 <ruby>
-class MyHelperGenerator < Rails::Generators::NamedBase
+class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
 module #{class_name}Helper
@@ -270,7 +270,7 @@ Since Rails 3.0, this is easy to do due to the hooks concept. Our new helper doe
 To do that, we can change the generator this way:
 
 <ruby>
-class MyHelperGenerator < Rails::Generators::NamedBase
+class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
 module #{class_name}Helper
@@ -283,7 +283,7 @@ end
 end
 </ruby>
 
-Now, when the helper generator is invoked and TestUnit is configured as the test framework, it will try to invoke both +MyHelper::Generators::TestUnitGenerator+ and +TestUnit::Generators::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails generator. To do that, we just need to add:
+Now, when the helper generator is invoked and TestUnit is configured as the test framework, it will try to invoke both +Rails::TestUnitGenerator+ and +TestUnit::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails generator. To do that, we just need to add:
 
 <ruby>
   # Search for :helper instead of :my_helper
