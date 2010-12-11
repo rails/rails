@@ -611,14 +611,14 @@ resources :photos, :controller => "images"
 
 will recognize incoming paths beginning with +/photos+ but route to the +Images+ controller:
 
-|_. Verb |_.Path         |_.action |
-|GET     |/photos        |index    |
-|GET     |/photos/new    |new      |
-|POST    |/photos        |create   |
-|GET     |/photos/1      |show     |
-|GET     |/photos/1/edit |edit     |
-|PUT     |/photos/1      |update   |
-|DELETE  |/photos/1      |destroy  |
+|_. Verb |_.Path         |_.action |_.named helper   |
+|GET     |/photos        |index    | photos_path     |
+|GET     |/photos/new    |new      | new_photo_path  |
+|POST    |/photos        |create   | photos_path     |
+|GET     |/photos/1      |show     | photo_path      |
+|GET     |/photos/1/edit |edit     | edit_photo_path |
+|PUT     |/photos/1      |update   | photo_path      |
+|DELETE  |/photos/1      |destroy  | photo_path      |
 
 NOTE: Use +photos_path+, +new_photos_path+, etc. to generate paths for this resource.
 
