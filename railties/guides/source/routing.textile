@@ -76,14 +76,14 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the +Photos+ controller:
 
-|_. Verb |_.Path            |_.action |_.used for|
-|GET     |/photos           |index    |display a list of all photos|
-|GET     |/photos/new       |new      |return an HTML form for creating a new photo|
-|POST    |/photos           |create   |create a new photo|
-|GET     |/photos/:id       |show     |display a specific photo|
-|GET     |/photos/:id/edit  |edit     |return an HTML form for editing a photo|
-|PUT     |/photos/:id       |update   |update a specific photo|
-|DELETE  |/photos/:id       |destroy  |delete a specific photo|
+|_. HTTP Verb |_.Path            |_.action |_.used for                                   |
+|GET          |/photos           |index    |display a list of all photos                 |
+|GET          |/photos/new       |new      |return an HTML form for creating a new photo |
+|POST         |/photos           |create   |create a new photo                           |
+|GET          |/photos/:id       |show     |display a specific photo                     |
+|GET          |/photos/:id/edit  |edit     |return an HTML form for editing a photo      |
+|PUT          |/photos/:id       |update   |update a specific photo                      |
+|DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
 h4. Paths and URLs
 
@@ -130,13 +130,13 @@ resource :geocoder
 
 creates six different routes in your application, all mapping to the +Geocoders+ controller:
 
-|_. Verb    |_.Path         |_.action |_.used for|
-|GET        |/geocoder/new  |new      |return an HTML form for creating the geocoder|
-|POST       |/geocoder      |create   |create the new geocoder|
-|GET        |/geocoder      |show     |display the one and only geocoder resource|
-|GET        |/geocoder/edit |edit     |return an HTML form for editing the geocoder|
-|PUT        |/geocoder      |update   |update the one and only geocoder resource|
-|DELETE     |/geocoder      |destroy  |delete the geocoder resource|
+|_.HTTP Verb |_.Path         |_.action |_.used for                                    |
+|GET         |/geocoder/new  |new      |return an HTML form for creating the geocoder |
+|POST        |/geocoder      |create   |create the new geocoder                       |
+|GET         |/geocoder      |show     |display the one and only geocoder resource    |
+|GET         |/geocoder/edit |edit     |return an HTML form for editing the geocoder  |
+|PUT         |/geocoder      |update   |update the one and only geocoder resource     |
+|DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
 
 NOTE: Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
 
@@ -160,14 +160,14 @@ end
 
 This will create a number of routes for each of the +posts+ and +comments+ controller. For +Admin::PostsController+, Rails will create:
 
-|_. Verb |_.Path               |_.action |_. helper                  |
-|GET     |/admin/posts        |index    | admin_posts_path         |
-|GET     |/admin/posts/new    |new      | new_admin_posts_path     |
-|POST    |/admin/posts        |create   | admin_posts_path         |
-|GET     |/admin/posts/1      |show     | admin_post_path(id)      |
-|GET     |/admin/posts/1/edit |edit     | edit_admin_post_path(id) |
-|PUT     |/admin/posts/1      |update   | admin_post_path(id)      |
-|DELETE  |/admin/posts/1      |destroy  | admin_post_path(id)      |
+|_.HTTP Verb |_.Path              |_.action |_.named helper            |
+|GET         |/admin/posts        |index    | admin_posts_path         |
+|GET         |/admin/posts/new    |new      | new_admin_posts_path     |
+|POST        |/admin/posts        |create   | admin_posts_path         |
+|GET         |/admin/posts/1      |show     | admin_post_path(id)      |
+|GET         |/admin/posts/1/edit |edit     | edit_admin_post_path(id) |
+|PUT         |/admin/posts/1      |update   | admin_post_path(id)      |
+|DELETE      |/admin/posts/1      |destroy  | admin_post_path(id)      |
 
 If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
 
@@ -199,14 +199,14 @@ resources :posts, :path => "/admin/posts"
 
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
 
-|_. Verb |_.Path               |_.action |_. helper            |
-|GET     |/admin/posts        |index    | posts_path         |
-|GET     |/admin/posts/new    |new      | posts_path         |
-|POST    |/admin/posts        |create   | posts_path         |
-|GET     |/admin/posts/1      |show     | post_path(id)      |
-|GET     |/admin/posts/1/edit |edit     | edit_post_path(id) |
-|PUT     |/admin/posts/1      |update   | post_path(id)      |
-|DELETE  |/admin/posts/1      |destroy  | post_path(id)      |
+|_.HTTP Verb |_.Path               |_.action |_.named helper      |
+|GET         |/admin/posts         |index    | posts_path         |
+|GET         |/admin/posts/new     |new      | posts_path         |
+|POST        |/admin/posts         |create   | posts_path         |
+|GET         |/admin/posts/1       |show     | post_path(id)      |
+|GET         |/admin/posts/1/edit  |edit     | edit_post_path(id) |
+|PUT         |/admin/posts/1       |update   | post_path(id)      |
+|DELETE      |/admin/posts/1       |destroy  | post_path(id)      |
 
 h4. Nested Resources
 
@@ -232,14 +232,14 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an +AdsController+. The ad URLs require a magazine:
 
-|_.Verb |_.Path                   |_.action |_.used for|
-|GET    |/magazines/1/ads         |index    |display a list of all ads for a specific magazine|
-|GET    |/magazines/1/ads/new     |new      |return an HTML form for creating a new ad belonging to a specific magazine|
-|POST   |/magazines/1/ads         |create   |create a new ad belonging to a specific magazine|
-|GET    |/magazines/1/ads/1       |show     |display a specific ad belonging to a specific magazine|
-|GET    |/magazines/1/ads/1/edit  |edit     |return an HTML form for editing an ad belonging to a specific magazine|
-|PUT    |/magazines/1/ads/1       |update   |update a specific ad belonging to a specific magazine|
-|DELETE |/magazines/1/ads/1       |destroy  |delete a specific ad belonging to a specific magazine|
+|_.HTTP Verb |_.Path                  |_.action |_.used for                                                                 |
+|GET         |/magazines/1/ads        |index    |display a list of all ads for a specific magazine                          |
+|GET         |/magazines/1/ads/new    |new      |return an HTML form for creating a new ad belonging to a specific magazine |
+|POST        |/magazines/1/ads        |create   |create a new ad belonging to a specific magazine                           |
+|GET         |/magazines/1/ads/1      |show     |display a specific ad belonging to a specific magazine                     |
+|GET         |/magazines/1/ads/1/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
+|PUT         |/magazines/1/ads/1      |update   |update a specific ad belonging to a specific magazine                      |
+|DELETE      |/magazines/1/ads/1      |destroy  |delete a specific ad belonging to a specific magazine                      |
 
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+. These helpers take an instance of Magazine as the first parameter (+magazine_ads_url(@magazine)+).
@@ -611,14 +611,14 @@ resources :photos, :controller => "images"
 
 will recognize incoming paths beginning with +/photos+ but route to the +Images+ controller:
 
-|_. Verb |_.Path         |_.action |_.named helper   |
-|GET     |/photos        |index    | photos_path     |
-|GET     |/photos/new    |new      | new_photo_path  |
-|POST    |/photos        |create   | photos_path     |
-|GET     |/photos/1      |show     | photo_path      |
-|GET     |/photos/1/edit |edit     | edit_photo_path |
-|PUT     |/photos/1      |update   | photo_path      |
-|DELETE  |/photos/1      |destroy  | photo_path      |
+|_.HTTP Verb |_.Path         |_.action |_.named helper       |
+|GET         |/photos        |index    | photos_path         |
+|GET         |/photos/new    |new      | new_photo_path      |
+|POST        |/photos        |create   | photos_path         |
+|GET         |/photos/1      |show     | photo_path(id)      |
+|GET         |/photos/1/edit |edit     | edit_photo_path(id) |
+|PUT         |/photos/1      |update   | photo_path(id)      |
+|DELETE      |/photos/1      |destroy  | photo_path(id)      |
 
 NOTE: Use +photos_path+, +new_photos_path+, etc. to generate paths for this resource.
 
@@ -653,14 +653,14 @@ resources :photos, :as => "images"
 
 will recognize incoming paths beginning with +/photos+ and route the requests to +PhotosController+, but use the value of the :as option to name the helpers.
 
-|_.HTTP verb|_.Path          |_.action |_.named helper   |
-|GET        |/photos         |index    | images_path     |
-|GET        |/photos/new     |new      | new_image_path  |
-|POST       |/photos         |create   | images_path     |
-|GET        |/photos/1       |show     | image_path      |
-|GET        |/photos/1/edit  |edit     | edit_image_path |
-|PUT        |/photos/1       |update   | image_path      |
-|DELETE     |/photos/1       |destroy  | image_path      |
+|_.HTTP verb|_.Path          |_.action |_.named helper       |
+|GET        |/photos         |index    | images_path         |
+|GET        |/photos/new     |new      | new_image_path      |
+|POST       |/photos         |create   | images_path         |
+|GET        |/photos/1       |show     | image_path(id)      |
+|GET        |/photos/1/edit  |edit     | edit_image_path(id) |
+|PUT        |/photos/1       |update   | image_path(id)      |
+|DELETE     |/photos/1       |destroy  | image_path(id)      |
 
 h4. Overriding the +new+ and +edit+ Segments
 
@@ -745,14 +745,14 @@ end
 
 Rails now creates routes to the +CategoriesController+.
 
-|_.HTTP verb|_.Path                     |_.action |_.named helper      |
-|GET        |/kategorien                |index    | categories_path    |
-|GET        |/kategorien/neu            |new      | new_category_path  |
-|POST       |/kategorien                |create   | categories_path    |
-|GET        |/kategorien/1              |show     | category_path      |
-|GET        |/kategorien/:id/bearbeiten |edit     | edit_category_path |
-|PUT        |/kategorien/1              |update   | category_path      |
-|DELETE     |/kategorien/1              |destroy  | category_path      |
+|_.HTTP verb|_.Path                   |_.action |_.named helper          |
+|GET        |/kategorien              |index    | categories_path        |
+|GET        |/kategorien/neu          |new      | new_category_path      |
+|POST       |/kategorien              |create   | categories_path        |
+|GET        |/kategorien/1            |show     | category_path(id)      |
+|GET        |/kategorien/1/bearbeiten |edit     | edit_category_path(id) |
+|PUT        |/kategorien/1            |update   | category_path(id)      |
+|DELETE     |/kategorien/1            |destroy  | category_path(id)      |
 
 h4. Overriding the Singular Form
 
