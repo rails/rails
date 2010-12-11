@@ -58,16 +58,14 @@ module ActiveRecord
             when Arel::Table
               right.name.downcase == name ? 1 : 0
             when String
-              count_aliases_from_string(right.downcase, quoted_name)
+              # Table names + table aliases
+              right.downcase.scan(
+                /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+              ).size
             else
               0
             end
           }.sum
-        end
-
-        def count_aliases_from_string(join_sql, name)
-          # Table names + table aliases
-          join_sql.scan(/join(?:\s+\w+)?\s+(\S+\s+)?#{name}\son/).size
         end
 
         def instantiate(rows)
