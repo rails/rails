@@ -3,6 +3,13 @@ module ActiveRecord
   module Associations
     module ThroughAssociationScope
 
+      def scoped
+        with_scope(@scope) do
+          @reflection.klass.scoped &
+          @reflection.through_reflection.klass.scoped
+        end
+      end
+
       protected
 
       def construct_find_scope

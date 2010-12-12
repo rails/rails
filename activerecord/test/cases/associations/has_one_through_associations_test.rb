@@ -9,9 +9,13 @@ require 'models/member_detail'
 require 'models/minivan'
 require 'models/dashboard'
 require 'models/speedometer'
+require 'models/author'
+require 'models/post'
+require 'models/comment'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans, :dashboards, :speedometers
+  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
+           :dashboards, :speedometers, :authors, :posts, :comments
 
   def setup
     @member = members(:groucho)
@@ -228,5 +232,9 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       minivan.dashboard
     end
+  end
+
+  def test_has_one_through_with_default_scope_on_join_model
+    assert_equal posts(:welcome).comments.first, authors(:david).comment_on_first_posts
   end
 end

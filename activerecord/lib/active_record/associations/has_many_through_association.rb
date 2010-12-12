@@ -81,7 +81,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          with_scope(@scope) { @reflection.klass.find(:all) }
+          scoped.all
         end
 
         def has_cached_counter?
