@@ -514,4 +514,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [posts(:eager_other)], posts
   end
+
+  def test_select_chosen_fields_only
+    author = authors(:david)
+    assert_equal ['body'], author.comments.select('comments.body').first.attributes.keys
+  end
 end

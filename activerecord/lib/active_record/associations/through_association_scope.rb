@@ -63,8 +63,8 @@ module ActiveRecord
       end
 
       def construct_select(custom_select = nil)
-        distinct = "DISTINCT " if @reflection.options[:uniq]
-        custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
+        distinct = "DISTINCT #{@reflection.quoted_table_name}.*" if @reflection.options[:uniq]
+        custom_select || @reflection.options[:select] || distinct
       end
 
       def construct_joins
