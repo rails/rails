@@ -119,3 +119,10 @@ class PostForAuthor < ActiveRecord::Base
   cattr_accessor :selected_author
   default_scope lambda { where(:author_id => PostForAuthor.selected_author) }
 end
+
+class FirstPost < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope where(:id => 1)
+  has_many :comments, :foreign_key => :post_id
+  has_one  :comment,  :foreign_key => :post_id
+end
