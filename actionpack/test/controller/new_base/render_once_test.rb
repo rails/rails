@@ -18,8 +18,8 @@ module RenderTemplate
 
     self.view_paths = [RESOLVER]
 
-    def _prefix
-      "test"
+    def _prefixes
+      %w(test)
     end
 
     def multiple
@@ -39,11 +39,11 @@ module RenderTemplate
     end
 
     def with_prefix
-      render :once => "result", :prefix => "other"
+      render :once => "result", :prefixes => %w(other)
     end
 
     def with_nil_prefix
-      render :once => "test/result", :prefix => nil
+      render :once => "test/result", :prefixes => []
     end
   end
 

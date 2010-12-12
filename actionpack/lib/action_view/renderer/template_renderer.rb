@@ -22,14 +22,14 @@ module ActionView
     def render_once(options)
       paths, locals = options[:once], options[:locals] || {}
       layout, keys  = options[:layout], locals.keys
-      prefix = options.fetch(:prefix, @view.controller_prefix)
+      prefixes = options.fetch(:prefixes, @view.controller_prefixes)
 
       raise "render :once expects a String or an Array to be given" unless paths
 
       render_with_layout(layout, locals) do
         contents = []
         Array.wrap(paths).each do |path|
-          template = find_template(path, prefix, false, keys)
+          template = find_template(path, prefixes, false, keys)
           contents << render_template(template, nil, locals) if @rendered.add?(template)
         end
         contents.join("\n")

@@ -232,8 +232,8 @@ module ActionView #:nodoc:
       @controller_path ||= controller && controller.controller_path
     end
 
-    def controller_prefix
-      @controller_prefix ||= controller && controller._prefix
+    def controller_prefixes
+      @controller_prefixes ||= controller && controller._prefixes
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

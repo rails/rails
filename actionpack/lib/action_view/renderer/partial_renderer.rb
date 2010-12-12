@@ -152,7 +152,7 @@ module ActionView
         object = object.to_model if object.respond_to?(:to_model)
 
         object.class.model_name.partial_path.dup.tap do |partial|
-          path = @view.controller_prefix
+          path = @view.controller_prefixes.first
           partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
         end
       end
