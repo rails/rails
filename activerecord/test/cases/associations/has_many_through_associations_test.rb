@@ -17,6 +17,8 @@ require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
+require 'models/categorization'
+require 'models/category'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors,
@@ -465,5 +467,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_with_default_scope_on_join_model
     assert_equal posts(:welcome).comments, authors(:david).comments_on_first_posts
+  end
+
+  def test_create_has_many_through_with_default_scope_on_join_model
+    category = authors(:david).special_categories.create(:name => "Foo")
+    assert_equal 1, category.categorizations.where(:special => true).count
   end
 end
