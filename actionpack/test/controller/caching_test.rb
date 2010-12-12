@@ -16,6 +16,7 @@ end
 class PageCachingTestController < CachingController
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
   caches_page :found, :not_found
+  caches_page :about_me
 
 
   def ok
@@ -47,6 +48,14 @@ class PageCachingTestController < CachingController
   def trailing_slash
     render :text => "Sneak attack"
   end
+
+  def about_me
+    respond_to do |format|
+      format.html {render :text => 'I am html'}
+      format.xml {render :text => 'I am xml'}
+    end
+  end
+
 end
 
 class PageCachingTest < ActionController::TestCase
@@ -109,6 +118,13 @@ class PageCachingTest < ActionController::TestCase
   def test_should_cache_without_trailing_slash_on_url
     @controller.class.cache_page 'cached content', '/page_caching_test/trailing_slash'
     assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/trailing_slash.html")
+  end
+
+  def test_should_obey_http_accept_attribute
+    @request.env['HTTP_ACCEPT'] = 'text/xml'
+    get :about_me
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/about_me.xml")
+    assert_equal 'I am xml', @response.body
   end
 
   def test_should_cache_with_trailing_slash_on_url

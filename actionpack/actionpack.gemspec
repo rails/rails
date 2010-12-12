@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency('activemodel',      version)
   s.add_dependency('rack-cache',       '~> 0.5.3')
   s.add_dependency('builder',          '~> 3.0.0')
-  s.add_dependency('i18n',             '~> 0.4.2')
+  s.add_dependency('i18n',             '~> 0.5.0')
   s.add_dependency('rack',             '~> 1.2.1')
   s.add_dependency('rack-test',        '~> 0.5.6')
   s.add_dependency('rack-mount',       '~> 0.6.13')

@@ -1,6 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
-* Associations with a :through option can now use *any* association as the through or source association, including other associations which have a :through option and has_and_belongs_to_many associations #1812 [Jon Leighton]
+* Associations with a :through option can now use *any* association as the
+through or source association, including other associations which have a
+:through option and has_and_belongs_to_many associations #1812 [Jon Leighton]
+
+* Setting the id of a belongs_to object will update the reference to the
+object. [#2989 state:resolved]
 
 * ActiveRecord::Base#dup and ActiveRecord::Base#clone semantics have changed
 to closer match normal Ruby dup and clone semantics.

@@ -2,6 +2,7 @@ require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 require 'active_support/inflector'
+require 'action_dispatch/routing/redirection'
 
 module ActionDispatch
   module Routing
@@ -246,7 +247,11 @@ module ActionDispatch
         #
         #   root :to => 'pages#main'
         #
-        # You should put the root route at the end of <tt>config/routes.rb</tt>.
+        # For options, see the +match+ method's documentation, as +root+ uses it internally.
+        #
+        # You should put the root route at the top of <tt>config/routes.rb</tt>,
+        # because this means it will be matched first. As this is the most popular route
+        # of most Rails applications, this is beneficial.
         def root(options = {})
           match '/', options.reverse_merge(:as => :root)
         end
@@ -268,18 +273,18 @@ module ActionDispatch
 
         # Mount a Rack-based application to be used within the application.
         #
-        # mount SomeRackApp, :at => "some_route"
+        #   mount SomeRackApp, :at => "some_route"
         #
         # Alternatively:
         #
-        # mount(SomeRackApp => "some_route")
+        #   mount(SomeRackApp => "some_route")
         #
         # All mounted applications come with routing helpers to access them.
         # These are named after the class specified, so for the above example
         # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
         # To customize this helper's name, use the +:as+ option:
         #
-        # mount(SomeRackApp => "some_route", :as => "exciting")
+        #   mount(SomeRackApp => "some_route", :as => "exciting")
         #
         # This will generate the +exciting_path+ and +exciting_url+ helpers
         # which can be used to navigate to this mounted app.
@@ -326,7 +331,7 @@ module ActionDispatch
           end
 
           def define_generate_prefix(app, name)
-            return unless app.respond_to?(:routes)
+            return unless app.respond_to?(:routes) && app.routes.respond_to?(:define_mounted_helper)
 
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
@@ -381,39 +386,6 @@ module ActionDispatch
         # delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, *args, &block)
-        end
-
-        # Redirect any path to another path:
-        #
-        #   match "/stories" => redirect("/posts")
-        def redirect(*args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
-
-          path      = args.shift || Proc.new
-          path_proc = path.is_a?(Proc) ? path : proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
-          status    = options[:status] || 301
-
-          lambda do |env|
-            req = Request.new(env)
-
-            params = [req.symbolized_path_parameters]
-            params << req if path_proc.arity > 1
-
-            uri = URI.parse(path_proc.call(*params))
-            uri.scheme ||= req.scheme
-            uri.host   ||= req.host
-            uri.port   ||= req.port unless req.standard_port?
-
-            body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
-
-            headers = {
-              'Location' => uri.to_s,
-              'Content-Type' => 'text/html',
-              'Content-Length' => body.length.to_s
-            }
-
-            [ status, headers, [body] ]
-          end
         end
 
         private
@@ -595,7 +567,7 @@ module ActionDispatch
         #       admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         # === Supported options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
+        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ options all default to the name of the namespace.
         #
         # [:path]
         #   The path prefix for the routes.
@@ -636,7 +608,7 @@ module ActionDispatch
                       :shallow_path => path, :shallow_prefix => path }.merge!(options)
           scope(options) { yield }
         end
-        
+
         # === Parameter Restriction
         # Allows you to constrain the nested routes based on a set of rules.
         # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
@@ -647,7 +619,7 @@ module ActionDispatch
         #
         # Now routes such as +/posts/1+ will no longer be valid, but +/posts/1.1+ will be.
         # The +id+ parameter must match the constraint passed in for this example.
-        # 
+        #
         # You may use this to also resrict other parameters:
         #
         #   resources :posts do
@@ -1117,6 +1089,7 @@ module ActionDispatch
           end
         end
 
+        # See ActionDispatch::Routing::Mapper::Scoping#namespace
         def namespace(path, options = {})
           if resource_scope?
             nested { super }
@@ -1369,6 +1342,7 @@ module ActionDispatch
 
       include Base
       include HttpHelpers
+      include Redirection
       include Scoping
       include Resources
       include Shorthand

@@ -121,13 +121,13 @@ module ActiveRecord
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
         result = true
-        load_target unless @owner.persisted?
+        load_target if @owner.new_record?
 
         transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
-              result &&= insert_record(record) if @owner.persisted?
+              result &&= insert_record(record) unless @owner.new_record?
             end
           end
         end
@@ -286,12 +286,12 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if !@owner.persisted? || (loaded? && !@reflection.options[:uniq])
+        if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
           @target.size
         elsif !loaded? && @reflection.options[:group]
           load_target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
-          unsaved_records = @target.reject { |r| r.persisted? }
+          unsaved_records = @target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
           count_records
@@ -355,7 +355,7 @@ module ActiveRecord
 
       def include?(record)
         return false unless record.is_a?(@reflection.klass)
-        return include_in_memory?(record) unless record.persisted?
+        return include_in_memory?(record) if record.new_record?
         load_target if @reflection.options[:finder_sql] && !loaded?
         loaded? ? @target.include?(record) : exists?(record)
       end
@@ -369,7 +369,7 @@ module ActiveRecord
         end
 
         def load_target
-          if @owner.persisted? || foreign_key_present
+          if !@owner.new_record? || foreign_key_present
             begin
               unless loaded?
                 if @target.is_a?(Array) && @target.any?
@@ -478,7 +478,7 @@ module ActiveRecord
       private
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
-          ensure_owner_is_not_new
+          ensure_owner_is_persisted!
 
           scoped_where = scoped.where_values_hash
           create_scope = scoped_where ? @scope[:create].merge(scoped_where) : @scope[:create]
@@ -508,7 +508,7 @@ module ActiveRecord
 
           transaction do
             records.each { |record| callback(:before_remove, record) }
-            old_records = records.select { |r| r.persisted? }
+            old_records = records.reject { |r| r.new_record? }
             yield(records, old_records)
             records.each { |record| callback(:after_remove, record) }
           end
@@ -532,15 +532,15 @@ module ActiveRecord
           @owner.class.send(full_callback_name.to_sym) || []
         end
 
-        def ensure_owner_is_not_new
+        def ensure_owner_is_persisted!
           unless @owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
         end
 
         def fetch_first_or_last_using_find?(args)
-          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || !@owner.persisted? || @reflection.options[:finder_sql] ||
-                                         !@target.all? { |record| record.persisted? } || args.first.kind_of?(Integer))
+          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
+            @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
         end
 
         def include_in_memory?(record)

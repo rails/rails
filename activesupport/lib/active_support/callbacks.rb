@@ -178,49 +178,48 @@ module ActiveSupport
         # options[0] is the compiled form of supplied conditions
         # options[1] is the "end" for the conditional
         #
-        if @kind == :before || @kind == :around
-          if @kind == :before
-            # if condition    # before_save :filter_name, :if => :condition
-            #   filter_name
-            # end
-            filter = <<-RUBY_EVAL
-              unless halted
-                result = #{@filter}
-                halted = (#{chain.config[:terminator]})
-              end
-            RUBY_EVAL
+        case @kind
+        when :before
+          # if condition    # before_save :filter_name, :if => :condition
+          #   filter_name
+          # end
+          filter = <<-RUBY_EVAL
+            unless halted
+              result = #{@filter}
+              halted = (#{chain.config[:terminator]})
+            end
+          RUBY_EVAL
 
-            [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
-          else
-            # Compile around filters with conditions into proxy methods
-            # that contain the conditions.
-            #
-            # For `around_save :filter_name, :if => :condition':
-            #
-            # def _conditional_callback_save_17
-            #   if condition
-            #     filter_name do
-            #       yield self
-            #     end
-            #   else
-            #     yield self
-            #   end
-            # end
-            #
-            name = "_conditional_callback_#{@kind}_#{next_id}"
-            @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
-               def #{name}(halted)
-                #{@compiled_options[0] || "if true"} && !halted
-                  #{@filter} do
-                    yield self
-                  end
-                else
+          [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
+        when :around
+          # Compile around filters with conditions into proxy methods
+          # that contain the conditions.
+          #
+          # For `around_save :filter_name, :if => :condition':
+          #
+          # def _conditional_callback_save_17
+          #   if condition
+          #     filter_name do
+          #       yield self
+          #     end
+          #   else
+          #     yield self
+          #   end
+          # end
+          #
+          name = "_conditional_callback_#{@kind}_#{next_id}"
+          @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
+             def #{name}(halted)
+              #{@compiled_options[0] || "if true"} && !halted
+                #{@filter} do
                   yield self
                 end
+              else
+                yield self
               end
-            RUBY_EVAL
-            "#{name}(halted) do"
-          end
+            end
+          RUBY_EVAL
+          "#{name}(halted) do"
         end
       end
 
@@ -229,15 +228,14 @@ module ActiveSupport
       def end(key=nil, object=nil)
         return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
 
-        if @kind == :around || @kind == :after
+        case @kind
+        when :after
           # if condition    # after_save :filter_name, :if => :condition
           #   filter_name
           # end
-          if @kind == :after
-            [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
-          else
-            "end"
-          end
+          [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
+        when :around
+          "end"
         end
       end
 
@@ -388,7 +386,7 @@ module ActiveSupport
       # key. See #define_callbacks for more information.
       #
       def __define_runner(symbol) #:nodoc:
-        body = send("_#{symbol}_callbacks").compile(nil)
+        body = send("_#{symbol}_callbacks").compile
 
         silence_warnings do
           undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")

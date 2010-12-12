@@ -42,7 +42,7 @@ module ActiveRecord
       protected
         def create_record(attrs, force = true)
           ensure_not_nested
-          ensure_owner_is_not_new
+          ensure_owner_is_persisted!
 
           transaction do
             object = @reflection.klass.new(attrs)
@@ -67,7 +67,7 @@ module ActiveRecord
         def insert_record(record, force = true, validate = true)
           ensure_not_nested
 
-          unless record.persisted?
+          if record.new_record?
             if force
               record.save!
             else

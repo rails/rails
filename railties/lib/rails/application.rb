@@ -138,6 +138,10 @@ module Rails
 
   protected
 
+    def default_asset_path
+      nil
+    end
+
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache

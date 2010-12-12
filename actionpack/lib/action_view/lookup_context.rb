@@ -109,7 +109,7 @@ module ActionView
 
       def args_for_lookup(name, prefix, partial, keys) #:nodoc:
         name, prefix = normalize_name(name, prefix)
-        [name, prefix, partial || false, @details, keys, details_key]
+        [name, prefix, partial || false, @details, details_key, keys]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb

@@ -52,7 +52,7 @@ module Rails
 
         destination = self.class.migration_exists?(migration_dir, @migration_file_name)
 
-        if behavior == :invoke
+        if !(destination && options[:skip]) && behavior == :invoke
           if destination && options.force?
             remove_file(destination)
           elsif destination

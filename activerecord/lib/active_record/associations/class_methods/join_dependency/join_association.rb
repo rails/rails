@@ -21,7 +21,7 @@ module ActiveRecord
           attr_reader :aliased_prefix
 
           delegate :options, :through_reflection, :source_reflection, :through_reflection_chain, :to => :reflection
-          delegate :table, :table_name, :to => :parent, :prefix => true
+          delegate :table, :table_name, :to => :parent, :prefix => :parent
           delegate :alias_tracker, :to => :join_dependency
 
           def initialize(reflection, join_dependency, parent = nil)
@@ -50,7 +50,7 @@ module ActiveRecord
 
           def find_parent_in(other_join_dependency)
             other_join_dependency.join_parts.detect do |join_part|
-              self.parent == join_part
+              parent == join_part
             end
           end
 
@@ -129,7 +129,15 @@ module ActiveRecord
               conditions << reflection_conditions(index, table)
               conditions << sti_conditions(reflection, table)
 
-              relation = relation.join(table, join_type).on(*conditions.flatten.compact)
+              ands = relation.create_and(conditions.flatten.compact)
+
+              join = relation.create_join(
+                relation.froms.first,
+                table,
+                relation.create_on(ands),
+                join_type)
+
+              relation = relation.from(join)
 
               # The current table in this iteration becomes the foreign table in the next
               foreign_table = table
@@ -165,10 +173,6 @@ module ActiveRecord
             name
           end
 
-          def interpolate_sql(sql)
-            instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
-          end
-
           private
 
           # Generate aliases and Arel::Table instances for each of the tables which we will
@@ -181,10 +185,7 @@ module ActiveRecord
                 table_alias_for(reflection, reflection != self.reflection)
               )
 
-              table = Arel::Table.new(
-                reflection.table_name, :engine => arel_engine,
-                :as => aliased_table_name, :columns => reflection.klass.columns
-              )
+              table = Arel::Table.new(reflection.table_name, :as => aliased_table_name)
 
               # For habtm, we have two Arel::Table instances related to a single reflection, so
               # we just store them as a pair in the array.
@@ -199,10 +200,7 @@ module ActiveRecord
                   table_alias_for(reflection, true)
                 )
 
-                join_table = Arel::Table.new(
-                  join_table_name, :engine => arel_engine,
-                  :as => aliased_join_table_name
-                )
+                join_table = Arel::Table.new(join_table_name, :as => aliased_join_table_name)
 
                 [table, join_table]
               else
@@ -220,24 +218,23 @@ module ActiveRecord
 
           def reflection_conditions(index, table)
             @reflection.through_conditions.reverse[index].map do |condition|
-              Arel.sql(interpolate_sql(sanitize_sql(
-                condition,
-                table.table_alias || table.name
-              )))
+              Arel.sql(sanitize_sql(condition, table.table_alias || table.name))
             end
+          end
+
+          def sanitize_sql(condition, table_name)
+            active_record.send(:sanitize_sql, condition, table_name)
           end
 
           def sti_conditions(reflection, table)
             unless reflection.klass.descends_from_active_record?
-              sti_column = table[reflection.klass.inheritance_column]
+              sti_column    = table[reflection.klass.inheritance_column]
+              sti_condition = sti_column.eq(reflection.klass.sti_name)
+              subclasses    = reflection.klass.descendants
 
-              condition = sti_column.eq(reflection.klass.sti_name)
-
-              reflection.klass.descendants.each do |subclass|
-                condition = condition.or(sti_column.eq(subclass.sti_name))
-              end
-
-              condition
+              subclasses.inject(sti_condition) { |attr,subclass|
+                attr.or(sti_column.eq(subclass.sti_name))
+              }
             end
           end
 

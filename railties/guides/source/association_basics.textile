@@ -550,6 +550,8 @@ build_customer
 create_customer
 </ruby>
 
+NOTE: When initializing a new +has_one+ or +belongs_to+ association you must use the +build_+ prefix to build the association, rather than the +association.build+ method that would be used for +has_many+ or +has_and_belongs_to_many+ associations. To create one, use the +create_+ prefix.
+
 h6(#belongs_to-association). <tt><em>association</em>(force_reload = false)</tt>
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
@@ -816,6 +818,8 @@ account=
 build_account
 create_account
 </ruby>
+
+NOTE: When initializing a new +has_one+ or +belongs_to+ association you must use the +build_+ prefix to build the association, rather than the +association.build+ method that would be used for +has_many+ or +has_and_belongs_to_many+ associations. To create one, use the +create_+ prefix.
 
 h6(#has_one-association). <tt><em>association</em>(force_reload = false)</tt>
 

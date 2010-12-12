@@ -1,3 +1,5 @@
+require "active_support/core_ext/array/wrap"
+
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
   class IrreversibleMigration < ActiveRecordError
@@ -511,38 +513,40 @@ module ActiveRecord
 
   class Migrator#:nodoc:
     class << self
-      attr_writer :migrations_path
+      attr_writer :migrations_paths
+      alias :migrations_path= :migrations_paths=
 
-      def migrate(migrations_path, target_version = nil)
+      def migrate(migrations_paths, target_version = nil)
         case
           when target_version.nil?
-            up(migrations_path, target_version)
+            up(migrations_paths, target_version)
           when current_version == 0 && target_version == 0
+            []
           when current_version > target_version
-            down(migrations_path, target_version)
+            down(migrations_paths, target_version)
           else
-            up(migrations_path, target_version)
+            up(migrations_paths, target_version)
         end
       end
 
-      def rollback(migrations_path, steps=1)
-        move(:down, migrations_path, steps)
+      def rollback(migrations_paths, steps=1)
+        move(:down, migrations_paths, steps)
       end
 
-      def forward(migrations_path, steps=1)
-        move(:up, migrations_path, steps)
+      def forward(migrations_paths, steps=1)
+        move(:up, migrations_paths, steps)
       end
 
-      def up(migrations_path, target_version = nil)
-        self.new(:up, migrations_path, target_version).migrate
+      def up(migrations_paths, target_version = nil)
+        self.new(:up, migrations_paths, target_version).migrate
       end
 
-      def down(migrations_path, target_version = nil)
-        self.new(:down, migrations_path, target_version).migrate
+      def down(migrations_paths, target_version = nil)
+        self.new(:down, migrations_paths, target_version).migrate
       end
 
-      def run(direction, migrations_path, target_version)
-        self.new(direction, migrations_path, target_version).run
+      def run(direction, migrations_paths, target_version)
+        self.new(direction, migrations_paths, target_version).run
       end
 
       def schema_migrations_table_name
@@ -568,12 +572,20 @@ module ActiveRecord
         name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
       end
 
-      def migrations_path
-        @migrations_path ||= 'db/migrate'
+      def migrations_paths
+        @migrations_paths ||= ['db/migrate']
+        # just to not break things if someone uses: migration_path = some_string
+        Array.wrap(@migrations_paths)
       end
 
-      def migrations(path)
-        files = Dir["#{path}/[0-9]*_*.rb"]
+      def migrations_path
+        migrations_paths.first
+      end
+
+      def migrations(paths)
+        paths = Array.wrap(paths)
+
+        files = Dir[*paths.map { |p| "#{p}/[0-9]*_*.rb" }]
 
         seen = Hash.new false
 
@@ -597,22 +609,22 @@ module ActiveRecord
 
       private
 
-      def move(direction, migrations_path, steps)
-        migrator = self.new(direction, migrations_path)
+      def move(direction, migrations_paths, steps)
+        migrator = self.new(direction, migrations_paths)
         start_index = migrator.migrations.index(migrator.current_migration)
 
         if start_index
           finish = migrator.migrations[start_index + steps]
           version = finish ? finish.version : 0
-          send(direction, migrations_path, version)
+          send(direction, migrations_paths, version)
         end
       end
     end
 
-    def initialize(direction, migrations_path, target_version = nil)
+    def initialize(direction, migrations_paths, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
       Base.connection.initialize_schema_migrations_table
-      @direction, @migrations_path, @target_version = direction, migrations_path, target_version
+      @direction, @migrations_paths, @target_version = direction, migrations_paths, target_version
     end
 
     def current_version
@@ -647,6 +659,7 @@ module ActiveRecord
       # skip the last migration if we're headed down, but not ALL the way down
       runnable.pop if down? && target
 
+      ran = []
       runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
@@ -666,16 +679,18 @@ module ActiveRecord
             migration.migrate(@direction)
             record_version_state_after_migrating(migration.version)
           end
+          ran << migration
         rescue => e
           canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
           raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
       end
+      ran
     end
 
     def migrations
       @migrations ||= begin
-        migrations = self.class.migrations(@migrations_path)
+        migrations = self.class.migrations(@migrations_paths)
         down? ? migrations.reverse : migrations
       end
     end
@@ -696,10 +711,12 @@ module ActiveRecord
         @migrated_versions ||= []
         if down?
           @migrated_versions.delete(version)
-          table.where(table["version"].eq(version.to_s)).delete
+          stmt = table.where(table["version"].eq(version.to_s)).compile_delete
+          Base.connection.delete stmt.to_sql
         else
           @migrated_versions.push(version).sort!
-          table.insert table["version"] => version.to_s
+          stmt = table.compile_insert table["version"] => version.to_s
+          Base.connection.insert stmt.to_sql
         end
       end
 

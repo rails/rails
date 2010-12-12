@@ -4,26 +4,74 @@ module ActionDispatch
       mattr_accessor :tld_length
       self.tld_length = 1
 
-      def self.extract_domain(host, tld_length = @@tld_length)
-        return nil unless named_host?(host)
+      class << self
+        def extract_domain(host, tld_length = @@tld_length)
+          return nil unless named_host?(host)
+          host.split('.').last(1 + tld_length).join('.')
+        end
 
-        host.split('.').last(1 + tld_length).join('.')
+        def extract_subdomains(host, tld_length = @@tld_length)
+          return [] unless named_host?(host)
+          parts = host.split('.')
+          parts[0..-(tld_length+2)]
+        end
+
+        def extract_subdomain(host, tld_length = @@tld_length)
+          extract_subdomains(host, tld_length).join('.')
+        end
+
+        def url_for(options = {})
+          unless options[:host].present? || options[:only_path].present?
+            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
+          end
+
+          rewritten_url = ""
+
+          unless options[:only_path]
+            rewritten_url << (options[:protocol] || "http")
+            rewritten_url << "://" unless rewritten_url.match("://")
+            rewritten_url << rewrite_authentication(options)
+            rewritten_url << host_or_subdomain_and_domain(options)
+            rewritten_url << ":#{options.delete(:port)}" if options[:port]
+          end
+
+          path = options.delete(:path) || ''
+
+          params = options[:params] || {}
+          params.reject! {|k,v| !v }
+
+          rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+          rewritten_url << "?#{params.to_query}" unless params.empty?
+          rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
+          rewritten_url
+        end
+
+        private
+
+        def named_host?(host)
+          !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+        end
+
+        def rewrite_authentication(options)
+          if options[:user] && options[:password]
+            "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
+          else
+            ""
+          end
+        end
+
+        def host_or_subdomain_and_domain(options)
+          return options[:host] unless options[:subdomain] || options[:domain]
+
+          tld_length = options[:tld_length] || @@tld_length
+
+          host = ""
+          host << (options[:subdomain] || extract_subdomain(options[:host], tld_length))
+          host << "."
+          host << (options[:domain]    || extract_domain(options[:host], tld_length))
+          host
+        end
       end
-
-      def self.extract_subdomains(host, tld_length = @@tld_length)
-        return [] unless named_host?(host)
-        parts = host.split('.')
-        parts[0..-(tld_length+2)]
-      end
-
-      def self.extract_subdomain(host, tld_length = @@tld_length)
-        extract_subdomains(host, tld_length).join('.')
-      end
-
-      def self.named_host?(host)
-        !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
-      end
-
 
       # Returns the complete URL used for this request.
       def url
@@ -116,7 +164,6 @@ module ActionDispatch
       def subdomain(tld_length = @@tld_length)
         subdomains(tld_length)
       end
-
     end
   end
 end

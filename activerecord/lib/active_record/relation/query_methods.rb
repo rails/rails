@@ -162,52 +162,57 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
-    def custom_join_sql(*joins)
-      arel = table.select_manager
+    def build_arel
+      arel = table.from table
 
-      joins.each do |join|
-        next if join.blank?
+      build_joins(arel, @joins_values) unless @joins_values.empty?
 
-        @implicit_readonly = true
+      collapse_wheres(arel, (@where_values - ['']).uniq)
 
+      arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
+
+      arel.take(@limit_value) if @limit_value
+      arel.skip(@offset_value) if @offset_value
+
+      arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+
+      arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
+
+      build_select(arel, @select_values.uniq)
+
+      arel.from(@from_value) if @from_value
+      arel.lock(@lock_value) if @lock_value
+
+      arel
+    end
+
+    private
+
+    def custom_join_ast(table, joins)
+      joins = joins.reject { |join| join.blank? }
+
+      return if joins.empty?
+
+      @implicit_readonly = true
+
+      joins.map! do |join|
         case join
         when Array
           join = Arel.sql(join.join(' ')) if array_of_strings?(join)
         when String
           join = Arel.sql(join)
         end
-
-        arel.join(join)
+        join
       end
 
-      arel.joins(arel)
+      head = table.create_string_join(table, joins.shift)
+
+      joins.inject(head) do |ast, join|
+        ast.right = table.create_string_join(ast.right, join)
+      end
+
+      head
     end
-
-    def build_arel
-      arel = table
-
-      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
-
-      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
-
-      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
-
-      arel = arel.take(@limit_value) if @limit_value
-      arel = arel.skip(@offset_value) if @offset_value
-
-      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
-
-      arel = arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
-
-      arel = build_select(arel, @select_values.uniq)
-
-      arel = arel.from(@from_value) if @from_value
-      arel = arel.lock(@lock_value) if @lock_value
-
-      arel
-    end
-
-    private
 
     def collapse_wheres(arel, wheres)
       equalities = wheres.grep(Arel::Nodes::Equality)
@@ -220,14 +225,13 @@ module ActiveRecord
         test = eqls.inject(eqls.shift) do |memo, expr|
           memo.or(expr)
         end
-        arel = arel.where(test)
+        arel.where(test)
       end
 
       (wheres - equalities).each do |where|
         where = Arel.sql(where) if String === where
-        arel = arel.where(Arel::Nodes::Grouping.new(where))
+        arel.where(Arel::Nodes::Grouping.new(where))
       end
-      arel
     end
 
     def build_where(opts, other = [])
@@ -242,31 +246,34 @@ module ActiveRecord
       end
     end
 
-    def build_joins(relation, joins)
-      association_joins = []
-
+    def build_joins(manager, joins)
       joins = joins.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
 
-      joins.each do |join|
-        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
+      association_joins = joins.find_all do |join|
+        [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
       end
 
       stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
-      custom_joins = custom_join_sql(*non_association_joins)
+      join_ast = custom_join_ast(manager.froms.first, non_association_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_ast)
 
       join_dependency.graft(*stashed_association_joins)
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
+      # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
-        relation = association.join_to(relation)
+        association.join_to(manager)
       end
 
-      relation.join(custom_joins)
+      return manager unless join_ast
+
+      join_ast.left = manager.froms.first
+      manager.from join_ast
+      manager
     end
 
     def build_select(arel, selects)

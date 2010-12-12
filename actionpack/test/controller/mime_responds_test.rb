@@ -201,8 +201,8 @@ class RespondToControllerTest < ActionController::TestCase
 
   def teardown
     super
-    Mime::Type.unregister('text/x-mobile', :iphone)
-    Mime::Type.unregister('text/iphone', :mobile)
+    Mime::Type.unregister(:iphone)
+    Mime::Type.unregister(:mobile)
   end
 
   def test_html
@@ -622,12 +622,14 @@ class RespondWithControllerTest < ActionController::TestCase
   def setup
     super
     @request.host = "www.example.com"
+    Mime::Type.register_alias('text/html', :iphone)
+    Mime::Type.register('text/x-mobile', :mobile)
   end
 
   def teardown
     super
-    Mime::Type.unregister('text/x-mobile', :iphone)
-    Mime::Type.unregister('text/iphone', :mobile)
+    Mime::Type.unregister(:iphone)
+    Mime::Type.unregister(:mobile)
   end
 
   def test_using_resource
@@ -929,7 +931,8 @@ class RespondWithControllerTest < ActionController::TestCase
     @controller = RenderJsonRespondWithController.new
     @request.accept = "application/json"
     get :index, :format => :json
-    assert_equal %Q{{"message":"boom","error":"RenderJsonTestException"}}, @response.body
+    assert_match(/"message":"boom"/, @response.body)
+    assert_match(/"error":"RenderJsonTestException"/, @response.body)
   end
 
   def test_no_double_render_is_raised
@@ -1020,8 +1023,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
 
   def teardown
     super
-    Mime::Type.unregister('text/x-mobile', :iphone)
-    Mime::Type.unregister('text/iphone', :mobile)
+    Mime::Type.unregister(:iphone)
   end
 
   def test_missing_layout_renders_properly

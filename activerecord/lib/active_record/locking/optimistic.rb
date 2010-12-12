@@ -87,11 +87,13 @@ module ActiveRecord
           begin
             relation = self.class.unscoped
 
-            affected_rows = relation.where(
+            stmt = relation.where(
               relation.table[self.class.primary_key].eq(quoted_id).and(
                 relation.table[lock_col].eq(quote_value(previous_value))
               )
-            ).arel.update(arel_attributes_values(false, false, attribute_names))
+            ).arel.compile_update(arel_attributes_values(false, false, attribute_names))
+
+            affected_rows = connection.update stmt.to_sql
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"

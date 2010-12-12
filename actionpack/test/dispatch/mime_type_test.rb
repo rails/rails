@@ -19,7 +19,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       assert_equal Mime::MOBILE, Mime::LOOKUP['text/x-mobile']
       assert_equal Mime::MOBILE, Mime::EXTENSION_LOOKUP['mobile']
 
-      Mime::Type.unregister("text/x-mobile", :mobile)
+      Mime::Type.unregister(:mobile)
       assert !defined?(Mime::MOBILE), "Mime::MOBILE should not be defined"
       assert !Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile]"
       assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
@@ -31,38 +31,30 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::TEXT, Mime::YAML, Mime::JS, Mime::MULTIPART_FORM]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect.size, parsed.size
-    Range.new(0,expect.size-1).to_a.each do |index|
-      assert_equal expect[index], parsed[index], "Failed for index number #{index}"
-    end
+    assert_equal expect, parsed
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::XML, Mime::ICS, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML]
     parsed = Mime::Type.parse(accept)
-    assert_equal 10, parsed.size
-    Range.new(0,expect.size-1).to_a.each do |index|
-      assert_equal expect[index], parsed[index], "Failed for index number #{index}"
-    end
+    assert_equal expect, parsed
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT].sort_by(&:to_s)
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON]
     parsed = Mime::Type.parse(accept)
-    assert_equal 9, parsed.size
-    assert_equal expect, parsed.sort_by(&:to_s)
+    assert_equal expect, parsed
   end
 
   test "parse application with trailing star" do
     accept = "application/*"
-    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::PDF, Mime::URL_ENCODED_FORM].sort_by(&:to_s)
+    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::RSS, Mime::ATOM, Mime::YAML, Mime::URL_ENCODED_FORM, Mime::JSON, Mime::PDF]
     parsed = Mime::Type.parse(accept)
-    assert_equal 9, parsed.size
-    assert_equal expect, parsed.sort_by(&:to_s)
+    assert_equal expect, parsed
   end
 
   test "parse without q" do
@@ -99,7 +91,7 @@ class MimeTypeTest < ActiveSupport::TestCase
         assert_equal Mime::GIF, Mime::SET.last
       end
     ensure
-      Mime::Type.unregister('image/gif', :gif)
+      Mime::Type.unregister(:gif)
     end
   end
 

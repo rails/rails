@@ -38,6 +38,18 @@ module ActiveSupport
         yield config
       end
 
+      # Allows you to add shortcut so that you don't have to refer to attribute through config.
+      # Also look at the example for config to contrast.
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #     config_accessor :allowed_access
+      #   end
+      #
+      #   user = User.new
+      #   user.allowed_access = true
+      #   user.allowed_access # => true
+      #
       def config_accessor(*names)
         names.each do |name|
           code, line = <<-RUBY, __LINE__ + 1

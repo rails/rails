@@ -196,7 +196,7 @@ module ActiveRecord
 
     def construct_relation_for_association_calculations
       including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.joins(arel))
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.froms.first)
       relation = except(:includes, :eager_load, :preload)
       apply_join_dependency(relation, join_dependency)
     end
@@ -290,7 +290,7 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      column = primary_key.column
+      column = columns_hash[primary_key.name.to_s]
 
       substitute = connection.substitute_for(column, @bind_values)
       relation = where(primary_key.eq(substitute))

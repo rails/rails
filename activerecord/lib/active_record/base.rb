@@ -1365,7 +1365,7 @@ MSG
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
         @attributes_cache = {}
-        @persisted = false
+        @new_record = true
         @readonly = false
         @destroyed = false
         @marked_for_destruction = false
@@ -1396,7 +1396,7 @@ MSG
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @readonly = @destroyed = @marked_for_destruction = false
-        @persisted = true
+        @new_record = false
         _run_find_callbacks
         _run_initialize_callbacks
       end
@@ -1437,7 +1437,7 @@ MSG
       #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
       def cache_key
         case
-        when !persisted?
+        when new_record?
           "#{self.class.model_name.cache_key}/new"
         when timestamp = self[:updated_at]
           "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
@@ -1455,22 +1455,9 @@ MSG
         @attributes.has_key?(attr_name.to_s)
       end
 
-      # Returns an array of names for the attributes available on this object sorted alphabetically.
+      # Returns an array of names for the attributes available on this object.
       def attribute_names
-        @attributes.keys.sort
-      end
-
-      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-      # (Alias for the protected read_attribute method).
-      def [](attr_name)
-        read_attribute(attr_name)
-      end
-
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-      # (Alias for the protected write_attribute method).
-      def []=(attr_name, value)
-        write_attribute(attr_name, value)
+        @attributes.keys
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
@@ -1513,9 +1500,7 @@ MSG
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes
-        attrs = {}
-        attribute_names.each { |name| attrs[name] = read_attribute(name) }
-        attrs
+        Hash[@attributes.map { |name, _| [name, read_attribute(name)] }]
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -1622,7 +1607,7 @@ MSG
         clear_aggregation_cache
         clear_association_cache
         @attributes_cache   = {}
-        @persisted  = false
+        @new_record  = true
 
         ensure_proper_type
         populate_with_current_scope_attributes
@@ -1643,7 +1628,7 @@ MSG
       # Returns the contents of the record as a nicely formatted string.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name) || !persisted?
+          if has_attribute?(name) || new_record?
             "#{name}: #{attribute_for_inspect(name)}"
           end
         }.compact.join(", ")
@@ -1695,7 +1680,7 @@ MSG
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
               value = read_attribute(name)
 
-              if value && self.class.serialized_attributes.key?(name)
+              if !value.nil? && self.class.serialized_attributes.key?(name)
                 value = YAML.dump value
               end
               attrs[self.class.arel_table[name]] = value
@@ -1830,7 +1815,9 @@ MSG
       def populate_with_current_scope_attributes
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
-          create_with.each { |att,value| self.respond_to?(:"#{att}=") && self.send("#{att}=", value) } if create_with
+          create_with.each { |att,value|
+            respond_to?(:"#{att}=") && send("#{att}=", value)
+          }
         end
       end
 
@@ -1871,6 +1858,17 @@ MSG
     include Aggregations, Transactions, Reflection, Serialization
 
     NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
+
+    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
+    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+    # (Alias for the protected read_attribute method).
+    alias [] read_attribute
+
+    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+    # (Alias for the protected write_attribute method).
+    alias []= write_attribute
+
+    public :[], :[]=
   end
 end
 

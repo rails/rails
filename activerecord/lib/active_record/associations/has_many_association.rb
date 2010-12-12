@@ -67,9 +67,10 @@ module ActiveRecord
               @reflection.klass.delete(records.map { |record| record.id })
             else
               relation = Arel::Table.new(@reflection.table_name)
-              relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
+              stmt = relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
                   and(relation[@reflection.klass.primary_key].in(records.map { |r| r.id }))
-              ).update(relation[@reflection.primary_key_name] => nil)
+              ).compile_update(relation[@reflection.primary_key_name] => nil)
+              @owner.connection.update stmt.to_sql
 
               @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size) if has_cached_counter?
           end

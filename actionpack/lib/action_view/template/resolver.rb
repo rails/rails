@@ -15,7 +15,7 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_template.
-    def find_all(name, prefix=nil, partial=false, details={}, locals=[], key=nil)
+    def find_all(name, prefix=nil, partial=false, details={}, key=nil, locals=[])
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
@@ -129,7 +129,7 @@ module ActionView
     def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
-      handler = Template.handler_class_for_extension(pieces.pop)
+      handler = Template.handler_for_extension(pieces.pop)
       format  = pieces.last && Mime[pieces.last]
       [handler, format]
     end

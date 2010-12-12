@@ -5,11 +5,10 @@ module ActiveRecord
     # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
     # ActiveRecord::Associations::ThroughAssociationScope
     class AliasTracker # :nodoc:
-      # other_sql is some other sql which might conflict with the aliases we assign here. Therefore
-      # we store other_sql so that we can scan it before assigning a specific name.
-      def initialize(other_sql = nil)
-        @aliases   = Hash.new
-        @other_sql = other_sql.to_s.downcase
+      # table_joins is an array of arel joins which might conflict with the aliases we assign here
+      def initialize(table_joins = nil)
+        @aliases     = Hash.new
+        @table_joins = table_joins
       end
 
       def aliased_name_for(table_name, aliased_name = nil)
@@ -47,15 +46,24 @@ module ActiveRecord
         def initialize_count_for(name)
           @aliases[name] = 0
 
-          unless @other_sql.blank?
+          unless @table_joins.nil? || Arel::Table === @table_joins
             # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-            quoted_name = connection.quote_table_name(name.downcase).downcase
+            quoted_name = connection.quote_table_name(name).downcase
 
-            # Table names
-            @aliases[name] += @other_sql.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size
-
-            # Table aliases
-            @aliases[name] += @other_sql.scan(/join(?:\s+\w+)?\s+\S+\s+#{quoted_name}\son/).size
+            @aliases[name] += @table_joins.grep(Arel::Nodes::Join).map { |join|
+              right = join.right
+              case right
+              when Arel::Table
+                right.name.downcase == name ? 1 : 0
+              when String
+                # Table names + table aliases
+                right.downcase.scan(
+                  /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+                ).size
+              else
+                0
+              end
+            }.sum
           end
 
           @aliases[name]

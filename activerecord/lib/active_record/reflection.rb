@@ -261,7 +261,7 @@ module ActiveRecord
       end
 
       def has_inverse?
-        !@options[:inverse_of].nil?
+        @options[:inverse_of]
       end
 
       def inverse_of

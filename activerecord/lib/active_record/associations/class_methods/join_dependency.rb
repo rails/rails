@@ -6,13 +6,15 @@ module ActiveRecord
   module Associations
     module ClassMethods
       class JoinDependency # :nodoc:
-        attr_reader :join_parts, :reflections, :alias_tracker
+        attr_reader :join_parts, :reflections, :alias_tracker, :active_record
 
         def initialize(base, associations, joins)
-          @join_parts            = [JoinBase.new(base, joins)]
-          @associations          = {}
-          @reflections           = []
-          @alias_tracker         = AliasTracker.new(joins)
+          @active_record = base
+          @table_joins   = joins
+          @join_parts    = [JoinBase.new(base)]
+          @associations  = {}
+          @reflections   = []
+          @alias_tracker = AliasTracker.new(joins)
           @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
           build(associations)
         end
@@ -49,11 +51,11 @@ module ActiveRecord
           records = rows.map { |model|
             primary_id = model[primary_key]
             parent = parents[primary_id] ||= join_base.instantiate(model)
-            construct(parent, @associations, join_associations.dup, model)
+            construct(parent, @associations, join_associations, model)
             parent
           }.uniq
 
-          remove_duplicate_results!(join_base.active_record, records, @associations)
+          remove_duplicate_results!(active_record, records, @associations)
           records
         end
 
@@ -122,7 +124,7 @@ module ActiveRecord
               build(association, parent, join_type)
             end
           when Hash
-            associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
+            associations.keys.sort_by { |a| a.to_s }.each do |name|
               join_association = build(name, parent, join_type)
               build(associations[name], join_association, join_type)
             end
