@@ -11,7 +11,6 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :insert, :to => :arel
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions
@@ -26,6 +25,19 @@ module ActiveRecord
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
       @extensions = []
+    end
+
+    def insert(values)
+      im = arel.compile_insert values
+      im.into @table
+      primary_key_name = @klass.primary_key
+      primary_key_value = Hash === values ? values[primary_key_name] : nil
+
+      @klass.connection.insert(
+        im.to_sql,
+        'SQL',
+        primary_key_name,
+        primary_key_value)
     end
 
     def new(*args, &block)
