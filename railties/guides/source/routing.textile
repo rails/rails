@@ -595,7 +595,7 @@ You can specify what Rails should route +"/"+ to with the +root+ method:
 root :to => 'pages#main'
 </ruby>
 
-You should put the +root+ route at the end of the file.
+You should put the +root+ route at the end of the file. You also need to delete the public/index.html.erb file for the root route to take effect.
 
 h3. Customizing Resourceful Routes
 
