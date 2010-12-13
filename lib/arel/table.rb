@@ -27,6 +27,12 @@ module Arel
     end
 
     def primary_key
+      if $VERBOSE
+        warn <<-eowarn
+primary_key (#{caller.first}) is deprecated and will be removed in ARel 3.0.0. Please
+switch to `compile_insert`
+        eowarn
+      end
       @primary_key ||= begin
         primary_key_name = @engine.connection.primary_key(name)
         # some tables might be without primary key
