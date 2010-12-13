@@ -363,7 +363,7 @@ module ActiveRecord
         if autosave && association.marked_for_destruction?
           association.destroy
         elsif autosave != false
-          saved = association.save(:validate => !autosave) if association.new_record? || autosave
+          saved = association.save(:validate => !autosave) if association.new_record? || (autosave && association.changed_for_autosave?)
 
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
