@@ -29,8 +29,7 @@ module Arel
     def primary_key
       if $VERBOSE
         warn <<-eowarn
-primary_key (#{caller.first}) is deprecated and will be removed in ARel 3.0.0. Please
-switch to `compile_insert`
+primary_key (#{caller.first}) is deprecated and will be removed in ARel 3.0.0
         eowarn
       end
       @primary_key ||= begin
