@@ -112,6 +112,7 @@ module ActionView
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
+      # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -120,6 +121,9 @@ module ActionView
       #
       #   text_field_tag 'query', 'Enter your search query here'
       #   # => <input id="query" name="query" type="text" value="Enter your search query here" />
+      #
+      #   text_field_tag 'search', nil, :placeholder => 'Enter search term...'
+      #   # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
       #
       #   text_field_tag 'request', nil, :class => 'special_input'
       #   # => <input class="special_input" id="request" name="request" type="text" />
