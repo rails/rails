@@ -180,13 +180,22 @@ module Arel
 
     # FIXME: this method should go away
     def insert values
-      im = InsertManager.new @engine
+      if $VERBOSE
+        warn <<-eowarn
+insert (#{caller.first}) is deprecated and will be removed in ARel 3.0.0. Please
+switch to `compile_insert`
+        eowarn
+      end
+
+      im = compile_insert(values)
       table = @ctx.froms
-      primary_key_name = (primary_key = table.primary_key) && primary_key.name
+
+      primary_key      = table.primary_key
+      primary_key_name = primary_key.name if primary_key
+
       # FIXME: in AR tests values sometimes were Array and not Hash therefore is_a?(Hash) check is added
       primary_key_value = primary_key && values.is_a?(Hash) && values[primary_key]
       im.into table
-      im.insert values
       # Oracle adapter needs primary key name to generate RETURNING ... INTO ... clause
       # for tables which assign primary key value using trigger.
       # RETURNING ... INTO ... clause will be added only if primary_key_value is nil
