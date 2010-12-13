@@ -667,8 +667,19 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
+    @ship.pirate.catchphrase = "Changed Catchphrase"
+
     assert_raise(RuntimeError) { assert !@ship.save }
     assert_not_nil @ship.reload.pirate
+  end
+
+  def test_should_save_changed_child_objects_if_parent_is_saved
+    @pirate = @ship.create_pirate(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    @parrot = @pirate.parrots.create!(:name => 'Posideons Killer')
+    @parrot.name = "NewName"
+    @ship.save
+
+    assert_equal 'NewName', @parrot.reload.name
   end
 
   # has_many & has_and_belongs_to
