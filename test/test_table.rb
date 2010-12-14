@@ -48,12 +48,6 @@ module Arel
       end
     end
 
-    describe 'primary_key' do
-      it 'should return an attribute' do
-        @relation.primary_key.name.must_equal :id
-      end
-    end
-
     describe 'select_manager' do
       it 'should return an empty select manager' do
         sm = @relation.select_manager
@@ -113,13 +107,6 @@ module Arel
     end
 
     describe 'new' do
-      it 'takes :columns' do
-        columns = Table.engine.connection.columns("users")
-        @relation = Table.new(:users, :columns => columns)
-        @relation.columns.first.name.must_equal :id
-        @relation.engine.must_equal Table.engine
-      end
-
       it 'should accept an engine' do
         rel = Table.new :users, 'foo'
         rel.engine.must_equal 'foo'
@@ -176,14 +163,6 @@ module Arel
       end
     end
 
-    describe 'columns' do
-      it 'returns a list of columns' do
-        columns = @relation.columns
-        columns.length.must_equal 4
-        columns.map { |x| x.name.to_s }.sort.must_equal %w{ created_at bool name id }.sort
-      end
-    end
-
     it "should have a name" do
       @relation.name.must_equal 'users'
     end
@@ -197,17 +176,6 @@ module Arel
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           column = @relation[:id]
           column.name.must_equal :id
-        end
-      end
-    end
-  end
-
-  describe Table do
-    describe 'when checking the existence of a table' do
-      it 'should be present in the table cache despite the class of its name' do
-        [ 'users', :users ].each do |name|
-          relation = Table.new name
-          Table.table_cache(relation.engine).key?(relation.name).must_equal true
         end
       end
     end

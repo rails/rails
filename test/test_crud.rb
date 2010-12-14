@@ -35,10 +35,8 @@ module Arel
         table = Table.new :users
         fc = FakeCrudder.new
         fc.from table
-        fc.insert [[table[:id], 'foo']]
-        fc.engine.calls.find { |method, _|
-          method == :insert
-        }.wont_be_nil
+        im = fc.compile_insert [[table[:id], 'foo']]
+        assert_instance_of Arel::InsertManager, im
       end
     end
 
