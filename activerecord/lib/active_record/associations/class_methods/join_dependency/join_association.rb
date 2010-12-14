@@ -138,7 +138,6 @@ module ActiveRecord
             ands = relation.create_and(conditions)
 
             join = relation.create_join(
-              relation.froms.first,
               target_table,
               relation.create_on(ands),
               join_type)

@@ -191,27 +191,19 @@ module ActiveRecord
     def custom_join_ast(table, joins)
       joins = joins.reject { |join| join.blank? }
 
-      return if joins.empty?
+      return [] if joins.empty?
 
       @implicit_readonly = true
 
-      joins.map! do |join|
+      joins.map do |join|
         case join
         when Array
           join = Arel.sql(join.join(' ')) if array_of_strings?(join)
         when String
           join = Arel.sql(join)
         end
-        join
+        table.create_string_join(join)
       end
-
-      head = table.create_string_join(table, joins.shift)
-
-      joins.inject(head) do |ast, join|
-        ast.right = table.create_string_join(ast.right, join)
-      end
-
-      head
     end
 
     def collapse_wheres(arel, wheres)
@@ -256,9 +248,9 @@ module ActiveRecord
       stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
 
       non_association_joins = (joins - association_joins - stashed_association_joins)
-      join_ast = custom_join_ast(manager.froms.first, non_association_joins)
+      join_list = custom_join_ast(manager, non_association_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_ast)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_list)
 
       join_dependency.graft(*stashed_association_joins)
 
@@ -269,10 +261,9 @@ module ActiveRecord
         association.join_to(manager)
       end
 
-      return manager unless join_ast
+      return manager unless join_list
 
-      join_ast.left = manager.froms.first
-      manager.from join_ast
+      join_list.each { |j| manager.from j }
       manager
     end
 

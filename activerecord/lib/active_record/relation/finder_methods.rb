@@ -187,7 +187,7 @@ module ActiveRecord
 
     def find_with_associations
       including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, [])
       rows = construct_relation_for_association_find(join_dependency).to_a
       join_dependency.instantiate(rows)
     rescue ThrowResult
