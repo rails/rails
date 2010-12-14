@@ -88,7 +88,7 @@ module ActiveRecord
       def construct_owner_attributes(reflection)
         if as = reflection.options[:as]
           { "#{as}_id" => @owner.id,
-            "#{as}_type" => @owner.class.base_class.name.to_s }
+            "#{as}_type" => @owner.class.base_class.name }
         else
           { reflection.primary_key_name => @owner.id }
         end
@@ -102,7 +102,7 @@ module ActiveRecord
         join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
 
         if @reflection.options[:source_type]
-          join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)
+          join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name)
         end
 
         if @reflection.through_reflection.options[:conditions].is_a?(Hash)
