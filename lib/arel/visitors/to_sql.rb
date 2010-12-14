@@ -228,7 +228,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_StringJoin o
-        "#{visit o.left} #{visit o.right}"
+        visit o.left
       end
 
       def visit_Arel_Nodes_OuterJoin o

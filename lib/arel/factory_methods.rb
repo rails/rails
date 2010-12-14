@@ -6,8 +6,8 @@ module Arel
       klass.new(to, constraint)
     end
 
-    def create_string_join from, to
-      create_join from, to, Nodes::StringJoin
+    def create_string_join to
+      create_join to, nil, Nodes::StringJoin
     end
 
     def create_and clauses

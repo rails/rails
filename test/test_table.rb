@@ -7,10 +7,9 @@ module Arel
     end
 
     it 'should create join nodes' do
-      join = @relation.create_string_join 'foo', 'bar'
+      join = @relation.create_string_join 'foo'
       assert_kind_of Arel::Nodes::StringJoin, join
       assert_equal 'foo', join.left
-      assert_equal 'bar', join.right
     end
 
     it 'should create join nodes' do
