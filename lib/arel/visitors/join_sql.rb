@@ -14,13 +14,6 @@ module Arel
       def visit_Arel_Nodes_SelectCore o
         o.source.right.map { |j| visit j }.join ' '
       end
-
-      def visit_Arel_Nodes_StringJoin o
-        [
-          (visit o.left if Nodes::Join === o.left),
-          visit(o.right)
-        ].compact.join ' '
-      end
     end
   end
 end

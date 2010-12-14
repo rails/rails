@@ -8,6 +8,11 @@ module Arel
         @visitor.extend(JoinSql)
       end
 
+      it 'should visit string join' do
+        sql = @visitor.accept Nodes::StringJoin.new('omg')
+        sql.must_be_like "'omg'"
+      end
+
       describe 'inner join' do
         it 'should visit left if left is a join' do
           t    = Table.new :users

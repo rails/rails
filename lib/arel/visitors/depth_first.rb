@@ -67,9 +67,12 @@ module Arel
       alias :visit_Arel_Nodes_Or                 :binary
       alias :visit_Arel_Nodes_Ordering           :binary
       alias :visit_Arel_Nodes_OuterJoin          :binary
-      alias :visit_Arel_Nodes_StringJoin         :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
       alias :visit_Arel_Nodes_Values             :binary
+
+      def visit_Arel_Nodes_StringJoin o
+        visit o.left
+      end
 
       def visit_Arel_Attribute o
         visit o.relation

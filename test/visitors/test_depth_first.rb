@@ -29,6 +29,7 @@ module Arel
         Arel::Nodes::Grouping,
         Arel::Nodes::Offset,
         Arel::Nodes::Having,
+        Arel::Nodes::StringJoin,
         Arel::Nodes::UnqualifiedColumn,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
@@ -91,7 +92,6 @@ module Arel
         Arel::Nodes::NotEqual,
         Arel::Nodes::NotIn,
         Arel::Nodes::Or,
-        Arel::Nodes::StringJoin,
         Arel::Nodes::TableAlias,
         Arel::Nodes::Values,
         Arel::Nodes::As,
@@ -176,7 +176,8 @@ module Arel
         @visitor.accept core
         assert_equal [
           :a, core.projections,
-          :b,
+          :b, [],
+          core.source,
           :c, core.wheres,
           :d, core.groups,
           :e,

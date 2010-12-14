@@ -367,7 +367,7 @@ module Arel
       it 'returns string join sql' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.from Nodes::StringJoin.new(table, 'hello')
+        manager.from Nodes::StringJoin.new('hello')
         manager.join_sql.must_be_like %{ 'hello' }
       end
 
