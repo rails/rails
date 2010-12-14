@@ -54,7 +54,7 @@ module ActiveRecord
         end
 
         def construct_find_options!(options)
-          options[:joins]   = construct_joins(options[:joins])
+          options[:joins]   = [construct_joins] + Array.wrap(options[:joins])
           options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil? && @reflection.source_reflection.options[:include]
         end
 
