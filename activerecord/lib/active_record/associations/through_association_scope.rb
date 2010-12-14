@@ -54,7 +54,7 @@ module ActiveRecord
         custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
       end
 
-      def construct_joins(custom_joins = nil)
+      def construct_joins
         right = @reflection.through_reflection.klass.arel_table
         left  = @reflection.klass.arel_table
 
