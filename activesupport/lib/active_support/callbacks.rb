@@ -447,6 +447,10 @@ module ActiveSupport
       #   set_callback :save, :after,  :after_meth, :if => :condition
       #   set_callback :save, :around, lambda { |r| stuff; yield; stuff }
       #
+      # If the second argument is not :before, :after or :around then an implicit :before is assumed.
+      # It means the first example mentioned above can also be written as:
+      #   set_callback :save, :before_meth
+      #
       # Use skip_callback to skip any defined one.
       #
       # When creating or skipping callbacks, you can specify conditions that
