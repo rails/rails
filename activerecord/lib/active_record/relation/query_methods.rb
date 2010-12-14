@@ -239,16 +239,25 @@ module ActiveRecord
     end
 
     def build_joins(manager, joins)
-      joins = joins.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
-
-      association_joins = joins.find_all do |join|
-        [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
+      buckets = joins.group_by do |join|
+        case join
+        when String
+          'string_join'
+        when Hash, Symbol, Array
+          'association_join'
+        when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
+          'stashed_join'
+        else
+          raise 'unknown class: %s' % join.class.name
+        end
       end
 
-      stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
-
-      non_association_joins = (joins - association_joins - stashed_association_joins)
-      join_list = custom_join_ast(manager, non_association_joins)
+      association_joins         = buckets['association_join'] || []
+      stashed_association_joins = buckets['stashed_join'] || []
+      string_joins              = (buckets['string_join'] || []).map { |x|
+        x.strip
+      }.uniq
+      join_list = custom_join_ast(manager, string_joins)
 
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_list)
 
