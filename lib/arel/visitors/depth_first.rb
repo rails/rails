@@ -57,6 +57,7 @@ module Arel
       alias :visit_Arel_Nodes_GreaterThan        :binary
       alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
       alias :visit_Arel_Nodes_In                 :binary
+      alias :visit_Arel_Nodes_JoinSource         :binary
       alias :visit_Arel_Nodes_InnerJoin          :binary
       alias :visit_Arel_Nodes_LessThan           :binary
       alias :visit_Arel_Nodes_LessThanOrEqual    :binary
@@ -116,7 +117,7 @@ module Arel
 
       def visit_Arel_Nodes_SelectCore o
         visit o.projections
-        visit o.froms
+        visit o.source
         visit o.wheres
         visit o.groups
         visit o.having
