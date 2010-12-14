@@ -39,14 +39,6 @@ module Arel
         visit o.distinct
       end
 
-      def join o
-        visit o.left
-        visit o.right
-        visit o.constraint
-      end
-      alias :visit_Arel_Nodes_InnerJoin :join
-      alias :visit_Arel_Nodes_OuterJoin :join
-
       def nary o
         o.children.each { |child| visit child }
       end
@@ -65,6 +57,7 @@ module Arel
       alias :visit_Arel_Nodes_GreaterThan        :binary
       alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
       alias :visit_Arel_Nodes_In                 :binary
+      alias :visit_Arel_Nodes_InnerJoin          :binary
       alias :visit_Arel_Nodes_LessThan           :binary
       alias :visit_Arel_Nodes_LessThanOrEqual    :binary
       alias :visit_Arel_Nodes_Matches            :binary
@@ -72,6 +65,7 @@ module Arel
       alias :visit_Arel_Nodes_NotIn              :binary
       alias :visit_Arel_Nodes_Or                 :binary
       alias :visit_Arel_Nodes_Ordering           :binary
+      alias :visit_Arel_Nodes_OuterJoin          :binary
       alias :visit_Arel_Nodes_StringJoin         :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
       alias :visit_Arel_Nodes_Values             :binary

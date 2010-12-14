@@ -46,7 +46,7 @@ module Arel
     end
 
     def on *exprs
-      @ctx.froms.constraint = Nodes::On.new(collapse(exprs))
+      @ctx.source.right.last.right = Nodes::On.new(collapse(exprs))
       self
     end
 
@@ -66,16 +66,14 @@ module Arel
       # FIXME: this is a hack to support
       # test_with_two_tables_in_from_without_getting_double_quoted
       # from the AR tests.
-      if @ctx.from
-        source = @ctx.from
 
-        if Nodes::SqlLiteral === table && Nodes::Join === source
-          source.left = table
-          table = source
-        end
+      case table
+      when Nodes::SqlLiteral, Arel::Table
+        @ctx.source.left = table
+      when Nodes::Join
+        @ctx.source.right << table
       end
 
-      @ctx.from = table
       self
     end
 
@@ -92,7 +90,8 @@ module Arel
         klass = Nodes::StringJoin
       end
 
-      from create_join(@ctx.from, relation, nil, klass)
+      @ctx.source.right << create_join(relation, nil, klass)
+      self
     end
 
     def having expr
@@ -140,7 +139,7 @@ module Arel
     end
 
     def join_sql
-      return nil unless @ctx.froms
+      return nil if @ctx.source.right.empty?
 
       sql = @visitor.dup.extend(Visitors::JoinSql).accept @ctx
       Nodes::SqlLiteral.new sql

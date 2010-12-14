@@ -1,12 +1,12 @@
 module Arel
   module Nodes
-    class Join < Arel::Nodes::Node
-      attr_accessor :left, :right, :constraint
+    class Join < Arel::Nodes::Binary
 
-      def initialize left, right, constraint
-        @left       = left
-        @right      = right
-        @constraint = constraint
+      alias :single_source :left
+      alias :constraint :right
+
+      def initialize single_source, constraint
+        super
       end
     end
   end

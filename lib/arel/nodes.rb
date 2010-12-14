@@ -15,6 +15,7 @@ require 'arel/nodes/less_than'
 require 'arel/nodes/less_than_or_equal'
 require 'arel/nodes/matches'
 require 'arel/nodes/does_not_match'
+require 'arel/nodes/join_source'
 
 require 'arel/nodes/in'
 require 'arel/nodes/not_in'

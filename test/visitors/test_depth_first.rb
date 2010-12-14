@@ -66,15 +66,15 @@ module Arel
       end
 
       def test_inner_join
-        join = Nodes::InnerJoin.new :a, :b, :c
+        join = Nodes::InnerJoin.new :a, :b
         @visitor.accept join
-        assert_equal [:a, :b, :c, join], @collector.calls
+        assert_equal [:a, :b, join], @collector.calls
       end
 
       def test_outer_join
-        join = Nodes::OuterJoin.new :a, :b, :c
+        join = Nodes::OuterJoin.new :a, :b
         @visitor.accept join
-        assert_equal [:a, :b, :c, join], @collector.calls
+        assert_equal [:a, :b, join], @collector.calls
       end
 
       [

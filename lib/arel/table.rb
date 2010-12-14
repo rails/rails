@@ -66,7 +66,7 @@ primary_key (#{caller.first}) is deprecated and will be removed in ARel 3.0.0
         klass = Nodes::StringJoin
       end
 
-      from create_join(self, relation, nil, klass)
+      from(self).join(relation, klass)
     end
 
     def group *columns

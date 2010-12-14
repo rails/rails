@@ -127,7 +127,7 @@ module Arel
       def visit_Arel_Nodes_SelectCore o
         [
           "SELECT #{o.projections.map { |x| visit x }.join ', '}",
-          ("FROM #{visit o.from}" if o.from),
+          visit(o.source),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
           ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
           (visit(o.having) if o.having),
@@ -217,16 +217,26 @@ module Arel
         "#{visit o.left} NOT LIKE #{visit o.right}"
       end
 
+      def visit_Arel_Nodes_JoinSource o
+        return unless o.left || !o.right.empty?
+
+        [
+          "FROM",
+          (visit(o.left) if o.left),
+          o.right.map { |j| visit j }.join(' ')
+        ].compact.join ' '
+      end
+
       def visit_Arel_Nodes_StringJoin o
         "#{visit o.left} #{visit o.right}"
       end
 
       def visit_Arel_Nodes_OuterJoin o
-        "#{visit o.left} LEFT OUTER JOIN #{visit o.right} #{visit o.constraint}"
+        "LEFT OUTER JOIN #{visit o.left} #{visit o.right}"
       end
 
       def visit_Arel_Nodes_InnerJoin o
-        "#{visit o.left} INNER JOIN #{visit o.right} #{visit o.constraint if o.constraint}"
+        "INNER JOIN #{visit o.left} #{visit o.right if o.right}"
       end
 
       def visit_Arel_Nodes_On o

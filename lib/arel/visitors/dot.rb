@@ -36,7 +36,6 @@ module Arel
       def visit_Arel_Nodes_TableAlias o
         visit_edge o, "name"
         visit_edge o, "relation"
-        visit_edge o, "columns"
       end
 
       def visit_Arel_Nodes_Sum o
@@ -90,7 +89,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_SelectCore o
-        visit_edge o, "froms"
+        visit_edge o, "source"
         visit_edge o, "projections"
         visit_edge o, "wheres"
       end
@@ -146,6 +145,7 @@ module Arel
       alias :visit_Arel_Nodes_NotIn              :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_DoesNotMatch       :visit_Arel_Nodes_Equality
       alias :visit_Arel_Nodes_Matches            :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_JoinSource         :visit_Arel_Nodes_Equality
 
       def visit_String o
         @node_stack.last.fields << o

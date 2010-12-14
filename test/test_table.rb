@@ -14,19 +14,17 @@ module Arel
     end
 
     it 'should create join nodes' do
-      join = @relation.create_join 'foo', 'bar', 'baz'
+      join = @relation.create_join 'foo', 'bar'
       assert_kind_of Arel::Nodes::InnerJoin, join
       assert_equal 'foo', join.left
       assert_equal 'bar', join.right
-      assert_equal 'baz', join.constraint
     end
 
     it 'should create join nodes with a klass' do
-      join = @relation.create_join 'foo', 'bar', 'baz', Arel::Nodes::OuterJoin
+      join = @relation.create_join 'foo', 'bar', Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
       assert_equal 'foo', join.left
       assert_equal 'bar', join.right
-      assert_equal 'baz', join.constraint
     end
 
     it 'should return an insert manager' do

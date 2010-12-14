@@ -1,23 +1,31 @@
 module Arel
   module Nodes
     class SelectCore < Arel::Nodes::Node
-      attr_accessor :from, :projections, :wheres, :groups
-      attr_accessor :having
-
-      alias :froms= :from=
-      alias :froms :from
+      attr_accessor :projections, :wheres, :groups
+      attr_accessor :having, :source
 
       def initialize
-        @from        = nil
+        @source      = JoinSource.new nil
         @projections = []
         @wheres      = []
         @groups      = []
         @having      = nil
       end
 
+      def from
+        @source.left
+      end
+
+      def from= value
+        @source.left = value
+      end
+
+      alias :froms= :from=
+      alias :froms :from
+
       def initialize_copy other
         super
-        @from        = @from.clone if @from
+        @source      = @source.clone if @source
         @projections = @projections.clone
         @wheres      = @wheres.clone
         @group       = @groups.clone

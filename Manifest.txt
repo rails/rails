@@ -38,6 +38,7 @@ lib/arel/nodes/in.rb
 lib/arel/nodes/inner_join.rb
 lib/arel/nodes/insert_statement.rb
 lib/arel/nodes/join.rb
+lib/arel/nodes/join_source.rb
 lib/arel/nodes/less_than.rb
 lib/arel/nodes/less_than_or_equal.rb
 lib/arel/nodes/lock.rb
@@ -103,6 +104,7 @@ test/test_activerecord_compat.rb
 test/test_attributes.rb
 test/test_crud.rb
 test/test_delete_manager.rb
+test/test_factory_methods.rb
 test/test_insert_manager.rb
 test/test_select_manager.rb
 test/test_table.rb

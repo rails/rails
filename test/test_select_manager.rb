@@ -292,20 +292,18 @@ module Arel
 
     it 'should create join nodes' do
       relation = Arel::SelectManager.new Table.engine
-      join = relation.create_join 'foo', 'bar', 'baz'
+      join = relation.create_join 'foo', 'bar'
       assert_kind_of Arel::Nodes::InnerJoin, join
       assert_equal 'foo', join.left
       assert_equal 'bar', join.right
-      assert_equal 'baz', join.constraint
     end
 
     it 'should create join nodes with a klass' do
       relation = Arel::SelectManager.new Table.engine
-      join = relation.create_join 'foo', 'bar', 'baz', Arel::Nodes::OuterJoin
+      join = relation.create_join 'foo', 'bar', Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
       assert_equal 'foo', join.left
       assert_equal 'bar', join.right
-      assert_equal 'baz', join.constraint
     end
 
     describe 'join' do
@@ -350,7 +348,7 @@ module Arel
         table   = Table.new :users
         aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
-        manager.from Nodes::InnerJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
+        manager.from Nodes::InnerJoin.new(aliaz, table[:id].eq(aliaz[:id]))
         manager.join_sql.must_be_like %{
           INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
@@ -360,7 +358,7 @@ module Arel
         table   = Table.new :users
         aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
-        manager.from Nodes::OuterJoin.new(table, aliaz, table[:id].eq(aliaz[:id]))
+        manager.from Nodes::OuterJoin.new(aliaz, table[:id].eq(aliaz[:id]))
         manager.join_sql.must_be_like %{
           LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
         }
