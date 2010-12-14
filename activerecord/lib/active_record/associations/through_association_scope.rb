@@ -23,25 +23,23 @@ module ActiveRecord
 
       # Build SQL conditions from attributes, qualified by table name.
       def construct_conditions
-        table_name = @reflection.through_reflection.quoted_table_name
+        table = @reflection.through_reflection.klass.arel_table
         conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
-          "#{table_name}.#{attr} = #{value}"
+          table[attr].eq(value)
         end
-        conditions << sql_conditions if sql_conditions
-        "(" + conditions.join(') AND (') + ")"
+        conditions << Arel.sql(sql_conditions) if sql_conditions
+        table.create_and(conditions)
       end
 
       # Associate attributes pointing to owner, quoted.
       def construct_quoted_owner_attributes(reflection)
         if as = reflection.options[:as]
-          { "#{as}_id" => owner_quoted_id,
-            "#{as}_type" => reflection.klass.quote_value(
-              @owner.class.base_class.name.to_s,
-              reflection.klass.columns_hash["#{as}_type"]) }
+          { "#{as}_id" => @owner.id,
+            "#{as}_type" => @owner.class.base_class.name }
         elsif reflection.macro == :belongs_to
-          { reflection.klass.primary_key => @owner.class.quote_value(@owner[reflection.primary_key_name]) }
+          { reflection.klass.primary_key => @owner[reflection.primary_key_name] }
         else
-          { reflection.primary_key_name => owner_quoted_id }
+          { reflection.primary_key_name => @owner.id }
         end
       end
 
