@@ -151,6 +151,10 @@ module Arel
       }
     end
 
+    def join_sources
+      @ctx.source.right
+    end
+
     def joins manager
       if $VERBOSE
         warn "joins is deprecated and will be removed in 3.0.0"
