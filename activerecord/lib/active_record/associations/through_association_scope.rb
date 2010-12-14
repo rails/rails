@@ -55,33 +55,35 @@ module ActiveRecord
       end
 
       def construct_joins(custom_joins = nil)
-        polymorphic_join = nil
+        right = @reflection.through_reflection.klass.arel_table
+        left  = @reflection.klass.arel_table
+
+        conditions = []
+
         if @reflection.source_reflection.macro == :belongs_to
           reflection_primary_key = @reflection.klass.primary_key
           source_primary_key     = @reflection.source_reflection.primary_key_name
           if @reflection.options[:source_type]
-            polymorphic_join = "AND %s.%s = %s" % [
-              @reflection.through_reflection.quoted_table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
-              @owner.class.quote_value(@reflection.options[:source_type])
-            ]
+            column = @reflection.source_reflection.options[:foreign_type]
+            conditions <<
+              right[column].eq(@reflection.options[:source_type])
           end
         else
           reflection_primary_key = @reflection.source_reflection.primary_key_name
           source_primary_key     = @reflection.through_reflection.klass.primary_key
           if @reflection.source_reflection.options[:as]
-            polymorphic_join = "AND %s.%s = %s" % [
-              @reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
-              @owner.class.quote_value(@reflection.through_reflection.klass.name)
-            ]
+            column = "#{@reflection.source_reflection.options[:as]}_type"
+            conditions <<
+              left[column].eq(@reflection.through_reflection.klass.name)
           end
         end
 
-        "INNER JOIN %s ON %s.%s = %s.%s %s #{@reflection.options[:joins]} #{custom_joins}" % [
-          @reflection.through_reflection.quoted_table_name,
-          @reflection.quoted_table_name, reflection_primary_key,
-          @reflection.through_reflection.quoted_table_name, source_primary_key,
-          polymorphic_join
-        ]
+        conditions <<
+          left[reflection_primary_key].eq(right[source_primary_key])
+
+        right.create_join(
+          right,
+          right.create_on(right.create_and(conditions)))
       end
 
       # Construct attributes for associate pointing to owner.

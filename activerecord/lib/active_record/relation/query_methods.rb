@@ -247,6 +247,8 @@ module ActiveRecord
           'association_join'
         when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
           'stashed_join'
+        when Arel::Nodes::Join
+          'join_node'
         else
           raise 'unknown class: %s' % join.class.name
         end
@@ -254,12 +256,22 @@ module ActiveRecord
 
       association_joins         = buckets['association_join'] || []
       stashed_association_joins = buckets['stashed_join'] || []
+      join_nodes                = buckets['join_node'] || []
       string_joins              = (buckets['string_join'] || []).map { |x|
         x.strip
       }.uniq
+
       join_list = custom_join_ast(manager, string_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_list)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(
+        @klass,
+        association_joins,
+        join_list
+      )
+
+      join_nodes.each do |join|
+        join_dependency.table_aliases[join.left.name.downcase] = 1
+      end
 
       join_dependency.graft(*stashed_association_joins)
 
@@ -270,9 +282,9 @@ module ActiveRecord
         association.join_to(manager)
       end
 
-      return manager unless join_list
+      manager.join_sources.concat join_nodes
+      manager.join_sources.concat join_list
 
-      join_list.each { |j| manager.from j }
       manager
     end
 
