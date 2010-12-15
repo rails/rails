@@ -8,5 +8,20 @@ module Arel
         @right = right
       end
     end
+
+    %w{
+      Between
+      NotEqual
+      Assignment
+      Or
+      As
+      GreaterThan
+      GreaterThanOrEqual
+      LessThan
+      LessThanOrEqual
+      Matches
+    }.each do |name|
+      const_set(name, Class.new(Binary))
+    end
   end
 end

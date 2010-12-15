@@ -1,6 +1,6 @@
 module Arel
   module Nodes
-    class And < Arel::Nodes::Binary
+    class And < Arel::Nodes::Node
       attr_reader :children
 
       def initialize children, right = nil
