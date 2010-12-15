@@ -32,12 +32,5 @@ module Arel
     }.each do |name|
       const_set name, Class.new(Binary)
     end
-
-    #%w{
-    #  InnerJoin
-    #  OuterJoin
-    #}.each do |name|
-    #  Nodes.const_set name, Class.new(Join)
-    #end
   end
 end
