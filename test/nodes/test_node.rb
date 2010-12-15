@@ -2,6 +2,10 @@ require 'helper'
 
 module Arel
   class TestNode < MiniTest::Unit::TestCase
+    def test_includes_factory_methods
+      assert Node.new.respond_to?(:create_join)
+    end
+
     def test_all_nodes_are_nodes
       Nodes.constants.map { |k|
         Nodes.const_get(k)

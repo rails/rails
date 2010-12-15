@@ -6,7 +6,7 @@ module Arel
       alias :table_alias :name
 
       def [] name
-        Attribute.new self, name
+        Attribute.new(self, name)
       end
     end
   end
