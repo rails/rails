@@ -17,16 +17,24 @@ require 'models/subscription'
 require 'models/book'
 require 'models/developer'
 require 'models/project'
+require 'models/member'
+require 'models/membership'
+require 'models/club'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs
 
   def setup
     # preheat table existence caches
     Comment.find_by_id(1)
+  end
+
+  def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
+    member = Member.find(members(:some_other_guy).id, :include => :favourite_club)
+    assert_nil member.favourite_club
   end
 
   def test_loading_with_one_association
