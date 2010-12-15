@@ -207,7 +207,7 @@ module Rails
   #     end
   #   end
   #
-  # == Namespaced Engine
+  # == Isolated Engine
   #
   # Normally when you create controllers, helpers and models inside engine, they are treated
   # as they were created inside the application. This means all applications helpers and named routes
