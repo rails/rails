@@ -135,6 +135,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/javascripts/application.js"
     assert_file "public/javascripts/prototype.js"
     assert_file "public/javascripts/rails.js"
+    assert_file "public/javascripts/controls.js"
+    assert_file "public/javascripts/dragdrop.js"
+    assert_file "public/javascripts/dragdrop.js"
     assert_file "test"
   end
 
