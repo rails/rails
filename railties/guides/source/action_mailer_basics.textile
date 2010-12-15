@@ -144,7 +144,7 @@ This provides a much simpler implementation that does not require the registerin
 
 The method +welcome_email+ returns a Mail::Message object which can then just be told +deliver+ to send itself out.
 
-NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+ however in Rails 3.0 this has been deprecated in favour of just calling the method name itself.
+NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
 
 WARNING: Sending out one email should only take a fraction of a second, if you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like delayed job.
 
@@ -154,7 +154,7 @@ Action Mailer now handles the auto encoding of multibyte characters inside of he
 
 If you are using UTF-8 as your character set, you do not have to do anything special, just go ahead and send in UTF-8 data to the address fields, subject, keywords, filenames or body of the email and ActionMailer will auto encode it into quoted printable for you in the case of a header field or Base64 encode any body parts that are non US-ASCII.
 
-For more complex examples, such as defining alternate character sets or self encoding text first, please refer to the Mail library.
+For more complex examples such as defining alternate character sets or self encoding text first, please refer to the Mail library.
 
 h4. Complete List of Action Mailer Methods
 
@@ -213,9 +213,7 @@ NOTE: If you specify an encoding, Mail will assume that your content is already 
 
 h5. Making Inline Attachments
 
-Inline attachments are now possible in ActionMailer.  While previously in the pre 3.0 version of Rails, you could do inline attachments, it involved a lot of hacking and determination to pull it off.
-
-ActionMailer now makes inline attachments as trivial as they should be.
+ActionMailer 3.0 makes inline attachments, which involved a lot of hacking in pre 3.0 versions, much simpler and trivial as they should be.
 
 * Firstly, to tell Mail to turn an attachment into an inline attachment, you just call <tt>#inline</tt> on the attachments method within your Mailer:
 
@@ -274,7 +272,7 @@ to format the email address in the format <tt>"Name &lt;email&gt;"</tt>.
 
 h4. Mailer Views
 
-Mailer views are located in the +app/views/name_of_mailer_class+ directory. The specific mailer view is known to the class because it's name is the same as the mailer method. So for example, in our example from above, our mailer view for the +welcome_email+ method will be in +app/views/user_mailer/welcome_email.html.erb+ for the HTML version and +welcome_email.text.erb+ for the plain text version.
+Mailer views are located in the +app/views/name_of_mailer_class+ directory. The specific mailer view is known to the class because its name is the same as the mailer method. In our example from above, our mailer view for the +welcome_email+ method will be in +app/views/user_mailer/welcome_email.html.erb+ for the HTML version and +welcome_email.text.erb+ for the plain text version.
 
 To change the default mailer view for your action you do something like:
 
@@ -441,7 +439,7 @@ h3. Action Mailer Configuration
 The following configuration options are best made in one of the environment files (environment.rb, production.rb, etc...)
 
 |template_root|Determines the base from which template references will be made.|
-|logger|The logger is used for generating information on the mailing run if available. Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.|
+|logger|Generates information on the mailing run if available. Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.|
 |smtp_settings|Allows detailed configuration for :smtp delivery method:<ul><li>:address - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>:port  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>:domain - If you need to specify a HELO domain, you can do it here.</li><li>:user_name - If your mail server requires authentication, set the username in this setting.</li><li>:password - If your mail server requires authentication, set the password in this setting.</li><li>:authentication - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of :plain, :login, :cram_md5.</li></ul>|
 |sendmail_settings|Allows you to override options for the :sendmail delivery method.<ul><li>:location - The location of the sendmail executable. Defaults to /usr/sbin/sendmail.</li><li>:arguments - The command line arguments to be passed to sendmail. Defaults to -i -t.</li></ul>|
 |raise_delivery_errors|Whether or not errors should be raised if the email fails to be delivered.|
@@ -504,7 +502,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 </ruby>
 
-In the test we send the email and store the returned object in the +email+ variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain the what we expect.
+In the test we send the email and store the returned object in the +email+ variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
 
 h3. Changelog
 
