@@ -510,6 +510,17 @@ The next file that is required is another Active Support core extension, this ti
 
 For more information see the "Extensions to Logger":http://guides.rubyonrails.org/active_support_core_extensions.html#extensions-to-logger section from the Active Support Core Extensions Guide.
 
+h4. +railties/lib/rails/application.rb+
+
+The next file required by +railties/lib/rails.rb+ is +application.rb+. This file defines the +Rails::Application+ constant which the application's class defined in +config/application.rb+ in a standard Rails application depends on. Before the +Rails::Application+ class is defined however, there's some other files that get required first. 
+
+The first of these is +active_support/core_ext/hash/reverse_merge+ which can be "read about in the Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#merging under the "Merging" section.
+
+h4. +active_support/file_update_checker.rb+
+
+The +ActiveSupport::FileUpdateChecker+ class defined within this file is responsible for checking if a file has been updated since it was last checked. This is used for monitoring the routes file for changes during development environment runs.
+
+
 
 
 
