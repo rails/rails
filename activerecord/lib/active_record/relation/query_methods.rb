@@ -282,7 +282,7 @@ module ActiveRecord
         association.join_to(manager)
       end
 
-      manager.join_sources.concat join_nodes
+      manager.join_sources.concat join_nodes.uniq
       manager.join_sources.concat join_list
 
       manager
