@@ -68,7 +68,7 @@ module ActionView
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
-      #   select_tag "people", options_from_collection_for_select(@people, "name", "id")
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
       #   # <select id="people" name="people"><option value="1">David</option></select>
       #
       #   select_tag "people", "<option>David</option>"
