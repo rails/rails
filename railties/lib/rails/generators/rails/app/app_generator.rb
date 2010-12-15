@@ -317,11 +317,6 @@ module Rails
         ].find { |f| File.exist?(f) } unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
       end
 
-      def empty_directory_with_gitkeep(destination, config = {})
-        empty_directory(destination, config)
-        create_file("#{destination}/.gitkeep") unless options[:skip_git]
-      end
-
       def get_builder_class
         defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
       end

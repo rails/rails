@@ -171,6 +171,12 @@ gem 'rails', '#{Rails::VERSION::STRING}'
       def dev_or_edge?
         options.dev? || options.edge?
       end
+
+      def empty_directory_with_gitkeep(destination, config = {})
+        empty_directory(destination, config)
+        create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      end
+
     end
   end
 end
