@@ -63,7 +63,7 @@ module Rails
     end
 
     def database_yml
-      template "config/databases/#{@options[:database]}.yml", "config/database.yml"
+      template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
 
     def db
@@ -106,8 +106,8 @@ module Rails
       empty_directory "public/javascripts"
 
       unless options[:skip_javascript]
-        copy_file "public/javascripts/#{@options[:javascript]}.js"
-        copy_file "public/javascripts/#{@options[:javascript]}_ujs.js", "public/javascripts/rails.js"
+        copy_file "public/javascripts/#{options[:javascript]}.js"
+        copy_file "public/javascripts/#{options[:javascript]}_ujs.js", "public/javascripts/rails.js"
 
         if options[:javascript] == "prototype"
           copy_file "public/javascripts/controls.js"
