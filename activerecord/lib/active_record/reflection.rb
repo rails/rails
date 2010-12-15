@@ -205,7 +205,11 @@ module ActiveRecord
       end
 
       def association_foreign_key
-        @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
+        @association_foreign_key ||= options[:association_foreign_key] || class_name.foreign_key
+      end
+
+      def active_record_primary_key
+        @active_record_primary_key ||= options[:primary_key] || active_record.primary_key
       end
 
       def counter_cache_column

@@ -39,22 +39,22 @@ module ActiveRecord
       # Build SQL conditions from attributes, qualified by table name.
       def construct_conditions
         table = aliased_through_table
-        conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
+        conditions = construct_owner_attributes(@reflection.through_reflection).map do |attr, value|
           table[attr].eq(value)
         end
         conditions << Arel.sql(sql_conditions) if sql_conditions
         table.create_and(conditions)
       end
 
-      # Associate attributes pointing to owner, quoted.
-      def construct_quoted_owner_attributes(reflection)
+      # Associate attributes pointing to owner
+      def construct_owner_attributes(reflection)
         if as = reflection.options[:as]
-          { "#{as}_id" => @owner.id,
+          { "#{as}_id"   => @owner[reflection.active_record_primary_key],
             "#{as}_type" => @owner.class.base_class.name }
         elsif reflection.macro == :belongs_to
           { reflection.klass.primary_key => @owner[reflection.primary_key_name] }
         else
-          { reflection.primary_key_name => @owner.id }
+          { reflection.primary_key_name => @owner[reflection.active_record_primary_key] }
         end
       end
 
@@ -74,7 +74,8 @@ module ActiveRecord
         conditions = []
 
         if @reflection.source_reflection.macro == :belongs_to
-          reflection_primary_key = @reflection.klass.primary_key
+          reflection_primary_key = @reflection.source_reflection.options[:primary_key] ||
+                                   @reflection.klass.primary_key
           source_primary_key     = @reflection.source_reflection.primary_key_name
           if @reflection.options[:source_type]
             column = @reflection.source_reflection.options[:foreign_type]
@@ -83,7 +84,8 @@ module ActiveRecord
           end
         else
           reflection_primary_key = @reflection.source_reflection.primary_key_name
-          source_primary_key     = @reflection.through_reflection.klass.primary_key
+          source_primary_key     = @reflection.source_reflection.options[:primary_key] ||
+                                   @reflection.through_reflection.klass.primary_key
           if @reflection.source_reflection.options[:as]
             column = "#{@reflection.source_reflection.options[:as]}_type"
             conditions <<
@@ -97,16 +99,6 @@ module ActiveRecord
         right.create_join(
           right,
           right.create_on(right.create_and(conditions)))
-      end
-
-      # Construct attributes for associate pointing to owner.
-      def construct_owner_attributes(reflection)
-        if as = reflection.options[:as]
-          { "#{as}_id" => @owner.id,
-            "#{as}_type" => @owner.class.base_class.name }
-        else
-          { reflection.primary_key_name => @owner.id }
-        end
       end
 
       # Construct attributes for :through pointing to owner and associate.

@@ -298,6 +298,22 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal [authors(:mary)], posts(:authorless).authors
   end
 
+  def test_has_many_going_through_join_model_with_custom_primary_key
+    assert_equal [authors(:david)], posts(:thinking).authors_using_author_id
+  end
+
+  def test_has_many_going_through_polymorphic_join_model_with_custom_primary_key
+    assert_equal [tags(:general)], posts(:eager_other).tags_using_author_id
+  end
+
+  def test_has_many_through_with_custom_primary_key_on_belongs_to_source
+    assert_equal [authors(:david), authors(:david)], posts(:thinking).author_using_custom_pk
+  end
+
+  def test_has_many_through_with_custom_primary_key_on_has_many_source
+    assert_equal [authors(:david)], posts(:thinking).authors_using_custom_pk
+  end
+
   def test_both_scoped_and_explicit_joins_should_be_respected
     assert_nothing_raised do
       Post.send(:with_scope, :find => {:joins => "left outer join comments on comments.id = posts.id"}) do
