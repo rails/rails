@@ -398,7 +398,7 @@ $ rails benchmarker 'Item.first' 'Item.last'
 
 h4. +profiler+
 
-+profiler+ is a wrapper around http://ruby-prof.rubyforge.org/[ruby-prof] gem.
++profiler+ is a wrapper around the "ruby-prof":http://ruby-prof.rubyforge.org gem.
 
 Usage:
 
