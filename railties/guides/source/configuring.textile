@@ -42,9 +42,9 @@ h4. Rails General Configuration
 * +config.after_initialize+ takes a block which will be ran _after_ Rails has finished initializing. Useful for configuring values set up by other initializers:
 
 <ruby>
-  config.after_initialize do
-    ActionView::Base.sanitized_allowed_tags.delete 'div'
-  end
+config.after_initialize do
+  ActionView::Base.sanitized_allowed_tags.delete 'div'
+end
 </ruby>
 
 * +config.allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
@@ -115,7 +115,7 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* +config.whiny_nils+ enables or disabled warnings when an methods of nil are invoked. Defaults to _false_.
+* +config.whiny_nils+ enables or disables warnings when any methods of nil are invoked. Defaults to _true_ in development and test environments.
 
 h4. Configuring Generators
 
@@ -131,12 +131,12 @@ Rails 3 allows you to alter what generators are used with the +config.generators
 The full set of methods that can be used in this block are as follows:
 
 * +force_plural+ allows pluralized model names. Defaults to _false_.
-* +helper+ defines whether or not to generate helpers. Defaults to _true_
+* +helper+ defines whether or not to generate helpers. Defaults to _true_.
 * +orm+ defines which orm to use. Defaults to _nil_, so will use Active Record by default.
-* +integration_tool+ defines which integration tool to use. Defaults to _nil_
-* +performance_tool+ defines which performance tool to use. Defaults to _nil_
+* +integration_tool+ defines which integration tool to use. Defaults to _nil_.
+* +performance_tool+ defines which performance tool to use. Defaults to _nil_.
 * +resource_controller+ defines which generator to use for generating a controller when using +rails generate resource+. Defaults to +:controller+.
-* +scaffold_controller+ different from +resource_controller+, defines which generator to use for generating a _scaffolded_ controller when using +rails generate scaffold+. Defaults to +:scaffold_controller+
+* +scaffold_controller+ different from +resource_controller+, defines which generator to use for generating a _scaffolded_ controller when using +rails generate scaffold+. Defaults to +:scaffold_controller+.
 * +stylesheets+ turns on the hook for stylesheets in generators. Used in Rails for when the +scaffold+ generator is ran, but this hook can be used in other generates as well.
 * +test_framework+ defines which test framework to use. Defaults to _nil_, so will use Test::Unit by default.
 * +template_engine+ defines which template engine to use, such as ERB or Haml. Defaults to +:erb+.
@@ -234,7 +234,7 @@ h4. Configuring Action Controller
 
 * +config.action_controller.asset_path+ takes a block which configures where assets can be found. Shorter version of +config.action_controller.asset_path+.
 
-* +config.action_controller.page_cache_directory+ should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>. For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your web server to look in the new location for cached files.
+* +config.action_controller.page_cache_directory+ should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>. For Rails, this directory has already been set to +Rails.public_path+ (which is usually set to <tt>Rails.root + "/public"</tt>). Changing this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your web server to look in the new location for cached files.
 
 * +config.action_controller.page_cache_extension+ configures the extension used for cached pages saved to +page_cache_directory+. Defaults to +.html+
 
@@ -252,7 +252,7 @@ h4. Configuring Action Controller
 
 The caching code adds two additional settings:
 
-* +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +Rails.root + "/public"+).
+* +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to <tt>Rails.root + "/public"</tt>).
 
 * +ActionController::Base.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
 
@@ -280,7 +280,7 @@ h4. Configuring Action View
 
 There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
 
-* +config.action_view.debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is +false+.
+* +config.action_view.debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alerts the caught exception (and then re-raises it). The default is +false+.
 
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is <tt>Proc.new{ |html_tag, instance| %Q(%&lt;div class=&quot;field_with_errors&quot;&gt;#{html_tag}&lt;/div&gt;).html_safe }</tt>
 
@@ -290,7 +290,7 @@ There are only a few configuration options for Action View, starting with four o
 
 * +config.action_view.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+. See the "ERB documentation":http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/ for more information.
 
-* +config.action_view.javascript_expansions+ a hash containining expansions that can be used for javascript include tag. By default, this is defined as:
+* +config.action_view.javascript_expansions+ is a hash containing expansions that can be used for the JavaScript include tag. By default, this is defined as:
 
 <ruby>
   config.action_view.javascript_expansions = { :defaults => ['prototype', 'effects', 'dragdrop', 'controls', 'rails'] }
@@ -302,7 +302,7 @@ However, you may add to this by defining others:
   config.action_view.javascript_expansions[:jquery] = ["jquery", "jquery-ui"]
 </ruby>
 
-Then this can be referenced in the view with the following code:
+And can reference in the view with the following code:
 
 <ruby>
   <%= javascript_include_tag :jquery %>
@@ -374,9 +374,9 @@ h3. Rails Environment Settings
 
 Some parts of Rails can also be configured externally by supplying environment variables. The following environment variables are recognized by various parts of Rails:
 
-* +ENV['RAILS_ENV']+ defines the Rails environment (production, development, test, and so on) that Rails will run under.
+* +ENV["RAILS_ENV"]+ defines the Rails environment (production, development, test, and so on) that Rails will run under.
 
-* +ENV['RAILS_RELATIVE_URL_ROOT']+ is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
+* +ENV["RAILS_RELATIVE_URL_ROOT"]+ is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
 
 * +ENV["RAILS_ASSET_ID"]+ will override the default cache-busting timestamps that Rails generates for downloadable assets.
 
@@ -404,9 +404,9 @@ h4. +Rails::Railtie#initializer+
 Rails has several initializers that run on startup that are all defined by using the +initializer+ method from +Rails::Railtie+. Here's an example of the +initialize_whiny_nils+ initializer from Active Support:
 
 <ruby>
-  initializer "active_support.initialize_whiny_nils" do |app|
-    require 'active_support/whiny_nil' if app.config.whiny_nils
-  end
+initializer "active_support.initialize_whiny_nils" do |app|
+  require 'active_support/whiny_nil' if app.config.whiny_nils
+end
 </ruby>
 
 The +initializer+ method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The +:before+ key in the options hash can be specified to specify which initializer this new initializer must run before, and the +:after+ key will specify which initializer to run this initializer _after_. 
@@ -442,7 +442,7 @@ Serves as a placeholder so that +:load_environment_config+ can be defined to run
 
 *+i18n.callbacks+* In the development environment, sets up a +to_prepare+ callback which will call +I18n.reload!+ if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
 
-*+active_support.initialize_whiny_nils+* Will require +active_support/whiny_nil+ if +config.whiny_nil+ is set to +true+. This file will output errors such as:
+*+active_support.initialize_whiny_nils+* Will require +active_support/whiny_nil+ if +config.whiny_nils+ is set to +true+. This file will output errors such as:
 
 <plain>
   Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id
