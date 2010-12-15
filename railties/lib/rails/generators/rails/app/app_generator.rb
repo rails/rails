@@ -104,18 +104,18 @@ module Rails
 
     def javascripts
       empty_directory "public/javascripts"
-          
+
       unless options[:skip_javascript]
         copy_file "public/javascripts/#{@options[:javascript]}.js"
         copy_file "public/javascripts/#{@options[:javascript]}_ujs.js", "public/javascripts/rails.js"
-        
+
         if options[:javascript] == "prototype"
           copy_file "public/javascripts/controls.js"
           copy_file "public/javascripts/dragdrop.js"
           copy_file "public/javascripts/effects.js"
         end
       end
-      
+
       copy_file "public/javascripts/application.js"
     end
 
