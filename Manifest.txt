@@ -25,9 +25,6 @@ lib/arel/nodes/delete_statement.rb
 lib/arel/nodes/equality.rb
 lib/arel/nodes/exists.rb
 lib/arel/nodes/function.rb
-lib/arel/nodes/group.rb
-lib/arel/nodes/grouping.rb
-lib/arel/nodes/having.rb
 lib/arel/nodes/in.rb
 lib/arel/nodes/inner_join.rb
 lib/arel/nodes/insert_statement.rb
@@ -36,9 +33,6 @@ lib/arel/nodes/lock.rb
 lib/arel/nodes/max.rb
 lib/arel/nodes/min.rb
 lib/arel/nodes/node.rb
-lib/arel/nodes/not.rb
-lib/arel/nodes/offset.rb
-lib/arel/nodes/on.rb
 lib/arel/nodes/ordering.rb
 lib/arel/nodes/outer_join.rb
 lib/arel/nodes/select_core.rb

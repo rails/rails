@@ -27,7 +27,7 @@ module Arel
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (#{sql}) raw_sql_
-                WHERE rownum <= #{offset.value.to_i + limit}
+                WHERE rownum <= #{offset.expr.to_i + limit}
               )
               WHERE #{visit offset}
           eosql
@@ -58,7 +58,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Offset o
-        "raw_rnum_ > #{visit o.value}"
+        "raw_rnum_ > #{visit o.expr}"
       end
 
       ###
