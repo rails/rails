@@ -14,5 +14,15 @@ module Arel
         self
       end
     end
+
+    %w{
+      Sum
+      Exists
+      Max
+      Min
+      Avg
+    }.each do |name|
+      const_set(name, Class.new(Function))
+    end
   end
 end

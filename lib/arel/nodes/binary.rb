@@ -16,21 +16,28 @@ module Arel
     end
 
     %w{
-      Between
-      NotEqual
-      Assignment
-      Or
       As
+      Assignment
+      Between
+      DoesNotMatch
       GreaterThan
       GreaterThanOrEqual
+      Join
       LessThan
       LessThanOrEqual
       Matches
-      DoesNotMatch
+      NotEqual
       NotIn
-      Join
+      Or
     }.each do |name|
-      const_set(name, Class.new(Binary))
+      const_set name, Class.new(Binary)
     end
+
+    #%w{
+    #  InnerJoin
+    #  OuterJoin
+    #}.each do |name|
+    #  Nodes.const_set name, Class.new(Join)
+    #end
   end
 end
