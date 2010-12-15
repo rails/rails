@@ -570,13 +570,13 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #      admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
-        #      admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
-        #   new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
-        #  edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
-        #       admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
-        #       admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
-        #       admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        #       admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
+        #       admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
+        #    new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
+        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
+        #        admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
+        #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         # === Supported options
         #
         # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ options all default to the name of the namespace.
@@ -584,24 +584,24 @@ module ActionDispatch
         # [:path]
         #   The path prefix for the routes.
         #
-        #   namespace :admin, :path => "sekret" do
-        #     resources :posts
-        #   end
+        #     namespace :admin, :path => "sekret" do
+        #       resources :posts
+        #     end
         #
         #   All routes for the above +resources+ will be accessible through +/sekret/posts+, rather than +/admin/posts+
         #
         # [:module]
         #   The namespace for the controllers.
         #
-        #   namespace :admin, :module => "sekret" do
-        #     resources :posts
-        #   end
+        #     namespace :admin, :module => "sekret" do
+        #       resources :posts
+        #     end
         #
         #   The +PostsController+ here should go in the +Sekret+ namespace and so it should be defined like this:
         #
-        #   class Sekret::PostsController < ApplicationController
-        #     # code go here
-        #   end
+        #     class Sekret::PostsController < ApplicationController
+        #       # code go here
+        #     end
         #
         # [:as]
         #   Changes the name used in routing helpers for this namespace.
