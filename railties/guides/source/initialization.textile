@@ -486,6 +486,31 @@ This file is responsible for the initial definition of the +Rails+ module and, r
 
 However, before all that takes place the +rails/ruby_version_check+ file is required first.
 
+h4. +railties/lib/rails/ruby_version_check.rb+
+
+This file simply checks if the Ruby version is less than 1.8.7 or is 1.9.1 and raises an error if that is the case. Rails 3 simply will not run on earlier versions of Ruby than 1.8.7 or 1.9.1.
+
+NOTE: You should always endeavour to run the latest version of Ruby with your Rails applications. The benefits are many, including security fixes and the like, and very often there is a speed increase associated with it. The caveat is that you could have code that potentially breaks on the latest version, which should be fixed to work on the latest version rather than kept around as an excuse not to upgrade.
+
+h4. +active_support/core_ext/kernel/reporting.rb+
+
+This is the first of the many Active Support core extensions that come with Rails. This one in particular defines methods in the +Kernel+ module which is mixed in to the +Object+ class so the methods are available on +main+ and can therefore be called like this:
+
+<ruby>
+  silence_warnings do
+    # some code
+  end
+</ruby>
+
+These methods can be used to silence STDERR responses and the +silence_stream+ allows you to also silence other streams. Additionally, this mixin allows you to suppress exceptions and capture streams. For more information see the "Silencing Warnings, Streams, and Exceptions":http://guides.rubyonrails.org/active_support_core_extensions.html#silencing-warnings-streams-and-exceptions section from the Active Support Core Extensions Guide.
+
+h4. +active_support/core_ext/logger.rb+
+
+The next file that is required is another Active Support core extension, this time to the +Logger+ class. This begins by defining the +around_[level]+ helpers for the +Logger+ class as well as other methods such as a +datetime_format+ getter and setter for the +formatter+ object tied to a +Logger+ object.
+
+For more information see the "Extensions to Logger":http://guides.rubyonrails.org/active_support_core_extensions.html#extensions-to-logger section from the Active Support Core Extensions Guide.
+
+
 
 
 
