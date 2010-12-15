@@ -166,6 +166,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/routes.rb", /mount Bukkits::Engine => "\/bukkits"/
     assert_file "app/controllers/bukkits/application_controller.rb", /module Bukkits\n  class ApplicationController < ActionController::Base/
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
+    assert_file "app/views/layouts/bukkits/application.html.erb", /<title>Bukkits<\/title>/
   end
 
   def test_passing_dummy_path_as_a_parameter

@@ -284,6 +284,7 @@ module Rails
       def app_const_base
         @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
+      alias :camelized :app_const_base
 
       def app_const
         @app_const ||= "#{app_const_base}::Application"

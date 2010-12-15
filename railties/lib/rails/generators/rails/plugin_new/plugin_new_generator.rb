@@ -8,7 +8,11 @@ module Rails
     end
 
     def app
-      directory "app" if options[:mountable]
+      if options[:mountable]
+        directory "app"
+        template "#{app_templates_dir}/app/views/layouts/application.html.erb.tt",
+                 "app/views/layouts/#{name}/application.html.erb"
+      end
     end
 
     def readme
