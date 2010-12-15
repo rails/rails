@@ -109,7 +109,7 @@ module Rails
         copy_file "public/javascripts/#{@options[:javascript]}.js"
         copy_file "public/javascripts/#{@options[:javascript]}_ujs.js", "public/javascripts/rails.js"
         
-        if options[:prototype]
+        if options[:javascript] == "prototype"
           copy_file "public/javascripts/controls.js"
           copy_file "public/javascripts/dragdrop.js"
           copy_file "public/javascripts/effects.js"
