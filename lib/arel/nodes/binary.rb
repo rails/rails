@@ -7,6 +7,12 @@ module Arel
         @left  = left
         @right = right
       end
+
+      def initialize_copy other
+        super
+        @left  = @left.clone if @left
+        @right = @right.clone if @right
+      end
     end
 
     %w{
@@ -20,6 +26,9 @@ module Arel
       LessThan
       LessThanOrEqual
       Matches
+      DoesNotMatch
+      NotIn
+      Join
     }.each do |name|
       const_set(name, Class.new(Binary))
     end

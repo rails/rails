@@ -14,7 +14,7 @@ module Arel
       def test_create_join
         join = @factory.create_join :one, :two
         assert_kind_of Nodes::Join, join
-        assert_equal :two, join.constraint
+        assert_equal :two, join.right
       end
 
       def test_create_on

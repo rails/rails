@@ -9,12 +9,6 @@ module Arel
       def initialize single_source, joinop = []
         super
       end
-
-      def initialize_copy other
-        super
-        @left  = @left.clone if @left
-        @right = @right.clone if @right
-      end
     end
   end
 end

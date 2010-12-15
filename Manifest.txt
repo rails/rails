@@ -22,7 +22,6 @@ lib/arel/nodes/avg.rb
 lib/arel/nodes/binary.rb
 lib/arel/nodes/count.rb
 lib/arel/nodes/delete_statement.rb
-lib/arel/nodes/does_not_match.rb
 lib/arel/nodes/equality.rb
 lib/arel/nodes/exists.rb
 lib/arel/nodes/function.rb
@@ -32,14 +31,12 @@ lib/arel/nodes/having.rb
 lib/arel/nodes/in.rb
 lib/arel/nodes/inner_join.rb
 lib/arel/nodes/insert_statement.rb
-lib/arel/nodes/join.rb
 lib/arel/nodes/join_source.rb
 lib/arel/nodes/lock.rb
 lib/arel/nodes/max.rb
 lib/arel/nodes/min.rb
 lib/arel/nodes/node.rb
 lib/arel/nodes/not.rb
-lib/arel/nodes/not_in.rb
 lib/arel/nodes/offset.rb
 lib/arel/nodes/on.rb
 lib/arel/nodes/ordering.rb
