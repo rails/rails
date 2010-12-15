@@ -721,5 +721,69 @@ module RailtiesTest
       engine_path = File.join(@plugin.path, '..', engine_dir)
       assert_equal Bukkits::Engine.instance, Rails::Engine.find(engine_path)
     end
+
+    test "ensure that engine properly sets assets directories" do
+      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.serve_static_assets = true")
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "public/stylesheets/foo.css", ""
+      @plugin.write "public/javascripts/foo.js", ""
+
+      @plugin.write "app/views/layouts/bukkits/application.html.erb", <<-RUBY
+        <%= stylesheet_link_tag :all %>
+        <%= javascript_include_tag :all %>
+        <%= yield %>
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/home_controller.rb", <<-RUBY
+        module Bukkits
+          class HomeController < ActionController::Base
+            def index
+              render :text => "Good morning!", :layout => "bukkits/application"
+            end
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          match "/home" => "home#index"
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      boot_rails
+
+      require "#{rails_root}/config/environment"
+
+      assert_equal File.join(@plugin.path, "public"),             Bukkits::HomeController.assets_dir
+      assert_equal File.join(@plugin.path, "public/stylesheets"), Bukkits::HomeController.stylesheets_dir
+      assert_equal File.join(@plugin.path, "public/javascripts"), Bukkits::HomeController.javascripts_dir
+
+      assert_equal File.join(app_path, "public"),             ActionController::Base.assets_dir
+      assert_equal File.join(app_path, "public/stylesheets"), ActionController::Base.stylesheets_dir
+      assert_equal File.join(app_path, "public/javascripts"), ActionController::Base.javascripts_dir
+
+      get "/bukkits/home"
+
+      assert_match %r{bukkits/stylesheets/foo.css}, last_response.body
+      assert_match %r{bukkits/javascripts/foo.js}, last_response.body
+    end
   end
 end
