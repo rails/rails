@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* brought back config.action_view.cache_template_loading, which allows to decide whether templates should be cached or not [Piotr Sarnacki]
+
 * url_for and named url helpers now accept :subdomain and :domain as options [Josh Kalderimis]
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused (check the documentation for examples). [Josh Kalderimis]
