@@ -476,6 +476,17 @@ module ActiveRecord
         end
 
       private
+        # Do the relevant stuff to insert the given record into the association collection. The
+        # force param specifies whether or not an exception should be raised on failure. The
+        # validate param specifies whether validation should be performed (if force is false).
+        def insert_record(record, force = true, validate = true)
+          raise NotImplementedError
+        end
+
+        def save_record(record, force, validate)
+          force ? record.save! : record.save(:validate => validate)
+        end
+
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_persisted!

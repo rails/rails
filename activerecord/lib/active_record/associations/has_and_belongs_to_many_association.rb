@@ -35,11 +35,7 @@ module ActiveRecord
 
         def insert_record(record, force = true, validate = true)
           if record.new_record?
-            if force
-              record.save!
-            else
-              return false unless record.save(:validate => validate)
-            end
+            return false unless save_record(record, force, validate)
           end
 
           if @reflection.options[:insert_sql]

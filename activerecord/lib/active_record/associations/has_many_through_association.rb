@@ -60,11 +60,7 @@ module ActiveRecord
 
         def insert_record(record, force = true, validate = true)
           if record.new_record?
-            if force
-              record.save!
-            else
-              return false unless record.save(:validate => validate)
-            end
+            return false unless save_record(record, force, validate)
           end
 
           through_association = @owner.send(@reflection.through_reflection.name)

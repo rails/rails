@@ -55,7 +55,7 @@ module ActiveRecord
 
         def insert_record(record, force = false, validate = true)
           set_belongs_to_association_for(record)
-          force ? record.save! : record.save(:validate => validate)
+          save_record(record, force, validate)
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
