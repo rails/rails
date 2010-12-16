@@ -20,10 +20,11 @@ require 'models/project'
 require 'models/member'
 require 'models/membership'
 require 'models/club'
+require 'models/categorization'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
-            :companies, :accounts, :tags, :taggings, :people, :readers,
+            :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs
 
@@ -909,5 +910,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     assert_queries(2) { @tagging = Tagging.preload(:taggable).find(t.id) }
     assert_no_queries { assert ! @tagging.taggable }
+  end
+
+  def test_preloading_has_many_through_with_uniq
+    mary = Author.includes(:unique_categorized_posts).where(:id => authors(:mary).id).first
+    assert_equal 1, mary.unique_categorized_posts.length
+    assert_equal 1, mary.unique_categorized_post_ids.length
   end
 end

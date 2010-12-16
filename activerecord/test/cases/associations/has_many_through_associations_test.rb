@@ -23,7 +23,7 @@ require 'models/category'
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors,
            :owners, :pets, :toys, :jobs, :references, :companies,
-           :subscribers, :books, :subscriptions, :developers
+           :subscribers, :books, :subscriptions, :developers, :categorizations
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -472,5 +472,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_create_has_many_through_with_default_scope_on_join_model
     category = authors(:david).special_categories.create(:name => "Foo")
     assert_equal 1, category.categorizations.where(:special => true).count
+  end
+
+  def test_joining_has_many_through_with_uniq
+    mary = Author.joins(:unique_categorized_posts).where(:id => authors(:mary).id).first
+    assert_equal 1, mary.unique_categorized_posts.length
+    assert_equal 1, mary.unique_categorized_post_ids.length
   end
 end

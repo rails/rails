@@ -251,6 +251,7 @@ module ActiveRecord
               through_record_id = through_record[reflection.through_reflection_primary_key].to_s
               add_preloaded_records_to_collection(id_to_record_map[through_record_id], reflection.name, through_record.send(source))
             end
+            records.each { |record| record.send(reflection.name).target.uniq! } if options[:uniq]
           end
 
         else
