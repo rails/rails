@@ -116,20 +116,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  unless current_adapter?(:Mysql2Adapter)
-    def test_read_attributes_before_type_cast_on_datetime
-      developer = Developer.find(:first)
+  def test_read_attributes_before_type_cast_on_datetime
+    developer = Developer.find(:first)
+    if current_adapter?(:Mysql2Adapter)
+      # Mysql2 keeps the value in Time instance
+      assert_equal developer.created_at.to_s(:db), developer.attributes_before_type_cast["created_at"].to_s(:db)
+    else
       assert_equal developer.created_at.to_s(:db), developer.attributes_before_type_cast["created_at"].to_s
-
-      developer.created_at = "345643456"
-
-      assert_equal developer.created_at_before_type_cast, "345643456"
-      assert_equal developer.created_at, nil
-
-      developer.created_at = "2010-03-21 21:23:32"
-      assert_equal developer.created_at_before_type_cast.to_s, "2010-03-21 21:23:32"
-      assert_equal developer.created_at, Time.parse("2010-03-21 21:23:32")
     end
+
+    developer.created_at = "345643456"
+
+    assert_equal developer.created_at_before_type_cast, "345643456"
+    assert_equal developer.created_at, nil
+
+    developer.created_at = "2010-03-21 21:23:32"
+    assert_equal developer.created_at_before_type_cast.to_s, "2010-03-21 21:23:32"
+    assert_equal developer.created_at, Time.parse("2010-03-21 21:23:32")
   end
 
   def test_hash_content
