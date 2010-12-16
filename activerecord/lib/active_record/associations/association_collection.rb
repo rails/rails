@@ -263,7 +263,7 @@ module ActiveRecord
         else
           create_record(attrs) do |record|
             yield(record) if block_given?
-            record.save
+            insert_record(record, false)
           end
         end
       end
@@ -271,7 +271,7 @@ module ActiveRecord
       def create!(attrs = {})
         create_record(attrs) do |record|
           yield(record) if block_given?
-          record.save!
+          insert_record(record, true)
         end
       end
 
@@ -488,18 +488,20 @@ module ActiveRecord
         end
 
         def create_record(attrs)
-          attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_persisted!
 
-          scoped_where = scoped.where_values_hash
-          create_scope = scoped_where ? @scope[:create].merge(scoped_where) : @scope[:create]
-          record = @reflection.klass.send(:with_scope, :create => create_scope) do
-            @reflection.build_association(attrs)
-          end
-          if block_given?
-            add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
-          else
-            add_record_to_target_with_callbacks(record)
+          attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
+          create_scope = @scope[:create].merge(scoped.where_values_hash || {})
+
+          transaction do
+            record = with_scope(:create => create_scope) do
+              @reflection.build_association(attrs)
+            end
+            if block_given?
+              add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
+            else
+              add_record_to_target_with_callbacks(record)
+            end
           end
         end
 

@@ -9,14 +9,6 @@ module ActiveRecord
 
       alias_method :new, :build
 
-      def create!(attrs = nil)
-        create_record(attrs, true)
-      end
-
-      def create(attrs = nil)
-        create_record(attrs, false)
-      end
-
       def destroy(*records)
         transaction do
           delete_records(flatten_deeper(records))
@@ -35,16 +27,6 @@ module ActiveRecord
       end
 
       protected
-        def create_record(attrs, force = true)
-          ensure_owner_is_persisted!
-
-          transaction do
-            object = @reflection.klass.new(attrs)
-            add_record_to_target_with_callbacks(object) {|r| insert_record(object, force) }
-            object
-          end
-        end
-
         def target_reflection_has_associated_record?
           if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.primary_key_name].blank?
             false
