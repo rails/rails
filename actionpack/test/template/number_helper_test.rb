@@ -100,6 +100,11 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("0", number_with_precision(0, :precision => 0))
     assert_equal("0.00100", number_with_precision(0.001, :precision => 5))
     assert_equal("0.001", number_with_precision(0.00111, :precision => 3))
+    assert_equal("10.00", number_with_precision(9.995, :precision => 2))
+    assert_equal("11.00", number_with_precision(10.995, :precision => 2))
+    assert_equal("10.0", number_with_precision(9.995, :precision => 3, :significant => true))
+    assert_equal("9.99", number_with_precision(9.994, :precision => 3, :significant => true))
+    assert_equal("11.0", number_with_precision(10.995, :precision => 3, :significant => true))
   end
 
   def test_number_with_precision_with_custom_delimiter_and_separator
