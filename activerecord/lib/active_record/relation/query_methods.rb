@@ -63,7 +63,7 @@ module ActiveRecord
     end
 
     def joins(*args)
-      return self if args.blank?
+      return self if args.compact.blank?
 
       relation = clone
 

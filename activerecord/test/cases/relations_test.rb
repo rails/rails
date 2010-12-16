@@ -184,6 +184,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
   end
 
+  def test_joins_with_nil_argument
+    assert_nothing_raised { DependentFirm.joins(nil).first }
+  end
+
   def test_finding_with_hash_conditions_on_joined_table
     firms = DependentFirm.joins(:account).where({:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}).to_a
     assert_equal 1, firms.size
