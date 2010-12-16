@@ -191,6 +191,11 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
   end
 
+  def test_association_primary_key
+    assert_equal "id", Author.reflect_on_association(:posts).association_primary_key.to_s
+    assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
+  end
+
   def test_active_record_primary_key
     assert_equal "nick", Subscriber.reflect_on_association(:subscriptions).active_record_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).active_record_primary_key.to_s

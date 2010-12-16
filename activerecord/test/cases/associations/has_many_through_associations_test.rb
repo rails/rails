@@ -479,4 +479,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, mary.unique_categorized_posts.length
     assert_equal 1, mary.unique_categorized_post_ids.length
   end
+
+  def test_joining_has_many_through_belongs_to
+    posts = Post.joins(:author_categorizations).
+                 where('categorizations.id' => categorizations(:mary_thinking_sti).id)
+
+    assert_equal [posts(:eager_other)], posts
+  end
 end

@@ -38,6 +38,7 @@ class Post < ActiveRecord::Base
   end
 
   has_many :author_favorites, :through => :author
+  has_many :author_categorizations, :through => :author, :source => :categorizations
 
   has_many :comments_with_interpolated_conditions, :class_name => 'Comment',
       :conditions => ['#{"#{aliased_table_name}." rescue ""}body = ?', 'Thank you for the welcome']

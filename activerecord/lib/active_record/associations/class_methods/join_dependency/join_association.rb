@@ -190,17 +190,20 @@ module ActiveRecord
             ).alias @aliased_join_table_name
 
             jt_conditions = []
-            jt_foreign_key = first_key = second_key = nil
+            first_key = second_key = nil
 
-            if through_reflection.options[:as] # has_many :through against a polymorphic join
-              as_key         = through_reflection.options[:as].to_s
-              jt_foreign_key = as_key + '_id'
-
-              jt_conditions <<
-              join_table[as_key + '_type'].
-                eq(parent.active_record.base_class.name)
+            if through_reflection.macro == :belongs_to
+              jt_primary_key = through_reflection.primary_key_name
+              jt_foreign_key = through_reflection.association_primary_key
             else
+              jt_primary_key = through_reflection.active_record_primary_key
               jt_foreign_key = through_reflection.primary_key_name
+
+              if through_reflection.options[:as] # has_many :through against a polymorphic join
+                jt_conditions <<
+                join_table["#{through_reflection.options[:as]}_type"].
+                  eq(parent.active_record.base_class.name)
+              end
             end
 
             case source_reflection.macro
@@ -233,7 +236,7 @@ module ActiveRecord
             end
 
             jt_conditions <<
-            parent_table[parent.primary_key].
+            parent_table[jt_primary_key].
               eq(join_table[jt_foreign_key])
 
             if through_reflection.options[:conditions]
