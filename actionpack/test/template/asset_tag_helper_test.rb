@@ -273,6 +273,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_raise(ArgumentError) { javascript_include_tag('first', :monkey, 'last') }
   end
 
+  def test_custom_javascript_and_stylesheet_expansion_with_same_name
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :robbery => ["bank", "robber"]
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :robbery => ["money", "security"]
+    assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>), javascript_include_tag('controls', :robbery, 'effects')
+    assert_dom_equal  %(<link href="/stylesheets/style.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/money.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/security.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/print.css" rel="stylesheet" type="text/css" media="screen" />), stylesheet_link_tag('style', :robbery, 'print')
+  end
+
   def test_reset_javascript_expansions
     JavascriptIncludeTag.expansions.clear
     assert_raise(ArgumentError) { javascript_include_tag(:defaults) }

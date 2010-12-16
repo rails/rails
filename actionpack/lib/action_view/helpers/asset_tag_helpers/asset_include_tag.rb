@@ -11,7 +11,9 @@ module ActionView
         attr_reader :config, :asset_paths
 
         class_attribute :expansions
-        self.expansions = { }
+        def self.inherited(base)
+          base.expansions = { }
+        end
 
         def initialize(config, asset_paths)
           @config = config
