@@ -2,14 +2,6 @@ module ActiveRecord
   # = Active Record Has And Belongs To Many Association
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
-      def create(attributes = {})
-        create_record(attributes) { |record| insert_record(record) }
-      end
-
-      def create!(attributes = {})
-        create_record(attributes) { |record| insert_record(record, true) }
-      end
-
       def columns
         @reflection.columns(@reflection.options[:join_table], "#{@reflection.options[:join_table]} Columns")
       end
@@ -109,16 +101,6 @@ module ActiveRecord
         end
 
       private
-        def create_record(attributes, &block)
-          # Can't use Base.create because the foreign key may be a protected attribute.
-          ensure_owner_is_persisted!
-          if attributes.is_a?(Array)
-            attributes.collect { |attr| create(attr) }
-          else
-            build_record(attributes, &block)
-          end
-        end
-
         def record_timestamp_columns(record)
           if record.record_timestamps
             record.send(:all_timestamp_attributes).map { |x| x.to_s }
