@@ -59,6 +59,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
+
   has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => "tags.name = 'Misc'"
   has_many :funky_tags, :through => :taggings, :source => :tag
   has_many :super_tags, :through => :taggings

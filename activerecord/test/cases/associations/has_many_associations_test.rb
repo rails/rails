@@ -616,6 +616,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_deleting_updates_counter_cache_with_dependent_delete_all
+    post = posts(:welcome)
+
+    # Manually update the count as the tagging will have been added to the taggings association,
+    # rather than to the taggings_with_delete_all one (which is just a 'shadow' of the former)
+    post.update_attribute(:taggings_with_delete_all_count, post.taggings_with_delete_all.to_a.count)
+
+    assert_difference "post.reload.taggings_with_delete_all_count", -1 do
+      post.taggings_with_delete_all.delete(post.taggings_with_delete_all.first)
+    end
+  end
+
   def test_deleting_a_collection
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")

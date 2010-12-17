@@ -72,8 +72,10 @@ module ActiveRecord
               with_scope(@scope) do
                 @reflection.klass.update_all(updates, conditions)
               end
+          end
 
-              @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size) if has_cached_counter?
+          if has_cached_counter? && @reflection.options[:dependent] != :destroy
+            @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size)
           end
         end
 

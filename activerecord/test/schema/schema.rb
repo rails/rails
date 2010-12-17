@@ -441,6 +441,7 @@ ActiveRecord::Schema.define do
     t.string  :type
     t.integer :comments_count, :default => 0
     t.integer :taggings_count, :default => 0
+    t.integer :taggings_with_delete_all_count, :default => 0
   end
 
   create_table :price_estimates, :force => true do |t|
