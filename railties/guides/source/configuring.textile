@@ -188,6 +188,12 @@ Middlewares can also be completely swapped out and replaced with others:
   config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
 </ruby>
 
+They can also be removed from the stack completely:
+
+<ruby>
+  config.middleware.delete ActionDispatch::BestStandardsSupport
+</ruby>
+
 h4. Configuring i18n
 
 * +config.i18n.default_locale+ sets the default locale of an application used for i18n. Defaults to +:en+.
