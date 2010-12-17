@@ -270,13 +270,12 @@ module ActionView
             digits, rounded_number = 1, 0
           else
             digits = (Math.log10(number.abs) + 1).floor
-            rounded_number = (BigDecimal.new(number.to_s) / 10 ** (digits - precision)).round.to_f * 10 ** (digits - precision)
-            digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
+            rounded_number = BigDecimal.new((number / 10 ** (digits - precision)).to_s).round.to_f * 10 ** (digits - precision)
           end
           precision -= digits
           precision = precision > 0 ? precision : 0  #don't let it be negative
         else
-          rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
+          rounded_number = BigDecimal.new((number * (10 ** precision)).to_s).round.to_f / 10 ** precision
         end
         formatted_number = number_with_delimiter("%01.#{precision}f" % rounded_number, options)
         if strip_insignificant_zeros
