@@ -62,15 +62,16 @@ module ActiveRecord
         def delete_records(records)
           case @reflection.options[:dependent]
             when :destroy
-              records.each { |r| r.destroy }
+              records.each(&:destroy)
             when :delete_all
-              @reflection.klass.delete(records.map { |record| record.id })
+              @reflection.klass.delete(records.map(&:id))
             else
-              relation = Arel::Table.new(@reflection.table_name)
-              stmt = relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
-                  and(relation[@reflection.klass.primary_key].in(records.map { |r| r.id }))
-              ).compile_update(relation[@reflection.primary_key_name] => nil)
-              @owner.connection.update stmt.to_sql
+              updates    = { @reflection.primary_key_name => nil }
+              conditions = { @reflection.association_primary_key => records.map(&:id) }
+
+              with_scope(@scope) do
+                @reflection.klass.update_all(updates, conditions)
+              end
 
               @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size) if has_cached_counter?
           end
