@@ -6,7 +6,7 @@ module ActiveRecord
     def clear_aggregation_cache #:nodoc:
       self.class.reflect_on_all_aggregations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
-      end if self.persisted?
+      end unless self.new_record?
     end
 
     # Active Record implements aggregation through a macro-like class method called +composed_of+

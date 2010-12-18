@@ -246,7 +246,11 @@ module ActionDispatch
         #
         #   root :to => 'pages#main'
         #
-        # You should put the root route at the end of <tt>config/routes.rb</tt>.
+        # For options, see the +match+ method's documentation, as +root+ uses it internally.
+        #
+        # You should put the root route at the top of <tt>config/routes.rb</tt>,
+        # because this means it will be matched first. As this is the most popular route
+        # of most Rails applications, this is beneficial.
         def root(options = {})
           match '/', options.reverse_merge(:as => :root)
         end
@@ -268,18 +272,18 @@ module ActionDispatch
 
         # Mount a Rack-based application to be used within the application.
         #
-        # mount SomeRackApp, :at => "some_route"
+        #   mount SomeRackApp, :at => "some_route"
         #
         # Alternatively:
         #
-        # mount(SomeRackApp => "some_route")
+        #   mount(SomeRackApp => "some_route")
         #
         # All mounted applications come with routing helpers to access them.
         # These are named after the class specified, so for the above example
         # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
         # To customize this helper's name, use the +:as+ option:
         #
-        # mount(SomeRackApp => "some_route", :as => "exciting")
+        #   mount(SomeRackApp => "some_route", :as => "exciting")
         #
         # This will generate the +exciting_path+ and +exciting_url+ helpers
         # which can be used to navigate to this mounted app.
@@ -448,8 +452,18 @@ module ActionDispatch
           super
         end
 
-        # Used to route <tt>/photos</tt> (without the prefix <tt>/admin</tt>)
-        # to Admin::PostsController:
+        # Used to scope a set of routes to particular constraints.
+        #
+        # Take the following route definition as an example:
+        #
+        #   scope :path => ":account_id", :as => "account" do
+        #     resources :projects
+        #   end
+        #
+        # This generates helpers such as +account_projects_path+, just like +resources+ does.
+        # The difference here being that the routes generated are like /rails/projects/2,
+        # rather than /accounts/rails/projects/2.
+        #
         # === Supported options
         # [:module]
         #   If you want to route /posts (without the prefix /admin) to
@@ -555,38 +569,38 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #     admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
-        #     admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
-        #  new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
-        # edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
-        #      admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
-        #      admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
-        #      admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        #       admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
+        #       admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
+        #    new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
+        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
+        #        admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
+        #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         # === Supported options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ all default to the name of the namespace.
+        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ options all default to the name of the namespace.
         #
         # [:path]
         #   The path prefix for the routes.
         #
-        #   namespace :admin, :path => "sekret" do
-        #     resources :posts
-        #   end
+        #     namespace :admin, :path => "sekret" do
+        #       resources :posts
+        #     end
         #
         #   All routes for the above +resources+ will be accessible through +/sekret/posts+, rather than +/admin/posts+
         #
         # [:module]
         #   The namespace for the controllers.
         #
-        #   namespace :admin, :module => "sekret" do
-        #     resources :posts
-        #   end
+        #     namespace :admin, :module => "sekret" do
+        #       resources :posts
+        #     end
         #
         #   The +PostsController+ here should go in the +Sekret+ namespace and so it should be defined like this:
         #
-        #   class Sekret::PostsController < ApplicationController
-        #     # code go here
-        #   end
+        #     class Sekret::PostsController < ApplicationController
+        #       # code go here
+        #     end
         #
         # [:as]
         #   Changes the name used in routing helpers for this namespace.
@@ -935,6 +949,22 @@ module ActionDispatch
         #   GET     /photos/:id/edit
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
+        #
+        # Resources can also be nested infinitely by using this block syntax:
+        #
+        #   resources :photos do
+        #     resources :comments
+        #   end
+        #
+        # This generates the following comments routes:
+        #
+        #   GET     /photos/:id/comments/new
+        #   POST    /photos/:id/comments
+        #   GET     /photos/:id/comments/:id
+        #   GET     /photos/:id/comments/:id/edit
+        #   PUT     /photos/:id/comments/:id
+        #   DELETE  /photos/:id/comments/:id
+        #
         # === Supported options
         # [:path_names]
         #   Allows you to change the paths of the seven default actions.
@@ -943,6 +973,21 @@ module ActionDispatch
         #     resources :posts, :path_names => { :new => "brand_new" }
         #
         #   The above example will now change /posts/new to /posts/brand_new
+        #
+        # [:module]
+        #   Set the module where the controller can be found. Defaults to nothing.
+        #
+        #     resources :posts, :module => "admin"
+        #
+        #   All requests to the posts resources will now go to +Admin::PostsController+.
+        #
+        # [:path]
+        #
+        #  Set a path prefix for this resource.
+        #
+        #     resources :posts, :path => "admin"
+        #
+        #  All actions for this resource will now be at +/admin/posts+.
         def resources(*resources, &block)
           options = resources.extract_options!
 
@@ -1054,6 +1099,7 @@ module ActionDispatch
           end
         end
 
+        # See ActionDispatch::Routing::Mapper::Scoping#namespace
         def namespace(path, options = {})
           if resource_scope?
             nested { super }

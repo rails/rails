@@ -38,7 +38,7 @@ module ActionView
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
       #
-      #   <%= form_tag('/posts')do -%>
+      #   <%= form_tag('/posts') do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
@@ -67,7 +67,7 @@ module ActionView
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
-      #   select_tag "people", options_from_collection_for_select(@people, "name", "id")
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
       #   # <select id="people" name="people"><option value="1">David</option></select>
       #
       #   select_tag "people", "<option>David</option>"
@@ -115,6 +115,7 @@ module ActionView
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
+      # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -123,6 +124,9 @@ module ActionView
       #
       #   text_field_tag 'query', 'Enter your search query here'
       #   # => <input id="query" name="query" type="text" value="Enter your search query here" />
+      #
+      #   text_field_tag 'search', nil, :placeholder => 'Enter search term...'
+      #   # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
       #
       #   text_field_tag 'request', nil, :class => 'special_input'
       #   # => <input class="special_input" id="request" name="request" type="text" />

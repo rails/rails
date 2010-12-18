@@ -235,13 +235,10 @@ module AbstractController
         controller_path
       end
 
-      # Takes the specified layout and creates a _layout method to be called
-      # by _default_layout
+      # Creates a _layout method to be called by _default_layout .
       #
-      # If there is no explicit layout specified:
-      # If a layout is found in the view paths with the controller's
-      # name, return that string. Otherwise, use the superclass'
-      # layout (which might also be implied)
+      # If a layout is not explicitly mentioned then look for a layout with the controller's name.
+      # if nothing is found then try same procedure to find super class's layout.
       def _write_layout_method
         remove_possible_method(:_layout)
 

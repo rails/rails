@@ -31,7 +31,7 @@ module ActiveRecord
           relation = relation.where(scope_item => scope_value)
         end
 
-        if record.persisted?
+        unless record.new_record?
           # TODO : This should be in Arel
           relation = relation.where("#{record.class.quoted_table_name}.#{record.class.primary_key} <> ?", record.send(:id))
         end

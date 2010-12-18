@@ -130,7 +130,7 @@ module ActiveRecord
     #
     # +transaction+ calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
-    # transaction. For example:
+    # transaction. For example, the following behavior may be surprising:
     #
     #   User.transaction do
     #     User.create(:username => 'Kotori')
@@ -140,12 +140,15 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   User.find(:all)  # => empty
+    # creates both "Kotori" and "Nemu". Reason is the <tt>ActiveRecord::Rollback</tt>
+    # exception in the nested block does not issue a ROLLBACK. Since these exceptions
+    # are captured in transaction blocks, the parent block does not see it and the
+    # real transaction is committed.
     #
-    # It is also possible to requires a sub-transaction by passing
-    # <tt>:requires_new => true</tt>. If anything goes wrong, the
-    # database rolls back to the beginning of the sub-transaction
-    # without rolling back the parent transaction. For example:
+    # In order to get a ROLLBACK for the nested transaction you may ask for a real
+    # sub-transaction by passing <tt>:requires_new => true</tt>. If anything goes wrong,
+    # the database rolls back to the beginning of the sub-transaction without rolling
+    # back the parent transaction. If we add it to the previous example:
     #
     #   User.transaction do
     #     User.create(:username => 'Kotori')
@@ -155,12 +158,12 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   User.find(:all)  # => Returns only Kotori
+    # only "Kotori" is created. (This works on MySQL and PostgreSQL, but not on SQLite3.)
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
-    # transactions by using savepoints. See
+    # transactions by using savepoints on MySQL and PostgreSQL. See
     # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
     # for more information about savepoints.
     #
@@ -242,7 +245,7 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
-    # Reset id and @persisted if the transaction rolls back.
+    # Reset id and @new_record if the transaction rolls back.
     def rollback_active_record_state!
       remember_transaction_record_state
       yield
@@ -297,9 +300,9 @@ module ActiveRecord
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc
       @_start_transaction_state ||= {}
-      unless @_start_transaction_state.include?(:persisted)
+      unless @_start_transaction_state.include?(:new_record)
         @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
-        @_start_transaction_state[:persisted] = @persisted
+        @_start_transaction_state[:new_record] = @new_record
       end
       unless @_start_transaction_state.include?(:destroyed)
         @_start_transaction_state[:destroyed] = @destroyed
@@ -323,7 +326,7 @@ module ActiveRecord
           restore_state = remove_instance_variable(:@_start_transaction_state)
           if restore_state
             @attributes = @attributes.dup if @attributes.frozen?
-            @persisted = restore_state[:persisted]
+            @new_record = restore_state[:new_record]
             @destroyed = restore_state[:destroyed]
             if restore_state[:id]
               self.id = restore_state[:id]
@@ -345,11 +348,11 @@ module ActiveRecord
     def transaction_include_action?(action) #:nodoc
       case action
       when :create
-        transaction_record_state(:new_record) || !transaction_record_state(:persisted)
+        transaction_record_state(:new_record)
       when :destroy
         destroyed?
       when :update
-        !(transaction_record_state(:new_record) || !transaction_record_state(:persisted) || destroyed?)
+        !(transaction_record_state(:new_record) || destroyed?)
       end
     end
   end

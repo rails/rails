@@ -205,7 +205,7 @@ module ActiveRecord #:nodoc:
   #
   #   # No 'Winter' tag exists
   #   winter = Tag.find_or_initialize_by_name("Winter")
-  #   winter.persisted? # false
+  #   winter.new_record? # true
   #
   # To find by a subset of the attributes to be used for instantiating a new object, pass a hash instead of
   # a list of parameters.
@@ -1393,7 +1393,7 @@ MSG
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
         @attributes_cache = {}
-        @persisted = false
+        @new_record = true
         @readonly = false
         @destroyed = false
         @marked_for_destruction = false
@@ -1428,7 +1428,7 @@ MSG
         clear_aggregation_cache
         clear_association_cache
         @attributes_cache = {}
-        @persisted = false
+        @new_record = true
         ensure_proper_type
 
         populate_with_current_scope_attributes
@@ -1447,8 +1447,7 @@ MSG
       def init_with(coder)
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
-        @readonly = @destroyed = @marked_for_destruction = false
-        @persisted = true
+        @new_record = @readonly = @destroyed = @marked_for_destruction = false
         _run_find_callbacks
         _run_initialize_callbacks
       end
@@ -1489,7 +1488,7 @@ MSG
       #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
       def cache_key
         case
-        when !persisted?
+        when new_record?
           "#{self.class.model_name.cache_key}/new"
         when timestamp = self[:updated_at]
           "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
@@ -1618,9 +1617,8 @@ MSG
       # models are still comparable.
       def ==(comparison_object)
         comparison_object.equal?(self) ||
-          comparison_object.instance_of?(self.class) &&
-          id.present? &&
-          comparison_object.id == id
+          (comparison_object.instance_of?(self.class) &&
+            comparison_object.id == id && !comparison_object.new_record?)
       end
 
       # Delegates to ==
@@ -1665,7 +1663,7 @@ MSG
       # Returns the contents of the record as a nicely formatted string.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name) || !persisted?
+          if has_attribute?(name) || new_record?
             "#{name}: #{attribute_for_inspect(name)}"
           end
         }.compact.join(", ")
@@ -1717,7 +1715,7 @@ MSG
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
               value = read_attribute(name)
 
-              if value && self.class.serialized_attributes.key?(name)
+              if !value.nil? && self.class.serialized_attributes.key?(name)
                 value = YAML.dump value
               end
               attrs[self.class.arel_table[name]] = value

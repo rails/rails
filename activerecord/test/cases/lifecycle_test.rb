@@ -9,10 +9,19 @@ class SpecialDeveloper < Developer; end
 
 class SalaryChecker < ActiveRecord::Observer
   observe :special_developer
+  attr_accessor :last_saved
 
   def before_save(developer)
     return developer.salary > 80000
   end
+
+  module Implementation
+    def after_save(developer)
+      self.last_saved = developer
+    end
+  end
+  include Implementation
+
 end
 
 class TopicaAuditor < ActiveRecord::Observer
@@ -179,4 +188,11 @@ class LifecycleTest < ActiveRecord::TestCase
     developer = SpecialDeveloper.new :name => 'Rookie', :salary => 50000
     assert !developer.save, "allowed to save a developer with too low salary"
   end
+
+  test "able to call methods defined with included module" do # https://rails.lighthouseapp.com/projects/8994/tickets/6065-activerecordobserver-is-not-aware-of-method-added-by-including-modules
+    SalaryChecker.instance # activate
+    developer = SpecialDeveloper.create! :name => 'Roger', :salary => 100000
+    assert_equal developer, SalaryChecker.instance.last_saved
+  end
+
 end

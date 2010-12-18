@@ -45,7 +45,7 @@ module Rails
       #
       # ==== Example
       #
-      #   gem "rspec", :env => :test
+      #   gem "rspec", :group => :test
       #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
       #   gem "rails", "3.0", :git => "git://github.com/rails/rails"
       #

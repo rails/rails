@@ -182,7 +182,7 @@ class TransactionTest < ActiveRecord::TestCase
       :bonus_time => "2005-01-30t15:28:00.00+01:00",
       :content => "Have a nice day",
       :approved => false)
-    new_record_snapshot = !new_topic.persisted?
+    new_record_snapshot = new_topic.new_record?
     id_present = new_topic.has_attribute?(Topic.primary_key)
     id_snapshot = new_topic.id
 
@@ -195,7 +195,7 @@ class TransactionTest < ActiveRecord::TestCase
         flunk
       rescue => e
         assert_equal "Make the transaction rollback", e.message
-        assert_equal new_record_snapshot, !new_topic.persisted?, "The topic should have its old persisted value"
+        assert_equal new_record_snapshot, new_topic.new_record?, "The topic should have its old new_record value"
         assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
         assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
       ensure
@@ -349,21 +349,21 @@ class TransactionTest < ActiveRecord::TestCase
       assert topic_2.save
       @first.save
       @second.destroy
-      assert_equal true, topic_1.persisted?
+      assert_equal false, topic_1.new_record?
       assert_not_nil topic_1.id
-      assert_equal true, topic_2.persisted?
+      assert_equal false, topic_2.new_record?
       assert_not_nil topic_2.id
-      assert_equal true, @first.persisted?
+      assert_equal false, @first.new_record?
       assert_not_nil @first.id
       assert_equal true, @second.destroyed?
       raise ActiveRecord::Rollback
     end
 
-    assert_equal false, topic_1.persisted?
+    assert_equal true, topic_1.new_record?
     assert_nil topic_1.id
-    assert_equal false, topic_2.persisted?
+    assert_equal true, topic_2.new_record?
     assert_nil topic_2.id
-    assert_equal true, @first.persisted?
+    assert_equal false, @first.new_record?
     assert_not_nil @first.id
     assert_equal false, @second.destroyed?
   end

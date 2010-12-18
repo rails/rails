@@ -21,7 +21,7 @@ module ActiveRecord
         if current_object
            new_value ? current_object.update_attributes(construct_join_attributes(new_value)) : current_object.destroy
         elsif new_value
-          unless @owner.persisted?
+          if @owner.new_record?
             self.target = new_value
             through_association = @owner.send(:association_instance_get, @reflection.through_reflection.name)
             through_association.build(construct_join_attributes(new_value))

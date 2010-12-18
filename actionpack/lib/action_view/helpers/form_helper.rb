@@ -1097,7 +1097,7 @@ module ActionView
       include InstanceTagMethods
     end
 
-    class FormBuilder #:nodoc:
+    class FormBuilder
       # The methods which wrap a form helper call.
       class_inheritable_accessor :field_helpers
       self.field_helpers = (FormHelper.instance_method_names - ['form_for'])

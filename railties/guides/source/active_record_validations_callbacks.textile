@@ -414,7 +414,7 @@ class Person < ActiveRecord::Base
   validates_with GoodnessValidator
 end
 
-class GoodnessValidator < ActiveRecord::Validator
+class GoodnessValidator < ActiveModel::Validator
   def validate
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"

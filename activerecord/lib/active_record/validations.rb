@@ -51,7 +51,7 @@ module ActiveRecord
 
     # Runs all the specified validations and returns true if no errors were added otherwise false.
     def valid?(context = nil)
-      context ||= (persisted? ? :update : :create)
+      context ||= (new_record? ? :create : :update)
       output = super(context)
 
       deprecated_callback_method(:validate)

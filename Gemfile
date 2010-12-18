@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem "rails", :path => File.dirname(__FILE__)
+gemspec
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"

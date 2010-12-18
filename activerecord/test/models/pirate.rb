@@ -48,7 +48,7 @@ class Pirate < ActiveRecord::Base
   end
 
   def reject_empty_ships_on_create(attributes)
-    attributes.delete('_reject_me_if_new').present? && !persisted?
+    attributes.delete('_reject_me_if_new').present? && new_record?
   end
 
   attr_accessor :cancel_save_from_callback

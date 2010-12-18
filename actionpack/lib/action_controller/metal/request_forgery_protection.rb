@@ -71,9 +71,13 @@ module ActionController #:nodoc:
       #   class FooController < ApplicationController
       #     protect_from_forgery :except => :index
       #
-      #     # you can disable csrf protection on controller-by-controller basis:
-      #     skip_before_filter :verify_authenticity_token
-      #   end
+      # You can disable csrf protection on controller-by-controller basis:
+      #
+      #   skip_before_filter :verify_authenticity_token
+      #
+      # It can also be disabled for specific controller actions:
+      #
+      #   skip_before_filter :verify_authenticity_token, :except => [:create]
       #
       # Valid Options:
       #

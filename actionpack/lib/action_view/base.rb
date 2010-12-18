@@ -79,8 +79,8 @@ module ActionView #:nodoc:
   #
   # === Template caching
   #
-  # By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will
-  # check the file's modification time and recompile it.
+  # By default, Rails will compile each template to a method in order to render it. When you alter a template,
+  # Rails will check the file's modification time and recompile it in development mode.
   #
   # == Builder
   #

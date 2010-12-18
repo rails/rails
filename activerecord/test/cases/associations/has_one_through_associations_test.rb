@@ -206,6 +206,23 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_through_belongs_to_after_destroy
+    @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    @member.member_detail = @member_detail
+    @member.save!
+
+    assert_not_nil @member_detail.member_type
+    @member_detail.destroy
+    assert_queries(1) do
+      assert_not_nil @member_detail.member_type(true)
+    end
+
+    @member_detail.member.destroy
+    assert_queries(1) do
+      assert_nil @member_detail.member_type(true)
+    end
+  end
+
   def test_value_is_properly_quoted
     minivan = Minivan.find('m1')
     assert_nothing_raised do

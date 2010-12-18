@@ -13,11 +13,18 @@ require 'models/bird'
 require 'models/car'
 require 'models/engine'
 require 'models/tyre'
+require 'models/minivan'
 
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :taggings, :cars
+    :taggings, :cars, :minivans
+
+  def test_do_not_double_quote_string_id
+    van = Minivan.last
+    assert van
+    assert_equal van.id, Minivan.where(:minivan_id => van).to_a.first.minivan_id
+  end
 
   def test_two_named_scopes_with_includes_should_not_drop_any_include
     car = Car.incl_engines.incl_tyres.first
@@ -378,7 +385,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert !lifo.persisted?
+    assert lifo.new_record?
 
     assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
   end
@@ -388,7 +395,7 @@ class RelationTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_create_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert lifo.persisted?
+    assert ! lifo.new_record?
 
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
   end
@@ -668,10 +675,10 @@ class RelationTest < ActiveRecord::TestCase
 
     sparrow = birds.create
     assert_kind_of Bird, sparrow
-    assert !sparrow.persisted?
+    assert sparrow.new_record?
 
     hen = birds.where(:name => 'hen').create
-    assert hen.persisted?
+    assert ! hen.new_record?
     assert_equal 'hen', hen.name
   end
 
@@ -682,7 +689,7 @@ class RelationTest < ActiveRecord::TestCase
 
     hen = birds.where(:name => 'hen').create!
     assert_kind_of Bird, hen
-    assert hen.persisted?
+    assert ! hen.new_record?
     assert_equal 'hen', hen.name
   end
 

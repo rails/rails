@@ -109,7 +109,7 @@ module ActiveRecord
         def destroy #:nodoc:
           return super unless locking_enabled?
 
-          if persisted?
+          unless new_record?
             lock_col = self.class.locking_column
             previous_value = send(lock_col).to_i
 

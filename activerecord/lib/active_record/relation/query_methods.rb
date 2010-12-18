@@ -168,7 +168,7 @@ module ActiveRecord
         arel.join(join)
       end
 
-      arel.joins(arel)
+      arel.join_sql
     end
 
     def build_arel

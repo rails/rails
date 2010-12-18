@@ -16,7 +16,14 @@ end
 class PageCachingTestController < CachingController
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
   caches_page :found, :not_found
+  caches_page :about_me
 
+  def about_me
+    respond_to do |format|
+      format.html {render :text => 'I am html'}
+      format.xml {render :text => 'I am xml'}
+    end
+  end
 
   def ok
     head :ok
@@ -72,6 +79,13 @@ class PageCachingTest < ActionController::TestCase
   def teardown
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
     @controller.perform_caching = false
+  end
+
+  def test_should_obey_http_accept_attribute
+    @request.env['HTTP_ACCEPT'] = 'text/xml'
+    get :about_me
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/about_me.xml")
+    assert_equal 'I am xml', @response.body
   end
 
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
