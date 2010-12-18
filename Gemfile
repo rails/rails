@@ -1,5 +1,7 @@
 source 'http://rubygems.org'
 
+gemspec
+
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
 else
@@ -7,7 +9,6 @@ else
 end
 
 gem "rack", :git => "git://github.com/rack/rack.git"
-gem "rails", :path => File.dirname(__FILE__)
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
