@@ -1,6 +1,6 @@
 *Rails 3.1.0 (unreleased)*
 
-* Added ActiveModel::SecurePassword to encapsulate dead-simple password usage with SHA2 encryption and salting [DHH]
+* Added ActiveModel::SecurePassword to encapsulate dead-simple password usage with BCrypt encryption and salting [DHH]
 
 
 *Rails 3.0.2 (unreleased)*

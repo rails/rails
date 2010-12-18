@@ -1,4 +1,4 @@
-require 'digest/sha2'
+require 'bcrypt'
 
 module ActiveModel
   module SecurePassword
@@ -44,13 +44,17 @@ module ActiveModel
     module InstanceMethods
       # Returns self if the password is correct, otherwise false.
       def authenticate(unencrypted_password)
-        password_digest == encrypt_password(unencrypted_password) ? self : false
+        if BCrypt::Password.new(password_digest) == (unencrypted_password + salt_for_password)
+          self
+        else
+          false
+        end
       end
 
       # Encrypts the password into the password_digest attribute.
       def password=(unencrypted_password)
         @password = unencrypted_password
-        self.password_digest = encrypt_password(unencrypted_password)
+        self.password_digest = BCrypt::Password.create(unencrypted_password + salt_for_password)
       end
 
       private
@@ -58,10 +62,6 @@ module ActiveModel
           self.password_salt ||= self.object_id.to_s + rand.to_s
         end
 
-        def encrypt_password(unencrypted_password)
-          Digest::SHA2.hexdigest(unencrypted_password + salt_for_password)
-        end
-        
         def password_must_be_strong
           if @password.present?
             errors.add(:password, "must be longer than 6 characters") unless @password.size > 6
