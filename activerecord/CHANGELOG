@@ -1,5 +1,24 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added ActiveRecord::Base#has_secure_password (via ActiveModel::SecurePassword) to encapsulate dead-simple password usage with SHA2 encryption and salting [DHH]. Example:
+
+    # Schema: User(name:string, password_digest:string, password_salt:string)
+    class User < ActiveRecord::Base
+      has_secure_password
+    end
+    
+    user = User.new(:name => "david", :password => "secret", :password_confirmation => "nomatch")
+    user.save                                                      # => false, password not long enough
+    user.password = "mUc3m00RsqyRe"                                
+    user.save                                                      # => false, confirmation doesn't match
+    user.password_confirmation = "mUc3m00RsqyRe"                   
+    user.save                                                      # => true
+    user.authenticate("notright")                                  # => false
+    user.authenticate("mUc3m00RsqyRe")                             # => user
+    User.find_by_name("david").try(:authenticate, "notright")      # => nil
+    User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
+
+
 * When a model is generated add_index is added by default for belongs_to or references columns 
 
   rails g model post user:belongs_to will generate the following:
