@@ -28,7 +28,9 @@ class Author < ActiveRecord::Base
 
   has_many :first_posts
   has_many :comments_on_first_posts, :through => :first_posts, :source => :comments, :order => 'posts.id desc, comments.id asc'
-  has_one  :comment_on_first_posts,  :through => :first_posts, :source => :comments, :order => 'posts.id desc, comments.id asc'
+
+  has_one :first_post
+  has_one :comment_on_first_post,  :through => :first_post, :source => :comments, :order => 'posts.id desc, comments.id asc'
 
   has_many :thinking_posts, :class_name => 'Post', :conditions => { :title => 'So I was thinking' }, :dependent => :delete_all
   has_many :welcome_posts,  :class_name => 'Post', :conditions => { :title => 'Welcome to the weblog' }

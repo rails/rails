@@ -25,10 +25,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
-  def test_has_one_through_with_has_many
-    assert_equal clubs(:moustache_club), @member.favourite_club
-  end
-
   def test_creating_association_creates_through_record
     new_member = Member.create(:name => "Chris")
     new_member.club = Club.create(:name => "LRUG")
@@ -235,6 +231,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments.order('id').first, authors(:david).comment_on_first_posts
+    assert_equal posts(:welcome).comments.order('id').first, authors(:david).comment_on_first_post
+  end
+
+  def test_has_one_through_many_raises_exception
+    assert_raise(ActiveRecord::HasOneThroughCantAssociateThroughCollection) do
+      members(:groucho).club_through_many
+    end
   end
 end

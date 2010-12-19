@@ -32,6 +32,12 @@ module ActiveRecord
     end
   end
 
+  class HasOneThroughCantAssociateThroughCollection < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name, reflection, through_reflection)
+      super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' where the :through association '#{owner_class_name}##{through_reflection.name}' is a collection. Specify a has_one or belongs_to association in the :through option instead.")
+    end
+  end
+
   class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       through_reflection      = reflection.through_reflection
