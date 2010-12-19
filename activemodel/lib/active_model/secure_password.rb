@@ -1,9 +1,15 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/class/attribute'
 require 'bcrypt'
 
 module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
+
+    included do
+      class_attribute :weak_passwords
+      self.weak_passwords = %w( password qwerty 123456 )
+    end
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
@@ -44,27 +50,11 @@ module ActiveModel
       # Specify the weak passwords to be used in the model:
       #
       #   class User
-      #     weak_passwords %w( password qwerty 123456 mypass )
+      #     set_weak_passwords %w( password qwerty 123456 mypass )
       #   end
       def set_weak_passwords(values)
-        @weak_passwords = values
+        self.weak_passwords = values
       end
-
-      # Change the list of weak passwords that will be validated against:
-      #
-      #   User.weak_passwords = %w( password qwerty 123456 mypass )
-      def weak_passwords=(*values)
-        @weak_passwords = values.flatten
-      end
-
-      # Returns the list of current weak passwords defined.  Defaults to the standard
-      # list of 'password', 'qwerty' and '123456'
-      #
-      #   User.weak_passwords #=> ['password', 'qwerty', '123456']
-      def weak_passwords(values = nil)
-        @weak_passwords ||= %w( password qwerty 123456 )
-      end
-
     end
 
     # Returns self if the password is correct, otherwise false.
