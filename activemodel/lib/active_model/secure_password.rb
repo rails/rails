@@ -1,22 +1,16 @@
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/class/attribute'
+require 'active_support/concern'
 require 'bcrypt'
 
 module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
-    included do
-      class_attribute :weak_passwords
-      self.weak_passwords = %w( password qwerty 123456 )
-    end
-
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a password_digest attribute.
       #
-      # Validations for presence of password, confirmation of password (using a "password_confirmation" attribute),
-      # and strength of password (at least 6 chars, not "password", etc) are automatically added.
+      # Validations for presence of password, confirmation of password (using
+      # a "password_confirmation" attribute) are automatically added.
       # You can add more validations by hand if need be.
       #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
@@ -26,8 +20,8 @@ module ActiveModel
       #     has_secure_password
       #   end
       #
-      #   user = User.new(:name => "david", :password => "secret", :password_confirmation => "nomatch")
-      #   user.save                                                      # => false, password not long enough
+      #   user = User.new(:name => "david", :password => "", :password_confirmation => "nomatch")
+      #   user.save                                                      # => false, password required
       #   user.password = "mUc3m00RsqyRe"
       #   user.save                                                      # => false, confirmation doesn't match
       #   user.password_confirmation = "mUc3m00RsqyRe"
@@ -44,16 +38,6 @@ module ActiveModel
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
-        validate                  :password_must_be_strong
-      end
-
-      # Specify the weak passwords to be used in the model:
-      #
-      #   class User
-      #     set_weak_passwords %w( password qwerty 123456 mypass )
-      #   end
-      def set_weak_passwords(values)
-        self.weak_passwords = values
       end
     end
 
@@ -70,15 +54,6 @@ module ActiveModel
     def password=(unencrypted_password)
       @password = unencrypted_password
       self.password_digest = BCrypt::Password.create(unencrypted_password)
-    end
-
-    private
-
-    def password_must_be_strong
-      if password.present?
-        errors.add(:password, :too_short, :count => 7) unless password.size > 6
-        errors.add(:password, :insecure) if self.class.weak_passwords.include?(password)
-      end
     end
   end
 end
