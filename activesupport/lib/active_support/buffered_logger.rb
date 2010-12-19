@@ -1,3 +1,5 @@
+require 'thread'
+
 module ActiveSupport
   # Inspired by the buffered logger idea by Ezra
   class BufferedLogger

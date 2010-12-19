@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'thread'
 
 class SynchronizationTest < Test::Unit::TestCase
   def setup

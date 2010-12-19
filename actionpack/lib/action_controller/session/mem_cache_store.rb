@@ -1,6 +1,6 @@
 begin
   require_library_or_gem 'memcache'
-
+  require 'thread'
   module ActionController
     module Session
       class MemCacheStore < AbstractStore

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'thread'
 
 class ReloaderTests < ActiveSupport::TestCase
   Reloader   = ActionController::Reloader
