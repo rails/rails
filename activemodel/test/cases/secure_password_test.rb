@@ -33,6 +33,17 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert @user.valid?
   end
   
+  test "too weak passwords" do
+    @user.password = "123456"
+    assert !@user.valid?
+
+    @user.password = "password"
+    assert !@user.valid?
+    
+    @user.password = "d9034rfjlakj34RR$!!"
+    assert @user.valid?
+  end
+  
   test "authenticate" do
     @user.password = "secret"
     

@@ -4,17 +4,19 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
+    WEAK_PASSWORDS = %w( password qwerty 123456 )
+
     module ClassMethods
-      # Adds methods to set and authenticate against a SHA2-encrypted and salted password.
-      # This mechanism requires you to have password_digest and password_salt attributes.
+      # Adds methods to set and authenticate against a BCrypt password.
+      # This mechanism requires you to have a password_digest attribute.
       # 
       # Validations for presence of password, confirmation of password (using a "password_confirmation" attribute),
-      # and strength of password (at least 6 chars, not "password") are automatically added.
+      # and strength of password (at least 6 chars, not "password", etc) are automatically added.
       # You can add more validations by hand if need be.
       #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
-      #   # Schema: User(name:string, password_digest:string, password_salt:string)
+      #   # Schema: User(name:string, password_digest:string)
       #   class User < ActiveRecord::Base
       #     has_secure_password
       #   end
@@ -33,7 +35,7 @@ module ActiveModel
         attr_reader   :password
         attr_accessor :password_confirmation
 
-        attr_protected(:password_digest, :password_salt) if respond_to?(:attr_protected)
+        attr_protected(:password_digest) if respond_to?(:attr_protected)
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
@@ -44,7 +46,7 @@ module ActiveModel
     module InstanceMethods
       # Returns self if the password is correct, otherwise false.
       def authenticate(unencrypted_password)
-        if BCrypt::Password.new(password_digest) == (unencrypted_password + salt_for_password)
+        if BCrypt::Password.new(password_digest) == unencrypted_password
           self
         else
           false
@@ -54,18 +56,15 @@ module ActiveModel
       # Encrypts the password into the password_digest attribute.
       def password=(unencrypted_password)
         @password = unencrypted_password
-        self.password_digest = BCrypt::Password.create(unencrypted_password + salt_for_password)
+        self.password_digest = BCrypt::Password.create(unencrypted_password)
       end
 
-      private
-        def salt_for_password
-          self.password_salt ||= self.object_id.to_s + rand.to_s
-        end
 
+      private
         def password_must_be_strong
           if @password.present?
             errors.add(:password, "must be longer than 6 characters") unless @password.size > 6
-            errors.add(:password, "can't be 'password'") if @password == "password"
+            errors.add(:password, "is a too weak and common") if WEAK_PASSWORDS.include?(@password)
           end
         end
     end
