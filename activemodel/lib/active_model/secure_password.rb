@@ -42,9 +42,7 @@ module ActiveModel
       end
 
       # Allows you to specify the set of weak passwords that will be validated against
-      # if you specify has_secure_password in your model.
-      #
-      # The default set of weak passwords are:
+      # if you specify has_secure_password in your model:
       #
       #   class User < ActiveRecord::Base
       #     weak_passwords = %w( password qwerty 123456 mypass )
