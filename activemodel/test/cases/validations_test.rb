@@ -148,6 +148,14 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validate_block
+    Topic.validate { errors.add("title", "will never be valid") }
+    t = Topic.new("title" => "Title", "content" => "whatever")
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ["will never be valid"], t.errors["title"]
+  end
+
+  def test_validate_block_with_params
     Topic.validate { |topic| topic.errors.add("title", "will never be valid") }
     t = Topic.new("title" => "Title", "content" => "whatever")
     assert t.invalid?
@@ -187,7 +195,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
-    Topic.validate {|topic| topic.errors.add('author_email_address', 'will never be valid')}
+    Topic.validate {errors.add('author_email_address', 'will never be valid')}
     Topic.validates_length_of :title, :content, :minimum => 2
 
     t = Topic.new :title => ''
