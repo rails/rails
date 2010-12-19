@@ -17,6 +17,11 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal %w( pass ), User.weak_passwords
   end
 
+  test "specifying the list of passwords in the class" do
+    User.send(:set_weak_passwords, ['pass'])
+    assert_equal %w( pass ), User.weak_passwords
+  end
+
   test "adding to the list of passwords" do
     User.weak_passwords << 'pass'
     @user.password = "password"

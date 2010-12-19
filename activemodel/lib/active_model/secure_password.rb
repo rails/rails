@@ -41,12 +41,18 @@ module ActiveModel
         validate                  :password_must_be_strong
       end
 
-      # Allows you to specify the set of weak passwords that will be validated against
-      # if you specify has_secure_password in your model:
+      # Specify the weak passwords to be used in the model:
       #
-      #   class User < ActiveRecord::Base
-      #     weak_passwords = %w( password qwerty 123456 mypass )
+      #   class User
+      #     weak_passwords %w( password qwerty 123456 mypass )
       #   end
+      def set_weak_passwords(values)
+        @weak_passwords = values
+      end
+
+      # Change the list of weak passwords that will be validated against:
+      #
+      #   User.weak_passwords = %w( password qwerty 123456 mypass )
       def weak_passwords=(*values)
         @weak_passwords = values.flatten
       end
@@ -55,7 +61,7 @@ module ActiveModel
       # list of 'password', 'qwerty' and '123456'
       #
       #   User.weak_passwords #=> ['password', 'qwerty', '123456']
-      def weak_passwords
+      def weak_passwords(values = nil)
         @weak_passwords ||= %w( password qwerty 123456 )
       end
 
