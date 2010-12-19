@@ -19,7 +19,7 @@ module ActiveModel
       #
       #   # Schema: User(name:string, password_digest:string)
       #   class User < ActiveRecord::Base
-      #     has_secure_password
+      #     has_secure_password :strength => :weak
       #   end
       #
       #   user = User.new(:name => "david", :password => "secret", :password_confirmation => "nomatch")
@@ -32,7 +32,7 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password
+      def has_secure_password opts = {}
         attr_reader   :password
         attr_accessor :password_confirmation
 
@@ -40,7 +40,7 @@ module ActiveModel
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
-        validate                  :password_must_be_strong
+        validates_password        :password, :strength => opts.fetch(:strength, :weak)
       end
     end
 
@@ -59,13 +59,5 @@ module ActiveModel
       self.password_digest = BCrypt::Password.create(unencrypted_password)
     end
 
-    private
-
-    def password_must_be_strong
-      if password.present?
-        errors.add(:password, :too_short, :count => 7) unless password.size > 6
-        errors.add(:password, :insecure) if WEAK_PASSWORDS.include?(password)
-      end
-    end
   end
 end
