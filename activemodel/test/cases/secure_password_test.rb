@@ -34,11 +34,13 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
   
   test "too weak passwords" do
-    @user.password = "123456"
+    @user.password = "012345"
     assert !@user.valid?
+    assert_equal ["must be longer than 6 characters"], @user.errors[:password]
 
     @user.password = "password"
     assert !@user.valid?
+    assert_equal ["is too weak and common"], @user.errors[:password]
     
     @user.password = "d9034rfjlakj34RR$!!"
     assert @user.valid?

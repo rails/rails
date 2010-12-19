@@ -62,9 +62,9 @@ module ActiveModel
 
       private
         def password_must_be_strong
-          if @password.present?
-            errors.add(:password, "must be longer than 6 characters") unless @password.size > 6
-            errors.add(:password, "is a too weak and common") if WEAK_PASSWORDS.include?(@password)
+          if password.present?
+            errors.add(:password, "must be longer than 6 characters") unless password.size > 6
+            errors.add(:password, "is too weak and common") if WEAK_PASSWORDS.include?(password)
           end
         end
     end
