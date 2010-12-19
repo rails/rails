@@ -28,4 +28,4 @@ en:
 
     attributes:
       password:
-        unsecure: "is too weak and common"
+        insecure: "is too weak and common"

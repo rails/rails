@@ -64,7 +64,7 @@ module ActiveModel
     def password_must_be_strong
       if password.present?
         errors.add(:password, :too_short, :count => 7) unless password.size > 6
-        errors.add(:password, :unsecure) if WEAK_PASSWORDS.include?(password)
+        errors.add(:password, :insecure) if WEAK_PASSWORDS.include?(password)
       end
     end
   end
