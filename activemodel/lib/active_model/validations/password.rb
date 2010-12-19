@@ -13,9 +13,9 @@ module ActiveModel
 
         if value.present?
           if value.size < 7
-            record.errors.add(:password, "must be longer than 6 characters")
+            record.errors.add(:password, "is too short (minimum is 7 characters)")
           elsif WEAK_PASSWORDS.include?(value)
-            record.errors.add(:password, "is a too weak and common") 
+            record.errors.add(:password, "is too weak and common") 
           elsif (REGEXES[required_strength] !~ value)
             record.errors.add(attribute)
           end
