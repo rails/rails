@@ -8,52 +8,55 @@ task "load_app" do
   end
 end
 
-namespace :db do
-  task :reset     => [:load_app, :"app:db:reset"]
-
-  desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
-  task :migrate         => [:load_app, :"app:db:migrate"]
-  task :"migrate:up"    => [:load_app, :"app:db:migrate:up"]
-  task :"migrate:down"  => [:load_app, :"app:db:migrate:down"]
-  task :"migrate:redo"  => [:load_app, :"app:db:migrate:redo"]
-  task :"migrate:reset" => [:load_app, :"app:db:migrate:reset"]
-
-  desc "Display status of migrations"
-  task :"migrate:status" => [:load_app, :"app:db:migrate:status"]
-
-  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
-  task :create        => [:load_app, :"app:db:create"]
-  task :"create:all"  => [:load_app, :"app:db:create:all"]
-
-  desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
-  task :drop        => [:load_app, :"app:db:drop"]
-  task :"drop:all"  => [:load_app, :"app:db:drop:all"]
-
-  desc "Load fixtures into the current environment's database."
-  task :"fixtures:load" => [:load_app, :"app:db:fixtures:load"]
-
-  desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
-  task :rollback => [:load_app, :"app:db:rollback"]
-
-  desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
-  task :"schema:dump" => [:load_app, :"app:db:schema:dump"]
-
-  desc "Load a schema.rb file into the database"
-  task :"schema:load" => [:load_app, :"app:db:schema:load"]
-
-  desc "Load the seed data from db/seeds.rb"
-  task :seed => [:load_app, :"app:db:seed"]
-
-  desc "Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the db first)"
-  task :setup => [:load_app, :"app:db:setup"]
-
-  desc "Dump the database structure to an SQL file"
-  task :"structure:dump" => [:load_app, :"app:db:structure:dump"]
-
-  desc "Retrieves the current schema version number"
-  task :version => [:load_app, :"app:db:version"]
+def app_task(name)
+  task name => [:load_app, "app:db:#{name}"]
 end
 
+namespace :db do
+  app_task "reset"
+
+  desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
+  app_task "migrate"
+  app_task "migrate:up"
+  app_task "migrate:down"
+  app_task "migrate:redo"
+  app_task "migrate:reset"
+
+  desc "Display status of migrations"
+  app_task "migrate:status"
+
+  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
+  app_task "create"
+  app_task "create:all"
+
+  desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
+  app_task "drop"
+  app_task "drop:all"
+
+  desc "Load fixtures into the current environment's database."
+  app_task "fixtures:load"
+
+  desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
+  app_task "rollback"
+
+  desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
+  app_task "schema:dump"
+
+  desc "Load a schema.rb file into the database"
+  app_task "schema:load"
+
+  desc "Load the seed data from db/seeds.rb"
+  app_task "seed"
+
+  desc "Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the db first)"
+  app_task "setup"
+
+  desc "Dump the database structure to an SQL file"
+  app_task "structure:dump"
+
+  desc "Retrieves the current schema version number"
+  app_task "version"
+end
 
 def find_engine_path(path)
   return if path == "/"
