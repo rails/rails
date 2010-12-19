@@ -5,12 +5,10 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
-    WEAK_PASSWORDS = %w( password qwerty 123456 )
-
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a password_digest attribute.
-      # 
+      #
       # Validations for presence of password, confirmation of password (using a "password_confirmation" attribute),
       # and strength of password (at least 6 chars, not "password", etc) are automatically added.
       # You can add more validations by hand if need be.
@@ -24,9 +22,9 @@ module ActiveModel
       #
       #   user = User.new(:name => "david", :password => "secret", :password_confirmation => "nomatch")
       #   user.save                                                      # => false, password not long enough
-      #   user.password = "mUc3m00RsqyRe"                                
+      #   user.password = "mUc3m00RsqyRe"
       #   user.save                                                      # => false, confirmation doesn't match
-      #   user.password_confirmation = "mUc3m00RsqyRe"                   
+      #   user.password_confirmation = "mUc3m00RsqyRe"
       #   user.save                                                      # => true
       #   user.authenticate("notright")                                  # => false
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
@@ -42,6 +40,27 @@ module ActiveModel
         validates_presence_of     :password_digest
         validate                  :password_must_be_strong
       end
+
+      # Allows you to specify the set of weak passwords that will be validated against
+      # if you specify has_secure_password in your model.
+      #
+      # The default set of weak passwords are:
+      #
+      #   class User < ActiveRecord::Base
+      #     weak_passwords = %w( password qwerty 123456 mypass )
+      #   end
+      def weak_passwords=(*values)
+        @weak_passwords = values.flatten
+      end
+
+      # Returns the list of current weak passwords defined.  Defaults to the standard
+      # list of 'password', 'qwerty' and '123456'
+      #
+      #   User.weak_passwords #=> ['password', 'qwerty', '123456']
+      def weak_passwords
+        @weak_passwords ||= %w( password qwerty 123456 )
+      end
+
     end
 
     # Returns self if the password is correct, otherwise false.
@@ -64,7 +83,7 @@ module ActiveModel
     def password_must_be_strong
       if password.present?
         errors.add(:password, :too_short, :count => 7) unless password.size > 6
-        errors.add(:password, :insecure) if WEAK_PASSWORDS.include?(password)
+        errors.add(:password, :insecure) if self.class.weak_passwords.include?(password)
       end
     end
   end
