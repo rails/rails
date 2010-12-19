@@ -208,8 +208,8 @@ module ActionController #:nodoc:
     # It also accepts a block to be given. It's used to overwrite a default
     # response:
     #
-    #   def destroy
-    #     @user = User.find(params[:id])
+    #   def create
+    #     @user = User.new(params[:user])
     #     flash[:notice] = "User was successfully created." if @user.save
     #
     #     respond_with(@user) do |format|
