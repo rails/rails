@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/blank'
 require 'bcrypt'
 
 module ActiveModel
@@ -43,30 +44,28 @@ module ActiveModel
       end
     end
 
-    module InstanceMethods
-      # Returns self if the password is correct, otherwise false.
-      def authenticate(unencrypted_password)
-        if BCrypt::Password.new(password_digest) == unencrypted_password
-          self
-        else
-          false
-        end
+    # Returns self if the password is correct, otherwise false.
+    def authenticate(unencrypted_password)
+      if BCrypt::Password.new(password_digest) == unencrypted_password
+        self
+      else
+        false
       end
+    end
 
-      # Encrypts the password into the password_digest attribute.
-      def password=(unencrypted_password)
-        @password = unencrypted_password
-        self.password_digest = BCrypt::Password.create(unencrypted_password)
+    # Encrypts the password into the password_digest attribute.
+    def password=(unencrypted_password)
+      @password = unencrypted_password
+      self.password_digest = BCrypt::Password.create(unencrypted_password)
+    end
+
+    private
+
+    def password_must_be_strong
+      if password.present?
+        errors.add(:password, "must be longer than 6 characters") unless password.size > 6
+        errors.add(:password, "is too weak and common") if WEAK_PASSWORDS.include?(password)
       end
-
-
-      private
-        def password_must_be_strong
-          if password.present?
-            errors.add(:password, "must be longer than 6 characters") unless password.size > 6
-            errors.add(:password, "is too weak and common") if WEAK_PASSWORDS.include?(password)
-          end
-        end
     end
   end
 end
