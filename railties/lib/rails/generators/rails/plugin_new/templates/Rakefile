@@ -16,9 +16,6 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
 end
 
 <% if full? && !options[:skip_active_record] -%>
-namespace :app do
-  ENGINE_PATH = File.expand_path("..", __FILE__)
-  load File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
-end
-<% end -%>
-
+APP_RAKEFILE = File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
+load 'rails/tasks/engine.rake'
+<% end %>
