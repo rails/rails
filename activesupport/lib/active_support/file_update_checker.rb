@@ -8,7 +8,7 @@ module ActiveSupport
   #     I18n.reload!
   #   end
   #
-  #   ActionDispatch::Callbacks.to_prepare do
+  #   ActionDispatch::Reloader.to_prepare do
   #     i18n_reloader.execute_if_updated
   #   end
   #

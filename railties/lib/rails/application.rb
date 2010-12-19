@@ -157,7 +157,7 @@ module Rails
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
         middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         middleware.use ::ActionDispatch::Reloader unless config.cache_classes
-        middleware.use ::ActionDispatch::Callbacks, !config.cache_classes
+        middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies
 
         if config.session_store
