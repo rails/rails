@@ -48,7 +48,7 @@ To generate all the guides just cd into the +railties+ directory and execute
 rake generate_guides
 </plain>
 
-You'll need the gems erubis, i18n, and RedCloth. 
+You'll need the gems erubis, i18n, and RedCloth.
 
 To process +my_guide.textile+ and nothing else use the +ONLY+ environment variable:
 

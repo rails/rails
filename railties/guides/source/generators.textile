@@ -403,7 +403,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 
 h3. Generator methods
 
-The following are methods available for both generators and templates for Rails. 
+The following are methods available for both generators and templates for Rails.
 
 NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
 
@@ -546,7 +546,7 @@ This method also takes a block:
     %Q{
      task :rock => :environment do
        puts "Rockin'"
-     end 
+     end
     }
   end
 </ruby>

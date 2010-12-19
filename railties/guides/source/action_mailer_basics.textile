@@ -248,7 +248,7 @@ It is possible to send email to one or more recipients in one email (for e.g. in
   class AdminMailer < ActionMailer::Base
     default :to => Admin.all.map(&:email).join(", "),
             :from => "notification@example.com"
-  
+
     def new_registration(user)
       @user = user
       mail(:subject => "New User Signup: #{@user.email}")
