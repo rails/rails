@@ -1,9 +1,9 @@
+require 'active_support/concern'
+
 module Rails
   class Railtie
     module Configurable
-      def self.included(base)
-        base.extend ClassMethods
-      end
+      extend ActiveSupport::Concern
 
       module ClassMethods
         delegate :config, :to => :instance
