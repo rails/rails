@@ -95,7 +95,7 @@ Collections can also be requested in a similar fashion
    #
    # for GET http://api.people.com:3000/people.xml
    #
-   people = Person.find(:all)
+   people = Person.all
    people.first  # => <Person::xxx 'first' => 'Ryan' ...>
    people.last  # => <Person::xxx 'first' => 'Jim' ...>
 
