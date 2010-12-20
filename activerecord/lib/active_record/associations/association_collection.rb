@@ -344,12 +344,10 @@ module ActiveRecord
         other_array.each { |val| raise_on_type_mismatch(val) }
 
         load_target
-        other   = other_array.size < 100 ? other_array : other_array.to_set
-        current = @target.size < 100 ? @target : @target.to_set
 
         transaction do
-          delete(@target.select { |v| !other.include?(v) })
-          concat(other_array.select { |v| !current.include?(v) })
+          delete(@target - other_array)
+          concat(other_array - @target)
         end
       end
 
