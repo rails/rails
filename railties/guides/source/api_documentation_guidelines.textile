@@ -46,10 +46,10 @@ Short docs do not need an explicit "Examples" label to introduce snippets, they 
 # Converts a collection of elements into a formatted string by calling
 # <tt>to_s</tt> on all elements and joining them.
 #
-#   Blog.find(:all).to_formatted_s # => "First PostSecond PostThird Post"
+#   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
 </ruby>
 
-On the other hand big chunks of structured documentation may have a separate "Examples" section:
+On the other hand, big chunks of structured documentation may have a separate "Examples" section:
 
 <ruby>
 # ==== Examples

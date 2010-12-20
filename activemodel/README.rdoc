@@ -84,7 +84,7 @@ modules:
       attr_reader   :errors
 
       def validate!
-        errors.add(:name, "can not be nil") if name == nil
+        errors.add(:name, "can not be nil") if name.nil?
       end
 
       def ErrorsPerson.human_attribute_name(attr, options = {})
@@ -94,10 +94,10 @@ modules:
     end
 
     person.errors.full_messages
-    # => ["Name Can not be nil"]
+    # => ["Name can not be nil"]
 
     person.errors.full_messages
-    # => ["Name Can not be nil"]
+    # => ["Name can not be nil"]
 
   {Learn more}[link:classes/ActiveModel/Errors.html]
 

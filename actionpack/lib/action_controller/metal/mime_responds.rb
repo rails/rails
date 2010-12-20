@@ -63,13 +63,13 @@ module ActionController #:nodoc:
     # might look something like this:
     #
     #   def index
-    #     @people = Person.find(:all)
+    #     @people = Person.all
     #   end
     #
     # Here's the same action, with web-service support baked in:
     #
     #   def index
-    #     @people = Person.find(:all)
+    #     @people = Person.all
     #
     #     respond_to do |format|
     #       format.html
@@ -155,7 +155,7 @@ module ActionController #:nodoc:
     # Respond to also allows you to specify a common block for different formats by using any:
     #
     #   def index
-    #     @people = Person.find(:all)
+    #     @people = Person.all
     #
     #     respond_to do |format|
     #       format.html
@@ -178,7 +178,7 @@ module ActionController #:nodoc:
     #     respond_to :html, :xml, :json
     #
     #     def index
-    #       @people = Person.find(:all)
+    #       @people = Person.all
     #       respond_with(@person)
     #     end
     #   end
@@ -208,8 +208,8 @@ module ActionController #:nodoc:
     # It also accepts a block to be given. It's used to overwrite a default
     # response:
     #
-    #   def destroy
-    #     @user = User.find(params[:id])
+    #   def create
+    #     @user = User.new(params[:user])
     #     flash[:notice] = "User was successfully created." if @user.save
     #
     #     respond_with(@user) do |format|

@@ -644,7 +644,7 @@ Fundamentally HTML forms don't know about any sort of structured data, all they 
 TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
 
 <ruby>
-ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" 
+ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
 # => {"name"=>"fred", "phone"=>"0123456789"}
 </ruby>
 
