@@ -1,4 +1,3 @@
-require 'set'
 require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
@@ -75,7 +74,7 @@ module ActiveRecord
           find(:first, *args)
         else
           load_target unless loaded?
-          args = args[1..-1] if args.first.kind_of?(Hash) && args.first.empty?
+          args.shift if args.first.kind_of?(Hash) && args.first.empty?
           @target.first(*args)
         end
       end
@@ -93,7 +92,7 @@ module ActiveRecord
       def to_ary
         load_target
         if @target.is_a?(Array)
-          @target.to_ary
+          @target
         else
           Array.wrap(@target)
         end
