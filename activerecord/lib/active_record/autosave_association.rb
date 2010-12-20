@@ -332,9 +332,11 @@ module ActiveRecord
                 else
                   association.send(:insert_record, record)
                 end
-
-                raise ActiveRecord::Rollback if saved == false
+              elsif autosave
+                saved = record.save(:validate => false)
               end
+
+              raise ActiveRecord::Rollback if saved == false
             end
           rescue
             records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
