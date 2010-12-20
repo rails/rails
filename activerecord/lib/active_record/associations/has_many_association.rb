@@ -62,12 +62,12 @@ module ActiveRecord
         def delete_records(records)
           case @reflection.options[:dependent]
             when :destroy
-              records.each(&:destroy)
+              records.each { |r| r.destroy }
             when :delete_all
-              @reflection.klass.delete(records.map(&:id))
+              @reflection.klass.delete(records.map { |r| r.id })
             else
               updates    = { @reflection.primary_key_name => nil }
-              conditions = { @reflection.association_primary_key => records.map(&:id) }
+              conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
               with_scope(@scope) do
                 @reflection.klass.update_all(updates, conditions)
