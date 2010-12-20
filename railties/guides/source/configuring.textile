@@ -471,7 +471,7 @@ You might have expected an instance of Array.
 The error occurred while evaluating nil.each
 </plain>
 
-*+active_support.deprecation_behavior+* Sets up deprecation reporting for environments, defaulting to +log+ for development, +notify+ for production and +stderr+ for test. If a value isn't set for +config.active_support.deprecation+ then this initializer will prompt the user to configure this line in the current environment's +config/environments+ file.
+*+active_support.deprecation_behavior+* Sets up deprecation reporting for environments, defaulting to +:log+ for development, +:notify+ for production and +:stderr+ for test. If a value isn't set for +config.active_support.deprecation+ then this initializer will prompt the user to configure this line in the current environment's +config/environments+ file. Can be set to an array of values.
 
 *+active_support.initialize_time_zone+* Sets the default time zone for the application based off the +config.time_zone+ setting, which defaults to "UTC".
 
