@@ -7,22 +7,24 @@ module Arel
       def initialize engine
         @engine         = engine
         @connection     = nil
+        @pool           = nil
         @last_column    = nil
         @quoted_tables  = {}
         @quoted_columns = {}
-        @column_cache   = Hash.new { |h,conn|
-          h[conn] = Hash.new { |conn_h,column|
+        @column_cache   = Hash.new { |h,pool|
+          h[pool] = Hash.new { |conn_h,column|
             conn_h[column] = {}
           }
         }
-        @table_exists   = Hash.new { |h,conn|
-          h[conn] = {}
+        @table_exists   = Hash.new { |h,pool|
+          h[pool] = {}
         }
       end
 
       def accept object
         @last_column = nil
-        @engine.connection_pool.with_connection do |conn|
+        @pool        = @engine.connection_pool
+        @pool.with_connection do |conn|
           @connection = conn
           super
         end
@@ -85,7 +87,7 @@ module Arel
       end
 
       def table_exists
-        @table_exists[@connection]
+        @table_exists[@pool]
       end
 
       def column_for attr
@@ -105,7 +107,7 @@ module Arel
       end
 
       def column_cache
-        @column_cache[@connection]
+        @column_cache[@pool]
       end
 
       def visit_Arel_Nodes_Values o
