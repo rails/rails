@@ -69,11 +69,9 @@ module ActiveRecord
     end
 
     initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
-      unless app.config.cache_classes
-        ActiveSupport.on_load(:active_record) do
-          ActionDispatch::Callbacks.after do
-            ActiveRecord::Base.clear_reloadable_connections!
-          end
+      ActiveSupport.on_load(:active_record) do
+        ActionDispatch::Reloader.to_cleanup do
+          ActiveRecord::Base.clear_reloadable_connections!
         end
       end
     end
