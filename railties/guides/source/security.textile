@@ -166,7 +166,7 @@ end
 The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a created_at column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 <ruby>
-delete_all "updated_at < '#{time.to_s(:db)}' OR
+delete_all "updated_at < '#{time.ago.to_s(:db)}' OR
   created_at < '#{2.days.ago.to_s(:db)}'"
 </ruby>
 
@@ -524,10 +524,10 @@ h4. Logging
 
 -- _Tell Rails not to put passwords in the log files._
 
-By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _(highlight)filter certain request parameters from your log files_ by the filter_parameter_logging method in a controller. These parameters will be marked [FILTERED] in the log.
+By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _(highlight)filter certain request parameters from your log files_ by appending them to <tt>config.filter_parameters</tt> in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 <ruby>
-filter_parameter_logging :password
+config.filter_parameters << :password
 </ruby>
 
 h4. Good Passwords
@@ -550,7 +550,7 @@ Ruby uses a slightly different approach than many other languages to match the e
 
 <ruby>
 class File < ActiveRecord::Base
-  validates_format_of :name, :with => /^[\w\.\-\+]+$/
+  validates :name, :format => /^[\w\.\-\+]+$/
 end
 </ruby>
 

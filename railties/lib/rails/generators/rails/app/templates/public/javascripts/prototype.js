@@ -1,4 +1,4 @@
-/*  Prototype JavaScript framework, version 1.7_rc2
+/*  Prototype JavaScript framework, version 1.7
  *  (c) 2005-2010 Sam Stephenson
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
@@ -8,7 +8,7 @@
 
 var Prototype = {
 
-  Version: '1.7_rc2',
+  Version: '1.7',
 
   Browser: (function(){
     var ua = navigator.userAgent;
@@ -166,10 +166,12 @@ var Class = (function() {
       NUMBER_TYPE = 'Number',
       STRING_TYPE = 'String',
       OBJECT_TYPE = 'Object',
+      FUNCTION_CLASS = '[object Function]',
       BOOLEAN_CLASS = '[object Boolean]',
       NUMBER_CLASS = '[object Number]',
       STRING_CLASS = '[object String]',
       ARRAY_CLASS = '[object Array]',
+      DATE_CLASS = '[object Date]',
       NATIVE_JSON_STRINGIFY_SUPPORT = window.JSON &&
         typeof JSON.stringify === 'function' &&
         JSON.stringify(0) === '0' &&
@@ -322,7 +324,7 @@ var Class = (function() {
   }
 
   function isFunction(object) {
-    return typeof object === "function";
+    return _toString.call(object) === FUNCTION_CLASS;
   }
 
   function isString(object) {
@@ -331,6 +333,10 @@ var Class = (function() {
 
   function isNumber(object) {
     return _toString.call(object) === NUMBER_CLASS;
+  }
+
+  function isDate(object) {
+    return _toString.call(object) === DATE_CLASS;
   }
 
   function isUndefined(object) {
@@ -352,6 +358,7 @@ var Class = (function() {
     isFunction:    isFunction,
     isString:      isString,
     isNumber:      isNumber,
+    isDate:        isDate,
     isUndefined:   isUndefined
   });
 })();
@@ -1079,9 +1086,10 @@ Array.from = $A;
       slice = arrayProto.slice,
       _each = arrayProto.forEach; // use native browser JS 1.6 implementation if available
 
-  function each(iterator) {
-    for (var i = 0, length = this.length; i < length; i++)
-      iterator(this[i]);
+  function each(iterator, context) {
+    for (var i = 0, length = this.length >>> 0; i < length; i++) {
+      if (i in this) iterator.call(context, this[i], i, this);
+    }
   }
   if (!_each) _each = each;
 
@@ -1287,8 +1295,14 @@ var Hash = Class.create(Enumerable, (function() {
       var key = encodeURIComponent(pair.key), values = pair.value;
 
       if (values && typeof values == 'object') {
-        if (Object.isArray(values))
-          return results.concat(values.map(toQueryPair.curry(key)));
+        if (Object.isArray(values)) {
+          var queryValues = [];
+          for (var i = 0, len = values.length, value; i < len; i++) {
+            value = values[i];
+            queryValues.push(toQueryPair(key, value));
+          }
+          return results.concat(queryValues);
+        }
       } else results.push(toQueryPair(key, values));
       return results;
     }).join('&');
@@ -1468,9 +1482,7 @@ Ajax.Base = Class.create({
 
     this.options.method = this.options.method.toLowerCase();
 
-    if (Object.isString(this.options.parameters))
-      this.options.parameters = this.options.parameters.toQueryParams();
-    else if (Object.isHash(this.options.parameters))
+    if (Object.isHash(this.options.parameters))
       this.options.parameters = this.options.parameters.toObject();
   }
 });
@@ -1486,21 +1498,20 @@ Ajax.Request = Class.create(Ajax.Base, {
   request: function(url) {
     this.url = url;
     this.method = this.options.method;
-    var params = Object.clone(this.options.parameters);
+    var params = Object.isString(this.options.parameters) ?
+          this.options.parameters :
+          Object.toQueryString(this.options.parameters);
 
     if (!['get', 'post'].include(this.method)) {
-      params['_method'] = this.method;
+      params += (params ? '&' : '') + "_method=" + this.method;
       this.method = 'post';
     }
 
-    this.parameters = params;
-
-    if (params = Object.toQueryString(params)) {
-      if (this.method == 'get')
-        this.url += (this.url.include('?') ? '&' : '?') + params;
-      else if (/Konqueror|Safari|KHTML/.test(navigator.userAgent))
-        params += '&_=';
+    if (params && this.method === 'get') {
+      this.url += (this.url.include('?') ? '&' : '?') + params;
     }
+
+    this.parameters = params.toQueryParams();
 
     try {
       var response = new Ajax.Response(this);
@@ -1570,11 +1581,12 @@ Ajax.Request = Class.create(Ajax.Base, {
 
   success: function() {
     var status = this.getStatus();
-    return !status || (status >= 200 && status < 300);
+    return !status || (status >= 200 && status < 300) || status == 304;
   },
 
   getStatus: function() {
     try {
+      if (this.transport.status === 1223) return 204;
       return this.transport.status || 0;
     } catch (e) { return 0 }
   },
@@ -1849,6 +1861,11 @@ if (!Node.ELEMENT_NODE) {
 
 
 (function(global) {
+  function shouldUseCache(tagName, attributes) {
+    if (tagName === 'select') return false;
+    if ('type' in attributes) return false;
+    return true;
+  }
 
   var HAS_EXTENDED_CREATE_ELEMENT_SYNTAX = (function(){
     try {
@@ -1866,13 +1883,19 @@ if (!Node.ELEMENT_NODE) {
     attributes = attributes || { };
     tagName = tagName.toLowerCase();
     var cache = Element.cache;
+
     if (HAS_EXTENDED_CREATE_ELEMENT_SYNTAX && attributes.name) {
       tagName = '<' + tagName + ' name="' + attributes.name + '">';
       delete attributes.name;
       return Element.writeAttribute(document.createElement(tagName), attributes);
     }
+
     if (!cache[tagName]) cache[tagName] = Element.extend(document.createElement(tagName));
-    return Element.writeAttribute(cache[tagName].cloneNode(false), attributes);
+
+    var node = shouldUseCache(tagName, attributes) ?
+     cache[tagName].cloneNode(false) : document.createElement(tagName);
+
+    return Element.writeAttribute(node, attributes);
   };
 
   Object.extend(global.Element, element || { });
@@ -1883,7 +1906,7 @@ if (!Node.ELEMENT_NODE) {
 Element.idCounter = 1;
 Element.cache = { };
 
-function purgeElement(element) {
+Element._purgeElement = function(element) {
   var uid = element._prototypeUID;
   if (uid) {
     Element.stopObserving(element);
@@ -1948,6 +1971,21 @@ Element.Methods = {
       }
     })();
 
+    var LINK_ELEMENT_INNERHTML_BUGGY = (function() {
+      try {
+        var el = document.createElement('div');
+        el.innerHTML = "<link>";
+        var isBuggy = (el.childNodes.length === 0);
+        el = null;
+        return isBuggy;
+      } catch(e) {
+        return true;
+      }
+    })();
+
+    var ANY_INNERHTML_BUGGY = SELECT_ELEMENT_INNERHTML_BUGGY ||
+     TABLE_ELEMENT_INNERHTML_BUGGY || LINK_ELEMENT_INNERHTML_BUGGY;
+
     var SCRIPT_ELEMENT_REJECTS_TEXTNODE_APPENDING = (function () {
       var s = document.createElement("script"),
           isBuggy = false;
@@ -1962,8 +2000,10 @@ Element.Methods = {
       return isBuggy;
     })();
 
+
     function update(element, content) {
       element = $(element);
+      var purgeElement = Element._purgeElement;
 
       var descendants = element.getElementsByTagName('*'),
        i = descendants.length;
@@ -1984,7 +2024,7 @@ Element.Methods = {
         return element;
       }
 
-      if (SELECT_ELEMENT_INNERHTML_BUGGY || TABLE_ELEMENT_INNERHTML_BUGGY) {
+      if (ANY_INNERHTML_BUGGY) {
         if (tagName in Element._insertionTranslations.tags) {
           while (element.firstChild) {
             element.removeChild(element.firstChild);
@@ -1993,6 +2033,12 @@ Element.Methods = {
             .each(function(node) {
               element.appendChild(node)
             });
+        } else if (LINK_ELEMENT_INNERHTML_BUGGY && Object.isString(content) && content.indexOf('<link') > -1) {
+          while (element.firstChild) {
+            element.removeChild(element.firstChild);
+          }
+          var nodes = Element._getContentFromAnonymousElement(tagName, content.stripScripts(), true);
+          nodes.each(function(node) { element.appendChild(node) });
         }
         else {
           element.innerHTML = content.stripScripts();
@@ -2402,117 +2448,6 @@ Element.Methods = {
     return element;
   },
 
-  cumulativeOffset: function(element) {
-    var valueT = 0, valueL = 0;
-    if (element.parentNode) {
-      do {
-        valueT += element.offsetTop  || 0;
-        valueL += element.offsetLeft || 0;
-        element = element.offsetParent;
-      } while (element);
-    }
-    return Element._returnOffset(valueL, valueT);
-  },
-
-  positionedOffset: function(element) {
-    var valueT = 0, valueL = 0;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-      element = element.offsetParent;
-      if (element) {
-        if (element.tagName.toUpperCase() == 'BODY') break;
-        var p = Element.getStyle(element, 'position');
-        if (p !== 'static') break;
-      }
-    } while (element);
-    return Element._returnOffset(valueL, valueT);
-  },
-
-  absolutize: function(element) {
-    element = $(element);
-    if (Element.getStyle(element, 'position') == 'absolute') return element;
-
-    var offsets = Element.positionedOffset(element),
-        top     = offsets[1],
-        left    = offsets[0],
-        width   = element.clientWidth,
-        height  = element.clientHeight;
-
-    element._originalLeft   = left - parseFloat(element.style.left  || 0);
-    element._originalTop    = top  - parseFloat(element.style.top || 0);
-    element._originalWidth  = element.style.width;
-    element._originalHeight = element.style.height;
-
-    element.style.position = 'absolute';
-    element.style.top    = top + 'px';
-    element.style.left   = left + 'px';
-    element.style.width  = width + 'px';
-    element.style.height = height + 'px';
-    return element;
-  },
-
-  relativize: function(element) {
-    element = $(element);
-    if (Element.getStyle(element, 'position') == 'relative') return element;
-
-    element.style.position = 'relative';
-    var top  = parseFloat(element.style.top  || 0) - (element._originalTop || 0),
-        left = parseFloat(element.style.left || 0) - (element._originalLeft || 0);
-
-    element.style.top    = top + 'px';
-    element.style.left   = left + 'px';
-    element.style.height = element._originalHeight;
-    element.style.width  = element._originalWidth;
-    return element;
-  },
-
-  cumulativeScrollOffset: function(element) {
-    var valueT = 0, valueL = 0;
-    do {
-      valueT += element.scrollTop  || 0;
-      valueL += element.scrollLeft || 0;
-      element = element.parentNode;
-    } while (element);
-    return Element._returnOffset(valueL, valueT);
-  },
-
-  getOffsetParent: function(element) {
-    if (element.offsetParent) return $(element.offsetParent);
-    if (element == document.body) return $(element);
-
-    while ((element = element.parentNode) && element != document.body)
-      if (Element.getStyle(element, 'position') != 'static')
-        return $(element);
-
-    return $(document.body);
-  },
-
-  viewportOffset: function(forElement) {
-    var valueT = 0,
-        valueL = 0,
-        element = forElement;
-
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-
-      if (element.offsetParent == document.body &&
-        Element.getStyle(element, 'position') == 'absolute') break;
-
-    } while (element = element.offsetParent);
-
-    element = forElement;
-    do {
-      if (!Prototype.Browser.Opera || (element.tagName && (element.tagName.toUpperCase() == 'BODY'))) {
-        valueT -= element.scrollTop  || 0;
-        valueL -= element.scrollLeft || 0;
-      }
-    } while (element = element.parentNode);
-
-    return Element._returnOffset(valueL, valueT);
-  },
-
   clonePosition: function(element, source) {
     var options = Object.extend({
       setLeft:    true,
@@ -2566,8 +2501,6 @@ if (Prototype.Browser.Opera) {
   Element.Methods.getStyle = Element.Methods.getStyle.wrap(
     function(proceed, element, style) {
       switch (style) {
-        case 'left': case 'top': case 'right': case 'bottom':
-          if (proceed(element, 'position') === 'static') return null;
         case 'height': case 'width':
           if (!Element.visible(element)) return null;
 
@@ -2603,37 +2536,6 @@ if (Prototype.Browser.Opera) {
 }
 
 else if (Prototype.Browser.IE) {
-  Element.Methods.getOffsetParent = Element.Methods.getOffsetParent.wrap(
-    function(proceed, element) {
-      element = $(element);
-      if (!element.parentNode) return $(document.body);
-      var position = element.getStyle('position');
-      if (position !== 'static') return proceed(element);
-      element.setStyle({ position: 'relative' });
-      var value = proceed(element);
-      element.setStyle({ position: position });
-      return value;
-    }
-  );
-
-  $w('positionedOffset viewportOffset').each(function(method) {
-    Element.Methods[method] = Element.Methods[method].wrap(
-      function(proceed, element) {
-        element = $(element);
-        if (!element.parentNode) return Element._returnOffset(0, 0);
-        var position = element.getStyle('position');
-        if (position !== 'static') return proceed(element);
-        var offsetParent = element.getOffsetParent();
-        if (offsetParent && offsetParent.getStyle('position') === 'fixed')
-          offsetParent.setStyle({ zoom: 1 });
-        element.setStyle({ position: 'relative' });
-        var value = proceed(element);
-        element.setStyle({ position: position });
-        return value;
-      }
-    );
-  });
-
   Element.Methods.getStyle = function(element, style) {
     element = $(element);
     style = (style == 'float' || style == 'cssFloat') ? 'styleFloat' : style.camelize();
@@ -2862,20 +2764,6 @@ else if (Prototype.Browser.WebKit) {
 
     return element;
   };
-
-  Element.Methods.cumulativeOffset = function(element) {
-    var valueT = 0, valueL = 0;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-      if (element.offsetParent == document.body)
-        if (Element.getStyle(element, 'position') == 'absolute') break;
-
-      element = element.offsetParent;
-    } while (element);
-
-    return Element._returnOffset(valueL, valueT);
-  };
 }
 
 if ('outerHTML' in document.documentElement) {
@@ -2914,11 +2802,20 @@ Element._returnOffset = function(l, t) {
   return result;
 };
 
-Element._getContentFromAnonymousElement = function(tagName, html) {
+Element._getContentFromAnonymousElement = function(tagName, html, force) {
   var div = new Element('div'),
       t = Element._insertionTranslations.tags[tagName];
-  if (t) {
-    div.innerHTML = t[0] + html + t[1];
+
+  var workaround = false;
+  if (t) workaround = true;
+  else if (force) {
+    workaround = true;
+    t = ['', '', 0];
+  }
+
+  if (workaround) {
+    div.innerHTML = '&nbsp;' + t[0] + html + t[1];
+    div.removeChild(div.firstChild);
     for (var i = t[2]; i--; ) {
       div = div.firstChild;
     }
@@ -3077,7 +2974,8 @@ Element.addMethods = function(methods) {
       "FORM":     Object.clone(Form.Methods),
       "INPUT":    Object.clone(Form.Element.Methods),
       "SELECT":   Object.clone(Form.Element.Methods),
-      "TEXTAREA": Object.clone(Form.Element.Methods)
+      "TEXTAREA": Object.clone(Form.Element.Methods),
+      "BUTTON":   Object.clone(Form.Element.Methods)
     });
   }
 
@@ -3264,6 +3162,8 @@ Element.addMethods({
 
   purge: function(element) {
     if (!(element = $(element))) return;
+    var purgeElement = Element._purgeElement;
+
     purgeElement(element);
 
     var descendants = element.getElementsByTagName('*'),
@@ -3283,11 +3183,13 @@ Element.addMethods({
     return (Number(match[1]) / 100);
   }
 
-  function getPixelValue(value, property) {
+  function getPixelValue(value, property, context) {
+    var element = null;
     if (Object.isElement(value)) {
       element = value;
       value = element.getStyle(property);
     }
+
     if (value === null) {
       return null;
     }
@@ -3296,7 +3198,9 @@ Element.addMethods({
       return window.parseFloat(value);
     }
 
-    if (/\d/.test(value) && element.runtimeStyle) {
+    var isPercentage = value.include('%'), isViewport = (context === document.viewport);
+
+    if (/\d/.test(value) && element && element.runtimeStyle && !(isPercentage && isViewport)) {
       var style = element.style.left, rStyle = element.runtimeStyle.left;
       element.runtimeStyle.left = element.currentStyle.left;
       element.style.left = value || 0;
@@ -3307,18 +3211,33 @@ Element.addMethods({
       return value;
     }
 
-    if (value.include('%')) {
+    if (element && isPercentage) {
+      context = context || element.parentNode;
       var decimal = toDecimal(value);
-      var whole;
-      if (property.include('left') || property.include('right') ||
-       property.include('width')) {
-        whole = $(element.parentNode).measure('width');
-      } else if (property.include('top') || property.include('bottom') ||
-       property.include('height')) {
-        whole = $(element.parentNode).measure('height');
+      var whole = null;
+      var position = element.getStyle('position');
+
+      var isHorizontal = property.include('left') || property.include('right') ||
+       property.include('width');
+
+      var isVertical =  property.include('top') || property.include('bottom') ||
+        property.include('height');
+
+      if (context === document.viewport) {
+        if (isHorizontal) {
+          whole = document.viewport.getWidth();
+        } else if (isVertical) {
+          whole = document.viewport.getHeight();
+        }
+      } else {
+        if (isHorizontal) {
+          whole = $(context).measure('width');
+        } else if (isVertical) {
+          whole = $(context).measure('height');
+        }
       }
 
-      return whole * decimal;
+      return (whole === null) ? 0 : whole * decimal;
     }
 
     return 0;
@@ -3410,6 +3329,14 @@ Element.addMethods({
       var position = element.getStyle('position'),
        width = element.getStyle('width');
 
+      if (width === "0px" || width === null) {
+        element.style.display = 'block';
+        width = element.getStyle('width');
+      }
+
+      var context = (position === 'fixed') ? document.viewport :
+       element.parentNode;
+
       element.setStyle({
         position:   'absolute',
         visibility: 'hidden',
@@ -3420,9 +3347,9 @@ Element.addMethods({
 
       var newWidth;
       if (width && (positionedWidth === width)) {
-        newWidth = getPixelValue(width);
-      } else if (width && (position === 'absolute' || position === 'fixed')) {
-        newWidth = getPixelValue(width);
+        newWidth = getPixelValue(element, 'width', context);
+      } else if (position === 'absolute' || position === 'fixed') {
+        newWidth = getPixelValue(element, 'width', context);
       } else {
         var parent = element.parentNode, pLayout = $(parent).getLayout();
 
@@ -3453,6 +3380,7 @@ Element.addMethods({
       if (!(property in COMPUTATIONS)) {
         throw "Property not found.";
       }
+
       return this._set(property, COMPUTATIONS[property].call(this, this.element));
     },
 
@@ -3505,7 +3433,10 @@ Element.addMethods({
         if (!this._preComputing) this._begin();
 
         var bHeight = this.get('border-box-height');
-        if (bHeight <= 0) return 0;
+        if (bHeight <= 0) {
+          if (!this._preComputing) this._end();
+          return 0;
+        }
 
         var bTop = this.get('border-top'),
          bBottom = this.get('border-bottom');
@@ -3522,7 +3453,10 @@ Element.addMethods({
         if (!this._preComputing) this._begin();
 
         var bWidth = this.get('border-box-width');
-        if (bWidth <= 0) return 0;
+        if (bWidth <= 0) {
+          if (!this._preComputing) this._end();
+          return 0;
+        }
 
         var bLeft = this.get('border-left'),
          bRight = this.get('border-right');
@@ -3552,11 +3486,17 @@ Element.addMethods({
       },
 
       'border-box-height': function(element) {
-        return element.offsetHeight;
+        if (!this._preComputing) this._begin();
+        var height = element.offsetHeight;
+        if (!this._preComputing) this._end();
+        return height;
       },
 
       'border-box-width': function(element) {
-        return element.offsetWidth;
+        if (!this._preComputing) this._begin();
+        var width = element.offsetWidth;
+        if (!this._preComputing) this._end();
+        return width;
       },
 
       'margin-box-height': function(element) {
@@ -3626,23 +3566,19 @@ Element.addMethods({
       },
 
       'border-top': function(element) {
-        return Object.isNumber(element.clientTop) ? element.clientTop :
-         getPixelValue(element, 'borderTopWidth');
+        return getPixelValue(element, 'borderTopWidth');
       },
 
       'border-bottom': function(element) {
-        return Object.isNumber(element.clientBottom) ? element.clientBottom :
-         getPixelValue(element, 'borderBottomWidth');
+        return getPixelValue(element, 'borderBottomWidth');
       },
 
       'border-left': function(element) {
-        return Object.isNumber(element.clientLeft) ? element.clientLeft :
-         getPixelValue(element, 'borderLeftWidth');
+        return getPixelValue(element, 'borderLeftWidth');
       },
 
       'border-right': function(element) {
-        return Object.isNumber(element.clientRight) ? element.clientRight :
-         getPixelValue(element, 'borderRightWidth');
+        return getPixelValue(element, 'borderRightWidth');
       },
 
       'margin-top': function(element) {
@@ -3721,23 +3657,52 @@ Element.addMethods({
   }
 
   function getDimensions(element) {
-    var layout = $(element).getLayout();
-    return {
-      width:  layout.get('width'),
-      height: layout.get('height')
+    element = $(element);
+    var display = Element.getStyle(element, 'display');
+
+    if (display && display !== 'none') {
+      return { width: element.offsetWidth, height: element.offsetHeight };
+    }
+
+    var style = element.style;
+    var originalStyles = {
+      visibility: style.visibility,
+      position:   style.position,
+      display:    style.display
     };
+
+    var newStyles = {
+      visibility: 'hidden',
+      display:    'block'
+    };
+
+    if (originalStyles.position !== 'fixed')
+      newStyles.position = 'absolute';
+
+    Element.setStyle(element, newStyles);
+
+    var dimensions = {
+      width:  element.offsetWidth,
+      height: element.offsetHeight
+    };
+
+    Element.setStyle(element, originalStyles);
+
+    return dimensions;
   }
 
   function getOffsetParent(element) {
-    if (isDetached(element)) return $(document.body);
+    element = $(element);
+
+    if (isDocument(element) || isDetached(element) || isBody(element) || isHtml(element))
+      return $(document.body);
 
     var isInline = (Element.getStyle(element, 'display') === 'inline');
     if (!isInline && element.offsetParent) return $(element.offsetParent);
-    if (element === document.body) return $(element);
 
     while ((element = element.parentNode) && element !== document.body) {
       if (Element.getStyle(element, 'position') !== 'static') {
-        return (element.nodeName === 'HTML') ? $(document.body) : $(element);
+        return isHtml(element) ? $(document.body) : $(element);
       }
     }
 
@@ -3746,16 +3711,21 @@ Element.addMethods({
 
 
   function cumulativeOffset(element) {
+    element = $(element);
     var valueT = 0, valueL = 0;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-      element = element.offsetParent;
-    } while (element);
+    if (element.parentNode) {
+      do {
+        valueT += element.offsetTop  || 0;
+        valueL += element.offsetLeft || 0;
+        element = element.offsetParent;
+      } while (element);
+    }
     return new Element.Offset(valueL, valueT);
   }
 
   function positionedOffset(element) {
+    element = $(element);
+
     var layout = element.getLayout();
 
     var valueT = 0, valueL = 0;
@@ -3787,6 +3757,7 @@ Element.addMethods({
   }
 
   function viewportOffset(forElement) {
+    element = $(element);
     var valueT = 0, valueL = 0, docBody = document.body;
 
     var element = forElement;
@@ -3852,6 +3823,57 @@ Element.addMethods({
     return element;
   }
 
+  if (Prototype.Browser.IE) {
+    getOffsetParent = getOffsetParent.wrap(
+      function(proceed, element) {
+        element = $(element);
+
+        if (isDocument(element) || isDetached(element) || isBody(element) || isHtml(element))
+          return $(document.body);
+
+        var position = element.getStyle('position');
+        if (position !== 'static') return proceed(element);
+
+        element.setStyle({ position: 'relative' });
+        var value = proceed(element);
+        element.setStyle({ position: position });
+        return value;
+      }
+    );
+
+    positionedOffset = positionedOffset.wrap(function(proceed, element) {
+      element = $(element);
+      if (!element.parentNode) return new Element.Offset(0, 0);
+      var position = element.getStyle('position');
+      if (position !== 'static') return proceed(element);
+
+      var offsetParent = element.getOffsetParent();
+      if (offsetParent && offsetParent.getStyle('position') === 'fixed')
+        hasLayout(offsetParent);
+
+      element.setStyle({ position: 'relative' });
+      var value = proceed(element);
+      element.setStyle({ position: position });
+      return value;
+    });
+  } else if (Prototype.Browser.Webkit) {
+    cumulativeOffset = function(element) {
+      element = $(element);
+      var valueT = 0, valueL = 0;
+      do {
+        valueT += element.offsetTop  || 0;
+        valueL += element.offsetLeft || 0;
+        if (element.offsetParent == document.body)
+          if (Element.getStyle(element, 'position') == 'absolute') break;
+
+        element = element.offsetParent;
+      } while (element);
+
+      return new Element.Offset(valueL, valueT);
+    };
+  }
+
+
   Element.addMethods({
     getLayout:              getLayout,
     measure:                measure,
@@ -3869,6 +3891,14 @@ Element.addMethods({
     return element.nodeName.toUpperCase() === 'BODY';
   }
 
+  function isHtml(element) {
+    return element.nodeName.toUpperCase() === 'HTML';
+  }
+
+  function isDocument(element) {
+    return element.nodeType === Node.DOCUMENT_NODE;
+  }
+
   function isDetached(element) {
     return element !== document.body &&
      !Element.descendantOf(element, document.body);
@@ -3880,32 +3910,10 @@ Element.addMethods({
         element = $(element);
         if (isDetached(element)) return new Element.Offset(0, 0);
 
-        var rect  = element.getBoundingClientRect(),
+        var rect = element.getBoundingClientRect(),
          docEl = document.documentElement;
         return new Element.Offset(rect.left - docEl.clientLeft,
          rect.top - docEl.clientTop);
-      },
-
-      positionedOffset: function(element) {
-        element = $(element);
-        var parent = element.getOffsetParent();
-        if (isDetached(element)) return new Element.Offset(0, 0);
-
-        if (element.offsetParent &&
-         element.offsetParent.nodeName.toUpperCase() === 'HTML') {
-          return positionedOffset(element);
-        }
-
-        var eOffset = element.viewportOffset(),
-         pOffset = isBody(parent) ? viewportOffset(parent) :
-          parent.viewportOffset();
-        var retOffset = eOffset.relativeTo(pOffset);
-
-        var layout = element.getLayout();
-        var top  = retOffset.top  - layout.get('margin-top');
-        var left = retOffset.left - layout.get('margin-left');
-
-        return new Element.Offset(left, top);
       }
     });
   }
@@ -4962,24 +4970,34 @@ var Form = {
   serializeElements: function(elements, options) {
     if (typeof options != 'object') options = { hash: !!options };
     else if (Object.isUndefined(options.hash)) options.hash = true;
-    var key, value, submitted = false, submit = options.submit;
+    var key, value, submitted = false, submit = options.submit, accumulator, initial;
 
-    var data = elements.inject({ }, function(result, element) {
+    if (options.hash) {
+      initial = {};
+      accumulator = function(result, key, value) {
+        if (key in result) {
+          if (!Object.isArray(result[key])) result[key] = [result[key]];
+          result[key].push(value);
+        } else result[key] = value;
+        return result;
+      };
+    } else {
+      initial = '';
+      accumulator = function(result, key, value) {
+        return result + (result ? '&' : '') + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+      }
+    }
+
+    return elements.inject(initial, function(result, element) {
       if (!element.disabled && element.name) {
         key = element.name; value = $(element).getValue();
         if (value != null && element.type != 'file' && (element.type != 'submit' || (!submitted &&
             submit !== false && (!submit || key == submit) && (submitted = true)))) {
-          if (key in result) {
-            if (!Object.isArray(result[key])) result[key] = [result[key]];
-            result[key].push(value);
-          }
-          else result[key] = value;
+          result = accumulator(result, key, value);
         }
       }
       return result;
     });
-
-    return options.hash ? data : Object.toQueryString(data);
   }
 };
 
@@ -5046,7 +5064,8 @@ Form.Methods = {
 
   focusFirstElement: function(form) {
     form = $(form);
-    form.findFirstElement().activate();
+    var element = form.findFirstElement();
+    if (element) element.activate();
     return form;
   },
 
@@ -5153,67 +5172,77 @@ var $F = Form.Element.Methods.getValue;
 
 /*--------------------------------------------------------------------------*/
 
-Form.Element.Serializers = {
-  input: function(element, value) {
+Form.Element.Serializers = (function() {
+  function input(element, value) {
     switch (element.type.toLowerCase()) {
       case 'checkbox':
       case 'radio':
-        return Form.Element.Serializers.inputSelector(element, value);
+        return inputSelector(element, value);
       default:
-        return Form.Element.Serializers.textarea(element, value);
+        return valueSelector(element, value);
     }
-  },
+  }
 
-  inputSelector: function(element, value) {
-    if (Object.isUndefined(value)) return element.checked ? element.value : null;
+  function inputSelector(element, value) {
+    if (Object.isUndefined(value))
+      return element.checked ? element.value : null;
     else element.checked = !!value;
-  },
+  }
 
-  textarea: function(element, value) {
+  function valueSelector(element, value) {
     if (Object.isUndefined(value)) return element.value;
     else element.value = value;
-  },
+  }
 
-  select: function(element, value) {
+  function select(element, value) {
     if (Object.isUndefined(value))
-      return this[element.type == 'select-one' ?
-        'selectOne' : 'selectMany'](element);
-    else {
-      var opt, currentValue, single = !Object.isArray(value);
-      for (var i = 0, length = element.length; i < length; i++) {
-        opt = element.options[i];
-        currentValue = this.optionValue(opt);
-        if (single) {
-          if (currentValue == value) {
-            opt.selected = true;
-            return;
-          }
+      return (element.type === 'select-one' ? selectOne : selectMany)(element);
+
+    var opt, currentValue, single = !Object.isArray(value);
+    for (var i = 0, length = element.length; i < length; i++) {
+      opt = element.options[i];
+      currentValue = this.optionValue(opt);
+      if (single) {
+        if (currentValue == value) {
+          opt.selected = true;
+          return;
         }
-        else opt.selected = value.include(currentValue);
       }
+      else opt.selected = value.include(currentValue);
     }
-  },
+  }
 
-  selectOne: function(element) {
+  function selectOne(element) {
     var index = element.selectedIndex;
-    return index >= 0 ? this.optionValue(element.options[index]) : null;
-  },
+    return index >= 0 ? optionValue(element.options[index]) : null;
+  }
 
-  selectMany: function(element) {
+  function selectMany(element) {
     var values, length = element.length;
     if (!length) return null;
 
     for (var i = 0, values = []; i < length; i++) {
       var opt = element.options[i];
-      if (opt.selected) values.push(this.optionValue(opt));
+      if (opt.selected) values.push(optionValue(opt));
     }
     return values;
-  },
-
-  optionValue: function(opt) {
-    return Element.extend(opt).hasAttribute('value') ? opt.value : opt.text;
   }
-};
+
+  function optionValue(opt) {
+    return Element.hasAttribute(opt, 'value') ? opt.value : opt.text;
+  }
+
+  return {
+    input:         input,
+    inputSelector: inputSelector,
+    textarea:      valueSelector,
+    select:        select,
+    selectOne:     selectOne,
+    selectMany:    selectMany,
+    optionValue:   optionValue,
+    button:        valueSelector
+  };
+})();
 
 /*--------------------------------------------------------------------------*/
 
@@ -5324,24 +5353,53 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
   var MOUSEENTER_MOUSELEAVE_EVENTS_SUPPORTED = 'onmouseenter' in docEl
     && 'onmouseleave' in docEl;
 
+
+
+  var isIELegacyEvent = function(event) { return false; };
+
+  if (window.attachEvent) {
+    if (window.addEventListener) {
+      isIELegacyEvent = function(event) {
+        return !(event instanceof window.Event);
+      };
+    } else {
+      isIELegacyEvent = function(event) { return true; };
+    }
+  }
+
   var _isButton;
-  if (Prototype.Browser.IE) {
-    var buttonMap = { 0: 1, 1: 4, 2: 2 };
-    _isButton = function(event, code) {
-      return event.button === buttonMap[code];
-    };
-  } else if (Prototype.Browser.WebKit) {
-    _isButton = function(event, code) {
-      switch (code) {
-        case 0: return event.which == 1 && !event.metaKey;
-        case 1: return event.which == 1 && event.metaKey;
-        default: return false;
+
+  function _isButtonForDOMEvents(event, code) {
+    return event.which ? (event.which === code + 1) : (event.button === code);
+  }
+
+  var legacyButtonMap = { 0: 1, 1: 4, 2: 2 };
+  function _isButtonForLegacyEvents(event, code) {
+    return event.button === legacyButtonMap[code];
+  }
+
+  function _isButtonForWebKit(event, code) {
+    switch (code) {
+      case 0: return event.which == 1 && !event.metaKey;
+      case 1: return event.which == 2 || (event.which == 1 && event.metaKey);
+      case 2: return event.which == 3;
+      default: return false;
+    }
+  }
+
+  if (window.attachEvent) {
+    if (!window.addEventListener) {
+      _isButton = _isButtonForLegacyEvents;
+    } else {
+      _isButton = function(event, code) {
+        return isIELegacyEvent(event) ? _isButtonForLegacyEvents(event, code) :
+         _isButtonForDOMEvents(event, code);
       }
-    };
+    }
+  } else if (Prototype.Browser.WebKit) {
+    _isButton = _isButtonForWebKit;
   } else {
-    _isButton = function(event, code) {
-      return event.which ? (event.which === code + 1) : (event.button === code);
-    };
+    _isButton = _isButtonForDOMEvents;
   }
 
   function isLeftClick(event)   { return _isButton(event, 0) }
@@ -5371,6 +5429,7 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
 
   function findElement(event, expression) {
     var element = Event.element(event);
+
     if (!expression) return element;
     while (element) {
       if (Object.isElement(element) && Prototype.Selector.match(element, expression)) {
@@ -5411,49 +5470,59 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
     event.stopped = true;
   }
 
-  Event.Methods = {
-    isLeftClick: isLeftClick,
-    isMiddleClick: isMiddleClick,
-    isRightClick: isRightClick,
 
-    element: element,
+  Event.Methods = {
+    isLeftClick:   isLeftClick,
+    isMiddleClick: isMiddleClick,
+    isRightClick:  isRightClick,
+
+    element:     element,
     findElement: findElement,
 
-    pointer: pointer,
+    pointer:  pointer,
     pointerX: pointerX,
     pointerY: pointerY,
 
     stop: stop
   };
 
-
   var methods = Object.keys(Event.Methods).inject({ }, function(m, name) {
     m[name] = Event.Methods[name].methodize();
     return m;
   });
 
-  if (Prototype.Browser.IE) {
+  if (window.attachEvent) {
     function _relatedTarget(event) {
       var element;
       switch (event.type) {
-        case 'mouseover': element = event.fromElement; break;
-        case 'mouseout':  element = event.toElement;   break;
-        default: return null;
+        case 'mouseover':
+        case 'mouseenter':
+          element = event.fromElement;
+          break;
+        case 'mouseout':
+        case 'mouseleave':
+          element = event.toElement;
+          break;
+        default:
+          return null;
       }
       return Element.extend(element);
     }
 
-    Object.extend(methods, {
+    var additionalMethods = {
       stopPropagation: function() { this.cancelBubble = true },
       preventDefault:  function() { this.returnValue = false },
       inspect: function() { return '[object Event]' }
-    });
+    };
 
     Event.extend = function(event, element) {
       if (!event) return false;
-      if (event._extendedByPrototype) return event;
 
+      if (!isIELegacyEvent(event)) return event;
+
+      if (event._extendedByPrototype) return event;
       event._extendedByPrototype = Prototype.emptyFunction;
+
       var pointer = Event.pointer(event);
 
       Object.extend(event, {
@@ -5463,12 +5532,18 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
         pageY:  pointer.y
       });
 
-      return Object.extend(event, methods);
+      Object.extend(event, methods);
+      Object.extend(event, additionalMethods);
+
+      return event;
     };
   } else {
+    Event.extend = Prototype.K;
+  }
+
+  if (window.addEventListener) {
     Event.prototype = window.Event.prototype || document.createEvent('HTMLEvents').__proto__;
     Object.extend(Event.prototype, methods);
-    Event.extend = Prototype.K;
   }
 
   function _createResponder(element, eventName, handler) {
@@ -5567,7 +5642,7 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
         element.addEventListener("dataavailable", responder, false);
       else {
         element.attachEvent("ondataavailable", responder);
-        element.attachEvent("onfilterchange", responder);
+        element.attachEvent("onlosecapture", responder);
       }
     } else {
       var actualEventName = _getDOMEventName(eventName);
@@ -5605,7 +5680,13 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
       return element;
     }
 
-    var responder = responders.find( function(r) { return r.handler === handler; });
+    var i = responders.length, responder;
+    while (i--) {
+      if (responders[i].handler === handler) {
+        responder = responders[i];
+        break;
+      }
+    }
     if (!responder) return element;
 
     if (eventName.include(':')) {
@@ -5613,7 +5694,7 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
         element.removeEventListener("dataavailable", responder, false);
       else {
         element.detachEvent("ondataavailable", responder);
-        element.detachEvent("onfilterchange",  responder);
+        element.detachEvent("onlosecapture", responder);
       }
     } else {
       var actualEventName = _getDOMEventName(eventName);
@@ -5640,10 +5721,10 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
     var event;
     if (document.createEvent) {
       event = document.createEvent('HTMLEvents');
-      event.initEvent('dataavailable', true, true);
+      event.initEvent('dataavailable', bubble, true);
     } else {
       event = document.createEventObject();
-      event.eventType = bubble ? 'ondataavailable' : 'onfilterchange';
+      event.eventType = bubble ? 'ondataavailable' : 'onlosecapture';
     }
 
     event.eventName = eventName;
@@ -5677,7 +5758,7 @@ Form.EventObserver = Class.create(Abstract.EventObserver, {
     },
 
     handleEvent: function(event) {
-      var element = event.findElement(this.selector);
+      var element = Event.findElement(event, this.selector);
       if (element) this.callback.call(this.element, event, element);
     }
   });

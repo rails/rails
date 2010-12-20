@@ -19,7 +19,7 @@ module I18n
     # on to_prepare callbacks. This will only happen on the config.after_initialize
     # callback below.
     initializer "i18n.callbacks" do
-      ActionDispatch::Callbacks.to_prepare do
+      ActionDispatch::Reloader.to_prepare do
         I18n::Railtie.reloader.execute_if_updated
       end
     end

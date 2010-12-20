@@ -104,7 +104,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # Or with a block which is passed with the current record to be validated:
+      # With a block which is passed with the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
@@ -114,6 +114,16 @@ module ActiveModel
       #     end
       #
       #     def must_be_friends
+      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #     end
+      #   end
+      #
+      # Or with a block where self points to the current record to be validated:
+      #
+      #   class Comment
+      #     include ActiveModel::Validations
+      #
+      #     validate do
       #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
       #     end
       #   end

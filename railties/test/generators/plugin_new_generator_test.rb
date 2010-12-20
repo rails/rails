@@ -91,6 +91,35 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/database.yml", /postgres/
   end
 
+  def test_skipping_javascripts_without_mountable_option
+    run_generator
+    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/rails.js"
+    assert_no_file "public/javascripts/controls.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+    assert_no_file "public/javascripts/application.js"
+  end
+
+  def test_javascripts_generation
+    run_generator [destination_root, "--mountable"]
+    assert_file "public/javascripts/rails.js"
+    assert_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts/controls.js"
+    assert_file "public/javascripts/dragdrop.js"
+    assert_file "public/javascripts/dragdrop.js"
+    assert_file "public/javascripts/application.js"
+  end
+
+  def test_skip_javascripts
+    run_generator [destination_root, "--skip-javascript", "--mountable"]
+    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/rails.js"
+    assert_no_file "public/javascripts/controls.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+  end
+
   def test_ensure_that_javascript_option_is_passed_to_app_generator
     run_generator [destination_root, "--javascript", "jquery"]
     assert_file "test/dummy/public/javascripts/jquery.js"
@@ -114,7 +143,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_ensure_that_tests_works_in_full_mode
-    run_generator [destination_root, "--full"]
+    run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     `bundle install`
     assert_match /2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`
@@ -137,6 +166,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/routes.rb", /mount Bukkits::Engine => "\/bukkits"/
     assert_file "app/controllers/bukkits/application_controller.rb", /module Bukkits\n  class ApplicationController < ActionController::Base/
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
+    assert_file "app/views/layouts/bukkits/application.html.erb", /<title>Bukkits<\/title>/
   end
 
   def test_passing_dummy_path_as_a_parameter

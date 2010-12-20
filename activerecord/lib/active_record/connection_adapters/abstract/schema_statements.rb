@@ -12,7 +12,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0..table_alias_length-1].gsub(/\./, '_')
+        table_name[0...table_alias_length].gsub(/\./, '_')
       end
 
       # def tables(name = nil) end
@@ -442,12 +442,14 @@ module ActiveRecord
         end
       end
 
-      def assume_migrated_upto_version(version, migrations_path = ActiveRecord::Migrator.migrations_path)
+      def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
+        migrations_paths = Array.wrap(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map { |v| v.to_i }
-        versions = Dir["#{migrations_path}/[0-9]*_*.rb"].map do |filename|
+        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+        versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
 

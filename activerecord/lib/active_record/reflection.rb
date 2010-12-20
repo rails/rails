@@ -1,7 +1,14 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActiveRecord
   # = Active Record Reflection
   module Reflection # :nodoc:
     extend ActiveSupport::Concern
+
+    included do
+      class_attribute :reflections
+      self.reflections = {}
+    end
 
     # Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can,
@@ -20,18 +27,9 @@ module ActiveRecord
           when :composed_of
             reflection = AggregateReflection.new(macro, name, options, active_record)
         end
-        write_inheritable_hash :reflections, name => reflection
-        reflection
-      end
 
-      # Returns a hash containing all AssociationReflection objects for the current class.
-      # Example:
-      #
-      #   Invoice.reflections
-      #   Account.reflections
-      #
-      def reflections
-        read_inheritable_attribute(:reflections) || write_inheritable_attribute(:reflections, {})
+        self.reflections = self.reflections.merge(name => reflection)
+        reflection
       end
 
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
@@ -207,7 +205,11 @@ module ActiveRecord
       end
 
       def association_foreign_key
-        @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
+        @association_foreign_key ||= options[:association_foreign_key] || class_name.foreign_key
+      end
+
+      def active_record_primary_key
+        @active_record_primary_key ||= options[:primary_key] || active_record.primary_key
       end
 
       def counter_cache_column
@@ -250,7 +252,7 @@ module ActiveRecord
       end
 
       def has_inverse?
-        !@options[:inverse_of].nil?
+        @options[:inverse_of]
       end
 
       def inverse_of

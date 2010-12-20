@@ -3,6 +3,13 @@ module ActiveRecord
   module Associations
     module ThroughAssociationScope
 
+      def scoped
+        with_scope(@scope) do
+          @reflection.klass.scoped &
+          @reflection.through_reflection.klass.scoped
+        end
+      end
+
       protected
 
       def construct_find_scope
@@ -16,32 +23,38 @@ module ActiveRecord
           :readonly   => @reflection.options[:readonly]
         }
       end
-      
+
       def construct_create_scope
         construct_owner_attributes(@reflection)
       end
 
-      # Build SQL conditions from attributes, qualified by table name.
-      def construct_conditions
-        table_name = @reflection.through_reflection.quoted_table_name
-        conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
-          "#{table_name}.#{attr} = #{value}"
-        end
-        conditions << sql_conditions if sql_conditions
-        "(" + conditions.join(') AND (') + ")"
+      def aliased_through_table
+        name = @reflection.through_reflection.table_name
+
+        @reflection.table_name == name ?
+          @reflection.through_reflection.klass.arel_table.alias(name + "_join") :
+          @reflection.through_reflection.klass.arel_table
       end
 
-      # Associate attributes pointing to owner, quoted.
-      def construct_quoted_owner_attributes(reflection)
+      # Build SQL conditions from attributes, qualified by table name.
+      def construct_conditions
+        table = aliased_through_table
+        conditions = construct_owner_attributes(@reflection.through_reflection).map do |attr, value|
+          table[attr].eq(value)
+        end
+        conditions << Arel.sql(sql_conditions) if sql_conditions
+        table.create_and(conditions)
+      end
+
+      # Associate attributes pointing to owner
+      def construct_owner_attributes(reflection)
         if as = reflection.options[:as]
-          { "#{as}_id" => owner_quoted_id,
-            "#{as}_type" => reflection.klass.quote_value(
-              @owner.class.base_class.name.to_s,
-              reflection.klass.columns_hash["#{as}_type"]) }
+          { "#{as}_id"   => @owner[reflection.active_record_primary_key],
+            "#{as}_type" => @owner.class.base_class.name }
         elsif reflection.macro == :belongs_to
-          { reflection.klass.primary_key => @owner.class.quote_value(@owner[reflection.primary_key_name]) }
+          { reflection.klass.primary_key => @owner[reflection.primary_key_name] }
         else
-          { reflection.primary_key_name => owner_quoted_id }
+          { reflection.primary_key_name => @owner[reflection.active_record_primary_key] }
         end
       end
 
@@ -51,47 +64,41 @@ module ActiveRecord
 
       def construct_select(custom_select = nil)
         distinct = "DISTINCT " if @reflection.options[:uniq]
-        selected = custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
+        custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
       end
 
-      def construct_joins(custom_joins = nil)
-        polymorphic_join = nil
+      def construct_joins
+        right = aliased_through_table
+        left  = @reflection.klass.arel_table
+
+        conditions = []
+
         if @reflection.source_reflection.macro == :belongs_to
-          reflection_primary_key = @reflection.klass.primary_key
+          reflection_primary_key = @reflection.source_reflection.options[:primary_key] ||
+                                   @reflection.klass.primary_key
           source_primary_key     = @reflection.source_reflection.primary_key_name
           if @reflection.options[:source_type]
-            polymorphic_join = "AND %s.%s = %s" % [
-              @reflection.through_reflection.quoted_table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
-              @owner.class.quote_value(@reflection.options[:source_type])
-            ]
+            column = @reflection.source_reflection.options[:foreign_type]
+            conditions <<
+              right[column].eq(@reflection.options[:source_type])
           end
         else
           reflection_primary_key = @reflection.source_reflection.primary_key_name
-          source_primary_key     = @reflection.through_reflection.klass.primary_key
+          source_primary_key     = @reflection.source_reflection.options[:primary_key] ||
+                                   @reflection.through_reflection.klass.primary_key
           if @reflection.source_reflection.options[:as]
-            polymorphic_join = "AND %s.%s = %s" % [
-              @reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
-              @owner.class.quote_value(@reflection.through_reflection.klass.name)
-            ]
+            column = "#{@reflection.source_reflection.options[:as]}_type"
+            conditions <<
+              left[column].eq(@reflection.through_reflection.klass.name)
           end
         end
 
-        "INNER JOIN %s ON %s.%s = %s.%s %s #{@reflection.options[:joins]} #{custom_joins}" % [
-          @reflection.through_reflection.quoted_table_name,
-          @reflection.quoted_table_name, reflection_primary_key,
-          @reflection.through_reflection.quoted_table_name, source_primary_key,
-          polymorphic_join
-        ]
-      end
+        conditions <<
+          left[reflection_primary_key].eq(right[source_primary_key])
 
-      # Construct attributes for associate pointing to owner.
-      def construct_owner_attributes(reflection)
-        if as = reflection.options[:as]
-          { "#{as}_id" => @owner.id,
-            "#{as}_type" => @owner.class.base_class.name.to_s }
-        else
-          { reflection.primary_key_name => @owner.id }
-        end
+        right.create_join(
+          right,
+          right.create_on(right.create_and(conditions)))
       end
 
       # Construct attributes for :through pointing to owner and associate.
@@ -102,7 +109,7 @@ module ActiveRecord
         join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
 
         if @reflection.options[:source_type]
-          join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)
+          join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name)
         end
 
         if @reflection.through_reflection.options[:conditions].is_a?(Hash)

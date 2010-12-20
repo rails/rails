@@ -2,6 +2,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   module NestedAttributes #:nodoc:
@@ -11,7 +12,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_inheritable_accessor :nested_attributes_options, :instance_writer => false
+      class_attribute :nested_attributes_options, :instance_writer => false
       self.nested_attributes_options = {}
     end
 
@@ -268,7 +269,11 @@ module ActiveRecord
           if reflection = reflect_on_association(association_name)
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
+
+            nested_attributes_options = self.nested_attributes_options.dup
             nested_attributes_options[association_name.to_sym] = options
+            self.nested_attributes_options = nested_attributes_options
+
             type = (reflection.collection? ? :collection : :one_to_one)
 
             # def pirate_attributes=(attributes)
@@ -315,11 +320,10 @@ module ActiveRecord
     # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
-      options = nested_attributes_options[association_name]
+      options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
-      check_existing_record = (options[:update_only] || !attributes['id'].blank?)
 
-      if check_existing_record && (record = send(association_name)) &&
+      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
         assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
@@ -364,7 +368,7 @@ module ActiveRecord
     #     { :id => '2', :_destroy => true }
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
-      options = nested_attributes_options[association_name]
+      options = self.nested_attributes_options[association_name]
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -419,11 +423,8 @@ module ActiveRecord
     # Updates a record with the +attributes+ or marks it for destruction if
     # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
     def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
-      if has_destroy_flag?(attributes) && allow_destroy
-        record.mark_for_destruction
-      else
-        record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
-      end
+      record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
+      record.mark_for_destruction if has_destroy_flag?(attributes) && allow_destroy
     end
 
     # Determines if a hash contains a truthy _destroy key.
@@ -439,7 +440,7 @@ module ActiveRecord
     end
 
     def call_reject_if(association_name, attributes)
-      case callback = nested_attributes_options[association_name][:reject_if]
+      case callback = self.nested_attributes_options[association_name][:reject_if]
       when Symbol
         method(callback).arity == 0 ? send(callback) : send(callback, attributes)
       when Proc
@@ -448,8 +449,7 @@ module ActiveRecord
     end
 
     def raise_nested_attributes_record_not_found(association_name, record_id)
-      reflection = self.class.reflect_on_association(association_name)
-      raise RecordNotFound, "Couldn't find #{reflection.klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+      raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
     end
   end
 end

@@ -163,15 +163,15 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     firm.account = Account.find(:first)
     assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
-    firm = Firm.find(:first).clone
+    firm = Firm.find(:first).dup
     firm.account = Account.find(:first)
     assert_queries(2) { firm.save! }
 
-    firm = Firm.find(:first).clone
-    firm.account = Account.find(:first).clone
+    firm = Firm.find(:first).dup
+    firm.account = Account.find(:first).dup
     assert_queries(2) { firm.save! }
   end
-  
+
   def test_callbacks_firing_order_on_create
     eye = Eye.create(:iris_attributes => {:color => 'honey'})
     assert_equal [true, false], eye.after_create_callbacks_stack
@@ -667,8 +667,19 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
+    @ship.pirate.catchphrase = "Changed Catchphrase"
+
     assert_raise(RuntimeError) { assert !@ship.save }
     assert_not_nil @ship.reload.pirate
+  end
+
+  def test_should_save_changed_child_objects_if_parent_is_saved
+    @pirate = @ship.create_pirate(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    @parrot = @pirate.parrots.create!(:name => 'Posideons Killer')
+    @parrot.name = "NewName"
+    @ship.save
+
+    assert_equal 'NewName', @parrot.reload.name
   end
 
   # has_many & has_and_belongs_to

@@ -102,7 +102,7 @@ module ActiveRecord
 
       def reset
         reset_target!
-        reset_named_scopes_cache!
+        reset_scopes_cache!
         @loaded = false
       end
 
@@ -121,13 +121,13 @@ module ActiveRecord
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
         result = true
-        load_target unless @owner.persisted?
+        load_target if @owner.new_record?
 
         transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
-              result &&= insert_record(record) if @owner.persisted?
+              result &&= insert_record(record) unless @owner.new_record?
             end
           end
         end
@@ -160,7 +160,7 @@ module ActiveRecord
         load_target
         delete(@target)
         reset_target!
-        reset_named_scopes_cache!
+        reset_scopes_cache!
       end
 
       # Calculate sum using SQL, not Enumerable
@@ -235,12 +235,12 @@ module ActiveRecord
 
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
-        return self if length.zero? # forces load_target if it hasn't happened already
-
-        if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
-          destroy_all
-        else
-          delete_all
+        unless length.zero? # forces load_target if it hasn't happened already
+          if @reflection.options[:dependent] == :destroy
+            destroy_all
+          else
+            delete_all
+          end
         end
 
         self
@@ -253,7 +253,7 @@ module ActiveRecord
         load_target
         destroy(@target).tap do
           reset_target!
-          reset_named_scopes_cache!
+          reset_scopes_cache!
         end
       end
 
@@ -286,12 +286,12 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if !@owner.persisted? || (loaded? && !@reflection.options[:uniq])
+        if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
           @target.size
         elsif !loaded? && @reflection.options[:group]
           load_target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
-          unsaved_records = @target.reject { |r| r.persisted? }
+          unsaved_records = @target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
           count_records
@@ -355,10 +355,9 @@ module ActiveRecord
 
       def include?(record)
         return false unless record.is_a?(@reflection.klass)
-        return include_in_memory?(record) unless record.persisted?
+        return include_in_memory?(record) if record.new_record?
         load_target if @reflection.options[:finder_sql] && !loaded?
-        return @target.include?(record) if loaded?
-        exists?(record)
+        loaded? ? @target.include?(record) : exists?(record)
       end
 
       def proxy_respond_to?(method, include_private = false)
@@ -370,7 +369,7 @@ module ActiveRecord
         end
 
         def load_target
-          if @owner.persisted? || foreign_key_present
+          if !@owner.new_record? || foreign_key_present
             begin
               unless loaded?
                 if @target.is_a?(Array) && @target.any?
@@ -410,9 +409,9 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           elsif @reflection.klass.scopes[method]
-            @_named_scopes_cache ||= {}
-            @_named_scopes_cache[method] ||= {}
-            @_named_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
+            @_scopes_cache ||= {}
+            @_scopes_cache[method] ||= {}
+            @_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
           else
             with_scope(@scope) do
               if block_given?
@@ -443,8 +442,8 @@ module ActiveRecord
           @target = Array.new
         end
 
-        def reset_named_scopes_cache!
-          @_named_scopes_cache = {}
+        def reset_scopes_cache!
+          @_scopes_cache = {}
         end
 
         def find_target
@@ -479,7 +478,7 @@ module ActiveRecord
       private
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
-          ensure_owner_is_not_new
+          ensure_owner_is_persisted!
 
           scoped_where = scoped.where_values_hash
           create_scope = scoped_where ? @scope[:create].merge(scoped_where) : @scope[:create]
@@ -509,7 +508,7 @@ module ActiveRecord
 
           transaction do
             records.each { |record| callback(:before_remove, record) }
-            old_records = records.select { |r| r.persisted? }
+            old_records = records.reject { |r| r.new_record? }
             yield(records, old_records)
             records.each { |record| callback(:after_remove, record) }
           end
@@ -530,18 +529,18 @@ module ActiveRecord
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
-          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
+          @owner.class.send(full_callback_name.to_sym) || []
         end
 
-        def ensure_owner_is_not_new
+        def ensure_owner_is_persisted!
           unless @owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
         end
 
         def fetch_first_or_last_using_find?(args)
-          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || !@owner.persisted? || @reflection.options[:finder_sql] ||
-                                         !@target.all? { |record| record.persisted? } || args.first.kind_of?(Integer))
+          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
+            @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
         end
 
         def include_in_memory?(record)

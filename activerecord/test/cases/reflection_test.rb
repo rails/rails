@@ -25,7 +25,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_read_attribute_names
     assert_equal(
       %w( id title author_name author_email_address bonus_time written_on last_read content group approved replies_count parent_id parent_title type created_at updated_at ).sort,
-      @first.attribute_names
+      @first.attribute_names.sort
     )
   end
 
@@ -189,6 +189,11 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_has_many_through_reflection
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
+  end
+
+  def test_active_record_primary_key
+    assert_equal "nick", Subscriber.reflect_on_association(:subscriptions).active_record_primary_key.to_s
+    assert_equal "name", Author.reflect_on_association(:essay).active_record_primary_key.to_s
   end
 
   def test_collection_association

@@ -91,11 +91,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter restrict the number of ids you can use in a list. Oracle has a limit of 1000.
-      def ids_in_list_limit
-        nil
-      end
-
       # QUOTING ==================================================
 
       # Override to return the quoted table name. Defaults to column quoting.
@@ -209,8 +204,7 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name)
-          name ||= "SQL"
+        def log(sql, name = "SQL")
           @instrumenter.instrument("sql.active_record",
             :sql => sql, :name => name, :connection_id => object_id) do
             yield

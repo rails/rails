@@ -258,9 +258,8 @@ module ActionController #:nodoc:
     # nil if :not_acceptable was sent to the client.
     #
     def retrieve_response_from_mimes(mimes=nil, &block)
-      collector = Collector.new { default_render }
       mimes ||= collect_mimes_from_class_level
-      mimes.each { |mime| collector.send(mime) }
+      collector = Collector.new(mimes) { default_render }
       block.call(collector) if block_given?
 
       if format = request.negotiate_mime(collector.order)
@@ -277,8 +276,9 @@ module ActionController #:nodoc:
       include AbstractController::Collector
       attr_accessor :order
 
-      def initialize(&block)
+      def initialize(mimes, &block)
         @order, @responses, @default_response = [], {}, block
+        mimes.each { |mime| send(mime) }
       end
 
       def any(*args, &block)
@@ -291,7 +291,7 @@ module ActionController #:nodoc:
       alias :all :any
 
       def custom(mime_type, &block)
-        mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
+        mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
         @order << mime_type
         @responses[mime_type] ||= block
       end

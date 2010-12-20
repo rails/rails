@@ -253,6 +253,7 @@ module ActiveRecord
               through_record_id = through_record[reflection.through_reflection_primary_key].to_s
               add_preloaded_records_to_collection(id_to_record_map[through_record_id], reflection.name, through_record.send(source))
             end
+            records.each { |record| record.send(reflection.name).target.uniq! } if options[:uniq]
           end
 
         else
@@ -393,9 +394,9 @@ module ActiveRecord
       # Some databases impose a limit on the number of ids in a list (in Oracle its 1000)
       # Make several smaller queries if necessary or make one query if the adapter supports it
       def associated_records(ids)
-        max_ids_in_a_list = connection.ids_in_list_limit || ids.size
+        in_clause_length = connection.in_clause_length || ids.size
         records = []
-        ids.each_slice(max_ids_in_a_list) do |some_ids|
+        ids.each_slice(in_clause_length) do |some_ids|
           records += yield(some_ids)
         end
         records

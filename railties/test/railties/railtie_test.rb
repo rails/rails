@@ -21,10 +21,10 @@ module RailtiesTest
 
     test "Railtie provides railtie_name" do
       begin
-        class ::Foo < Rails::Railtie ; end
-        assert_equal "foo", ::Foo.railtie_name
+        class ::FooBarBaz < Rails::Railtie ; end
+        assert_equal "foo_bar_baz", ::FooBarBaz.railtie_name
       ensure
-        Object.send(:remove_const, :"Foo")
+        Object.send(:remove_const, :"FooBarBaz")
       end
     end
 

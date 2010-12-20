@@ -9,9 +9,13 @@ require 'models/member_detail'
 require 'models/minivan'
 require 'models/dashboard'
 require 'models/speedometer'
+require 'models/author'
+require 'models/post'
+require 'models/comment'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans, :dashboards, :speedometers
+  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
+           :dashboards, :speedometers, :authors, :posts, :comments
 
   def setup
     @member = members(:groucho)
@@ -206,10 +210,31 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_through_belongs_to_after_destroy
+    @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    @member.member_detail = @member_detail
+    @member.save!
+
+    assert_not_nil @member_detail.member_type
+    @member_detail.destroy
+    assert_queries(1) do
+      assert_not_nil @member_detail.member_type(true)
+    end
+
+    @member_detail.member.destroy
+    assert_queries(1) do
+      assert_nil @member_detail.member_type(true)
+    end
+  end
+
   def test_value_is_properly_quoted
     minivan = Minivan.find('m1')
     assert_nothing_raised do
       minivan.dashboard
     end
+  end
+
+  def test_has_one_through_with_default_scope_on_join_model
+    assert_equal posts(:welcome).comments.first, authors(:david).comment_on_first_posts
   end
 end

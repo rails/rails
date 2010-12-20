@@ -127,7 +127,7 @@ If you want to translate your Rails application to a *single language other than
 
 However, you would probably like to *provide support for more locales* in your application. In such case, you need to set and pass the locale between requests.
 
-WARNING: You may be tempted to store the chosen locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "_RESTful_":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
+WARNING: You may be tempted to store the chosen locale in a _session_ or a <em>cookie</em>. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "<em>RESTful</em>":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
 
 The _setting part_ is easy. You can set the locale in a +before_filter+ in the +ApplicationController+ like this:
 
@@ -253,7 +253,7 @@ match '/:locale' => 'dashboard#index'
 
 Do take special care about the *order of your routes*, so this route declaration does not "eat" other ones. (You may want to add it directly before the +root :to+ declaration.)
 
-IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitly, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master. See also the page "How to encode the current locale in the URL":http://rails-i18n.org/wiki/wikipages/how-to-encode-the-current-locale-in-the-url in the Rails i18n Wiki.
+NOTE: Have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master.
 
 h4. Setting the Locale from the Client Supplied Information
 
@@ -278,7 +278,7 @@ def extract_locale_from_accept_language_header
 end
 </ruby>
 
-Of course, in a production environment you would need much more robust code, and could use a plugin such as Iain Hecker's "http_accept_language":http://github.com/iain/http_accept_language/tree/master or even Rack middleware such as Ryan Tomayko's "locale":http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb.
+Of course, in a production environment you would need much more robust code, and could use a plugin such as Iain Hecker's "http_accept_language":http://github.com/iain/http_accept_language/tree/master or even Rack middleware such as Ryan Tomayko's "locale":http://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/locale.rb.
 
 h5. Using GeoIP (or Similar) Database
 
@@ -464,24 +464,24 @@ I18n.t 'message'
 The +translate+ method also takes a +:scope+ option which can contain one or more additional keys that will be used to specify a “namespace” or scope for a translation key:
 
 <ruby>
-I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
+I18n.t :record_invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
-This looks up the +:invalid+ message in the Active Record error messages.
+This looks up the +:record_invalid+ message in the Active Record error messages.
 
 Additionally, both the key and scopes can be specified as dot-separated keys as in:
 
 <ruby>
-I18n.translate :"activerecord.errors.messages.invalid"
+I18n.translate "activerecord.errors.messages.record_invalid"
 </ruby>
 
 Thus the following calls are equivalent:
 
 <ruby>
-I18n.t 'activerecord.errors.messages.invalid'
-I18n.t 'errors.messages.invalid', :scope => :active_record
-I18n.t :invalid, :scope => 'activerecord.errors.messages'
-I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
+I18n.t 'activerecord.errors.messages.record_invalid'
+I18n.t 'errors.messages.record_invalid', :scope => :active_record
+I18n.t :record_invalid, :scope => 'activerecord.errors.messages'
+I18n.t :record_invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
 h5. Defaults
@@ -672,11 +672,11 @@ Active Record validation error messages can also be translated easily. Active Re
 
 This gives you quite powerful means to flexibly adjust your messages to your application's needs.
 
-Consider a User model with a +validates_presence_of+ validation for the name attribute like this:
+Consider a User model with a validation for the name attribute like this:
 
 <ruby>
 class User < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 </ruby>
 
@@ -697,7 +697,7 @@ activerecord.errors.models.user.attributes.name.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 errors.attributes.name.blank
-errors.messagges.blank
+errors.messages.blank
 </ruby>
 
 When your models are additionally using inheritance then the messages are looked up in the inheritance chain.
@@ -706,7 +706,7 @@ For example, you might have an Admin model inheriting from User:
 
 <ruby>
 class Admin < User
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 </ruby>
 
@@ -719,7 +719,7 @@ activerecord.errors.models.user.attributes.title.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 errors.attributes.title.blank
-errors.messagges.blank
+errors.messages.blank
 </ruby>
 
 This way you can provide special translations for various error messages at different points in your models inheritance chain and in the attributes, models, or default scopes.
@@ -733,27 +733,27 @@ So, for example, instead of the default error message +"can not be blank"+ you c
 * +count+, where available, can be used for pluralization if present:
 
 |_. validation                 |_.with option              |_.message                  |_.interpolation|
-| validates_confirmation_of    | -                         | :confirmation             | -|
-| validates_acceptance_of      | -                         | :accepted                 | -|
-| validates_presence_of        | -                         | :blank                    | -|
-| validates_length_of          | :within, :in              | :too_short                | count|
-| validates_length_of          | :within, :in              | :too_long                 | count|
-| validates_length_of          | :is                       | :wrong_length             | count|
-| validates_length_of          | :minimum                  | :too_short                | count|
-| validates_length_of          | :maximum                  | :too_long                 | count|
-| validates_uniqueness_of      | -                         | :taken                    | -|
-| validates_format_of          | -                         | :invalid                  | -|
-| validates_inclusion_of       | -                         | :inclusion                | -|
-| validates_exclusion_of       | -                         | :exclusion                | -|
-| validates_associated         | -                         | :invalid                  | -|
-| validates_numericality_of    | -                         | :not_a_number             | -|
-| validates_numericality_of    | :greater_than             | :greater_than             | count|
-| validates_numericality_of    | :greater_than_or_equal_to | :greater_than_or_equal_to | count|
-| validates_numericality_of    | :equal_to                 | :equal_to                 | count|
-| validates_numericality_of    | :less_than                | :less_than                | count|
-| validates_numericality_of    | :less_than_or_equal_to    | :less_than_or_equal_to    | count|
-| validates_numericality_of    | :odd                      | :odd                      | -|
-| validates_numericality_of    | :even                     | :even                     | -|
+| confirmation    | -                         | :confirmation             | -|
+| acceptance      | -                         | :accepted                 | -|
+| presence        | -                         | :blank                    | -|
+| length          | :within, :in              | :too_short                | count|
+| length          | :within, :in              | :too_long                 | count|
+| length          | :is                       | :wrong_length             | count|
+| length          | :minimum                  | :too_short                | count|
+| length          | :maximum                  | :too_long                 | count|
+| uniqueness      | -                         | :taken                    | -|
+| format          | -                         | :invalid                  | -|
+| inclusion       | -                         | :inclusion                | -|
+| exclusion       | -                         | :exclusion                | -|
+| associated      | -                         | :invalid                  | -|
+| numericality    | -                         | :not_a_number             | -|
+| numericality    | :greater_than             | :greater_than             | count|
+| numericality    | :greater_than_or_equal_to | :greater_than_or_equal_to | count|
+| numericality    | :equal_to                 | :equal_to                 | count|
+| numericality    | :less_than                | :less_than                | count|
+| numericality    | :less_than_or_equal_to    | :less_than_or_equal_to    | count|
+| numericality    | :odd                      | :odd                      | -|
+| numericality    | :even                     | :even                     | -|
 
 h5. Translations for the Active Record +error_messages_for+ Helper
 
@@ -830,7 +830,7 @@ In other contexts you might want to change this behaviour, though. E.g. the defa
 
 <ruby>
 module I18n
-  def just_raise_that_exception(*args)
+  def self.just_raise_that_exception(*args)
     raise args.first
   end
 end

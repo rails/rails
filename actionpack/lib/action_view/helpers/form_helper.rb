@@ -2,7 +2,7 @@ require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
@@ -1115,9 +1115,9 @@ module ActionView
       include InstanceTagMethods
     end
 
-    class FormBuilder #:nodoc:
+    class FormBuilder
       # The methods which wrap a form helper call.
-      class_inheritable_accessor :field_helpers
+      class_attribute :field_helpers
       self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
 
       attr_accessor :object_name, :object, :options

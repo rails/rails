@@ -42,6 +42,7 @@ module ActiveModel
   autoload :Naming
   autoload :Observer, 'active_model/observing'
   autoload :Observing
+  autoload :SecurePassword
   autoload :Serialization
   autoload :TestCase
   autoload :Translation

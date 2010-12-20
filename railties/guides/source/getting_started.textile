@@ -811,6 +811,8 @@ class CreateComments < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    add_index :comments, :post_id
   end
 
   def self.down
@@ -819,7 +821,7 @@ class CreateComments < ActiveRecord::Migration
 end
 </ruby>
 
-The +t.references+ line sets up a foreign key column for the association between the two models. Go ahead and run the migration:
+The +t.references+ line sets up a foreign key column for the association between the two models. And the +add_index+ line sets up an index for this association column. Go ahead and run the migration:
 
 <shell>
 $ rake db:migrate

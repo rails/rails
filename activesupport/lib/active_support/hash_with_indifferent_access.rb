@@ -140,11 +140,10 @@ module ActiveSupport
       end
 
       def convert_value(value)
-        case value
-        when Hash
+        if value.class == Hash
           self.class.new_from_hash_copying_default(value)
-        when Array
-          value.dup.replace(value.collect { |e| e.is_a?(Hash) ? self.class.new_from_hash_copying_default(e) : e })
+        elsif value.is_a?(Array)
+          value.dup.replace(value.map { |e| convert_value(e) })
         else
           value
         end

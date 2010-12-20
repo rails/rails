@@ -36,7 +36,7 @@ module ActiveRecord
 
       protected
         def create_record(attrs, force = true)
-          ensure_owner_is_not_new
+          ensure_owner_is_persisted!
 
           transaction do
             object = @reflection.klass.new(attrs)
@@ -54,12 +54,12 @@ module ActiveRecord
         end
 
         def construct_find_options!(options)
-          options[:joins]   = construct_joins(options[:joins])
+          options[:joins]   = [construct_joins] + Array.wrap(options[:joins])
           options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil? && @reflection.source_reflection.options[:include]
         end
 
         def insert_record(record, force = true, validate = true)
-          unless record.persisted?
+          if record.new_record?
             if force
               record.save!
             else
@@ -81,7 +81,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          with_scope(@scope) { @reflection.klass.find(:all) }
+          scoped.all
         end
 
         def has_cached_counter?

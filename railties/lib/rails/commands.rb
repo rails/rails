@@ -18,8 +18,7 @@ when 'generate', 'destroy', 'plugin'
     require APP_PATH
     Rails.application.require_environment!
 
-    if defined?(ENGINE_PATH)
-      engine = Rails.application.railties.engines.find { |r| r.root.to_s == ENGINE_PATH }
+    if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
       Rails.application = engine
     end
 

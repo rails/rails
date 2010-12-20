@@ -1,5 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
+* brought back config.action_view.cache_template_loading, which allows to decide whether templates should be cached or not [Piotr Sarnacki]
+
+* url_for and named url helpers now accept :subdomain and :domain as options [Josh Kalderimis]
+
+* The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused (check the documentation for examples). [Josh Kalderimis]
+
 * Added config.action_controller.include_all_helpers. By default 'helper :all' is done in ActionController::Base, which includes all the helpers by default. Setting include_all_helpers to false will result in including only application_helper and helper corresponding to controller (like foo_helper for foo_controller). [Piotr Sarnacki]
 
 * Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:

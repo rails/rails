@@ -89,7 +89,7 @@ module ActiveRecord
   #   post = Post.create(:title => 'ruby rocks')
   #   post.comments.create(:body => 'hello world')
   #   post.comments[0].body = 'hi everyone'
-  #   post.save # => saves both post and comment, with 'hi everyone' as title
+  #   post.save # => saves both post and comment, with 'hi everyone' as body
   #
   # Destroying one of the associated models as part of the parent's save action
   # is as simple as marking it for destruction:
@@ -234,7 +234,7 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      !persisted? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
+      new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
     private
@@ -248,7 +248,7 @@ module ActiveRecord
       elsif autosave
         association.target.find_all { |record| record.changed_for_autosave? }
       else
-        association.target.find_all { |record| !record.persisted? }
+        association.target.find_all { |record| record.new_record? }
       end
     end
 
@@ -274,7 +274,7 @@ module ActiveRecord
     # +reflection+.
     def validate_collection_association(reflection)
       if association = association_instance_get(reflection.name)
-        if records = associated_records_to_validate_or_save(association, !persisted?, reflection.options[:autosave])
+        if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
           records.each { |record| association_valid?(reflection, record) }
         end
       end
@@ -303,7 +303,7 @@ module ActiveRecord
     # Is used as a before_save callback to check while saving a collection
     # association whether or not the parent was a new record before saving.
     def before_save_collection_association
-      @new_record_before_save = !persisted?
+      @new_record_before_save = new_record?
       true
     end
 
@@ -326,17 +326,15 @@ module ActiveRecord
 
               if autosave && record.marked_for_destruction?
                 association.destroy(record)
-              elsif autosave != false && (@new_record_before_save || !record.persisted?)
+              elsif autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.send(:insert_record, record, false, false)
                 else
                   association.send(:insert_record, record)
                 end
-              elsif autosave
-                saved = record.save(:validate => false)
-              end
 
-              raise ActiveRecord::Rollback if saved == false
+                raise ActiveRecord::Rollback if saved == false
+              end
             end
           rescue
             records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
@@ -365,7 +363,7 @@ module ActiveRecord
           association.destroy
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-          if autosave != false && (!persisted? || !association.persisted? || association[reflection.primary_key_name] != key || autosave)
+          if autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != key || autosave)
             association[reflection.primary_key_name] = key
             saved = association.save(:validate => !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
@@ -385,7 +383,7 @@ module ActiveRecord
         if autosave && association.marked_for_destruction?
           association.destroy
         elsif autosave != false
-          saved = association.save(:validate => !autosave) if !association.persisted? || autosave
+          saved = association.save(:validate => !autosave) if association.new_record? || (autosave && association.changed_for_autosave?)
 
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)

@@ -38,9 +38,9 @@ module ActiveRecord
             assert_not_nil connection
           end
         end
-        
+
         threads.each {|t| t.join}
-        
+
         Thread.new do
           threads.each do |t|
             thread_ids = pool.instance_variable_get(:@reserved_connections).keys

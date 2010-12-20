@@ -295,6 +295,27 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
   end
 
+  def test_cookie_with_all_domain_option_using_localhost
+    @request.host = "localhost"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_ipv4_address
+    @request.host = "192.168.1.1"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_ipv6_address
+    @request.host = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/"
+  end
+
   def test_deleting_cookie_with_all_domain_option
     get :delete_cookie_with_domain
     assert_response :success

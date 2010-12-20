@@ -478,8 +478,6 @@ end
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
 
-The Rails API documentation has "more information on using filters":http://ap.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html.
-
 h3. Verification
 
 Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response. It is described in the "API documentation":http://ap.rubyonrails.org/classes/ActionController/Verification/ClassMethods.html as "essentially a special kind of before_filter".

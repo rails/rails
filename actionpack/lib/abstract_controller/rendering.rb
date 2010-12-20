@@ -128,7 +128,7 @@ module AbstractController
       hash = {}
       variables  = instance_variable_names
       variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
-      variables.each { |name| hash[name.to_s[1..-1]] = instance_variable_get(name) }
+      variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
       hash
     end
 

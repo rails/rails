@@ -12,8 +12,16 @@ end
 
 ROUTING = ActionDispatch::Routing
 
+module RoutingTestHelpers
+  def url_for(set, options, recall = nil)
+    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
+  end
+end
+
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
+  include RoutingTestHelpers
+
   def setup
     @set = ActionDispatch::Routing::RouteSet.new
     @set.draw do
@@ -28,12 +36,13 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 
   def test_route_generation_escapes_unsafe_path_characters
-    @set.generate(:controller => "content", :action => "act#{@segment}ion", :variable => "variable", :additional => "foo")
     assert_equal "/content/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
-      @set.generate(:controller => "content",
-                    :action => "act#{@segment}ion",
-                    :variable => "var#{@segment}iable",
-                    :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"])
+      url_for(@set, {
+        :controller => "content",
+        :action => "act#{@segment}ion",
+        :variable => "var#{@segment}iable",
+        :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"]
+      })
   end
 
   def test_route_recognition_unescapes_path_components
@@ -45,10 +54,13 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 
   def test_route_generation_allows_passing_non_string_values_to_generated_helper
-    assert_equal "/content/action/variable/1/2", @set.generate(:controller => "content",
-                                                                  :action => "action",
-                                                                  :variable => "variable",
-                                                                  :additional => [1, 2])
+    assert_equal "/content/action/variable/1/2",
+      url_for(@set, {
+        :controller => "content",
+        :action => "action",
+        :variable => "variable",
+        :additional => [1, 2]
+      })
   end
 end
 
@@ -68,6 +80,8 @@ class MockController
 end
 
 class LegacyRouteSetTests < Test::Unit::TestCase
+  include RoutingTestHelpers
+
   attr_reader :rs
 
   def setup
@@ -81,18 +95,18 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   def test_default_setup
     @rs.draw { match '/:controller(/:action(/:id))' }
     assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/content"))
-    assert_equal({:controller => "content", :action => 'list'}, rs.recognize_path("/content/list"))
+    assert_equal({:controller => "content", :action => 'list'},  rs.recognize_path("/content/list"))
     assert_equal({:controller => "content", :action => 'show', :id => '10'}, rs.recognize_path("/content/show/10"))
 
     assert_equal({:controller => "admin/user", :action => 'show', :id => '10'}, rs.recognize_path("/admin/user/show/10"))
 
-    assert_equal '/admin/user/show/10', rs.generate(:controller => 'admin/user', :action => 'show', :id => 10)
+    assert_equal '/admin/user/show/10', url_for(rs, { :controller => 'admin/user', :action => 'show', :id => 10 })
 
-    assert_equal '/admin/user/show', rs.generate({:action => 'show'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
-    assert_equal '/admin/user/list/10', rs.generate({}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal '/admin/user/show',    url_for(rs, { :action => 'show' }, { :controller => 'admin/user', :action => 'list', :id => '10' })
+    assert_equal '/admin/user/list/10', url_for(rs, {}, { :controller => 'admin/user', :action => 'list', :id => '10' })
 
-    assert_equal '/admin/stuff', rs.generate({:controller => 'stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
-    assert_equal '/stuff', rs.generate({:controller => '/stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal '/admin/stuff', url_for(rs, { :controller => 'stuff' }, { :controller => 'admin/user', :action => 'list', :id => '10' })
+    assert_equal '/stuff',       url_for(rs, { :controller => '/stuff' }, { :controller => 'admin/user', :action => 'list', :id => '10' })
   end
 
   def test_ignores_leading_slash
@@ -143,11 +157,14 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller/:admintoken(/:action(/:id))', :controller => /admin\/.+/
       match '/:controller(/:action(/:id))'
     end
+
     assert_equal({:controller => "admin/user", :admintoken => "foo", :action => "index"},
         rs.recognize_path("/admin/user/foo"))
-    assert_equal({:controller => "content", :action => "foo"}, rs.recognize_path("/content/foo"))
-    assert_equal '/admin/user/foo', rs.generate(:controller => "admin/user", :admintoken => "foo", :action => "index")
-    assert_equal '/content/foo', rs.generate(:controller => "content", :action => "foo")
+    assert_equal({:controller => "content", :action => "foo"},
+        rs.recognize_path("/content/foo"))
+
+    assert_equal '/admin/user/foo', url_for(rs, { :controller => "admin/user", :admintoken => "foo", :action => "index" })
+    assert_equal '/content/foo',    url_for(rs, { :controller => "content", :action => "foo" })
   end
 
   def test_route_with_regexp_and_captures_for_controller
@@ -169,17 +186,16 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end
     # Without a file extension
     assert_equal '/user/download/file',
-      rs.generate(:controller => "user", :action => "download", :file => "file")
-    assert_equal(
-      {:controller => "user", :action => "download", :file => "file"},
+      url_for(rs, { :controller => "user", :action => "download", :file => "file" })
+
+    assert_equal({:controller => "user", :action => "download", :file => "file"},
       rs.recognize_path("/user/download/file"))
 
     # Now, let's try a file with an extension, really a dot (.)
     assert_equal '/user/download/file.jpg',
-      rs.generate(
-        :controller => "user", :action => "download", :file => "file.jpg")
-    assert_equal(
-      {:controller => "user", :action => "download", :file => "file.jpg"},
+      url_for(rs, { :controller => "user", :action => "download", :file => "file.jpg" })
+
+    assert_equal({:controller => "user", :action => "download", :file => "file.jpg"},
       rs.recognize_path("/user/download/file.jpg"))
   end
 
@@ -187,28 +203,25 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     rs.draw do
       root :to => 'content#list', :as => 'home'
     end
-    x = setup_for_named_route
-    assert_equal("http://test.host/",
-                 x.send(:home_url))
+    assert_equal("http://test.host/", setup_for_named_route.send(:home_url))
   end
 
   def test_named_route_with_option
     rs.draw do
       match 'page/:title' => 'content#show_page', :as => 'page'
     end
-    x = setup_for_named_route
+
     assert_equal("http://test.host/page/new%20stuff",
-                 x.send(:page_url, :title => 'new stuff'))
+        setup_for_named_route.send(:page_url, :title => 'new stuff'))
   end
 
   def test_named_route_with_default
     rs.draw do
       match 'page/:title' => 'content#show_page', :title => 'AboutPage', :as => 'page'
     end
-    x = setup_for_named_route
-    assert_equal("http://test.host/page/AboutRails",
-                 x.send(:page_url, :title => "AboutRails"))
 
+    assert_equal("http://test.host/page/AboutRails",
+        setup_for_named_route.send(:page_url, :title => "AboutRails"))
   end
 
   def test_named_route_with_path_prefix
@@ -217,9 +230,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
         match 'page' => 'content#show_page', :as => 'page'
       end
     end
-    x = setup_for_named_route
+
     assert_equal("http://test.host/my/page",
-                 x.send(:page_url))
+        setup_for_named_route.send(:page_url))
   end
 
   def test_named_route_with_blank_path_prefix
@@ -228,27 +241,33 @@ class LegacyRouteSetTests < Test::Unit::TestCase
         match 'page' => 'content#show_page', :as => 'page'
       end
     end
-    x = setup_for_named_route
+
     assert_equal("http://test.host/page",
-                 x.send(:page_url))
+        setup_for_named_route.send(:page_url))
   end
 
   def test_named_route_with_nested_controller
     rs.draw do
       match 'admin/user' => 'admin/user#index', :as => "users"
     end
-    x = setup_for_named_route
+
     assert_equal("http://test.host/admin/user",
-                 x.send(:users_url))
+        setup_for_named_route.send(:users_url))
   end
 
   def test_optimised_named_route_with_host
     rs.draw do
       match 'page' => 'content#show_page', :as => 'pages', :host => 'foo.com'
     end
-    x = setup_for_named_route
-    x.expects(:url_for).with(:host => 'foo.com', :only_path => false, :controller => 'content', :action => 'show_page', :use_route => 'pages').once
-    x.send(:pages_url)
+    routes = setup_for_named_route
+    routes.expects(:url_for).with({
+      :host => 'foo.com',
+      :only_path => false,
+      :controller => 'content',
+      :action => 'show_page',
+      :use_route => 'pages'
+    }).once
+    routes.send(:pages_url)
   end
 
   def setup_for_named_route
@@ -265,9 +284,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     rs.draw do
       root :to => "hello#index"
     end
-    x = setup_for_named_route
-    assert_equal("http://test.host/", x.send(:root_url))
-    assert_equal("/", x.send(:root_path))
+    routes = setup_for_named_route
+    assert_equal("http://test.host/", routes.send(:root_url))
+    assert_equal("/", routes.send(:root_path))
   end
 
   def test_named_route_with_regexps
@@ -276,24 +295,19 @@ class LegacyRouteSetTests < Test::Unit::TestCase
         :year => /\d+/, :month => /\d+/, :day => /\d+/
       match ':controller/:action/:id'
     end
-    x = setup_for_named_route
-    # assert_equal(
-    #   {:controller => 'page', :action => 'show', :title => 'hi', :use_route => :article, :only_path => false},
-    #   x.send(:article_url, :title => 'hi')
-    # )
-    assert_equal(
-      "http://test.host/page/2005/6/10/hi",
-      x.send(:article_url, :title => 'hi', :day => 10, :year => 2005, :month => 6)
-    )
+
+    routes = setup_for_named_route
+
+    assert_equal "http://test.host/page/2005/6/10/hi",
+      routes.send(:article_url, :title => 'hi', :day => 10, :year => 2005, :month => 6)
   end
 
   def test_changing_controller
     @rs.draw { match ':controller/:action/:id' }
 
-    assert_equal '/admin/stuff/show/10', rs.generate(
-      {:controller => 'stuff', :action => 'show', :id => 10},
-      {:controller => 'admin/user', :action => 'index'}
-    )
+    assert_equal '/admin/stuff/show/10',
+        url_for(rs, {:controller => 'stuff', :action => 'show', :id => 10},
+                    {:controller => 'admin/user', :action => 'index'})
   end
 
   def test_paths_escaped
@@ -319,8 +333,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end
 
     # No / to %2F in URI, only for query params.
-    x = setup_for_named_route
-    assert_equal("/file/hello/world", x.send(:path_path, ['hello', 'world']))
+    assert_equal("/file/hello/world", setup_for_named_route.send(:path_path, ['hello', 'world']))
   end
 
   def test_non_controllers_cannot_be_matched
@@ -334,7 +347,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     rs.draw do
       match 'post/:id' => 'post#show', :constraints => { :id => /\d+/ }, :as => 'post'
     end
-    assert_raise(ActionController::RoutingError) { rs.generate(:controller => 'post', :action => 'show', :bad_param => "foo", :use_route => "post") }
+    assert_raise(ActionController::RoutingError) do
+      url_for(rs, { :controller => 'post', :action => 'show', :bad_param => "foo", :use_route => "post" })
+    end
   end
 
   def test_dynamic_path_allowed
@@ -342,7 +357,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match '*path' => 'content#show_file'
     end
 
-    assert_equal '/pages/boo', rs.generate(:controller => 'content', :action => 'show_file', :path => %w(pages boo))
+    assert_equal '/pages/boo',
+        url_for(rs, { :controller => 'content', :action => 'show_file', :path => %w(pages boo) })
   end
 
   def test_dynamic_recall_paths_allowed
@@ -350,7 +366,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match '*path' => 'content#show_file'
     end
 
-    assert_equal '/pages/boo', rs.generate({}, :controller => 'content', :action => 'show_file', :path => %w(pages boo))
+    assert_equal '/pages/boo',
+        url_for(rs, {}, { :controller => 'content', :action => 'show_file', :path => %w(pages boo) })
   end
 
   def test_backwards
@@ -359,9 +376,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller(/:action(/:id))'
     end
 
-    assert_equal '/page/20', rs.generate({:id => 20}, {:controller => 'pages', :action => 'show'})
-    assert_equal '/page/20', rs.generate(:controller => 'pages', :id => 20, :action => 'show')
-    assert_equal '/pages/boo', rs.generate(:controller => 'pages', :action => 'boo')
+    assert_equal '/page/20',   url_for(rs, { :id => 20 }, { :controller => 'pages', :action => 'show' })
+    assert_equal '/page/20',   url_for(rs, { :controller => 'pages', :id => 20, :action => 'show' })
+    assert_equal '/pages/boo', url_for(rs, { :controller => 'pages', :action => 'boo' })
   end
 
   def test_route_with_fixnum_default
@@ -370,10 +387,10 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller/:action/:id'
     end
 
-    assert_equal '/page', rs.generate(:controller => 'content', :action => 'show_page')
-    assert_equal '/page', rs.generate(:controller => 'content', :action => 'show_page', :id => 1)
-    assert_equal '/page', rs.generate(:controller => 'content', :action => 'show_page', :id => '1')
-    assert_equal '/page/10', rs.generate(:controller => 'content', :action => 'show_page', :id => 10)
+    assert_equal '/page',    url_for(rs, { :controller => 'content', :action => 'show_page' })
+    assert_equal '/page',    url_for(rs, { :controller => 'content', :action => 'show_page', :id => 1 })
+    assert_equal '/page',    url_for(rs, { :controller => 'content', :action => 'show_page', :id => '1' })
+    assert_equal '/page/10', url_for(rs, { :controller => 'content', :action => 'show_page', :id => 10 })
 
     assert_equal({:controller => "content", :action => 'show_page', :id => 1 }, rs.recognize_path("/page"))
     assert_equal({:controller => "content", :action => 'show_page', :id => '1'}, rs.recognize_path("/page/1"))
@@ -387,20 +404,20 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller/:action/:id'
     end
 
-    assert_equal '/page/foo', rs.generate(:controller => 'content', :action => 'show_page', :id => 'foo')
-    assert_equal({:controller => "content", :action => 'show_page', :id => 'foo'}, rs.recognize_path("/page/foo"))
+    assert_equal '/page/foo', url_for(rs, { :controller => 'content', :action => 'show_page', :id => 'foo' })
+    assert_equal({ :controller => "content", :action => 'show_page', :id => 'foo' }, rs.recognize_path("/page/foo"))
 
     token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in russian
     token.force_encoding(Encoding::BINARY) if token.respond_to?(:force_encoding)
     escaped_token = CGI::escape(token)
 
-    assert_equal '/page/' + escaped_token, rs.generate(:controller => 'content', :action => 'show_page', :id => token)
-    assert_equal({:controller => "content", :action => 'show_page', :id => token}, rs.recognize_path("/page/#{escaped_token}"))
+    assert_equal '/page/' + escaped_token, url_for(rs, { :controller => 'content', :action => 'show_page', :id => token })
+    assert_equal({ :controller => "content", :action => 'show_page', :id => token }, rs.recognize_path("/page/#{escaped_token}"))
   end
 
   def test_action_expiry
     @rs.draw { match ':controller(/:action(/:id))' }
-    assert_equal '/content', rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+    assert_equal '/content', url_for(rs, { :controller => 'content' }, { :controller => 'content', :action => 'show' })
   end
 
   def test_requirement_should_prevent_optional_id
@@ -408,10 +425,10 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match 'post/:id' => 'post#show', :constraints => {:id => /\d+/}, :as => 'post'
     end
 
-    assert_equal '/post/10', rs.generate(:controller => 'post', :action => 'show', :id => 10)
+    assert_equal '/post/10', url_for(rs, { :controller => 'post', :action => 'show', :id => 10 })
 
     assert_raise ActionController::RoutingError do
-      rs.generate(:controller => 'post', :action => 'show')
+      url_for(rs, { :controller => 'post', :action => 'show' })
     end
   end
 
@@ -424,12 +441,10 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller/:action/:id'
     end
 
-    assert_equal '/test', rs.generate(:controller => 'post', :action => 'show')
-    assert_equal '/test', rs.generate(:controller => 'post', :action => 'show', :year => nil)
+    assert_equal '/test', url_for(rs, { :controller => 'post', :action => 'show' })
+    assert_equal '/test', url_for(rs, { :controller => 'post', :action => 'show', :year => nil })
 
-    x = setup_for_named_route
-    assert_equal("http://test.host/test",
-                 x.send(:blog_url))
+    assert_equal("http://test.host/test", setup_for_named_route.send(:blog_url))
   end
 
   def test_set_to_nil_forgets
@@ -439,20 +454,20 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end
 
     assert_equal '/pages/2005',
-      rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005)
+      url_for(rs, { :controller => 'content', :action => 'list_pages', :year => 2005 })
     assert_equal '/pages/2005/6',
-      rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005, :month => 6)
+      url_for(rs, { :controller => 'content', :action => 'list_pages', :year => 2005, :month => 6 })
     assert_equal '/pages/2005/6/12',
-      rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005, :month => 6, :day => 12)
+      url_for(rs, { :controller => 'content', :action => 'list_pages', :year => 2005, :month => 6, :day => 12 })
 
     assert_equal '/pages/2005/6/4',
-      rs.generate({:day => 4}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
+      url_for(rs, { :day => 4 },   { :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' })
 
     assert_equal '/pages/2005/6',
-      rs.generate({:day => nil}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
+      url_for(rs, { :day => nil }, { :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' })
 
     assert_equal '/pages/2005',
-      rs.generate({:day => nil, :month => nil}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
+      url_for(rs, { :day => nil, :month => nil }, { :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' })
   end
 
   def test_root_url_generation_with_controller_and_action
@@ -460,8 +475,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       root :to => "content#index"
     end
 
-    assert_equal '/', rs.generate(:controller => 'content', :action => 'index')
-    assert_equal '/', rs.generate(:controller => 'content')
+    assert_equal '/', url_for(rs, { :controller => 'content', :action => 'index' })
+    assert_equal '/', url_for(rs, { :controller => 'content' })
   end
 
   def test_named_root_url_generation_with_controller_and_action
@@ -469,12 +484,10 @@ class LegacyRouteSetTests < Test::Unit::TestCase
        root :to => "content#index", :as => 'home'
     end
 
-    assert_equal '/', rs.generate(:controller => 'content', :action => 'index')
-    assert_equal '/', rs.generate(:controller => 'content')
+    assert_equal '/', url_for(rs, { :controller => 'content', :action => 'index' })
+    assert_equal '/', url_for(rs, { :controller => 'content' })
 
-    x = setup_for_named_route
-    assert_equal("http://test.host/",
-                 x.send(:home_url))
+    assert_equal("http://test.host/", setup_for_named_route.send(:home_url))
   end
 
   def test_named_route_method
@@ -483,8 +496,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller(/:action(/:id))'
     end
 
-    assert_equal '/categories', rs.generate(:controller => 'content', :action => 'categories')
-    assert_equal '/content/hi', rs.generate({:controller => 'content', :action => 'hi'})
+    assert_equal '/categories', url_for(rs, { :controller => 'content', :action => 'categories' })
+    assert_equal '/content/hi', url_for(rs, { :controller => 'content', :action => 'hi' })
   end
 
   def test_named_routes_array
@@ -499,7 +512,12 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match ':controller/:action/:id'
     end
 
-    assert_equal '/journal', rs.generate(:controller => 'content', :action => 'list_journal', :date => nil, :user_id => nil)
+    assert_equal '/journal', url_for(rs, {
+      :controller => 'content',
+      :action => 'list_journal',
+      :date => nil,
+      :user_id => nil
+    })
   end
 
   def setup_request_method_routes_for(method)
@@ -564,9 +582,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match '/posts/new/:action' => 'subpath_books'
     end
 
-    assert_equal "/books/7/edit", rs.generate(:controller => "subpath_books", :id => 7, :action => "edit")
-    assert_equal "/items/15/complete", rs.generate(:controller => "subpath_books", :id => 15, :action => "complete")
-    assert_equal "/posts/new/preview", rs.generate(:controller => "subpath_books", :action => "preview")
+    assert_equal "/books/7/edit",      url_for(rs, { :controller => "subpath_books", :id => 7, :action => "edit" })
+    assert_equal "/items/15/complete", url_for(rs, { :controller => "subpath_books", :id => 15, :action => "complete" })
+    assert_equal "/posts/new/preview", url_for(rs, { :controller => "subpath_books", :action => "preview" })
   end
 
   def test_failed_constraints_raises_exception_with_violated_constraints
@@ -574,9 +592,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match 'foos/:id' => 'foos#show', :as => 'foo_with_requirement', :constraints => { :id => /\d+/ }
     end
 
-    x = setup_for_named_route
     assert_raise(ActionController::RoutingError) do
-      x.send(:foo_with_requirement_url, "I am Against the constraints")
+      setup_for_named_route.send(:foo_with_requirement_url, "I am Against the constraints")
     end
   end
 
@@ -606,11 +623,12 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     assert_not_nil hash
     assert_equal %w(cc ac), [hash[:controller], hash[:action]]
-
   end
 end
 
 class RouteSetTest < ActiveSupport::TestCase
+  include RoutingTestHelpers
+
   def set
     @set ||= ROUTING::RouteSet.new
   end
@@ -657,7 +675,8 @@ class RouteSetTest < ActiveSupport::TestCase
       match ':controller/:action/:id.:format'
       match ':controller/:action/:id'
     end
-    assert_equal "/foo/bar/15?this=hello", set.generate(:controller => "foo", :action => "bar", :id => 15, :this => "hello")
+    assert_equal "/foo/bar/15?this=hello",
+        url_for(set, { :controller => "foo", :action => "bar", :id => 15, :this => "hello" })
   end
 
   def test_extra_keys_not_first
@@ -742,7 +761,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal "http://test.host/admin/users", controller.send(:users_url)
     assert_equal '/admin/users', controller.send(:users_path)
-    assert_equal '/admin/users', set.generate(controller.send(:hash_for_users_url), {:controller => 'users', :action => 'index'})
+    assert_equal '/admin/users', url_for(set, controller.send(:hash_for_users_url), { :controller => 'users', :action => 'index' })
   end
 
   def test_named_route_url_method_with_anchor
@@ -813,8 +832,8 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal 1, set.routes.size
 
-    assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
-    assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
+    assert_equal '/users/show/10',  url_for(set, { :controller => 'users', :action => 'show', :id => 10 })
+    assert_equal '/users/index/10', url_for(set, { :controller => 'users', :id => 10 })
 
     assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10'))
     assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10/'))
@@ -992,7 +1011,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match "/people/list", :controller => "people", :action => "list"
     end
 
-    url = set.generate(:controller => "people", :action => "list")
+    url = url_for(set, { :controller => "people", :action => "list" })
     assert_equal "/people/list", url
   end
 
@@ -1057,8 +1076,9 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_generate_changes_controller_module
     set.draw { match ':controller/:action/:id' }
     current = { :controller => "bling/bloop", :action => "bap", :id => 9 }
-    url = set.generate({:controller => "foo/bar", :action => "baz", :id => 7}, current)
-    assert_equal "/foo/bar/baz/7", url
+
+    assert_equal "/foo/bar/baz/7",
+        url_for(set, { :controller => "foo/bar", :action => "baz", :id => 7 }, current)
   end
 
   def test_id_is_sticky_when_it_ought_to_be
@@ -1066,7 +1086,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match ':controller/:id/:action'
     end
 
-    url = set.generate({:action => "destroy"}, {:controller => "people", :action => "show", :id => "7"})
+    url = url_for(set, { :action => "destroy" }, { :controller => "people", :action => "show", :id => "7" })
     assert_equal "/people/7/destroy", url
   end
 
@@ -1076,8 +1096,9 @@ class RouteSetTest < ActiveSupport::TestCase
       match ':controller/:action/:id'
     end
 
-    url = set.generate({:controller => "welcome", :action => "about"},
-      {:controller => "welcome", :action => "get", :id => "7"})
+    url = url_for(set, { :controller => "welcome", :action => "about" },
+      { :controller => "welcome", :action => "get", :id => "7" })
+
     assert_equal "/about", url
   end
 
@@ -1085,7 +1106,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw { match ':controller/:action/:id' }
 
     args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
-    assert_equal "/foo/bar/7?x=y", set.generate(args)
+    assert_equal "/foo/bar/7?x=y",     url_for(set, args)
     assert_equal ["/foo/bar/7", [:x]], set.generate_extras(args)
     assert_equal [:x], set.extra_keys(args)
   end
@@ -1098,7 +1119,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
 
     args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
-    assert_equal "/my/foo/bar/7?x=y", set.generate(args)
+    assert_equal "/my/foo/bar/7?x=y", url_for(set, args)
   end
 
   def test_generate_with_blank_path_prefix
@@ -1109,7 +1130,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
 
     args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
-    assert_equal "/foo/bar/7?x=y", set.generate(args)
+    assert_equal "/foo/bar/7?x=y", url_for(set, args)
   end
 
   def test_named_routes_are_never_relative_to_modules
@@ -1119,10 +1140,10 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/connection' => 'connection#index', :as => 'family_connection'
     end
 
-    url = set.generate({:controller => "connection"}, {:controller => 'connection/manage'})
+    url = url_for(set, { :controller => "connection" }, { :controller => 'connection/manage' })
     assert_equal "/connection/connection", url
 
-    url = set.generate({:use_route => :family_connection, :controller => "connection"}, {:controller => 'connection/manage'})
+    url = url_for(set, { :use_route => :family_connection, :controller => "connection" }, { :controller => 'connection/manage' })
     assert_equal "/connection", url
   end
 
@@ -1130,7 +1151,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       match ':controller(/:action(/:id))'
     end
-    assert_equal '/books', set.generate(
+    assert_equal '/books', url_for(set,
       {:controller => 'books', :action => 'index'},
       {:controller => 'books', :action => 'show', :id => '10'}
     )
@@ -1141,7 +1162,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match 'show_weblog/:parameter' => 'weblog#show'
       match ':controller(/:action(/:id))'
     end
-    assert_equal '/weblog/edit?parameter=1', set.generate(
+    assert_equal '/weblog/edit?parameter=1', url_for(set,
       {:action => 'edit', :parameter => 1},
       {:controller => 'weblog', :action => 'show', :parameter => 1}
     )
@@ -1152,12 +1173,12 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/posts(.:format)' => 'posts#index'
     end
 
-    assert_equal '/posts', set.generate(
+    assert_equal '/posts', url_for(set,
       {:controller => 'posts'},
       {:controller => 'posts', :action => 'index', :format => 'xml'}
     )
 
-    assert_equal '/posts.xml', set.generate(
+    assert_equal '/posts.xml', url_for(set,
       {:controller => 'posts', :format => 'xml'},
       {:controller => 'posts', :action => 'index', :format => 'xml'}
     )
@@ -1165,9 +1186,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_expiry_determination_should_consider_values_with_to_param
     set.draw { match 'projects/:project_id/:controller/:action' }
-    assert_equal '/projects/1/weblog/show', set.generate(
-      {:action => 'show', :project_id => 1},
-      {:controller => 'weblog', :action => 'show', :project_id => '1'})
+    assert_equal '/projects/1/weblog/show', url_for(set,
+      { :action => 'show', :project_id => 1 },
+      { :controller => 'weblog', :action => 'show', :project_id => '1' })
   end
 
   def test_named_route_in_nested_resource
@@ -1208,7 +1229,7 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_raise ArgumentError do
       set.draw do
         match 'page/:name' => 'pages#show',
-          :constraints => {:name => /(david|jamis)/m}
+          :constraints => { :name => /(david|jamis)/m }
       end
     end
   end
@@ -1217,18 +1238,18 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised do
       set.draw do
         match 'page/:name' => 'pages#show',
-          :constraints => {:name => /(david|jamis)/i}
+          :constraints => { :name => /(david|jamis)/i }
       end
     end
     assert_nothing_raised do
       set.draw do
         match 'page/:name' => 'pages#show',
-          :constraints => {:name => / # Desperately overcommented regexp
+          :constraints => { :name => / # Desperately overcommented regexp
                                       ( #Either
                                        david #The Creator
                                       | #Or
                                         jamis #The Deployer
-                                      )/x}
+                                      )/x }
       end
     end
   end
@@ -1251,12 +1272,12 @@ class RouteSetTest < ActiveSupport::TestCase
         :constraints => {:name => /(david|jamis)/i}
     end
 
-    url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
+    url = url_for(set, { :controller => 'pages', :action => 'show', :name => 'david' })
     assert_equal "/page/david", url
     assert_raise ActionController::RoutingError do
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
+      url_for(set, { :controller => 'pages', :action => 'show', :name => 'davidjamis' })
     end
-    url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
+    url = url_for(set, { :controller => 'pages', :action => 'show', :name => 'JAMIS' })
     assert_equal "/page/JAMIS", url
   end
 
@@ -1280,7 +1301,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
-  def test_route_requirement_generate_with_xi_modifiers
+  def test_route_requirement_with_xi_modifiers
     set.draw do
       match 'page/:name' => 'pages#show',
         :constraints => {:name => / # Desperately overcommented regexp
@@ -1291,21 +1312,11 @@ class RouteSetTest < ActiveSupport::TestCase
                                     )/xi}
     end
 
-    url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
-    assert_equal "/page/JAMIS", url
-  end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'JAMIS'},
+        set.recognize_path('/page/JAMIS'))
 
-  def test_route_requirement_recognize_with_xi_modifiers
-    set.draw do
-      match 'page/:name' => 'pages#show',
-        :constraints => {:name => / # Desperately overcommented regexp
-                                    ( #Either
-                                     david #The Creator
-                                    | #Or
-                                      jamis #The Deployer
-                                    )/xi}
-    end
-    assert_equal({:controller => 'pages', :action => 'show', :name => 'JAMIS'}, set.recognize_path('/page/JAMIS'))
+    assert_equal "/page/JAMIS",
+        url_for(set, { :controller => 'pages', :action => 'show', :name => 'JAMIS' })
   end
 
   def test_routes_with_symbols
@@ -1323,8 +1334,8 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/hello' => 'bar#index'
     end
 
-    assert_equal '/', set.generate(:controller => 'foo')
-    assert_equal '/hello', set.generate(:controller => 'bar')
+    assert_equal '/',      url_for(set, { :controller => 'foo' })
+    assert_equal '/hello', url_for(set, { :controller => 'bar' })
 
     assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/'))
     assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/hello'))
@@ -1335,7 +1346,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/cars/:action/:person/:car/', :controller => 'cars'
     end
 
-    assert_equal '/cars/buy/1/2', set.generate(:controller => 'cars', :action => 'buy', :person => '1', :car => '2')
+    assert_equal '/cars/buy/1/2', url_for(set, { :controller => 'cars', :action => 'buy', :person => '1', :car => '2' })
 
     assert_equal({:controller => "cars", :action => "buy", :person => "1", :car => "2"}, set.recognize_path('/cars/buy/1/2'))
   end
@@ -1345,7 +1356,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/books/:action.rss', :controller => 'books'
     end
 
-    assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list')
+    assert_equal '/books/list.rss', url_for(set, { :controller => 'books', :action => 'list' })
 
     assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list.rss'))
   end
@@ -1355,14 +1366,14 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/books(/:action(.:format))', :controller => 'books'
     end
 
-    assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list', :format => 'rss')
-    assert_equal '/books/list.xml', set.generate(:controller => 'books', :action => 'list', :format => 'xml')
-    assert_equal '/books/list', set.generate(:controller => 'books', :action => 'list')
-    assert_equal '/books', set.generate(:controller => 'books', :action => 'index')
+    assert_equal '/books/list.rss', url_for(set, { :controller => 'books', :action => 'list', :format => 'rss' })
+    assert_equal '/books/list.xml', url_for(set, { :controller => 'books', :action => 'list', :format => 'xml' })
+    assert_equal '/books/list',     url_for(set, { :controller => 'books', :action => 'list' })
+    assert_equal '/books',          url_for(set, { :controller => 'books', :action => 'index' })
 
     assert_equal({:controller => "books", :action => "list", :format => "rss"}, set.recognize_path('/books/list.rss'))
     assert_equal({:controller => "books", :action => "list", :format => "xml"}, set.recognize_path('/books/list.xml'))
-    assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list'))
+    assert_equal({:controller => "books", :action => "list"},  set.recognize_path('/books/list'))
     assert_equal({:controller => "books", :action => "index"}, set.recognize_path('/books'))
   end
 
@@ -1370,13 +1381,13 @@ class RouteSetTest < ActiveSupport::TestCase
     @set = nil
     set.draw { match("/:controller(/:action(/:id))") }
 
-    assert_equal '/content', set.generate(:controller => 'content', :action => 'index')
-    assert_equal '/content/list', set.generate(:controller => 'content', :action => 'list')
-    assert_equal '/content/show/1', set.generate(:controller => 'content', :action => 'show', :id => '1')
+    assert_equal '/content',        url_for(set, { :controller => 'content', :action => 'index' })
+    assert_equal '/content/list',   url_for(set, { :controller => 'content', :action => 'list' })
+    assert_equal '/content/show/1', url_for(set, { :controller => 'content', :action => 'show', :id => '1' })
 
     assert_equal({:controller => "content", :action => "index"}, set.recognize_path('/content'))
     assert_equal({:controller => "content", :action => "index"}, set.recognize_path('/content/index'))
-    assert_equal({:controller => "content", :action => "list"}, set.recognize_path('/content/list'))
+    assert_equal({:controller => "content", :action => "list"},  set.recognize_path('/content/list'))
     assert_equal({:controller => "content", :action => "show", :id => "1"}, set.recognize_path('/content/show/1'))
   end
 
@@ -1401,54 +1412,54 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_default_route_should_omit_default_action
-    assert_equal '/accounts', default_route_set.generate({:controller => 'accounts', :action => 'index'})
+    assert_equal '/accounts', url_for(default_route_set, { :controller => 'accounts', :action => 'index' })
   end
 
   def test_default_route_should_include_default_action_when_id_present
-    assert_equal '/accounts/index/20', default_route_set.generate({:controller => 'accounts', :action => 'index', :id => '20'})
+    assert_equal '/accounts/index/20', url_for(default_route_set, { :controller => 'accounts', :action => 'index', :id => '20' })
   end
 
   def test_default_route_should_work_with_action_but_no_id
-    assert_equal '/accounts/list_all', default_route_set.generate({:controller => 'accounts', :action => 'list_all'})
+    assert_equal '/accounts/list_all', url_for(default_route_set, { :controller => 'accounts', :action => 'list_all' })
   end
 
   def test_default_route_should_uri_escape_pluses
     expected = { :controller => 'pages', :action => 'show', :id => 'hello world' }
     assert_equal expected, default_route_set.recognize_path('/pages/show/hello%20world')
-    assert_equal '/pages/show/hello%20world', default_route_set.generate(expected, expected)
+    assert_equal '/pages/show/hello%20world', url_for(default_route_set, expected)
 
     expected[:id] = 'hello+world'
     assert_equal expected, default_route_set.recognize_path('/pages/show/hello+world')
     assert_equal expected, default_route_set.recognize_path('/pages/show/hello%2Bworld')
-    assert_equal '/pages/show/hello+world', default_route_set.generate(expected, expected)
+    assert_equal '/pages/show/hello+world', url_for(default_route_set, expected)
   end
 
   def test_build_empty_query_string
-    assert_uri_equal '/foo', default_route_set.generate({:controller => 'foo'})
+    assert_uri_equal '/foo', url_for(default_route_set, { :controller => 'foo' })
   end
 
   def test_build_query_string_with_nil_value
-    assert_uri_equal '/foo', default_route_set.generate({:controller => 'foo', :x => nil})
+    assert_uri_equal '/foo', url_for(default_route_set, { :controller => 'foo', :x => nil })
   end
 
   def test_simple_build_query_string
-    assert_uri_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => '1', :y => '2'})
+    assert_uri_equal '/foo?x=1&y=2', url_for(default_route_set, { :controller => 'foo', :x => '1', :y => '2' })
   end
 
   def test_convert_ints_build_query_string
-    assert_uri_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => 1, :y => 2})
+    assert_uri_equal '/foo?x=1&y=2', url_for(default_route_set, { :controller => 'foo', :x => 1, :y => 2 })
   end
 
   def test_escape_spaces_build_query_string
-    assert_uri_equal '/foo?x=hello+world&y=goodbye+world', default_route_set.generate({:controller => 'foo', :x => 'hello world', :y => 'goodbye world'})
+    assert_uri_equal '/foo?x=hello+world&y=goodbye+world', url_for(default_route_set, { :controller => 'foo', :x => 'hello world', :y => 'goodbye world' })
   end
 
   def test_expand_array_build_query_string
-    assert_uri_equal '/foo?x%5B%5D=1&x%5B%5D=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
+    assert_uri_equal '/foo?x%5B%5D=1&x%5B%5D=2', url_for(default_route_set, { :controller => 'foo', :x => [1, 2] })
   end
 
   def test_escape_spaces_build_query_string_selected_keys
-    assert_uri_equal '/foo?x=hello+world', default_route_set.generate({:controller => 'foo', :x => 'hello world'})
+    assert_uri_equal '/foo?x=hello+world', url_for(default_route_set, { :controller => 'foo', :x => 'hello world' })
   end
 
   def test_generate_with_default_params
@@ -1462,7 +1473,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match ':controller/:action/:id'
     end
 
-    assert_equal '/ibocorp', set.generate({:controller => 'ibocorp', :action => "show", :page => 1})
+    assert_equal '/ibocorp', url_for(set, { :controller => 'ibocorp', :action => "show", :page => 1 })
   end
 
   def test_generate_with_optional_params_recalls_last_request
@@ -1492,11 +1503,11 @@ class RouteSetTest < ActiveSupport::TestCase
 
     last_request = set.recognize_path("/blog/2006/07/28").freeze
     assert_equal({:controller => "blog",  :action => "show_date", :year => "2006", :month => "07", :day => "28"}, last_request)
-    assert_equal("/blog/2006/07/25", set.generate({:day => 25}, last_request))
-    assert_equal("/blog/2005", set.generate({:year => 2005}, last_request))
-    assert_equal("/blog/show/123", set.generate({:action => "show" , :id => 123}, last_request))
-    assert_equal("/blog/2006", set.generate({:year => 2006}, last_request))
-    assert_equal("/blog/2006", set.generate({:year => 2006, :month => nil}, last_request))
+    assert_equal("/blog/2006/07/25", url_for(set, { :day => 25 }, last_request))
+    assert_equal("/blog/2005",       url_for(set, { :year => 2005 }, last_request))
+    assert_equal("/blog/show/123",   url_for(set, { :action => "show" , :id => 123 }, last_request))
+    assert_equal("/blog/2006",       url_for(set, { :year => 2006 }, last_request))
+    assert_equal("/blog/2006",       url_for(set, { :year => 2006, :month => nil }, last_request))
   end
 
   private
@@ -1512,6 +1523,8 @@ class RouteSetTest < ActiveSupport::TestCase
 end
 
 class RackMountIntegrationTests < ActiveSupport::TestCase
+  include RoutingTestHelpers
+
   Model = Struct.new(:to_param)
 
   Mapping = lambda {
@@ -1647,111 +1660,111 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   end
 
   def test_generate
-    assert_equal '/admin/users', @routes.generate(:use_route => 'admin_users')
-    assert_equal '/admin/users', @routes.generate(:controller => 'admin/users')
-    assert_equal '/admin/users', @routes.generate(:controller => 'admin/users', :action => 'index')
-    assert_equal '/admin/users', @routes.generate({:action => 'index'}, {:controller => 'admin/users'})
-    assert_equal '/admin/users', @routes.generate({:controller => 'users', :action => 'index'}, {:controller => 'admin/accounts'})
-    assert_equal '/people', @routes.generate({:controller => '/people', :action => 'index'}, {:controller => 'admin/accounts'})
+    assert_equal '/admin/users', url_for(@routes, { :use_route => 'admin_users' })
+    assert_equal '/admin/users', url_for(@routes, { :controller => 'admin/users' })
+    assert_equal '/admin/users', url_for(@routes, { :controller => 'admin/users', :action => 'index' })
+    assert_equal '/admin/users', url_for(@routes, { :action => 'index' }, { :controller => 'admin/users' })
+    assert_equal '/admin/users', url_for(@routes, { :controller => 'users', :action => 'index' }, { :controller => 'admin/accounts' })
+    assert_equal '/people',      url_for(@routes, { :controller => '/people', :action => 'index' }, { :controller => 'admin/accounts' })
 
-    assert_equal '/admin/posts', @routes.generate({:controller => 'admin/posts'})
-    assert_equal '/admin/posts/new', @routes.generate({:controller => 'admin/posts', :action => 'new'})
+    assert_equal '/admin/posts',     url_for(@routes, { :controller => 'admin/posts' })
+    assert_equal '/admin/posts/new', url_for(@routes, { :controller => 'admin/posts', :action => 'new' })
 
-    assert_equal '/blog/2009', @routes.generate(:controller => 'posts', :action => 'show_date', :year => 2009)
-    assert_equal '/blog/2009/1', @routes.generate(:controller => 'posts', :action => 'show_date', :year => 2009, :month => 1)
-    assert_equal '/blog/2009/1/1', @routes.generate(:controller => 'posts', :action => 'show_date', :year => 2009, :month => 1, :day => 1)
+    assert_equal '/blog/2009',     url_for(@routes, { :controller => 'posts', :action => 'show_date', :year => 2009 })
+    assert_equal '/blog/2009/1',   url_for(@routes, { :controller => 'posts', :action => 'show_date', :year => 2009, :month => 1 })
+    assert_equal '/blog/2009/1/1', url_for(@routes, { :controller => 'posts', :action => 'show_date', :year => 2009, :month => 1, :day => 1 })
 
-    assert_equal '/archive/2010', @routes.generate(:controller => 'archive', :action => 'index', :year => '2010')
-    assert_equal '/archive', @routes.generate(:controller => 'archive', :action => 'index')
-    assert_equal '/archive?year=january', @routes.generate(:controller => 'archive', :action => 'index', :year => 'january')
+    assert_equal '/archive/2010', url_for(@routes, { :controller => 'archive', :action => 'index', :year => '2010' })
+    assert_equal '/archive',      url_for(@routes, { :controller => 'archive', :action => 'index' })
+    assert_equal '/archive?year=january', url_for(@routes, { :controller => 'archive', :action => 'index', :year => 'january' })
 
-    assert_equal '/people', @routes.generate(:controller => 'people', :action => 'index')
-    assert_equal '/people', @routes.generate({:action => 'index'}, {:controller => 'people'})
-    assert_equal '/people', @routes.generate({:action => 'index'}, {:controller => 'people', :action => 'show', :id => '1'})
-    assert_equal '/people', @routes.generate({:controller => 'people', :action => 'index'}, {:controller => 'people', :action => 'show', :id => '1'})
-    assert_equal '/people', @routes.generate({}, {:controller => 'people', :action => 'index'})
-    assert_equal '/people/1', @routes.generate({:controller => 'people', :action => 'show'}, {:controller => 'people', :action => 'show', :id => '1'})
-    assert_equal '/people/new', @routes.generate(:use_route => 'new_person')
-    assert_equal '/people/new', @routes.generate(:controller => 'people', :action => 'new')
-    assert_equal '/people/1', @routes.generate(:use_route => 'person', :id => '1')
-    assert_equal '/people/1', @routes.generate(:controller => 'people', :action => 'show', :id => '1')
-    assert_equal '/people/1.xml', @routes.generate(:controller => 'people', :action => 'show', :id => '1', :format => 'xml')
-    assert_equal '/people/1', @routes.generate(:controller => 'people', :action => 'show', :id => 1)
-    assert_equal '/people/1', @routes.generate(:controller => 'people', :action => 'show', :id => Model.new('1'))
-    assert_equal '/people/1', @routes.generate({:action => 'show', :id => '1'}, {:controller => 'people', :action => 'index'})
-    assert_equal '/people/1', @routes.generate({:action => 'show', :id => 1}, {:controller => 'people', :action => 'show', :id => '1'})
-    assert_equal '/people', @routes.generate({:controller => 'people', :action => 'index'}, {:controller => 'people', :action => 'show', :id => '1'})
-    assert_equal '/people/1', @routes.generate({}, {:controller => 'people', :action => 'show', :id => '1'})
-    assert_equal '/people/1', @routes.generate({:controller => 'people', :action => 'show'}, {:controller => 'people', :action => 'index', :id => '1'})
-    assert_equal '/people/1/edit', @routes.generate(:controller => 'people', :action => 'edit', :id => '1')
-    assert_equal '/people/1/edit.xml', @routes.generate(:controller => 'people', :action => 'edit', :id => '1', :format => 'xml')
-    assert_equal '/people/1/edit', @routes.generate(:use_route => 'edit_person', :id => '1')
-    assert_equal '/people/1?legacy=true', @routes.generate(:controller => 'people', :action => 'show', :id => '1', :legacy => 'true')
-    assert_equal '/people?legacy=true', @routes.generate(:controller => 'people', :action => 'index', :legacy => 'true')
+    assert_equal '/people', url_for(@routes, { :controller => 'people', :action => 'index' })
+    assert_equal '/people', url_for(@routes, { :action => 'index' }, { :controller => 'people' })
+    assert_equal '/people', url_for(@routes, { :action => 'index' }, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people', url_for(@routes, { :controller => 'people', :action => 'index' }, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people', url_for(@routes, {}, { :controller => 'people', :action => 'index' })
+    assert_equal '/people/1',   url_for(@routes, { :controller => 'people', :action => 'show' }, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people/new', url_for(@routes, { :use_route => 'new_person' })
+    assert_equal '/people/new', url_for(@routes, { :controller => 'people', :action => 'new' })
+    assert_equal '/people/1',   url_for(@routes, { :use_route => 'person', :id => '1' })
+    assert_equal '/people/1',   url_for(@routes, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people/1.xml', url_for(@routes, { :controller => 'people', :action => 'show', :id => '1', :format => 'xml' })
+    assert_equal '/people/1', url_for(@routes, { :controller => 'people', :action => 'show', :id => 1 })
+    assert_equal '/people/1', url_for(@routes, { :controller => 'people', :action => 'show', :id => Model.new('1') })
+    assert_equal '/people/1', url_for(@routes, { :action => 'show', :id => '1' }, { :controller => 'people', :action => 'index' })
+    assert_equal '/people/1', url_for(@routes, { :action => 'show', :id => 1 }, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people',   url_for(@routes, { :controller => 'people', :action => 'index' }, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people/1', url_for(@routes, {}, { :controller => 'people', :action => 'show', :id => '1' })
+    assert_equal '/people/1', url_for(@routes, { :controller => 'people', :action => 'show' }, { :controller => 'people', :action => 'index', :id => '1' })
+    assert_equal '/people/1/edit',     url_for(@routes, { :controller => 'people', :action => 'edit', :id => '1' })
+    assert_equal '/people/1/edit.xml', url_for(@routes, { :controller => 'people', :action => 'edit', :id => '1', :format => 'xml' })
+    assert_equal '/people/1/edit',     url_for(@routes, { :use_route => 'edit_person', :id => '1' })
+    assert_equal '/people/1?legacy=true', url_for(@routes, { :controller => 'people', :action => 'show', :id => '1', :legacy => 'true' })
+    assert_equal '/people?legacy=true',   url_for(@routes, { :controller => 'people', :action => 'index', :legacy => 'true' })
 
-    assert_equal '/id_default/2', @routes.generate(:controller => 'foo', :action => 'id_default', :id => '2')
-    assert_equal '/id_default', @routes.generate(:controller => 'foo', :action => 'id_default', :id => '1')
-    assert_equal '/id_default', @routes.generate(:controller => 'foo', :action => 'id_default', :id => 1)
-    assert_equal '/id_default', @routes.generate(:controller => 'foo', :action => 'id_default')
-    assert_equal '/optional/bar', @routes.generate(:controller => 'posts', :action => 'index', :optional => 'bar')
-    assert_equal '/posts', @routes.generate(:controller => 'posts', :action => 'index')
+    assert_equal '/id_default/2', url_for(@routes, { :controller => 'foo', :action => 'id_default', :id => '2' })
+    assert_equal '/id_default',   url_for(@routes, { :controller => 'foo', :action => 'id_default', :id => '1' })
+    assert_equal '/id_default',   url_for(@routes, { :controller => 'foo', :action => 'id_default', :id => 1 })
+    assert_equal '/id_default',   url_for(@routes, { :controller => 'foo', :action => 'id_default' })
+    assert_equal '/optional/bar', url_for(@routes, { :controller => 'posts', :action => 'index', :optional => 'bar' })
+    assert_equal '/posts', url_for(@routes, { :controller => 'posts', :action => 'index' })
 
-    assert_equal '/project', @routes.generate({:controller => 'project', :action => 'index'})
-    assert_equal '/projects/1', @routes.generate({:controller => 'project', :action => 'index', :project_id => '1'})
-    assert_equal '/projects/1', @routes.generate({:controller => 'project', :action => 'index'}, {:project_id => '1'})
-    assert_raise(ActionController::RoutingError) { @routes.generate({:use_route => 'project', :controller => 'project', :action => 'index'}) }
-    assert_equal '/projects/1', @routes.generate({:use_route => 'project', :controller => 'project', :action => 'index', :project_id => '1'})
-    assert_equal '/projects/1', @routes.generate({:use_route => 'project', :controller => 'project', :action => 'index'}, {:project_id => '1'})
+    assert_equal '/project',    url_for(@routes, { :controller => 'project', :action => 'index' })
+    assert_equal '/projects/1', url_for(@routes, { :controller => 'project', :action => 'index', :project_id => '1' })
+    assert_equal '/projects/1', url_for(@routes, { :controller => 'project', :action => 'index'}, {:project_id => '1' })
+    assert_raise(ActionController::RoutingError) { url_for(@routes, { :use_route => 'project', :controller => 'project', :action => 'index' }) }
+    assert_equal '/projects/1', url_for(@routes, { :use_route => 'project', :controller => 'project', :action => 'index', :project_id => '1' })
+    assert_equal '/projects/1', url_for(@routes, { :use_route => 'project', :controller => 'project', :action => 'index' }, { :project_id => '1' })
 
-    assert_equal '/clients', @routes.generate(:controller => 'projects', :action => 'index')
-    assert_equal '/clients?project_id=1', @routes.generate(:controller => 'projects', :action => 'index', :project_id => '1')
-    assert_equal '/clients', @routes.generate({:controller => 'projects', :action => 'index'}, {:project_id => '1'})
-    assert_equal '/clients', @routes.generate({:action => 'index'}, {:controller => 'projects', :action => 'index', :project_id => '1'})
+    assert_equal '/clients', url_for(@routes, { :controller => 'projects', :action => 'index' })
+    assert_equal '/clients?project_id=1', url_for(@routes, { :controller => 'projects', :action => 'index', :project_id => '1' })
+    assert_equal '/clients', url_for(@routes, { :controller => 'projects', :action => 'index' }, { :project_id => '1' })
+    assert_equal '/clients', url_for(@routes, { :action => 'index' }, { :controller => 'projects', :action => 'index', :project_id => '1' })
 
-    assert_equal '/comment/20', @routes.generate({:id => 20}, {:controller => 'comments', :action => 'show'})
-    assert_equal '/comment/20', @routes.generate(:controller => 'comments', :id => 20, :action => 'show')
-    assert_equal '/comments/boo', @routes.generate(:controller => 'comments', :action => 'boo')
+    assert_equal '/comment/20',   url_for(@routes, { :id => 20 }, { :controller => 'comments', :action => 'show' })
+    assert_equal '/comment/20',   url_for(@routes, { :controller => 'comments', :id => 20, :action => 'show' })
+    assert_equal '/comments/boo', url_for(@routes, { :controller => 'comments', :action => 'boo' })
 
-    assert_equal '/ws/posts/show/1', @routes.generate(:controller => 'posts', :action => 'show', :id => '1', :ws => true)
-    assert_equal '/ws/posts', @routes.generate(:controller => 'posts', :action => 'index', :ws => true)
+    assert_equal '/ws/posts/show/1', url_for(@routes, { :controller => 'posts', :action => 'show', :id => '1', :ws => true })
+    assert_equal '/ws/posts',        url_for(@routes, { :controller => 'posts', :action => 'index', :ws => true })
 
-    assert_equal '/account', @routes.generate(:controller => 'account', :action => 'subscription')
-    assert_equal '/account/billing', @routes.generate(:controller => 'account', :action => 'billing')
+    assert_equal '/account',         url_for(@routes, { :controller => 'account', :action => 'subscription' })
+    assert_equal '/account/billing', url_for(@routes, { :controller => 'account', :action => 'billing' })
 
-    assert_equal '/pages/1/notes/show/1', @routes.generate(:page_id => '1', :controller => 'notes', :action => 'show', :id => '1')
-    assert_equal '/pages/1/notes/list', @routes.generate(:page_id => '1', :controller => 'notes', :action => 'list')
-    assert_equal '/pages/1/notes', @routes.generate(:page_id => '1', :controller => 'notes', :action => 'index')
-    assert_equal '/pages/1/notes', @routes.generate(:page_id => '1', :controller => 'notes')
-    assert_equal '/notes', @routes.generate(:page_id => nil, :controller => 'notes')
-    assert_equal '/notes', @routes.generate(:controller => 'notes')
-    assert_equal '/notes/print', @routes.generate(:controller => 'notes', :action => 'print')
-    assert_equal '/notes/print', @routes.generate({}, {:controller => 'notes', :action => 'print'})
+    assert_equal '/pages/1/notes/show/1', url_for(@routes, { :page_id => '1', :controller => 'notes', :action => 'show', :id => '1' })
+    assert_equal '/pages/1/notes/list',   url_for(@routes, { :page_id => '1', :controller => 'notes', :action => 'list' })
+    assert_equal '/pages/1/notes', url_for(@routes, { :page_id => '1', :controller => 'notes', :action => 'index' })
+    assert_equal '/pages/1/notes', url_for(@routes, { :page_id => '1', :controller => 'notes' })
+    assert_equal '/notes',         url_for(@routes, { :page_id => nil, :controller => 'notes' })
+    assert_equal '/notes',         url_for(@routes, { :controller => 'notes' })
+    assert_equal '/notes/print',   url_for(@routes, { :controller => 'notes', :action => 'print' })
+    assert_equal '/notes/print',   url_for(@routes, {}, { :controller => 'notes', :action => 'print' })
 
-    assert_equal '/notes/index/1', @routes.generate({:controller => 'notes'}, {:controller => 'notes', :id => '1'})
-    assert_equal '/notes/index/1', @routes.generate({:controller => 'notes'}, {:controller => 'notes', :id => '1', :foo => 'bar'})
-    assert_equal '/notes/index/1', @routes.generate({:controller => 'notes'}, {:controller => 'notes', :id => '1'})
-    assert_equal '/notes/index/1', @routes.generate({:action => 'index'}, {:controller => 'notes', :id => '1'})
-    assert_equal '/notes/index/1', @routes.generate({}, {:controller => 'notes', :id => '1'})
-    assert_equal '/notes/show/1', @routes.generate({}, {:controller => 'notes', :action => 'show', :id => '1'})
-    assert_equal '/notes/index/1', @routes.generate({:controller => 'notes', :id => '1'}, {:foo => 'bar'})
-    assert_equal '/posts', @routes.generate({:controller => 'posts'}, {:controller => 'notes', :action => 'show', :id => '1'})
-    assert_equal '/notes/list', @routes.generate({:action => 'list'}, {:controller => 'notes', :action => 'show', :id => '1'})
+    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes' }, { :controller => 'notes', :id => '1' })
+    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes' }, { :controller => 'notes', :id => '1', :foo => 'bar' })
+    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes' }, { :controller => 'notes', :id => '1' })
+    assert_equal '/notes/index/1', url_for(@routes, { :action => 'index' }, { :controller => 'notes', :id => '1' })
+    assert_equal '/notes/index/1', url_for(@routes, {}, { :controller => 'notes', :id => '1' })
+    assert_equal '/notes/show/1',  url_for(@routes, {}, { :controller => 'notes', :action => 'show', :id => '1' })
+    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes', :id => '1' }, { :foo => 'bar' })
+    assert_equal '/posts',      url_for(@routes, { :controller => 'posts' }, { :controller => 'notes', :action => 'show', :id => '1' })
+    assert_equal '/notes/list', url_for(@routes, { :action => 'list' }, { :controller => 'notes', :action => 'show', :id => '1' })
 
-    assert_equal '/posts/ping', @routes.generate(:controller => 'posts', :action => 'ping')
-    assert_equal '/posts/show/1', @routes.generate(:controller => 'posts', :action => 'show', :id => '1')
-    assert_equal '/posts', @routes.generate(:controller => 'posts')
-    assert_equal '/posts', @routes.generate(:controller => 'posts', :action => 'index')
-    assert_equal '/posts', @routes.generate({:controller => 'posts'}, {:controller => 'posts', :action => 'index'})
-    assert_equal '/posts/create', @routes.generate({:action => 'create'}, {:controller => 'posts'})
-    assert_equal '/posts?foo=bar', @routes.generate(:controller => 'posts', :foo => 'bar')
-    assert_equal '/posts?foo%5B%5D=bar&foo%5B%5D=baz', @routes.generate(:controller => 'posts', :foo => ['bar', 'baz'])
-    assert_equal '/posts?page=2', @routes.generate(:controller => 'posts', :page => 2)
-    assert_equal '/posts?q%5Bfoo%5D%5Ba%5D=b', @routes.generate(:controller => 'posts', :q => { :foo => { :a => 'b'}})
+    assert_equal '/posts/ping',    url_for(@routes, { :controller => 'posts', :action => 'ping' })
+    assert_equal '/posts/show/1',  url_for(@routes, { :controller => 'posts', :action => 'show', :id => '1' })
+    assert_equal '/posts',         url_for(@routes, { :controller => 'posts' })
+    assert_equal '/posts',         url_for(@routes, { :controller => 'posts', :action => 'index' })
+    assert_equal '/posts',         url_for(@routes, { :controller => 'posts' }, { :controller => 'posts', :action => 'index' })
+    assert_equal '/posts/create',  url_for(@routes, { :action => 'create' }, { :controller => 'posts' })
+    assert_equal '/posts?foo=bar', url_for(@routes, { :controller => 'posts', :foo => 'bar' })
+    assert_equal '/posts?foo%5B%5D=bar&foo%5B%5D=baz', url_for(@routes, { :controller => 'posts', :foo => ['bar', 'baz'] })
+    assert_equal '/posts?page=2',  url_for(@routes, { :controller => 'posts', :page => 2 })
+    assert_equal '/posts?q%5Bfoo%5D%5Ba%5D=b', url_for(@routes, { :controller => 'posts', :q => { :foo => { :a => 'b'}} })
 
-    assert_equal '/news.rss', @routes.generate(:controller => 'news', :action => 'index', :format => 'rss')
+    assert_equal '/news.rss', url_for(@routes, { :controller => 'news', :action => 'index', :format => 'rss' })
 
 
-    assert_raise(ActionController::RoutingError) { @routes.generate({:action => 'index'}) }
+    assert_raise(ActionController::RoutingError) { url_for(@routes, { :action => 'index' }) }
   end
 
   def test_generate_extras

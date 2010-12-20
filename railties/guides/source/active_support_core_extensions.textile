@@ -1189,6 +1189,12 @@ To insert something verbatim use the +raw+ helper rather than calling +html_safe
 <%= raw @cms.current_template %> <%# inserts @cms.current_template as is %>
 </erb>
 
+or, equivalently, use <tt><%==</tt>:
+
+<erb>
+<%== @cms.current_template %> <%# inserts @cms.current_template as is %>
+</erb>
+
 The +raw+ helper calls +html_safe+ for you:
 
 <ruby>
@@ -3352,6 +3358,49 @@ WARNING. Note you can't append with +atomic_write+.
 The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
 NOTE: Defined in +active_support/core_ext/file/atomic.rb+.
+
+h3. Extensions to +Logger+
+
+h4. +around_[level]+
+
+Takes two arguments, a +before_message+ and +after_message+ and calls the current level method on the +Logger+ instance, passing in the +before_message+, then the specified message, then the +after_message+:
+
+<ruby>
+  logger = Logger.new("log/development.log")
+  logger.around_info("before", "after") { |logger| logger.info("during") }
+</ruby>
+
+h4. +silence+
+
+Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
+
+<ruby>
+  logger = Logger.new("log/development.log")
+  logger.silence(Logger::INFO) do
+    logger.debug("In space, no one can hear you scream.")
+    logger.info("Scream all you want, small mailman!")
+  end
+</ruby>
+
+h4. +datetime_format=+
+
+Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a +datetime_format+ method then this is ignored.
+
+<ruby>
+  class Logger::FormatWithTime < Logger::Formatter
+    cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
+    
+    def self.call(severity, timestamp, progname, msg)
+      "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
+    end
+  end
+  
+  logger = Logger.new("log/development.log")
+  logger.formatter = Logger::FormatWithTime
+  logger.info("<- is the current time")
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/logger.rb+.
 
 h3. Extensions to +NameError+
 

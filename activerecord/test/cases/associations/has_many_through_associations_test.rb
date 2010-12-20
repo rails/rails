@@ -17,11 +17,13 @@ require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
+require 'models/categorization'
+require 'models/category'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors,
            :owners, :pets, :toys, :jobs, :references, :companies,
-           :subscribers, :books, :subscriptions, :developers
+           :subscribers, :books, :subscriptions, :developers, :categorizations
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -354,7 +356,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_through_a_belongs_to_association_where_the_association_doesnt_exist
-    author = authors(:mary)
     post = Post.create!(:title => "TITLE", :body => "BODY")
     assert_equal [], post.author_favorites
   end
@@ -387,6 +388,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:david).very_special_comments << VerySpecialComment.create!(:body => "Hoohah!", :post_id => 1013) },
       lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
+  end
+
+  def test_has_many_association_through_a_has_many_association_to_self
+    sarah = Person.create!(:first_name => 'Sarah', :primary_contact_id => people(:susan).id, :gender => 'F', :number1_fan_id => 1)
+    john = Person.create!(:first_name => 'John', :primary_contact_id => sarah.id, :gender => 'M', :number1_fan_id => 1)
+    assert_equal sarah.agents, [john]
+    assert_equal people(:susan).agents.map(&:agents).flatten, people(:susan).agents_of_agents
   end
 
   def test_collection_singular_ids_getter_with_string_primary_keys
@@ -455,5 +463,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     readers = post.readers.size
     post.people << people(:michael)
     assert_equal readers + 1, post.readers.size
+  end
+
+  def test_has_many_through_with_default_scope_on_join_model
+    assert_equal posts(:welcome).comments, authors(:david).comments_on_first_posts
+  end
+
+  def test_create_has_many_through_with_default_scope_on_join_model
+    category = authors(:david).special_categories.create(:name => "Foo")
+    assert_equal 1, category.categorizations.where(:special => true).count
+  end
+
+  def test_joining_has_many_through_with_uniq
+    mary = Author.joins(:unique_categorized_posts).where(:id => authors(:mary).id).first
+    assert_equal 1, mary.unique_categorized_posts.length
+    assert_equal 1, mary.unique_categorized_post_ids.length
   end
 end

@@ -13,7 +13,7 @@ module ActiveRecord
     def includes(*args)
       args.reject! {|a| a.blank? }
 
-      return clone if args.empty?
+      return self if args.empty?
 
       relation = clone
       relation.includes_values = (relation.includes_values + args).flatten.uniq
@@ -21,14 +21,18 @@ module ActiveRecord
     end
 
     def eager_load(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.eager_load_values += args unless args.blank?
+      relation.eager_load_values += args
       relation
     end
 
     def preload(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.preload_values += args unless args.blank?
+      relation.preload_values += args
       relation
     end
 
@@ -43,22 +47,28 @@ module ActiveRecord
     end
 
     def group(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.group_values += args.flatten unless args.blank?
+      relation.group_values += args.flatten
       relation
     end
 
     def order(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.order_values += args.flatten unless args.blank?
+      relation.order_values += args.flatten
       relation
     end
 
     def joins(*args)
+      return self if args.compact.blank?
+
       relation = clone
 
       args.flatten!
-      relation.joins_values += args unless args.blank?
+      relation.joins_values += args
 
       relation
     end
@@ -70,14 +80,18 @@ module ActiveRecord
     end
 
     def where(opts, *rest)
+      return self if opts.blank?
+
       relation = clone
-      relation.where_values += build_where(opts, rest) unless opts.blank?
+      relation.where_values += build_where(opts, rest)
       relation
     end
 
     def having(*args)
+      return self if args.blank?
+
       relation = clone
-      relation.having_values += build_where(*args) unless args.blank?
+      relation.having_values += build_where(*args)
       relation
     end
 
@@ -148,52 +162,49 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
-    def custom_join_sql(*joins)
-      arel = table.select_manager
+    def build_arel
+      arel = table.from table
 
-      joins.each do |join|
-        next if join.blank?
+      build_joins(arel, @joins_values) unless @joins_values.empty?
 
-        @implicit_readonly = true
+      collapse_wheres(arel, (@where_values - ['']).uniq)
 
+      arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
+
+      arel.take(@limit_value) if @limit_value
+      arel.skip(@offset_value) if @offset_value
+
+      arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+
+      arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
+
+      build_select(arel, @select_values.uniq)
+
+      arel.from(@from_value) if @from_value
+      arel.lock(@lock_value) if @lock_value
+
+      arel
+    end
+
+    private
+
+    def custom_join_ast(table, joins)
+      joins = joins.reject { |join| join.blank? }
+
+      return [] if joins.empty?
+
+      @implicit_readonly = true
+
+      joins.map do |join|
         case join
         when Array
           join = Arel.sql(join.join(' ')) if array_of_strings?(join)
         when String
           join = Arel.sql(join)
         end
-
-        arel.join(join)
+        table.create_string_join(join)
       end
-
-      arel.joins(arel)
     end
-
-    def build_arel
-      arel = table
-
-      arel = build_joins(arel, @joins_values) unless @joins_values.empty?
-
-      arel = collapse_wheres(arel, (@where_values - ['']).uniq)
-
-      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
-
-      arel = arel.take(@limit_value) if @limit_value
-      arel = arel.skip(@offset_value) if @offset_value
-
-      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
-
-      arel = arel.order(*@order_values.uniq.reject{|o| o.blank?}) unless @order_values.empty?
-
-      arel = build_select(arel, @select_values.uniq)
-
-      arel = arel.from(@from_value) if @from_value
-      arel = arel.lock(@lock_value) if @lock_value
-
-      arel
-    end
-
-    private
 
     def collapse_wheres(arel, wheres)
       equalities = wheres.grep(Arel::Nodes::Equality)
@@ -206,14 +217,13 @@ module ActiveRecord
         test = eqls.inject(eqls.shift) do |memo, expr|
           memo.or(expr)
         end
-        arel = arel.where(test)
+        arel.where(test)
       end
 
       (wheres - equalities).each do |where|
         where = Arel.sql(where) if String === where
-        arel = arel.where(Arel::Nodes::Grouping.new(where))
+        arel.where(Arel::Nodes::Grouping.new(where))
       end
-      arel
     end
 
     def build_where(opts, other = [])
@@ -228,31 +238,54 @@ module ActiveRecord
       end
     end
 
-    def build_joins(relation, joins)
-      association_joins = []
-
-      joins = joins.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
-
-      joins.each do |join|
-        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
+    def build_joins(manager, joins)
+      buckets = joins.group_by do |join|
+        case join
+        when String
+          'string_join'
+        when Hash, Symbol, Array
+          'association_join'
+        when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
+          'stashed_join'
+        when Arel::Nodes::Join
+          'join_node'
+        else
+          raise 'unknown class: %s' % join.class.name
+        end
       end
 
-      stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
+      association_joins         = buckets['association_join'] || []
+      stashed_association_joins = buckets['stashed_join'] || []
+      join_nodes                = buckets['join_node'] || []
+      string_joins              = (buckets['string_join'] || []).map { |x|
+        x.strip
+      }.uniq
 
-      non_association_joins = (joins - association_joins - stashed_association_joins)
-      custom_joins = custom_join_sql(*non_association_joins)
+      join_list = custom_join_ast(manager, string_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(
+        @klass,
+        association_joins,
+        join_list
+      )
+
+      join_nodes.each do |join|
+        join_dependency.table_aliases[join.left.name.downcase] = 1
+      end
 
       join_dependency.graft(*stashed_association_joins)
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
+      # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
-        relation = association.join_to(relation)
+        association.join_to(manager)
       end
 
-      relation.join(custom_joins)
+      manager.join_sources.concat join_nodes.uniq
+      manager.join_sources.concat join_list
+
+      manager
     end
 
     def build_select(arel, selects)

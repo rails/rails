@@ -34,7 +34,7 @@ module ActiveRecord
         end
 
         def insert_record(record, force = true, validate = true)
-          unless record.persisted?
+          if record.new_record?
             if force
               record.save!
             else
@@ -49,7 +49,7 @@ module ActiveRecord
             timestamps = record_timestamp_columns(record)
             timezone   = record.send(:current_time_from_proper_timezone) if timestamps.any?
 
-            attributes = Hash[columns.map do |column|
+            attributes = columns.map do |column|
               name = column.name
               value = case name.to_s
                 when @reflection.primary_key_name.to_s
@@ -62,12 +62,13 @@ module ActiveRecord
                   @owner.send(:quote_value, record[name], column) if record.has_attribute?(name)
               end
               [relation[name], value] unless value.nil?
-            end]
+            end
 
-            relation.insert(attributes)
+            stmt = relation.compile_insert Hash[attributes]
+            @owner.connection.insert stmt.to_sql
           end
 
-          return true
+          true
         end
 
         def delete_records(records)
@@ -75,12 +76,13 @@ module ActiveRecord
             records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
           else
             relation = Arel::Table.new(@reflection.options[:join_table])
-            relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
+            stmt = relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
               and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
-            ).delete
+            ).compile_delete
+            @owner.connection.delete stmt.to_sql
           end
         end
-        
+
         def construct_joins
           "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end
@@ -113,7 +115,7 @@ module ActiveRecord
       private
         def create_record(attributes, &block)
           # Can't use Base.create because the foreign key may be a protected attribute.
-          ensure_owner_is_not_new
+          ensure_owner_is_persisted!
           if attributes.is_a?(Array)
             attributes.collect { |attr| create(attr) }
           else

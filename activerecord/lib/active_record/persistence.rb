@@ -4,7 +4,7 @@ module ActiveRecord
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the data store yet; otherwise, returns false.
     def new_record?
-      !@persisted
+      @new_record
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.
@@ -15,7 +15,7 @@ module ActiveRecord
     # Returns if the record is persisted, i.e. it's not a new record and it was
     # not destroyed.
     def persisted?
-      @persisted && !destroyed?
+      !(new_record? || destroyed?)
     end
 
     # Saves the model.
@@ -98,7 +98,7 @@ module ActiveRecord
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@attributes_cache", @attributes_cache)
-      became.instance_variable_set("@persisted", persisted?)
+      became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.type = klass.name unless self.class.descends_from_active_record?
       became
@@ -250,7 +250,7 @@ module ActiveRecord
   private
     def create_or_update
       raise ReadOnlyRecord if readonly?
-      result = persisted? ? update : create
+      result = new_record? ? create : update
       result != false
     end
 
@@ -259,7 +259,9 @@ module ActiveRecord
     def update(attribute_names = @attributes.keys)
       attributes_with_values = arel_attributes_values(false, false, attribute_names)
       return 0 if attributes_with_values.empty?
-      self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).arel.update(attributes_with_values)
+      klass = self.class
+      stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
+      klass.connection.update stmt.to_sql
     end
 
     # Creates a record with values matching those of the instance attributes
@@ -280,7 +282,7 @@ module ActiveRecord
       self.id ||= new_id
 
       IdentityMap.add(self) if IdentityMap.enabled?
-      @persisted = true
+      @new_record = false
       id
     end
 

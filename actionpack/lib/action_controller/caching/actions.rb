@@ -4,25 +4,26 @@ module ActionController #:nodoc:
   module Caching
     # Action caching is similar to page caching by the fact that the entire
     # output of the response is cached, but unlike page caching, every
-    # request still goes through the Action Pack. The key benefit
-    # of this is that filters are run before the cache is served, which
-    # allows for authentication and other restrictions on whether someone
-    # is allowed to see the cache. Example:
+    # request still goes through Action Pack. The key benefit of this is
+    # that filters run before the cache is served, which allows for
+    # authentication and other restrictions on whether someone is allowed
+    # to execute such action. Example:
     #
     #   class ListsController < ApplicationController
     #     before_filter :authenticate, :except => :public
+    #
     #     caches_page   :public
-    #     caches_action :index, :show, :feed
+    #     caches_action :index, :show
     #   end
     #
-    # In this example, the public action doesn't require authentication,
-    # so it's possible to use the faster page caching method. But both
-    # the show and feed action are to be shielded behind the authenticate
-    # filter, so we need to implement those as action caches.
+    # In this example, the +public+ action doesn't require authentication
+    # so it's possible to use the faster page caching. On the other hand
+    # +index+ and +show+ require authentication. They can still be cached,
+    # but we need action caching for them.
     #
-    # Action caching internally uses the fragment caching and an around
-    # filter to do the job. The fragment cache is named according to both
-    # the current host and the path. So a page that is accessed at
+    # Action caching uses fragment caching internally and an around
+    # filter to do the job. The fragment cache is named according to
+    # the host and path of the request. A page that is accessed at
     # <tt>http://david.example.com/lists/show/1</tt> will result in a fragment named
     # <tt>david.example.com/lists/show/1</tt>. This allows the cacher to
     # differentiate between <tt>david.example.com/lists/</tt> and
@@ -38,19 +39,23 @@ module ActionController #:nodoc:
     # <tt>:action => 'list', :format => :xml</tt>.
     #
     # You can set modify the default action cache path by passing a
-    # :cache_path option.  This will be passed directly to
-    # ActionCachePath.path_for.  This is handy for actions with multiple
-    # possible routes that should be cached differently.  If a block is
-    # given, it is called with the current controller instance.
+    # <tt>:cache_path</tt> option.  This will be passed directly to
+    # <tt>ActionCachePath.path_for</tt>.  This is handy for actions with
+    # multiple possible routes that should be cached differently. If a
+    # block is given, it is called with the current controller instance.
     #
-    # And you can also use :if (or :unless) to pass a Proc that
-    # specifies when the action should be cached.
+    # And you can also use <tt>:if</tt> (or <tt>:unless</tt>) to pass a
+    # proc that specifies when the action should be cached.
     #
-    # Finally, if you are using memcached, you can also pass :expires_in.
+    # Finally, if you are using memcached, you can also pass <tt>:expires_in</tt>.
+    #
+    # The following example depicts some of the points made above:
     #
     #   class ListsController < ApplicationController
     #     before_filter :authenticate, :except => :public
-    #     caches_page   :public
+    #
+    #     caches_page :public
+    #
     #     caches_action :index, :if => proc do |c|
     #       !c.request.format.json?  # cache if is not a JSON request
     #     end
@@ -58,19 +63,28 @@ module ActionController #:nodoc:
     #     caches_action :show, :cache_path => { :project => 1 },
     #       :expires_in => 1.hour
     #
-    #     caches_action :feed, :cache_path => proc do |controller|
-    #       if controller.params[:user_id]
-    #         controller.send(:user_list_url,
-    #           controller.params[:user_id], controller.params[:id])
+    #     caches_action :feed, :cache_path => proc do |c|
+    #       if c.params[:user_id]
+    #         c.send(:user_list_url,
+    #           c.params[:user_id], c.params[:id])
     #       else
-    #         controller.send(:list_url, controller.params[:id])
+    #         c.send(:list_url, c.params[:id])
     #       end
     #     end
     #   end
     #
-    # If you pass :layout => false, it will only cache your action
-    # content. It is useful when your layout has dynamic information.
+    # If you pass <tt>:layout => false</tt>, it will only cache your action
+    # content. That's useful when your layout has dynamic information.
     #
+    # Warning: If the format of the request is determined by the Accept HTTP
+    # header the Content-Type of the cached response could be wrong because
+    # no information about the MIME type is stored in the cache key. So, if
+    # you first ask for MIME type M in the Accept header, a cache entry is
+    # created, and then perform a second resquest to the same resource asking
+    # for a different MIME type, you'd get the content cached for M.
+    #
+    # The <tt>:format</tt> parameter is taken into account though. The safest
+    # way to cache by MIME type is to pass the format in the route.
     module Actions
       extend ActiveSupport::Concern
 

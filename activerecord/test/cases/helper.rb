@@ -20,11 +20,6 @@ rescue LoadError
   require "test/connections/#{connection_type}_sqlite3/connection"
 end
 
-begin
-  require 'ruby-debug'
-rescue LoadError
-end
-
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 

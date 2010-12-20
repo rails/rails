@@ -7,7 +7,7 @@ require 'active_support/time'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/indifferent_access'
@@ -412,13 +412,16 @@ module ActiveRecord #:nodoc:
     self.store_full_sti_class = true
 
     # Stores the default scope for the class
-    class_inheritable_accessor :default_scoping, :instance_writer => false
+    class_attribute :default_scoping, :instance_writer => false
     self.default_scoping = []
 
     # Returns a hash of all the attributes that have been specified for serialization as
     # keys and their class restriction as values.
     class_attribute :serialized_attributes
     self.serialized_attributes = {}
+
+    class_attribute :_attr_readonly, :instance_writer => false
+    self._attr_readonly = []
 
     class << self # Class methods
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
@@ -504,12 +507,12 @@ module ActiveRecord #:nodoc:
       # Attributes listed as readonly will be used to create a new record but update operations will
       # ignore these fields.
       def attr_readonly(*attributes)
-        write_inheritable_attribute(:attr_readonly, Set.new(attributes.map { |a| a.to_s }) + (readonly_attributes || []))
+        self._attr_readonly = Set.new(attributes.map { |a| a.to_s }) + (self._attr_readonly || [])
       end
 
       # Returns an array of all the attributes that have been specified as readonly.
       def readonly_attributes
-        read_inheritable_attribute(:attr_readonly) || []
+        self._attr_readonly
       end
 
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
@@ -724,10 +727,6 @@ module ActiveRecord #:nodoc:
         @arel_engine = @relation = @arel_table = nil
       end
 
-      def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
-        descendants.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
-      end
-
       def attribute_method?(attribute)
         super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
       end
@@ -857,8 +856,8 @@ module ActiveRecord #:nodoc:
       #     limit(10) # Fires "SELECT * FROM posts LIMIT 10"
       #   }
       #
-      # It is recommended to use block form of unscoped because chaining unscoped with <tt>named_scope</tt>
-      # does not work. Assuming that <tt>published</tt> is a <tt>named_scope</tt> following two statements are same.
+      # It is recommended to use block form of unscoped because chaining unscoped with <tt>scope</tt>
+      # does not work. Assuming that <tt>published</tt> is a <tt>scope</tt> following two statements are same.
       #
       # Post.unscoped.published
       # Post.published
@@ -1145,7 +1144,8 @@ MSG
         #   Article.create.published # => true
         def default_scope(options = {})
           reset_scoped_methods
-          self.default_scoping << construct_finder_arel(options, default_scoping.pop)
+          default_scoping = self.default_scoping.dup
+          self.default_scoping = default_scoping << construct_finder_arel(options, default_scoping.pop)
         end
 
         def current_scoped_methods #:nodoc:
@@ -1384,7 +1384,7 @@ MSG
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
         @attributes_cache = {}
-        @persisted = false
+        @new_record = true
         @readonly = false
         @destroyed = false
         @marked_for_destruction = false
@@ -1401,30 +1401,6 @@ MSG
         result
       end
 
-      # Cloned objects have no id assigned and are treated as new records. Note that this is a "shallow" clone
-      # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
-      # application specific and is therefore left to the application to implement according to its need.
-      def initialize_copy(other)
-        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
-        cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-        cloned_attributes.delete(self.class.primary_key)
-
-        @attributes = cloned_attributes
-
-        @changed_attributes = {}
-        attributes_from_column_definition.each do |attr, orig_value|
-          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
-        end
-
-        clear_aggregation_cache
-        clear_association_cache
-        @attributes_cache = {}
-        @persisted = false
-        ensure_proper_type
-
-        populate_with_current_scope_attributes
-      end
-
       # Initialize an empty model object from +coder+.  +coder+ must contain
       # the attributes necessary for initializing an empty model object.  For
       # example:
@@ -1439,7 +1415,7 @@ MSG
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @readonly = @destroyed = @marked_for_destruction = false
-        @persisted = true
+        @new_record = false
         _run_find_callbacks
         _run_initialize_callbacks
 
@@ -1482,7 +1458,7 @@ MSG
       #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
       def cache_key
         case
-        when !persisted?
+        when new_record?
           "#{self.class.model_name.cache_key}/new"
         when timestamp = self[:updated_at]
           "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
@@ -1500,22 +1476,9 @@ MSG
         @attributes.has_key?(attr_name.to_s)
       end
 
-      # Returns an array of names for the attributes available on this object sorted alphabetically.
+      # Returns an array of names for the attributes available on this object.
       def attribute_names
-        @attributes.keys.sort
-      end
-
-      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-      # (Alias for the protected read_attribute method).
-      def [](attr_name)
-        read_attribute(attr_name)
-      end
-
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-      # (Alias for the protected write_attribute method).
-      def []=(attr_name, value)
-        write_attribute(attr_name, value)
+        @attributes.keys
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
@@ -1558,9 +1521,7 @@ MSG
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes
-        attrs = {}
-        attribute_names.each { |name| attrs[name] = read_attribute(name) }
-        attrs
+        Hash[@attributes.map { |name, _| [name, read_attribute(name)] }]
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -1591,8 +1552,7 @@ MSG
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
-        value = read_attribute(attribute)
-        !value.blank?
+        !read_attribute(attribute).blank?
       end
 
       # Returns the column object for the named attribute.
@@ -1600,7 +1560,7 @@ MSG
         self.class.columns_hash[name.to_s]
       end
 
-      # Returns true if +comparison_object+ is the same exact object, or +comparison_object+ 
+      # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
       # is of the same type and +self+ has an ID and it is equal to +comparison_object.id+.
       #
       # Note that new records are different from any other record by definition, unless the
@@ -1618,7 +1578,7 @@ MSG
 
       # Delegates to ==
       def eql?(comparison_object)
-        self == (comparison_object)
+        self == comparison_object
       end
 
       # Delegates to id in order to allow two records of the same type and id to work with something like:
@@ -1637,11 +1597,42 @@ MSG
         @attributes.frozen?
       end
 
-      # Returns duplicated record with unfreezed attributes.
-      def dup
-        obj = super
-        obj.instance_variable_set('@attributes', @attributes.dup)
-        obj
+      # Backport dup from 1.9 so that initialize_dup() gets called
+      unless Object.respond_to?(:initialize_dup)
+        def dup # :nodoc:
+          copy = super
+          copy.initialize_dup(self)
+          copy
+        end
+      end
+
+      # Duped objects have no id assigned and are treated as new records. Note
+      # that this is a "shallow" copy as it copies the object's attributes
+      # only, not its associations. The extent of a "deep" copy is application
+      # specific and is therefore left to the application to implement according
+      # to its need.
+      # The dup method does not preserve the timestamps (created|updated)_(at|on).
+      def initialize_dup(other)
+        cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+        cloned_attributes.delete(self.class.primary_key)
+
+        @attributes = cloned_attributes
+
+        _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
+
+        @changed_attributes = {}
+        attributes_from_column_definition.each do |attr, orig_value|
+          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        end
+
+        clear_aggregation_cache
+        clear_association_cache
+        @attributes_cache   = {}
+        @new_record  = true
+
+        ensure_proper_type
+        populate_with_current_scope_attributes
+        clear_timestamp_attributes
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -1658,7 +1649,7 @@ MSG
       # Returns the contents of the record as a nicely formatted string.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name) || !persisted?
+          if has_attribute?(name) || new_record?
             "#{name}: #{attribute_for_inspect(name)}"
           end
         }.compact.join(", ")
@@ -1710,7 +1701,7 @@ MSG
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
               value = read_attribute(name)
 
-              if value && self.class.serialized_attributes.key?(name)
+              if !value.nil? && self.class.serialized_attributes.key?(name)
                 value = YAML.dump value
               end
               attrs[self.class.arel_table[name]] = value
@@ -1845,7 +1836,19 @@ MSG
       def populate_with_current_scope_attributes
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
-          create_with.each { |att,value| self.respond_to?(:"#{att}=") && self.send("#{att}=", value) } if create_with
+          create_with.each { |att,value|
+            respond_to?(:"#{att}=") && send("#{att}=", value)
+          }
+        end
+      end
+
+      # Clear attributes and changed_attributes
+      def clear_timestamp_attributes
+        %w(created_at created_on updated_at updated_on).each do |attribute_name|
+          if has_attribute?(attribute_name)
+            self[attribute_name] = nil
+            changed_attributes.delete(attribute_name)
+          end
         end
       end
   end
@@ -1870,6 +1873,7 @@ MSG
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include IdentityMap
+    include ActiveModel::SecurePassword
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
@@ -1877,6 +1881,17 @@ MSG
     include Aggregations, Transactions, Reflection, Serialization
 
     NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
+
+    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
+    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+    # (Alias for the protected read_attribute method).
+    alias [] read_attribute
+
+    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+    # (Alias for the protected write_attribute method).
+    alias []= write_attribute
+
+    public :[], :[]=
   end
 end
 

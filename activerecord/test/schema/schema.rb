@@ -112,6 +112,7 @@ ActiveRecord::Schema.define do
     t.column :category_id, :integer
     t.column :post_id, :integer
     t.column :author_id, :integer
+    t.column :special, :boolean
   end
 
   create_table :citations, :force => true do |t|

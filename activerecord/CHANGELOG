@@ -1,5 +1,60 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added ActiveRecord::Base#has_secure_password (via ActiveModel::SecurePassword) to encapsulate dead-simple password usage with BCrypt encryption and salting [DHH]. Example:
+
+    # Schema: User(name:string, password_digest:string, password_salt:string)
+    class User < ActiveRecord::Base
+      has_secure_password
+    end
+
+    user = User.new(:name => "david", :password => "", :password_confirmation => "nomatch")
+    user.save                                                      # => false, password required
+    user.password = "mUc3m00RsqyRe"
+    user.save                                                      # => false, confirmation doesn't match
+    user.password_confirmation = "mUc3m00RsqyRe"
+    user.save                                                      # => true
+    user.authenticate("notright")                                  # => false
+    user.authenticate("mUc3m00RsqyRe")                             # => user
+    User.find_by_name("david").try(:authenticate, "notright")      # => nil
+    User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
+
+
+* When a model is generated add_index is added by default for belongs_to or references columns 
+
+  rails g model post user:belongs_to will generate the following:
+
+    class CreatePosts < ActiveRecord::Migration
+      def up
+        create_table :posts do |t|
+          t.belongs_to :user
+
+          t.timestamps
+        end
+
+        add_index :posts, :user_id
+      end
+
+      def down
+        drop_table :posts
+      end
+    end
+
+  [Santiago Pastorino]
+
+* Setting the id of a belongs_to object will update the reference to the
+object. [#2989 state:resolved]
+
+* ActiveRecord::Base#dup and ActiveRecord::Base#clone semantics have changed
+to closer match normal Ruby dup and clone semantics.
+
+* Calling ActiveRecord::Base#clone will result in a shallow copy of the record,
+including copying the frozen state.  No callbacks will be called.
+
+* Calling ActiveRecord::Base#dup will duplicate the record, including calling
+after initialize hooks.  Frozen state will not be copied, and all associations
+will be cleared.  A duped record will return true for new_record?, have a nil
+id field, and is saveable.
+
 * Migrations can be defined as reversible, meaning that the migration system
 will figure out how to reverse your migration.  To use reversible migrations,
 just define the "change" method.  For example:

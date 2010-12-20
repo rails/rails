@@ -65,21 +65,21 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     authors_with_welcoming_post_titles = Author.calculate(:count, 'authors.id', :joins => :posts, :distinct => true, :conditions => "posts.title like 'Welcome%'")
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
   end
-  
+
   def test_find_with_sti_join
     scope = Post.joins(:special_comments).where(:id => posts(:sti_comments).id)
-    
+
     # The join should match SpecialComment and its subclasses only
     assert scope.where("comments.type" => "Comment").empty?
     assert !scope.where("comments.type" => "SpecialComment").empty?
     assert !scope.where("comments.type" => "SubSpecialComment").empty?
   end
-  
+
   def test_find_with_conditions_on_reflection
     assert !posts(:welcome).comments.empty?
     assert Post.joins(:nonexistant_comments).where(:id => posts(:welcome).id).empty? # [sic!]
   end
-  
+
   def test_find_with_conditions_on_through_reflection
     assert !posts(:welcome).tags.empty?
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?

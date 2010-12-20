@@ -302,6 +302,7 @@ module Rails
         $LOAD_PATH.each do |base|
           Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
             begin
+              path = path.sub("#{base}/", "")
               require path
             rescue Exception => e
               # No problem

@@ -42,11 +42,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded if count == 0
 
-          if @reflection.options[:limit]
-            count = [ @reflection.options[:limit], count ].min
-          end
-
-          return count
+          [@reflection.options[:limit], count].compact.min
         end
 
         def has_cached_counter?
@@ -71,9 +67,10 @@ module ActiveRecord
               @reflection.klass.delete(records.map { |record| record.id })
             else
               relation = Arel::Table.new(@reflection.table_name)
-              relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
+              stmt = relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
                   and(relation[@reflection.klass.primary_key].in(records.map { |r| r.id }))
-              ).update(relation[@reflection.primary_key_name] => nil)
+              ).compile_update(relation[@reflection.primary_key_name] => nil)
+              @owner.connection.update stmt.to_sql
 
               @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size) if has_cached_counter?
           end
@@ -112,8 +109,7 @@ module ActiveRecord
         end
 
         def we_can_set_the_inverse_on_this?(record)
-          inverse = @reflection.inverse_of
-          return !inverse.nil?
+          @reflection.inverse_of
         end
     end
   end

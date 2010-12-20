@@ -138,6 +138,10 @@ module Rails
 
   protected
 
+    def default_asset_path
+      nil
+    end
+
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
@@ -152,7 +156,8 @@ module Rails
         middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local if config.action_dispatch.show_exceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
         middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        middleware.use ::ActionDispatch::Callbacks, !config.cache_classes
+        middleware.use ::ActionDispatch::Reloader unless config.cache_classes
+        middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies
 
         if config.session_store

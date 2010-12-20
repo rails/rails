@@ -15,30 +15,12 @@ module ActionController
     end
 
     module ClassMethods
-      def _write_render_options
-        renderers = _renderers.map do |name, value|
-          <<-RUBY_EVAL
-            if options.key?(:#{name})
-              _process_options(options)
-              return _render_option_#{name}(options.delete(:#{name}), options)
-            end
-          RUBY_EVAL
-        end
-
-        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          def _handle_render_options(options)
-            #{renderers.join}
-          end
-        RUBY_EVAL
-      end
-
       def use_renderers(*args)
         new = _renderers.dup
         args.each do |key|
           new[key] = RENDERERS[key]
         end
         self._renderers = new.freeze
-        _write_render_options
       end
       alias use_renderer use_renderers
     end
@@ -47,31 +29,33 @@ module ActionController
       _handle_render_options(options) || super
     end
 
+    def _handle_render_options(options)
+      _renderers.each do |name, value|
+        if options.key?(name.to_sym)
+          _process_options(options)
+          return send("_render_option_#{name}", options.delete(name.to_sym), options)
+        end
+      end
+      nil
+    end
+
     RENDERERS = {}
     def self.add(key, &block)
       define_method("_render_option_#{key}", &block)
       RENDERERS[key] = block
-      All._write_render_options
     end
 
     module All
       extend ActiveSupport::Concern
       include Renderers
 
-      INCLUDED = []
       included do
         self._renderers = RENDERERS
-        _write_render_options
-        INCLUDED << self
-      end
-
-      def self._write_render_options
-        INCLUDED.each(&:_write_render_options)
       end
     end
 
     add :json do |json, options|
-      json = json.to_json(options) unless json.respond_to?(:to_str)
+      json = json.to_json(options) unless json.kind_of?(String)
       json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
       self.content_type ||= Mime::JSON
       self.response_body  = json

@@ -827,7 +827,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   fixtures :owners, :pets
 
   def setup
-    Owner.accepts_nested_attributes_for :pets
+    Owner.accepts_nested_attributes_for :pets, :allow_destroy => true
 
     @owner = owners(:ashley)
     @pet1, @pet2 = pets(:chew), pets(:mochi)
@@ -844,6 +844,18 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
     @owner.update_attributes(@params)
     assert_equal ['Foo', 'Bar'], @owner.pets.map(&:name)
   end
+
+  def test_attr_accessor_of_child_should_be_value_provided_during_update_attributes
+    @owner = owners(:ashley)
+    @pet1 = pets(:chew)
+    attributes = {:pets_attributes => { "1"=> { :id => @pet1.id,
+                                                :name => "Foo2",
+                                                :current_user => "John",
+                                                :_destroy=>true }}}
+    @owner.update_attributes(attributes)
+    assert_equal 'John', Pet.after_destroy_output
+  end
+
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
