@@ -6,9 +6,9 @@
   <%%= javascript_include_tag :defaults %>
   <%%= csrf_meta_tags %>
 </head>
-<body>
+<%%= body_tag do -%>
 
 <%%= yield %>
 
-</body>
+<%% end %>
 </html>
