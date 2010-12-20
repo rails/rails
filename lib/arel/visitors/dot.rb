@@ -56,13 +56,11 @@ module Arel
 
       def visit_Arel_Nodes_StringJoin o
         visit_edge o, "left"
-        visit_edge o, "right"
       end
 
       def visit_Arel_Nodes_InnerJoin o
         visit_edge o, "left"
         visit_edge o, "right"
-        visit_edge o, "constraint"
       end
       alias :visit_Arel_Nodes_OuterJoin :visit_Arel_Nodes_InnerJoin
 
