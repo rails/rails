@@ -25,26 +25,14 @@ module ActionDispatch
 
     # Add a preparation callback. Preparation callbacks are run before each
     # request.
-    #
-    # If a symbol with a block is given, the symbol is used as an identifier.
-    # That allows to_prepare to be called again with the same identifier to
-    # replace the existing callback. Passing an identifier is a suggested
-    # practice if the code adding a preparation block may be reloaded.
     def self.to_prepare(*args, &block)
-      first_arg = args.first
-      if first_arg.is_a?(Symbol) && block_given?
-        remove_method :"__#{first_arg}" if method_defined?(:"__#{first_arg}")
-        define_method :"__#{first_arg}", &block
-        set_callback(:prepare, :"__#{first_arg}")
-      else
-        set_callback(:prepare, *args, &block)
-      end
+      set_callback(:prepare, *args, &block)
     end
 
     # Add a cleanup callback. Cleanup callbacks are run after each request is
     # complete (after #close is called on the response body).
-    def self.to_cleanup(&block)
-      set_callback(:cleanup, &block)
+    def self.to_cleanup(*args, &block)
+      set_callback(:cleanup, *args, &block)
     end
 
     def self.prepare!
@@ -53,11 +41,6 @@ module ActionDispatch
 
     def self.cleanup!
       new(nil).send(:_run_cleanup_callbacks)
-    end
-
-    def self.reload!
-      prepare!
-      cleanup!
     end
 
     def initialize(app)

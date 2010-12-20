@@ -20,16 +20,6 @@ class ReloaderTest < Test::Unit::TestCase
     assert_equal 3, c
   end
 
-  def test_to_prepare_with_identifier_replaces
-    a = b = 0
-    Reloader.to_prepare(:unique_id) { |*args| a = b = 1 }
-    Reloader.to_prepare(:unique_id) { |*args| a = 2 }
-
-    call_and_return_body
-    assert_equal 2, a
-    assert_equal 0, b
-  end
-
   class MyBody < Array
     def initialize(&block)
       @on_close = block
@@ -50,7 +40,7 @@ class ReloaderTest < Test::Unit::TestCase
 
   def test_returned_body_object_always_responds_to_close
     body = call_and_return_body
-    assert body.respond_to?(:close)
+    assert_respond_to body, :close
   end
 
   def test_returned_body_object_behaves_like_underlying_object
@@ -83,10 +73,10 @@ class ReloaderTest < Test::Unit::TestCase
     body = call_and_return_body do
       [200, { "Content-Type" => "text/html" }, MyBody.new]
     end
-    assert body.respond_to?(:size)
-    assert body.respond_to?(:each)
-    assert body.respond_to?(:foo)
-    assert body.respond_to?(:bar)
+    assert_respond_to body, :size
+    assert_respond_to body, :each
+    assert_respond_to body, :foo
+    assert_respond_to body, :bar
   end
 
   def test_cleanup_callbacks_are_called_when_body_is_closed
@@ -123,11 +113,6 @@ class ReloaderTest < Test::Unit::TestCase
     prepared = cleaned = false
     Reloader.cleanup!
     assert !prepared
-    assert cleaned
-
-    prepared = cleaned = false
-    Reloader.reload!
-    assert prepared
     assert cleaned
   end
 

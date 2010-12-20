@@ -31,9 +31,9 @@ class ConsoleTest < Test::Unit::TestCase
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
-    ActionDispatch::Reloader.to_prepare { a = b = c = 1 }
-    ActionDispatch::Reloader.to_prepare { b = c = 2 }
-    ActionDispatch::Reloader.to_cleanup { c = 3 }
+    ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
+    ActionDispatch::Reloader.to_cleanup { b = c = 2 }
+    ActionDispatch::Reloader.to_prepare { c = 3 }
 
     # Hide Reloading... output
     silence_stream(STDOUT) { reload! }
