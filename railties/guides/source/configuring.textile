@@ -376,7 +376,14 @@ There are a few configuration options available in Active Support:
 
 * +ActiveSupport::Cache::Store.logger+ specifies the logger to use within cache store operations.
 
+* +ActiveSupport::Deprecation.behavior+ alternative setter to +config.active_support.deprecation+ which configures the behavior of deprecation warnings for Rails.
+
+* +ActiveSupport::Deprecation.silence+ takes a block in which all deprecation warnings are silenced.
+
+* +ActiveSupport::Deprecation.silenced+ sets whether or not to display deprecation warnings.
+
 * +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
+
 
 h3. Rails Environment Settings
 
