@@ -28,7 +28,7 @@ module Arel
         @source      = @source.clone if @source
         @projections = @projections.clone
         @wheres      = @wheres.clone
-        @group       = @groups.clone
+        @groups      = @groups.clone
         @having      = @having.clone if @having
       end
     end
