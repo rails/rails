@@ -24,11 +24,13 @@ module ActiveRecord
         end
 
         def get_primary_key(base_name) #:nodoc:
+          return unless base_name
+
           case primary_key_prefix_type
           when :table_name
-            base_name.to_s.foreign_key(false)
+            base_name.foreign_key(false)
           when :table_name_with_underscore
-            base_name.to_s.foreign_key
+            base_name.foreign_key
           else
             'id'
           end

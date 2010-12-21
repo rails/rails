@@ -1069,6 +1069,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_define_attr_method_with_block
     k = Class.new( ActiveRecord::Base )
+    k.primary_key = "id"
     k.send(:define_attr_method, :primary_key) { "sys_" + original_primary_key }
     assert_equal "sys_id", k.primary_key
   end
@@ -1109,6 +1110,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_set_primary_key_with_block
     k = Class.new( ActiveRecord::Base )
+    k.primary_key = 'id'
     k.set_primary_key { "sys_" + original_primary_key }
     assert_equal "sys_id", k.primary_key
   end
