@@ -2156,14 +2156,19 @@ module ActiveRecord
               when :has_many, :has_one
                 if reflection.options[:through]
                   join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine)
-                  jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
+                  jt_as_extra = jt_source_extra = jt_sti_extra = nil
                   first_key = second_key = as_extra = nil
 
-                  if through_reflection.options[:as] # has_many :through against a polymorphic join
-                    jt_foreign_key = through_reflection.options[:as].to_s + '_id'
-                    jt_as_extra = join_table[through_reflection.options[:as].to_s + '_type'].eq(parent.active_record.base_class.name)
+                  if through_reflection.macro == :belongs_to
+                    jt_primary_key = through_reflection.primary_key_name
+                    jt_foreign_key = through_reflection.association_primary_key
                   else
+                    jt_primary_key = through_reflection.active_record_primary_key
                     jt_foreign_key = through_reflection.primary_key_name
+
+                    if through_reflection.options[:as] # has_many :through against a polymorphic join
+                      jt_as_extra = join_table[through_reflection.options[:as].to_s + '_type'].eq(parent.active_record.base_class.name)
+                    end
                   end
 
                   case source_reflection.macro
@@ -2191,7 +2196,7 @@ module ActiveRecord
                   end
 
                   [
-                    [parent_table[parent.primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].reject{|x| x.blank? },
+                    [parent_table[jt_primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].reject{|x| x.blank? },
                     aliased_table[first_key].eq(join_table[second_key])
                   ]
                 elsif reflection.options[:as]
