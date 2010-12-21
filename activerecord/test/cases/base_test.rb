@@ -19,6 +19,7 @@ require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/loose_person'
+require 'models/edge'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -47,6 +48,10 @@ class Boolean < ActiveRecord::Base; end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
+
+  def test_primary_key_with_no_id
+    assert_nil Edge.primary_key
+  end
 
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort

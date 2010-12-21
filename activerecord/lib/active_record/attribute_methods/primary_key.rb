@@ -24,7 +24,7 @@ module ActiveRecord
         end
 
         def get_primary_key(base_name) #:nodoc:
-          return unless base_name
+          return unless base_name && !base_name.blank?
 
           case primary_key_prefix_type
           when :table_name
@@ -32,7 +32,11 @@ module ActiveRecord
           when :table_name_with_underscore
             base_name.foreign_key
           else
-            'id'
+            if ActiveRecord::Base != self && connection.table_exists?(table_name)
+              connection.primary_key(table_name)
+            else
+              'id'
+            end
           end
         end
 
