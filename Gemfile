@@ -4,7 +4,7 @@ gemspec
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
-gem "rdoc",  ">= 2.5.10"
+gem "rdoc",  "~> 2.5"
 gem "horo",  ">= 1.0.2"
 
 # for perf tests
