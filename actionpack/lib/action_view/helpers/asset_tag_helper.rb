@@ -376,8 +376,7 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/tail.js"></script>
       def self.register_javascript_expansion(expansions)
         expansions.each do |key, values|
-          @@javascript_expansions[key] ||= []
-          @@javascript_expansions[key] += Array(values)
+          @@javascript_expansions[key] = (@@javascript_expansions[key] || []) | Array(values)
         end
       end
 
@@ -394,8 +393,7 @@ module ActionView
       #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
       def self.register_stylesheet_expansion(expansions)
         expansions.each do |key, values|
-          @@stylesheet_expansions[key] ||= []
-          @@stylesheet_expansions[key] += Array(values)
+          @@stylesheet_expansions[key] = (@@stylesheet_expansions[key] || []) | Array(values)
         end
       end
 

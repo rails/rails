@@ -278,6 +278,7 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['bank']
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['robber']
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['bank']
     assert_dom_equal  %(<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>), javascript_include_tag(:can_merge)
   end
 
@@ -351,6 +352,7 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['bank']
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['robber']
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['bank']
     assert_dom_equal  %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:can_merge)
   end
 
