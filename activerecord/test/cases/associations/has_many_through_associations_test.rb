@@ -17,11 +17,13 @@ require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
+require 'models/category'
+require 'models/categorization'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors,
+  fixtures :posts, :readers, :people, :comments, :authors, :categories,
            :owners, :pets, :toys, :jobs, :references, :companies,
-           :subscribers, :books, :subscriptions, :developers
+           :subscribers, :books, :subscriptions, :developers,  :categorizations
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -455,5 +457,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     readers = post.readers.size
     post.people << people(:michael)
     assert_equal readers + 1, post.readers.size
+  end
+
+  def test_count_has_many_through_with_named_scope
+    assert_equal 2, authors(:mary).categories.count
+    assert_equal 1, authors(:mary).categories.general.count
   end
 end
