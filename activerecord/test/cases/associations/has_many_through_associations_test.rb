@@ -529,4 +529,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_get_has_many_through_belongs_to_ids_with_conditions
     assert_equal [categories(:general).id], authors(:mary).categories_like_general_ids
   end
+
+  def test_count_has_many_through_with_named_scope
+    assert_equal 2, authors(:mary).categories.count
+    assert_equal 1, authors(:mary).categories.general.count
+  end
 end

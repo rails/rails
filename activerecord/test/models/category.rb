@@ -23,6 +23,8 @@ class Category < ActiveRecord::Base
 
   has_many :categorizations
   has_many :authors, :through => :categorizations, :select => 'authors.*, categorizations.post_id'
+
+  scope :general, :conditions => { :name => 'General' }
 end
 
 class SpecialCategory < Category
