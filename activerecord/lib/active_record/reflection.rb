@@ -209,7 +209,10 @@ module ActiveRecord
       end
 
       def association_primary_key
-        @association_primary_key ||= options[:primary_key] || klass.primary_key
+        @association_primary_key ||=
+          options[:primary_key] ||
+          !options[:polymorphic] && klass.primary_key ||
+          'id'
       end
 
       def active_record_primary_key

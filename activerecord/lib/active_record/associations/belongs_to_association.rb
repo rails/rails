@@ -42,6 +42,14 @@ module ActiveRecord
         @updated
       end
 
+      def stale_target?
+        if @target && @target.persisted?
+          @target.send(@reflection.association_primary_key).to_i != @owner.send(@reflection.primary_key_name).to_i
+        else
+          false
+        end
+      end
+
       private
         def find_target
           find_method = if @reflection.options[:primary_key]
