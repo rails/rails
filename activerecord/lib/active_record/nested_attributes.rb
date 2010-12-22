@@ -405,7 +405,18 @@ module ActiveRecord
           end
 
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded? && !call_reject_if(association_name, attributes)
+          unless association.loaded? || call_reject_if(association_name, attributes)
+            # Make sure we are operating on the actual object which is in the association's
+            # proxy_target array (either by finding it, or adding it if not found)
+            target_record = association.proxy_target.detect { |record| record == existing_record }
+
+            if target_record
+              existing_record = target_record
+            else
+              association.send(:add_record_to_target_with_callbacks, existing_record)
+            end
+          end
+
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
 
         else
