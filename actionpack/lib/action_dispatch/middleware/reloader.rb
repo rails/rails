@@ -6,7 +6,7 @@ module ActionDispatch
   # after each request. In this respect they are analogs of ActionDispatch::Callback's
   # before and after callbacks. However, cleanup callbacks are not called until the
   # request is fully complete -- that is, after #close has been called on
-  # the request body. This is important for streaming responses such as the
+  # the response body. This is important for streaming responses such as the
   # following:
   #
   #     self.response_body = lambda { |response, output|
