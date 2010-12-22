@@ -59,7 +59,10 @@ module ActionView
           #     <script type="text/javascript" src="/javascripts/body.js"></script>
           #     <script type="text/javascript" src="/javascripts/tail.js"></script>
           def register_javascript_expansion(expansions)
-            JavascriptIncludeTag.expansions.merge!(expansions)
+            js_expansions = JavascriptIncludeTag.expansions
+            expansions.each do |key, values|
+              js_expansions[key] = (js_expansions[key] || []) | Array(values) if values
+            end
           end
         end
 
