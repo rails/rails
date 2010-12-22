@@ -529,4 +529,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = authors(:david)
     assert_equal ['body'], author.comments.select('comments.body').first.attributes.keys
   end
+
+  def test_get_has_many_through_belongs_to_ids_with_conditions
+    assert_equal [categories(:general).id], authors(:mary).categories_like_general_ids
+  end
 end
