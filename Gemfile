@@ -12,8 +12,8 @@ gem "rack", :git => "git://github.com/rack/rack.git"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
-gem "rdoc",  "~> 2.5"
-gem "horo",  ">= 1.0.2"
+gem "rdoc",  "~> 3.0"
+gem "horo",  "= 1.0.3"
 
 # for perf tests
 gem "faker"
