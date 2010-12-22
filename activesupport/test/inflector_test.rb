@@ -21,7 +21,7 @@ class InflectorTest < Test::Unit::TestCase
   def test_pluralize_empty_string
     assert_equal "", ActiveSupport::Inflector.pluralize("")
   end
-  
+
   ActiveSupport::Inflector.inflections.uncountable.each do |word|
     define_method "test_uncountability_of_#{word}" do
       assert_equal word, ActiveSupport::Inflector.singularize(word)
@@ -29,13 +29,13 @@ class InflectorTest < Test::Unit::TestCase
       assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
     end
   end
-  
+
   def test_uncountable_word_is_not_greedy
     uncountable_word = "ors"
     countable_word = "sponsor"
-    
+
     cached_uncountables = ActiveSupport::Inflector.inflections.uncountables
-    
+
     ActiveSupport::Inflector.inflections.uncountable << uncountable_word
 
     assert_equal uncountable_word, ActiveSupport::Inflector.singularize(uncountable_word)
@@ -45,7 +45,8 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal "sponsor", ActiveSupport::Inflector.singularize(countable_word)
     assert_equal "sponsors", ActiveSupport::Inflector.pluralize(countable_word)
     assert_equal "sponsor", ActiveSupport::Inflector.singularize(ActiveSupport::Inflector.pluralize(countable_word))
-    
+
+  ensure
     ActiveSupport::Inflector.inflections.instance_variable_set :@uncountables, cached_uncountables
   end
 
