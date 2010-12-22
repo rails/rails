@@ -520,7 +520,88 @@ h4. +active_support/file_update_checker.rb+
 
 The +ActiveSupport::FileUpdateChecker+ class defined within this file is responsible for checking if a file has been updated since it was last checked. This is used for monitoring the routes file for changes during development environment runs.
 
+h4. +railties/lib/rails/plugin.rb+
 
+This file defines +Rails::Plugin+ which inherits from +Rails::Engine+. Unlike +Rails::Engine+ and +Rails::Railtie+ however, this class is not designed to be inherited from. Instead, this is used simply for loading plugins from within an application and an engine.
+
+This file begins by requiring +rails/engine.rb+
+
+h4. +railties/lib/rails/engine.rb+
+
+The +rails/engine.rb+ file defines the +Rails::Engine+ class which inherits from +Rails::Railtie+. The +Rails::Engine+ class defines much of the functionality found within a standard application class such as the +routes+ and +config+ methods.
+
+The "API documentation":http://api.rubyonrails.org/classes/Rails/Engine.html for +Rails::Engine+ explains the function of this class pretty well.
+
+This file's first line requires +rails/railtie.rb+.
+
+h4. +railties/lib/rails/railtie.rb+
+
+The +rails/railtie.rb+ file is responsible for defining +Rails::Railtie+, the underlying class for all ties to Rails now. Gems that want to have their own initializers or rake tasks and hook into Rails should have a +GemName::Railtie+ class that inherits from +Rails::Railtie+.
+
+The "API documentation":http://api.rubyonrails.org/classes/Rails/Railtie.html for +Rails::Railtie+, much like +Rails::Engine+, explains this class exceptionally well.
+
+The first require in this file is +rails/initializable.rb+.
+
+h4. +railties/lib/rails/initializable.rb+
+
+Now we reach the end of this particular rabbit hole as +rails/initializable.rb+ doesn't require any more Rails files, only +tsort+ from the Ruby standard library.
+
+This file defines the +Rails::Initializable+ module which contains the +Initializer+ class, the basis for all initializers in Rails. This module also contains a +ClassMethods+ class which will be included into the +Rails::Railtie+ class when these requires have finished.
+
+Now that +rails/initializable.rb+ has finished being required from +rails/railtie.rb+, the next require is for +rails/configuration+.
+
+h4. +railties/lib/rails/configuration.rb+
+
+This file defines the +Rails::Configuration+ module, containing the +MiddlewareStackProxy+ class as well as the +Generators+ class. The +MiddlewareStackProxy+ class is used for managing the middleware stack for an application, which we'll see later on. The +Generators+ class provides the functionality used for configuring what generators an application uses through the "+config.generators+ option":http://guides.rubyonrails.org/configuring.html#configuring-generators.
+
+The first file required in this file is +activesupport/deprecation+.
+
+h4. +activesupport/lib/active_support/deprecation.rb+
+
+This file, and the files it requires, define the basic deprecation warning features found in Rails. This file is responsible for setting defaults in the +ActiveSupport::Deprecation+ module for the +deprecation_horizon+, +silenced+ and +debug+ values. The files that are required before this happens are:
+
+* +active_support/deprecation/behaviors+
+* +active_support/deprecation/reporting+
+* +active_support/deprecation/method_wrappers+
+* +active_support/deprecation/proxy_wrappers+
+
+h4. +activesupport/lib/active_support/deprecation/behaviors.rb+
+
+This file defines the behavior of the +ActiveSupport::Deprecation+ module, setting up the +DEFAULT_BEHAVIORS+ hash constant which contains the three defaults to outputting deprecation warnings: +:stderr+, +:log+ and +:notify+. This file begins by requiring +activesupport/notifications+ and +activesupport/core_ext/array/wrap+.
+
+h4 +activesupport/lib/active_support/notifications.rb+
+
+TODO: document +ActiveSupport::Notifications+.
+
+h4. +activesupport/core_ext/array/wrap+
+
+As this file comprises of a core extension, it is covered exclusively in "the Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#wrapping
+
+h4. +activesupport/lib/active_support/deprecation/reporting.rb+
+
+This file is responsible for defining the +warn+ and +silence+ methods for +ActiveSupport::Deprecation+ as well as additional private methods for this module.
+
+h4. +activesupport/lib/active_support/deprecation/method_wrappers.rb+
+
+This file defines a +deprecate_methods+ which is primarily used by the +module/deprecation+ core extension required by the first line of this file. Other core extensions required by this file are the +module/aliasing+ and +array/extract_options+ files.
+
+h4. +activesupport/lib/active_support/deprecation/proxy_wrappers.rb+
+
++proxy_wrappers.rb+ defines deprecation wrappers for methods, instance variables and constants. Previously, this was used for the +RAILS_ENV+ and +RAILS_ROOT+ constants for 3.0 but since then these constants have been removed. The deprecation message that would be raised from these would be something like:
+
+<plain>
+  BadConstant is deprecated! Use GoodConstant instead.
+</plain>
+
+h4. +active_support/ordered_options+
+
+This file is the next file required from +rails/configuration.rb+ is the file that defines +ActiveSupport::OrderedOptions+ which is used for configuration options such as +config.active_support+ and the like.
+
+The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#deep_dup
+
+The file after that is +rails/paths+
+
+h4. +railties/lib/rails/paths.rb+
 
 
 
