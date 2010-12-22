@@ -6,7 +6,7 @@ endprologue.
 
 h3. RDoc
 
-The Rails API documentation is generated with RDoc 2.5. Please consult the "RDoc documentation":http://rdoc.rubyforge.org/RDoc.htmlFor for help with its markup.
+The Rails API documentation is generated with RDoc 2.5. Please consult the documentation for help with the "markup":http://rdoc.rubyforge.org/RDoc/Markup.html, and take into account also these "additional directives":http://rdoc.rubyforge.org/RDoc/Parser/Ruby.html.
 
 h3. Wording
 
