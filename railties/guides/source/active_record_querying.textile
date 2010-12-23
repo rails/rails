@@ -760,7 +760,7 @@ Or on an association consisting of +Post+ objects:
 
 <ruby>
   category = Category.first
-  category.posts.published => [published posts, belonging to this category]
+  category.posts.published => [published posts belonging to this category]
 </ruby>
 
 h4. Working with times
