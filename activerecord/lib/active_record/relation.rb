@@ -31,7 +31,7 @@ module ActiveRecord
       im = arel.compile_insert values
       im.into @table
       primary_key_name = @klass.primary_key
-      primary_key_value = Hash === values ? values[primary_key_name] : nil
+      primary_key_value = primary_key_name && Hash === values ? values[primary_key] : nil
 
       @klass.connection.insert(
         im.to_sql,
