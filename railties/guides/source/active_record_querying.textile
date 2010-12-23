@@ -363,6 +363,31 @@ The +eq_any+ method can be used to return objects of a relation that have the sp
 Post.where(Post.arel_table[:comments_count].eq_any([1,2])
 </ruby>
 
+h4. +in+
+
+To check if a value is within a given group of values, use the +in+ method:
+
+<ruby>
+  Post.where(Post.arel_table[:id].in([1,2,3]))
+</ruby>
+
+h4. +in_any+
+
+Check if a value is within any one of a group of values:
+
+<ruby>
+  Post.where(Post.arel_table[:id]).in_any([1,2,3], [4,5,6])
+</ruby>
+
+h4. +in_all+
+
+Check if a value is within all of the specified groups of values:
+
+<ruby>
+  Post.where(Post.arel_table[:id]).in_all([1,2,3], [1,4,6])
+</ruby>
+
+
 h3. Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
