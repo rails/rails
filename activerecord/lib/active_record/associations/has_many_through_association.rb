@@ -63,14 +63,6 @@ module ActiveRecord
           scoped.all
         end
 
-        def has_cached_counter?
-          @owner.attribute_present?(cached_counter_attribute_name)
-        end
-
-        def cached_counter_attribute_name
-          "#{@reflection.name}_count"
-        end
-
         # NOTE - not sure that we can actually cope with inverses here
         def we_can_set_the_inverse_on_this?(record)
           false
