@@ -602,7 +602,7 @@ client.visits += 1
 client.save
 </ruby>
 
-As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visists_.
+As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visits_.
 
 h3. Locking Records for Update
 
