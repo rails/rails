@@ -185,6 +185,9 @@ module ActiveRecord
       end
 
       def preload_has_and_belongs_to_many_association(records, reflection, preload_options={})
+
+        left = reflection.klass.arel_table
+
         table_name = reflection.klass.quoted_table_name
         id_to_record_map, ids = construct_id_map(records)
         records.each {|record| record.send(reflection.name).loaded}
@@ -193,9 +196,15 @@ module ActiveRecord
         conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
         conditions << append_conditions(reflection, preload_options)
 
+        right = Arel::Table.new(options[:join_table]).alias('t0')
+        condition = left[reflection.klass.primary_key].eq(
+          right[reflection.association_foreign_key])
+
+        join = left.create_join(right, left.create_on(condition))
+
         associated_records_proxy = reflection.klass.unscoped.
             includes(options[:include]).
-            joins("INNER JOIN #{connection.quote_table_name options[:join_table]} t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}").
+            joins(join).
             select("#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id").
             order(options[:order])
 
