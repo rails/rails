@@ -68,6 +68,9 @@ module ActionDispatch
       response = @app.call(env)
       response[2].extend(CleanupOnClose)
       response
+    rescue Exception
+      _run_cleanup_callbacks
+      raise
     end
   end
 end
