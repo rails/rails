@@ -35,8 +35,12 @@ module ActiveRecord
         }
       end
 
+      # This scope affects the creation of the associated records (not the join records). At the
+      # moment we only support creating on a :through association when the source reflection is a
+      # belongs_to. Thus it's not necessary to set a foreign key on the associated record(s), so
+      # this scope has can legitimately be empty.
       def construct_create_scope
-        construct_owner_attributes(@reflection)
+        { }
       end
 
       def aliased_through_table
