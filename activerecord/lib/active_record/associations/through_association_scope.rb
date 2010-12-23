@@ -73,10 +73,6 @@ module ActiveRecord
         end
       end
 
-      def construct_from
-        @reflection.table_name
-      end
-
       def construct_select(custom_select = nil)
         distinct = "DISTINCT #{@reflection.quoted_table_name}.*" if @reflection.options[:uniq]
         custom_select || @reflection.options[:select] || distinct
