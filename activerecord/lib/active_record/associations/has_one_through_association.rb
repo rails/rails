@@ -33,7 +33,6 @@ module ActiveRecord
         end
       end
 
-    private
       def find_target
         update_stale_state
         scoped.first
