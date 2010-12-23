@@ -21,9 +21,13 @@ module ActiveRecord
       # have a size larger than zero, and you need to fetch that collection afterwards, it'll take one fewer
       # SELECT query if you use #length.
       def size
-        return @owner.send(:read_attribute, cached_counter_attribute_name) if has_cached_counter?
-        return @target.size if loaded?
-        return count
+        if has_cached_counter?
+          @owner.send(:read_attribute, cached_counter_attribute_name)
+        elsif loaded?
+          @target.size
+        else
+          count
+        end
       end
 
       protected
