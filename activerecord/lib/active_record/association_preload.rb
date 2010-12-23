@@ -216,7 +216,7 @@ module ActiveRecord
             order(options[:order])
 
         all_associated_records = associated_records(ids) do |some_ids|
-          associated_records_proxy.where([conditions, ids]).to_a
+          associated_records_proxy.where([conditions, some_ids]).to_a
         end
 
         set_association_collection_records(id_to_record_map, reflection.name, all_associated_records, 'the_parent_record_id')
