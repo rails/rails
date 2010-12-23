@@ -50,6 +50,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!(NIL + INTEGERS)
   end
 
+  def test_validates_numericality_with_within
+    Topic.validates_numericality_of :approved, :within => 10..20
+
+    invalid!([-10, 9, 21], 'must be within 10 and 20')
+    valid!([11])
+  end
+
   def test_validates_numericality_with_greater_than
     Topic.validates_numericality_of :approved, :greater_than => 10
 

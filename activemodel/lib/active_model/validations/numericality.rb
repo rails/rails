@@ -5,7 +5,7 @@ module ActiveModel
     class NumericalityValidator < EachValidator
       CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
-                 :odd => :odd?, :even => :even? }.freeze
+                 :odd => :odd?, :even => :even?, :within => :within? }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
@@ -16,7 +16,8 @@ module ActiveModel
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
-          next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+          next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol) 
+          next if option == :within && value.is_a?(Range)
           raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
         end
       end
@@ -45,6 +46,13 @@ module ActiveModel
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
+              record.errors.add(attr_name, option, filtered_options(value))
+            end
+          when :within
+            raise ArgumentError, ":#{option} must be a Range" if !option.is_a?(Range)
+            min = option_value.min
+            max = option_value.max
+            unless value >= min && value <= max 
               record.errors.add(attr_name, option, filtered_options(value))
             end
           else

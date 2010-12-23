@@ -23,5 +23,6 @@ en:
       equal_to: "must be equal to %{count}"
       less_than: "must be less than %{count}"
       less_than_or_equal_to: "must be less than or equal to %{count}"
+      within: "must be between %{count.min} and %{count.max}"
       odd: "must be odd"
       even: "must be even"
