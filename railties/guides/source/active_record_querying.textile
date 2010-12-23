@@ -337,7 +337,7 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 </sql>
 
-h4. Ordering
+h3. Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
 
@@ -361,7 +361,7 @@ Or ordering by multiple fields:
 Client.order("orders_count ASC, created_at DESC")
 </ruby>
 
-h4. Selecting Specific Fields
+h3. Selecting Specific Fields
 
 By default, <tt>Model.find</tt> selects all the fields from the result set using +select *+.
 
@@ -397,7 +397,7 @@ You can also call SQL functions within the select option. For example, if you wo
 Client.select("DISTINCT(name)")
 </ruby>
 
-h4. Limit and Offset
+h3. Limit and Offset
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +limit+ and +offset+ methods on the relation.
 
@@ -425,7 +425,7 @@ will return instead a maximum of 5 clients beginning with the 31st. The SQL look
 SELECT * FROM clients LIMIT 5, 30
 </sql>
 
-h4. Group
+h3. Group
 
 To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
 
@@ -443,7 +443,7 @@ The SQL that would be executed would be something like this:
 SELECT * FROM orders GROUP BY date(created_at)
 </sql>
 
-h4. Having
+h3. Having
 
 SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can add the +HAVING+ clause to the SQL fired by the +Model.find+ by adding the +:having+ option to the find.
 
@@ -461,7 +461,7 @@ SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
 
 This will return single order objects for each day, but only for the last month.
 
-h4. Readonly Objects
+h3. Readonly Objects
 
 Active Record provides +readonly+ method on a relation to explicitly disallow modification or deletion of any of the returned object. Any attempt to alter or destroy a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
@@ -473,7 +473,7 @@ client.save
 
 As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visists_.
 
-h4. Locking Records for Update
+h3. Locking Records for Update
 
 Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
 
@@ -482,7 +482,7 @@ Active Record provides two locking mechanisms:
 * Optimistic Locking
 * Pessimistic Locking
 
-h5. Optimistic Locking
+h4. Optimistic Locking
 
 Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data.  It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
@@ -517,7 +517,7 @@ class Client < ActiveRecord::Base
 end
 </ruby>
 
-h5. Pessimistic Locking
+h4. Pessimistic Locking
 
 Pessimistic locking uses a locking mechanism provided by the underlying database. Using +lock+ when building a relation obtains an exclusive lock on the selected rows. Relations using +lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
