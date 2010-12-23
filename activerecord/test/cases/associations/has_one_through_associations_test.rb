@@ -235,6 +235,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments.first, authors(:david).comment_on_first_posts
+    assert_equal posts(:welcome).comments.order('id').first, authors(:david).comment_on_first_posts
   end
 end

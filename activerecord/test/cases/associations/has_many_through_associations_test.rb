@@ -466,7 +466,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments, authors(:david).comments_on_first_posts
+    assert_equal posts(:welcome).comments.order('id').all, authors(:david).comments_on_first_posts
   end
 
   def test_create_has_many_through_with_default_scope_on_join_model
