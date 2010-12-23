@@ -337,6 +337,32 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 </sql>
 
+h4. +arel_table+
+
+The +arel_table+ method is used in the following sections to gain access to more advanced functionality of the Active Relation building language. You may see examples such as this:
+
+<ruby>
+Post.where(Post.arel_table[:comments_count].eq(5)))
+</ruby>
+
+Don't be alarmed! This method returns an +Arel::Table+ object which provides methods for accessing fields and building queries, as you'll see in the following sections.
+
+h4. +eq+
+
+The +eq+ method can be used to check if a field is a specific value:
+
+<ruby>
+Post.where(Post.arel_table[:comments_count].eq(5))
+</ruby>
+
+h4. +eq_any+
+
+The +eq_any+ method can be used to return objects of a relation that have the specified field matching any of the specified values.
+
+<ruby>
+Post.where(Post.arel_table[:comments_count].eq_any([1,2])
+</ruby>
+
 h3. Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
