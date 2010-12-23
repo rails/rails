@@ -13,20 +13,22 @@ module ActiveRecord
 
       private
 
-      def create_through_record(new_value) #nodoc:
-        klass = @reflection.through_reflection.klass
+      def create_through_record(new_value)
+        proxy  = @owner.send(@reflection.through_reflection.name) ||
+                 @owner.send(:association_instance_get, @reflection.through_reflection.name)
+        record = proxy.target
 
-        current_object = @owner.send(@reflection.through_reflection.name)
-
-        if current_object
-           new_value ? current_object.update_attributes(construct_join_attributes(new_value)) : current_object.destroy
+        if record && !new_value
+          record.destroy
         elsif new_value
-          if @owner.new_record?
-            self.target = new_value
-            through_association = @owner.send(:association_instance_get, @reflection.through_reflection.name)
-            through_association.build(construct_join_attributes(new_value))
+          attributes = construct_join_attributes(new_value)
+
+          if record
+            record.update_attributes(attributes)
+          elsif @owner.new_record?
+            proxy.build(attributes)
           else
-            @owner.send(@reflection.through_reflection.name, klass.create(construct_join_attributes(new_value)))
+            proxy.create(attributes)
           end
         end
       end

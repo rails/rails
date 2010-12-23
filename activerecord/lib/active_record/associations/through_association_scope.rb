@@ -117,12 +117,10 @@ module ActiveRecord
         # TODO: revisit this to allow it for deletion, supposing dependent option is supported
         raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
 
-        join_attributes = construct_owner_attributes(@reflection.through_reflection)
-
-        join_attributes.merge!(
+        join_attributes = {
           @reflection.source_reflection.primary_key_name =>
             associate.send(@reflection.source_reflection.association_primary_key)
-        )
+        }
 
         if @reflection.options[:source_type]
           join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name)

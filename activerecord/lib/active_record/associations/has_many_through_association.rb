@@ -51,9 +51,9 @@ module ActiveRecord
 
         # TODO - add dependent option support
         def delete_records(records)
-          klass = @reflection.through_reflection.klass
+          through_association = @owner.send(@reflection.through_reflection.name)
           records.each do |associate|
-            klass.delete_all(construct_join_attributes(associate))
+            through_association.where(construct_join_attributes(associate)).delete_all
           end
         end
 
