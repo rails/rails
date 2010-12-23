@@ -763,6 +763,18 @@ Or on an association consisting of +Post+ objects:
   category.posts.published => [published posts, belonging to this category]
 </ruby>
 
+h4. Working with times
+
+If you're working with dates or times within scopes, due to how they are evaluated, you will need to use a lambda so that the scope is evaluated every time.
+
+<ruby>
+  class Post < ActiveRecord::Base
+    scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
+  end
+</ruby>
+
+Without the +lambda+, this +Time.zone.now+ will only be called once.
+
 h3. Dynamic Finders
 
 For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+ methods.
