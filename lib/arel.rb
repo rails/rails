@@ -35,6 +35,10 @@ module Arel
   def self.sql raw_sql
     Arel::Nodes::SqlLiteral.new raw_sql
   end
+
+  def self.star
+    sql '*'
+  end
   ## Convenience Alias
   Node = Arel::Nodes::Node
 end

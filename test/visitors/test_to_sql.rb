@@ -5,7 +5,14 @@ module Arel
     describe 'the to_sql visitor' do
       before do
         @visitor = ToSql.new Table.engine
-        @attr = Table.new(:users)[:id]
+        @table = Table.new(:users)
+        @attr = @table[:id]
+      end
+
+      it 'should not quote sql literals' do
+        node = @table[Arel.star]
+        sql = @visitor.accept node
+        sql.must_be_like '"users".*'
       end
 
       describe 'equality' do

@@ -109,7 +109,7 @@ Arel 3.0.0 with no replacement.  PEW PEW PEW!!!
     end
 
     def [] name
-      ::Arel::Attribute.new self, name.to_sym
+      ::Arel::Attribute.new self, name
     end
 
     def select_manager

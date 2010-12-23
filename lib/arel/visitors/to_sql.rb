@@ -318,26 +318,29 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attributes_Attribute
 
-      def visit_Fixnum o; o end
-      alias :visit_Arel_Nodes_SqlLiteral :visit_Fixnum
-      alias :visit_Arel_SqlLiteral :visit_Fixnum # This is deprecated
-      alias :visit_Bignum :visit_Fixnum
+      def literal o; o end
 
-      def visit_String o; quote(o, @last_column) end
+      alias :visit_Arel_Nodes_SqlLiteral :literal
+      alias :visit_Arel_SqlLiteral       :literal # This is deprecated
+      alias :visit_Bignum                :literal
+      alias :visit_Fixnum                :literal
 
-      alias :visit_ActiveSupport_Multibyte_Chars :visit_String
-      alias :visit_BigDecimal :visit_String
-      alias :visit_Date :visit_String
-      alias :visit_DateTime :visit_String
-      alias :visit_FalseClass :visit_String
-      alias :visit_Float :visit_String
-      alias :visit_Hash :visit_String
-      alias :visit_Symbol :visit_String
-      alias :visit_Time :visit_String
-      alias :visit_TrueClass :visit_String
-      alias :visit_NilClass :visit_String
-      alias :visit_ActiveSupport_StringInquirer :visit_String
-      alias :visit_Class :visit_String
+      def quoted o; quote(o, @last_column) end
+
+      alias :visit_ActiveSupport_Multibyte_Chars :quoted
+      alias :visit_ActiveSupport_StringInquirer  :quoted
+      alias :visit_BigDecimal                    :quoted
+      alias :visit_Class                         :quoted
+      alias :visit_Date                          :quoted
+      alias :visit_DateTime                      :quoted
+      alias :visit_FalseClass                    :quoted
+      alias :visit_Float                         :quoted
+      alias :visit_Hash                          :quoted
+      alias :visit_NilClass                      :quoted
+      alias :visit_String                        :quoted
+      alias :visit_Symbol                        :quoted
+      alias :visit_Time                          :quoted
+      alias :visit_TrueClass                     :quoted
 
       def visit_Array o
         o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
@@ -352,7 +355,7 @@ module Arel
       end
 
       def quote_column_name name
-        @quoted_columns[name] ||= @connection.quote_column_name(name)
+        @quoted_columns[name] ||= Arel::Nodes::SqlLiteral === name ? name : @connection.quote_column_name(name)
       end
     end
   end

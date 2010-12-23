@@ -4,6 +4,7 @@
 
   * AST is now Enumerable
   * AND nodes are now n-ary nodes
+  * SQL Literals may be used as Attribute names
 
 * Deprecations
 
