@@ -227,7 +227,7 @@ NOTE: In this guide we are using an SQLite3 database for data storage, because i
 
 h5. Configuring a MySQL Database
 
-If you choose to use MySQL instead of the shipped Sqlite3 database, your +config/database.yml+ will look a little different. Here's the development section:
+If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
 
 <yaml>
 development:
