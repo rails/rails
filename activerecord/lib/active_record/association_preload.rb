@@ -201,11 +201,18 @@ module ActiveRecord
           right[reflection.association_foreign_key])
 
         join = left.create_join(right, left.create_on(condition))
+        select = [
+          # FIXME: options[:select] is always nil in the tests.  Do we really
+          # need it?
+          options[:select] || left[Arel.star],
+          right[reflection.primary_key_name].as(
+            Arel.sql('the_parent_record_id'))
+        ]
 
         associated_records_proxy = reflection.klass.unscoped.
             includes(options[:include]).
             joins(join).
-            select("#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id").
+            select(select).
             order(options[:order])
 
         all_associated_records = associated_records(ids) do |some_ids|
