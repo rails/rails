@@ -721,6 +721,48 @@ h4. Specifying Conditions on Eager Loaded Associations
 
 Even though Active Record lets you specify conditions on the eager loaded associations just like +joins+, the recommended way is to use "joins":#joining-tables instead.
 
+h3. Scopes
+
+Scoping allows you to specify commonly-used ARel queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as +where+, +joins+ and +includes+.
+
+To define a simple scope, we use the +scope+ method inside the class, passing the ARel query that we'd like run when this scope is called:
+
+<ruby>
+  class Post < ActiveRecord::Base
+    scope :published, where(:published => true)
+  end
+</ruby>
+
+Just like before, these methods are also chainable:
+
+<ruby>
+  class Post < ActiveRecord::Base
+    scope :published, where(:published => true).joins(:category)
+  end
+</ruby>
+
+Scopes are also chainable within scopes:
+
+<ruby>
+  class Post < ActiveRecord::Base
+    scope :published, where(:published => true)
+    scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+  end
+</ruby>
+
+To call this +published+ scope we can call it on either the class:
+
+<ruby>
+  Post.published => [published posts]
+</ruby>
+
+Or on an association consisting of +Post+ objects:
+
+<ruby>
+  category = Category.first
+  category.posts.published => [published posts, belonging to this category]
+</ruby>
+
 h3. Dynamic Finders
 
 For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+ methods.
