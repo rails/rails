@@ -401,6 +401,56 @@ module ActionView
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
       end
 
+      # Creates a button element that defines a <tt>submit</tt> button,
+      # <tt>reset</tt>button or a generic button which can be used in
+      # JavaScript, for example. You can use the button tag as a regular
+      # submit tag but it isn't supported in legacy browsers. However,
+      # button tag allows richer labels such as images and emphasis.
+      #
+      # ==== Options
+      # * <tt>:confirm => 'question?'</tt> - If present, the
+      #   unobtrusive JavaScript drivers will provide a prompt with
+      #   the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
+      # * <tt>:disabled</tt> - If true, the user will not be able to
+      #   use this input.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
+      # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Examples
+      #   button_tag
+      #   # => <button name="button" type="button">Button</button>
+      #
+      #   button_tag "<strong>Ask me!</strong>"
+      #   # => <button name="button" type="button">
+      #          <strong>Ask me!</strong>
+      #        </button>
+      #
+      #   button_tag "Checkout", :disable_with => "Please wait..."
+      #   # => <button data-disable-with="Please wait..." name="button"
+      #                type="button">Checkout</button>
+      #
+      def button_tag(label = "Button", options = {})
+        options.stringify_keys!
+
+        if disable_with = options.delete("disable_with")
+          options["data-disable-with"] = disable_with
+        end
+
+        if confirm = options.delete("confirm")
+          options["data-confirm"] = confirm
+        end
+
+        ["type", "name"].each do |option|
+          options[option] = "button" unless options[option]
+        end
+
+        content_tag :button, label.to_s.html_safe, { "type" => options.delete("type") }.update(options)
+      end
+
       # Displays an image which when clicked will submit the form.
       #
       # <tt>source</tt> is passed to AssetTagHelper#path_to_image

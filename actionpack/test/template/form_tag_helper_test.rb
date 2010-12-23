@@ -385,6 +385,34 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_button_tag
+    assert_dom_equal(
+      %(<button name="button" type="button">Button</button>),
+      button_tag
+    )
+  end
+
+  def test_button_tag_with_submit_type
+    assert_dom_equal(
+      %(<button name="button" type="submit">Save</button>),
+      button_tag("Save", :type => "submit")
+    )
+  end
+
+  def test_button_tag_with_reset_type
+    assert_dom_equal(
+      %(<button name="button" type="reset">Reset</button>),
+      button_tag("Reset", :type => "reset")
+    )
+  end
+
+  def test_button_tag_with_disabled_option
+    assert_dom_equal(
+      %(<button name="button" type="reset" disabled="disabled">Reset</button>),
+      button_tag("Reset", :type => "reset", :disabled => true)
+    )
+  end
+
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
       %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
