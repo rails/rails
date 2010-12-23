@@ -768,12 +768,40 @@ h4. Working with times
 If you're working with dates or times within scopes, due to how they are evaluated, you will need to use a lambda so that the scope is evaluated every time.
 
 <ruby>
-  class Post < ActiveRecord::Base
-    scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
-  end
+class Post < ActiveRecord::Base
+  scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
+end
 </ruby>
 
 Without the +lambda+, this +Time.zone.now+ will only be called once.
+
+h4. Passing in arguments
+
+When a +lambda+ is used for a +scope+, it can take arguments:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :1_week_before, lambda { |time| where("created_at < ?", time)
+end
+</ruby>
+
+This may then be called using this:
+
+<ruby>
+Post.1_week_before(Time.zone.now)
+</ruby>
+
+However, this is just duplicating the functionality that would be provided to you by a class method.
+
+<ruby>
+class Post < ActiveRecord::Base
+  def self.1_week_before(time)
+    where("created_at < ?", time)
+  end
+end
+</ruby>
+
+Using a class method is the preferred way to accept arguments for scopes.
 
 h3. Dynamic Finders
 
