@@ -1501,7 +1501,11 @@ module ActiveRecord
               association_instance_set(reflection.name, association)
             end
 
-            reflection.klass.uncached { association.reload } if force_reload
+            if force_reload
+              reflection.klass.uncached { association.reload }
+            elsif association.stale_target?
+              association.reload
+            end
 
             association
           end

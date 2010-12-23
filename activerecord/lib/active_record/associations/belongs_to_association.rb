@@ -44,7 +44,10 @@ module ActiveRecord
 
       def stale_target?
         if @target && @target.persisted?
-          @target.send(@reflection.association_primary_key).to_i != @owner.send(@reflection.primary_key_name).to_i
+          target_id   = @target.send(@reflection.association_primary_key).to_s
+          foreign_key = @owner.send(@reflection.primary_key_name).to_s
+
+          target_id != foreign_key
         else
           false
         end

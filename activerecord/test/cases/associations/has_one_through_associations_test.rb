@@ -251,4 +251,19 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       members(:groucho).club_through_many
     end
   end
+
+  def test_has_one_through_belongs_to_should_update_when_the_through_foreign_key_changes
+    minivan = minivans(:cool_first)
+
+    minivan.dashboard
+    proxy = minivan.send(:association_instance_get, :dashboard)
+
+    assert !proxy.stale_target?
+    assert_equal dashboards(:cool_first), minivan.dashboard
+
+    minivan.speedometer_id = speedometers(:second).id
+
+    assert proxy.stale_target?
+    assert_equal dashboards(:second), minivan.dashboard
+  end
 end

@@ -19,6 +19,7 @@ require 'models/book'
 require 'models/subscription'
 require 'models/categorization'
 require 'models/category'
+require 'models/essay'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories,
@@ -533,5 +534,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_count_has_many_through_with_named_scope
     assert_equal 2, authors(:mary).categories.count
     assert_equal 1, authors(:mary).categories.general.count
+  end
+
+  def test_has_many_through_belongs_to_should_update_when_the_through_foreign_key_changes
+    post = posts(:eager_other)
+
+    post.author_categorizations
+    proxy = post.send(:association_instance_get, :author_categorizations)
+
+    assert !proxy.stale_target?
+    assert_equal authors(:mary).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
+
+    post.author_id = authors(:david).id
+
+    assert proxy.stale_target?
+    assert_equal authors(:david).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
   end
 end
