@@ -457,6 +457,17 @@ Post.where(Post.arel_table[:comments_count].gteq_all([1,2]))
 
 This method's opposite is +lteq_all+.
 
+h4. +or+
+
+Allows you to chain queries to get results matching either condition:
+
+<ruby>
+title = Post.arel_table[:title]
+Post.where(title.eq("Active").or(title.eq("Record")))
+</ruby>
+
+Note that this method is called on the end of the +eq+ method here, rather than the +where+.
+
 h3. Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
