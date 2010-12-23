@@ -1897,7 +1897,7 @@ The +inject+ method offers iteration with an accumulator:
 
 <ruby>
 [2, 3, 4].inject(1) {|product, i| product*i } # => 24
-</rubyproduct
+</ruby>
 
 The block is expected to return the value for the accumulator in the next iteration, and this makes building mutable objects a bit cumbersome:
 
