@@ -211,9 +211,10 @@ module ActiveRecord
 
         associated_records_proxy = reflection.klass.unscoped.
             includes(options[:include]).
-            joins(join).
-            select(select).
             order(options[:order])
+
+        associated_records_proxy.joins_values = [join]
+        associated_records_proxy.select_values = select
 
         all_associated_records = associated_records(ids) do |some_ids|
           associated_records_proxy.where([conditions, some_ids]).to_a
