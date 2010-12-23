@@ -355,38 +355,107 @@ The +eq+ method can be used to check if a field is a specific value:
 Post.where(Post.arel_table[:comments_count].eq(5))
 </ruby>
 
+This method's opposite is +not_eq+.
+
 h4. +eq_any+
 
-The +eq_any+ method can be used to return objects of a relation that have the specified field matching any of the specified values.
+Checks if the specified field matches any of the given values.
 
 <ruby>
 Post.where(Post.arel_table[:comments_count].eq_any([1,2])
 </ruby>
 
+This method's opposite is +not_eq_any+.
+
 h4. +in+
 
-To check if a value is within a given group of values, use the +in+ method:
+To check if a field is within a given group of values, use the +in+ method:
 
 <ruby>
-  Post.where(Post.arel_table[:id].in([1,2,3]))
+Post.where(Post.arel_table[:id].in([1,2,3]))
 </ruby>
+
+This method's opposite is +not_in+.
 
 h4. +in_any+
 
-Check if a value is within any one of a group of values:
+Check if a field is within any one of a group of values:
 
 <ruby>
-  Post.where(Post.arel_table[:id]).in_any([1,2,3], [4,5,6])
+Post.where(Post.arel_table[:id]).in_any([1,2,3], [4,5,6])
 </ruby>
+
+This method's opposite is +not_in_any+.
 
 h4. +in_all+
 
-Check if a value is within all of the specified groups of values:
+Check if a field is within all of the specified groups of values:
 
 <ruby>
-  Post.where(Post.arel_table[:id]).in_all([1,2,3], [1,4,6])
+Post.where(Post.arel_table[:id]).in_all([1,2,3], [1,4,6])
 </ruby>
 
+This method's opposite is +not_in_all+.
+
+h4. +matches+
+
+Match a specific field with a given value. Use +%+ for wildcard searching.
+
+<ruby>
+Post.where(Post.arel_table[:author].matches("Ryan%"))
+</ruby>
+
+This method's opposite is +does_not_match+.
+
+h4. +matches_any+
+
+Match a specific field with any given value. Use +%+ for wildcard searching.
+
+<ruby>
+Post.where(Post.arel_table[:author].matches_any(["Ryan%", "Yehuda%"]))
+</ruby>
+
+This method's opposite is +does_not_match_any+
+
+h4. +matches_all+
+
+Match a specific field with all given values. Use +%+ for wild card searching.
+
+<ruby>
+Post.where(Post.arel_table[:author].matches_all(["Ryan%", "%Bigg"]))
+</ruby>
+
+This method's opposite is +does_not_match_all+.
+
+h4. +gteq+
+
+Check for a field greater than or equal to a specific value.
+
+<ruby>
+Post.where(Post.arel_table[:comments_count].gteq(1))
+</ruby>
+
+This method's opposite is +lteq+.
+
+h4. +gteq_any+
+
+Check for a field greater than or equal to any of the given values.
+
+<ruby>
+Post.where(Post.arel_table[:comments_count].gteq_any([1,2]))
+</ruby>
+
+This method's opposite is +lteq_any+.
+
+h4. +gteq_all+
+
+Check for a field greater than or equal to all of the given values.
+
+<ruby>
+Post.where(Post.arel_table[:comments_count].gteq_all([1,2]))
+</ruby>
+
+This method's opposite is +lteq_all+.
 
 h3. Ordering
 
