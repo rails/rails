@@ -389,14 +389,9 @@ module ActiveRecord
         end
       end
 
-
-      def interpolate_sql_for_preload(sql)
-        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
-      end
-
       def append_conditions(reflection, preload_options)
         sql = ""
-        sql << " AND (#{interpolate_sql_for_preload(reflection.sanitized_conditions)})" if reflection.sanitized_conditions
+        sql << " AND (#{reflection.sanitized_conditions})" if reflection.sanitized_conditions
         sql << " AND (#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]
         sql
       end
