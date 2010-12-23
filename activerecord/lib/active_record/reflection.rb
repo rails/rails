@@ -375,6 +375,10 @@ module ActiveRecord
           raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
         end
 
+        if through_reflection.options[:polymorphic]
+          raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+        end
+
         if source_reflection.nil?
           raise HasManyThroughSourceAssociationNotFoundError.new(self)
         end
@@ -384,7 +388,7 @@ module ActiveRecord
         end
 
         if source_reflection.options[:polymorphic] && options[:source_type].nil?
-          raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
+          raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
         end
 
         unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?

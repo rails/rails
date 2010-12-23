@@ -340,11 +340,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_polymorphic
-    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggables
+    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicSourceError do
+      tags(:general).taggables
     end
+
+    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicThroughError do
+      taggings(:welcome_general).things
+    end
+
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
+      tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
     end
   end
 
