@@ -1,5 +1,8 @@
 *Rails 3.1.0 (unreleased)*
 
+* button_tag added. This is in similarity with submit_tag but allows more
+visual flexibility. [Rizwan Reza]
+
 * brought back config.action_view.cache_template_loading, which allows to decide whether templates should be cached or not [Piotr Sarnacki]
 
 * url_for and named url helpers now accept :subdomain and :domain as options [Josh Kalderimis]
