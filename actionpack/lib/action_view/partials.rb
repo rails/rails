@@ -12,7 +12,7 @@ module ActionView
   #
   #  <%= render :partial => "account" %>
   #
-  # This would render "advertiser/_account.erb" and pass the instance variable @account in as a local variable
+  # This would render "advertiser/_account.html.erb" and pass the instance variable @account in as a local variable
   # +account+ to the template for display.
   #
   # In another template for Advertiser#buy, we could have:
@@ -23,8 +23,8 @@ module ActionView
   #     <%= render :partial => "ad", :locals => { :ad => ad } %>
   #   <% end %>
   #
-  # This would first render "advertiser/_account.erb" with @buyer passed in as the local variable +account+, then
-  # render "advertiser/_ad.erb" and pass the local variable +ad+ to the template for display.
+  # This would first render "advertiser/_account.html.erb" with @buyer passed in as the local variable +account+, then
+  # render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display.
   #
   # == The :as and :object options
   #
@@ -64,7 +64,7 @@ module ActionView
   #
   #   <%= render :partial => "ad", :collection => @advertisements %>
   #
-  # This will render "advertiser/_ad.erb" and pass the local variable +ad+ to the template for display. An
+  # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
   # iteration counter will automatically be made available to the template with a name of the form
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
   #
@@ -89,7 +89,7 @@ module ActionView
   #
   #   <%= render :partial => "advertisement/ad", :locals => { :ad => @advertisement } %>
   #
-  # This will render the partial "advertisement/_ad.erb" regardless of which controller this is being called from.
+  # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
   # == Rendering objects with the RecordIdentifier
   #
