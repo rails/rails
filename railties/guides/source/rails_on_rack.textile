@@ -228,8 +228,8 @@ h4. Learning Rack
 
 * "Official Rack Website":http://rack.github.com
 * "Introducing Rack":http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html
-* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/2008/11/17/ruby-on-rack-1
-* "Ruby on Rack #2 - The Builder":http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder
+* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/ruby-on-rack-1-hello-rack
+* "Ruby on Rack #2 - The Builder":http://m.onkey.org/ruby-on-rack-2-the-builder
 
 h4. Understanding Middlewares
 
