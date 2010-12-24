@@ -480,6 +480,7 @@ module Arel
         manager.from table
         manager.take 1
         stmt = manager.compile_update(SqlLiteral.new('foo = bar'))
+        stmt.key = table['id']
 
         stmt.to_sql.must_be_like %{
           UPDATE "users" SET foo = bar
@@ -494,6 +495,7 @@ module Arel
         manager.from table
         manager.order :foo
         stmt = manager.compile_update(SqlLiteral.new('foo = bar'))
+        stmt.key = table['id']
 
         stmt.to_sql.must_be_like %{
           UPDATE "users" SET foo = bar

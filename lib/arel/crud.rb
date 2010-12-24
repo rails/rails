@@ -6,7 +6,7 @@ module Arel
       um = UpdateManager.new @engine
 
       if Nodes::SqlLiteral === values
-        relation = @ctx.froms
+        relation = @ctx.from
       else
         relation = values.first.first.relation
       end

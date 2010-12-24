@@ -42,20 +42,31 @@ module Arel
         if o.orders.empty? && o.limit.nil?
           wheres = o.wheres
         else
+          key = o.key
+          unless key
+            warn(<<-eowarn) if $VERBOSE
+(#{caller.first}) Using UpdateManager without setting UpdateManager#key is
+deprecated and support will be removed in ARel 3.0.0.  Please set the primary
+key on UpdateManager using UpdateManager#key=
+eowarn
+            key = o.relation.primary_key
+          end
+
+          wheres = o.wheres
           stmt             = Nodes::SelectStatement.new
           core             = stmt.cores.first
           core.froms       = o.relation
-          core.projections = [o.relation.primary_key]
+          core.projections = [key]
           stmt.limit       = o.limit
           stmt.orders      = o.orders
 
-          wheres = [Nodes::In.new(o.relation.primary_key, [stmt])]
+          wheres = [Nodes::In.new(key, [stmt])]
         end
 
         [
           "UPDATE #{visit o.relation}",
           ("SET #{o.values.map { |value| visit value }.join ', '}" unless o.values.empty?),
-          ("WHERE #{wheres.map { |x| visit x }.join ' AND '}" unless wheres.empty?)
+          ("WHERE #{wheres.map { |x| visit x }.join ' AND '}" unless wheres.empty?),
         ].compact.join ' '
       end
 
