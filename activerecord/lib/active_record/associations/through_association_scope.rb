@@ -51,26 +51,8 @@ module ActiveRecord
           @reflection.through_reflection.klass.arel_table
       end
 
-      # Build SQL conditions from attributes, qualified by table name.
-      def construct_conditions
-        table = aliased_through_table
-        conditions = construct_owner_attributes(@reflection.through_reflection).map do |attr, value|
-          table[attr].eq(value)
-        end
-        conditions << Arel.sql(sql_conditions) if sql_conditions
-        table.create_and(conditions)
-      end
-
-      # Associate attributes pointing to owner
-      def construct_owner_attributes(reflection)
-        if as = reflection.options[:as]
-          { "#{as}_id"   => @owner[reflection.active_record_primary_key],
-            "#{as}_type" => @owner.class.base_class.name }
-        elsif reflection.macro == :belongs_to
-          { reflection.klass.primary_key => @owner[reflection.primary_key_name] }
-        else
-          { reflection.primary_key_name => @owner[reflection.active_record_primary_key] }
-        end
+      def construct_owner_conditions
+        super(aliased_through_table, @reflection.through_reflection)
       end
 
       def construct_select

@@ -75,10 +75,12 @@ module ActiveRecord
           "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end
 
-        def construct_conditions
-          sql = "#{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{owner_quoted_id} "
-          sql << " AND (#{conditions})" if conditions
-          sql
+        def join_table
+          Arel::Table.new(@reflection.options[:join_table])
+        end
+
+        def construct_owner_conditions
+          super(join_table)
         end
 
         def construct_find_scope

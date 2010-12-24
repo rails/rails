@@ -49,7 +49,7 @@ module ActiveRecord
           @target = nil
         else
           raise_on_type_mismatch(obj)
-          set_belongs_to_association_for(obj)
+          set_owner_attributes(obj)
           @target = (AssociationProxy === obj ? obj.target : obj)
         end
 
@@ -84,22 +84,11 @@ module ActiveRecord
         end
 
         def construct_find_scope
-          if @reflection.options[:as]
-            sql =
-              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
-              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
-          else
-            test = owner_quoted_id == "NULL" ? "IS" : "="
-            sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} #{test} #{owner_quoted_id}"
-          end
-          sql << " AND (#{conditions})" if conditions
-          { :conditions => sql }
+          { :conditions => construct_conditions }
         end
 
         def construct_create_scope
-          create_scoping = {}
-          set_belongs_to_association_for(create_scoping)
-          create_scoping
+          construct_owner_attributes
         end
 
         def new_record(replace_existing)

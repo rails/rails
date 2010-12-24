@@ -9,7 +9,6 @@ first_client:
 
 first_firm:
   id: 1
-  firm_id: 1
   type: Firm
   name: 37signals
   ruby_type: Firm

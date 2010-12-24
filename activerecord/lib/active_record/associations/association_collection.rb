@@ -111,7 +111,7 @@ module ActiveRecord
         else
           build_record(attributes) do |record|
             block.call(record) if block_given?
-            set_belongs_to_association_for(record)
+            set_owner_attributes(record)
           end
         end
       end

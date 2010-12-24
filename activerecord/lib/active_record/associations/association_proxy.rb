@@ -181,18 +181,41 @@ module ActiveRecord
           @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
-        # Assigns the ID of the owner to the corresponding foreign key in +record+.
-        # If the association is polymorphic the type of the owner is also set.
-        def set_belongs_to_association_for(record)
-          if @reflection.options[:as]
-            record["#{@reflection.options[:as]}_id"]   = @owner.id if @owner.persisted?
-            record["#{@reflection.options[:as]}_type"] = @owner.class.base_class.name.to_s
+        # Sets the owner attributes on the given record
+        # Note: does not really make sense for belongs_to associations, but this method is not
+        #       used by belongs_to
+        def set_owner_attributes(record)
+          if @owner.persisted?
+            construct_owner_attributes.each { |key, value| record[key] = value }
+          end
+        end
+
+        # Returns a has linking the owner to the association represented by the reflection
+        def construct_owner_attributes(reflection = @reflection)
+          attributes = {}
+          if reflection.macro == :belongs_to
+            attributes[reflection.association_primary_key] = @owner.send(reflection.primary_key_name)
           else
-            if @owner.persisted?
-              primary_key = @reflection.options[:primary_key] || :id
-              record[@reflection.primary_key_name] = @owner.send(primary_key)
+            attributes[reflection.primary_key_name] = @owner.send(reflection.active_record_primary_key)
+
+            if reflection.options[:as]
+              attributes["#{reflection.options[:as]}_type"] = @owner.class.base_class.name
             end
           end
+          attributes
+        end
+
+        # Builds an array of arel nodes from the owner attributes hash
+        def construct_owner_conditions(table = aliased_table, reflection = @reflection)
+          construct_owner_attributes(reflection).map do |attr, value|
+            table[attr].eq(value)
+          end
+        end
+
+        def construct_conditions
+          conditions = construct_owner_conditions
+          conditions << Arel.sql(sql_conditions) if sql_conditions
+          aliased_table.create_and(conditions)
         end
 
         # Merges into +options+ the ones coming from the reflection.
@@ -230,6 +253,10 @@ module ActiveRecord
         # Implemented by (some) subclasses
         def construct_create_scope
           {}
+        end
+
+        def aliased_table
+          @reflection.klass.arel_table
         end
 
       private

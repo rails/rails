@@ -54,7 +54,7 @@ module ActiveRecord
         end
 
         def insert_record(record, force = false, validate = true)
-          set_belongs_to_association_for(record)
+          set_owner_attributes(record)
           save_record(record, force, validate)
         end
 
@@ -79,18 +79,6 @@ module ActiveRecord
           end
         end
 
-        def construct_conditions
-          if @reflection.options[:as]
-            sql =
-              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
-              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
-          else
-            sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
-          end
-          sql << " AND (#{conditions})" if conditions
-          sql
-        end
-
         def construct_find_scope
           {
             :conditions => construct_conditions,
@@ -102,9 +90,7 @@ module ActiveRecord
         end
 
         def construct_create_scope
-          create_scoping = {}
-          set_belongs_to_association_for(create_scoping)
-          create_scoping
+          construct_owner_attributes
         end
 
         def we_can_set_the_inverse_on_this?(record)
