@@ -1416,12 +1416,12 @@ If you prefer to use RSpec instead of Test::Unit, you may be interested in the "
 
 h4. References
 
-* http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-i
-* http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii
-* http://github.com/technoweenie/attachment_fu/tree/master
-* http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
-* http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
-* http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
+* "Complete Guide to Rails Plugins - Part 1":http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-i
+* "Complete Guide to Rails Plugins - Part 2":http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii
+* "Attachment_fu Plugin":http://github.com/technoweenie/attachment_fu/tree/master
+* "Keeping init.rb thin":http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
+* "GemPlugins":http://www.mbleigh.com/2008/06/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
+* "Extending Routes":http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2
 
 h4. Contents of +lib/yaffle.rb+
 
