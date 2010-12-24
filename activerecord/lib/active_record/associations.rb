@@ -20,15 +20,27 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughAssociationPolymorphicError < ActiveRecordError #:nodoc:
+  class HasManyThroughAssociationPolymorphicSourceError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
       super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}'.")
+    end
+  end
+
+  class HasManyThroughAssociationPolymorphicThroughError < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name, reflection)
+      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through the polymorphic association '#{owner_class_name}##{reflection.through_reflection.name}'.")
     end
   end
 
   class HasManyThroughAssociationPointlessSourceTypeError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
       super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic.  Try removing :source_type on your association.")
+    end
+  end
+
+  class HasOneThroughCantAssociateThroughCollection < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name, reflection, through_reflection)
+      super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' where the :through association '#{owner_class_name}##{through_reflection.name}' is a collection. Specify a has_one or belongs_to association in the :through option instead.")
     end
   end
 
@@ -1223,14 +1235,12 @@ module ActiveRecord
 
         if reflection.options[:polymorphic]
           association_accessor_methods(reflection, BelongsToPolymorphicAssociation)
-          association_foreign_type_setter_method(reflection)
         else
           association_accessor_methods(reflection, BelongsToAssociation)
           association_constructor_method(:build,  reflection, BelongsToAssociation)
           association_constructor_method(:create, reflection, BelongsToAssociation)
         end
 
-        association_foreign_key_setter_method(reflection)
         add_counter_cache_callbacks(reflection)          if options[:counter_cache]
         add_touch_callbacks(reflection, options[:touch]) if options[:touch]
 
@@ -1450,7 +1460,7 @@ module ActiveRecord
             force_reload = params.first unless params.empty?
             association = association_instance_get(reflection.name)
 
-            if association.nil? || force_reload
+            if association.nil? || force_reload || association.stale_target?
               association = association_proxy_class.new(self, reflection)
               retval = force_reload ? reflection.klass.uncached { association.reload } : association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
@@ -1497,7 +1507,11 @@ module ActiveRecord
               association_instance_set(reflection.name, association)
             end
 
-            reflection.klass.uncached { association.reload } if force_reload
+            if force_reload
+              reflection.klass.uncached { association.reload }
+            elsif association.stale_target?
+              association.reload
+            end
 
             association
           end
@@ -1506,16 +1520,9 @@ module ActiveRecord
             if send(reflection.name).loaded? || reflection.options[:finder_sql]
               send(reflection.name).map { |r| r.id }
             else
-              if reflection.through_reflection && reflection.source_reflection.belongs_to?
-                through = reflection.through_reflection
-                primary_key = reflection.source_reflection.primary_key_name
-                send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map! { |r| r.send(primary_key) }
-              else
-                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map! { |r| r.id }
-              end
+              send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map! { |r| r.id }
             end
           end
-
         end
 
         def collection_accessor_methods(reflection, association_proxy_class, writer = true)
@@ -1555,45 +1562,6 @@ module ActiveRecord
               association.send(constructor, attributees)
             end
           end
-        end
-
-        def association_foreign_key_setter_method(reflection)
-          setters = reflect_on_all_associations(:belongs_to).map do |belongs_to_reflection|
-            if belongs_to_reflection.primary_key_name == reflection.primary_key_name
-              "association_instance_set(:#{belongs_to_reflection.name}, nil);"
-            end
-          end.compact.join
-
-          if method_defined?(:"#{reflection.primary_key_name}=")
-            undef_method :"#{reflection.primary_key_name}="
-          end
-
-          class_eval <<-FILE, __FILE__, __LINE__ + 1
-            def #{reflection.primary_key_name}=(new_id)
-              write_attribute :#{reflection.primary_key_name}, new_id
-              if #{reflection.primary_key_name}_changed?
-                #{ setters }
-              end
-            end
-          FILE
-        end
-
-        def association_foreign_type_setter_method(reflection)
-          setters = reflect_on_all_associations(:belongs_to).map do |belongs_to_reflection|
-            if belongs_to_reflection.options[:foreign_type] == reflection.options[:foreign_type]
-              "association_instance_set(:#{belongs_to_reflection.name}, nil);"
-            end
-          end.compact.join
-
-          field = reflection.options[:foreign_type]
-          class_eval <<-FILE, __FILE__, __LINE__ + 1
-            def #{field}=(new_id)
-              write_attribute :#{field}, new_id
-              if #{field}_changed?
-                #{ setters }
-              end
-            end
-          FILE
         end
 
         def add_counter_cache_callbacks(reflection)

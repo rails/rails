@@ -10,6 +10,17 @@ module ActiveRecord
         end
       end
 
+      def stale_target?
+        if @target && @reflection.through_reflection.macro == :belongs_to && defined?(@through_foreign_key)
+          previous_key = @through_foreign_key.to_s
+          current_key  = @owner.send(@reflection.through_reflection.primary_key_name).to_s
+
+          previous_key != current_key
+        else
+          false
+        end
+      end
+
       protected
 
       def construct_find_scope
@@ -63,8 +74,8 @@ module ActiveRecord
       end
 
       def construct_select(custom_select = nil)
-        distinct = "DISTINCT " if @reflection.options[:uniq]
-        custom_select || @reflection.options[:select] || "#{distinct}#{@reflection.quoted_table_name}.*"
+        distinct = "DISTINCT #{@reflection.quoted_table_name}.*" if @reflection.options[:uniq]
+        custom_select || @reflection.options[:select] || distinct
       end
 
       def construct_joins
@@ -106,7 +117,12 @@ module ActiveRecord
         # TODO: revisit this to allow it for deletion, supposing dependent option is supported
         raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
 
-        join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
+        join_attributes = construct_owner_attributes(@reflection.through_reflection)
+
+        join_attributes.merge!(
+          @reflection.source_reflection.primary_key_name =>
+            associate.send(@reflection.source_reflection.association_primary_key)
+        )
 
         if @reflection.options[:source_type]
           join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name)
@@ -160,6 +176,14 @@ module ActiveRecord
       end
 
       alias_method :sql_conditions, :conditions
+
+      def update_stale_state
+        construct_scope if stale_target?
+
+        if @reflection.through_reflection.macro == :belongs_to
+          @through_foreign_key = @owner.send(@reflection.through_reflection.primary_key_name)
+        end
+      end
     end
   end
 end

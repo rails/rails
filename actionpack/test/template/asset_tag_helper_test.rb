@@ -54,6 +54,9 @@ class AssetTagHelperTest < ActionView::TestCase
   def teardown
     config.perform_caching = false
     ENV.delete('RAILS_ASSET_ID')
+
+    JavascriptIncludeTag.expansions.clear
+    StylesheetIncludeTag.expansions.clear
   end
 
   AutoDiscoveryToTag = {
@@ -268,6 +271,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('controls',:defaults, :robbery, 'effects')
   end
 
+  def test_registering_javascript_expansions_merges_with_existing_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['bank']
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['robber']
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['bank']
+    assert_dom_equal  %(<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>), javascript_include_tag(:can_merge)
+  end
+
   def test_custom_javascript_expansions_with_undefined_symbol
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => nil
     assert_raise(ArgumentError) { javascript_include_tag('first', :monkey, 'last') }
@@ -325,6 +336,14 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_custom_stylesheet_expansions_with_undefined_symbol
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => nil
     assert_raise(ArgumentError) { stylesheet_link_tag('first', :monkey, 'last') }
+  end
+
+  def test_registering_stylesheet_expansions_merges_with_existing_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['bank']
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['robber']
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['bank']
+    assert_dom_equal  %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:can_merge)
   end
 
   def test_image_path

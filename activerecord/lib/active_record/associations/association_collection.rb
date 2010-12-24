@@ -462,10 +462,10 @@ module ActiveRecord
           callback(:before_add, record)
           yield(record) if block_given?
           @target ||= [] unless loaded?
-          if index = @target.index(record)
+          if @reflection.options[:uniq] && index = @target.index(record)
             @target[index] = record
           else
-             @target << record
+            @target << record
           end
           callback(:after_add, record)
           set_inverse_instance(record, @owner)

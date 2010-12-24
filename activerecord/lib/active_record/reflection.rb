@@ -209,7 +209,10 @@ module ActiveRecord
       end
 
       def association_primary_key
-        @association_primary_key ||= options[:primary_key] || klass.primary_key
+        @association_primary_key ||=
+          options[:primary_key] ||
+          !options[:polymorphic] && klass.primary_key ||
+          'id'
       end
 
       def active_record_primary_key
@@ -372,6 +375,10 @@ module ActiveRecord
           raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
         end
 
+        if through_reflection.options[:polymorphic]
+          raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+        end
+
         if source_reflection.nil?
           raise HasManyThroughSourceAssociationNotFoundError.new(self)
         end
@@ -381,11 +388,15 @@ module ActiveRecord
         end
 
         if source_reflection.options[:polymorphic] && options[:source_type].nil?
-          raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
+          raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
         end
 
         unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?
           raise HasManyThroughSourceAssociationMacroError.new(self)
+        end
+
+        if macro == :has_one && through_reflection.collection?
+          raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 
         check_validity_of_inverse!

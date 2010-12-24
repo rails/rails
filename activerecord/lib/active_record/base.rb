@@ -913,7 +913,7 @@ module ActiveRecord #:nodoc:
         end
 
         def type_condition
-          sti_column = arel_table[inheritance_column]
+          sti_column = arel_table[inheritance_column.to_sym]
           condition = sti_column.eq(sti_name)
           descendants.each { |subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
 

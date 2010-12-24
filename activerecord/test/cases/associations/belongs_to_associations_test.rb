@@ -17,7 +17,7 @@ require 'models/essay'
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments
+           :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
     Client.find(3).firm.name
@@ -488,39 +488,53 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_reassigning_the_parent_id_updates_the_object
-    original_parent = Firm.create! :name => "original"
-    updated_parent = Firm.create! :name => "updated"
+    client = companies(:second_client)
 
-    client = Client.new("client_of" => original_parent.id)
-    assert_equal original_parent, client.firm
-    assert_equal original_parent, client.firm_with_condition
-    assert_equal original_parent, client.firm_with_other_name
+    client.firm
+    client.firm_with_condition
+    firm_proxy                = client.send(:association_instance_get, :firm)
+    firm_with_condition_proxy = client.send(:association_instance_get, :firm_with_condition)
 
-    client.client_of = updated_parent.id
-    assert_equal updated_parent, client.firm
-    assert_equal updated_parent, client.firm_with_condition
-    assert_equal updated_parent, client.firm_with_other_name
+    assert !firm_proxy.stale_target?
+    assert !firm_with_condition_proxy.stale_target?
+    assert_equal companies(:first_firm), client.firm
+    assert_equal companies(:first_firm), client.firm_with_condition
+
+    client.client_of = companies(:another_firm).id
+
+    assert firm_proxy.stale_target?
+    assert firm_with_condition_proxy.stale_target?
+    assert_equal companies(:another_firm), client.firm
+    assert_equal companies(:another_firm), client.firm_with_condition
   end
 
   def test_polymorphic_reassignment_of_associated_id_updates_the_object
-    member1 = Member.create!
-    member2 = Member.create!
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
 
-    sponsor = Sponsor.new("sponsorable_type" => "Member", "sponsorable_id" => member1.id)
-    assert_equal member1, sponsor.sponsorable
+    sponsor.sponsorable
+    proxy = sponsor.send(:association_instance_get, :sponsorable)
 
-    sponsor.sponsorable_id = member2.id
-    assert_equal member2, sponsor.sponsorable
+    assert !proxy.stale_target?
+    assert_equal members(:groucho), sponsor.sponsorable
+
+    sponsor.sponsorable_id = members(:some_other_guy).id
+
+    assert proxy.stale_target?
+    assert_equal members(:some_other_guy), sponsor.sponsorable
   end
 
   def test_polymorphic_reassignment_of_associated_type_updates_the_object
-    member1 = Member.create!
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
 
-    sponsor = Sponsor.new("sponsorable_type" => "Member", "sponsorable_id" => member1.id)
-    assert_equal member1, sponsor.sponsorable
+    sponsor.sponsorable
+    proxy = sponsor.send(:association_instance_get, :sponsorable)
 
-    sponsor.sponsorable_type = "Firm"
-    assert_not_equal member1, sponsor.sponsorable
+    assert !proxy.stale_target?
+    assert_equal members(:groucho), sponsor.sponsorable
+
+    sponsor.sponsorable_type = 'Firm'
+
+    assert proxy.stale_target?
+    assert_equal companies(:first_firm), sponsor.sponsorable
   end
-
 end

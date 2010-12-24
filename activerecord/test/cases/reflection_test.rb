@@ -7,6 +7,7 @@ require 'models/subscriber'
 require 'models/ship'
 require 'models/pirate'
 require 'models/price_estimate'
+require 'models/tagging'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -194,6 +195,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_association_primary_key
     assert_equal "id", Author.reflect_on_association(:posts).association_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
+    assert_equal "id", Tagging.reflect_on_association(:taggable).association_primary_key.to_s
   end
 
   def test_active_record_primary_key

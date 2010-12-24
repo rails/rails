@@ -116,6 +116,20 @@ class ReloaderTest < Test::Unit::TestCase
     assert cleaned
   end
 
+  def test_cleanup_callbacks_are_called_on_exceptions
+    cleaned = false
+    Reloader.to_cleanup { cleaned  = true }
+
+    begin
+      call_and_return_body do
+        raise "error"
+      end
+    rescue
+    end
+
+    assert cleaned
+  end
+
   private
     def call_and_return_body(&block)
       @reloader ||= Reloader.new(block || proc {[200, {}, 'response']})
