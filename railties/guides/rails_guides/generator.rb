@@ -32,7 +32,7 @@
 #
 #     Separate many using commas:
 #
-#       # generates only
+#       # generates only association_basics.html and migrations.html
 #       ONLY=assoc,migrations ruby rails_guides.rb
 #
 #     Note that if you are working on a guide generation will by default process
