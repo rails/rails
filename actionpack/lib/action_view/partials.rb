@@ -19,7 +19,7 @@ module ActionView
   #
   #   <%= render :partial => "account", :locals => { :account => @buyer } %>
   #
-  #   <% for ad in @advertisements %>
+  #   <% @advertisements.each do |ad| %>
   #     <%= render :partial => "ad", :locals => { :ad => ad } %>
   #   <% end %>
   #
@@ -44,12 +44,12 @@ module ActionView
   #
   # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
   # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
-  # 
+  #
   # Revisiting a previous example we could have written this code:
-  # 
+  #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  #   <% for ad in @advertisements %>
+  #   <% @advertisements.each do |ad| %>
   #     <%= render :partial => "ad", :object => ad %>
   #   <% end %>
   #
@@ -69,7 +69,7 @@ module ActionView
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
   #
   # The <tt>:as</tt> option may be used when rendering partials.
-  # 
+  #
   # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
   # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
   #
