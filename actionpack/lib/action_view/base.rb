@@ -18,7 +18,7 @@ module ActionView #:nodoc:
   # following loop for names:
   #
   #   <b>Names of all the people</b>
-  #   <% for person in @people %>
+  #   <% @people.each do |person| %>
   #     Name: <%= person.name %><br/>
   #   <% end %>
   #
