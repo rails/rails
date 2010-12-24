@@ -174,7 +174,7 @@ module ActiveRecord
           order = arel.orders
         end
 
-        stmt = arel.compile_update(Arel::SqlLiteral.new(@klass.send(:sanitize_sql_for_assignment, updates)))
+        stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
         stmt.take limit
         stmt.order(*order)
         stmt.key = @klass.arel_table[@klass.primary_key]
