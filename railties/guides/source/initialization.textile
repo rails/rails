@@ -222,9 +222,17 @@ h4. +actionpack/lib/action_dispatch.rb+
 
 Action Dispatch is the routing component of the Rails framework. It depends on Active Support, +actionpack/lib/action_pack.rb+ and +Rack+ being available. The first thing required here is +active_support+.
 
-h4. +active_support/lib/active_support.rb+
+h4. +activesupport/lib/active_support.rb+
 
-This file begins with requiring +active_support/lib/active_support/dependencies/autoload.rb+ which redefines Ruby's +autoload+ method to have a little more extra behaviour especially in regards to eager autoloading. Eager autoloading is the loading of all required classes and  will happen when the +config.cache_classes+ setting is +true+.
+This file begins with requiring +active_support/lib/active_support/dependencies/autoload.rb+ which redefines Ruby's +autoload+ method to have a little more extra behaviour especially in regards to eager autoloading. Eager autoloading is the loading of all required classes and will happen when the +config.cache_classes+ setting is +true+.
+
+In this file there are a lot of lines such as this inside the +ActiveSupport+ module:
+
+<ruby>
+  autoload :Inflector
+</ruby>
+
+Due to the overriding of the +autoload+ method, Ruby will know to look for this file at +activesupport/lib/active_support/inflector.rb+ when the +Inflector+ class is first referenced.
 
 The +active_support/lib/active_support/version.rb+ that is also required here simply defines an +ActiveSupport::VERSION+ constant which defines a couple of constants inside this module, the main constant of this is +ActiveSupport::VERSION::STRING+ which returns the current version of ActiveSupport.
 
@@ -450,7 +458,11 @@ h4. +config/application.rb+
 
 This file requires +config/boot.rb+, but only if it hasn't been required before, which would be the case in +rails server+ but *wouldn't* be the case with Passenger.
 
-Then the fun begins! The next line is:
+Then the fun begins! 
+
+h3. Loading Rails
+
+The next line in +config/application.rb+ is:
 
 <ruby>
   require 'rails/all'
@@ -599,9 +611,109 @@ This file is the next file required from +rails/configuration.rb+ is the file th
 
 The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#deep_dup
 
-The file after that is +rails/paths+
+The file that is required next from is +rails/paths+
 
 h4. +railties/lib/rails/paths.rb+
+
+This file defines the +Rails::Paths+ module which allows paths to be configured for a Rails application or engine. Later on in this guide when we cover Rails configuration during the initialization process we'll see this used to set up some default paths for Rails and some of them will be configured to be eager loaded.
+
+h4. +railties/lib/rails/rack.rb+
+
+The final file to be loaded by +railties/lib/rails/configuration.rb+ is +rails/rack+ which defines some simple autoloads:
+
+<ruby>
+  module Rails
+    module Rack
+      autoload :Debugger,  "rails/rack/debugger"
+      autoload :Logger,    "rails/rack/logger"
+      autoload :LogTailer, "rails/rack/log_tailer"
+      autoload :Static,    "rails/rack/static"
+    end
+  end
+</ruby>
+
+Once this file is finished loading, then the +Rails::Configuration+ class is initialized. This completes the loading of +railties/lib/rails/configuration.rb+ and now we jump back to the loading of +railties/lib/rails/railtie.rb+, where the next file loaded is +active_support/inflector+.
+
+h4. +activesupport/lib/active_support/inflector.rb+
+
++active_support/inflector.rb+ requires a series of file which are responsible for setting up the basics for knowing how to pluralize and singularize words. These files are:
+
+<ruby>
+  require 'active_support/inflector/inflections'
+  require 'active_support/inflector/transliterate'
+  require 'active_support/inflector/methods'
+
+  require 'active_support/inflections'
+  require 'active_support/core_ext/string/inflections'
+</ruby>
+
+h4. +activesupport/lib/active_support/inflector/inflections.rb+
+
+This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes". 
+
+h4. +activesupport/lib/active_support/inflector/transliterate.rb+
+
+In this file is where the "+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate and +parameterize+:http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
+
+h4. +activesupport/lib/active_support/inflector/methods.rb+
+
+The +methods.rb+ file is responsible for defining methods such as +camelize+, +underscore+ and +dasherize+ as well as a slew of others. The "+ActiveSupport::Inflector+ documentation":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html covers them all pretty decently.
+
+h4. Back to +railties/lib/rails/railtie.rb+
+
+Once the inflector files have been loaded, the +Rails::Railtie+ class is defined. This class includes a module called +Initializable+, which is actually +Rails::Initializable+ and is automatically loaded at this point.
+
+h4. +railties/lib/rails/initializable.rb+
+
+When the module from this file (+Rails::Initializable+) is included, it extends the class it's included into with the +ClassMethods+ module inside of it. This module defines the +initializer+ method which is used to define initializers throughout all of the railties. This file completes the loading of +railties/lib/rails/railtie.rb+. Now we go back to +rails/engine.rb+.
+
+h4. +railties/lib/rails/engine.rb+
+
+The next file required in +rails/engine.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":http://guides.rubyonrails.org/active_support_core_extensions.html#method-delegation.
+
+The next two files after this are Ruby standard library files: +pathname+ and +rbconfig+. The file after these is +rails/engine/railties+.
+
+h4. +railties/lib/rails/engine/railties.rb+
+
+This file defines the +Rails::Engine::Railties+ class which provides the +engines+ and +railties+ methods which are used later on for defining rake tasks and other functionality for engines and railties.
+
+h4. Back to +railties/lib/rails/engine.rb+
+
+Once +rails/engine/railties.rb+ has finished loading the +Rails::Engine+ class gets its basic functionality defined, such as the +inherited+ method which will be called when this class is inherited from.
+
+Once this file has finished loading we jump back to +railties/lib/rails/plugin.rb+
+
+h4. Back to +railties/lib/rails/plugin.rb+
+
+The next file required in this is a core extension from Active Support called +array/conversions+ which is covered in "this section":http://guides.rubyonrails.org/active_support_core_extensions.html#array-conversions of the Active Support Core Extensions Guide.
+
+Once that file has finished loading, the +Rails::Plugin+ class is defined. 
+
+h4. Back to +railties/lib/rails/application.rb+
+
+Jumping back to +rails/application.rb+ now. This file defines the +Rails::Application+ class where the application's class inherits from. This class (and its superclasses) define the basic behaviour on the application's constant such as the +config+ method used for configuring the application.
+
+Once this file's done then we go back to the +railties/lib/rails.rb+ file, which next requires +rails/version+.
+
+h4. +railties/lib/rails/version.rb+
+
+Much like +active_support/version+, this file defines the +VERSION+ constant which has a +STRING+ constant on it which returns the current version of Rails. 
+
+h4. +activesupport/lib/active_support/railtie.rb+
+
+This file requires +active_support+ and +rails+ which have already been required so these two lines are effectively ignored. The third require in this file is to +active_support/railtie+.
+
+h4. +activesupport/lib/active_support/i18n_railtie.rb+
+
+This file is the first file that sets up configuration with these lines inside the class:
+
+<ruby>
+  class Railtie < Rails::Railtie
+    config.i18n = ActiveSupport::OrderedOptions.new
+    config.i18n.railties_load_path = []
+    config.i18n.load_path = []
+    config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
+</ruby>
 
 
 
