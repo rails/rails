@@ -217,13 +217,11 @@ module ActiveRecord
         associated_records_proxy.joins_values = [join]
         associated_records_proxy.select_values = select
 
-        method = ids.length > 1 ? 'in' : 'eq'
-
         all_associated_records = associated_records(ids) do |some_ids|
+          method = some_ids.length == 1 ? ['eq', some_ids.first] :
+                                          ['in', some_ids]
 
-          conditions = right[reflection.primary_key_name].send(
-            method, some_ids.length == 1 ? some_ids.first : some_ids
-          )
+          conditions = right[reflection.primary_key_name].send(*method)
           conditions = conditions.and(custom_conditions) unless custom_conditions.empty?
 
           associated_records_proxy.where(conditions).to_a
