@@ -393,7 +393,7 @@ module ActiveRecord
           append_conditions(reflection, preload_options)).join(' AND ')
 
         find_options = {
-          :select => preload_options[:select] || options[:select] || Arel::SqlLiteral.new("#{table_name}.*"),
+          :select => preload_options[:select] || options[:select] || Arel.sql("#{table_name}.*"),
           :include => preload_options[:include] || options[:include],
           :joins => options[:joins],
           :group => preload_options[:group] || options[:group],
