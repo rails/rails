@@ -188,7 +188,6 @@ module ActiveRecord
 
         left = reflection.klass.arel_table
 
-        table_name = reflection.klass.quoted_table_name
         id_to_record_map, ids = construct_id_map(records)
         records.each {|record| record.send(reflection.name).loaded}
         options = reflection.options
@@ -218,9 +217,7 @@ module ActiveRecord
         custom_conditions = append_conditions(reflection, preload_options)
 
         all_associated_records = associated_records(ids) do |some_ids|
-          method = some_ids.length == 1 ? ['eq', some_ids.first] :
-                                          ['in', some_ids]
-
+          method     = in_or_equal(some_ids)
           conditions = right[reflection.primary_key_name].send(*method)
           conditions = custom_conditions.inject(conditions) do |ast, cond|
             ast.and cond
@@ -364,7 +361,7 @@ module ActiveRecord
             end
           end
 
-          method = ids.length == 1 ? ['eq', ids.first] : ['in', ids]
+          method     = in_or_equal(ids)
           conditions = table[primary_key].send(*method)
 
           custom_conditions = append_conditions(reflection, preload_options)
@@ -403,9 +400,7 @@ module ActiveRecord
         }
 
         associated_records(ids) do |some_ids|
-          method = some_ids.length == 1 ? ['eq', some_ids.first] :
-                                          ['in', some_ids]
-
+          method = in_or_equal(some_ids)
           where = conditions.inject(table[key].send(*method)) do |ast, cond|
             ast.and cond
           end
@@ -421,8 +416,8 @@ module ActiveRecord
         ].compact.map { |x| Arel.sql x }
       end
 
-      def in_or_equals_for_ids(ids)
-        ids.size > 1 ? "IN (?)" : "= ?"
+      def in_or_equal(ids)
+        ids.length == 1 ? ['eq', ids.first] : ['in', ids]
       end
 
       # Some databases impose a limit on the number of ids in a list (in Oracle its 1000)
