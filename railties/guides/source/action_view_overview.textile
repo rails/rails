@@ -439,7 +439,7 @@ The +capture+ method allows you to extract part of a template into a variable. Y
 <% @greeting = capture do %>
   <p>Welcome! The date and time is <%= Time.now %></p>
 <% end %>
-<ruby>
+</ruby>
 
 The captured variable can then be used anywhere else.
 
