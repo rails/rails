@@ -378,7 +378,6 @@ module ActiveRecord
       def find_associated_records(ids, reflection, preload_options)
         options    = reflection.options
         table      = reflection.klass.arel_table
-        table_name = reflection.klass.quoted_table_name
 
         conditions = []
 
@@ -392,7 +391,7 @@ module ActiveRecord
         conditions += append_conditions(reflection, preload_options)
 
         find_options = {
-          :select => preload_options[:select] || options[:select] || Arel.sql("#{table_name}.*"),
+          :select => preload_options[:select] || options[:select] || table[Arel.star],
           :include => preload_options[:include] || options[:include],
           :joins => options[:joins],
           :group => preload_options[:group] || options[:group],
