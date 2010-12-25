@@ -9,9 +9,10 @@ module Arel
       from table
     end
 
-    def taken
+    def limit
       @ast.limit
     end
+    alias :taken :limit
 
     def constraints
       @ctx.wheres

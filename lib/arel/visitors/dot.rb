@@ -127,23 +127,25 @@ module Arel
       end
       alias :visit_Arel_Nodes_And :nary
 
-      def visit_Arel_Nodes_Equality o
+      def binary o
         visit_edge o, "left"
         visit_edge o, "right"
       end
-      alias :visit_Arel_Nodes_Or                 :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_NotEqual           :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_GreaterThan        :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_GreaterThanOrEqual :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_Assignment         :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_In                 :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_LessThan           :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_LessThanOrEqual    :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_Between            :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_NotIn              :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_DoesNotMatch       :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_Matches            :visit_Arel_Nodes_Equality
-      alias :visit_Arel_Nodes_JoinSource         :visit_Arel_Nodes_Equality
+      alias :visit_Arel_Nodes_As                 :binary
+      alias :visit_Arel_Nodes_Assignment         :binary
+      alias :visit_Arel_Nodes_Between            :binary
+      alias :visit_Arel_Nodes_DoesNotMatch       :binary
+      alias :visit_Arel_Nodes_Equality           :binary
+      alias :visit_Arel_Nodes_GreaterThan        :binary
+      alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
+      alias :visit_Arel_Nodes_In                 :binary
+      alias :visit_Arel_Nodes_JoinSource         :binary
+      alias :visit_Arel_Nodes_LessThan           :binary
+      alias :visit_Arel_Nodes_LessThanOrEqual    :binary
+      alias :visit_Arel_Nodes_Matches            :binary
+      alias :visit_Arel_Nodes_NotEqual           :binary
+      alias :visit_Arel_Nodes_NotIn              :binary
+      alias :visit_Arel_Nodes_Or                 :binary
 
       def visit_String o
         @node_stack.last.fields << o

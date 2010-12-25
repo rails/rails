@@ -22,6 +22,34 @@ module Arel
           @visitor.accept op
         end
       end
+
+      # binary ops
+      [
+        Arel::Nodes::Assignment,
+        Arel::Nodes::Between,
+        Arel::Nodes::DoesNotMatch,
+        Arel::Nodes::Equality,
+        Arel::Nodes::GreaterThan,
+        Arel::Nodes::GreaterThanOrEqual,
+        Arel::Nodes::In,
+        Arel::Nodes::LessThan,
+        Arel::Nodes::LessThanOrEqual,
+        Arel::Nodes::Matches,
+        Arel::Nodes::NotEqual,
+        Arel::Nodes::NotIn,
+        Arel::Nodes::Or,
+        Arel::Nodes::TableAlias,
+        Arel::Nodes::Values,
+        Arel::Nodes::As,
+        Arel::Nodes::DeleteStatement,
+        Arel::Nodes::Ordering,
+        Arel::Nodes::JoinSource,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          binary = klass.new(:a, :b)
+          @visitor.accept binary
+        end
+      end
     end
   end
 end
