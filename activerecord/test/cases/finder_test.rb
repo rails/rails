@@ -982,7 +982,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_select_rows
     assert_equal(
-      [["1", nil, nil, "37signals"],
+      [["1", "1", nil, "37signals"],
        ["2", "1", "2", "Summit"],
        ["3", "1", "1", "Microsoft"]],
       Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! {|i| i.map! {|j| j.to_s unless j.nil?}})

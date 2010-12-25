@@ -379,18 +379,20 @@ module ActiveRecord
       end
 
       def find_associated_records(ids, reflection, preload_options)
-        options = reflection.options
+        options    = reflection.options
+        table      = reflection.klass.arel_table
         table_name = reflection.klass.quoted_table_name
 
+        conditions = []
+
+        key = reflection.primary_key_name
+
         if interface = reflection.options[:as]
-          conditions = "#{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_id"} #{in_or_equals_for_ids(ids)} and #{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_type"} = '#{self.base_class.sti_name}'"
-        else
-          foreign_key = reflection.primary_key_name
-          conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} #{in_or_equals_for_ids(ids)}"
+          key = "#{interface}_id"
+          conditions << table["#{interface}_type"].eq(base_class.sti_name)
         end
 
-        conditions = ([conditions] +
-          append_conditions(reflection, preload_options)).join(' AND ')
+        conditions += append_conditions(reflection, preload_options)
 
         find_options = {
           :select => preload_options[:select] || options[:select] || Arel.sql("#{table_name}.*"),
@@ -401,7 +403,14 @@ module ActiveRecord
         }
 
         associated_records(ids) do |some_ids|
-          reflection.klass.scoped.apply_finder_options(find_options.merge(:conditions => [conditions, some_ids])).to_a
+          method = some_ids.length == 1 ? ['eq', some_ids.first] :
+                                          ['in', some_ids]
+
+          where = conditions.inject(table[key].send(*method)) do |ast, cond|
+            ast.and cond
+          end
+
+          reflection.klass.scoped.apply_finder_options(find_options.merge(:conditions => where)).to_a
         end
       end
 
