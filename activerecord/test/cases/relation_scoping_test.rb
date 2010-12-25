@@ -254,13 +254,11 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 
   def test_should_maintain_default_scope_on_associations
-    person = people(:michael)
     magician = BadReference.find(1)
     assert_equal [magician], people(:michael).bad_references
   end
 
   def test_should_default_scope_on_associations_is_overriden_by_association_conditions
-    person = people(:michael)
     assert_equal [], people(:michael).fixed_bad_references
   end
 
@@ -424,7 +422,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_named_scope_overwrites_default
+  def test_scope_overwrites_default
     expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
     assert_equal expected, received
@@ -464,6 +462,22 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_create_attribute_overwrites_default_values
     assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
+  end
+
+  def test_default_scope_attribute
+    jamis = PoorDeveloperCalledJamis.new(:name => 'David')
+    assert_equal 50000, jamis.salary
+  end
+
+  def test_where_attribute
+    aaron = PoorDeveloperCalledJamis.where(:salary => 20).new(:name => 'Aaron')
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_where_attribute_merge
+    aaron = PoorDeveloperCalledJamis.where(:name => 'foo').new(:name => 'Aaron')
+    assert_equal 'Aaron', aaron.name
   end
 
   def test_scope_composed_by_limit_and_then_offset_is_equal_to_scope_composed_by_offset_and_then_limit

@@ -644,7 +644,7 @@ Fundamentally HTML forms don't know about any sort of structured data, all they 
 TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
 
 <ruby>
-ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" 
+ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
 # => {"name"=>"fred", "phone"=>"0123456789"}
 </ruby>
 
@@ -775,8 +775,6 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 * James Golick's "attribute_fu":http://github.com/jamesgolick/attribute_fu plugin
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1
 
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 

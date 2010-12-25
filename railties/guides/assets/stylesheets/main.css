@@ -333,7 +333,7 @@ h6 {
 	padding: 0.125em 0 0.25em 28px;*/
 }
 
-#mainCol dd.ticket, #subCol dd.ticket {
+#mainCol dd.work-in-progress, #subCol dd.work-in-progress {
 	background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
 	border: none;
 	padding: 1.25em 1em 1.25em 48px;

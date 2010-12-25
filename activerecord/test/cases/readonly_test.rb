@@ -12,7 +12,7 @@ def Project.foo() find :first end
 
 
 class ReadOnlyTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :developers, :projects, :developers_projects
+  fixtures :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
 
   def test_cant_save_readonly_record
     dev = Developer.find(1)
@@ -69,6 +69,18 @@ class ReadOnlyTest < ActiveRecord::TestCase
   def test_has_many_with_through_is_not_implicitly_marked_readonly
     assert people = Post.find(1).people
     assert !people.any?(&:readonly?)
+  end
+
+  def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_by_id
+    assert !posts(:welcome).people.find(1).readonly?
+  end
+
+  def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_first
+    assert !posts(:welcome).people.first.readonly?
+  end
+
+  def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_last
+    assert !posts(:welcome).people.last.readonly?
   end
 
   def test_readonly_scoping

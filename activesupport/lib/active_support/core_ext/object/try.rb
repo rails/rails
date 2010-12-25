@@ -1,7 +1,4 @@
 class Object
-  ##
-  # :method: try
-  #
   # Invokes the method identified by the symbol +method+, passing it any arguments
   # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
   #
@@ -28,7 +25,6 @@ class Object
   #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
   #--
   # +try+ behaves like +Object#send+, unless called on +NilClass+.
-
   def try(*a, &b)
     if a.empty? && block_given?
       yield self
@@ -36,7 +32,6 @@ class Object
       __send__(*a, &b)
     end
   end
-
 end
 
 class NilClass #:nodoc:

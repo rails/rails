@@ -163,15 +163,15 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     firm.account = Account.find(:first)
     assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
-    firm = Firm.find(:first).clone
+    firm = Firm.find(:first).dup
     firm.account = Account.find(:first)
     assert_queries(2) { firm.save! }
 
-    firm = Firm.find(:first).clone
-    firm.account = Account.find(:first).clone
+    firm = Firm.find(:first).dup
+    firm.account = Account.find(:first).dup
     assert_queries(2) { firm.save! }
   end
-  
+
   def test_callbacks_firing_order_on_create
     eye = Eye.create(:iris_attributes => {:color => 'honey'})
     assert_equal [true, false], eye.after_create_callbacks_stack
@@ -355,8 +355,6 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_invalid_adding_before_save
-    no_of_firms = Firm.count
-    no_of_clients = Client.count
     new_firm = Firm.new("name" => "A New Firm, Inc")
     new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
     assert !c.persisted?
@@ -461,7 +459,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_before_save
     company = companies(:first_firm)
-    new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
@@ -481,7 +479,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_via_block_before_save
     company = companies(:first_firm)
-    new_clients = assert_no_queries do
+    assert_no_queries do
       company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
         client.name = "changed"
       end
@@ -669,8 +667,19 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
+    @ship.pirate.catchphrase = "Changed Catchphrase"
+
     assert_raise(RuntimeError) { assert !@ship.save }
     assert_not_nil @ship.reload.pirate
+  end
+
+  def test_should_save_changed_child_objects_if_parent_is_saved
+    @pirate = @ship.create_pirate(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    @parrot = @pirate.parrots.create!(:name => 'Posideons Killer')
+    @parrot.name = "NewName"
+    @ship.save
+
+    assert_equal 'NewName', @parrot.reload.name
   end
 
   # has_many & has_and_belongs_to

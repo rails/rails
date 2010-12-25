@@ -148,7 +148,7 @@ module ActiveSupport
     def singularize(word)
       result = word.to_s.dup
 
-      if inflections.uncountables.any? { |inflection| result =~ /#{inflection}\Z/i }
+      if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
         result
       else
         inflections.singulars.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }

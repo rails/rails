@@ -42,7 +42,7 @@ module Rails
         end
 
         def wrap_with_namespace(content)
-          content = indent(content)
+          content = indent(content).chomp
           "module #{namespace.name}\n#{content}\nend\n"
         end
 

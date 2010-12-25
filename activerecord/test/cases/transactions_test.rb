@@ -163,7 +163,7 @@ class TransactionTest < ActiveRecord::TestCase
         @first.author_name += '_this_should_not_end_up_in_the_db'
         @first.save!
         flunk
-      rescue => e
+      rescue
         assert_equal original_author_name, @first.reload.author_name
         assert_equal nbooks_before_save, Book.count
       ensure
@@ -370,23 +370,23 @@ class TransactionTest < ActiveRecord::TestCase
       assert topic_2.save
       @first.save
       @second.destroy
-      assert_equal true, topic_1.persisted?
+      assert topic_1.persisted?, 'persisted'
       assert_not_nil topic_1.id
-      assert_equal true, topic_2.persisted?
+      assert topic_2.persisted?, 'persisted'
       assert_not_nil topic_2.id
-      assert_equal true, @first.persisted?
+      assert @first.persisted?, 'persisted'
       assert_not_nil @first.id
-      assert_equal true, @second.destroyed?
+      assert @second.destroyed?, 'destroyed'
       raise ActiveRecord::Rollback
     end
 
-    assert_equal false, topic_1.persisted?
+    assert !topic_1.persisted?, 'not persisted'
     assert_nil topic_1.id
-    assert_equal false, topic_2.persisted?
+    assert !topic_2.persisted?, 'not persisted'
     assert_nil topic_2.id
-    assert_equal true, @first.persisted?
+    assert @first.persisted?, 'persisted'
     assert_not_nil @first.id
-    assert_equal false, @second.destroyed?
+    assert !@second.destroyed?, 'not destroyed'
   end
 
   if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)

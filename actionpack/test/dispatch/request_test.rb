@@ -1,6 +1,31 @@
 require 'abstract_unit'
 
 class RequestTest < ActiveSupport::TestCase
+
+  def url_for(options = {})
+    options.reverse_merge!(:host => 'www.example.com')
+    ActionDispatch::Http::URL.url_for(options)
+  end
+
+  test "url_for class method" do
+    e = assert_raise(ArgumentError) { url_for(:host => nil) }
+    assert_match(/Please provide the :host parameter/, e.message)
+
+    assert_equal '/books', url_for(:only_path => true, :path => '/books')
+
+    assert_equal 'http://www.example.com',  url_for
+    assert_equal 'http://api.example.com',  url_for(:subdomain => 'api')
+    assert_equal 'http://www.ror.com',      url_for(:domain => 'ror.com')
+    assert_equal 'http://api.ror.co.uk',    url_for(:host => 'www.ror.co.uk', :subdomain => 'api', :tld_length => 2)
+    assert_equal 'http://www.example.com:8080',   url_for(:port => 8080)
+    assert_equal 'https://www.example.com',       url_for(:protocol => 'https')
+    assert_equal 'http://www.example.com/docs',   url_for(:path => '/docs')
+    assert_equal 'http://www.example.com#signup', url_for(:anchor => 'signup')
+    assert_equal 'http://www.example.com/',       url_for(:trailing_slash => true)
+    assert_equal 'http://dhh:supersecret@www.example.com', url_for(:user => 'dhh', :password => 'supersecret')
+    assert_equal 'http://www.example.com?search=books',    url_for(:params => { :search => 'books' })
+  end
+
   test "remote ip" do
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4'
     assert_equal '1.2.3.4', request.remote_ip
@@ -164,12 +189,20 @@ class RequestTest < ActiveSupport::TestCase
     assert !request.standard_port?
   end
 
-  test "port string" do
+  test "optional port" do
     request = stub_request 'HTTP_HOST' => 'www.example.org:80'
-    assert_equal "", request.port_string
+    assert_equal nil, request.optional_port
 
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
-    assert_equal ":8080", request.port_string
+    assert_equal 8080, request.optional_port
+  end
+
+  test "port string" do
+    request = stub_request 'HTTP_HOST' => 'www.example.org:80'
+    assert_equal '', request.port_string
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
+    assert_equal ':8080', request.port_string
   end
 
   test "full path" do
@@ -392,7 +425,7 @@ class RequestTest < ActiveSupport::TestCase
     mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
     request = nil
     begin
-      request = stub_request(mock_rack_env) 
+      request = stub_request(mock_rack_env)
       request.parameters
     rescue TypeError => e
       # rack will raise a TypeError when parsing this query string

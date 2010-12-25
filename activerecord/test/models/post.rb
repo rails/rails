@@ -38,9 +38,7 @@ class Post < ActiveRecord::Base
   end
 
   has_many :author_favorites, :through => :author
-
-  has_many :comments_with_interpolated_conditions, :class_name => 'Comment',
-      :conditions => ['#{"#{aliased_table_name}." rescue ""}body = ?', 'Thank you for the welcome']
+  has_many :author_categorizations, :through => :author, :source => :categorizations
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
@@ -58,6 +56,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
+
   has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => "tags.name = 'Misc'"
   has_many :funky_tags, :through => :taggings, :source => :tag
   has_many :super_tags, :through => :taggings
@@ -68,6 +68,16 @@ class Post < ActiveRecord::Base
 
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations
+
+  has_many :categorizations_using_author_id, :primary_key => :author_id, :foreign_key => :post_id, :class_name => 'Categorization'
+  has_many :authors_using_author_id, :through => :categorizations_using_author_id, :source => :author
+
+  has_many :taggings_using_author_id, :primary_key => :author_id, :as => :taggable, :class_name => 'Tagging'
+  has_many :tags_using_author_id, :through => :taggings_using_author_id, :source => :tag
+
+  has_many :standard_categorizations, :class_name => 'Categorization', :foreign_key => :post_id
+  has_many :author_using_custom_pk,  :through => :standard_categorizations
+  has_many :authors_using_custom_pk, :through => :standard_categorizations
 
   has_many :readers
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
@@ -118,4 +128,11 @@ class PostForAuthor < ActiveRecord::Base
   self.table_name = 'posts'
   cattr_accessor :selected_author
   default_scope lambda { where(:author_id => PostForAuthor.selected_author) }
+end
+
+class FirstPost < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope where(:id => 1)
+  has_many :comments, :foreign_key => :post_id
+  has_one  :comment,  :foreign_key => :post_id
 end

@@ -67,8 +67,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_no_sql_should_be_fired_if_association_already_loaded
-    car = Car.create(:name => 'honda')
-    bulb = car.bulbs.create
+    Car.create(:name => 'honda')
     bulbs = Car.first.bulbs
     bulbs.inspect # to load all instances of bulbs
     assert_no_queries do
@@ -614,6 +613,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_difference "post.reload.taggings_count", -1 do
       post.taggings.delete(post.taggings.first)
+    end
+  end
+
+  def test_deleting_updates_counter_cache_with_dependent_delete_all
+    post = posts(:welcome)
+
+    # Manually update the count as the tagging will have been added to the taggings association,
+    # rather than to the taggings_with_delete_all one (which is just a 'shadow' of the former)
+    post.update_attribute(:taggings_with_delete_all_count, post.taggings_with_delete_all.to_a.count)
+
+    assert_difference "post.reload.taggings_with_delete_all_count", -1 do
+      post.taggings_with_delete_all.delete(post.taggings_with_delete_all.first)
     end
   end
 
@@ -1281,5 +1292,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = Post.new
     comment = post.comments.build
     assert post.comments.include?(comment)
+  end
+
+  def test_load_target_respects_protected_attributes
+    topic = Topic.create!
+    reply = topic.replies.create(:title => "reply 1")
+    reply.approved = false
+    reply.save!
+
+    # Save with a different object instance, so the instance that's still held
+    # in topic.relies doesn't know about the changed attribute.
+    reply2 = Reply.find(reply.id)
+    reply2.approved = true
+    reply2.save!
+
+    # Force loading the collection from the db. This will merge the existing
+    # object (reply) with what gets loaded from the db (which includes the
+    # changed approved attribute). approved is a protected attribute, so if mass
+    # assignment is used, it won't get updated and will still be false.
+    first = topic.replies.to_a.first
+    assert_equal reply.id, first.id
+    assert_equal true, first.approved?
   end
 end

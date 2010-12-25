@@ -180,6 +180,16 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert_not_equal template, old_template
   end
+
+  test "data can be stored in cached templates" do
+    template = @lookup_context.find("hello_world", "test")
+    template.data["cached"] = "data"
+    assert_equal "Hello world!", template.source
+
+    template = @lookup_context.find("hello_world", "test")
+    assert_equal "data", template.data["cached"]
+    assert_equal "Hello world!", template.source
+  end
 end
 
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
@@ -205,7 +215,7 @@ class LookupContextWithFalseCaching < ActiveSupport::TestCase
     assert_equal "Bar", template.source
   end
 
-  test "if no template was found in the second lookup, give it higher preference" do
+  test "if no template was found in the second lookup, with no cache, raise error" do
     template = @lookup_context.find("foo", "test", true)
     assert_equal "Foo", template.source
 
@@ -215,7 +225,7 @@ class LookupContextWithFalseCaching < ActiveSupport::TestCase
     end
   end
 
-  test "if no template was cached in the first lookup, do not use the cache in the second" do
+  test "if no template was cached in the first lookup, retrieval should work in the second call" do
     @resolver.hash.clear
     assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", "test", true)
@@ -223,6 +233,21 @@ class LookupContextWithFalseCaching < ActiveSupport::TestCase
 
     @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
     template = @lookup_context.find("foo", "test", true)
+    assert_equal "Foo", template.source
+  end
+
+  test "data can be stored as long as template was not updated" do
+    template = @lookup_context.find("foo", "test", true)
+    template.data["cached"] = "data"
+    assert_equal "Foo", template.source
+
+    template = @lookup_context.find("foo", "test", true)
+    assert_equal "data", template.data["cached"]
+    assert_equal "Foo", template.source
+
+    @resolver.hash["test/_foo.erb"][1] = Time.now.utc
+    template = @lookup_context.find("foo", "test", true)
+    assert_nil template.data["cached"]
     assert_equal "Foo", template.source
   end
 end

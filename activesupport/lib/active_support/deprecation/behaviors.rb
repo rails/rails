@@ -7,10 +7,17 @@ module ActiveSupport
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
 
+      # Returns the set behaviour or if one isn't set, defaults to +:stderr+
       def behavior
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
+      # Sets the behaviour to the specified value. Can be a single value or an array.
+      #
+      # Examples
+      #
+      #   ActiveSupport::Deprecation.behavior = :stderr
+      #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
       def behavior=(behavior)
         @behavior = Array.wrap(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
       end

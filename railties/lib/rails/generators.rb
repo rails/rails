@@ -228,6 +228,7 @@ module Rails
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
       rails.delete("app")
+      rails.delete("plugin_new")
       print_list("rails", rails)
 
       hidden_namespaces.each {|n| groups.delete(n.to_s) }
@@ -301,6 +302,7 @@ module Rails
         $LOAD_PATH.each do |base|
           Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
             begin
+              path = path.sub("#{base}/", "")
               require path
             rescue Exception => e
               # No problem

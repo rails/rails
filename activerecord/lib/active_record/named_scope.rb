@@ -2,11 +2,17 @@ require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   # = Active Record Named \Scopes
   module NamedScope
     extend ActiveSupport::Concern
+
+    included do
+      class_attribute :scopes
+      self.scopes = {}
+    end
 
     module ClassMethods
       # Returns an anonymous \scope.
@@ -31,10 +37,6 @@ module ActiveRecord
         else
           current_scoped_methods ? relation.merge(current_scoped_methods) : relation.clone
         end
-      end
-
-      def scopes
-        read_inheritable_attribute(:scopes) || write_inheritable_attribute(:scopes, {})
       end
 
       # Adds a class method for retrieving and querying objects. A \scope represents a narrowing of a database query,

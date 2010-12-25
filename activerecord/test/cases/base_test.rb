@@ -19,6 +19,7 @@ require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/loose_person'
+require 'models/edge'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -47,6 +48,10 @@ class Boolean < ActiveRecord::Base; end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
+
+  def test_primary_key_with_no_id
+    assert_nil Edge.primary_key
+  end
 
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort
@@ -182,7 +187,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_initialize_with_invalid_attribute
     begin
-      topic = Topic.new({ "title" => "test",
+      Topic.new({ "title" => "test",
         "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
     rescue ActiveRecord::MultiparameterAssignmentErrors => ex
       assert_equal(1, ex.errors.size)
@@ -669,64 +674,65 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal true, Topic.find(1).persisted?
   end
 
-  def test_clone
+  def test_dup
     topic = Topic.find(1)
-    cloned_topic = nil
-    assert_nothing_raised { cloned_topic = topic.clone }
-    assert_equal topic.title, cloned_topic.title
-    assert !cloned_topic.persisted?
+    duped_topic = nil
+    assert_nothing_raised { duped_topic = topic.dup }
+    assert_equal topic.title, duped_topic.title
+    assert !duped_topic.persisted?
 
-    # test if the attributes have been cloned
+    # test if the attributes have been duped
     topic.title = "a"
-    cloned_topic.title = "b"
+    duped_topic.title = "b"
     assert_equal "a", topic.title
-    assert_equal "b", cloned_topic.title
+    assert_equal "b", duped_topic.title
 
-    # test if the attribute values have been cloned
+    # test if the attribute values have been duped
     topic.title = {"a" => "b"}
-    cloned_topic = topic.clone
-    cloned_topic.title["a"] = "c"
+    duped_topic = topic.dup
+    duped_topic.title["a"] = "c"
     assert_equal "b", topic.title["a"]
 
-    # test if attributes set as part of after_initialize are cloned correctly
-    assert_equal topic.author_email_address, cloned_topic.author_email_address
+    # test if attributes set as part of after_initialize are duped correctly
+    assert_equal topic.author_email_address, duped_topic.author_email_address
 
     # test if saved clone object differs from original
-    cloned_topic.save
-    assert cloned_topic.persisted?
-    assert_not_equal cloned_topic.id, topic.id
+    duped_topic.save
+    assert duped_topic.persisted?
+    assert_not_equal duped_topic.id, topic.id
 
-    cloned_topic.reload
+    duped_topic.reload
     # FIXME: I think this is poor behavior, and will fix it with #5686
-    assert_equal({'a' => 'c'}.to_s, cloned_topic.title)
+    assert_equal({'a' => 'c'}.to_s, duped_topic.title)
   end
 
-  def test_clone_with_aggregate_of_same_name_as_attribute
+  def test_dup_with_aggregate_of_same_name_as_attribute
     dev = DeveloperWithAggregate.find(1)
     assert_kind_of DeveloperSalary, dev.salary
 
-    clone = nil
-    assert_nothing_raised { clone = dev.clone }
-    assert_kind_of DeveloperSalary, clone.salary
-    assert_equal dev.salary.amount, clone.salary.amount
-    assert !clone.persisted?
+    dup = nil
+    assert_nothing_raised { dup = dev.dup }
+    assert_kind_of DeveloperSalary, dup.salary
+    assert_equal dev.salary.amount, dup.salary.amount
+    assert !dup.persisted?
 
-    # test if the attributes have been cloned
-    original_amount = clone.salary.amount
+    # test if the attributes have been dupd
+    original_amount = dup.salary.amount
     dev.salary.amount = 1
-    assert_equal original_amount, clone.salary.amount
+    assert_equal original_amount, dup.salary.amount
 
-    assert clone.save
-    assert clone.persisted?
-    assert_not_equal clone.id, dev.id
+    assert dup.save
+    assert dup.persisted?
+    assert_not_equal dup.id, dev.id
   end
 
-  def test_clone_does_not_clone_associations
+  def test_dup_does_not_copy_associations
     author = authors(:david)
     assert_not_equal [], author.posts
+    author.send(:clear_association_cache)
 
-    author_clone = author.clone
-    assert_equal [], author_clone.posts
+    author_dup = author.dup
+    assert_equal [], author_dup.posts
   end
 
   def test_clone_preserves_subtype
@@ -765,22 +771,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
-  def test_clone_of_saved_object_marks_attributes_as_dirty
+  def test_dup_of_saved_object_marks_attributes_as_dirty
     developer = Developer.create! :name => 'Bjorn', :salary => 100000
     assert !developer.name_changed?
     assert !developer.salary_changed?
 
-    cloned_developer = developer.clone
+    cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # both attributes differ from defaults
     assert cloned_developer.salary_changed?
   end
 
-  def test_clone_of_saved_object_marks_as_dirty_only_changed_attributes
+  def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! :name => 'Bjorn'
     assert !developer.name_changed?           # both attributes of saved object should be threated as not changed
     assert !developer.salary_changed?
 
-    cloned_developer = developer.clone
+    cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
     assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be threated as not changed on cloned instance
   end
@@ -972,7 +978,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_nil_serialized_attribute_with_class_constraint
-    myobj = MyObject.new('value1', 'value2')
     topic = Topic.new
     assert_nil topic.content
   end
@@ -995,6 +1000,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(settings, Topic.find(topic.id).content)
   ensure
     Topic.serialize(:content)
+  end
+
+  def test_serialized_boolean_value_true
+    Topic.serialize(:content)
+    topic = Topic.new(:content => true)
+    assert topic.save
+    topic = topic.reload
+    assert_equal topic.content, true
+  end
+
+  def test_serialized_boolean_value_false
+    Topic.serialize(:content)
+    topic = Topic.new(:content => false)
+    assert topic.save
+    topic = topic.reload
+    assert_equal topic.content, false
   end
 
   def test_quote
@@ -1053,6 +1074,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_define_attr_method_with_block
     k = Class.new( ActiveRecord::Base )
+    k.primary_key = "id"
     k.send(:define_attr_method, :primary_key) { "sys_" + original_primary_key }
     assert_equal "sys_id", k.primary_key
   end
@@ -1093,6 +1115,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_set_primary_key_with_block
     k = Class.new( ActiveRecord::Base )
+    k.primary_key = 'id'
     k.set_primary_key { "sys_" + original_primary_key }
     assert_equal "sys_id", k.primary_key
   end
@@ -1442,10 +1465,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
-  end
-
-  def test_dup
-    assert !Minimalistic.new.freeze.dup.frozen?
   end
 
   def test_compute_type_success

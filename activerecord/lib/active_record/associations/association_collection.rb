@@ -1,4 +1,3 @@
-require 'set'
 require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
@@ -75,7 +74,7 @@ module ActiveRecord
           find(:first, *args)
         else
           load_target unless loaded?
-          args = args[1..-1] if args.first.kind_of?(Hash) && args.first.empty?
+          args.shift if args.first.kind_of?(Hash) && args.first.empty?
           @target.first(*args)
         end
       end
@@ -93,7 +92,7 @@ module ActiveRecord
       def to_ary
         load_target
         if @target.is_a?(Array)
-          @target.to_ary
+          @target
         else
           Array.wrap(@target)
         end
@@ -102,7 +101,7 @@ module ActiveRecord
 
       def reset
         reset_target!
-        reset_named_scopes_cache!
+        reset_scopes_cache!
         @loaded = false
       end
 
@@ -121,13 +120,13 @@ module ActiveRecord
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
         result = true
-        load_target unless @owner.persisted?
+        load_target if @owner.new_record?
 
         transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
-              result &&= insert_record(record) if @owner.persisted?
+              result &&= insert_record(record) unless @owner.new_record?
             end
           end
         end
@@ -160,7 +159,7 @@ module ActiveRecord
         load_target
         delete(@target)
         reset_target!
-        reset_named_scopes_cache!
+        reset_scopes_cache!
       end
 
       # Calculate sum using SQL, not Enumerable
@@ -182,7 +181,7 @@ module ActiveRecord
           unless options.blank?
             raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
           end
-          
+
           @reflection.klass.count_by_sql(custom_counter_sql)
         else
 
@@ -235,12 +234,12 @@ module ActiveRecord
 
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
-        return self if length.zero? # forces load_target if it hasn't happened already
-
-        if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
-          destroy_all
-        else
-          delete_all
+        unless length.zero? # forces load_target if it hasn't happened already
+          if @reflection.options[:dependent] == :destroy
+            destroy_all
+          else
+            delete_all
+          end
         end
 
         self
@@ -253,7 +252,7 @@ module ActiveRecord
         load_target
         destroy(@target).tap do
           reset_target!
-          reset_named_scopes_cache!
+          reset_scopes_cache!
         end
       end
 
@@ -263,7 +262,7 @@ module ActiveRecord
         else
           create_record(attrs) do |record|
             yield(record) if block_given?
-            record.save
+            insert_record(record, false)
           end
         end
       end
@@ -271,7 +270,7 @@ module ActiveRecord
       def create!(attrs = {})
         create_record(attrs) do |record|
           yield(record) if block_given?
-          record.save!
+          insert_record(record, true)
         end
       end
 
@@ -286,12 +285,12 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if !@owner.persisted? || (loaded? && !@reflection.options[:uniq])
+        if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
           @target.size
         elsif !loaded? && @reflection.options[:group]
           load_target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
-          unsaved_records = @target.reject { |r| r.persisted? }
+          unsaved_records = @target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
           count_records
@@ -332,13 +331,10 @@ module ActiveRecord
       end
 
       def uniq(collection = self)
-        seen = Set.new
-        collection.map do |record|
-          unless seen.include?(record.id)
-            seen << record.id
-            record
-          end
-        end.compact
+        seen = {}
+        collection.find_all do |record|
+          seen[record.id] = true unless seen.key?(record.id)
+        end
       end
 
       # Replace this collection with +other_array+
@@ -347,21 +343,18 @@ module ActiveRecord
         other_array.each { |val| raise_on_type_mismatch(val) }
 
         load_target
-        other   = other_array.size < 100 ? other_array : other_array.to_set
-        current = @target.size < 100 ? @target : @target.to_set
 
         transaction do
-          delete(@target.select { |v| !other.include?(v) })
-          concat(other_array.select { |v| !current.include?(v) })
+          delete(@target - other_array)
+          concat(other_array - @target)
         end
       end
 
       def include?(record)
         return false unless record.is_a?(@reflection.klass)
-        return include_in_memory?(record) unless record.persisted?
+        return include_in_memory?(record) if record.new_record?
         load_target if @reflection.options[:finder_sql] && !loaded?
-        return @target.include?(record) if loaded?
-        exists?(record)
+        loaded? ? @target.include?(record) : exists?(record)
       end
 
       def proxy_respond_to?(method, include_private = false)
@@ -373,16 +366,18 @@ module ActiveRecord
         end
 
         def load_target
-          if @owner.persisted? || foreign_key_present
+          if !@owner.new_record? || foreign_key_present
             begin
-              if !loaded?
+              unless loaded?
                 if @target.is_a?(Array) && @target.any?
                   @target = find_target.map do |f|
                     i = @target.index(f)
                     if i
                       @target.delete_at(i).tap do |t|
                         keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                        t.attributes = f.attributes.except(*keys)
+                        f.attributes.except(*keys).each do |k,v|
+                          t.send("#{k}=", v)
+                        end
                       end
                     else
                       f
@@ -409,15 +404,11 @@ module ActiveRecord
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            if block_given?
-              super { |*block_args| yield(*block_args) }
-            else
-              super
-            end
+            super
           elsif @reflection.klass.scopes[method]
-            @_named_scopes_cache ||= {}
-            @_named_scopes_cache[method] ||= {}
-            @_named_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
+            @_scopes_cache ||= {}
+            @_scopes_cache[method] ||= {}
+            @_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
           else
             with_scope(@scope) do
               if block_given?
@@ -436,10 +427,10 @@ module ActiveRecord
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
             counter_sql = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
-          
+
           interpolate_sql(counter_sql)
         end
-        
+
         def custom_finder_sql
           interpolate_sql(@reflection.options[:finder_sql])
         end
@@ -448,8 +439,8 @@ module ActiveRecord
           @target = Array.new
         end
 
-        def reset_named_scopes_cache!
-          @_named_scopes_cache = {}
+        def reset_scopes_cache!
+          @_scopes_cache = {}
         end
 
         def find_target
@@ -471,10 +462,10 @@ module ActiveRecord
           callback(:before_add, record)
           yield(record) if block_given?
           @target ||= [] unless loaded?
-          if index = @target.index(record)
+          if @reflection.options[:uniq] && index = @target.index(record)
             @target[index] = record
           else
-             @target << record
+            @target << record
           end
           callback(:after_add, record)
           set_inverse_instance(record, @owner)
@@ -482,30 +473,31 @@ module ActiveRecord
         end
 
       private
-        def create_record(attrs)
-          attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
-          ensure_owner_is_not_new
+        # Do the relevant stuff to insert the given record into the association collection. The
+        # force param specifies whether or not an exception should be raised on failure. The
+        # validate param specifies whether validation should be performed (if force is false).
+        def insert_record(record, force = true, validate = true)
+          raise NotImplementedError
+        end
 
-          scoped_where = scoped.where_values_hash
-          create_scope = scoped_where ? @scope[:create].merge(scoped_where) : @scope[:create]
-          record = @reflection.klass.send(:with_scope, :create => create_scope) do
-            @reflection.build_association(attrs)
-          end
-          if block_given?
-            add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
-          else
-            add_record_to_target_with_callbacks(record)
+        def save_record(record, force, validate)
+          force ? record.save! : record.save(:validate => validate)
+        end
+
+        def create_record(attrs, &block)
+          ensure_owner_is_persisted!
+
+          transaction do
+            with_scope(:create => @scope[:create].merge(scoped.where_values_hash || {})) do
+              build_record(attrs, &block)
+            end
           end
         end
 
-        def build_record(attrs)
+        def build_record(attrs, &block)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           record = @reflection.build_association(attrs)
-          if block_given?
-            add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
-          else
-            add_record_to_target_with_callbacks(record)
-          end
+          add_record_to_target_with_callbacks(record, &block)
         end
 
         def remove_records(*records)
@@ -514,7 +506,7 @@ module ActiveRecord
 
           transaction do
             records.each { |record| callback(:before_remove, record) }
-            old_records = records.select { |r| r.persisted? }
+            old_records = records.reject { |r| r.new_record? }
             yield(records, old_records)
             records.each { |record| callback(:after_remove, record) }
           end
@@ -535,18 +527,18 @@ module ActiveRecord
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
-          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
+          @owner.class.send(full_callback_name.to_sym) || []
         end
 
-        def ensure_owner_is_not_new
+        def ensure_owner_is_persisted!
           unless @owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
         end
 
         def fetch_first_or_last_using_find?(args)
-          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || !@owner.persisted? || @reflection.options[:finder_sql] ||
-                                         !@target.all? { |record| record.persisted? } || args.first.kind_of?(Integer))
+          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
+            @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
         end
 
         def include_in_memory?(record)

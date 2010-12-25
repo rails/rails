@@ -11,7 +11,9 @@ module ActionView
         attr_reader :config, :asset_paths
 
         class_attribute :expansions
-        self.expansions = { }
+        def self.inherited(base)
+          base.expansions = { }
+        end
 
         def initialize(config, asset_paths)
           @config = config
@@ -57,8 +59,8 @@ module ActionView
 
         private
 
-          def path_to_asset(source)
-            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension)
+          def path_to_asset(source, include_host = true)
+            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension, include_host)
           end
 
           def compute_paths(*args)
@@ -77,9 +79,8 @@ module ActionView
 
           def ensure_sources!(sources)
             sources.each do |source|
-              asset_file_path!(path_to_asset(source))
+              asset_file_path!(path_to_asset(source, false))
             end
-            return sources
           end
 
           def collect_asset_files(*path)

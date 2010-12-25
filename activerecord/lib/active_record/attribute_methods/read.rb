@@ -85,7 +85,8 @@ module ActiveRecord
       def _read_attribute(attr_name)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id'
-        if value = @attributes[attr_name]
+        value = @attributes[attr_name]
+        unless value.nil?
           if column = column_for_attribute(attr_name)
             if unserializable_attribute?(attr_name, column)
               unserialize_attribute(attr_name)

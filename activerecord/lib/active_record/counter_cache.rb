@@ -30,9 +30,10 @@ module ActiveRecord
         reflection   = belongs_to.find { |e| e.class_name == expected_name }
         counter_name = reflection.counter_cache_column
 
-        self.unscoped.where(arel_table[self.primary_key].eq(object.id)).arel.update({
+        stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
           arel_table[counter_name] => object.send(association).count
         })
+        connection.update stmt.to_sql
       end
       return true
     end

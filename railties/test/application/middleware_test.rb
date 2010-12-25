@@ -27,6 +27,7 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
+        "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
@@ -79,6 +80,12 @@ module ApplicationTests
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
       assert !middleware.include?("ActionDispatch::ShowExceptions")
+    end
+
+    test "removes ActionDispatch::Reloader if cache_classes is true" do
+      add_to_config "config.cache_classes = true"
+      boot!
+      assert !middleware.include?("ActionDispatch::Reloader")
     end
 
     test "use middleware" do

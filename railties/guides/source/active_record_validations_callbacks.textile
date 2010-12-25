@@ -96,7 +96,7 @@ To verify whether or not an object is valid, Rails uses the +valid?+ method. You
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 
 Person.create(:name => "John Doe").valid? # => true
@@ -109,7 +109,7 @@ Note that an object instantiated with +new+ will not report errors even if it's 
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 
 >> p = Person.new
@@ -141,13 +141,13 @@ end
 
 h4(#validations_overview-errors). +errors[]+
 
-To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+ that returns an array with all attribute errors, when there are no errors on the specified attribute, an empty array is returned.
+To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+. It returns an array of all the errors for +:attribute+. If there are no errors on the specified attribute, an empty array is returned.
 
 This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +ActiveRecord::Base#invalid?+ method explained above because it doesn't verify the validity of the object as a whole. It only checks to see whether there are errors found on an individual attribute of the object.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
 end
 
 >> Person.new.errors[:name].any? # => false
@@ -355,7 +355,7 @@ This helper validates that the specified attributes are not empty. It uses the +
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name, :login, :email
+  validates :name, :login, :email, :presence => true
 end
 </ruby>
 
@@ -414,7 +414,7 @@ class Person < ActiveRecord::Base
   validates_with GoodnessValidator
 end
 
-class GoodnessValidator < ActiveRecord::Validator
+class GoodnessValidator < ActiveModel::Validator
   def validate
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
@@ -505,7 +505,7 @@ class Person < ActiveRecord::Base
   validates_numericality_of :age, :on => :update
 
   # the default (validates on both create and update)
-  validates_presence_of :name, :on => :save
+  validates :name, :presence => true, :on => :save
 end
 </ruby>
 
@@ -603,7 +603,7 @@ Returns an OrderedHash with all errors. Each key is the attribute name and the v
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
   validates_length_of :name, :minimum => 3
 end
 
@@ -623,7 +623,7 @@ h4(#working_with_validation_errors-errors-2). +errors[]+
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
   validates_length_of :name, :minimum => 3
 end
 
@@ -699,7 +699,7 @@ The +clear+ method is used when you intentionally want to clear all the messages
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
   validates_length_of :name, :minimum => 3
 end
 
@@ -723,7 +723,7 @@ The +size+ method returns the total number of error messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, :presence => true
   validates_length_of   :name, :minimum => 3
   validates_presence_of :email
 end
@@ -824,10 +824,10 @@ Here is a simple example where we change the Rails behaviour to always display t
 ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
   if instance.error_message.kind_of?(Array)
     %(#{html_tag}<span class="validation-error">&nbsp;
-      #{instance.error_message.join(',')}</span>)
+      #{instance.error_message.join(',')}</span>).html_safe
   else
     %(#{html_tag}<span class="validation-error">&nbsp;
-      #{instance.error_message}</span>)
+      #{instance.error_message}</span>).html_safe
   end
 end
 </ruby>
@@ -1159,8 +1159,6 @@ config.active_record.observers = :mailer_observer
 </ruby>
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
 
 * July 20, 2010: Fixed typos and rephrased some paragraphs for clarity. "Jaime Iniesta":http://jaimeiniesta.com
 * May 24, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com

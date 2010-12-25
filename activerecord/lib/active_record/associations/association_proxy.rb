@@ -130,6 +130,16 @@ module ActiveRecord
         @loaded = true
       end
 
+      # The target is stale if the target no longer points to the record(s) that the
+      # relevant foreign_key(s) refers to. If stale, the association accessor method
+      # on the owner will reload the target. It's up to subclasses to implement this
+      # method if relevant.
+      #
+      # Note that if the target has not been loaded, it is not considered stale.
+      def stale_target?
+        false
+      end
+
       # Returns the target of this proxy, same as +proxy_target+.
       def target
         @target
@@ -211,12 +221,12 @@ module ActiveRecord
             :create => construct_create_scope
           }
         end
-        
+
         # Implemented by subclasses
         def construct_find_scope
           raise NotImplementedError
         end
-        
+
         # Implemented by (some) subclasses
         def construct_create_scope
           {}
@@ -252,7 +262,7 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? and (@owner.persisted? || foreign_key_present)
+          if !loaded? && (!@owner.new_record? || foreign_key_present)
             @target = find_target
           end
 

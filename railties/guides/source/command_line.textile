@@ -31,7 +31,7 @@ h4. +rails new+
 
 The first thing we'll want to do is create a new Rails application by running the +rails new+ command after installing Rails.
 
-WARNING: You know you need the rails gem installed by typing +gem install rails+ first, if you don't have this installed, follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.html
+WARNING: You can install the rails gem by typing +gem install rails+, if you don't have it already. Follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.html
 
 <shell>
 $ rails new commandsapp
@@ -73,7 +73,7 @@ $ rails server
 [2010-04-18 03:20:33] INFO  WEBrick::HTTPServer#start: pid=26086 port=3000
 </shell>
 
-With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic rails app running.
+With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic Rails app running.
 
 h4. +rails generate+
 
@@ -101,7 +101,7 @@ Using generators will save you a large amount of time by writing *boilerplate co
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
-INFO: All Rails console utilities have help text. As with most *NIX utilities, you can try adding +--help+ or +-h+ to the end, for example +rails server --help+.
+INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding +--help+ or +-h+ to the end, for example +rails server --help+.
 
 <shell>
 $ rails generate controller
@@ -134,6 +134,7 @@ The controller generator is expecting parameters in the form of +generate contro
 <shell>
 $ rails generate controller Greetings hello
      create  app/controllers/greetings_controller.rb
+      route  get "greetings/hello"
      invoke  erb
      create    app/views/greetings
      create    app/views/greetings/hello.html.erb
@@ -197,6 +198,8 @@ Examples:
         Creates a Post model with a string title, text body, and published flag.
 </shell>
 
+NOTE: For a list of available field types, refer to the "API documentation":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html#method-i-column for the column method for the +TableDefinition+ class.
+
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
@@ -259,6 +262,15 @@ h4. +rails console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
+If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
+
+<shell>
+$ rails console --sandbox
+Loading development environment in sandbox (Rails 3.0.0)
+Any modifications you make will be rolled back on exit
+irb(main):001:0>
+</shell>
+
 h4. +rails dbconsole+
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
@@ -279,7 +291,7 @@ $ rails plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_par
 ...
 </shell>
 
-h4. +runner+
+h4. +rails runner+
 
 <tt>runner</tt> runs Ruby code in the context of Rails non-interactively. For instance:
 
@@ -287,7 +299,7 @@ h4. +runner+
 $ rails runner "Model.long_running_method"
 </shell>
 
-h4. +destroy+
+h4. +rails destroy+
 
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it. Believe you-me, the creation of this tutorial used this command many times!
 
@@ -316,7 +328,7 @@ $ rails destroy model Oops
     notempty  app
 </shell>
 
-h4. +about+
+h4. +rake about+
 
 Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! +about+ is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
@@ -339,7 +351,7 @@ Environment               development
 
 h3. The Rails Advanced Command Line
 
-The more advanced uses of the command line are focused around finding useful (even surprising at times) options in the utilities, and fitting utilities to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.
+More advanced use of the command line is focused around finding useful (even surprising at times) options in the utilities, and fitting those to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.
 
 h4. Rails with Databases and SCM
 
@@ -472,7 +484,7 @@ We take whatever args are supplied, save them to an instance variable, and liter
 * Check there's a *public* directory. You bet there is.
 * Run the ERb template called "tutorial.erb".
 * Save it into "Rails.root/public/tutorial.txt".
-* Pass in the arguments we saved through the +:assign+ parameter.
+* Pass in the arguments we saved through the +:assigns+ parameter.
 
 Next we'll build the template:
 
@@ -538,8 +550,6 @@ rake tmp:sessions:clear                   # Clears all files in tmp/sessions
 rake tmp:sockets:clear                    # Clears all files in tmp/sockets
 </shell>
 
-Let's take a look at some of these 80 or so rake tasks.
-
 h5. +db:+ Database
 
 The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
@@ -548,23 +558,9 @@ h5. +doc:+ Documentation
 
 If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
 
-h5. +gems:+ Ruby gems
-
-You can specify which gems your application uses, and +rake gems:install+ will install them for you. Look at your environment.rb to learn how with the *config.gem* directive.
-
-NOTE: +gems:unpack+ will unpack, that is internalize your application's Gem dependencies by copying the Gem code into your vendor/gems directory. By doing this you increase your codebase size, but simplify installation on new hosts by eliminating the need to run +rake gems:install+, or finding and installing the gems your application uses.
-
 h5. +notes:+ Code note enumeration
 
 These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
-
-h5. +rails:+ Rails-specific tasks
-
-In addition to the +gems:unpack+ task above, you can also unpack the Rails backend specific gems into vendor/rails by calling +rake rails:freeze:gems+, to unpack the version of Rails you are currently using, or +rake rails:freeze:edge+ to unpack the most recent (cutting, bleeding edge) version.
-
-When you have frozen the Rails gems, Rails will prefer to use the code in vendor/rails instead of the system Rails gems. You can "thaw" by running +rake rails:unfreeze+.
-
-After upgrading Rails, it is useful to run +rails:update+, which will update your config and scripts directories, and upgrade your Rails-specific javascript (like Scriptaculous).
 
 h5. +test:+ Rails tests
 
@@ -590,6 +586,3 @@ h5. Miscellaneous Tasks
 
  +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
-h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/29

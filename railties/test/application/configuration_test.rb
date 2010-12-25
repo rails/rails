@@ -95,6 +95,11 @@ module ApplicationTests
       assert AppTemplate::Application.config.allow_concurrency
     end
 
+    test "asset_path defaults to nil for application" do
+      require "#{app_path}/config/environment"
+      assert_equal nil, AppTemplate::Application.config.asset_path
+    end
+
     test "the application can be marked as threadsafe when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
@@ -274,6 +279,44 @@ module ApplicationTests
 
       get "/"
       assert_equal "/omg/images/foo.jpg", last_response.body
+    end
+
+    test "config.action_view.cache_template_loading with cache_classes default" do
+      add_to_config "config.cache_classes = true"
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading without cache_classes default" do
+      add_to_config "config.cache_classes = false"
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert !ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading = false" do
+      add_to_config <<-RUBY
+        config.cache_classes = true
+        config.action_view.cache_template_loading = false
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert !ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading = true" do
+      add_to_config <<-RUBY
+        config.cache_classes = false
+        config.action_view.cache_template_loading = true
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert ActionView::Resolver.caching?
     end
   end
 end

@@ -4,7 +4,7 @@ require 'active_support/deprecation/method_wrappers'
 require 'active_support/deprecation/proxy_wrappers'
 
 module ActiveSupport
-  module Deprecation #:nodoc:
+  module Deprecation
     class << self
       # The version the deprecated behavior will be removed, by default.
       attr_accessor :deprecation_horizon

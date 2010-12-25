@@ -56,7 +56,7 @@ module ActiveRecord
         set_inverse_instance(obj, @owner)
         @loaded = true
 
-        unless !@owner.persisted? or obj.nil? or dont_save
+        unless !@owner.persisted? || obj.nil? || dont_save
           return (obj.save ? self : false)
         else
           return (obj.nil? ? nil : self)

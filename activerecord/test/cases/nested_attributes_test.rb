@@ -298,7 +298,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
     @ship.delete
-    
+
     @pirate.reload.update_attributes(:update_only_ship_attributes => { :name => 'Mayflower' })
 
     assert_not_nil @pirate.ship
@@ -411,6 +411,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
     @pirate.stubs(:id).returns('ABC1X')
+    @ship.stubs(:pirate_id).returns(@pirate.id) # prevents pirate from being reloaded due to non-matching foreign key
     @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
 
     assert_equal 'Arr', @ship.pirate.catchphrase
@@ -451,7 +452,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     pirate = @ship.pirate
-    
+
     @ship.attributes = { :pirate_attributes => { :id => pirate.id, '_destroy' => true } }
     assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
     @ship.save
@@ -827,7 +828,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   fixtures :owners, :pets
 
   def setup
-    Owner.accepts_nested_attributes_for :pets
+    Owner.accepts_nested_attributes_for :pets, :allow_destroy => true
 
     @owner = owners(:ashley)
     @pet1, @pet2 = pets(:chew), pets(:mochi)
@@ -844,6 +845,18 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
     @owner.update_attributes(@params)
     assert_equal ['Foo', 'Bar'], @owner.pets.map(&:name)
   end
+
+  def test_attr_accessor_of_child_should_be_value_provided_during_update_attributes
+    @owner = owners(:ashley)
+    @pet1 = pets(:chew)
+    attributes = {:pets_attributes => { "1"=> { :id => @pet1.id,
+                                                :name => "Foo2",
+                                                :current_user => "John",
+                                                :_destroy=>true }}}
+    @owner.update_attributes(attributes)
+    assert_equal 'John', Pet.after_destroy_output
+  end
+
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase

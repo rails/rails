@@ -1,8 +1,10 @@
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/deprecation'
 
 # Retained for backward compatibility.  Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
+  DEPRECATION_WARNING_MESSAGE = "class_inheritable_attribute is deprecated, please use class_attribute method instead. Notice their behavior are slightly different, so refer to class_attribute documentation first"
 end
 
 # It is recommended to use <tt>class_attribute</tt> over methods defined in this file. Please
@@ -36,6 +38,7 @@ end
 #   Person.new.hair_colors             # => NoMethodError
 class Class # :nodoc:
   def class_inheritable_reader(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       next if sym.is_a?(Hash)
@@ -54,6 +57,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_writer(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -71,6 +75,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_array_writer(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -88,6 +93,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_hash_writer(*syms)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -124,6 +130,7 @@ class Class # :nodoc:
   end
 
   def write_inheritable_attribute(key, value)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
       @inheritable_attributes = {}
     end
@@ -141,10 +148,12 @@ class Class # :nodoc:
   end
 
   def read_inheritable_attribute(key)
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     inheritable_attributes[key]
   end
 
   def reset_inheritable_attributes
+    ActiveSupport::Deprecation.warn ClassInheritableAttributes::DEPRECATION_WARNING_MESSAGE
     @inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
   end
 
@@ -168,87 +177,4 @@ class Class # :nodoc:
 
     alias inherited_without_inheritable_attributes inherited
     alias inherited inherited_with_inheritable_attributes
-end
-
-class Class
-  # Defines class-level inheritable attribute reader. Attributes are available to subclasses,
-  # each subclass has a copy of parent's attribute.
-  #
-  # @param *syms<Array[#to_s]> Array of attributes to define inheritable reader for.
-  # @return <Array[#to_s]> Array of attributes converted into inheritable_readers.
-  #
-  # @api public
-  #
-  # @todo Do we want to block instance_reader via :instance_reader => false
-  # @todo It would be preferable that we do something with a Hash passed in
-  #   (error out or do the same as other methods above) instead of silently
-  #   moving on). In particular, this makes the return value of this function
-  #   less useful.
-  def extlib_inheritable_reader(*ivars, &block)
-    options = ivars.extract_options!
-
-    ivars.each do |ivar|
-      self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def self.#{ivar}
-          return @#{ivar} if self.object_id == #{self.object_id} || defined?(@#{ivar})
-          ivar = superclass.#{ivar}
-          return nil if ivar.nil? && !#{self}.instance_variable_defined?("@#{ivar}")
-          @#{ivar} = ivar.duplicable? ? ivar.dup : ivar
-        end
-      RUBY
-      unless options[:instance_reader] == false
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{ivar}
-            self.class.#{ivar}
-          end
-        RUBY
-      end
-      instance_variable_set(:"@#{ivar}", yield) if block_given?
-    end
-  end
-
-  # Defines class-level inheritable attribute writer. Attributes are available to subclasses,
-  # each subclass has a copy of parent's attribute.
-  #
-  # @param *syms<Array[*#to_s, Hash{:instance_writer => Boolean}]> Array of attributes to
-  #   define inheritable writer for.
-  # @option syms :instance_writer<Boolean> if true, instance-level inheritable attribute writer is defined.
-  # @return <Array[#to_s]> An Array of the attributes that were made into inheritable writers.
-  #
-  # @api public
-  #
-  # @todo We need a style for class_eval <<-HEREDOC. I'd like to make it
-  #   class_eval(<<-RUBY, __FILE__, __LINE__), but we should codify it somewhere.
-  def extlib_inheritable_writer(*ivars)
-    options = ivars.extract_options!
-
-    ivars.each do |ivar|
-      self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def self.#{ivar}=(obj)
-          @#{ivar} = obj
-        end
-      RUBY
-      unless options[:instance_writer] == false
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{ivar}=(obj) self.class.#{ivar} = obj end
-        RUBY
-      end
-
-      self.send("#{ivar}=", yield) if block_given?
-    end
-  end
-
-  # Defines class-level inheritable attribute accessor. Attributes are available to subclasses,
-  # each subclass has a copy of parent's attribute.
-  #
-  # @param *syms<Array[*#to_s, Hash{:instance_writer => Boolean}]> Array of attributes to
-  #   define inheritable accessor for.
-  # @option syms :instance_writer<Boolean> if true, instance-level inheritable attribute writer is defined.
-  # @return <Array[#to_s]> An Array of attributes turned into inheritable accessors.
-  #
-  # @api public
-  def extlib_inheritable_accessor(*syms, &block)
-    extlib_inheritable_reader(*syms)
-    extlib_inheritable_writer(*syms, &block)
-  end
 end

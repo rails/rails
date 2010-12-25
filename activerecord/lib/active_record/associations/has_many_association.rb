@@ -42,11 +42,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded if count == 0
 
-          if @reflection.options[:limit]
-            count = [ @reflection.options[:limit], count ].min
-          end
-
-          return count
+          [@reflection.options[:limit], count].compact.min
         end
 
         def has_cached_counter?
@@ -59,7 +55,7 @@ module ActiveRecord
 
         def insert_record(record, force = false, validate = true)
           set_belongs_to_association_for(record)
-          force ? record.save! : record.save(:validate => validate)
+          save_record(record, force, validate)
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
@@ -68,14 +64,18 @@ module ActiveRecord
             when :destroy
               records.each { |r| r.destroy }
             when :delete_all
-              @reflection.klass.delete(records.map { |record| record.id })
+              @reflection.klass.delete(records.map { |r| r.id })
             else
-              relation = Arel::Table.new(@reflection.table_name)
-              relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
-                  and(relation[@reflection.klass.primary_key].in(records.map { |r| r.id }))
-              ).update(relation[@reflection.primary_key_name] => nil)
+              updates    = { @reflection.primary_key_name => nil }
+              conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
-              @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size) if has_cached_counter?
+              with_scope(@scope) do
+                @reflection.klass.update_all(updates, conditions)
+              end
+          end
+
+          if has_cached_counter? && @reflection.options[:dependent] != :destroy
+            @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size)
           end
         end
 
@@ -112,8 +112,7 @@ module ActiveRecord
         end
 
         def we_can_set_the_inverse_on_this?(record)
-          inverse = @reflection.inverse_of
-          return !inverse.nil?
+          @reflection.inverse_of
         end
     end
   end

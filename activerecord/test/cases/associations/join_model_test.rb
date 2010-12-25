@@ -44,16 +44,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert !authors(:mary).unique_categorized_posts.loaded?
   end
 
-  def test_column_caching
-    # pre-heat our cache
-    Post.arel_table.columns
-    Comment.columns
-
-    Post.connection.column_calls = 0
-    2.times { Post.joins(:comments).to_a }
-    assert_equal 0, Post.connection.column_calls
-  end
-
   def test_has_many_uniq_through_find
     assert_equal 1, authors(:mary).unique_categorized_posts.find(:all).size
   end
@@ -308,6 +298,22 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal [authors(:mary)], posts(:authorless).authors
   end
 
+  def test_has_many_going_through_join_model_with_custom_primary_key
+    assert_equal [authors(:david)], posts(:thinking).authors_using_author_id
+  end
+
+  def test_has_many_going_through_polymorphic_join_model_with_custom_primary_key
+    assert_equal [tags(:general)], posts(:eager_other).tags_using_author_id
+  end
+
+  def test_has_many_through_with_custom_primary_key_on_belongs_to_source
+    assert_equal [authors(:david), authors(:david)], posts(:thinking).author_using_custom_pk
+  end
+
+  def test_has_many_through_with_custom_primary_key_on_has_many_source
+    assert_equal [authors(:david)], posts(:thinking).authors_using_custom_pk
+  end
+
   def test_both_scoped_and_explicit_joins_should_be_respected
     assert_nothing_raised do
       Post.send(:with_scope, :find => {:joins => "left outer join comments on comments.id = posts.id"}) do
@@ -334,11 +340,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_polymorphic
-    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggables
+    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicSourceError do
+      tags(:general).taggables
     end
+
+    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicThroughError do
+      taggings(:welcome_general).things
+    end
+
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
+      tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
     end
   end
 
@@ -506,6 +517,10 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
   end
 
+  def test_add_to_join_table_with_no_id
+    assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
+  end
+
   def test_has_many_through_collection_size_doesnt_load_target_if_not_loaded
     author = authors(:david)
     assert_equal 10, author.comments.size
@@ -642,7 +657,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_preload_nil_polymorphic_belongs_to
     assert_nothing_raised do
-      taggings = Tagging.find(:all, :include => :taggable, :conditions => ['taggable_type IS NULL'])
+      Tagging.find(:all, :include => :taggable, :conditions => ['taggable_type IS NULL'])
     end
   end
 

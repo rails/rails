@@ -89,51 +89,25 @@ module ActiveRecord
   # singletons and that call instantiates and registers them.
   #
   class Observer < ActiveModel::Observer
-    class_attribute :observed_methods
-    self.observed_methods = [].freeze
-
-    def initialize
-      super
-      observed_descendants.each { |klass| add_observer!(klass) }
-    end
-
-    def self.method_added(method)
-      method = method.to_sym
-
-      if ActiveRecord::Callbacks::CALLBACKS.include?(method)
-        self.observed_methods += [method]
-        self.observed_methods.freeze
-      end
-    end
 
     protected
 
-      def observed_descendants
-        observed_classes.sum([]) { |klass| klass.descendants }
-      end
-
-      def observe_callbacks?
-        self.class.observed_methods.any?
+      def observed_classes
+        klasses = super
+        klasses + klasses.map { |klass| klass.descendants }.flatten
       end
 
       def add_observer!(klass)
         super
-        define_callbacks klass if observe_callbacks?
+        define_callbacks klass
       end
 
       def define_callbacks(klass)
-        existing_methods = klass.instance_methods.map { |m| m.to_sym }
         observer = self
-        observer_name = observer.class.name.underscore.gsub('/', '__')
 
-        self.class.observed_methods.each do |method|
-          callback = :"_notify_#{observer_name}_for_#{method}"
-          unless existing_methods.include? callback
-            klass.send(:define_method, callback) do  # def _notify_user_observer_for_before_save
-              observer.update(method, self)          #   observer.update(:before_save, self)
-            end                                      # end
-            klass.send(method, callback)             # before_save :_notify_user_observer_for_before_save
-          end
+        ActiveRecord::Callbacks::CALLBACKS.each do |callback|
+          next unless respond_to?(callback)
+          klass.send(callback){|record| observer.send(callback, record)}
         end
       end
   end

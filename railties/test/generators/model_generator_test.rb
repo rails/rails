@@ -99,13 +99,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["product", "name:string", "supplier_id:integer"]
 
     assert_migration "db/migrate/create_products.rb" do |m|
-      assert_class_method :up, m do |up|
+      assert_method :up, m do |up|
         assert_match /create_table :products/, up
         assert_match /t\.string :name/, up
         assert_match /t\.integer :supplier_id/, up
       end
 
-      assert_class_method :down, m do |down|
+      assert_method :down, m do |down|
         assert_match /drop_table :products/, down
       end
     end
@@ -141,16 +141,28 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "--no-timestamps"]
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_class_method :up, m do |up|
+      assert_method :up, m do |up|
         assert_no_match /t.timestamps/, up
       end
     end
   end
 
-  def test_migration_already_exists_error_message
+  def test_migration_is_skipped_with_skip_option
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], :behavior => :skip }
-    assert_match /Another migration is already named create_accounts/, error
+    output = run_generator ["Account", "--skip"]
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+  end
+
+  def test_migration_is_ignored_as_identical_with_skip_option
+    run_generator ["Account"]
+    output = run_generator ["Account", "--skip"]
+    assert_match %r{identical\s+db/migrate/\d+_create_accounts.rb}, output
+  end
+
+  def test_migration_is_skipped_on_skip_behavior
+    run_generator
+    output = run_generator ["Account"], :behavior => :skip
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke

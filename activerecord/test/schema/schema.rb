@@ -110,8 +110,10 @@ ActiveRecord::Schema.define do
 
   create_table :categorizations, :force => true do |t|
     t.column :category_id, :integer
+    t.string :named_category_name
     t.column :post_id, :integer
     t.column :author_id, :integer
+    t.column :special, :boolean
   end
 
   create_table :citations, :force => true do |t|
@@ -440,6 +442,7 @@ ActiveRecord::Schema.define do
     t.string  :type
     t.integer :comments_count, :default => 0
     t.integer :taggings_count, :default => 0
+    t.integer :taggings_with_delete_all_count, :default => 0
   end
 
   create_table :price_estimates, :force => true do |t|

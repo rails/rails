@@ -1,4 +1,4 @@
-class InnocentJointable < ActiveRecord::Migration
+class ValidWithTimestampsInnocentJointable < ActiveRecord::Migration
   def self.up
     create_table("people_reminders", :id => false) do |t|
       t.column :reminder_id, :integer

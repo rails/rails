@@ -102,7 +102,7 @@ module Rails
 
       def set_default_accessors!
         self.rails_template = case options[:template]
-          when /^http:\/\//
+          when /^https?:\/\//
             options[:template]
           when String
             File.expand_path(options[:template], Dir.pwd)
@@ -171,6 +171,12 @@ gem 'rails', '#{Rails::VERSION::STRING}'
       def dev_or_edge?
         options.dev? || options.edge?
       end
+
+      def empty_directory_with_gitkeep(destination, config = {})
+        empty_directory(destination, config)
+        create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      end
+
     end
   end
 end

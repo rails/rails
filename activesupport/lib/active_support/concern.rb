@@ -3,7 +3,7 @@ module ActiveSupport
   #
   #   module M
   #     def self.included(base)
-  #       base.extend, ClassMethods
+  #       base.extend ClassMethods
   #       base.send(:include, InstanceMethods)
   #       scope :disabled, where(:disabled => true)
   #     end

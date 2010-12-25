@@ -484,7 +484,6 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     face = faces(:confused)
-    old_man = face.polymorphic_man
     new_man = Man.new
 
     assert_not_nil face.polymorphic_man
@@ -499,7 +498,6 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_child_instance_should_be_shared_with_replaced_via_method_parent
     face = faces(:confused)
-    old_man = face.polymorphic_man
     new_man = Man.new
 
     assert_not_nil face.polymorphic_man
@@ -551,8 +549,8 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   def test_that_we_can_load_associations_that_have_the_same_reciprocal_name_from_different_models
     assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
       i = Interest.find(:first)
-      z = i.zine
-      m = i.man
+      i.zine
+      i.man
     end
   end
 

@@ -184,6 +184,11 @@ module ActionView
       end
     end
 
+    # Used to store template data by template handlers.
+    def data
+      @data ||= {}
+    end
+
     def inspect
       @inspect ||=
         if defined?(Rails.root)
@@ -269,7 +274,8 @@ module ActionView
           end
         end
 
-        code = @handler.call(self)
+        arity = @handler.respond_to?(:arity) ? @handler.arity : @handler.method(:call).arity
+        code  = arity.abs == 1 ? @handler.call(self) : @handler.call(self, view)
 
         # Make sure that the resulting String to be evalled is in the
         # encoding of the code

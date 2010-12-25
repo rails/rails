@@ -187,7 +187,7 @@ module ActiveRecord
 
     def find_with_associations
       including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, [])
       rows = construct_relation_for_association_find(join_dependency).to_a
       join_dependency.instantiate(rows)
     rescue ThrowResult
@@ -196,13 +196,13 @@ module ActiveRecord
 
     def construct_relation_for_association_calculations
       including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.joins(arel))
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.froms.first)
       relation = except(:includes, :eager_load, :preload)
       apply_join_dependency(relation, join_dependency)
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(column_aliases(join_dependency))
+      relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns)
       apply_join_dependency(relation, join_dependency)
     end
 
@@ -290,7 +290,7 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      column = primary_key.column
+      column = columns_hash[primary_key.name.to_s]
 
       substitute = connection.substitute_for(column, @bind_values)
       relation = where(primary_key.eq(substitute))
@@ -349,17 +349,8 @@ module ActiveRecord
       end
     end
 
-    def column_aliases(join_dependency)
-      join_dependency.join_parts.collect { |join_part|
-        join_part.column_names_with_alias.collect{ |column_name, aliased_name|
-          "#{connection.quote_table_name join_part.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"
-        }
-      }.flatten.join(", ")
-    end
-
     def using_limitable_reflections?(reflections)
       reflections.none? { |r| r.collection? }
     end
-
   end
 end

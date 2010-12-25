@@ -46,8 +46,8 @@ module ActiveModel
   #     end
   #   end
   #
-  # Notice that whenever you include ActiveModel::AttributeMethods in your class,
-  # it requires you to implement a <tt>attributes</tt> methods which returns a hash
+  # Note that whenever you include ActiveModel::AttributeMethods in your class,
+  # it requires you to implement an <tt>attributes</tt> method which returns a hash
   # with each attribute name in your model as hash key and the attribute value as
   # hash value.
   #
@@ -109,7 +109,7 @@ module ActiveModel
           # use eval instead of a block to work around a memory leak in dev
           # mode in fcgi
           sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-            def #{name}; #{value.to_s.inspect}; end
+            def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
           eorb
         end
       end

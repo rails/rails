@@ -17,11 +17,14 @@ require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
+require 'models/categorization'
+require 'models/category'
+require 'models/essay'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors,
+  fixtures :posts, :readers, :people, :comments, :authors, :categories,
            :owners, :pets, :toys, :jobs, :references, :companies,
-           :subscribers, :books, :subscriptions, :developers
+           :subscribers, :books, :subscriptions, :developers, :categorizations
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -41,6 +44,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert posts(:thinking).reload.people(true).include?(people(:david))
+  end
+
+  def test_associate_existing_record_twice_should_add_to_target_twice
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_difference 'post.people.to_a.count', 2 do
+      post.people << person
+      post.people << person
+    end
   end
 
   def test_associating_new
@@ -322,12 +335,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, people(:michael).jobs.size
   end
 
-  def test_get_ids_for_belongs_to_source
-    assert_sql(/DISTINCT/) { assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort }
-  end
-
-  def test_get_ids_for_has_many_source
-    assert_equal [comments(:eager_other_comment1).id], authors(:mary).comment_ids
+  def test_get_ids
+    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
   end
 
   def test_get_ids_for_loaded_associations
@@ -354,7 +363,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_through_a_belongs_to_association_where_the_association_doesnt_exist
-    author = authors(:mary)
     post = Post.create!(:title => "TITLE", :body => "BODY")
     assert_equal [], post.author_favorites
   end
@@ -387,6 +395,41 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:david).very_special_comments << VerySpecialComment.create!(:body => "Hoohah!", :post_id => 1013) },
       lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
+  end
+
+  def test_has_many_association_through_a_has_many_association_to_self
+    sarah = Person.create!(:first_name => 'Sarah', :primary_contact_id => people(:susan).id, :gender => 'F', :number1_fan_id => 1)
+    john = Person.create!(:first_name => 'John', :primary_contact_id => sarah.id, :gender => 'M', :number1_fan_id => 1)
+    assert_equal sarah.agents, [john]
+    assert_equal people(:susan).agents.map(&:agents).flatten, people(:susan).agents_of_agents
+  end
+
+  def test_associate_existing_with_nonstandard_primary_key_on_belongs_to
+    Categorization.create(:author => authors(:mary), :named_category_name => categories(:general).name)
+    assert_equal categories(:general), authors(:mary).named_categories.first
+  end
+
+  def test_collection_build_with_nonstandard_primary_key_on_belongs_to
+    author   = authors(:mary)
+    category = author.named_categories.build(:name => "Primary")
+    author.save
+    assert Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    assert author.named_categories(true).include?(category)
+  end
+
+  def test_collection_create_with_nonstandard_primary_key_on_belongs_to
+    author   = authors(:mary)
+    category = author.named_categories.create(:name => "Primary")
+    assert Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    assert author.named_categories(true).include?(category)
+  end
+
+  def test_collection_delete_with_nonstandard_primary_key_on_belongs_to
+    author   = authors(:mary)
+    category = author.named_categories.create(:name => "Primary")
+    author.named_categories.delete(category)
+    assert !Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    assert author.named_categories(true).empty?
   end
 
   def test_collection_singular_ids_getter_with_string_primary_keys
@@ -455,5 +498,56 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     readers = post.readers.size
     post.people << people(:michael)
     assert_equal readers + 1, post.readers.size
+  end
+
+  def test_has_many_through_with_default_scope_on_join_model
+    assert_equal posts(:welcome).comments.order('id').all, authors(:david).comments_on_first_posts
+  end
+
+  def test_create_has_many_through_with_default_scope_on_join_model
+    category = authors(:david).special_categories.create(:name => "Foo")
+    assert_equal 1, category.categorizations.where(:special => true).count
+  end
+
+  def test_joining_has_many_through_with_uniq
+    mary = Author.joins(:unique_categorized_posts).where(:id => authors(:mary).id).first
+    assert_equal 1, mary.unique_categorized_posts.length
+    assert_equal 1, mary.unique_categorized_post_ids.length
+  end
+
+  def test_joining_has_many_through_belongs_to
+    posts = Post.joins(:author_categorizations).
+                 where('categorizations.id' => categorizations(:mary_thinking_sti).id)
+
+    assert_equal [posts(:eager_other)], posts
+  end
+
+  def test_select_chosen_fields_only
+    author = authors(:david)
+    assert_equal ['body'], author.comments.select('comments.body').first.attributes.keys
+  end
+
+  def test_get_has_many_through_belongs_to_ids_with_conditions
+    assert_equal [categories(:general).id], authors(:mary).categories_like_general_ids
+  end
+
+  def test_count_has_many_through_with_named_scope
+    assert_equal 2, authors(:mary).categories.count
+    assert_equal 1, authors(:mary).categories.general.count
+  end
+
+  def test_has_many_through_belongs_to_should_update_when_the_through_foreign_key_changes
+    post = posts(:eager_other)
+
+    post.author_categorizations
+    proxy = post.send(:association_instance_get, :author_categorizations)
+
+    assert !proxy.stale_target?
+    assert_equal authors(:mary).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
+
+    post.author_id = authors(:david).id
+
+    assert proxy.stale_target?
+    assert_equal authors(:david).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
   end
 end

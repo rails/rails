@@ -1,35 +1,18 @@
-gem 'rdoc', '>= 2.5.10'
+#!/usr/bin/env rake
+gem 'rdoc', '~> 3.0'
 require 'rdoc'
 
-require 'rake'
 require 'rdoc/task'
-require 'rake/gempackagetask'
 require 'net/http'
 
-# RDoc skips some files in the Rails tree due to its binary? predicate. This is a quick
-# hack for edge docs, until we decide which is the correct way to address this issue.
-# If not fixed in RDoc itself, via an option or something, we should probably move this
-# to railties and use it also in doc:rails.
-def hijack_rdoc!
-  require "rdoc/parser"
-  class << RDoc::Parser
-    def binary?(file)
-      s = File.read(file, 1024) or return false
+$:.unshift File.expand_path('..', __FILE__)
+require "tasks/release"
 
-      if s[0, 2] == Marshal.dump('')[0, 2] then
-        true
-      elsif file =~ /erb\.rb$/ then
-        false
-      elsif s.index("\x00") then # ORIGINAL is s.scan(/<%|%>/).length >= 4 || s.index("\x00")
-        true
-      elsif 0.respond_to? :fdiv then
-        s.count("^ -~\t\r\n").fdiv(s.size) > 0.3
-      else # HACK 1.8.6
-        (s.count("^ -~\t\r\n").to_f / s.size) > 0.3
-      end
-    end
-  end
-end
+desc "Build gem files for all projects"
+task :build => "all:build"
+
+desc "Release all gems to gemcutter and create a tag"
+task :release => "all:release"
 
 PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
 
@@ -55,27 +38,6 @@ task :smoke do
   system %(cd activerecord && #{$0} sqlite3:isolated_test)
 end
 
-spec = eval(File.read('rails.gemspec'))
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
-desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
-task :release => :release_projects do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
-end
-
-desc "Release all components to gemcutter."
-task :release_projects => :package do
-  errors = []
-  PROJECTS.each do |project|
-    system(%(cd #{project} && #{$0} release)) || errors << project
-  end
-  fail("Errors in #{errors.join(', ')}") unless errors.empty?
-end
-
 desc "Install gems for all projects."
 task :install => :gem do
   version = File.read("RAILS_VERSION").strip
@@ -89,8 +51,6 @@ end
 
 desc "Generate documentation for the Rails framework"
 RDoc::Task.new do |rdoc|
-  hijack_rdoc!
-
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.title    = "Ruby on Rails Documentation"
 
@@ -185,7 +145,7 @@ end
 #
 # Everything is automated and you do NOT need to run this task normally.
 #
-# We publish a new verion by tagging, and pushing a tag does not trigger
+# We publish a new version by tagging, and pushing a tag does not trigger
 # that webhook. Stable docs would be updated by any subsequent regular
 # push, but if you want that to happen right away just run this.
 #

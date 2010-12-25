@@ -23,6 +23,19 @@ module ActiveRecord
         @updated
       end
 
+      def stale_target?
+        if @target && @target.persisted?
+          target_id    = @target.send(@reflection.association_primary_key).to_s
+          foreign_key  = @owner.send(@reflection.primary_key_name).to_s
+          target_type  = @target.class.base_class.name
+          foreign_type = @owner.send(@reflection.options[:foreign_type]).to_s
+
+          target_id != foreign_key || target_type != foreign_type
+        else
+          false
+        end
+      end
+
       private
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto

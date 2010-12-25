@@ -1,3 +1,4 @@
+require 'thread'
 require 'abstract_unit'
 
 require 'active_support/core_ext/class/attribute_accessors'

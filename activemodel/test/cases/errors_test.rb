@@ -62,4 +62,9 @@ class ErrorsTest < ActiveModel::TestCase
 
   end
 
+  test 'to_hash should return an ordered hash' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    assert_instance_of ActiveSupport::OrderedHash, person.errors.to_hash
+  end
 end

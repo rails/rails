@@ -271,10 +271,10 @@ end
 
 <ruby>
 scope 'es' do
-  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'projeto'
+  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'proyecto'
 end
 
-# Gives you the edit action with /es/projeto/1/cambiar
+# Gives you the edit action with /es/proyecto/1/cambiar
 </ruby>
 
 * Added +root+ method to the router as a short cut for <tt>match '/', :to => path</tt>.
@@ -357,15 +357,15 @@ Validations have been moved from Active Record into Active Model, providing an i
 
 * There is now a <tt>validates :attribute, options_hash</tt> shortcut method that allows you to pass options for all the validates class methods, you can pass more than one option to a validate method.
 * The +validates+ method has the following options:
-  * <tt>:acceptance => Boolean</tt>.
-  * <tt>:confirmation => Boolean</tt>.
-  * <tt>:exclusion => { :in => Enumerable }</tt>.
-  * <tt>:inclusion => { :in => Enumerable }</tt>.
-  * <tt>:format => { :with => Regexp, :on => :create }</tt>.
-  * <tt>:length => { :maximum => Fixnum }</tt>.
-  * <tt>:numericality => Boolean</tt>.
-  * <tt>:presence => Boolean</tt>.
-  * <tt>:uniqueness => Boolean</tt>.
+** <tt>:acceptance => Boolean</tt>.
+** <tt>:confirmation => Boolean</tt>.
+** <tt>:exclusion => { :in => Enumerable }</tt>.
+** <tt>:inclusion => { :in => Enumerable }</tt>.
+** <tt>:format => { :with => Regexp, :on => :create }</tt>.
+** <tt>:length => { :maximum => Fixnum }</tt>.
+** <tt>:numericality => Boolean</tt>.
+** <tt>:presence => Boolean</tt>.
+** <tt>:uniqueness => Boolean</tt>.
 
 NOTE: All the Rails version 2.3 style validation methods are still supported in Rails 3.0, the new validates method is designed as an additional aid in your model validations, not a replacement for the existing API.
 

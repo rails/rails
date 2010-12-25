@@ -9,14 +9,6 @@ module ActiveRecord
 
       alias_method :new, :build
 
-      def create!(attrs = nil)
-        create_record(attrs, true)
-      end
-
-      def create(attrs = nil)
-        create_record(attrs, false)
-      end
-
       def destroy(*records)
         transaction do
           delete_records(flatten_deeper(records))
@@ -35,16 +27,6 @@ module ActiveRecord
       end
 
       protected
-        def create_record(attrs, force = true)
-          ensure_owner_is_not_new
-
-          transaction do
-            object = @reflection.klass.new(attrs)
-            add_record_to_target_with_callbacks(object) {|r| insert_record(object, force) }
-            object
-          end
-        end
-
         def target_reflection_has_associated_record?
           if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.primary_key_name].blank?
             false
@@ -54,17 +36,13 @@ module ActiveRecord
         end
 
         def construct_find_options!(options)
-          options[:joins]   = construct_joins(options[:joins])
+          options[:joins]   = [construct_joins] + Array.wrap(options[:joins])
           options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil? && @reflection.source_reflection.options[:include]
         end
 
         def insert_record(record, force = true, validate = true)
-          unless record.persisted?
-            if force
-              record.save!
-            else
-              return false unless record.save(:validate => validate)
-            end
+          if record.new_record?
+            return false unless save_record(record, force, validate)
           end
 
           through_association = @owner.send(@reflection.through_reflection.name)
@@ -81,7 +59,8 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          with_scope(@scope) { @reflection.klass.find(:all) }
+          update_stale_state
+          scoped.all
         end
 
         def has_cached_counter?

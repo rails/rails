@@ -24,14 +24,20 @@ module ActiveRecord
         end
 
         def get_primary_key(base_name) #:nodoc:
-          key = 'id'
+          return 'id' unless base_name && !base_name.blank?
+
           case primary_key_prefix_type
-            when :table_name
-              key = base_name.to_s.foreign_key(false)
-            when :table_name_with_underscore
-              key = base_name.to_s.foreign_key
+          when :table_name
+            base_name.foreign_key(false)
+          when :table_name_with_underscore
+            base_name.foreign_key
+          else
+            if ActiveRecord::Base != self && connection.table_exists?(table_name)
+              connection.primary_key(table_name)
+            else
+              'id'
+            end
           end
-          key
         end
 
         # Sets the name of the primary key column to use to the given value,

@@ -185,6 +185,9 @@ module ActiveRecord
       end
 
       def preload_has_and_belongs_to_many_association(records, reflection, preload_options={})
+
+        left = reflection.klass.arel_table
+
         table_name = reflection.klass.quoted_table_name
         id_to_record_map, ids = construct_id_map(records)
         records.each {|record| record.send(reflection.name).loaded}
@@ -193,13 +196,31 @@ module ActiveRecord
         conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
         conditions << append_conditions(reflection, preload_options)
 
-        associated_records = reflection.klass.unscoped.where([conditions, ids]).
-            includes(options[:include]).
-            joins("INNER JOIN #{connection.quote_table_name options[:join_table]} t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}").
-            select("#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id").
-            order(options[:order]).to_a
+        right = Arel::Table.new(options[:join_table]).alias('t0')
+        condition = left[reflection.klass.primary_key].eq(
+          right[reflection.association_foreign_key])
 
-        set_association_collection_records(id_to_record_map, reflection.name, associated_records, 'the_parent_record_id')
+        join = left.create_join(right, left.create_on(condition))
+        select = [
+          # FIXME: options[:select] is always nil in the tests.  Do we really
+          # need it?
+          options[:select] || left[Arel.star],
+          right[reflection.primary_key_name].as(
+            Arel.sql('the_parent_record_id'))
+        ]
+
+        associated_records_proxy = reflection.klass.unscoped.
+            includes(options[:include]).
+            order(options[:order])
+
+        associated_records_proxy.joins_values = [join]
+        associated_records_proxy.select_values = select
+
+        all_associated_records = associated_records(ids) do |some_ids|
+          associated_records_proxy.where([conditions, some_ids]).to_a
+        end
+
+        set_association_collection_records(id_to_record_map, reflection.name, all_associated_records, 'the_parent_record_id')
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
@@ -247,6 +268,7 @@ module ActiveRecord
               through_record_id = through_record[reflection.through_reflection_primary_key].to_s
               add_preloaded_records_to_collection(id_to_record_map[through_record_id], reflection.name, through_record.send(source))
             end
+            records.each { |record| record.send(reflection.name).target.uniq! } if options[:uniq]
           end
 
         else
@@ -358,29 +380,36 @@ module ActiveRecord
         find_options = {
           :select => preload_options[:select] || options[:select] || Arel::SqlLiteral.new("#{table_name}.*"),
           :include => preload_options[:include] || options[:include],
-          :conditions => [conditions, ids],
           :joins => options[:joins],
           :group => preload_options[:group] || options[:group],
           :order => preload_options[:order] || options[:order]
         }
 
-        reflection.klass.scoped.apply_finder_options(find_options).to_a
-      end
-
-
-      def interpolate_sql_for_preload(sql)
-        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
+        associated_records(ids) do |some_ids|
+          reflection.klass.scoped.apply_finder_options(find_options.merge(:conditions => [conditions, some_ids])).to_a
+        end
       end
 
       def append_conditions(reflection, preload_options)
         sql = ""
-        sql << " AND (#{interpolate_sql_for_preload(reflection.sanitized_conditions)})" if reflection.sanitized_conditions
+        sql << " AND (#{reflection.sanitized_conditions})" if reflection.sanitized_conditions
         sql << " AND (#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]
         sql
       end
 
       def in_or_equals_for_ids(ids)
         ids.size > 1 ? "IN (?)" : "= ?"
+      end
+
+      # Some databases impose a limit on the number of ids in a list (in Oracle its 1000)
+      # Make several smaller queries if necessary or make one query if the adapter supports it
+      def associated_records(ids)
+        in_clause_length = connection.in_clause_length || ids.size
+        records = []
+        ids.each_slice(in_clause_length) do |some_ids|
+          records += yield(some_ids)
+        end
+        records
       end
     end
   end

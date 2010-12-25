@@ -40,8 +40,7 @@ module ActiveRecord
         if @connection.respond_to?(:encoding)
           @connection.encoding.to_s
         else
-          encoding = @connection.execute('PRAGMA encoding')
-          encoding[0]['encoding']
+          @connection.execute('PRAGMA encoding')[0]['encoding']
         end
       end
 

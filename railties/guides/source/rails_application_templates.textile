@@ -233,6 +233,4 @@ git :commit => "-a -m 'Initial commit'"
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/78
-
 * April 29, 2009: Initial version by "Pratik":credits.html#lifo

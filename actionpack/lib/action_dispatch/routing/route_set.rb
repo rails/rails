@@ -442,12 +442,9 @@ module ActionDispatch
 
           raise_routing_error unless path
 
-          params.reject! {|k,v| !v }
-
           return [path, params.keys] if @extras
 
-          path << "?#{params.to_query}" unless params.empty?
-          path
+          [path, params]
         rescue Rack::Mount::RoutingError
           raise_routing_error
         end
@@ -485,7 +482,8 @@ module ActionDispatch
         Generator.new(options, recall, self, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :script_name]
+      RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
+                          :trailing_slash, :anchor, :params, :only_path, :script_name]
 
       def _generate_prefix(options = {})
         nil
@@ -497,32 +495,24 @@ module ActionDispatch
 
         handle_positional_args(options)
 
-        rewritten_url = ""
+        user, password = extract_authentication(options)
+        path_segments  = options.delete(:_path_segments)
+        script_name    = options.delete(:script_name)
 
-        path_segments = options.delete(:_path_segments)
-        unless options[:only_path]
-          rewritten_url << (options[:protocol] || "http")
-          rewritten_url << "://" unless rewritten_url.match("://")
-          rewritten_url << rewrite_authentication(options)
-
-          raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
-
-          rewritten_url << options[:host]
-          rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
-        end
-
-        script_name = options.delete(:script_name)
         path = (script_name.blank? ? _generate_prefix(options) : script_name.chomp('/')).to_s
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
-        path << generate(path_options, path_segments || {})
 
-        # ROUTES TODO: This can be called directly, so script_name should probably be set in the routes
-        rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-        rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
+        path_addition, params = generate(path_options, path_segments || {})
+        path << path_addition
 
-        rewritten_url
+        ActionDispatch::Http::URL.url_for(options.merge({
+          :path => path,
+          :params => params,
+          :user => user,
+          :password => password
+        }))
       end
 
       def call(env)
@@ -562,6 +552,15 @@ module ActionDispatch
       end
 
       private
+
+        def extract_authentication(options)
+          if options[:user] && options[:password]
+            [options.delete(:user), options.delete(:password)]
+          else
+            nil
+          end
+        end
+
         def handle_positional_args(options)
           return unless args = options.delete(:_positional_args)
 
@@ -572,13 +571,6 @@ module ActionDispatch
           options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
         end
 
-        def rewrite_authentication(options)
-          if options[:user] && options[:password]
-            "#{Rack::Utils.escape(options.delete(:user))}:#{Rack::Utils.escape(options.delete(:password))}@"
-          else
-            ""
-          end
-        end
     end
   end
 end

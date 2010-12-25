@@ -368,6 +368,7 @@ class UsersController < ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @users}
+      format.json  { render :json => @users}
     end
   end
 end
@@ -477,8 +478,6 @@ end
 </ruby>
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
-
-The Rails API documentation has "more information on using filters":http://ap.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html.
 
 h3. Verification
 
@@ -813,8 +812,6 @@ end
 NOTE: Certain exceptions are only rescuable from the +ApplicationController+ class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
 
 h3. Changelog
-
-"Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/17
 
 * February 17, 2009: Yet another proofread by Xavier Noria.
 

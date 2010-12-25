@@ -184,7 +184,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 |doc/|In-depth documentation for your application.|
 |lib/|Extended modules for your application (not covered in this guide).|
 |log/|Application log files.|
-|public/|The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.|
+|public/|The only folder seen to the world as-is.  This is where your images, JavaScript files, stylesheets (CSS), and other static files go.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
@@ -227,7 +227,7 @@ NOTE: In this guide we are using an SQLite3 database for data storage, because i
 
 h5. Configuring a MySQL Database
 
-If you choose to use MySQL instead of the shipped Sqlite3 database, your +config/database.yml+ will look a little different. Here's the development section:
+If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
 
 <yaml>
 development:
@@ -811,6 +811,8 @@ class CreateComments < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    add_index :comments, :post_id
   end
 
   def self.down
@@ -819,7 +821,7 @@ class CreateComments < ActiveRecord::Migration
 end
 </ruby>
 
-The +t.references+ line sets up a foreign key column for the association between the two models. Go ahead and run the migration:
+The +t.references+ line sets up a foreign key column for the association between the two models. And the +add_index+ line sets up an index for this association column. Go ahead and run the migration:
 
 <shell>
 $ rake db:migrate
@@ -1468,8 +1470,6 @@ Two very common sources of data that are not UTF-8:
   use UTF-8 as the internal storage of your database.
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
 * August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com

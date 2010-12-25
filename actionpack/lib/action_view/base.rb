@@ -76,8 +76,8 @@ module ActionView #:nodoc:
   #
   # === Template caching
   #
-  # By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will
-  # check the file's modification time and recompile it.
+  # By default, Rails will compile each template to a method in order to render it. When you alter a template,
+  # Rails will check the file's modification time and recompile it in development mode.
   #
   # == Builder
   #
@@ -172,6 +172,14 @@ module ActionView #:nodoc:
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
+
+      def cache_template_loading
+        ActionView::Resolver.caching?
+      end
+
+      def cache_template_loading=(value)
+        ActionView::Resolver.caching = value
+      end
     end
 
     attr_accessor :_template

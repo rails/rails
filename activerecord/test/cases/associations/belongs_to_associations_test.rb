@@ -17,7 +17,7 @@ require 'models/essay'
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments
+           :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
     Client.find(3).firm.name
@@ -485,5 +485,56 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
     new_firm = accounts(:signals37).build_firm(:name => 'Apple')
     assert_equal new_firm.name, "Apple"
+  end
+
+  def test_reassigning_the_parent_id_updates_the_object
+    client = companies(:second_client)
+
+    client.firm
+    client.firm_with_condition
+    firm_proxy                = client.send(:association_instance_get, :firm)
+    firm_with_condition_proxy = client.send(:association_instance_get, :firm_with_condition)
+
+    assert !firm_proxy.stale_target?
+    assert !firm_with_condition_proxy.stale_target?
+    assert_equal companies(:first_firm), client.firm
+    assert_equal companies(:first_firm), client.firm_with_condition
+
+    client.client_of = companies(:another_firm).id
+
+    assert firm_proxy.stale_target?
+    assert firm_with_condition_proxy.stale_target?
+    assert_equal companies(:another_firm), client.firm
+    assert_equal companies(:another_firm), client.firm_with_condition
+  end
+
+  def test_polymorphic_reassignment_of_associated_id_updates_the_object
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+
+    sponsor.sponsorable
+    proxy = sponsor.send(:association_instance_get, :sponsorable)
+
+    assert !proxy.stale_target?
+    assert_equal members(:groucho), sponsor.sponsorable
+
+    sponsor.sponsorable_id = members(:some_other_guy).id
+
+    assert proxy.stale_target?
+    assert_equal members(:some_other_guy), sponsor.sponsorable
+  end
+
+  def test_polymorphic_reassignment_of_associated_type_updates_the_object
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+
+    sponsor.sponsorable
+    proxy = sponsor.send(:association_instance_get, :sponsorable)
+
+    assert !proxy.stale_target?
+    assert_equal members(:groucho), sponsor.sponsorable
+
+    sponsor.sponsorable_type = 'Firm'
+
+    assert proxy.stale_target?
+    assert_equal companies(:first_firm), sponsor.sponsorable
   end
 end

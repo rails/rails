@@ -1,6 +1,6 @@
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 
@@ -178,49 +178,48 @@ module ActiveSupport
         # options[0] is the compiled form of supplied conditions
         # options[1] is the "end" for the conditional
         #
-        if @kind == :before || @kind == :around
-          if @kind == :before
-            # if condition    # before_save :filter_name, :if => :condition
-            #   filter_name
-            # end
-            filter = <<-RUBY_EVAL
-              unless halted
-                result = #{@filter}
-                halted = (#{chain.config[:terminator]})
-              end
-            RUBY_EVAL
+        case @kind
+        when :before
+          # if condition    # before_save :filter_name, :if => :condition
+          #   filter_name
+          # end
+          filter = <<-RUBY_EVAL
+            unless halted
+              result = #{@filter}
+              halted = (#{chain.config[:terminator]})
+            end
+          RUBY_EVAL
 
-            [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
-          else
-            # Compile around filters with conditions into proxy methods
-            # that contain the conditions.
-            #
-            # For `around_save :filter_name, :if => :condition':
-            #
-            # def _conditional_callback_save_17
-            #   if condition
-            #     filter_name do
-            #       yield self
-            #     end
-            #   else
-            #     yield self
-            #   end
-            # end
-            #
-            name = "_conditional_callback_#{@kind}_#{next_id}"
-            @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
-               def #{name}(halted)
-                #{@compiled_options[0] || "if true"} && !halted
-                  #{@filter} do
-                    yield self
-                  end
-                else
+          [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
+        when :around
+          # Compile around filters with conditions into proxy methods
+          # that contain the conditions.
+          #
+          # For `around_save :filter_name, :if => :condition':
+          #
+          # def _conditional_callback_save_17
+          #   if condition
+          #     filter_name do
+          #       yield self
+          #     end
+          #   else
+          #     yield self
+          #   end
+          # end
+          #
+          name = "_conditional_callback_#{@kind}_#{next_id}"
+          @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
+             def #{name}(halted)
+              #{@compiled_options[0] || "if true"} && !halted
+                #{@filter} do
                   yield self
                 end
+              else
+                yield self
               end
-            RUBY_EVAL
-            "#{name}(halted) do"
-          end
+            end
+          RUBY_EVAL
+          "#{name}(halted) do"
         end
       end
 
@@ -229,15 +228,14 @@ module ActiveSupport
       def end(key=nil, object=nil)
         return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
 
-        if @kind == :around || @kind == :after
+        case @kind
+        when :after
           # if condition    # after_save :filter_name, :if => :condition
           #   filter_name
           # end
-          if @kind == :after
-            [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
-          else
-            "end"
-          end
+          [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
+        when :around
+          "end"
         end
       end
 
@@ -388,7 +386,7 @@ module ActiveSupport
       # key. See #define_callbacks for more information.
       #
       def __define_runner(symbol) #:nodoc:
-        body = send("_#{symbol}_callbacks").compile(nil)
+        body = send("_#{symbol}_callbacks").compile
 
         silence_warnings do
           undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
@@ -437,7 +435,7 @@ module ActiveSupport
 
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
           chain = target.send("_#{name}_callbacks")
-          yield chain, type, filters, options
+          yield target, chain.dup, type, filters, options
           target.__define_runner(name)
         end
       end
@@ -448,6 +446,10 @@ module ActiveSupport
       #   set_callback :save, :before, :before_meth
       #   set_callback :save, :after,  :after_meth, :if => :condition
       #   set_callback :save, :around, lambda { |r| stuff; yield; stuff }
+      #
+      # If the second argument is not :before, :after or :around then an implicit :before is assumed.
+      # It means the first example mentioned above can also be written as:
+      #   set_callback :save, :before_meth
       #
       # Use skip_callback to skip any defined one.
       #
@@ -473,7 +475,7 @@ module ActiveSupport
       def set_callback(name, *filter_list, &block)
         mapped = nil
 
-        __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
+        __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           mapped ||= filters.map do |filter|
             Callback.new(chain, filter, type, options.dup, self)
           end
@@ -483,6 +485,8 @@ module ActiveSupport
           end
 
           options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
+
+          target.send("_#{name}_callbacks=", chain)
         end
       end
 
@@ -493,7 +497,7 @@ module ActiveSupport
       #   end
       #
       def skip_callback(name, *filter_list, &block)
-        __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
+        __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           filters.each do |filter|
             filter = chain.find {|c| c.matches?(type, filter) }
 
@@ -505,6 +509,7 @@ module ActiveSupport
 
             chain.delete(filter)
           end
+          target.send("_#{name}_callbacks=", chain)
         end
       end
 
@@ -514,12 +519,14 @@ module ActiveSupport
         callbacks = send("_#{symbol}_callbacks")
 
         ActiveSupport::DescendantsTracker.descendants(self).each do |target|
-          chain = target.send("_#{symbol}_callbacks")
+          chain = target.send("_#{symbol}_callbacks").dup
           callbacks.each { |c| chain.delete(c) }
+          target.send("_#{symbol}_callbacks=", chain)
           target.__define_runner(symbol)
         end
 
-        callbacks.clear
+        self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
+
         __define_runner(symbol)
       end
 
@@ -589,9 +596,8 @@ module ActiveSupport
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|
-          extlib_inheritable_reader("_#{callback}_callbacks") do
-            CallbackChain.new(callback, config)
-          end
+          class_attribute "_#{callback}_callbacks"
+          send("_#{callback}_callbacks=", CallbackChain.new(callback, config))
           __define_runner(callback)
         end
       end

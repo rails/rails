@@ -3,9 +3,10 @@ require 'active_support/core_ext/object/blank'
 module ActiveRecord
   module SpawnMethods
     def merge(r)
-      merged_relation = clone
-      return merged_relation unless r
+      return self unless r
       return to_a & r if r.is_a?(Array)
+
+      merged_relation = clone
 
       Relation::ASSOCIATION_METHODS.each do |method|
         value = r.send(:"#{method}_values")
@@ -24,7 +25,7 @@ module ActiveRecord
         merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
       end
 
-      merged_relation = merged_relation.joins(r.joins_values)
+      merged_relation.joins_values += r.joins_values
 
       merged_wheres = @where_values + r.where_values
 

@@ -368,7 +368,6 @@ h3. Further reading
 
 
 h3. Changelog
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/10-guide-to-caching
 
 * May       02, 2009: Formatting cleanups
 * April     26, 2009: Clean up typos in submitted patch

@@ -235,9 +235,7 @@ module ActionDispatch
       # Set the host name to use in the next request.
       #
       #   session.host! "www.example.com"
-      def host!(name)
-        @host = name
-      end
+      alias :host! :host=
 
       private
         def _mock_session
@@ -361,6 +359,10 @@ module ActionDispatch
       def url_options
         reset! unless integration_session
         integration_session.url_options
+      end
+
+      def respond_to?(method, include_private = false)
+        integration_session.respond_to?(method, include_private) || super
       end
 
       # Delegate unhandled messages to the current session instance.

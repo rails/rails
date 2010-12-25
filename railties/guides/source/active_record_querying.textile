@@ -65,6 +65,7 @@ The methods are:
 * +lock+
 * +readonly+
 * +from+
+* +having+
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
@@ -103,7 +104,7 @@ h5. +first+
 
 <ruby>
 client = Client.first
-=> #<Client id: 1, first_name: => "Lifo">
+=> #<Client id: 1, first_name: "Lifo">
 </ruby>
 
 SQL equivalent of the above is:
@@ -120,7 +121,7 @@ h5. +last+
 
 <ruby>
 client = Client.last
-=> #<Client id: 221, first_name: => "Russel">
+=> #<Client id: 221, first_name: "Russel">
 </ruby>
 
 SQL equivalent of the above is:
@@ -231,7 +232,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 h4. Array Conditions
 
-Now what if that number could vary, say as an argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
+Now what if that number could vary, say as an argument from somewhere? The find then becomes something like:
 
 <ruby>
 Client.where("orders_count = ?", params[:orders])
@@ -279,61 +280,14 @@ h5(#array-range_conditions). Range Conditions
 If you're looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the +IN+ SQL statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:
 
 <ruby>
-Client.where("created_at IN (?)",
-  (params[:start_date].to_date)..(params[:end_date].to_date))
+Client.where(:created_at => (params[:start_date].to_date)..(params[:end_date].to_date))
 </ruby>
 
-This would generate the proper query which is great for small ranges but not so good for larger ranges. For example if you pass in a range of date objects spanning a year that's 365 (or possibly 366, depending on the year) strings it will attempt to match your field against.
+This query will generate something similar to the following SQL:
 
 <sql>
-SELECT * FROM users WHERE (created_at IN
-  ('2007-12-31','2008-01-01','2008-01-02','2008-01-03','2008-01-04','2008-01-05',
-  '2008-01-06','2008-01-07','2008-01-08','2008-01-09','2008-01-10','2008-01-11',
-  '2008-01-12','2008-01-13','2008-01-14','2008-01-15','2008-01-16','2008-01-17',
-  '2008-01-18','2008-01-19','2008-01-20','2008-01-21','2008-01-22','2008-01-23',...
-  ‘2008-12-15','2008-12-16','2008-12-17','2008-12-18','2008-12-19','2008-12-20',
-  '2008-12-21','2008-12-22','2008-12-23','2008-12-24','2008-12-25','2008-12-26',
-  '2008-12-27','2008-12-28','2008-12-29','2008-12-30','2008-12-31'))
+  SELECT "clients".* FROM "clients" WHERE ("clients"."created_at" BETWEEN '2010-09-29' AND '2010-11-30')
 </sql>
-
-h5. Time and Date Conditions
-
-Things can get *really* messy if you pass in Time objects as it will attempt to compare your field to *every second* in that range:
-
-<ruby>
-Client.where("created_at IN (?)",
-  (params[:start_date].to_date.to_time)..(params[:end_date].to_date.to_time))
-</ruby>
-
-<sql>
-SELECT * FROM users WHERE (created_at IN
-  ('2007-12-01 00:00:00', '2007-12-01 00:00:01' ...
-  '2007-12-01 23:59:59', '2007-12-02 00:00:00'))
-</sql>
-
-This could possibly cause your database server to raise an unexpected error, for example MySQL will throw back this error:
-
-<shell>
-Got a packet bigger than 'max_allowed_packet' bytes: _query_
-</shell>
-
-Where _query_ is the actual query used to get that error.
-
-In this example it would be better to use greater-than and less-than operators in SQL, like so:
-
-<ruby>
-Client.where(
-  "created_at > ? AND created_at < ?", params[:start_date], params[:end_date])
-</ruby>
-
-You can also use the greater-than-or-equal-to and less-than-or-equal-to like this:
-
-<ruby>
-Client.where(
-  "created_at >= ? AND created_at <= ?", params[:start_date], params[:end_date])
-</ruby>
-
-Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash Conditions":#hash-conditions section later on in the guide.
 
 h4. Hash Conditions
 
@@ -383,9 +337,9 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 </sql>
 
-h4. Ordering
+h3. Ordering
 
-To retrieve records from the database in a specific order, you can specify the +:order+ option to the +find+ call.
+To retrieve records from the database in a specific order, you can use the +order+ method.
 
 For example, if you're getting a set of records and want to order them in ascending order by the +created_at+ field in your table:
 
@@ -407,7 +361,7 @@ Or ordering by multiple fields:
 Client.order("orders_count ASC, created_at DESC")
 </ruby>
 
-h4. Selecting Specific Fields
+h3. Selecting Specific Fields
 
 By default, <tt>Model.find</tt> selects all the fields from the result set using +select *+.
 
@@ -443,7 +397,7 @@ You can also call SQL functions within the select option. For example, if you wo
 Client.select("DISTINCT(name)")
 </ruby>
 
-h4. Limit and Offset
+h3. Limit and Offset
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +limit+ and +offset+ methods on the relation.
 
@@ -471,7 +425,7 @@ will return instead a maximum of 5 clients beginning with the 31st. The SQL look
 SELECT * FROM clients LIMIT 5, 30
 </sql>
 
-h4. Group
+h3. Group
 
 To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
 
@@ -489,14 +443,14 @@ The SQL that would be executed would be something like this:
 SELECT * FROM orders GROUP BY date(created_at)
 </sql>
 
-h4. Having
+h3. Having
 
 SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can add the +HAVING+ clause to the SQL fired by the +Model.find+ by adding the +:having+ option to the find.
 
 For example:
 
 <ruby>
-Order.group("date(created_at)".having("created_at > ?", 1.month.ago)
+Order.group("date(created_at)").having("created_at > ?", 1.month.ago)
 </ruby>
 
 The SQL that would be executed would be something like this:
@@ -507,7 +461,7 @@ SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
 
 This will return single order objects for each day, but only for the last month.
 
-h4. Readonly Objects
+h3. Readonly Objects
 
 Active Record provides +readonly+ method on a relation to explicitly disallow modification or deletion of any of the returned object. Any attempt to alter or destroy a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
@@ -517,9 +471,9 @@ client.visits += 1
 client.save
 </ruby>
 
-As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visists_.
+As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visits_.
 
-h4. Locking Records for Update
+h3. Locking Records for Update
 
 Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
 
@@ -528,7 +482,7 @@ Active Record provides two locking mechanisms:
 * Optimistic Locking
 * Pessimistic Locking
 
-h5. Optimistic Locking
+h4. Optimistic Locking
 
 Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data.  It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
@@ -563,7 +517,7 @@ class Client < ActiveRecord::Base
 end
 </ruby>
 
-h5. Pessimistic Locking
+h4. Pessimistic Locking
 
 Pessimistic locking uses a locking mechanism provided by the underlying database. Using +lock+ when building a relation obtains an exclusive lock on the selected rows. Relations using +lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
@@ -767,6 +721,92 @@ h4. Specifying Conditions on Eager Loaded Associations
 
 Even though Active Record lets you specify conditions on the eager loaded associations just like +joins+, the recommended way is to use "joins":#joining-tables instead.
 
+h3. Scopes
+
+Scoping allows you to specify commonly-used ARel queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as +where+, +joins+ and +includes+. All scope methods will return an +ActiveRecord::Relation+ object which will allow for further methods (such as other scopes) to be called on it.
+
+To define a simple scope, we use the +scope+ method inside the class, passing the ARel query that we'd like run when this scope is called:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :published, where(:published => true)
+end
+</ruby>
+
+Just like before, these methods are also chainable:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :published, where(:published => true).joins(:category)
+end
+</ruby>
+
+Scopes are also chainable within scopes:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :published, where(:published => true)
+  scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+end
+</ruby>
+
+To call this +published+ scope we can call it on either the class:
+
+<ruby>
+Post.published => [published posts]
+</ruby>
+
+Or on an association consisting of +Post+ objects:
+
+<ruby>
+category = Category.first
+category.posts.published => [published posts belonging to this category]
+</ruby>
+
+h4. Working with times
+
+If you're working with dates or times within scopes, due to how they are evaluated, you will need to use a lambda so that the scope is evaluated every time.
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
+end
+</ruby>
+
+Without the +lambda+, this +Time.zone.now+ will only be called once.
+
+h4. Passing in arguments
+
+When a +lambda+ is used for a +scope+, it can take arguments:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :1_week_before, lambda { |time| where("created_at < ?", time)
+end
+</ruby>
+
+This may then be called using this:
+
+<ruby>
+Post.1_week_before(Time.zone.now)
+</ruby>
+
+However, this is just duplicating the functionality that would be provided to you by a class method.
+
+<ruby>
+class Post < ActiveRecord::Base
+  def self.1_week_before(time)
+    where("created_at < ?", time)
+  end
+end
+</ruby>
+
+Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
+
+<ruby>
+category.posts.1_week_before(time)
+</ruby>
+
 h3. Dynamic Finders
 
 For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+ methods.
@@ -928,8 +968,7 @@ For options, please see the parent section,  "Calculations":#calculations.
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16
-
+* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":http://ryanbigg.com
 * April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
 * February 7, 2009: Second version by "Pratik":credits.html#lifo
