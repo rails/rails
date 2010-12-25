@@ -367,14 +367,14 @@ This helper makes building an ATOM feed easy. Here's a full usage example:
 *config/routes.rb*
 
 <ruby>
-map.resources :posts
+resources :posts
 </ruby>
 
 *app/controllers/posts_controller.rb*
 
 <ruby>
 def index
-  @posts = Post.find(:all)
+  @posts = Post.all
 
   respond_to do |format|
     format.html
@@ -809,7 +809,7 @@ end
 Sample usage (selecting the associated Author for an instance of Post, +@post+):
 
 <ruby>
-collection_select(:post, :author_id, Author.find(:all), :id, :name_with_initial, {:prompt => true})
+collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
 </ruby>
 
 If @post.author_id is already 1, this would return:
@@ -910,7 +910,7 @@ Create a select tag and a series of contained option tags for the provided objec
 Example with @post.person_id => 1:
 
 <ruby>
-select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
 </ruby>
 
 could become:

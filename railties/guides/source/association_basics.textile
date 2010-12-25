@@ -1135,7 +1135,7 @@ h6(#has_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+.
 
 <ruby>
-@open_orders = @customer.orders.find(:all, :conditions => "open = 1")
+@open_orders = @customer.orders.all(:conditions => "open = 1")
 </ruby>
 
 NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
@@ -1564,7 +1564,7 @@ h6(#has_and_belongs_to_many-collection-find). <tt><em>collection</em>.find(...)<
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+. It also adds the additional condition that the object must be in the collection.
 
 <ruby>
-@new_assemblies = @part.assemblies.find(:all,
+@new_assemblies = @part.assemblies.all(
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 
