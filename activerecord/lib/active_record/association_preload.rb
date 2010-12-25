@@ -349,19 +349,7 @@ module ActiveRecord
 
           table = klass.arel_table
           primary_key = (reflection.options[:primary_key] || klass.primary_key).to_s
-          column_type = klass.columns.detect{|c| c.name == primary_key}.type
-
-          ids = _id_map.keys.map do |id|
-            if column_type == :integer
-              id.to_i
-            elsif column_type == :float
-              id.to_f
-            else
-              id
-            end
-          end
-
-          method     = in_or_equal(ids)
+          method     = in_or_equal(_id_map.keys)
           conditions = table[primary_key].send(*method)
 
           custom_conditions = append_conditions(reflection, preload_options)
