@@ -193,14 +193,15 @@ module ActiveRecord
         records.each {|record| record.send(reflection.name).loaded}
         options = reflection.options
 
-        conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
-        conditions << append_conditions(reflection, preload_options)
-
         right = Arel::Table.new(options[:join_table]).alias('t0')
-        condition = left[reflection.klass.primary_key].eq(
+
+
+        custom_conditions = append_conditions(reflection, preload_options)
+
+        join_condition = left[reflection.klass.primary_key].eq(
           right[reflection.association_foreign_key])
 
-        join = left.create_join(right, left.create_on(condition))
+        join = left.create_join(right, left.create_on(join_condition))
         select = [
           # FIXME: options[:select] is always nil in the tests.  Do we really
           # need it?
@@ -216,8 +217,16 @@ module ActiveRecord
         associated_records_proxy.joins_values = [join]
         associated_records_proxy.select_values = select
 
+        method = ids.length > 1 ? 'in' : 'eq'
+
         all_associated_records = associated_records(ids) do |some_ids|
-          associated_records_proxy.where([conditions, some_ids]).to_a
+
+          conditions = right[reflection.primary_key_name].send(
+            method, some_ids.length == 1 ? some_ids.first : some_ids
+          )
+          conditions = conditions.and(custom_conditions) unless custom_conditions.empty?
+
+          associated_records_proxy.where(conditions).to_a
         end
 
         set_association_collection_records(id_to_record_map, reflection.name, all_associated_records, 'the_parent_record_id')
