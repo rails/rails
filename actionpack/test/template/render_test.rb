@@ -146,7 +146,12 @@ module RenderTestCases
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end
 
-  def test_render_partial_collection_as
+  def test_render_partial_collection_as_by_string
+    assert_equal "david david davidmary mary mary",
+      @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => 'customer')
+  end
+
+  def test_render_partial_collection_as_by_symbol
     assert_equal "david david davidmary mary mary",
       @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer)
   end

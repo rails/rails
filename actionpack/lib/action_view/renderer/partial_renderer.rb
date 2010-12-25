@@ -108,7 +108,7 @@ module ActionView
         locals << @variable_counter if @collection
         find_template(path, locals)
       end
-    end 
+    end
 
     def find_template(path=@path, locals=@locals.keys)
       prefixes = path.include?(?/) ? [] : @view.controller_prefixes
@@ -159,7 +159,7 @@ module ActionView
     end
 
     def retrieve_variable(path)
-      variable = @options[:as] || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+      variable = @options[:as].try(:to_sym) || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
     end
