@@ -336,11 +336,11 @@ module ActiveRecord
             end
           end
         else
-          id_map = {}
-          records.each do |record|
+          id_map = records.group_by do |record|
             key = record.send(primary_key_name)
-            (id_map[key.to_s] ||= []) << record if key
+            key && key.to_s
           end
+          id_map.delete nil
           klasses_and_ids[reflection.klass.name] = id_map unless id_map.empty?
         end
 
