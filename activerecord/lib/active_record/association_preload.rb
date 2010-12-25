@@ -196,8 +196,6 @@ module ActiveRecord
         right = Arel::Table.new(options[:join_table]).alias('t0')
 
 
-        custom_conditions = append_conditions(reflection, preload_options)
-
         join_condition = left[reflection.klass.primary_key].eq(
           right[reflection.association_foreign_key])
 
@@ -217,12 +215,16 @@ module ActiveRecord
         associated_records_proxy.joins_values = [join]
         associated_records_proxy.select_values = select
 
+        custom_conditions = append_conditions(reflection, preload_options)
+
         all_associated_records = associated_records(ids) do |some_ids|
           method = some_ids.length == 1 ? ['eq', some_ids.first] :
                                           ['in', some_ids]
 
           conditions = right[reflection.primary_key_name].send(*method)
-          conditions = conditions.and(custom_conditions) unless custom_conditions.empty?
+          conditions = custom_conditions.inject(conditions) do |ast, cond|
+            ast.and cond
+          end
 
           associated_records_proxy.where(conditions).to_a
         end
@@ -348,7 +350,7 @@ module ActiveRecord
         klasses_and_ids.each do |klass_name, _id_map|
           klass = klass_name.constantize
 
-          table_name = klass.quoted_table_name
+          table = klass.arel_table
           primary_key = (reflection.options[:primary_key] || klass.primary_key).to_s
           column_type = klass.columns.detect{|c| c.name == primary_key}.type
 
@@ -362,10 +364,15 @@ module ActiveRecord
             end
           end
 
-          conditions = "#{table_name}.#{connection.quote_column_name(primary_key)} #{in_or_equals_for_ids(ids)}"
-          conditions << append_conditions(reflection, preload_options)
+          method = ids.length == 1 ? ['eq', ids.first] : ['in', ids]
+          conditions = table[primary_key].send(*method)
 
-          associated_records = klass.unscoped.where([conditions, ids]).apply_finder_options(options.slice(:include, :select, :joins, :order)).to_a
+          custom_conditions = append_conditions(reflection, preload_options)
+          conditions = custom_conditions.inject(conditions) do |ast, cond|
+            ast.and cond
+          end
+
+          associated_records = klass.unscoped.where(conditions).apply_finder_options(options.slice(:include, :select, :joins, :order)).to_a
 
           set_association_single_records(_id_map, reflection.name, associated_records, primary_key)
         end
@@ -382,7 +389,8 @@ module ActiveRecord
           conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} #{in_or_equals_for_ids(ids)}"
         end
 
-        conditions << append_conditions(reflection, preload_options)
+        conditions = ([conditions] +
+          append_conditions(reflection, preload_options)).join(' AND ')
 
         find_options = {
           :select => preload_options[:select] || options[:select] || Arel::SqlLiteral.new("#{table_name}.*"),
@@ -398,10 +406,10 @@ module ActiveRecord
       end
 
       def append_conditions(reflection, preload_options)
-        sql = ""
-        sql << " AND (#{reflection.sanitized_conditions})" if reflection.sanitized_conditions
-        sql << " AND (#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]
-        sql
+        [
+          ("(#{reflection.sanitized_conditions})" if reflection.sanitized_conditions),
+          ("(#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]),
+        ].compact.map { |x| Arel.sql x }
       end
 
       def in_or_equals_for_ids(ids)
