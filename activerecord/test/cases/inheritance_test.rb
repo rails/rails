@@ -219,6 +219,10 @@ class InheritanceTest < ActiveRecord::TestCase
     switch_to_default_inheritance_column
   end
 
+  def test_inherits_custom_primary_key
+    assert_equal Subscriber.primary_key, SpecialSubscriber.primary_key
+  end
+
   def test_inheritance_without_mapping
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }

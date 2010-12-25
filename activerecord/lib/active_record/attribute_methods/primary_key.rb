@@ -14,11 +14,13 @@ module ActiveRecord
         # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
         # primary_key_prefix_type setting, though.
         def primary_key
-          reset_primary_key
+          @primary_key ||= reset_primary_key
         end
 
         def reset_primary_key #:nodoc:
-          key = get_primary_key(base_class.name)
+          key = self == base_class ? get_primary_key(base_class.name) :
+            base_class.primary_key
+
           set_primary_key(key)
           key
         end
@@ -40,6 +42,9 @@ module ActiveRecord
           end
         end
 
+        attr_accessor :original_primary_key
+        attr_writer :primary_key
+
         # Sets the name of the primary key column to use to the given value,
         # or (if the value is nil or false) to the value returned by the given
         # block.
@@ -48,9 +53,11 @@ module ActiveRecord
         #     set_primary_key "sysid"
         #   end
         def set_primary_key(value = nil, &block)
-          define_attr_method :primary_key, value, &block
+          @primary_key ||= ''
+          self.original_primary_key = @primary_key
+          value &&= value.to_s
+          self.primary_key = block_given? ? instance_eval(&block) : value
         end
-        alias :primary_key= :set_primary_key
       end
     end
   end
