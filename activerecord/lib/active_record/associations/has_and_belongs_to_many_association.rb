@@ -110,6 +110,10 @@ module ActiveRecord
             []
           end
         end
+
+        def invertible_for?(record)
+          false
+        end
     end
   end
 end

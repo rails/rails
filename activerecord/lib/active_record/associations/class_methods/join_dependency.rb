@@ -212,7 +212,7 @@ module ActiveRecord
               collection = record.send(join_part.reflection.name)
               collection.loaded
               collection.target.push(association)
-              collection.__send__(:set_inverse_instance, association, record)
+              collection.send(:set_inverse_instance, association)
             when :belongs_to
               set_target_and_inverse(join_part, association, record)
             else
@@ -224,7 +224,7 @@ module ActiveRecord
 
         def set_target_and_inverse(join_part, association, record)
           association_proxy = record.send("set_#{join_part.reflection.name}_target", association)
-          association_proxy.__send__(:set_inverse_instance, association, record)
+          association_proxy.send(:set_inverse_instance, association)
         end
       end
     end

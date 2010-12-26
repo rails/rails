@@ -454,9 +454,7 @@ module ActiveRecord
             end
 
           records = @reflection.options[:uniq] ? uniq(records) : records
-          records.each do |record|
-            set_inverse_instance(record, @owner)
-          end
+          records.each { |record| set_inverse_instance(record) }
           records
         end
 
@@ -470,7 +468,7 @@ module ActiveRecord
             @target << record
           end
           callback(:after_add, record)
-          set_inverse_instance(record, @owner)
+          set_inverse_instance(record)
           record
         end
 

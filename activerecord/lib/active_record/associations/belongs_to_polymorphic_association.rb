@@ -14,7 +14,7 @@ module ActiveRecord
           @updated = true
         end
 
-        set_inverse_instance(record, @owner)
+        set_inverse_instance(record)
         loaded
         record
       end
@@ -38,23 +38,13 @@ module ActiveRecord
 
       private
 
-        # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
-        # has_one associations.
-        def we_can_set_the_inverse_on_this?(record)
-          if @reflection.has_inverse?
-            inverse_association = @reflection.polymorphic_inverse_of(record.class)
-            inverse_association && inverse_association.macro == :has_one
-          else
-            false
-          end
+        def inverse_reflection_for(record)
+          @reflection.polymorphic_inverse_of(record.class)
         end
 
-        def set_inverse_instance(record, instance)
-          return if record.nil? || !we_can_set_the_inverse_on_this?(record)
-          inverse_relationship = @reflection.polymorphic_inverse_of(record.class)
-          if inverse_relationship
-            record.send(:"set_#{inverse_relationship.name}_target", instance)
-          end
+        def invertible_for?(record)
+          inverse = inverse_reflection_for(record)
+          inverse && inverse.macro == :has_one
         end
 
         def construct_find_scope
@@ -71,7 +61,7 @@ module ActiveRecord
               :include => @reflection.options[:include]
             )
           end
-          set_inverse_instance(target, @owner)
+          set_inverse_instance(target)
           target
         end
 

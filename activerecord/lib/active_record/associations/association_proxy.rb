@@ -217,6 +217,13 @@ module ActiveRecord
           @reflection.klass.arel_table
         end
 
+        # Set the inverse association, if possible
+        def set_inverse_instance(record)
+          if record && invertible_for?(record)
+            record.send("set_#{inverse_reflection_for(record).name}_target", @owner)
+          end
+        end
+
       private
         # Forwards any missing method call to the \target.
         def method_missing(method, *args)
@@ -280,17 +287,16 @@ module ActiveRecord
           @owner.quoted_id
         end
 
-        def set_inverse_instance(record, instance)
-          return if record.nil? || !we_can_set_the_inverse_on_this?(record)
-          inverse_relationship = @reflection.inverse_of
-          unless inverse_relationship.nil?
-            record.send(:"set_#{inverse_relationship.name}_target", instance)
-          end
+        # Can be redefined by subclasses, notably polymorphic belongs_to
+        # The record parameter is necessary to support polymorphic inverses as we must check for
+        # the association in the specific class of the record.
+        def inverse_reflection_for(record)
+          @reflection.inverse_of
         end
 
-        # Override in subclasses
-        def we_can_set_the_inverse_on_this?(record)
-          false
+        # Is this association invertible? Can be redefined by subclasses.
+        def invertible_for?(record)
+          inverse_reflection_for(record)
         end
     end
   end

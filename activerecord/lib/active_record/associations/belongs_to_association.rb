@@ -32,7 +32,7 @@ module ActiveRecord
           @updated = true
         end
 
-        set_inverse_instance(record, @owner)
+        set_inverse_instance(record)
 
         loaded
         record
@@ -69,7 +69,7 @@ module ActiveRecord
               options
             ) if @owner[@reflection.primary_key_name]
           end
-          set_inverse_instance(the_target, @owner)
+          set_inverse_instance(the_target)
           the_target
         end
 
@@ -83,8 +83,9 @@ module ActiveRecord
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
         # has_one associations.
-        def we_can_set_the_inverse_on_this?(record)
-          @reflection.has_inverse? && @reflection.inverse_of.macro == :has_one
+        def invertible_for?(record)
+          inverse = inverse_reflection_for(record)
+          inverse && inverse.macro == :has_one
         end
 
         def record_id(record)

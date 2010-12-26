@@ -55,7 +55,7 @@ module ActiveRecord
           @target = (AssociationProxy === obj ? obj.target : obj)
         end
 
-        set_inverse_instance(obj, @owner)
+        set_inverse_instance(obj)
         @loaded = true
 
         unless !@owner.persisted? || obj.nil? || dont_save
@@ -81,7 +81,7 @@ module ActiveRecord
           the_target = with_scope(:find => @scope[:find]) do
             @reflection.klass.find(:first, options)
           end
-          set_inverse_instance(the_target, @owner)
+          set_inverse_instance(the_target)
           the_target
         end
 
@@ -107,15 +107,10 @@ module ActiveRecord
           else
             record[@reflection.primary_key_name] = @owner.id if @owner.persisted?
             self.target = record
-            set_inverse_instance(record, @owner)
+            set_inverse_instance(record)
           end
 
           record
-        end
-
-        def we_can_set_the_inverse_on_this?(record)
-          inverse = @reflection.inverse_of
-          return !inverse.nil?
         end
 
         def merge_with_conditions(attrs={})

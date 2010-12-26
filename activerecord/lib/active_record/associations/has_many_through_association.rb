@@ -67,7 +67,7 @@ module ActiveRecord
         end
 
         # NOTE - not sure that we can actually cope with inverses here
-        def we_can_set_the_inverse_on_this?(record)
+        def invertible_for?(record)
           false
         end
     end
