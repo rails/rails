@@ -167,11 +167,6 @@ module ActiveRecord
       end
 
       protected
-        # Does the association have a <tt>:dependent</tt> option?
-        def dependent?
-          @reflection.options[:dependent]
-        end
-
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
         end

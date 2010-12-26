@@ -27,7 +27,7 @@ module ActiveRecord
         load_target
 
         unless @target.nil? || @target == obj
-          if dependent? && !dont_save
+          if @reflection.options[:dependent] && !dont_save
             case @reflection.options[:dependent]
             when :delete
               @target.delete if @target.persisted?
