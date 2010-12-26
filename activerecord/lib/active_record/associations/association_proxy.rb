@@ -4,17 +4,17 @@ module ActiveRecord
   module Associations
     # = Active Record Associations
     #
-    # This is the root class of all association proxies:
+    # This is the root class of all association proxies ('+ Foo' signifies an included module Foo):
     #
     #   AssociationProxy
     #     BelongsToAssociation
-    #       HasOneAssociation
     #     BelongsToPolymorphicAssociation
-    #     AssociationCollection
+    #     AssociationCollection + HasAssociation
     #       HasAndBelongsToManyAssociation
     #       HasManyAssociation
-    #         HasManyThroughAssociation
-    #            HasOneThroughAssociation
+    #         HasManyThroughAssociation + ThroughAssociation
+    #     HasOneAssociation + HasAssociation
+    #       HasOneThroughAssociation + ThroughAssociation
     #
     # Association proxies in Active Record are middlemen between the object that
     # holds the association, known as the <tt>@owner</tt>, and the actual associated
@@ -176,43 +176,6 @@ module ActiveRecord
           @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
-        # Sets the owner attributes on the given record
-        # Note: does not really make sense for belongs_to associations, but this method is not
-        #       used by belongs_to
-        def set_owner_attributes(record)
-          if @owner.persisted?
-            construct_owner_attributes.each { |key, value| record[key] = value }
-          end
-        end
-
-        # Returns a has linking the owner to the association represented by the reflection
-        def construct_owner_attributes(reflection = @reflection)
-          attributes = {}
-          if reflection.macro == :belongs_to
-            attributes[reflection.association_primary_key] = @owner.send(reflection.primary_key_name)
-          else
-            attributes[reflection.primary_key_name] = @owner.send(reflection.active_record_primary_key)
-
-            if reflection.options[:as]
-              attributes["#{reflection.options[:as]}_type"] = @owner.class.base_class.name
-            end
-          end
-          attributes
-        end
-
-        # Builds an array of arel nodes from the owner attributes hash
-        def construct_owner_conditions(table = aliased_table, reflection = @reflection)
-          construct_owner_attributes(reflection).map do |attr, value|
-            table[attr].eq(value)
-          end
-        end
-
-        def construct_conditions
-          conditions = construct_owner_conditions
-          conditions << Arel.sql(sql_conditions) if sql_conditions
-          aliased_table.create_and(conditions)
-        end
-
         # Merges into +options+ the ones coming from the reflection.
         def merge_options_from_reflection!(options)
           options.reverse_merge!(
@@ -309,18 +272,6 @@ module ActiveRecord
           unless record.is_a?(@reflection.klass) || record.is_a?(@reflection.class_name.constantize)
             message = "#{@reflection.class_name}(##{@reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
             raise ActiveRecord::AssociationTypeMismatch, message
-          end
-        end
-
-        if RUBY_VERSION < '1.9.2'
-          # Array#flatten has problems with recursive arrays before Ruby 1.9.2.
-          # Going one level deeper solves the majority of the problems.
-          def flatten_deeper(array)
-            array.collect { |element| (element.respond_to?(:flatten) && !element.is_a?(Hash)) ? element.flatten : element }.flatten
-          end
-        else
-          def flatten_deeper(array)
-            array.flatten
           end
         end
 

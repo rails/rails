@@ -1,7 +1,7 @@
 module ActiveRecord
-  # = Active Record Through Association Scope
+  # = Active Record Through Association
   module Associations
-    module ThroughAssociationScope
+    module ThroughAssociation
 
       def scoped
         with_scope(@scope) do
