@@ -66,7 +66,7 @@ rake "gems:install"
 
 And let Rails take care of installing the required gems if they’re not already installed.
 
-h4. add_source(source, options={})
+h4. add_source(source, options = {})
 
 Adds the given source to the generated application's +Gemfile+.
 
