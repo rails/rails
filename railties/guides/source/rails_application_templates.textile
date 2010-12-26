@@ -20,7 +20,7 @@ $ rails new blog -m ~/template.rb
 It's also possible to apply a template using a URL :
 
 <shell>
-$ rails new blog -m http://gist.github.com/31208.txt
+$ rails new blog -m https://gist.github.com/755496.txt
 </shell>
 
 Alternatively, you can use the rake task +rails:template+ to apply a template to an existing Rails application :
@@ -65,6 +65,16 @@ rake "gems:install"
 </ruby>
 
 And let Rails take care of installing the required gems if they’re not already installed.
+
+h4. add_source(source, options={})
+
+Adds the given source to the generated application's +Gemfile+.
+
+For example, if you need to source a gem from "http://code.whytheluckystiff.net":
+
+<ruby>
+add_source "http://code.whytheluckystiff.net"
+</ruby>
 
 h4. plugin(name, options = {})
 
