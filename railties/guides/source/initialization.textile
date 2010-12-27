@@ -661,7 +661,7 @@ The +methods.rb+ file is responsible for defining methods such as +camelize+, +u
 
 h4. Back to +railties/lib/rails/railtie.rb+
 
-Once the inflector files have been loaded, the +Rails::Railtie+ class is defined. This class includes a module called +Initializable+, which is actually +Rails::Initializable+ and is automatically loaded at this point.
+Once the inflector files have been loaded, the +Rails::Railtie+ class is defined. This class includes a module called +Initializable+, which is actually +Rails::Initializable+. This module includes the +initializer+ method which is used later on for setting up initializers, amongst other methods.
 
 h4. +railties/lib/rails/initializable.rb+
 
@@ -723,14 +723,83 @@ The +config+ method here is defined on +Rails::Railtie+ and is defined like this
   end
 </ruby>
 
-At this point, that +Railtie::Configuration+ constant is automatically loaded which causes the +rails/railties/configuration+ file to be loaded.
+At this point, that +Railtie::Configuration+ constant is automatically loaded which causes the +rails/railties/configuration+ file to be loaded. The line for this is this particular line in +railties/lib/rails/railtie.rb+:
 
-h4. +railties/lib/rails/railties/configuration.rb+
+<ruby>
+  autoload :Configuration, "rails/railtie/configuration"
+</ruby>
+
+h4. +railties/lib/rails/railtie/configuration.rb+
 
 This file begins with a require out to +rails/configuration+ which has already been required earlier in the process and so isn't required again.
 
-This file defines the +Rails::Railties::Configuration+ class which is responsible for providing a way to easily configure railties.
+This file defines the +Rails::Railtie::Configuration+ class which is responsible for providing a way to easily configure railties and it's the +initialize+ method here which is called by the +config+ method back in the +i18n_railtie.rb+ file. The methods on this object don't exist, and so are rescued by the +method_missing+ defined further down in +configuration.rb+:
 
+<ruby>
+  def method_missing(name, *args, &blk)
+    if name.to_s =~ /=$/
+      @@options[$`.to_sym] = args.first
+    elsif @@options.key?(name)
+      @@options[name]
+    else
+      super
+    end
+  end
+</ruby>
+
+So therefore when an option is referred to it simply stores the value as the key if it's used in a setter context, or retrieves it if used in a getter context. Nothing fancy going on there.
+
+h4. Back to +activesupport/lib/active_support/i18n_railtie.rb+
+
+After the configuration method the +reloader+ method is defined, and then the first of of Railties' initializers is defined: +i18n.callbacks+.
+
+<ruby>
+  initializer "i18n.callbacks" do
+    ActionDispatch::Reloader.to_prepare do
+      I18n::Railtie.reloader.execute_if_updated
+    end
+  end
+</ruby>
+
+The +initializer+ method (from the +Rails::Initializable+ module) here doesn't run the block, but rather stores it to be run later on:
+
+<ruby>
+  def initializer(name, opts = {}, &blk)
+    raise ArgumentError, "A block must be passed when defining an initializer" unless blk
+    opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
+    initializers << Initializer.new(name, nil, opts, &blk)
+  end
+</ruby>
+
+An initializer can be configured to run before or after another initializer, which we'll see a couple of times throughout this initialization process. Anything that inherits from +Rails::Railtie+ may also make use of the +initializer+ method, something which is covered in the "Configuration guide":[http://ryanbigg.com/guides/configuring.html#rails-railtie-initializer].
+
+The +Initializer+ class here is defined within the +Rails::Initializable+ module and its +initialize+ method is defined to just set up a couple of variables:
+
+<ruby>
+  def initialize(name, context, options, &block)
+    @name, @context, @options, @block = name, context, options, block
+  end
+</ruby>
+
+Once this +initialize+ method is finished, the object is added to the object the +initializers+ method returns:
+
+<ruby>
+  def initializers
+    @initializers ||= self.class.initializers_for(self)
+  end
+</ruby>
+
+If +@initializers+ isn't set (which it won't be at this point), the +intializers_for+ method will be called for this class.
+
+<ruby>
+  def initializers_for(binding)
+    Collection.new(initializers_chain.map { |i| i.bind(binding) })
+  end
+</ruby>
+
+The +Collection+ class in +railties/lib/rails/initializable.rb+ inherits from +Array+ and includes the +TSort+ module which is used to sort out the order of the initializers based on the order they are placed in.
+
+The +initializers_chain+ method referenced in the +initializers_for+ method is defined like this:
 
 **** REVIEW IS HERE ****
 
