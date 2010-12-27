@@ -25,6 +25,9 @@ module ActionView
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
       #   If "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
+      #   pass custom authenticity token string, or to not add authenticity_token field at all
+      #   (by passing <tt>false</tt>).
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behaviour. By default this behaviour is an ajax submit.
@@ -46,6 +49,12 @@ module ActionView
       #
       #  <%= form_tag('/posts', :remote => true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
+      #
+      #   form_tag('http://far.away.com/form', :authenticity_token => false)
+      #   # form without authenticity token
+      #
+      #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
+      #   # form with custom authenticity token
       #
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
         html_options = html_options_for_form(url_for_options, options, *parameters_for_url)
@@ -584,6 +593,7 @@ module ActionView
             html_options["action"]  = url_for(url_for_options, *parameters_for_url)
             html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
+            html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
           end
         end
 
@@ -591,6 +601,7 @@ module ActionView
           snowman_tag = tag(:input, :type => "hidden",
                             :name => "utf8", :value => "&#x2713;".html_safe)
 
+          authenticity_token = html_options.delete("authenticity_token")
           method = html_options.delete("method").to_s
 
           method_tag = case method
@@ -599,10 +610,10 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              token_tag
+              token_tag(authenticity_token)
             else
               html_options["method"] = "post"
-              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag
+              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
           end
 
           tags = snowman_tag << method_tag
@@ -622,11 +633,12 @@ module ActionView
           output.safe_concat("</form>")
         end
 
-        def token_tag
-          unless protect_against_forgery?
+        def token_tag(token)
+          if token == false || !protect_against_forgery?
             ''
           else
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
+            token = form_authenticity_token if token.nil?
+            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
           end
         end
 

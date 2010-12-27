@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add an :authenticity_token option to form_tag for custom handling or to omit the token (pass :authenticity_token => false).  [Jakub Kuźma, Igor Wiedler]
+
 * HTML5 button_tag helper. [Rizwan Reza]
 
 * Template lookup now searches further up in the inheritance chain. [Artemave]
