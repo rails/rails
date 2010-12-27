@@ -693,15 +693,8 @@ module ActionMailer #:nodoc:
     end
 
     def each_template(paths, name, &block) #:nodoc:
-      Array.wrap(paths).each do |path|
-        templates = lookup_context.find_all(name, path)
-        templates = templates.uniq_by { |t| t.formats }
-
-        unless templates.empty?
-          templates.each(&block)
-          return
-        end
-      end
+      templates = lookup_context.find_all(name, Array.wrap(paths))
+      templates.uniq_by { |t| t.formats }.each(&block)
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:
