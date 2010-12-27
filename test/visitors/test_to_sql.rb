@@ -32,7 +32,7 @@ module Arel
 
       it "should escape LIMIT" do
         sc = Arel::Nodes::SelectStatement.new
-        sc.limit = "omg"
+        sc.limit = Arel::Nodes::Limit.new("omg")
         assert_match(/LIMIT 'omg'/, @visitor.accept(sc))
       end
 

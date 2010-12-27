@@ -4,6 +4,7 @@ require 'arel/visitors/to_sql'
 require 'arel/visitors/sqlite'
 require 'arel/visitors/postgresql'
 require 'arel/visitors/mysql'
+require 'arel/visitors/mssql'
 require 'arel/visitors/oracle'
 require 'arel/visitors/join_sql'
 require 'arel/visitors/where_sql'
@@ -16,6 +17,8 @@ module Arel
       'postgresql'      => Arel::Visitors::PostgreSQL,
       'mysql'           => Arel::Visitors::MySQL,
       'mysql2'          => Arel::Visitors::MySQL,
+      'mssql'           => Arel::Visitors::MSSQL,
+      'sqlserver'       => Arel::Visitors::MSSQL,
       'oracle_enhanced' => Arel::Visitors::Oracle,
       'sqlite'          => Arel::Visitors::SQLite,
       'sqlite3'         => Arel::Visitors::SQLite,

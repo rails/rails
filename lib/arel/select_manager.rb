@@ -10,7 +10,7 @@ module Arel
     end
 
     def taken
-      @ast.limit
+      @ast.limit && @ast.limit.expr
     end
 
     def constraints
@@ -131,7 +131,8 @@ module Arel
     end
 
     def take limit
-      @ast.limit = limit
+      @ast.limit = Nodes::Limit.new(limit)
+      @ctx.top   = Nodes::Top.new(limit)
       self
     end
 
