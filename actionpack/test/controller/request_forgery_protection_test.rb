@@ -12,6 +12,14 @@ module RequestForgeryProtectionActions
     render :inline => "<%= button_to('New', '/') {} %>"
   end
 
+  def external_form
+    render :inline => "<%= form_tag('http://farfar.away/form', :authenticity_token => 'external_token') {} %>"
+  end
+
+  def external_form_without_protection
+    render :inline => "<%= form_tag('http://farfar.away/form', :authenticity_token => false) {} %>"
+  end
+
   def unsafe
     render :text => 'pwn'
   end
@@ -63,6 +71,16 @@ module RequestForgeryProtectionTests
   def test_should_render_button_to_with_token_tag
     get :show_button
     assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
+  end
+
+  def test_should_render_external_form_with_external_token
+    get :external_form
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', 'external_token'
+  end
+
+  def test_should_render_external_form_without_token
+    get :external_form_without_protection
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
   end
 
   def test_should_allow_get
