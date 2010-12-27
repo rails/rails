@@ -10,7 +10,7 @@ module ActiveRecord
 
       def destroy(*records)
         transaction do
-          delete_records(flatten_deeper(records))
+          delete_records(records.flatten)
           super
         end
       end

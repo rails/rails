@@ -125,7 +125,7 @@ module ActiveRecord
         load_target if @owner.new_record?
 
         transaction do
-          flatten_deeper(records).each do |record|
+          records.flatten.each do |record|
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
               result &&= insert_record(record) unless @owner.new_record?
@@ -501,7 +501,7 @@ module ActiveRecord
         end
 
         def remove_records(*records)
-          records = flatten_deeper(records)
+          records = records.flatten
           records.each { |record| raise_on_type_mismatch(record) }
 
           transaction do
