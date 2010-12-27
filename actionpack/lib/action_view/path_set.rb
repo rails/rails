@@ -21,26 +21,21 @@ module ActionView #:nodoc:
     def find_all(path, prefixes = [], *args)
       prefixes.each do |prefix|
         templates = []
-
         each do |resolver|
           templates.concat resolver.find_all(path, prefix, *args)
         end
-
         return templates unless templates.empty?
       end
-
       []
     end
 
     def find_first(path, prefixes = [], *args)
       prefixes.each do |prefix|
         each do |resolver|
-          if template = resolver.find_all(path, prefix, *args).first
-            return template
-          end
+          template = resolver.find_all(path, prefix, *args).first
+          return template if template
         end
       end
-
       nil
     end
 

@@ -119,13 +119,14 @@ module ActionView
         name  = name.to_s.gsub(handlers_regexp, '')
         parts = name.split('/')
         name  = parts.pop
-        prx = if prefixes.blank?
-                [parts.compact.join('/')]
-              else
-                prefixes.map {|prefix| [prefix, *parts].compact.join('/') }
-              end
 
-        return name, prx
+        prefixes = if prefixes.blank?
+          [parts.join('/')]
+        else
+          prefixes.map { |prefix| [prefix, *parts].compact.join('/') }
+        end
+
+        return name, prefixes
       end
 
       def default_handlers #:nodoc:
