@@ -329,7 +329,7 @@ module ActiveRecord
             if klass = record.send(polymorph_type)
               klass_id = record.send(primary_key_name)
               if klass_id
-                id_map = klasses_and_ids[klass] ||= {}
+                id_map = klasses_and_ids[klass.constantize] ||= {}
                 (id_map[klass_id.to_s] ||= []) << record
               end
             end
@@ -340,16 +340,14 @@ module ActiveRecord
             key && key.to_s
           end
           id_map.delete nil
-          klasses_and_ids[reflection.klass.name] = id_map unless id_map.empty?
+          klasses_and_ids[reflection.klass] = id_map unless id_map.empty?
         end
 
-        klasses_and_ids.each do |klass_name, _id_map|
-          klass = klass_name.constantize
-
-          table = klass.arel_table
+        klasses_and_ids.each do |klass, _id_map|
+          table       = klass.arel_table
           primary_key = (reflection.options[:primary_key] || klass.primary_key).to_s
-          method     = in_or_equal(_id_map.keys)
-          conditions = table[primary_key].send(*method)
+          method      = in_or_equal(_id_map.keys)
+          conditions  = table[primary_key].send(*method)
 
           custom_conditions = append_conditions(reflection, preload_options)
           conditions = custom_conditions.inject(conditions) do |ast, cond|
