@@ -715,7 +715,21 @@ This file is the first file that sets up configuration with these lines inside t
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 </ruby>
 
+The +config+ method here is defined on +Rails::Railtie+ and is defined like this:
 
+<ruby>
+  def config
+    @config ||= Railtie::Configuration.new
+  end
+</ruby>
+
+At this point, that +Railtie::Configuration+ constant is automatically loaded which causes the +rails/railties/configuration+ file to be loaded.
+
+h4. +railties/lib/rails/railties/configuration.rb+
+
+This file begins with a require out to +rails/configuration+ which has already been required earlier in the process and so isn't required again.
+
+This file defines the +Rails::Railties::Configuration+ class which is responsible for providing a way to easily configure railties.
 
 
 **** REVIEW IS HERE ****
