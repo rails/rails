@@ -1490,8 +1490,10 @@ MSG
         attributes.each do |k, v|
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
+          elsif respond_to?("#{k}=")
+            send("#{k}=", v)
           else
-            respond_to?(:"#{k}=") ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
+            raise(UnknownAttributeError, "unknown attribute: #{k}")
           end
         end
 
@@ -1816,7 +1818,7 @@ MSG
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
           create_with.each { |att,value|
-            respond_to?(:"#{att}=") && send("#{att}=", value)
+            respond_to?("#{att}=") && send("#{att}=", value)
           }
         end
       end
