@@ -17,5 +17,9 @@ module Arel
     def create_on expr
       Nodes::On.new expr
     end
+
+    def grouping expr
+      Nodes::Grouping.new expr
+    end
   end
 end
