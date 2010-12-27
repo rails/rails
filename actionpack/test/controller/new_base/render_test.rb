@@ -53,10 +53,6 @@ module Render
     prepend_view_path ActionView::FixtureResolver.new("render/child_render/overriden_with_own_view_paths_prepended.html.erb" => "child content")
   end
 
-  class ChildRenderWithoutInheritanceController < BlankRenderController
-    config.template_inheritance = false
-  end
-
   class RenderTest < Rack::TestCase
     test "render with blank" do
       with_routing do |set|
@@ -136,14 +132,6 @@ module Render
     test "Template from parent controller gets picked if missing in child controller" do
       get "/render/child_render/index"
       assert_body "Hello world!"
-    end
-  end
-
-  class TestNoViewInheritance < Rack::TestCase
-    test "Template from parent controller does not get picked if config.action_controller.template_inheritance = false" do
-      assert_raises(ActionView::MissingTemplate) do
-        get "/render/child_render_without_inheritance/index", {}, "action_dispatch.show_exceptions" => false
-      end
     end
   end
 end

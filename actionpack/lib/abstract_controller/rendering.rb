@@ -60,6 +60,20 @@ module AbstractController
           end
         end
       end
+
+      def parent_prefixes
+        @parent_prefixes ||= begin
+          parent_controller = superclass
+          prefixes = []
+
+          until parent_controller.abstract?
+            prefixes << parent_controller.controller_path
+            parent_controller = parent_controller.superclass
+          end
+
+          prefixes
+        end
+      end
     end
 
     attr_writer :view_context_class
@@ -116,18 +130,10 @@ module AbstractController
 
     # The prefixes used in render "foo" shortcuts.
     def _prefixes
-      prefixes = [controller_path]
-
-      if template_inheritance?
-        parent_controller = self.class.superclass
-
-        until parent_controller.abstract?
-          prefixes << parent_controller.controller_path
-          parent_controller = parent_controller.superclass
-        end
+      @_prefixes ||= begin
+        parent_prefixes = self.class.parent_prefixes
+        parent_prefixes.dup.unshift(controller_path)
       end
-
-      prefixes
     end
 
     private
@@ -175,11 +181,6 @@ module AbstractController
     end
 
     def _process_options(options)
-    end
-
-    def template_inheritance?
-      # is there a better way to check for config option being set?
-      config.template_inheritance.nil? ? true : config.template_inheritance
     end
   end
 end
