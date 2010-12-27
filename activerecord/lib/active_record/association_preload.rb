@@ -147,13 +147,16 @@ module ActiveRecord
       def set_association_single_records(id_to_record_map, reflection_name, associated_records, key)
         seen_keys = {}
         associated_records.each do |associated_record|
+          seen_key = associated_record[key].to_s
+
           #this is a has_one or belongs_to: there should only be one record.
           #Unfortunately we can't (in portable way) ask the database for
           #'all records where foo_id in (x,y,z), but please
           # only one row per distinct foo_id' so this where we enforce that
-          next if seen_keys[associated_record[key].to_s]
-          seen_keys[associated_record[key].to_s] = true
-          mapped_records = id_to_record_map[associated_record[key].to_s]
+          next if seen_keys.key? seen_key
+
+          seen_keys[seen_key] = true
+          mapped_records = id_to_record_map[seen_key]
           mapped_records.each do |mapped_record|
             association_proxy = mapped_record.send("set_#{reflection_name}_target", associated_record)
             association_proxy.send(:set_inverse_instance, associated_record)
