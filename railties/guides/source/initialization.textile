@@ -914,3 +914,115 @@ Then this Railtie sets up three more initializers:
 * +active_support.initialize_time_zone+
 
 We will cover what each of these initializers do when they run.
+
+Once the +active_support/railtie+ file has finished loading the next file required from +railties/lib/rails.rb+ is the +action_dispatch/railtie+.
+
+h4. +activesupport/lib/action_dispatch/railtie.rb+
+
+This file defines the +ActionDispatch::Railtie+ class, but not before requiring +action_dispatch+.
+
+h4. +activesupport/lib/action_dispatch.rb+
+
+This file attempts to locate the +active_support+ and +active_model+ libraries by looking a couple of directories back from the current file and then adds the +active_support+ and +active_model+ +lib+ directories to the load path, but only if they aren't already, which they are. 
+
+<ruby>
+  activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
+  $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+
+  activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
+  $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
+</ruby>
+
+In effect, these lines only define the +activesupport_path+ and +activemodel_path+ variables and nothing more.
+
+The next two requires in this file are already done, so they are not run:
+
+<ruby>
+  require 'active_support'
+  require 'active_support/dependencies/autoload'
+</ruby>
+
+The following require is to +action_pack+ (+activesupport/lib/action_pack.rb+) which has a 22-line copyright notice at the top of it and ends in a simple require to +action_pack/version+. This file, like other +version.rb+ files before it, defines the +ActionPack::VERSION+ constant:
+
+<ruby>
+  module ActionPack
+    module VERSION #:nodoc:
+      MAJOR = 3
+      MINOR = 1
+      TINY  = 0
+      PRE   = "beta"
+
+      STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+    end
+  end
+</ruby>
+
+Once +action_pack+ is finished, then +active_model+ is required.
+
+h4. +activemodel/lib/active_model.rb+
+
+This file makes a require to +active_model/version+ which defines the version for Active Model:
+
+<ruby>
+  module ActiveModel
+    module VERSION #:nodoc:
+      MAJOR = 3
+      MINOR = 1
+      TINY  = 0
+      PRE   = "beta"
+
+      STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+    end
+  end
+</ruby>
+
+Once the +version.rb+ file is loaded, the +ActiveModel+ module has its autoloaded constants defined as well as a sub-module called +ActiveModel::Serializers+ which has autoloads of its own. When the +ActiveModel+ module is closed the +active_support/i18n+ file is required.
+
+h4. +activesupport/lib/active_support/i18n.rb+
+
+This is where the +i18n+ gem is required and first configured:
+
+<ruby>
+  begin
+    require 'i18n'
+    require 'active_support/lazy_load_hooks'
+  rescue LoadError => e
+    $stderr.puts "You don't have i18n installed in your application. Please add it to your Gemfile and run bundle install"
+    raise e
+  end
+
+  I18n.load_path << "#{File.dirname(__FILE__)}/locale/en.yml"
+</ruby>
+
+In effect, the +I18n+ module first defined by +i18n_railtie+ is extended by the +i18n+ gem, rather than the other way around. This has no ill effect. They both work on the same way.
+
+This is another spot where +active_support/lazy_load_hooks+ is required, but it has already been required so it's not loaded again.
+
+If +i18n+ cannot be loaded, the user is presented with an error which says that it cannot be loaded and recommends that it's added to the +Gemfile+. However, in a normal Rails application this gem would be loaded.
+
+Once it has finished loading, the +I18n.load_path+ method is used to add the +activesupport/lib/active_support/locale/en.yml+ file to I18n's load path. When the translations are loaded in the initialization process, this is one of the files where they will be sourced from.
+
+The loading of this file finishes the loading of +active_model+ and so we go back to +action_dispatch+.
+
+h4. Back to +activesupport/lib/action_dispatch.rb+
+
+The remainder of this file requires the +rack+ file from the Rack gem which defines the +Rack+ module. After +rack+, there's autoloads defined for the +Rack+,  +ActionDispatch+, +ActionDispatch::Http+, +ActionDispatch::Session+. A new method called +autoload_under+ is used here, and this simply prefixes the files where the modules are autoloaded from with the path specified. For example here:
+
+<ruby>
+  autoload_under 'testing' do
+    autoload :Assertions
+  ...
+</ruby>
+
+The +Assertions+ module is in the +action_dispatch/testing+ folder rather than simply +action_dispatch+.
+
+Finally, this file defines a top-level autoload, the +Mime+ constant.
+
+h4. Back to +activesupport/lib/action_dispatch/railtie.rb+
+
+After +action_dispatch+ is required in this file, the +ActionDispatch::Railtie+ class is defined and is yet another class that inherits from +Rails::Railtie+. This class defines some initial configuration option defaults for +config.action_dispatch+ before setting up a single initializer called +action_dispatch.configure+.
+
+With +action_dispatch/railtie+ now complete, we go back to +railties/lib/rails.rb+.
+
+
+
