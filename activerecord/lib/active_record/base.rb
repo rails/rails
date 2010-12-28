@@ -1630,7 +1630,7 @@ MSG
       # Returns the contents of the record as a nicely formatted string.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name) || new_record?
+          if has_attribute?(name)
             "#{name}: #{attribute_for_inspect(name)}"
           end
         }.compact.join(", ")
