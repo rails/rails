@@ -903,6 +903,18 @@ We'll see these +@load_hooks+ used later on in the initialization process.
 
 This rest of +i18n_railtie.rb+ defines the protected class methods +include_fallback_modules+, +init_fallbacks+ and +validate_fallbacks+.
 
+h4. Back to +activesupport/lib/active_support/railtie.rb+
+
+This file defines the +ActiveSupport::Railtie+ constant which like the +I18n::Railtie+ constant just defined, inherits from +Rails::Railtie+ meaning the +inherited+ method would be called again here, including +Rails::Configurable+ into this class. This class makes use of +Rails::Railtie+'s +config+ method again, setting up the configuration options for Active Support.
+
+Then this Railtie sets up three more initializers:
+
+* +active_support.initialize_whiny_nils+
+* +active_support.deprecation_behavior+
+* +active_support.initialize_time_zone+
+
+We will cover what each of these initializers do when they run.
+
 
 **** REVIEW IS HERE ****
 
