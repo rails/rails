@@ -1028,8 +1028,85 @@ h4. Back to +railties/lib/rails.rb+
 
 With the Active Support and Action Dispatch railties now both loaded, the rest of this file deals with setting up UTF-8 to be the default encoding for Rails and then finally setting up the +Rails+ module. This module defines useful methods such as +Rails.logger+, +Rails.application+, +Rails.env+, and +Rails.root+.
 
+h4. Back to +railties/lib/rails/all.rb+
 
+Now that +rails.rb+ is required, the remaining railties are loaded next, beginning with +active_record/railtie+.
 
+h4. +activerecord/lib/active_record/railtie.rb+
 
+Before this file gets into the swing of defining the +ActiveRecord::Railtie+ class, there's a couple of files that are required first. The first one of these is +active_record+.
 
+h4. +activerecord/lib/active_record.rb+
 
+This file begins by detecting if the +lib+ directories of +active_support+ and +active_model+ are not in the load path and if they aren't then adds them. As we saw back in +action_dispatch.rb+, these directories are already there.
+
+The first three requires have already been done by other files and so aren't loaded here, but the 4th require, the one to +arel+ will require the file provided by the Arel gem, which defines the +Arel+ module.
+
+<ruby>
+  require 'active_support'
+  require 'active_support/i18n'
+  require 'active_model'
+  require 'arel'
+</ruby>
+
+The 5th require in this file is one to +active_record/version+ which defines the +ActiveRecord::VERSION+ constant:
+
+<ruby>
+  module ActiveRecord
+    module VERSION #:nodoc:
+      MAJOR = 3
+      MINOR = 1
+      TINY  = 0
+      PRE   = "beta"
+
+      STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+    end
+  end
+</ruby>
+
+Once these requires are finished, the base for the +ActiveRecord+ module is defined along with its autoloads.
+
+Near the end of the file, we see this line:
+
+<ruby>
+  ActiveSupport.on_load(:active_record) do
+    Arel::Table.engine = self
+  end
+</ruby>
+
+This will set the engine for +Arel::Table+ to be +ActiveRecord::Base+.
+
+The file then finishes with this line:
+
+<ruby>
+  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+</ruby>
+
+This will add the translations from +activerecord/lib/active_record/locale/en.yml+ to the load path for +I18n+, with this file being parsed when all the translations are loaded.
+
+h4. Back to +activerecord/lib/active_record/railtie.rb+
+
+The next two <tt>require</tt>s in this file aren't run because their files are already required, with +rails+ being required by +rails/all+ and +active_model/railtie+ being required from +action_dispatch+.
+
+<ruby>
+  require "rails"
+  require "active_model/railtie"
+</ruby>
+
+The next +require+ in this file is to +action_controller/railtie+.
+
+h4. +actionpack/lib/action_controller/railtie.rb+
+
+This file begins with a couple more requires to files that have already been loaded:
+
+<ruby>
+  require "rails"
+  require "action_controller"
+  require "action_dispatch/railtie"
+</ruby>
+
+However the require after these is to a file that hasn't yet been loaded, +action_view/railtie+, which begins by requiring +action_view+.
+
+h4. +actionpack/lib/action_view.rb+
+
++action_view.rb+ 
