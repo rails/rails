@@ -1431,7 +1431,7 @@ module ActiveRecord
         # callbacks will be executed after the association is wiped out.
         include Module.new {
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def destroy                     # def destroy
+            def destroy(*params, &block)    # def destroy(*params, &block)
               #{reflection.name}.clear      #   posts.clear
               super                         #   super
             end                             # end
