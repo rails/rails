@@ -709,7 +709,7 @@ Much like +active_support/version+, this file defines the +VERSION+ constant whi
 
 h4. +activesupport/lib/active_support/railtie.rb+
 
-This file requires +active_support+ and +rails+ which have already been required so these two lines are effectively ignored. The third require in this file is to +active_support/railtie+.
+This file requires +active_support+ and +rails+ which have already been required so these two lines are effectively ignored. The third require in this file is to +active_support/i18n_railtie.rb+.
 
 h4. +activesupport/lib/active_support/i18n_railtie.rb+
 
