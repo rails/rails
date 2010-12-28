@@ -1034,7 +1034,7 @@ Now that +rails.rb+ is required, the remaining railties are loaded next, beginni
 
 h4. +activerecord/lib/active_record/railtie.rb+
 
-Before this file gets into the swing of defining the +ActiveRecord::Railtie+ class, there's a couple of files that are required first. The first one of these is +active_record+.
+Before this file gets into the swing of defining the +ActiveRecord::Railtie+ class, there are a couple of files that are required first. The first one of these is +active_record+.
 
 h4. +activerecord/lib/active_record.rb+
 
