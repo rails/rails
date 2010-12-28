@@ -282,7 +282,7 @@ module ActiveRecord
     # that instances loaded from the database would.
     def attributes_from_column_definition
       Hash[self.class.columns.map do |column|
-        [column.name, column.default] unless column.name == self.class.primary_key
+        [column.name, column.default]
       end]
     end
   end
