@@ -300,7 +300,7 @@ To get Rails saying "Hello", you need to create at minimum a controller and a vi
 $ rails generate controller home index
 </shell>
 
-TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +rails+ commands to Ruby: +ruby \path\to\rails controller home index+.
+TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby \path\to\your\application\script\rails generate controller home index</tt>.
 
 Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller. Open this file in your text editor and edit it to contain a single line of code:
 
