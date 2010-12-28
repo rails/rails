@@ -850,6 +850,26 @@ The +on_load+ method here is provided by the +active_support/lazy_load_hooks+ fi
   end
 </ruby>
 
+The +@loaded+ variable here is a hash containing elements representing the different components of Rails that have been loaded at this stage. Currently, this hash is empty. So the +else+ is executed here, using the +@load_hooks+ variable defined in +active_support/lazy_load_hooks+:
+
+<ruby>
+  @load_hooks = Hash.new {|h,k| h[k] = [] }
+</ruby>
+
+This defines a new hash which has keys that default to empty arrays. This saves Rails from having to do something like this instead:
+
+<ruby>
+  @load_hooks[name] = []
+  @load_hooks[name] << [block, options]
+</ruby>
+
+The value added to this array here consists of the block and options passed to +after_initialize+.
+
+We'll see these +@load_hooks+ used later on in the initialization process.
+
+This rest of +i18n_railtie.rb+ defines the protected class methods +include_fallback_modules+, +init_fallbacks+ and +validate_fallbacks+.
+
+
 **** REVIEW IS HERE ****
 
 This defines two methods on the module itself by using the familiar +class << self+ syntax. This allows you to call them as if they were class methods: +ActiveSupport.on_load_all+ and +ActiveSupport.load_all!+ respectively. The first method simply adds loading hooks to save them up for loading later on when +load_all!+ is called. By +call+'ing the block, the classes will be loaded. (NOTE: kind of guessing, I feel 55% about this).
