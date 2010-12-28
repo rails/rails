@@ -1024,5 +1024,12 @@ After +action_dispatch+ is required in this file, the +ActionDispatch::Railtie+ 
 
 With +action_dispatch/railtie+ now complete, we go back to +railties/lib/rails.rb+.
 
+h4. Back to +railties/lib/rails.rb+
+
+With the Active Support and Action Dispatch railties now both loaded, the rest of this file deals with setting up UTF-8 to be the default encoding for Rails and then finally setting up the +Rails+ module. This module defines useful methods such as +Rails.logger+, +Rails.application+, +Rails.env+, and +Rails.root+.
+
+
+
+
 
 
