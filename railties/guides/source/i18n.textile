@@ -623,7 +623,7 @@ pt:
     bar: baz
 </ruby>
 
-As you see, in both cases the top  level key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
+As you see, in both cases the top level key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
 
 Here is a "real" example from the Active Support +en.yml+ translations YAML file:
 
