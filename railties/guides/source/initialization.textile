@@ -723,7 +723,39 @@ This file is the first file that sets up configuration with these lines inside t
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 </ruby>
 
-The +config+ method here is defined on +Rails::Railtie+ and is defined like this:
+By inheriting from +Rails::Railtie+ the +Rails::Railtie#inherited+ method is called:
+
+<ruby>
+  def inherited(base)
+    unless base.abstract_railtie?
+      base.send(:include, Railtie::Configurable)
+      subclasses << base
+    end
+  end
+</ruby>
+
+This first checks if the Railtie that's inheriting it is a component of Rails itself:
+
+<ruby>
+ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
+
+...
+
+def abstract_railtie?
+  ABSTRACT_RAILTIES.include?(name)
+end
+</ruby>
+
+Because +I18n::Railtie+ isn't in this list, +abstract_railtie?+ returns +false+. Therefore the +Railtie::Configurable+ module is included into this class and the +subclasses+ method is called and +I18n::Railtie+ is added to this new array.
+
+<ruby>
+def subclasses
+  @subclasses ||= []
+end
+</ruby>
+
+
+The +config+ method used at the top of +I18n::Railtie+ is defined on +Rails::Railtie+ and is defined like this:
 
 <ruby>
   def config
