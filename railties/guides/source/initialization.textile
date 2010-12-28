@@ -224,7 +224,17 @@ Action Dispatch is the routing component of the Rails framework. It depends on A
 
 h4. +activesupport/lib/active_support.rb+
 
-This file begins with requiring +active_support/lib/active_support/dependencies/autoload.rb+ which redefines Ruby's +autoload+ method to have a little more extra behaviour especially in regards to eager autoloading. Eager autoloading is the loading of all required classes and will happen when the +config.cache_classes+ setting is +true+.
+This file begins with requiring +active_support/lib/active_support/dependencies/autoload.rb+ which redefines Ruby's +autoload+ method to have a little more extra behaviour especially in regards to eager autoloading. Eager autoloading is the loading of all required classes and will happen when the +config.cache_classes+ setting is +true+. The required file also requires another file: +active_support/lazy_load_hooks+
+
+h4. +activesupport/lib/active_support/lazy_load_hooks.rb+
+
+This file defines the +ActiveSupport.on_load+ hook which is used to execute code when specific parts are loaded. We'll see this in use a little later on.
+
+This file begins with requiring +active_support/inflector/methods+.
+
+h4. +activesupport/lib/active_support/inflector/methods.rb+
+
+The +methods.rb+ file is responsible for defining methods such as +camelize+, +underscore+ and +dasherize+ as well as a slew of others. The "+ActiveSupport::Inflector+ documentation":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html covers them all pretty decently.
 
 In this file there are a lot of lines such as this inside the +ActiveSupport+ module:
 
@@ -647,6 +657,8 @@ h4. +activesupport/lib/active_support/inflector.rb+
   require 'active_support/core_ext/string/inflections'
 </ruby>
 
+The +active_support/inflector/methods+ file has already been required by +active_support/autoload+ and so won't be loaded again here.
+
 h4. +activesupport/lib/active_support/inflector/inflections.rb+
 
 This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes". 
@@ -654,10 +666,6 @@ This file references the +ActiveSupport::Inflector+ constant which isn't loaded 
 h4. +activesupport/lib/active_support/inflector/transliterate.rb+
 
 In this file is where the "+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate and +parameterize+:http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
-
-h4. +activesupport/lib/active_support/inflector/methods.rb+
-
-The +methods.rb+ file is responsible for defining methods such as +camelize+, +underscore+ and +dasherize+ as well as a slew of others. The "+ActiveSupport::Inflector+ documentation":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html covers them all pretty decently.
 
 h4. Back to +railties/lib/rails/railtie.rb+
 
