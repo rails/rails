@@ -809,6 +809,47 @@ The +Collection+ class in +railties/lib/rails/initializable.rb+ inherits from +A
 
 The +initializers_chain+ method referenced in the +initializers_for+ method is defined like this:
 
+<rub>
+  def initializers_chain
+    initializers = Collection.new
+   ancestors.reverse_each do | klass |
+      next unless klass.respond_to?(:initializers)
+      initializers = initializers + klass.initializers
+    end
+    initializers
+  end
+</ruby>
+
+This method collects the initializers from the ancestors of this class and adds them to a new +Collection+ object using the <tt>+</tt> method which is defined like this for the <tt>Collection</tt> class:
+
+<ruby>
+  def +(other)
+    Collection.new(to_a + other.to_a)
+  end
+</ruby>
+
+So this <tt>+</tt> method is overriden to return a new collection comprising of the existing collection as an array and then using the <tt>Array#+</tt> method combines these two collections, returning a "super" +Collection+ object. In this case, the only initializer that's going to be in this new +Collection+ object is the +i18n.callbacks+ initializer.
+
+The next method to be called after this +initializer+ method is the +after_initialize+ method on the +config+ object, which is defined like this:
+
+<ruby>
+  def after_initialize(&block)
+    ActiveSupport.on_load(:after_initialize, :yield => true, &block)
+  end
+</ruby>
+
+The +on_load+ method here is provided by the +active_support/lazy_load_hooks+ file which was required earlier and is defined like this:
+
+<ruby>
+  def self.on_load(name, options = {}, &block)
+    if base = @loaded[name]
+      execute_hook(base, options, block)
+    else
+      @load_hooks[name] << [block, options]
+    end
+  end
+</ruby>
+
 **** REVIEW IS HERE ****
 
 This defines two methods on the module itself by using the familiar +class << self+ syntax. This allows you to call them as if they were class methods: +ActiveSupport.on_load_all+ and +ActiveSupport.load_all!+ respectively. The first method simply adds loading hooks to save them up for loading later on when +load_all!+ is called. By +call+'ing the block, the classes will be loaded. (NOTE: kind of guessing, I feel 55% about this).
