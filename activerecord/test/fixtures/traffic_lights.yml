@@ -1,0 +1,6 @@
+uk:
+  location: UK
+  state:
+    - Green
+    - Red
+    - Orange

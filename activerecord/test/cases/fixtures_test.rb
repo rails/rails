@@ -13,6 +13,7 @@ require 'models/category'
 require 'models/parrot'
 require 'models/pirate'
 require 'models/treasure'
+require 'models/traffic_light'
 require 'models/matey'
 require 'models/ship'
 require 'models/book'
@@ -24,7 +25,7 @@ class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
-  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries
+  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights
 
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
@@ -203,6 +204,10 @@ class FixturesTest < ActiveRecord::TestCase
     data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
     data.freeze
     assert_equal data, @flowers.data
+  end
+
+  def test_serialized_fixtures
+    assert_equal ["Green", "Red", "Orange"], traffic_lights(:uk).state
   end
 end
 

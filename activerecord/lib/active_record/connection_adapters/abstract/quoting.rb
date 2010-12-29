@@ -26,11 +26,12 @@ module ActiveRecord
           when Float, Fixnum, Bignum    then value.to_s
           # BigDecimals need to be output in a non-normalized form and quoted.
           when BigDecimal               then value.to_s('F')
+          when Symbol                   then "'#{quote_string(value.to_s)}'"
           else
             if value.acts_like?(:date) || value.acts_like?(:time)
               "'#{quoted_date(value)}'"
             else
-              "'#{quote_string(value.to_s)}'"
+              "'#{quote_string(value.to_yaml)}'"
             end
         end
       end
