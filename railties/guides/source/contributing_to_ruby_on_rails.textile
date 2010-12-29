@@ -64,7 +64,17 @@ h4. Set up and Run the Tests
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
-Install first libxml2 and libxslt together with their development files for Nokogiri. Also, SQLite3 and its development files for the +sqlite3-ruby+ gem.
+Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
+
+<shell>
+sudo aptitude install libxml2 libxml2-dev libxslt1-dev
+</shell>
+
+Also, SQLite3 and its development files for the +sqlite3-ruby+ gem, in Ubuntu you're done with
+
+<shell>
+sudo aptitude install sqlite3 libsqlite3-dev
+</shell>
 
 Get a recent version of "Bundler":http://gembundler.com/:
 
@@ -118,7 +128,12 @@ rake test_sqlite3
 
 h5. MySQL and PostgreSQL
 
-To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files.
+To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
+
+<shell>
+sudo aptitude install mysql-server libmysqlclient15-dev
+sudo aptitude install postgresql postgresql-client postgresql-contrib libpq-dev
+</shell>
 
 After that run:
 
