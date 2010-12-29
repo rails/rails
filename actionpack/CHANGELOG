@@ -47,8 +47,6 @@
 
 * Add clear_helpers as a way to clean up all helpers added to this controller, maintaing just the helper with the same name as the controller. [José Valim]
 
-* See http://github.com/rails/rails/compare/v3.0.0_RC...v3.0.0_RC2 for gory details
-
 * Support routing constraints in functional tests. [Andrew White]
 
 * Add a header that tells Internet Explorer (all versions) to use the best available standards support. [Yehuda Katz]
