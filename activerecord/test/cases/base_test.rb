@@ -703,7 +703,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     duped_topic.reload
     # FIXME: I think this is poor behavior, and will fix it with #5686
-    assert_equal({'a' => 'c'}.to_s, duped_topic.title)
+    assert_equal({'a' => 'c'}.to_yaml, duped_topic.title)
   end
 
   def test_dup_with_aggregate_of_same_name_as_attribute
