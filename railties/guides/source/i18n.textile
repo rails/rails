@@ -10,7 +10,7 @@ So, in the process of _internationalizing_ your Rails application you have to:
 * Tell Rails where to find locale dictionaries
 * Tell Rails how to set, preserve and switch locale
 
-In the process of _localizing_ your application you'll probably want to do following three things:
+In the process of _localizing_ your application you'll probably want to do the following three things:
 
 * Replace or supplement Rails' default locale -- e.g. date and time formats, month names, Active Record model names, etc
 * Abstract strings in your application into keyed dictionaries -- e.g. flash messages, static text in your views, etc.
@@ -305,12 +305,12 @@ end
 # app/controllers/home_controller.rb
 class HomeController < ApplicationController
   def index
-    flash[:notice] = "Hello flash!"
+    flash[:notice] = "Hello Flash"
   end
 end
 
 # app/views/home/index.html.erb
-<h1>Hello world!</h1>
+<h1>Hello World</h1>
 <p><%= flash[:notice] %></p>
 </ruby>
 
@@ -344,8 +344,8 @@ So let's add the missing translations into the dictionary files (i.e. do the "lo
 <ruby>
 # config/locales/en.yml
 en:
-  hello_world: Hello World
-  hello_flash: Hello Flash
+  hello_world: Hello world!
+  hello_flash: Hello flash!
 
 # config/locales/pirate.yml
 pirate:
@@ -586,7 +586,7 @@ I18n.t :foo
 I18n.l Time.now
 </ruby>
 
-Explicitely passing a locale:
+Explicitly passing a locale:
 
 <ruby>
 I18n.t :foo, :locale => :de
@@ -623,7 +623,7 @@ pt:
     bar: baz
 </ruby>
 
-As you see, in both cases the toplevel key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
+As you see, in both cases the top level key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
 
 Here is a "real" example from the Active Support +en.yml+ translations YAML file:
 

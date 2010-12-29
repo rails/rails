@@ -47,9 +47,7 @@
 
 * Symbols and strings in routes should yield the same behavior. Note this may break existing apps that were using symbols with the new routes API. [José Valim]
 
-* Add clear_helpers as a way to clean up all helpers added to this controller, maintaing just the helper with the same name as the controller. [José Valim]
-
-* See http://github.com/rails/rails/compare/v3.0.0_RC...v3.0.0_RC2 for gory details
+* Add clear_helpers as a way to clean up all helpers added to this controller, maintaining just the helper with the same name as the controller. [José Valim]
 
 * Support routing constraints in functional tests. [Andrew White]
 

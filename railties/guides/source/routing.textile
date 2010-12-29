@@ -85,6 +85,9 @@ creates seven different routes in your application, all mapping to the +Photos+ 
 |PUT          |/photos/:id       |update   |update a specific photo                      |
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
+
+NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
+
 h4. Paths and URLs
 
 Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of +resources :photos+:

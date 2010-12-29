@@ -269,7 +269,7 @@ If you got there by a browser request, the browser tab containing the request wi
 For example:
 
 <shell>
-@posts = Post.find(:all)
+@posts = Post.all
 (rdb:7)
 </shell>
 
@@ -302,7 +302,7 @@ This command shows you where you are in the code by printing 10 lines centered a
    3    # GET /posts.xml
    4    def index
    5      debugger
-=> 6      @posts = Post.find(:all)
+=> 6      @posts = Post.all
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
@@ -380,7 +380,7 @@ Any expression can be evaluated in the current context. To evaluate an expressio
 This example shows how you can print the instance_variables defined within the current context:
 
 <shell>
-@posts = Post.find(:all)
+@posts = Post.all
 (rdb:11) instance_variables
 ["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
 </shell>

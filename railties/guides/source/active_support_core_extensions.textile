@@ -498,7 +498,7 @@ h4. Attributes
 
 h5. +alias_attribute+
 
-Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
+Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
 
 <ruby>
 class User < ActiveRecord::Base
@@ -563,7 +563,7 @@ h5. Internal Attributes
 
 When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
 
-Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby builtin +attr_*+ counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
+Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby built-in +attr_*+ counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
 
 The macro +attr_internal+ is a synonym for +attr_internal_accessor+:
 
@@ -991,7 +991,7 @@ a2.x # => 2, overridden in a2
 The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to false, as in
 
 <ruby>
-module AcitveRecord
+module ActiveRecord
   class Base
     class_attribute :table_name_prefix, :instance_writer => false
     self.table_name_prefix = ""
@@ -1001,7 +1001,7 @@ end
 
 A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
 
-For convenience +class_attribute+ defines also an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
+For convenience +class_attribute+ also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
 

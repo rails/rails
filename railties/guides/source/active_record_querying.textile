@@ -150,7 +150,7 @@ SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id IN (1,10))
 </sql>
 
-<tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
+WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
 
 h4. Retrieving Multiple Objects in Batches
 
@@ -569,9 +569,7 @@ SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id =
 
 h4. Using Array/Hash of Named Associations
 
-WARNING: This method only works with +INNER JOIN+,
-
-<br />
+WARNING: This method only works with +INNER JOIN+.
 
 Active Record lets you use the names of the "associations":association_basics.html defined on the model as a shortcut for specifying +JOIN+ clause for those associations when using the +joins+ method.
 

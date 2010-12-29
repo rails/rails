@@ -25,7 +25,7 @@ This guide describes how to build a test-driven plugin that will:
 * Add a custom generator command
 * A custom route method that can be used in routes.rb
 
-For the purpose of this guide pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.  First, you need to get setup for development.
+For the purpose of this guide pretend for a moment that you are an avid bird watcher. Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness. First, you need to get setup for development.
 
 endprologue.
 
@@ -33,7 +33,7 @@ h3. Setup
 
 h4. Create the Basic Application
 
-The examples in this guide require that you have a working rails application.  To create a simple one execute:
+The examples in this guide require that you have a working rails application. To create a simple one execute:
 
 <shell>
 gem install rails
@@ -45,9 +45,9 @@ rake db:migrate
 rails server
 </shell>
 
-Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails application before continuing.
+Then navigate to http://localhost:3000/birds. Make sure you have a functioning rails application before continuing.
 
-NOTE: The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails application for other databases see the API docs.
+NOTE: The aforementioned instructions will work for SQLite3. For more detailed instructions on how to create a Rails application for other databases see the API docs.
 
 
 h4. Generate the Plugin Skeleton
@@ -116,7 +116,7 @@ Now you can add any +require+ statements to +lib/yaffle.rb+ and keep +init.rb+ c
 
 h3. Tests
 
-In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  To setup your plugin to allow for easy testing you'll need to add 3 files:
+In this guide you will learn how to test your plugin against multiple different database adapters using Active Record. To setup your plugin to allow for easy testing you'll need to add 3 files:
 
  * A +database.yml+ file with all of your connection strings
  * A +schema.rb+ file with your table definitions
@@ -143,7 +143,7 @@ postgresql:
   min_messages: ERROR
 
 mysql:
-  adapter: mysql
+  adapter: mysql2
   host: localhost
   username: root
   password: password
@@ -268,7 +268,7 @@ Finished in 0.002236 seconds.
 1 test, 2 assertion, 0 failures, 0 errors, 0 skips
 </shell>
 
-By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in +database.yml+, pass the DB environment variable to rake:
+By default the setup above runs your tests with SQLite or SQLite3. To run tests with one of the other connection strings specified in +database.yml+, pass the DB environment variable to rake:
 
 <shell>
 rake DB=sqlite
@@ -281,9 +281,9 @@ Now you are ready to test-drive your plugin!
 
 h3. Extending Core Classes
 
-This section will explain how to add a method to String that will be available anywhere in your rails application.
+This section will explain how to add a method to String that will be available anywhere in your Rails application.
 
-In this example you will add a method to String named +to_squawk+.  To begin, create a new test file with a few assertions:
+In this example you will add a method to String named +to_squawk+. To begin, create a new test file with a few assertions:
 
 <ruby>
 # vendor/plugins/yaffle/test/core_ext_test.rb
@@ -345,7 +345,7 @@ $ rails console
 
 h4. Working with +init.rb+
 
-When Rails loads plugins it looks for a file named +init.rb+.  However, when the plugin is initialized, +init.rb+ is invoked via +eval+ (not +require+) so it has slightly different behavior.
+When Rails loads plugins it looks for a file named +init.rb+. However, when the plugin is initialized, +init.rb+ is invoked via +eval+ (not +require+) so it has slightly different behavior.
 
 NOTE: The plugins loader also looks for +rails/init.rb+, but that one is deprecated in favor of the top-level +init.rb+ aforementioned.
 
@@ -377,7 +377,7 @@ end
 
 h3. Add an "acts_as" Method to Active Record
 
-A common pattern in plugins is to add a method called 'acts_as_something' to models.  In this case, you want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to your models.
+A common pattern in plugins is to add a method called 'acts_as_something' to models. In this case, you want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to your models.
 
 To begin, set up your files so that you have:
 
@@ -433,7 +433,7 @@ With structure you can easily separate the methods that will be used for the cla
 
 h4. Add a Class Method
 
-This plugin will expect that you've added a method to your model named 'last_squawk'.  However, the plugin users might have already defined a method on their model named 'last_squawk' that they use for something else.  This plugin will allow the name to be changed by adding a class method called 'yaffle_text_field'.
+This plugin will expect that you've added a method to your model named 'last_squawk'. However, the plugin users might have already defined a method on their model named 'last_squawk' that they use for something else. This plugin will allow the name to be changed by adding a class method called 'yaffle_text_field'.
 
 To start out, write a failing test that shows the behavior you'd like:
 
@@ -486,7 +486,7 @@ ActiveRecord::Base.send :include, Yaffle
 
 h4. Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'.  The 'squawk' method will simply set the value of one of the fields in the database.
+This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'. The 'squawk' method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
 
@@ -556,11 +556,11 @@ end
 ActiveRecord::Base.send :include, Yaffle
 </ruby>
 
-NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use.  For example, you could also use +send("#{self.class.yaffle_text_field}=", string.to_squawk)+.
+NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use +send("#{self.class.yaffle_text_field}=", string.to_squawk)+.
 
 h3. Models
 
-This section describes how to add a model named 'Woodpecker' to your plugin that will behave the same as a model in your main app.  When storing models, controllers, views and helpers in your plugin, it's customary to keep them in directories that match the rails directories.  For this example, create a file structure like this:
+This section describes how to add a model named 'Woodpecker' to your plugin that will behave the same as a model in your main app. When storing models, controllers, views and helpers in your plugin, it's customary to keep them in directories that match the rails directories. For this example, create a file structure like this:
 
 <shell>
 vendor/plugins/yaffle/
@@ -594,7 +594,7 @@ class WoodpeckerTest < Test::Unit::TestCase
 end
 </ruby>
 
-This is just a simple test to make sure the class is being loaded correctly.  After watching it fail with +rake+, you can make it pass like so:
+This is just a simple test to make sure the class is being loaded correctly. After watching it fail with +rake+, you can make it pass like so:
 
 * *vendor/plugins/yaffle/lib/yaffle.rb:*
 
@@ -607,7 +607,7 @@ This is just a simple test to make sure the class is being loaded correctly.  Af
 end
 </ruby>
 
-Adding directories to the load path makes them appear just like files in the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.  Removing directories from the 'load_once_paths' allow those changes to picked up as soon as you save the file - without having to restart the web server.  This is particularly useful as you develop the plugin.
+Adding directories to the load path makes them appear just like files in the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser. Removing directories from the 'load_once_paths' allow those changes to picked up as soon as you save the file - without having to restart the web server. This is particularly useful as you develop the plugin.
 
 * *vendor/plugins/yaffle/lib/app/models/woodpecker.rb:*
 
@@ -630,7 +630,7 @@ Now your test should be passing, and you should be able to use the Woodpecker mo
 
 h3. Controllers
 
-This section describes how to add a controller named 'woodpeckers' to your plugin that will behave the same as a controller in your main app.  This is very similar to adding a model.
+This section describes how to add a controller named 'woodpeckers' to your plugin that will behave the same as a controller in your main app. This is very similar to adding a model.
 
 You can test your plugin's controller as you would test any other controller:
 
@@ -661,7 +661,7 @@ class WoodpeckersControllerTest < Test::Unit::TestCase
 end
 </ruby>
 
-This is just a simple test to make sure the controller is being loaded correctly.  After watching it fail with +rake+, you can make it pass like so:
+This is just a simple test to make sure the controller is being loaded correctly. After watching it fail with +rake+, you can make it pass like so:
 
 * *vendor/plugins/yaffle/lib/yaffle.rb:*
 
@@ -686,11 +686,11 @@ class WoodpeckersController < ActionController::Base
 end
 </ruby>
 
-Now your test should be passing, and you should be able to use the Woodpeckers controller in your app.  If you add a route for the woodpeckers controller you can start up your server and go to http://localhost:3000/woodpeckers to see your controller in action.
+Now your test should be passing, and you should be able to use the Woodpeckers controller in your app. If you add a route for the woodpeckers controller you can start up your server and go to http://localhost:3000/woodpeckers to see your controller in action.
 
 h3. Helpers
 
-This section describes how to add a helper named 'WoodpeckersHelper' to your plugin that will behave the same as a helper in your main app.  This is very similar to adding a model and a controller.
+This section describes how to add a helper named 'WoodpeckersHelper' to your plugin that will behave the same as a helper in your main app. This is very similar to adding a model and a controller.
 
 You can test your plugin's helper as you would test any other helper:
 
@@ -707,7 +707,7 @@ class WoodpeckersHelperTest < Test::Unit::TestCase
 end
 </ruby>
 
-This is just a simple test to make sure the helper is being loaded correctly.  After watching it fail with +rake+, you can make it pass like so:
+This is just a simple test to make sure the helper is being loaded correctly. After watching it fail with +rake+, you can make it pass like so:
 
 * *vendor/plugins/yaffle/lib/yaffle.rb:*
 
@@ -736,9 +736,9 @@ Now your test should be passing, and you should be able to use the Woodpeckers h
 
 h3. Routes
 
-In a standard 'routes.rb' file you use routes like 'map.connect' or 'map.resources'.  You can add your own custom routes from a plugin.  This section will describe how to add a custom method called that can be called with 'map.yaffles'.
+You can add your own custom routes from a plugin. This section will describe how to add a custom method that can be called with 'map.yaffles'.
 
-Testing routes from plugins is slightly different from testing routes in a standard rails application.  To begin, add a test like this:
+Testing routes from plugins is slightly different from testing routes in a standard Rails application. To begin, add a test like this:
 
 * *vendor/plugins/yaffle/test/routing_test.rb*
 
@@ -802,20 +802,20 @@ You can also see if your routes work by running +rake routes+ from your app dire
 
 h3. Generators
 
-Many plugins ship with generators.  When you created the plugin above, you specified the +--generator+ option, so you already have the generator stubs in 'vendor/plugins/yaffle/generators/yaffle'.
+Many plugins ship with generators. When you created the plugin above, you specified the +--generator+ option, so you already have the generator stubs in 'vendor/plugins/yaffle/generators/yaffle'.
 
 Building generators is a complex topic unto itself and this section will cover one small aspect of generators: generating a simple text file.
 
 h4. Testing Generators
 
-Many rails plugin authors do not test their generators, however testing generators is quite simple.  A typical generator test does the following:
+Many rails plugin authors do not test their generators, however testing generators is quite simple. A typical generator test does the following:
 
  * Creates a new fake rails root directory that will serve as destination
  * Runs the generator
  * Asserts that the correct files were generated
  * Removes the fake rails root
 
-This section will describe how to create a simple generator that adds a file.  For the generator in this section, the test could look something like this:
+This section will describe how to create a simple generator that adds a file. For the generator in this section, the test could look something like this:
 
 * *vendor/plugins/yaffle/test/definition_generator_test.rb*
 
@@ -854,7 +854,7 @@ class DefinitionGeneratorTest < Test::Unit::TestCase
 end
 </ruby>
 
-You can run 'rake' from the plugin directory to see this fail.  Unless you are doing more advanced generator commands it typically suffices to just test the Generate script, and trust that rails will handle the Destroy and Update commands for you.
+You can run 'rake' from the plugin directory to see this fail. Unless you are doing more advanced generator commands it typically suffices to just test the Generate script, and trust that rails will handle the Destroy and Update commands for you.
 
 To make it pass, create the generator:
 
@@ -872,9 +872,9 @@ end
 
 h4. The +USAGE+ File
 
-If you plan to distribute your plugin, developers will expect at least a minimum of documentation.  You can add simple documentation to the generator by updating the USAGE file.
+If you plan to distribute your plugin, developers will expect at least a minimum of documentation. You can add simple documentation to the generator by updating the USAGE file.
 
-Rails ships with several built-in generators.  You can see all of the generators available to you by typing the following at the command line:
+Rails ships with several built-in generators. You can see all of the generators available to you by typing the following at the command line:
 
 <shell>
 rails generate
@@ -899,9 +899,9 @@ Description:
 
 h3. Add a Custom Generator Command
 
-You may have noticed above that you can used one of the built-in rails migration commands +migration_template+.  If your plugin needs to add and remove lines of text from existing files you will need to write your own generator methods.
+You may have noticed above that you can used one of the built-in rails migration commands +migration_template+. If your plugin needs to add and remove lines of text from existing files you will need to write your own generator methods.
 
-This section describes how you you can create your own commands to add and remove a line of text from 'routes.rb'.  This example creates a very simple method that adds or removes a text file.
+This section describes how you you can create your own commands to add and remove a line of text from 'routes.rb'. This example creates a very simple method that adds or removes a text file.
 
 To start, add the following test method:
 
@@ -985,7 +985,7 @@ end
 
 h3. Generator Commands
 
-You may have noticed above that you can used one of the built-in rails migration commands +migration_template+.  If your plugin needs to add and remove lines of text from existing files you will need to write your own generator methods.
+You may have noticed above that you can used one of the built-in rails migration commands +migration_template+. If your plugin needs to add and remove lines of text from existing files you will need to write your own generator methods.
 
 This section describes how you you can create your own commands to add and remove a line of text from 'config/routes.rb'.
 
@@ -1125,9 +1125,9 @@ NOTE: If you haven't set up the custom route from above, 'rails destroy' will fa
 
 h3. Migrations
 
-If your plugin requires changes to the app's database you will likely want to somehow add migrations.  Rails does not include any built-in support for calling migrations from plugins, but you can still make it easy for developers to call migrations from plugins.
+If your plugin requires changes to the app's database you will likely want to somehow add migrations. Rails does not include any built-in support for calling migrations from plugins, but you can still make it easy for developers to call migrations from plugins.
 
-If you have a very simple needs, like creating a table that will always have the same name and columns, then you can use a more simple solution, like creating a custom rake task or method.  If your migration needs user input to supply table names or other options, you probably want to opt for generating a migration.
+If you have a very simple needs, like creating a table that will always have the same name and columns, then you can use a more simple solution, like creating a custom rake task or method. If your migration needs user input to supply table names or other options, you probably want to opt for generating a migration.
 
 Let's say you have the following migration in your plugin:
 
@@ -1199,12 +1199,12 @@ NOTE: several plugin frameworks such as Desert and Engines provide more advanced
 
 h4. Generate Migrations
 
-Generating migrations has several advantages over other methods.  Namely, you can allow other developers to more easily customize the migration.  The flow looks like this:
+Generating migrations has several advantages over other methods. Namely, you can allow other developers to more easily customize the migration. The flow looks like this:
 
  * call your rails generate script and pass in whatever options they need
  * examine the generated migration, adding/removing columns or other options as necessary
 
-This example will demonstrate how to use one of the built-in generator methods named 'migration_template' to create a migration file.  Extending the rails migration generator requires a somewhat intimate knowledge of the migration generator internals, so it's best to write a test first:
+This example will demonstrate how to use one of the built-in generator methods named 'migration_template' to create a migration file. Extending the rails migration generator requires a somewhat intimate knowledge of the migration generator internals, so it's best to write a test first:
 
 * *vendor/plugins/yaffle/test/yaffle_migration_generator_test.rb*
 
@@ -1254,7 +1254,7 @@ class MigrationGeneratorTest < Test::Unit::TestCase
 end
 </ruby>
 
-NOTE: the migration generator checks to see if a migation already exists, and it's hard-coded to check the 'db/migrate' directory.  As a result, if your test tries to generate a migration that already exists in the app, it will fail.  The easy workaround is to make sure that the name you generate in your test is very unlikely to actually appear in the app.
+NOTE: The migration generator checks to see if a migration already exists, and it's hard-coded to check the +db/migrate+ directory. As a result, if your test tries to generate a migration that already exists in the app, it will fail. The easy workaround is to make sure that the name you generate in your test is very unlikely to actually appear in the app.
 
 After running the test with 'rake' you can make it pass with:
 
@@ -1288,9 +1288,9 @@ class YaffleMigrationGenerator < Rails::Generator::NamedBase
 end
 </ruby>
 
-The generator creates a new file in 'db/migrate' with a timestamp and an 'add_column' statement.  It reuses the built-in rails +migration_template+ method, and reuses the built-in rails migration template.
+The generator creates a new file in 'db/migrate' with a timestamp and an 'add_column' statement. It reuses the built-in Rails +migration_template+ method, and reuses the built-in rails migration template.
 
-It's courteous to check to see if table names are being pluralized whenever you create a generator that needs to be aware of table names.  This way people using your generator won't have to manually change the generated files if they've turned pluralization off.
+It's courteous to check to see if table names are being pluralized whenever you create a generator that needs to be aware of table names. This way people using your generator won't have to manually change the generated files if they've turned pluralization off.
 
 To run the generator, type the following at the command line:
 
@@ -1314,9 +1314,9 @@ class AddYaffleFieldsToBirds < ActiveRecord::Migration
 end
 </ruby>
 
-h3. Rake tasks
+h3. Rake Tasks
 
-When you created the plugin with the built-in rails generator, it generated a rake file for you in 'vendor/plugins/yaffle/tasks/yaffle_tasks.rake'.  Any rake task you add here will be available to the app.
+When you created the plugin with the built-in rails generator, it generated a rake file for you in 'vendor/plugins/yaffle/tasks/yaffle_tasks.rake'. Any rake task you add here will be available to the app.
 
 Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:
 
@@ -1343,11 +1343,11 @@ Note that tasks from +vendor/plugins/yaffle/Rakefile+ are not available to the m
 
 h3. Plugins as Gems
 
-Turning your rails plugin into a gem is a simple and straightforward task.  This section will cover how to turn your plugin into a gem.  It will not cover how to distribute that gem.
+Turning your rails plugin into a gem is a simple and straightforward task. This section will cover how to turn your plugin into a gem. It will not cover how to distribute that gem.
 
 Rails 3 ignores both <tt>init.rb</tt> and <tt>rails/init.rb</tt> file of a gem. Also, the name of the plugin now is relevant since +config.gem+ tries to load it. Either name the main file after your gem, or document that users should use the +:lib+ option.
 
-It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in +Rakefile+.  A rake task that packages the gem might look like this:
+It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in +Rakefile+. A rake task that packages the gem might look like this:
 
 * *vendor/plugins/yaffle/Rakefile:*
 
@@ -1395,14 +1395,14 @@ h3. RDoc Documentation
 
 Once your plugin is stable and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.
 
-The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:
+The first step is to update the README file with detailed information about how to use your plugin. A few key things to include are:
 
 * Your name
 * How to install
 * How to add the functionality to the app (several examples of common use cases)
 * Warning, gotchas or tips that might help save users time
 
-Once your README is solid, go through and add rdoc comments to all of the methods that developers will use.  It's also customary to add '#:nodoc:' comments to those parts of the code that are not part of the public api.
+Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add '#:nodoc:' comments to those parts of the code that are not part of the public api.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
@@ -1416,12 +1416,12 @@ If you prefer to use RSpec instead of Test::Unit, you may be interested in the "
 
 h4. References
 
-* http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-i
-* http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii
-* http://github.com/technoweenie/attachment_fu/tree/master
-* http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
-* http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
-* http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
+* "Complete Guide to Rails Plugins - Part 1":http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-i
+* "Complete Guide to Rails Plugins - Part 2":http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii
+* "Attachment_fu Plugin":http://github.com/technoweenie/attachment_fu/tree/master
+* "Keeping init.rb thin":http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
+* "GemPlugins":http://www.mbleigh.com/2008/06/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
+* "Extending Routes":http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2
 
 h4. Contents of +lib/yaffle.rb+
 
