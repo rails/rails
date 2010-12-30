@@ -1612,11 +1612,7 @@ module ActiveRecord
         #  - set the foreign key to NULL if the option is set to :nullify
         #  - do not delete the parent record if there is any child record if the
         #    option is set to :restrict
-        #
-        # The +extra_conditions+ parameter, which is not used within the main
-        # Active Record codebase, is meant to allow plugins to define extra
-        # finder conditions.
-        def configure_dependency_for_has_many(reflection, extra_conditions = nil)
+        def configure_dependency_for_has_many(reflection)
           if reflection.options[:dependent]
             method_name = "has_many_dependent_for_#{reflection.name}"
 
@@ -1636,10 +1632,8 @@ module ActiveRecord
                   end
                 end
 
-                reflection.klass.send(:with_scope, :find => { :conditions => extra_conditions }) do
-                  # AssociationProxy#delete_all looks at the :dependent option and acts accordingly
-                  send(reflection.name).delete_all
-                end
+                # AssociationProxy#delete_all looks at the :dependent option and acts accordingly
+                send(reflection.name).delete_all
               end
             when :restrict
               define_method(method_name) do
