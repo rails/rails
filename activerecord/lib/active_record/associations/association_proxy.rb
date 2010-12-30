@@ -282,11 +282,6 @@ module ActiveRecord
           end
         end
 
-        # Returns the ID of the owner, quoted if needed.
-        def owner_quoted_id
-          @owner.quoted_id
-        end
-
         # Can be redefined by subclasses, notably polymorphic belongs_to
         # The record parameter is necessary to support polymorphic inverses as we must check for
         # the association in the specific class of the record.
