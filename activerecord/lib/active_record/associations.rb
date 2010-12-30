@@ -1617,11 +1617,13 @@ module ActiveRecord
         # Active Record codebase, is meant to allow plugins to define extra
         # finder conditions.
         def configure_dependency_for_has_many(reflection, extra_conditions = nil)
-          if reflection.options.include?(:dependent)
+          if reflection.options[:dependent]
+            method_name = "has_many_dependent_for_#{reflection.name}"
+
             case reflection.options[:dependent]
-              when :destroy
-                method_name = "has_many_dependent_destroy_for_#{reflection.name}".to_sym
-                define_method(method_name) do
+            when :destroy, :delete_all, :nullify
+              define_method(method_name) do
+                if reflection.options[:dependent] == :destroy
                   send(reflection.name).each do |o|
                     # No point in executing the counter update since we're going to destroy the parent anyway
                     counter_method = ('belongs_to_counter_cache_before_destroy_for_' + self.class.name.downcase).to_sym
@@ -1633,35 +1635,23 @@ module ActiveRecord
                     o.destroy
                   end
                 end
-                before_destroy method_name
-              when :delete_all
-                before_destroy do |record|
-                  self.class.send(:delete_all_has_many_dependencies,
-                  record,
-                  reflection.name,
-                  reflection.klass,
-                  reflection.dependent_conditions(record, self.class, extra_conditions))
+
+                reflection.klass.send(:with_scope, :find => { :conditions => extra_conditions }) do
+                  # AssociationProxy#delete_all looks at the :dependent option and acts accordingly
+                  send(reflection.name).delete_all
                 end
-              when :nullify
-                before_destroy do |record|
-                  self.class.send(:nullify_has_many_dependencies,
-                  record,
-                  reflection.name,
-                  reflection.klass,
-                  reflection.primary_key_name,
-                  reflection.dependent_conditions(record, self.class, extra_conditions))
+              end
+            when :restrict
+              define_method(method_name) do
+                unless send(reflection.name).empty?
+                  raise DeleteRestrictionError.new(reflection)
                 end
-              when :restrict
-                method_name = "has_many_dependent_restrict_for_#{reflection.name}".to_sym
-                define_method(method_name) do
-                  unless send(reflection.name).empty?
-                    raise DeleteRestrictionError.new(reflection)
-                  end
-                end
-                before_destroy method_name
-              else
-                raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, :nullify or :restrict (#{reflection.options[:dependent].inspect})"
+              end
+            else
+              raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, :nullify or :restrict (#{reflection.options[:dependent].inspect})"
             end
+
+            before_destroy method_name
           end
         end
 
@@ -1722,14 +1712,6 @@ module ActiveRecord
             eoruby
             after_destroy method_name
           end
-        end
-
-        def delete_all_has_many_dependencies(record, reflection_name, association_class, dependent_conditions)
-          association_class.delete_all(dependent_conditions)
-        end
-
-        def nullify_has_many_dependencies(record, reflection_name, association_class, primary_key_name, dependent_conditions)
-          association_class.update_all("#{primary_key_name} = NULL", dependent_conditions)
         end
 
         mattr_accessor :valid_keys_for_has_many_association

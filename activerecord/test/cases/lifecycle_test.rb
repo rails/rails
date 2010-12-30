@@ -101,9 +101,10 @@ class LifecycleTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :minimalistics
 
   def test_before_destroy
-    original_count = Topic.count
-    (topic_to_be_destroyed = Topic.find(1)).destroy
-    assert_equal original_count - (1 + topic_to_be_destroyed.replies.size), Topic.count
+    topic = Topic.find(1)
+    assert_difference 'Topic.count', -(1 + topic.replies.size) do
+      topic.destroy
+    end
   end
 
   def test_auto_observer
