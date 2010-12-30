@@ -65,7 +65,7 @@ module ActiveRecord
     end
 
     def timestamp_attributes_for_update_in_model
-      timestamp_attributes_for_update.select { |c| respond_to?(c) }
+      timestamp_attributes_for_update.select { |c| self.class.column_names.include?(c.to_s) }
     end
 
     def timestamp_attributes_for_update #:nodoc:
