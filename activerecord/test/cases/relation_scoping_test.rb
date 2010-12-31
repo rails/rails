@@ -485,4 +485,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     posts_offset_limit = Post.offset(2).limit(3)
     assert_equal posts_limit_offset, posts_offset_limit
   end
+
+  def test_create_with_merge
+    aaron = (PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20) &
+             PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
 end

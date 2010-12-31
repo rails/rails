@@ -46,12 +46,16 @@ module ActiveRecord
 
       merged_relation.where_values = merged_wheres
 
-      (Relation::SINGLE_VALUE_METHODS - [:lock]).each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with]).each do |method|
         value = r.send(:"#{method}_value")
         merged_relation.send(:"#{method}_value=", value) unless value.nil?
       end
 
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
+
+      if r.create_with_value
+        merged_relation.create_with_value = (merged_relation.create_with_value || {}).merge(r.create_with_value)
+      end
 
       # Apply scope extension modules
       merged_relation.send :apply_modules, r.extensions

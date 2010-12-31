@@ -874,7 +874,12 @@ module ActiveRecord #:nodoc:
 
         def relation #:nodoc:
           @relation ||= Relation.new(self, arel_table)
-          finder_needs_type_condition? ? @relation.where(type_condition) : @relation
+
+          if finder_needs_type_condition?
+            @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          else
+            @relation
+          end
         end
 
         # Finder methods must instantiate through this method to work with the
@@ -914,10 +919,9 @@ module ActiveRecord #:nodoc:
 
         def type_condition
           sti_column = arel_table[inheritance_column.to_sym]
-          condition = sti_column.eq(sti_name)
-          descendants.each { |subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
+          sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
-          condition
+          sti_column.in(sti_names)
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
