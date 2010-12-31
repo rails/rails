@@ -704,7 +704,7 @@ resources :photos
 
 This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
-To prefix a group of routes, use +:as+ with +scope+:
+To prefix a group of route helpers, use +:as+ with +scope+:
 
 <ruby>
 scope "admin", :as => "admin" do
@@ -714,7 +714,7 @@ end
 resources :photos, :accounts
 </ruby>
 
-This will generate routes such as +admin_photos_path+ and +admin_accounts_path+.
+This will generate routes such as +admin_photos_path+ and +admin_accounts_path+ which map to +/admin/photos+ and +/admin/accounts+ respectively.
 
 NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ and +:path+ prefixes.
 
