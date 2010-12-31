@@ -114,6 +114,16 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_match /^  active_record:fixjour$/, output
   end
 
+  def test_default_banner_should_show_generator_namespace
+    klass = Rails::Generators.find_by_namespace(:foobar)
+    assert_match /^rails generate foobar:foobar/, klass.banner
+  end
+
+  def test_default_banner_should_not_show_rails_generator_namespace
+    klass = Rails::Generators.find_by_namespace(:model)
+    assert_match /^rails generate model/, klass.banner
+  end
+
   def test_no_color_sets_proper_shell
     Rails::Generators.no_color!
     assert_equal Thor::Shell::Basic, Thor::Base.shell
