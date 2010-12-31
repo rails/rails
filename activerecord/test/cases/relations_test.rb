@@ -26,6 +26,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal van.id, Minivan.where(:minivan_id => van).to_a.first.minivan_id
   end
 
+  def test_do_not_double_quote_string_id_with_array
+    van = Minivan.last
+    assert van
+    assert_equal van, Minivan.where(:minivan_id => [van]).to_a.first
+  end
+
   def test_two_named_scopes_with_includes_should_not_drop_any_include
     car = Car.incl_engines.incl_tyres.first
     assert_no_queries { car.tyres.length }
