@@ -38,11 +38,11 @@ module ActiveRecord
               @target.destroy if @target.persisted?
               @owner.clear_association_cache
             when :nullify
-              @target[@reflection.primary_key_name] = nil
+              @target[@reflection.foreign_key] = nil
               @target.save if @owner.persisted? && @target.persisted?
             end
           else
-            @target[@reflection.primary_key_name] = nil
+            @target[@reflection.foreign_key] = nil
             @target.save if @owner.persisted? && @target.persisted?
           end
         end
@@ -96,7 +96,7 @@ module ActiveRecord
           if replace_existing
             replace(record, true)
           else
-            record[@reflection.primary_key_name] = @owner.id if @owner.persisted?
+            record[@reflection.foreign_key] = @owner.id if @owner.persisted?
             self.target = record
             set_inverse_instance(record)
           end

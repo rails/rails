@@ -32,7 +32,7 @@ module ActiveRecord
       def stale_target?
         if @target && @target.persisted?
           target_id   = @target[@reflection.association_primary_key].to_s
-          foreign_key = @owner[@reflection.primary_key_name].to_s
+          foreign_key = @owner[@reflection.foreign_key].to_s
 
           target_id != foreign_key
         else
@@ -57,12 +57,12 @@ module ActiveRecord
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.nil? && @owner[@reflection.primary_key_name] ||
-          record.id   != @owner[@reflection.primary_key_name]
+          record.nil? && @owner[@reflection.foreign_key] ||
+          record.id   != @owner[@reflection.foreign_key]
         end
 
         def replace_keys(record)
-          @owner[@reflection.primary_key_name] = record && record[@reflection.association_primary_key]
+          @owner[@reflection.foreign_key] = record && record[@reflection.association_primary_key]
         end
 
         def find_target
@@ -82,14 +82,14 @@ module ActiveRecord
 
         def construct_conditions
           conditions = aliased_table[@reflection.association_primary_key].
-                       eq(@owner[@reflection.primary_key_name])
+                       eq(@owner[@reflection.foreign_key])
 
           conditions = conditions.and(Arel.sql(sql_conditions)) if sql_conditions
           conditions
         end
 
         def foreign_key_present
-          !@owner[@reflection.primary_key_name].nil?
+          !@owner[@reflection.foreign_key].nil?
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
@@ -103,7 +103,7 @@ module ActiveRecord
           if @reflection.options[:primary_key]
             @owner.send(@reflection.name).try(:id)
           else
-            @owner[@reflection.primary_key_name]
+            @owner[@reflection.foreign_key]
           end
         end
     end

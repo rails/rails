@@ -13,7 +13,7 @@ module ActiveRecord
       def stale_target?
         if @target && @reflection.through_reflection.macro == :belongs_to && defined?(@through_foreign_key)
           previous_key = @through_foreign_key.to_s
-          current_key  = @owner.send(@reflection.through_reflection.primary_key_name).to_s
+          current_key  = @owner.send(@reflection.through_reflection.foreign_key).to_s
 
           previous_key != current_key
         else
@@ -69,14 +69,14 @@ module ActiveRecord
         if @reflection.source_reflection.macro == :belongs_to
           reflection_primary_key = @reflection.source_reflection.options[:primary_key] ||
                                    @reflection.klass.primary_key
-          source_primary_key     = @reflection.source_reflection.primary_key_name
+          source_primary_key     = @reflection.source_reflection.foreign_key
           if @reflection.options[:source_type]
             column = @reflection.source_reflection.options[:foreign_type]
             conditions <<
               right[column].eq(@reflection.options[:source_type])
           end
         else
-          reflection_primary_key = @reflection.source_reflection.primary_key_name
+          reflection_primary_key = @reflection.source_reflection.foreign_key
           source_primary_key     = @reflection.source_reflection.options[:primary_key] ||
                                    @reflection.through_reflection.klass.primary_key
           if @reflection.source_reflection.options[:as]
@@ -100,7 +100,7 @@ module ActiveRecord
         raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
 
         join_attributes = {
-          @reflection.source_reflection.primary_key_name =>
+          @reflection.source_reflection.foreign_key =>
             associate.send(@reflection.source_reflection.association_primary_key)
         }
 
@@ -159,7 +159,7 @@ module ActiveRecord
 
       def update_stale_state
         if @reflection.through_reflection.macro == :belongs_to
-          @through_foreign_key = @owner.send(@reflection.through_reflection.primary_key_name)
+          @through_foreign_key = @owner.send(@reflection.through_reflection.foreign_key)
         end
       end
     end

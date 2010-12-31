@@ -5,7 +5,7 @@ module ActiveRecord
       def stale_target?
         if @target && @target.persisted?
           target_id    = @target.send(@reflection.association_primary_key).to_s
-          foreign_key  = @owner.send(@reflection.primary_key_name).to_s
+          foreign_key  = @owner.send(@reflection.foreign_key).to_s
           target_type  = @target.class.base_class.name
           foreign_type = @owner.send(@reflection.options[:foreign_type]).to_s
 

@@ -58,7 +58,7 @@ module ActiveRecord
             when :delete_all
               @reflection.klass.delete(records.map { |r| r.id })
             else
-              updates    = { @reflection.primary_key_name => nil }
+              updates    = { @reflection.foreign_key => nil }
               conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
               with_scope(@scope) do

@@ -634,7 +634,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
 
               targets.each do |target|
                 join_fixtures["#{label}_#{target}"] = Fixture.new(
-                  { association.primary_key_name => row[primary_key_name],
+                  { association.foreign_key             => row[primary_key_name],
                     association.association_foreign_key => Fixtures.identify(target) },
                   nil, @connection)
               end

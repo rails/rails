@@ -205,7 +205,7 @@ module ActiveRecord
           # FIXME: options[:select] is always nil in the tests.  Do we really
           # need it?
           options[:select] || left[Arel.star],
-          right[reflection.primary_key_name].as(
+          right[reflection.foreign_key].as(
             Arel.sql('the_parent_record_id'))
         ]
 
@@ -220,7 +220,7 @@ module ActiveRecord
 
         all_associated_records = associated_records(ids) do |some_ids|
           method     = in_or_equal(some_ids)
-          conditions = right[reflection.primary_key_name].send(*method)
+          conditions = right[reflection.foreign_key].send(*method)
           conditions = custom_conditions.inject(conditions) do |ast, cond|
             ast.and cond
           end
@@ -241,7 +241,7 @@ module ActiveRecord
 
           unless through_records.empty?
             through_reflection = reflections[options[:through]]
-            through_primary_key = through_reflection.primary_key_name
+            through_primary_key = through_reflection.foreign_key
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             if through_reflection.macro == :belongs_to
@@ -255,7 +255,7 @@ module ActiveRecord
             end
           end
         else
-          set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.primary_key_name)
+          set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.foreign_key)
         end
       end
 
@@ -263,8 +263,8 @@ module ActiveRecord
         return if records.first.send(reflection.name).loaded?
         options = reflection.options
 
-        primary_key_name = reflection.through_reflection_primary_key_name
-        id_to_record_map, ids = construct_id_map(records, primary_key_name || reflection.options[:primary_key])
+        foreign_key = reflection.through_reflection_foreign_key
+        id_to_record_map, ids = construct_id_map(records, foreign_key || reflection.options[:primary_key])
         records.each {|record| record.send(reflection.name).loaded}
 
         if options[:through]
@@ -281,7 +281,7 @@ module ActiveRecord
 
         else
           set_association_collection_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options),
-                                             reflection.primary_key_name)
+                                             reflection.foreign_key)
         end
       end
 
@@ -319,7 +319,7 @@ module ActiveRecord
       def preload_belongs_to_association(records, reflection, preload_options={})
         return if records.first.send("loaded_#{reflection.name}?")
         options = reflection.options
-        primary_key_name = reflection.primary_key_name
+        foreign_key = reflection.foreign_key
 
         klasses_and_ids = {}
 
@@ -330,7 +330,7 @@ module ActiveRecord
           # to their parent_records
           records.each do |record|
             if klass = record.send(polymorph_type)
-              klass_id = record.send(primary_key_name)
+              klass_id = record.send(foreign_key)
               if klass_id
                 id_map = klasses_and_ids[klass.constantize] ||= {}
                 (id_map[klass_id.to_s] ||= []) << record
@@ -339,7 +339,7 @@ module ActiveRecord
           end
         else
           id_map = records.group_by do |record|
-            key = record.send(primary_key_name)
+            key = record.send(foreign_key)
             key && key.to_s
           end
           id_map.delete nil
@@ -369,7 +369,7 @@ module ActiveRecord
 
         conditions = []
 
-        key = reflection.primary_key_name
+        key = reflection.foreign_key
 
         if interface = reflection.options[:as]
           key = "#{interface}_id"

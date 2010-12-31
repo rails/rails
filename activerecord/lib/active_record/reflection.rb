@@ -196,8 +196,8 @@ module ActiveRecord
         @quoted_table_name ||= klass.quoted_table_name
       end
 
-      def primary_key_name
-        @primary_key_name ||= options[:foreign_key] || derive_primary_key_name
+      def foreign_key
+        @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
 
       def primary_key_column
@@ -251,7 +251,7 @@ module ActiveRecord
         false
       end
 
-      def through_reflection_primary_key_name
+      def through_reflection_foreign_key
       end
 
       def source_reflection
@@ -310,7 +310,7 @@ module ActiveRecord
           class_name
         end
 
-        def derive_primary_key_name
+        def derive_foreign_key
           if belongs_to?
             "#{name}_id"
           elsif options[:as]
@@ -392,11 +392,11 @@ module ActiveRecord
       end
 
       def through_reflection_primary_key
-        through_reflection.belongs_to? ? through_reflection.klass.primary_key : through_reflection.primary_key_name
+        through_reflection.belongs_to? ? through_reflection.klass.primary_key : through_reflection.foreign_key
       end
 
-      def through_reflection_primary_key_name
-        through_reflection.primary_key_name if through_reflection.belongs_to?
+      def through_reflection_foreign_key
+        through_reflection.foreign_key if through_reflection.belongs_to?
       end
 
       private

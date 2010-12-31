@@ -1670,7 +1670,7 @@ module ActiveRecord
                 class_eval <<-eoruby, __FILE__, __LINE__ + 1
                   def #{method_name}
                     association = #{reflection.name}
-                    association.update_attribute(#{reflection.primary_key_name.inspect}, nil) if association
+                    association.update_attribute(#{reflection.foreign_key.inspect}, nil) if association
                   end
                 eoruby
               when :restrict
@@ -1782,7 +1782,7 @@ module ActiveRecord
 
           reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
 
-          if reflection.association_foreign_key == reflection.primary_key_name
+          if reflection.association_foreign_key == reflection.foreign_key
             raise HasAndBelongsToManyAssociationForeignKeyNeeded.new(reflection)
           end
 

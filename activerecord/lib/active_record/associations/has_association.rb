@@ -14,9 +14,9 @@ module ActiveRecord
         def construct_owner_attributes(reflection = @reflection)
           attributes = {}
           if reflection.macro == :belongs_to
-            attributes[reflection.association_primary_key] = @owner.send(reflection.primary_key_name)
+            attributes[reflection.association_primary_key] = @owner.send(reflection.foreign_key)
           else
-            attributes[reflection.primary_key_name] = @owner.send(reflection.active_record_primary_key)
+            attributes[reflection.foreign_key] = @owner.send(reflection.active_record_primary_key)
 
             if reflection.options[:as]
               attributes["#{reflection.options[:as]}_type"] = @owner.class.base_class.name
