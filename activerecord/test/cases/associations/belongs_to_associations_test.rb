@@ -198,16 +198,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Post.find(p.id).comments.size
   end
 
-  def test_belongs_to_with_primary_key_counter_with_assigning_nil
-    debate = Topic.create("title" => "debate")
-    reply  = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate")
+  def test_belongs_to_with_primary_key_counter
+    debate  = Topic.create("title" => "debate")
+    debate2 = Topic.create("title" => "debate2")
+    reply   = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate")
 
-    assert_equal debate.title, reply.parent_title
-    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count")
+    assert_equal 1, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+
+    reply.topic_with_primary_key = debate2
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 1, debate2.reload.replies_count
 
     reply.topic_with_primary_key = nil
 
-    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count")
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
   end
 
   def test_belongs_to_counter_with_reassigning
@@ -419,6 +426,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil sponsor.sponsorable_id
   end
 
+  def test_assignment_updates_foreign_id_field_for_new_and_saved_records
+    client = Client.new
+    saved_firm = Firm.create :name => "Saved"
+    new_firm = Firm.new
+
+    client.firm = saved_firm
+    assert_equal saved_firm.id, client.client_of
+
+    client.firm = new_firm
+    assert_nil client.client_of
+  end
+
   def test_polymorphic_assignment_with_primary_key_updates_foreign_id_field_for_new_and_saved_records
     essay = Essay.new
     saved_writer = Author.create(:name => "David")
@@ -536,5 +555,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert proxy.stale_target?
     assert_equal companies(:first_firm), sponsor.sponsorable
+  end
+
+  def test_reloading_association_with_key_change
+    client = companies(:second_client)
+    firm = client.firm # note this is a proxy object
+
+    client.firm = companies(:another_firm)
+    assert_equal companies(:another_firm), firm.reload
+
+    client.client_of = companies(:first_firm).id
+    assert_equal companies(:first_firm), firm.reload
   end
 end

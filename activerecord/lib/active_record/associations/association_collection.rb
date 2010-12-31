@@ -31,10 +31,6 @@ module ActiveRecord
         end
       end
 
-      def scoped
-        with_scope(@scope) { @reflection.klass.scoped }
-      end
-
       def find(*args)
         options = args.extract_options!
 

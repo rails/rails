@@ -158,8 +158,6 @@ module ActiveRecord
       alias_method :sql_conditions, :conditions
 
       def update_stale_state
-        construct_scope if stale_target?
-
         if @reflection.through_reflection.macro == :belongs_to
           @through_foreign_key = @owner.send(@reflection.through_reflection.primary_key_name)
         end

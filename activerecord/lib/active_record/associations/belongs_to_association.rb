@@ -11,28 +11,15 @@ module ActiveRecord
       end
 
       def replace(record)
-        counter_cache_name = @reflection.counter_cache_column
+        record = record.target if AssociationProxy === record
+        raise_on_type_mismatch(record) unless record.nil?
 
-        if record.nil?
-          if counter_cache_name && @owner.persisted?
-            @reflection.klass.decrement_counter(counter_cache_name, previous_record_id) if @owner[@reflection.primary_key_name]
-          end
-
-          @target = @owner[@reflection.primary_key_name] = nil
-        else
-          raise_on_type_mismatch(record)
-
-          if counter_cache_name && @owner.persisted? && record.id != @owner[@reflection.primary_key_name]
-            @reflection.klass.increment_counter(counter_cache_name, record.id)
-            @reflection.klass.decrement_counter(counter_cache_name, @owner[@reflection.primary_key_name]) if @owner[@reflection.primary_key_name]
-          end
-
-          @target = (AssociationProxy === record ? record.target : record)
-          @owner[@reflection.primary_key_name] = record_id(record) if record.persisted?
-          @updated = true
-        end
-
+        update_counters(record)
+        replace_keys(record)
         set_inverse_instance(record)
+
+        @target  = record
+        @updated = true if record
 
         loaded
         record
@@ -44,8 +31,8 @@ module ActiveRecord
 
       def stale_target?
         if @target && @target.persisted?
-          target_id   = @target.send(@reflection.association_primary_key).to_s
-          foreign_key = @owner.send(@reflection.primary_key_name).to_s
+          target_id   = @target[@reflection.association_primary_key].to_s
+          foreign_key = @owner[@reflection.primary_key_name].to_s
 
           target_id != foreign_key
         else
@@ -54,27 +41,51 @@ module ActiveRecord
       end
 
       private
-        def find_target
-          find_method = if @reflection.options[:primary_key]
-                          "find_by_#{@reflection.options[:primary_key]}"
-                        else
-                          "find"
-                        end
+        def update_counters(record)
+          counter_cache_name = @reflection.counter_cache_column
 
-          options = @reflection.options.dup.slice(:select, :include, :readonly)
+          if counter_cache_name && @owner.persisted? && different_target?(record)
+            if record
+              target_klass.increment_counter(counter_cache_name, record.id)
+            end
 
-          the_target = with_scope(:find => @scope[:find]) do
-            @reflection.klass.send(find_method,
-              @owner[@reflection.primary_key_name],
-              options
-            ) if @owner[@reflection.primary_key_name]
+            if foreign_key_present
+              target_klass.decrement_counter(counter_cache_name, target_id)
+            end
           end
-          set_inverse_instance(the_target)
-          the_target
+        end
+
+        # Checks whether record is different to the current target, without loading it
+        def different_target?(record)
+          record.nil? && @owner[@reflection.primary_key_name] ||
+          record.id   != @owner[@reflection.primary_key_name]
+        end
+
+        def replace_keys(record)
+          @owner[@reflection.primary_key_name] = record && record[@reflection.association_primary_key]
+        end
+
+        def find_target
+          if foreign_key_present
+            scoped.first.tap { |record| set_inverse_instance(record) }
+          end
         end
 
         def construct_find_scope
-          { :conditions => conditions }
+          {
+            :conditions => construct_conditions,
+            :select     => @reflection.options[:select],
+            :include    => @reflection.options[:include],
+            :readonly   => @reflection.options[:readonly]
+          }
+        end
+
+        def construct_conditions
+          conditions = aliased_table[@reflection.association_primary_key].
+                       eq(@owner[@reflection.primary_key_name])
+
+          conditions = conditions.and(Arel.sql(sql_conditions)) if sql_conditions
+          conditions
         end
 
         def foreign_key_present
@@ -88,17 +99,12 @@ module ActiveRecord
           inverse && inverse.macro == :has_one
         end
 
-        def record_id(record)
-          record.send(@reflection.options[:primary_key] || :id)
-        end
-
-        def previous_record_id
-          @previous_record_id ||= if @reflection.options[:primary_key]
-                                    previous_record = @owner.send(@reflection.name)
-                                    previous_record.nil? ? nil : previous_record.id
-                                  else
-                                    @owner[@reflection.primary_key_name]
-                                  end
+        def target_id
+          if @reflection.options[:primary_key]
+            @owner.send(@reflection.name).try(:id)
+          else
+            @owner[@reflection.primary_key_name]
+          end
         end
     end
   end
