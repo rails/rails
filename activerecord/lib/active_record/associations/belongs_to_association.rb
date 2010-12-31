@@ -46,7 +46,7 @@ module ActiveRecord
 
           if counter_cache_name && @owner.persisted? && different_target?(record)
             if record
-              target_klass.increment_counter(counter_cache_name, record.id)
+              record.class.increment_counter(counter_cache_name, record.id)
             end
 
             if foreign_key_present

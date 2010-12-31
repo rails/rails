@@ -567,4 +567,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client.client_of = companies(:first_firm).id
     assert_equal companies(:first_firm), firm.reload
   end
+
+  def test_polymorphic_counter_cache
+    tagging = taggings(:welcome_general)
+    post    = posts(:welcome)
+    comment = comments(:greetings)
+
+    assert_difference 'post.reload.taggings_count', -1 do
+      assert_difference 'comment.reload.taggings_count', +1 do
+        tagging.taggable = comment
+      end
+    end
+  end
 end
