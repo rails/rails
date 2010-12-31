@@ -20,7 +20,7 @@ module ActiveRecord
           case value
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
             values = value.to_a.map { |x|
-              x.respond_to?(:quoted_id) ? x.quoted_id : x
+              x.is_a?(ActiveRecord::Base) ? x.id : x
             }
             attribute.in(values)
           when Range, Arel::Relation
