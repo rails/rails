@@ -579,4 +579,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_polymorphic_with_custom_foreign_type
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    groucho = members(:groucho)
+    other   = members(:some_other_guy)
+
+    assert_equal groucho, sponsor.sponsorable
+    assert_equal groucho, sponsor.thing
+
+    sponsor.thing = other
+
+    assert_equal other, sponsor.sponsorable
+    assert_equal other, sponsor.thing
+
+    sponsor.sponsorable = groucho
+
+    assert_equal groucho, sponsor.sponsorable
+    assert_equal groucho, sponsor.thing
+  end
 end

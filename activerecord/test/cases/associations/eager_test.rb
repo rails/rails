@@ -21,12 +21,13 @@ require 'models/member'
 require 'models/membership'
 require 'models/club'
 require 'models/categorization'
+require 'models/sponsor'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
 
   def setup
     # preheat table existence caches
@@ -912,5 +913,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     mary = Author.includes(:unique_categorized_posts).where(:id => authors(:mary).id).first
     assert_equal 1, mary.unique_categorized_posts.length
     assert_equal 1, mary.unique_categorized_post_ids.length
+  end
+
+  def test_preloading_polymorphic_with_custom_foreign_type
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    groucho = members(:groucho)
+
+    sponsor = assert_queries(2) {
+      Sponsor.includes(:thing).where(:id => sponsor.id).first
+    }
+    assert_no_queries { assert_equal groucho, sponsor.thing }
   end
 end
