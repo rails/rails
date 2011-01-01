@@ -31,7 +31,7 @@ module ActiveRecord
 
       protected
         def target_reflection_has_associated_record?
-          if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.primary_key_name].blank?
+          if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.foreign_key].blank?
             false
           else
             true

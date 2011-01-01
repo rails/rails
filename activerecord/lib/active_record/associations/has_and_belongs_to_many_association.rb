@@ -40,7 +40,7 @@ module ActiveRecord
             attributes = columns.map do |column|
               name = column.name
               value = case name.to_s
-                when @reflection.primary_key_name.to_s
+                when @reflection.foreign_key.to_s
                   @owner.id
                 when @reflection.association_foreign_key.to_s
                   record.id
@@ -64,7 +64,7 @@ module ActiveRecord
             records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
           else
             relation = Arel::Table.new(@reflection.options[:join_table])
-            stmt = relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
+            stmt = relation.where(relation[@reflection.foreign_key].eq(@owner.id).
               and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
             ).compile_delete
             @owner.connection.delete stmt.to_sql

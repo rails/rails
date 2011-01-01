@@ -8,7 +8,7 @@ module ActiveRecord
     #
     #   AssociationProxy
     #     BelongsToAssociation
-    #     BelongsToPolymorphicAssociation
+    #       BelongsToPolymorphicAssociation
     #     AssociationCollection + HasAssociation
     #       HasAndBelongsToManyAssociation
     #       HasManyAssociation
@@ -116,6 +116,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       def reload
         reset
+        construct_scope
         load_target
         self unless @target.nil?
       end
@@ -166,6 +167,10 @@ module ActiveRecord
         end
       end
 
+      def scoped
+        with_scope(@scope) { target_klass.scoped }
+      end
+
       protected
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
@@ -192,15 +197,19 @@ module ActiveRecord
 
         # Forwards +with_scope+ to the reflection.
         def with_scope(*args, &block)
-          @reflection.klass.send :with_scope, *args, &block
+          target_klass.send :with_scope, *args, &block
         end
 
         # Construct the scope used for find/create queries on the target
         def construct_scope
-          @scope = {
-            :find   => construct_find_scope,
-            :create => construct_create_scope
-          }
+          if target_klass
+            @scope = {
+              :find   => construct_find_scope,
+              :create => construct_create_scope
+            }
+          else
+            @scope = nil
+          end
         end
 
         # Implemented by subclasses
@@ -214,7 +223,7 @@ module ActiveRecord
         end
 
         def aliased_table
-          @reflection.klass.arel_table
+          target_klass.arel_table
         end
 
         # Set the inverse association, if possible
@@ -222,6 +231,12 @@ module ActiveRecord
           if record && invertible_for?(record)
             record.send("set_#{inverse_reflection_for(record).name}_target", @owner)
           end
+        end
+
+        # This class of the target. belongs_to polymorphic overrides this to look at the
+        # polymorphic_type field on the owner.
+        def target_klass
+          @reflection.klass
         end
 
       private
@@ -254,7 +269,7 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? && (!@owner.new_record? || foreign_key_present)
+          if !loaded? && (!@owner.new_record? || foreign_key_present) && @scope
             @target = find_target
           end
 
@@ -280,11 +295,6 @@ module ActiveRecord
             message = "#{@reflection.class_name}(##{@reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
             raise ActiveRecord::AssociationTypeMismatch, message
           end
-        end
-
-        # Returns the ID of the owner, quoted if needed.
-        def owner_quoted_id
-          @owner.quoted_id
         end
 
         # Can be redefined by subclasses, notably polymorphic belongs_to

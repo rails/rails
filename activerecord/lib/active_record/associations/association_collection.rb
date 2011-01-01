@@ -31,10 +31,6 @@ module ActiveRecord
         end
       end
 
-      def scoped
-        with_scope(@scope) { @reflection.klass.scoped }
-      end
-
       def find(*args)
         options = args.extract_options!
 
@@ -488,7 +484,7 @@ module ActiveRecord
           ensure_owner_is_persisted!
 
           transaction do
-            with_scope(:create => @scope[:create].merge(scoped.where_values_hash)) do
+            with_scope(:create => @scope[:create].merge(scoped.scope_for_create)) do
               build_record(attrs, &block)
             end
           end

@@ -7,14 +7,6 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
       protected
-        def owner_quoted_id
-          if @reflection.options[:primary_key]
-            @owner.class.quote_value(@owner.send(@reflection.options[:primary_key]))
-          else
-            @owner.quoted_id
-          end
-        end
-
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
@@ -66,7 +58,7 @@ module ActiveRecord
             when :delete_all
               @reflection.klass.delete(records.map { |r| r.id })
             else
-              updates    = { @reflection.primary_key_name => nil }
+              updates    = { @reflection.foreign_key => nil }
               conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
               with_scope(@scope) do

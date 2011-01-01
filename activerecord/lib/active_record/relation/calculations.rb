@@ -211,7 +211,7 @@ module ActiveRecord
       group_attr      = @group_values
       association     = @klass.reflect_on_association(group_attr.first.to_sym)
       associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
-      group_fields  = Array(associated ? association.primary_key_name : group_attr)
+      group_fields  = Array(associated ? association.foreign_key : group_attr)
       group_aliases = group_fields.map { |field| column_alias_for(field) }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
         [aliaz, column_for(field)]
