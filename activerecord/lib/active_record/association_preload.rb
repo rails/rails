@@ -287,7 +287,7 @@ module ActiveRecord
 
       def preload_through_records(records, reflection, through_association)
         if reflection.options[:source_type]
-          interface = reflection.source_reflection.options[:foreign_type]
+          interface = reflection.source_reflection.foreign_type
           preload_options = {:conditions => ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]}
 
           records.compact!
@@ -319,18 +319,15 @@ module ActiveRecord
       def preload_belongs_to_association(records, reflection, preload_options={})
         return if records.first.send("loaded_#{reflection.name}?")
         options = reflection.options
-        foreign_key = reflection.foreign_key
 
         klasses_and_ids = {}
 
         if options[:polymorphic]
-          polymorph_type = options[:foreign_type]
-
           # Construct a mapping from klass to a list of ids to load and a mapping of those ids back
           # to their parent_records
           records.each do |record|
-            if klass = record.send(polymorph_type)
-              klass_id = record.send(foreign_key)
+            if klass = record.send(reflection.foreign_type)
+              klass_id = record.send(reflection.foreign_key)
               if klass_id
                 id_map = klasses_and_ids[klass.constantize] ||= {}
                 (id_map[klass_id.to_s] ||= []) << record
@@ -339,7 +336,7 @@ module ActiveRecord
           end
         else
           id_map = records.group_by do |record|
-            key = record.send(foreign_key)
+            key = record.send(reflection.foreign_key)
             key && key.to_s
           end
           id_map.delete nil

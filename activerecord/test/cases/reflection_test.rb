@@ -10,6 +10,7 @@ require 'models/price_estimate'
 require 'models/tagging'
 require 'models/author'
 require 'models/post'
+require 'models/sponsor'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -203,6 +204,11 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_active_record_primary_key
     assert_equal "nick", Subscriber.reflect_on_association(:subscriptions).active_record_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).active_record_primary_key.to_s
+  end
+
+  def test_foreign_type
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:sponsorable).foreign_type.to_s
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:thing).foreign_type.to_s
   end
 
   def test_collection_association

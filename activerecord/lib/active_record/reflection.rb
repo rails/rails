@@ -200,6 +200,10 @@ module ActiveRecord
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
 
+      def foreign_type
+        @foreign_type ||= options[:foreign_type] || "#{name}_type"
+      end
+
       def primary_key_column
         @primary_key_column ||= klass.columns.find { |c| c.name == klass.primary_key }
       end

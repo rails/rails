@@ -228,7 +228,7 @@ module ActiveRecord
                 second_key = source_reflection.association_foreign_key
 
                 jt_conditions <<
-                join_table[reflection.source_reflection.options[:foreign_type]].
+                join_table[reflection.source_reflection.foreign_type].
                   eq(reflection.options[:source_type])
               else
                 second_key = source_reflection.foreign_key

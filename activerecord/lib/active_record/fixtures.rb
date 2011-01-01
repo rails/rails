@@ -615,14 +615,9 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
             fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
 
             if association.name.to_s != fk_name && value = row.delete(association.name.to_s)
-              if association.options[:polymorphic]
-                if value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
-                  target_type = $1
-                  target_type_name = (association.options[:foreign_type] || "#{association.name}_type").to_s
-
-                  # support polymorphic belongs_to as "label (Type)"
-                  row[target_type_name] = target_type
-                end
+              if association.options[:polymorphic] && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                # support polymorphic belongs_to as "label (Type)"
+                row[association.foreign_type] = $1
               end
 
               row[fk_name] = Fixtures.identify(value)

@@ -71,7 +71,7 @@ module ActiveRecord
                                    @reflection.klass.primary_key
           source_primary_key     = @reflection.source_reflection.foreign_key
           if @reflection.options[:source_type]
-            column = @reflection.source_reflection.options[:foreign_type]
+            column = @reflection.source_reflection.foreign_type
             conditions <<
               right[column].eq(@reflection.options[:source_type])
           end
@@ -105,7 +105,7 @@ module ActiveRecord
         }
 
         if @reflection.options[:source_type]
-          join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name)
+          join_attributes.merge!(@reflection.source_reflection.foreign_type => associate.class.base_class.name)
         end
 
         if @reflection.through_reflection.options[:conditions].is_a?(Hash)

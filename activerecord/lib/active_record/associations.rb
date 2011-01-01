@@ -1761,13 +1761,7 @@ module ActiveRecord
 
         def create_belongs_to_reflection(association_id, options)
           options.assert_valid_keys(valid_keys_for_belongs_to_association)
-          reflection = create_reflection(:belongs_to, association_id, options, self)
-
-          if options[:polymorphic]
-            reflection.options[:foreign_type] ||= reflection.class_name.underscore + "_type"
-          end
-
-          reflection
+          create_reflection(:belongs_to, association_id, options, self)
         end
 
         mattr_accessor :valid_keys_for_has_and_belongs_to_many_association

@@ -7,7 +7,7 @@ module ActiveRecord
           target_id    = @target.send(@reflection.association_primary_key).to_s
           foreign_key  = @owner.send(@reflection.foreign_key).to_s
           target_type  = @target.class.base_class.name
-          foreign_type = @owner.send(@reflection.options[:foreign_type]).to_s
+          foreign_type = @owner.send(@reflection.foreign_type).to_s
 
           target_id != foreign_key || target_type != foreign_type
         else
@@ -19,7 +19,7 @@ module ActiveRecord
 
         def replace_keys(record)
           super
-          @owner[@reflection.options[:foreign_type]] = record && record.class.base_class.name
+          @owner[@reflection.foreign_type] = record && record.class.base_class.name
         end
 
         def different_target?(record)
@@ -31,7 +31,7 @@ module ActiveRecord
         end
 
         def target_klass
-          type = @owner[@reflection.options[:foreign_type]]
+          type = @owner[@reflection.foreign_type]
           type && type.constantize
         end
 
