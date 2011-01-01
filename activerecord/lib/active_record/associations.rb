@@ -1177,6 +1177,11 @@ module ActiveRecord
       #   association will use "person_id" as the default <tt>:foreign_key</tt>. Similarly,
       #   <tt>belongs_to :favorite_person, :class_name => "Person"</tt> will use a foreign key
       #   of "favorite_person_id".
+      # [:foreign_type]
+      #   Specify the column used to store the associated object's type, if this is a polymorphic
+      #   association. By default this is guessed to be the name of the association with a "_type"
+      #   suffix. So a class that defines a <tt>belongs_to :taggable, :polymorphic => true</tt>
+      #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key of associated object used for the association.
       #   By default this is id.
