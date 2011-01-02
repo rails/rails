@@ -806,4 +806,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [rails_author], [rails_author] & relation
     assert_equal [rails_author], relation & [rails_author]
   end
+
+  def test_removing_limit_with_options
+    assert_not_equal 1, Post.limit(1).all(:limit => nil).count
+  end
 end

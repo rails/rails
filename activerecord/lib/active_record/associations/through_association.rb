@@ -13,15 +13,11 @@ module ActiveRecord
       protected
 
       def construct_find_scope
-        {
-          :conditions => construct_conditions,
-          :joins      => construct_joins,
-          :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include],
-          :select     => construct_select,
-          :order      => @reflection.options[:order],
-          :limit      => @reflection.options[:limit],
-          :readonly   => @reflection.options[:readonly]
-        }
+        super.merge(
+          :joins   => construct_joins,
+          :include => @reflection.options[:include] ||
+                      @reflection.source_reflection.options[:include]
+        )
       end
 
       # This scope affects the creation of the associated records (not the join records). At the
@@ -42,11 +38,6 @@ module ActiveRecord
 
       def construct_owner_conditions
         super(aliased_through_table, @reflection.through_reflection)
-      end
-
-      def construct_select
-        @reflection.options[:select] ||
-        @reflection.options[:uniq] && "DISTINCT #{@reflection.quoted_table_name}.*"
       end
 
       def construct_joins

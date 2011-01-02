@@ -102,7 +102,7 @@ module ActiveRecord
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)
       finders = options.dup
-      finders.delete_if { |key, value| value.nil? }
+      finders.delete_if { |key, value| value.nil? && key != :limit }
 
       ([:joins, :select, :group, :order, :having, :limit, :offset, :from, :lock, :readonly] & finders.keys).each do |finder|
         relation = relation.send(finder, finders[finder])

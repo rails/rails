@@ -38,11 +38,6 @@ module ActiveRecord
           end
         end
 
-        def construct_find_options!(options)
-          options[:joins]   = [construct_joins] + Array.wrap(options[:joins])
-          options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil? && @reflection.source_reflection.options[:include]
-        end
-
         def insert_record(record, force = true, validate = true)
           if record.new_record?
             return false unless save_record(record, force, validate)

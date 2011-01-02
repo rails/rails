@@ -32,37 +32,10 @@ module ActiveRecord
       end
 
       def find(*args)
-        options = args.extract_options!
-
-        # If using a custom finder_sql, scan the entire collection.
         if @reflection.options[:finder_sql]
-          expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.uniq.map { |arg| arg.to_i }
-
-          if ids.size == 1
-            id = ids.first
-            record = load_target.detect { |r| id == r.id }
-            expects_array ? [ record ] : record
-          else
-            load_target.select { |r| ids.include?(r.id) }
-          end
+          find_by_scan(*args)
         else
-          merge_options_from_reflection!(options)
-          construct_find_options!(options)
-
-          with_scope(:find => @scope[:find].slice(:conditions, :order)) do
-            relation = @reflection.klass.send(:construct_finder_arel, options, @reflection.klass.send(:current_scoped_methods))
-
-            case args.first
-            when :first, :last
-              relation.send(args.first)
-            when :all
-              records = relation.all
-              @reflection.options[:uniq] ? uniq(records) : records
-            else
-              relation.find(*args)
-            end
-          end
+          find_by_sql(*args)
         end
       end
 
@@ -360,7 +333,25 @@ module ActiveRecord
       end
 
       protected
-        def construct_find_options!(options)
+
+        def construct_find_scope
+          {
+            :conditions => construct_conditions,
+            :select     => construct_select,
+            :readonly   => @reflection.options[:readonly],
+            :order      => @reflection.options[:order],
+            :limit      => @reflection.options[:limit],
+            :include    => @reflection.options[:include],
+            :joins      => @reflection.options[:joins],
+            :group      => @reflection.options[:group],
+            :having     => @reflection.options[:having],
+            :offset     => @reflection.options[:offset]
+          }
+        end
+
+        def construct_select
+          @reflection.options[:select] ||
+          @reflection.options[:uniq] && "DISTINCT #{@reflection.quoted_table_name}.*"
         end
 
         def load_target
@@ -394,7 +385,7 @@ module ActiveRecord
           target
         end
 
-        def method_missing(method, *args)
+        def method_missing(method, *args, &block)
           match = DynamicFinderMatch.match(method)
           if match && match.creator?
             attributes = match.attribute_names
@@ -406,15 +397,9 @@ module ActiveRecord
           elsif @reflection.klass.scopes[method]
             @_scopes_cache ||= {}
             @_scopes_cache[method] ||= {}
-            @_scopes_cache[method][args] ||= with_scope(@scope) { @reflection.klass.send(method, *args) }
+            @_scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
           else
-            with_scope(@scope) do
-              if block_given?
-                @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
-              else
-                @reflection.klass.send(method, *args)
-              end
-            end
+            scoped.readonly(nil).send(method, *args, &block)
           end
         end
 
@@ -546,6 +531,24 @@ module ActiveRecord
           else
             @target.include?(record)
           end
+        end
+
+        # If using a custom finder_sql, #find scans the entire collection.
+        def find_by_scan(*args)
+          expects_array = args.first.kind_of?(Array)
+          ids           = args.flatten.compact.uniq.map { |arg| arg.to_i }
+
+          if ids.size == 1
+            id = ids.first
+            record = load_target.detect { |r| id == r.id }
+            expects_array ? [ record ] : record
+          else
+            load_target.select { |r| ids.include?(r.id) }
+          end
+        end
+
+        def find_by_sql(*args)
+          scoped.find(*args)
         end
     end
   end

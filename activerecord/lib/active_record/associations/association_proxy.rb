@@ -182,20 +182,6 @@ module ActiveRecord
           @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
-        # Merges into +options+ the ones coming from the reflection.
-        def merge_options_from_reflection!(options)
-          options.reverse_merge!(
-            :group   => @reflection.options[:group],
-            :having  => @reflection.options[:having],
-            :limit   => @reflection.options[:limit],
-            :offset  => @reflection.options[:offset],
-            :joins   => @reflection.options[:joins],
-            :include => @reflection.options[:include],
-            :select  => @reflection.options[:select],
-            :readonly  => @reflection.options[:readonly]
-          )
-        end
-
         # Forwards +with_scope+ to the reflection.
         def with_scope(*args, &block)
           target_klass.send :with_scope, *args, &block

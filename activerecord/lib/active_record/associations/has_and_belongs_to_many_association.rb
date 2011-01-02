@@ -2,6 +2,7 @@ module ActiveRecord
   # = Active Record Has And Belongs To Many Association
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
+
       def columns
         @reflection.columns(@reflection.options[:join_table], "#{@reflection.options[:join_table]} Columns")
       end
@@ -15,11 +16,6 @@ module ActiveRecord
       end
 
       protected
-        def construct_find_options!(options)
-          options[:joins]      = Arel::SqlLiteral.new(@scope[:find][:joins])
-          options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
-          options[:select]   ||= (@reflection.options[:select] || Arel::SqlLiteral.new('*'))
-        end
 
         def count_records
           load_target.size
@@ -84,22 +80,23 @@ module ActiveRecord
         end
 
         def construct_find_scope
-          {
-            :conditions => construct_conditions,
-            :joins      => construct_joins,
-            :readonly   => false,
-            :order      => @reflection.options[:order],
-            :include    => @reflection.options[:include],
-            :limit      => @reflection.options[:limit]
-          }
+          super.merge(
+            :joins    => construct_joins,
+            :readonly => ambiguous_select?(@reflection.options[:select]),
+            :select   => @reflection.options[:select] || Arel.star
+          )
         end
 
         # Join tables with additional columns on top of the two foreign keys must be considered
         # ambiguous unless a select clause has been explicitly defined. Otherwise you can get
         # broken records back, if, for example, the join column also has an id column. This will
         # then overwrite the id column of the records coming back.
-        def finding_with_ambiguous_select?(select_clause)
-          !select_clause && columns.size != 2
+        def ambiguous_select?(select)
+          extra_join_columns? && select.nil?
+        end
+
+        def extra_join_columns?
+          columns.size > 2
         end
 
       private
@@ -113,6 +110,13 @@ module ActiveRecord
 
         def invertible_for?(record)
           false
+        end
+
+        def find_by_sql(*args)
+          options   = args.extract_options!
+          ambiguous = ambiguous_select?(@reflection.options[:select] || options[:select])
+
+          scoped.readonly(ambiguous).find(*(args << options))
         end
     end
   end

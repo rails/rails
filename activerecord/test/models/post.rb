@@ -51,7 +51,7 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings do
     def add_joins_and_select
-      find :all, :select => 'tags.*, authors.id as author_id', :include => false,
+      find :all, :select => 'tags.*, authors.id as author_id',
         :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
     end
   end

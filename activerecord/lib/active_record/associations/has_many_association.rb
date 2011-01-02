@@ -71,16 +71,6 @@ module ActiveRecord
           end
         end
 
-        def construct_find_scope
-          {
-            :conditions => construct_conditions,
-            :readonly   => false,
-            :order      => @reflection.options[:order],
-            :limit      => @reflection.options[:limit],
-            :include    => @reflection.options[:include]
-          }
-        end
-
         def construct_create_scope
           construct_owner_attributes
         end

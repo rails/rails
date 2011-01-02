@@ -28,6 +28,10 @@ class Project < ActiveRecord::Base
     @developers_log = []
   end
 
+  def self.all_as_method
+    all
+  end
+  scope :all_as_scope, {}
 end
 
 class SpecialProject < Project

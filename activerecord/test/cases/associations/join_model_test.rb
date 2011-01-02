@@ -85,13 +85,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
   end
 
-  def test_polymorphic_has_many_going_through_join_model_with_disabled_include
-    assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
-    assert_queries 1 do
-      tag.tagging
-    end
-  end
-
   def test_polymorphic_has_many_going_through_join_model_with_custom_select_and_joins
     assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
     tag.author_id
