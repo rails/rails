@@ -38,8 +38,8 @@
 #     Note that if you are working on a guide generation will by default process
 #     only that one, so ONLY is rarely used nowadays.
 #
-#   LANG
-#     Use LANG when you want to generate translated guides in <tt>source/<LANG></tt>
+#   LANGUAGE
+#     Use LANGUAGE when you want to generate translated guides in <tt>source/<LANGUAGE></tt>
 #     folder (such as <tt>source/es</tt>). Ignore it when generating English guides.
 #
 #   EDGE
@@ -67,7 +67,7 @@ module RailsGuides
     GUIDES_RE = /\.(?:textile|html\.erb)$/
 
     def initialize(output=nil)
-      @lang = ENV['LANG']
+      @lang = ENV['LANGUAGE']
       initialize_dirs(output)
       create_output_dir_if_needed
       set_flags_from_environment
