@@ -364,7 +364,7 @@ module ActiveRecord
         end
 
         def load_target
-          if !@owner.new_record? || foreign_key_present
+          if !@owner.new_record? || foreign_key_present?
             begin
               unless loaded?
                 if @target.is_a?(Array) && @target.any?

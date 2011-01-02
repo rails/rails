@@ -270,7 +270,7 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? && (!@owner.new_record? || foreign_key_present) && @scope
+          if !loaded? && (!@owner.new_record? || foreign_key_present?) && @scope
             @target = find_target
           end
 
@@ -287,7 +287,7 @@ module ActiveRecord
         #
         # Currently implemented by belongs_to (vanilla and polymorphic) and
         # has_one/has_many :through associations which go through a belongs_to
-        def foreign_key_present
+        def foreign_key_present?
           false
         end
 

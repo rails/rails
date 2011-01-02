@@ -152,7 +152,7 @@ module ActiveRecord
         end
       end
 
-      def foreign_key_present
+      def foreign_key_present?
         @reflection.through_reflection.macro == :belongs_to &&
         !@owner[@reflection.through_reflection.foreign_key].nil?
       end

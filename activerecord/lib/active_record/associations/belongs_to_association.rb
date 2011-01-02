@@ -38,7 +38,7 @@ module ActiveRecord
               record.class.increment_counter(counter_cache_name, record.id)
             end
 
-            if foreign_key_present
+            if foreign_key_present?
               target_klass.decrement_counter(counter_cache_name, target_id)
             end
           end
@@ -55,7 +55,7 @@ module ActiveRecord
         end
 
         def find_target
-          if foreign_key_present
+          if foreign_key_present?
             scoped.first.tap { |record| set_inverse_instance(record) }
           end
         end
@@ -77,7 +77,7 @@ module ActiveRecord
           conditions
         end
 
-        def foreign_key_present
+        def foreign_key_present?
           !@owner[@reflection.foreign_key].nil?
         end
 
