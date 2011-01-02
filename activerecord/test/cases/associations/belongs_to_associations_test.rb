@@ -88,19 +88,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_nil citibank_result.instance_variable_get("@firm_with_primary_key_symbols")
   end
 
-  def test_no_unexpected_aliasing
-    first_firm = companies(:first_firm)
-    another_firm = companies(:another_firm)
-
-    citibank = Account.create("credit_limit" => 10)
-    citibank.firm = first_firm
-    original_proxy = citibank.firm
-    citibank.firm = another_firm
-
-    assert_equal first_firm.object_id, original_proxy.target.object_id
-    assert_equal another_firm.object_id, citibank.firm.target.object_id
-  end
-
   def test_creating_the_belonging_object
     citibank = Account.create("credit_limit" => 10)
     apple    = citibank.create_firm("name" => "Apple")
@@ -318,13 +305,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal Firm.find(:first, :order => "id"), c.firm_with_basic_id
   end
 
-  def test_forgetting_the_load_when_foreign_key_enters_late
-    c = Client.new
-    assert_nil c.firm_with_basic_id
+  def test_setting_foreign_key_after_nil_target_loaded
+    client = Client.new
+    client.firm_with_basic_id
+    client.firm_id = 1
 
-    c.firm_id = 1
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.find(:first, :order => "id"), c.firm_with_basic_id
+    assert_equal companies(:first_firm), client.firm_with_basic_id
+  end
+
+  def test_polymorphic_setting_foreign_key_after_nil_target_loaded
+    sponsor = Sponsor.new
+    sponsor.sponsorable
+    sponsor.sponsorable_id = 1
+    sponsor.sponsorable_type = "Member"
+
+    assert_equal members(:groucho), sponsor.sponsorable
   end
 
   def test_field_name_same_as_foreign_key

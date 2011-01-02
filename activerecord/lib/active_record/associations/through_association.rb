@@ -10,17 +10,6 @@ module ActiveRecord
         end
       end
 
-      def stale_target?
-        if @target && @reflection.through_reflection.macro == :belongs_to && defined?(@through_foreign_key)
-          previous_key = @through_foreign_key.to_s
-          current_key  = @owner.send(@reflection.through_reflection.foreign_key).to_s
-
-          previous_key != current_key
-        else
-          false
-        end
-      end
-
       protected
 
       def construct_find_scope
@@ -157,10 +146,15 @@ module ActiveRecord
 
       alias_method :sql_conditions, :conditions
 
-      def update_stale_state
+      def stale_state
         if @reflection.through_reflection.macro == :belongs_to
-          @through_foreign_key = @owner.send(@reflection.through_reflection.foreign_key)
+          @owner[@reflection.through_reflection.foreign_key].to_s
         end
+      end
+
+      def foreign_key_present
+        @reflection.through_reflection.macro == :belongs_to &&
+        !@owner[@reflection.through_reflection.foreign_key].nil?
       end
     end
   end

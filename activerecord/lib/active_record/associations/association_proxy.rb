@@ -128,17 +128,18 @@ module ActiveRecord
 
       # Asserts the \target has been loaded setting the \loaded flag to +true+.
       def loaded
-        @loaded = true
+        @loaded      = true
+        @stale_state = stale_state
       end
 
       # The target is stale if the target no longer points to the record(s) that the
       # relevant foreign_key(s) refers to. If stale, the association accessor method
-      # on the owner will reload the target. It's up to subclasses to implement this
-      # method if relevant.
+      # on the owner will reload the target. It's up to subclasses to implement the
+      # state_state method if relevant.
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        false
+        loaded? && @stale_state != stale_state
       end
 
       # Returns the target of this proxy, same as +proxy_target+.
@@ -273,16 +274,19 @@ module ActiveRecord
             @target = find_target
           end
 
-          @loaded = true
+          loaded
           @target
         rescue ActiveRecord::RecordNotFound
           reset
         end
 
-        # Can be overwritten by associations that might have the foreign key
-        # available for an association without having the object itself (and
-        # still being a new record). Currently, only +belongs_to+ presents
-        # this scenario (both vanilla and polymorphic).
+        # Should be true if there is a foreign key present on the @owner which
+        # references the target. This is used to determine whether we can load
+        # the target if the @owner is currently a new record (and therefore
+        # without a key).
+        #
+        # Currently implemented by belongs_to (vanilla and polymorphic) and
+        # has_one/has_many :through associations which go through a belongs_to
         def foreign_key_present
           false
         end
@@ -307,6 +311,15 @@ module ActiveRecord
         # Is this association invertible? Can be redefined by subclasses.
         def invertible_for?(record)
           inverse_reflection_for(record)
+        end
+
+        # This should be implemented to return the values of the relevant key(s) on the owner,
+        # so that when state_state is different from the value stored on the last find_target,
+        # the target is stale.
+        #
+        # This is only relevant to certain associations, which is why it returns nil by default.
+        def stale_state
+          nil
         end
     end
   end

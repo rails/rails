@@ -411,7 +411,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
     @pirate.stubs(:id).returns('ABC1X')
-    @ship.stubs(:pirate_id).returns(@pirate.id) # prevents pirate from being reloaded due to non-matching foreign key
     @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
 
     assert_equal 'Arr', @ship.pirate.catchphrase

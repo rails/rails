@@ -1467,14 +1467,15 @@ module ActiveRecord
             force_reload = params.first unless params.empty?
             association = association_instance_get(reflection.name)
 
-            if association.nil? || force_reload || association.stale_target?
+            if association.nil?
               association = association_proxy_class.new(self, reflection)
-              retval = force_reload ? reflection.klass.uncached { association.reload } : association.reload
-              if retval.nil? and association_proxy_class == BelongsToAssociation
-                association_instance_set(reflection.name, nil)
-                return nil
-              end
               association_instance_set(reflection.name, association)
+            end
+
+            if force_reload
+              reflection.klass.uncached { association.reload }
+            elsif !association.loaded? || association.stale_target?
+              association.reload
             end
 
             association.target.nil? ? nil : association
@@ -1485,19 +1486,19 @@ module ActiveRecord
             association && association.loaded?
           end
 
-          redefine_method("#{reflection.name}=") do |new_value|
+          redefine_method("#{reflection.name}=") do |record|
             association = association_instance_get(reflection.name)
 
-            if association.nil? || association.target != new_value
+            if association.nil?
               association = association_proxy_class.new(self, reflection)
+              association_instance_set(reflection.name, association)
             end
 
-            association.replace(new_value)
-            association_instance_set(reflection.name, new_value.nil? ? nil : association)
+            association.replace(record)
+            association.target.nil? ? nil : association
           end
 
           redefine_method("set_#{reflection.name}_target") do |target|
-            return if target.nil? and association_proxy_class == BelongsToAssociation
             association = association_proxy_class.new(self, reflection)
             association.target = target
             association_instance_set(reflection.name, association)

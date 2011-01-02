@@ -340,6 +340,13 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     tags(:misc).create_tagging(:taggable => posts(:thinking))
     assert_equal num_tagging + 1, Tagging.count
   end
+
+  def test_build_and_then_save_parent_should_not_reload_target
+    client = Client.find(:first)
+    apple = client.build_firm(:name => "Apple")
+    client.save!
+    assert_no_queries { assert_equal apple, client.firm }
+  end
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase

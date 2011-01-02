@@ -29,17 +29,6 @@ module ActiveRecord
         @updated
       end
 
-      def stale_target?
-        if @target && @target.persisted?
-          target_id   = @target[@reflection.association_primary_key].to_s
-          foreign_key = @owner[@reflection.foreign_key].to_s
-
-          target_id != foreign_key
-        else
-          false
-        end
-      end
-
       private
         def update_counters(record)
           counter_cache_name = @reflection.counter_cache_column
@@ -105,6 +94,10 @@ module ActiveRecord
           else
             @owner[@reflection.foreign_key]
           end
+        end
+
+        def stale_state
+          @owner[@reflection.foreign_key].to_s
         end
     end
   end

@@ -33,10 +33,8 @@ module ActiveRecord
             case @reflection.options[:dependent]
             when :delete
               @target.delete if @target.persisted?
-              @owner.clear_association_cache
             when :destroy
               @target.destroy if @target.persisted?
-              @owner.clear_association_cache
             when :nullify
               @target[@reflection.foreign_key] = nil
               @target.save if @owner.persisted? && @target.persisted?
@@ -56,7 +54,7 @@ module ActiveRecord
         end
 
         set_inverse_instance(obj)
-        @loaded = true
+        loaded
 
         unless !@owner.persisted? || obj.nil? || dont_save
           return (obj.save ? self : false)

@@ -7,6 +7,7 @@ module ActiveRecord
       def replace(new_value)
         create_through_record(new_value)
         @target = new_value
+        loaded
       end
 
       private
@@ -32,7 +33,6 @@ module ActiveRecord
       end
 
       def find_target
-        update_stale_state
         scoped.first
       end
     end

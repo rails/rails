@@ -902,11 +902,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_preloading_empty_polymorphic_parent
+  def test_preloading_empty_belongs_to
+    c = Client.create!(:name => 'Foo', :client_of => Company.maximum(:id) + 1)
+
+    client = assert_queries(2) { Client.preload(:firm).find(c.id) }
+    assert_no_queries { assert_nil client.firm }
+  end
+
+  def test_preloading_empty_belongs_to_polymorphic
     t = Tagging.create!(:taggable_type => 'Post', :taggable_id => Post.maximum(:id) + 1, :tag => tags(:general))
 
-    assert_queries(2) { @tagging = Tagging.preload(:taggable).find(t.id) }
-    assert_no_queries { assert ! @tagging.taggable }
+    tagging = assert_queries(2) { Tagging.preload(:taggable).find(t.id) }
+    assert_no_queries { assert_nil tagging.taggable }
+  end
+
+  def test_preloading_through_empty_belongs_to
+    c = Client.create!(:name => 'Foo', :client_of => Company.maximum(:id) + 1)
+
+    client = assert_queries(2) { Client.preload(:accounts).find(c.id) }
+    assert_no_queries { assert client.accounts.empty? }
   end
 
   def test_preloading_has_many_through_with_uniq

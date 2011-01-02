@@ -2,19 +2,6 @@ module ActiveRecord
   # = Active Record Belongs To Polymorphic Association
   module Associations
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
-      def stale_target?
-        if @target && @target.persisted?
-          target_id    = @target.send(@reflection.association_primary_key).to_s
-          foreign_key  = @owner.send(@reflection.foreign_key).to_s
-          target_type  = @target.class.base_class.name
-          foreign_type = @owner.send(@reflection.foreign_type).to_s
-
-          target_id != foreign_key || target_type != foreign_type
-        else
-          false
-        end
-      end
-
       private
 
         def replace_keys(record)
@@ -37,6 +24,10 @@ module ActiveRecord
 
         def raise_on_type_mismatch(record)
           # A polymorphic association cannot have a type mismatch, by definition
+        end
+
+        def stale_state
+          [super, @owner[@reflection.foreign_type].to_s]
         end
     end
   end

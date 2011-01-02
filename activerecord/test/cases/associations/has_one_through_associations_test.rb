@@ -266,4 +266,26 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert proxy.stale_target?
     assert_equal dashboards(:second), minivan.dashboard
   end
+
+  def test_has_one_through_belongs_to_setting_belongs_to_foreign_key_after_nil_target_loaded
+    minivan = Minivan.new
+
+    minivan.dashboard
+    proxy = minivan.send(:association_instance_get, :dashboard)
+
+    minivan.speedometer_id = speedometers(:second).id
+
+    assert proxy.stale_target?
+    assert_equal dashboards(:second), minivan.dashboard
+  end
+
+  def test_assigning_has_one_through_belongs_to_with_new_record_owner
+    minivan   = Minivan.new
+    dashboard = dashboards(:cool_first)
+
+    minivan.dashboard = dashboard
+
+    assert_equal dashboard, minivan.dashboard
+    assert_equal dashboard, minivan.speedometer.dashboard
+  end
 end
