@@ -26,7 +26,7 @@ module ActiveRecord
           elsif @reflection.options[:counter_sql] || @reflection.options[:finder_sql]
             @reflection.klass.count_by_sql(custom_counter_sql)
           else
-            @reflection.klass.count(@scope[:find].slice(:conditions, :joins, :include))
+            scoped.count
           end
 
           # If there's nothing in the database and @target has no new records
@@ -61,9 +61,7 @@ module ActiveRecord
               updates    = { @reflection.foreign_key => nil }
               conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
-              with_scope(@scope) do
-                @reflection.klass.update_all(updates, conditions)
-              end
+              scoped.where(conditions).update_all(updates)
           end
 
           if has_cached_counter? && @reflection.options[:dependent] != :destroy

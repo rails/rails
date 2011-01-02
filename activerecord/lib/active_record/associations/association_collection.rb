@@ -155,14 +155,13 @@ module ActiveRecord
 
           @reflection.klass.count_by_sql(custom_counter_sql)
         else
-
           if @reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" unless column_name
             options.merge!(:distinct => true)
           end
 
-          value = @reflection.klass.send(:with_scope, @scope) { @reflection.klass.count(column_name, options) }
+          value = scoped.count(column_name, options)
 
           limit  = @reflection.options[:limit]
           offset = @reflection.options[:offset]
@@ -469,9 +468,7 @@ module ActiveRecord
           ensure_owner_is_persisted!
 
           transaction do
-            with_scope(:create => @scope[:create].merge(scoped.scope_for_create)) do
-              build_record(attrs, &block)
-            end
+            scoped.scoping { build_record(attrs, &block) }
           end
         end
 

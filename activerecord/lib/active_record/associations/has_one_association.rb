@@ -65,17 +65,17 @@ module ActiveRecord
 
       private
         def find_target
-          options = @reflection.options.dup.slice(:select, :order, :include, :readonly)
-
-          the_target = with_scope(:find => @scope[:find]) do
-            @reflection.klass.find(:first, options)
-          end
-          set_inverse_instance(the_target)
-          the_target
+          scoped.first.tap { |record| set_inverse_instance(record) }
         end
 
         def construct_find_scope
-          { :conditions => construct_conditions }
+          {
+            :conditions => construct_conditions,
+            :select     => @reflection.options[:select],
+            :include    => @reflection.options[:include],
+            :readonly   => @reflection.options[:readonly],
+            :order      => @reflection.options[:order]
+          }
         end
 
         def construct_create_scope
@@ -87,9 +87,7 @@ module ActiveRecord
           # instance. Otherwise, if the target has not previously been loaded
           # elsewhere, the instance we create will get orphaned.
           load_target if replace_existing
-          record = @reflection.klass.send(:with_scope, :create => @scope[:create]) do
-            yield @reflection
-          end
+          record = scoped.scoping { yield @reflection }
 
           if replace_existing
             replace(record, true)
