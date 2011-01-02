@@ -195,6 +195,39 @@ module ActionMailer #:nodoc:
   #     end
   #   end
   #
+  # = Multipart Emails with Attachments
+  #
+  # Multipart emails that also have attachments can be created by nesting a "multipart/alternative" part
+  # within an email that has its content type set to "multipart/mixed".  This would also need two templates
+  # in place within +app/views/mailer+ called "welcome_email.text.html.erb" and "welcome_email.text.plain.erb"
+  #
+  #   class ApplicationMailer < ActionMailer::Base
+  #     def signup_notification(recipient)
+  #       recipients      recipient.email_address_with_name
+  #       subject         "New account information"
+  #       from            "system@example.com"
+  #       content_type    "multipart/mixed"
+  #
+  #       part "multipart/alternative" do |alternative|
+  #
+  #         alternative.part "text/html" do |html|
+  #           html.body = render_message("welcome_email.text.html", :message => "<h1>HTML content</h1>")
+  #         end
+  #
+  #         alternative.part "text/plain" do |plain|
+  #           plain.body = render_message("welcome_email.text.plain", :message => "text content")
+  #         end
+  #
+  #       end
+  #
+  #       attachment :content_type => "image/png",
+  #         :body => File.read(File.join(RAILS_ROOT, 'public/images/rails.png'))
+  #
+  #       attachment "application/pdf" do |a|
+  #         a.body = File.read('/Users/mikel/Code/mail/spec/fixtures/attachments/test.pdf')
+  #       end
+  #     end
+  #   end
   #
   # = Configuration options
   #
