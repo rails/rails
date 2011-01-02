@@ -218,7 +218,9 @@ If you set a default +:host+ for your mailers you need to pass +:only_path => fa
 
 h4. Sending Multipart Emails
 
-Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have +welcome_email.text.plain.erb+ and +welcome_email.text.html.erb+ in +app/views/user_mailer+, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
+Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have +welcome_email.text.plain.erb+ and +welcome_email.text.html.erb+ in +app/views/user_mailer+, Action Mailer will automatically send a "multipart/alternative" email with the HTML and text versions setup as different parts.
+
+A "multipart/alternative" content type tells your email client that there are several representations of the same content available and that the email client is free to choose any one to display to the user.  In this case we are giving a plain text and HTML version of the same message.  But this could also be a text version, and a recording of someone speaking the the same message.  It is important to use "multipart/alternative" only when each part has the same content.
 
 To explicitly specify multipart messages, you can do something like:
 
@@ -242,7 +244,11 @@ end
 
 h4. Sending Emails with Attachments
 
-Attachments can be added by using the +attachment+ method:
+Attachments can be added by using the +attachment+ method.  The +attachment+ method has two variations, you can either pass the body in as an option, or create it within a block.
+
+Usually you will use the variation shown below for the "image/jpeg" attachment, here you just pass in the content type and body as a options hash to the attachment method. However, if you need to do some processing to create the attachment, such as with the PDF below, then the block variation can be used.
+
+This email uses the "multipart/mixed" content type because each part is a different block of content.  This indicates to the email client that it must show all the parts that it can display to the end user.
 
 <ruby>
 class UserMailer < ActionMailer::Base
@@ -250,13 +256,14 @@ class UserMailer < ActionMailer::Base
     recipients      user.email_address
     subject         "New account information"
     from            "system@example.com"
-    content_type    "multipart/alternative"
+    content_type    "multipart/mixed"
 
     attachment :content_type => "image/jpeg",
       :body => File.read("an-image.jpg")
 
     attachment "application/pdf" do |a|
-      a.body = generate_your_pdf_here()
+      pdf = generate_your_pdf_here(:name => user)
+      a.body = pdf
     end
   end
 end
@@ -266,7 +273,11 @@ h4. Sending Multipart Emails with Attachments
 
 Once you use the +attachment+ method, ActionMailer will no longer automagically use the correct template based on the filename. You must declare which template you are using for each content type via the +part+ method.
 
-In the following example, there would be two template files, +welcome_email_html.erb+ and +welcome_email_plain.erb+ in the +app/views/user_mailer+ folder.
+Here we are making the email "multipart/mixed" with three top level parts, a "multipart/alternative", an "image/jpeg" and an "application/pdf".  Within the "multipart/alternative" we are nesting a "text/html" and "text/plain" version of the same message.
+
+This tells the email client that each of the top level parts should be shown to the end user, however, the first part has the content type "multipart/alternative" and provides two versions of the same message, a plain text and HTML version.
+
+In the following example, there would be two template files, +welcome_email.text.html.erb+ and +welcome_email.text.plain.erb+ in the +app/views/user_mailer+ folder.
 
 <ruby>
 class UserMailer < ActionMailer::Base
@@ -274,22 +285,28 @@ class UserMailer < ActionMailer::Base
     recipients      user.email_address
     subject         "New account information"
     from            "system@example.com"
-    content_type    "multipart/alternative"
+    content_type    "multipart/mixed"
 
-    part "text/html" do |p|
-      p.body = render_message("welcome_email_html", :message => "<h1>HTML content</h1>")
-    end
+    part "multipart/alternative" do |alternative|
 
-    part "text/plain" do |p|
-      p.body = render_message("welcome_email_plain", :message => "text content")
+      alternative.part "text/html" do |html|
+        html.body = render_message("welcome_email.text.html", :message => "<h1>HTML content</h1>")
+      end
+
+      alternative.part "text/plain" do |plain|
+        plain.body = render_message("welcome_email.text.plain", :message => "text content")
+      end
+
     end
 
     attachment :content_type => "image/jpeg",
       :body => File.read("an-image.jpg")
 
     attachment "application/pdf" do |a|
-      a.body = generate_your_pdf_here()
+      pdf = generate_your_pdf_here(:name => user)
+      a.body = pdf
     end
+
   end
 end
 </ruby>
