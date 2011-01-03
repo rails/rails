@@ -10,7 +10,7 @@ module Arel
         # then can use simple ROWNUM in WHERE clause
         if o.limit && o.orders.empty? && !o.offset && o.cores.first.projections.first !~ /^DISTINCT /
           o.cores.last.wheres.push Nodes::LessThanOrEqual.new(
-            Nodes::SqlLiteral.new('ROWNUM'), o.limit
+            Nodes::SqlLiteral.new('ROWNUM'), o.limit.expr
           )
           o.limit = nil
           return super
@@ -18,7 +18,7 @@ module Arel
 
         if o.limit && o.offset
           o        = o.dup
-          limit    = o.limit.to_i
+          limit    = o.limit.expr.to_i
           offset   = o.offset
           o.limit  = nil
           o.offset = nil
@@ -35,9 +35,9 @@ module Arel
 
         if o.limit
           o       = o.dup
-          limit   = o.limit
+          limit   = o.limit.expr
           o.limit = nil
-          return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{limit}"
+          return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{visit limit}"
         end
 
         if o.offset
