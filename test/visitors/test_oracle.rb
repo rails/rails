@@ -59,7 +59,7 @@ module Arel
         describe 'limit' do
           it 'adds a rownum clause' do
             stmt = Nodes::SelectStatement.new
-            stmt.limit = 10
+            stmt.limit = Nodes::Limit.new(10)
             sql = @visitor.accept stmt
             sql.must_be_like %{ SELECT WHERE ROWNUM <= 10 }
           end
@@ -67,7 +67,7 @@ module Arel
           it 'is idempotent' do
             stmt = Nodes::SelectStatement.new
             stmt.orders << Nodes::SqlLiteral.new('foo')
-            stmt.limit = 10
+            stmt.limit = Nodes::Limit.new(10)
             sql = @visitor.accept stmt
             sql2 = @visitor.accept stmt
             sql.must_equal sql2
@@ -76,7 +76,7 @@ module Arel
           it 'creates a subquery when there is order_by' do
             stmt = Nodes::SelectStatement.new
             stmt.orders << Nodes::SqlLiteral.new('foo')
-            stmt.limit = 10
+            stmt.limit = Nodes::Limit.new(10)
             sql = @visitor.accept stmt
             sql.must_be_like %{
               SELECT * FROM (SELECT ORDER BY foo) WHERE ROWNUM <= 10
@@ -86,7 +86,7 @@ module Arel
           it 'creates a subquery when there is DISTINCT' do
             stmt = Nodes::SelectStatement.new
             stmt.cores.first.projections << Nodes::SqlLiteral.new('DISTINCT id')
-            stmt.limit = 10
+            stmt.limit = Arel::Nodes::Limit.new(10)
             sql = @visitor.accept stmt
             sql.must_be_like %{
               SELECT * FROM (SELECT DISTINCT id) WHERE ROWNUM <= 10
@@ -95,7 +95,7 @@ module Arel
 
           it 'creates a different subquery when there is an offset' do
             stmt = Nodes::SelectStatement.new
-            stmt.limit = 10
+            stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
             sql = @visitor.accept stmt
             sql.must_be_like %{
@@ -110,7 +110,7 @@ module Arel
 
           it 'is idempotent with different subquery' do
             stmt = Nodes::SelectStatement.new
-            stmt.limit = 10
+            stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
             sql = @visitor.accept stmt
             sql2 = @visitor.accept stmt
