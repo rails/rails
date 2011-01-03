@@ -97,10 +97,8 @@ module Arel
       self
     end
 
-    def having expr
-      expr = Nodes::SqlLiteral.new(expr) if String === expr
-
-      @ctx.having = Nodes::Having.new(expr)
+    def having *exprs
+      @ctx.having = Nodes::Having.new(collapse(exprs, @ctx.having))
       self
     end
 
@@ -211,16 +209,22 @@ switch to `compile_insert`
     end
 
     private
-    def collapse exprs
-      return exprs.first if exprs.length == 1
-
-      create_and exprs.compact.map { |expr|
+    def collapse exprs, existing = nil
+      exprs = exprs.unshift(existing.expr) if existing
+      exprs = exprs.compact.map { |expr|
         if String === expr
+          # FIXME: Don't do this automatically
           Arel.sql(expr)
         else
           expr
         end
       }
+
+      if exprs.length == 1
+        exprs.first
+      else
+        create_and exprs
+      end
     end
   end
 end
