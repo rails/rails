@@ -10,12 +10,14 @@ module Arel
     end
 
     %w{
-      Not
       Group
       Grouping
-      Offset
       Having
+      Limit
+      Not
+      Offset
       On
+      Top
     }.each do |name|
       const_set(name, Class.new(Unary))
     end

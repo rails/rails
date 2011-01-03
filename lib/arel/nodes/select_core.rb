@@ -1,11 +1,12 @@
 module Arel
   module Nodes
     class SelectCore < Arel::Nodes::Node
-      attr_accessor :projections, :wheres, :groups
+      attr_accessor :top, :projections, :wheres, :groups
       attr_accessor :having, :source
 
       def initialize
         @source      = JoinSource.new nil
+        @top         = nil
         @projections = []
         @wheres      = []
         @groups      = []

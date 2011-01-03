@@ -131,7 +131,7 @@ eowarn
         [
           o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
-          ("LIMIT #{visit o.limit}" if o.limit),
+          (visit(o.limit) if o.limit),
           (visit(o.offset) if o.offset),
           (visit(o.lock) if o.lock),
         ].compact.join ' '
@@ -139,7 +139,9 @@ eowarn
 
       def visit_Arel_Nodes_SelectCore o
         [
-          "SELECT #{o.projections.map { |x| visit x }.join ', '}",
+          "SELECT",
+          (visit(o.top) if o.top),
+          "#{o.projections.map { |x| visit x }.join ', '}",
           visit(o.source),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
           ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
@@ -153,6 +155,15 @@ eowarn
 
       def visit_Arel_Nodes_Offset o
         "OFFSET #{visit o.expr}"
+      end
+
+      def visit_Arel_Nodes_Limit o
+        "LIMIT #{visit o.expr}"
+      end
+
+      # FIXME: this does nothing on most databases, but does on MSSQL
+      def visit_Arel_Nodes_Top o
+        ""
       end
 
       # FIXME: this does nothing on SQLLite3, but should do things on other
@@ -352,6 +363,10 @@ eowarn
       alias :visit_Symbol                        :quoted
       alias :visit_Time                          :quoted
       alias :visit_TrueClass                     :quoted
+
+      def visit_Array o
+        o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
+      end
 
       def visit_Array o
         o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
