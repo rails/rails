@@ -439,6 +439,7 @@ module ActiveRecord
         end
         sql
       end
+      deprecate :add_limit_offset!
 
       # SCHEMA STATEMENTS ========================================
 
