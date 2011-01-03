@@ -8,6 +8,15 @@ module Arel
       end
     end
 
+    it 'handles limit properly' do
+      table = Table.new(:users)
+      um = Arel::UpdateManager.new Table.engine
+      um.take 10
+      um.table table
+      um.set [[table[:name], nil]]
+      assert_match(/LIMIT 10/, um.to_sql)
+    end
+
     describe 'set' do
       it "updates with null" do
         table = Table.new(:users)

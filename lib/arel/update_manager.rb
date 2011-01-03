@@ -7,7 +7,7 @@ module Arel
     end
 
     def take limit
-      @ast.limit = limit
+      @ast.limit = Nodes::Limit.new(limit) if limit
       self
     end
 
