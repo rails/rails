@@ -55,7 +55,6 @@ module Arel
       end
 
       def visit_Arel_Nodes_Limit o
-        ''
       end
 
       def visit_Arel_Nodes_Offset o
