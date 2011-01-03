@@ -13,7 +13,7 @@ module Arel
       end
       um.table relation
       um.set values
-      um.take @ast.limit
+      um.take @ast.limit.expr if @ast.limit
       um.order(*@ast.orders)
       um.wheres = @ctx.wheres
 
