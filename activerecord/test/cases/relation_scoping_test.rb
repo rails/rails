@@ -491,5 +491,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
              PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
     assert_equal 20, aaron.salary
     assert_equal 'Aaron', aaron.name
+
+    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).
+                                     create_with(:name => 'Aaron').new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_create_with_reset
+    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
+    assert_equal 'Jamis', jamis.name
   end
 end

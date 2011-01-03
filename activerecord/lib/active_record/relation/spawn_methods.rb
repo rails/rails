@@ -53,9 +53,7 @@ module ActiveRecord
 
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
 
-      if r.create_with_value
-        merged_relation.create_with_value = (merged_relation.create_with_value || {}).merge(r.create_with_value)
-      end
+      merged_relation = merged_relation.create_with(r.create_with_value) if r.create_with_value
 
       # Apply scope extension modules
       merged_relation.send :apply_modules, r.extensions
