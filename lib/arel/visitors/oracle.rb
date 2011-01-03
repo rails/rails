@@ -12,7 +12,6 @@ module Arel
           o.cores.last.wheres.push Nodes::LessThanOrEqual.new(
             Nodes::SqlLiteral.new('ROWNUM'), o.limit.expr
           )
-          o.limit = nil
           return super
         end
 
@@ -20,7 +19,6 @@ module Arel
           o        = o.dup
           limit    = o.limit.expr.to_i
           offset   = o.offset
-          o.limit  = nil
           o.offset = nil
           sql = super(o)
           return <<-eosql
@@ -36,7 +34,6 @@ module Arel
         if o.limit
           o       = o.dup
           limit   = o.limit.expr
-          o.limit = nil
           return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{visit limit}"
         end
 
@@ -55,6 +52,10 @@ module Arel
         end
 
         super
+      end
+
+      def visit_Arel_Nodes_Limit o
+        ''
       end
 
       def visit_Arel_Nodes_Offset o
