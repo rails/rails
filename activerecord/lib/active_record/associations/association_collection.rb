@@ -333,7 +333,7 @@ module ActiveRecord
 
       protected
 
-        def construct_find_scope
+        def finder_options
           {
             :conditions => construct_conditions,
             :select     => construct_select,

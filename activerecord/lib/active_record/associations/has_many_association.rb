@@ -69,7 +69,7 @@ module ActiveRecord
           end
         end
 
-        def construct_create_scope
+        def creation_attributes
           construct_owner_attributes
         end
     end

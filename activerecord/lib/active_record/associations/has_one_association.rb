@@ -68,7 +68,7 @@ module ActiveRecord
           scoped.first.tap { |record| set_inverse_instance(record) }
         end
 
-        def construct_find_scope
+        def finder_options
           {
             :conditions => construct_conditions,
             :select     => @reflection.options[:select],
@@ -78,7 +78,7 @@ module ActiveRecord
           }
         end
 
-        def construct_create_scope
+        def creation_attributes
           construct_owner_attributes
         end
 

@@ -169,7 +169,9 @@ module ActiveRecord
       end
 
       def scoped
-        with_scope(@scope) { target_klass.scoped }
+        target_scope.
+          apply_finder_options(@finder_options).
+          create_with(@creation_attributes)
       end
 
       protected
@@ -182,30 +184,26 @@ module ActiveRecord
           @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
-        # Forwards +with_scope+ to the reflection.
-        def with_scope(*args, &block)
-          target_klass.send :with_scope, *args, &block
-        end
-
-        # Construct the scope used for find/create queries on the target
+        # Construct the data used for the scope for this association
+        #
+        # Note that we don't actually build the scope here, we just construct the options and
+        # attributes. We must only build the scope when it's actually needed, because at that
+        # point the call may be surrounded by scope.scoping { ... } or with_scope { ... } etc,
+        # which affects the scope which actually gets built.
         def construct_scope
           if target_klass
-            @scope = {
-              :find   => construct_find_scope,
-              :create => construct_create_scope
-            }
-          else
-            @scope = nil
+            @finder_options      = finder_options
+            @creation_attributes = creation_attributes
           end
         end
 
         # Implemented by subclasses
-        def construct_find_scope
+        def finder_options
           raise NotImplementedError
         end
 
         # Implemented by (some) subclasses
-        def construct_create_scope
+        def creation_attributes
           {}
         end
 
@@ -224,6 +222,12 @@ module ActiveRecord
         # polymorphic_type field on the owner.
         def target_klass
           @reflection.klass
+        end
+
+        # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
+        # through association's scope)
+        def target_scope
+          target_klass.scoped
         end
 
       private
@@ -256,7 +260,7 @@ module ActiveRecord
         def load_target
           return nil unless defined?(@loaded)
 
-          if !loaded? && (!@owner.new_record? || foreign_key_present?) && @scope
+          if !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
             @target = find_target
           end
 

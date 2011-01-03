@@ -3,16 +3,13 @@ module ActiveRecord
   module Associations
     module ThroughAssociation
 
-      def scoped
-        with_scope(@scope) do
-          @reflection.klass.scoped &
-          @reflection.through_reflection.klass.scoped
-        end
-      end
-
       protected
 
-      def construct_find_scope
+      def target_scope
+        super & @reflection.through_reflection.klass.scoped
+      end
+
+      def finder_options
         super.merge(
           :joins   => construct_joins,
           :include => @reflection.options[:include] ||
@@ -24,7 +21,7 @@ module ActiveRecord
       # moment we only support creating on a :through association when the source reflection is a
       # belongs_to. Thus it's not necessary to set a foreign key on the associated record(s), so
       # this scope has can legitimately be empty.
-      def construct_create_scope
+      def creation_attributes
         { }
       end
 

@@ -60,7 +60,7 @@ module ActiveRecord
           end
         end
 
-        def construct_find_scope
+        def finder_options
           {
             :conditions => construct_conditions,
             :select     => @reflection.options[:select],

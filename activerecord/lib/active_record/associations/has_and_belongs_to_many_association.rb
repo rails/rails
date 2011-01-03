@@ -79,7 +79,7 @@ module ActiveRecord
           super(join_table)
         end
 
-        def construct_find_scope
+        def finder_options
           super.merge(
             :joins    => construct_joins,
             :readonly => ambiguous_select?(@reflection.options[:select]),
