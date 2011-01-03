@@ -1556,20 +1556,15 @@ module ActiveRecord
 
         def association_constructor_method(constructor, reflection, association_proxy_class)
           redefine_method("#{constructor}_#{reflection.name}") do |*params|
-            attributees      = params.first unless params.empty?
-            replace_existing = params[1].nil? ? true : params[1]
-            association      = association_instance_get(reflection.name)
+            attributes  = params.first unless params.empty?
+            association = association_instance_get(reflection.name)
 
             unless association
               association = association_proxy_class.new(self, reflection)
               association_instance_set(reflection.name, association)
             end
 
-            if association_proxy_class == HasOneAssociation
-              association.send(constructor, attributees, replace_existing)
-            else
-              association.send(constructor, attributees)
-            end
+            association.send(constructor, attributes)
           end
         end
 

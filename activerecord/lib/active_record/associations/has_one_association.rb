@@ -4,22 +4,22 @@ module ActiveRecord
     class HasOneAssociation < AssociationProxy #:nodoc:
       include HasAssociation
 
-      def create(attrs = {}, replace_existing = true)
-        new_record(replace_existing) do |reflection|
+      def create(attrs = {})
+        new_record do |reflection|
           attrs = merge_with_conditions(attrs)
           reflection.create_association(attrs)
         end
       end
 
-      def create!(attrs = {}, replace_existing = true)
-        new_record(replace_existing) do |reflection|
+      def create!(attrs = {})
+        new_record do |reflection|
           attrs = merge_with_conditions(attrs)
           reflection.create_association!(attrs)
         end
       end
 
-      def build(attrs = {}, replace_existing = true)
-        new_record(replace_existing) do |reflection|
+      def build(attrs = {})
+        new_record do |reflection|
           attrs = merge_with_conditions(attrs)
           reflection.build_association(attrs)
         end
@@ -82,21 +82,9 @@ module ActiveRecord
           construct_owner_attributes
         end
 
-        def new_record(replace_existing)
-          # Make sure we load the target first, if we plan on replacing the existing
-          # instance. Otherwise, if the target has not previously been loaded
-          # elsewhere, the instance we create will get orphaned.
-          load_target if replace_existing
+        def new_record
           record = scoped.scoping { yield @reflection }
-
-          if replace_existing
-            replace(record, true)
-          else
-            record[@reflection.foreign_key] = @owner.id if @owner.persisted?
-            self.target = record
-            set_inverse_instance(record)
-          end
-
+          replace(record, true)
           record
         end
 
