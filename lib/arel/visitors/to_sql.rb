@@ -368,10 +368,6 @@ eowarn
         o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
       end
 
-      def visit_Array o
-        o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
-      end
-
       def quote value, column = nil
         @connection.quote value, column
       end
