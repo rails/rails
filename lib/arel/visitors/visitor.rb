@@ -13,7 +13,8 @@ module Arel
 
       def visit object
         send DISPATCH[object.class], object
-      rescue NoMethodError
+      rescue NoMethodError => e
+        raise e if respond_to?(DISPATCH[object.class], true)
         warn "visiting #{object.class} via superclass, this will be removed in arel 2.2.0" if $VERBOSE
         superklass = object.class.ancestors.find { |klass|
           respond_to?(DISPATCH[klass], true)
