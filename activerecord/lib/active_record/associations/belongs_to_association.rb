@@ -55,9 +55,7 @@ module ActiveRecord
         end
 
         def find_target
-          if foreign_key_present?
-            scoped.first.tap { |record| set_inverse_instance(record) }
-          end
+          scoped.first.tap { |record| set_inverse_instance(record) }
         end
 
         def finder_options

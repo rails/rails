@@ -339,22 +339,27 @@ module ActiveRecord
             key = record.send(reflection.foreign_key)
             key && key.to_s
           end
-          id_map.delete nil
           klasses_and_ids[reflection.klass] = id_map unless id_map.empty?
         end
 
         klasses_and_ids.each do |klass, _id_map|
-          table       = klass.arel_table
           primary_key = (reflection.options[:primary_key] || klass.primary_key).to_s
-          method      = in_or_equal(_id_map.keys)
-          conditions  = table[primary_key].send(*method)
+          keys        = _id_map.keys.compact
 
-          custom_conditions = append_conditions(reflection, preload_options)
-          conditions = custom_conditions.inject(conditions) do |ast, cond|
-            ast.and cond
+          unless keys.empty?
+            table       = klass.arel_table
+            method      = in_or_equal(keys)
+            conditions  = table[primary_key].send(*method)
+
+            custom_conditions = append_conditions(reflection, preload_options)
+            conditions = custom_conditions.inject(conditions) do |ast, cond|
+              ast.and cond
+            end
+
+            associated_records = klass.unscoped.where(conditions).apply_finder_options(options.slice(:include, :select, :joins, :order)).to_a
+          else
+            associated_records = []
           end
-
-          associated_records = klass.unscoped.where(conditions).apply_finder_options(options.slice(:include, :select, :joins, :order)).to_a
 
           set_association_single_records(_id_map, reflection.name, associated_records, primary_key)
         end

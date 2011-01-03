@@ -1501,6 +1501,7 @@ module ActiveRecord
           redefine_method("set_#{reflection.name}_target") do |target|
             association = association_proxy_class.new(self, reflection)
             association.target = target
+            association.loaded
             association_instance_set(reflection.name, association)
           end
         end

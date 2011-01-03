@@ -212,6 +212,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_finding_with_includes_on_null_belongs_to_polymorphic_association
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    sponsor.update_attributes!(:sponsorable => nil)
+    sponsor = assert_queries(1) { Sponsor.find(sponsor.id, :include => :sponsorable) }
+    assert_no_queries do
+      assert_equal nil, sponsor.sponsorable
+    end
+  end
+
   def test_loading_from_an_association
     posts = authors(:david).posts.find(:all, :include => :comments, :order => "posts.id")
     assert_equal 2, posts.first.comments.size
