@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
   # = Active Record Reflection
@@ -199,6 +200,11 @@ module ActiveRecord
       def foreign_key
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
+
+      def primary_key_name
+        foreign_key
+      end
+      deprecate :primary_key_name => :foreign_key
 
       def foreign_type
         @foreign_type ||= options[:foreign_type] || "#{name}_type"
