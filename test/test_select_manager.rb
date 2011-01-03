@@ -99,12 +99,27 @@ module Arel
         end
       end
 
-      describe '#having' do
+      describe 'having' do
         it 'converts strings to SQLLiterals' do
           table   = Table.new :users
           mgr = table.from table
           mgr.having 'foo'
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo }
+        end
+
+        it 'can have multiple items specified separately' do
+          table = Table.new :users
+          mgr = table.from table
+          mgr.having 'foo'
+          mgr.having 'bar'
+          mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
+        end
+
+        it 'can have multiple items specified together' do
+          table = Table.new :users
+          mgr = table.from table
+          mgr.having 'foo', 'bar'
+          mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
       end
     end
