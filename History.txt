@@ -3,6 +3,7 @@
 * Bug Fixes
 
   * Limit members are visited
+  * Fixing MSSQL TOP support
 
 == 2.0.6 12/01/2010
 
