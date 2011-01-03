@@ -560,8 +560,7 @@ TIP: If you have any ordering dependency in your initializers, you can control t
 
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
-*+disable_dependency_loading+*
-
+*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to +true+ and +config.dependency_loading+ is set to +false+.
 
 h3. Changelog
 
