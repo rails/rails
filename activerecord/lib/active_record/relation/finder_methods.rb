@@ -171,13 +171,13 @@ module ActiveRecord
     def exists?(id = nil)
       id = id.id if ActiveRecord::Base === id
 
-      relation = select(primary_key).limit(1)
+      relation = select(table[primary_key]).limit(1)
 
       case id
       when Array, Hash
         relation = relation.where(id)
       else
-        relation = relation.where(primary_key.eq(id)) if id
+        relation = relation.where(table[primary_key].eq(id)) if id
       end
 
       relation.first ? true : false
@@ -225,10 +225,10 @@ module ActiveRecord
 
     def construct_limited_ids_condition(relation)
       orders = relation.order_values
-      values = @klass.connection.distinct("#{@klass.connection.quote_table_name @klass.table_name}.#{@klass.primary_key}", orders)
+      values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
 
-      ids_array = relation.select(values).collect {|row| row[@klass.primary_key]}
-      ids_array.empty? ? raise(ThrowResult) : primary_key.in(ids_array)
+      ids_array = relation.select(values).collect {|row| row[primary_key]}
+      ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
 
     def find_by_attributes(match, attributes, *args)
@@ -290,24 +290,24 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      column = columns_hash[primary_key.name.to_s]
+      column = columns_hash[primary_key]
 
       substitute = connection.substitute_for(column, @bind_values)
-      relation = where(primary_key.eq(substitute))
+      relation = where(table[primary_key].eq(substitute))
       relation.bind_values = [[column, id]]
       record = relation.first
 
       unless record
         conditions = arel.where_sql
         conditions = " [#{conditions}]" if conditions
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{@klass.primary_key}=#{id}#{conditions}"
+        raise RecordNotFound, "Couldn't find #{@klass.name} with #{primary_key}=#{id}#{conditions}"
       end
 
       record
     end
 
     def find_some(ids)
-      result = where(primary_key.in(ids)).all
+      result = where(table[primary_key].in(ids)).all
 
       expected_size =
         if @limit_value && ids.size > @limit_value

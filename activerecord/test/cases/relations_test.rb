@@ -810,4 +810,8 @@ class RelationTest < ActiveRecord::TestCase
   def test_removing_limit_with_options
     assert_not_equal 1, Post.limit(1).all(:limit => nil).count
   end
+
+  def test_primary_key
+    assert_equal "id", Post.scoped.primary_key
+  end
 end

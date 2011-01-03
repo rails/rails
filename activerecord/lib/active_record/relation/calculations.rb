@@ -168,7 +168,7 @@ module ActiveRecord
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
-          column_name = @klass.primary_key if column_name == :all
+          column_name = primary_key if column_name == :all
         end
 
         distinct = nil if column_name =~ /\s*DISTINCT\s+/i

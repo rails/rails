@@ -152,7 +152,7 @@ module ActiveRecord
       order_clause = arel.order_clauses
 
       order = order_clause.empty? ?
-        "#{@klass.table_name}.#{@klass.primary_key} DESC" :
+        "#{table_name}.#{primary_key} DESC" :
         reverse_sql_order(order_clause).join(', ')
 
       except(:order).order(Arel.sql(order))
