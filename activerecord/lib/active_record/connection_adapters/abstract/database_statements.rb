@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/deprecation'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
