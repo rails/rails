@@ -19,8 +19,8 @@ module Arel
 
       it "should escape LIMIT" do
         sc = Arel::Nodes::UpdateStatement.new
-        sc.limit = "omg"
-        assert_match(/LIMIT 'omg'/, @visitor.accept(sc))
+        sc.limit = Nodes::Limit.new("omg")
+        assert_equal("UPDATE NULL LIMIT 'omg'", @visitor.accept(sc))
       end
 
       it 'uses DUAL for empty from' do
