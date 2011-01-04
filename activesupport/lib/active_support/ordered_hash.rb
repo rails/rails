@@ -16,9 +16,17 @@ module ActiveSupport
       "!tag:yaml.org,2002:omap"
     end
 
+    def encode_with(coder)
+      coder.represent_seq '!omap', map { |k,v| { k => v } }
+    end
+
     def to_yaml(opts = {})
+      if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
+        return super
+      end
+
       YAML.quick_emit(self, opts) do |out|
-        out.seq(taguri, to_yaml_style) do |seq|
+        out.seq(taguri) do |seq|
           each do |k, v|
             seq.add(k => v)
           end
