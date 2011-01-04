@@ -162,17 +162,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
   end
 
-  def test_belongs_to_with_primary_key_counter
-    debate = Topic.create("title" => "debate")
-    assert_equal 0, debate.send(:read_attribute, "replies_count"), "No replies yet"
-
-    trash = debate.replies_with_primary_key.create("title" => "blah!", "content" => "world around!")
-    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply created"
-
-    trash.destroy
-    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
-  end
-
   def test_belongs_to_counter_with_assigning_nil
     p = Post.find(1)
     c = Comment.find(1)
