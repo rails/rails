@@ -25,7 +25,7 @@ module Arel
           ("SET #{o.values.map { |value| visit value }.join ', '}" unless o.values.empty?),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?),
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
-          ("LIMIT #{visit o.limit}" if o.limit),
+          (visit(o.limit) if o.limit),
         ].compact.join ' '
       end
 

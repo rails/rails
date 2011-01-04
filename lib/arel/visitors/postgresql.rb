@@ -17,7 +17,7 @@ module Arel
           [
             "SELECT * FROM (#{sql}) AS id_list",
             "ORDER BY #{aliased_orders(o.orders).join(', ')}",
-            ("LIMIT #{visit o.limit}" if o.limit),
+            (visit(o.limit) if o.limit),
             (visit(o.offset) if o.offset),
           ].compact.join ' '
         else
