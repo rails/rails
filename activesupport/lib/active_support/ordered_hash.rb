@@ -1,8 +1,3 @@
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'yaml'
 
 YAML.add_builtin_type("omap") do |type, val|
