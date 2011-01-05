@@ -18,6 +18,13 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal topic, t
   end
 
+  def test_encode_with_coder
+    topic = Topic.first
+    coder = {}
+    topic.encode_with coder
+    assert_equal({'attributes' => topic.attributes}, coder)
+  end
+
   begin
     require 'psych'
 
