@@ -17,4 +17,17 @@ class YamlSerializationTest < ActiveRecord::TestCase
     t = YAML.load YAML.dump topic
     assert_equal topic, t
   end
+
+  begin
+    require 'psych'
+
+    def test_psych_roundtrip
+      topic = Topic.first
+      assert topic
+      t = Psych.load Psych.dump topic
+      assert_equal topic, t
+    end
+
+  rescue LoadError
+  end
 end
