@@ -29,7 +29,7 @@ module ActiveRecord
           if @reflection.options[:insert_sql]
             @owner.connection.insert(interpolate_sql(@reflection.options[:insert_sql], record))
           else
-            relation   = Arel::Table.new(@reflection.options[:join_table])
+            relation   = join_table
             timestamps = record_timestamp_columns(record)
             timezone   = record.send(:current_time_from_proper_timezone) if timestamps.any?
 
@@ -59,7 +59,7 @@ module ActiveRecord
           if sql = @reflection.options[:delete_sql]
             records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
           else
-            relation = Arel::Table.new(@reflection.options[:join_table])
+            relation = join_table
             stmt = relation.where(relation[@reflection.foreign_key].eq(@owner.id).
               and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
             ).compile_delete
