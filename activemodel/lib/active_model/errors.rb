@@ -149,7 +149,7 @@ module ActiveModel
     def empty?
       all? { |k, v| v && v.empty? }
     end
-
+    alias_method :blank?, :empty?
     # Returns an xml formatted representation of the Errors hash.
     #
     #   p.errors.add(:name, "can't be blank")
