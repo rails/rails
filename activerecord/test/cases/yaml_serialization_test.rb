@@ -28,6 +28,12 @@ class YamlSerializationTest < ActiveRecord::TestCase
       assert_equal topic, t
     end
 
+    def test_psych_roundtrip_new_object
+      topic = Topic.new
+      assert topic
+      t = Psych.load Psych.dump topic
+      assert_equal topic.attributes, t.attributes
+    end
   rescue LoadError
   end
 end
