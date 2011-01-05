@@ -2,9 +2,16 @@ module ActiveRecord
   # = Active Record Has And Belongs To Many Association
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
+      attr_reader :join_table
+
+      def initialize(owner, reflection)
+        @join_table_name = reflection.options[:join_table]
+        @join_table      = Arel::Table.new(@join_table_name)
+        super
+      end
 
       def columns
-        @reflection.columns(@reflection.options[:join_table], "#{@reflection.options[:join_table]} Columns")
+        @reflection.columns(@join_table_name, "#{@join_table_name} Columns")
       end
 
       def reset_column_information
@@ -12,7 +19,7 @@ module ActiveRecord
       end
 
       def has_primary_key?
-        @has_primary_key ||= @owner.connection.supports_primary_key? && @owner.connection.primary_key(@reflection.options[:join_table])
+        @has_primary_key ||= @owner.connection.supports_primary_key? && @owner.connection.primary_key(@join_table_name)
       end
 
       protected
@@ -75,10 +82,6 @@ module ActiveRecord
             right[@reflection.association_foreign_key])
 
           right.create_join(right, right.create_on(condition))
-        end
-
-        def join_table
-          Arel::Table.new(@reflection.options[:join_table])
         end
 
         def construct_owner_conditions
