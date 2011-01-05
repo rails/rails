@@ -83,8 +83,9 @@ module ActiveRecord
           super.merge(
             :joins    => construct_joins,
             :readonly => ambiguous_select?(@reflection.options[:select]),
-            :select   => @reflection.options[:select] ||
-              Arel.sql("#{@reflection.quoted_table_name}.*, #{@owner.connection.quote_table_name @reflection.options[:join_table]}.*")
+            :select   => @reflection.options[:select] || [
+                @reflection.klass.arel_table[Arel.star],
+                join_table[Arel.star]]
           )
         end
 
