@@ -68,7 +68,13 @@ module ActiveRecord
         end
 
         def construct_joins
-          "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
+          right = join_table
+          left  = @reflection.klass.arel_table
+
+          condition = left[@reflection.klass.primary_key].eq(
+            right[@reflection.association_foreign_key])
+
+          right.create_join(right, right.create_on(condition))
         end
 
         def join_table
