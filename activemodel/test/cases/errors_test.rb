@@ -25,7 +25,13 @@ class ErrorsTest < ActiveModel::TestCase
     def self.lookup_ancestors
       [self]
     end
+  end
 
+  test "should return true if no errors" do
+    person = Person.new
+    person.errors[:foo]
+    assert person.errors.empty?
+    assert person.errors.blank?
   end
 
   test "method validate! should work" do
