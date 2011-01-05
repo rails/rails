@@ -75,11 +75,6 @@ module ActiveRecord
         @reflection
       end
 
-      # Returns the \target of the proxy, same as +target+.
-      def proxy_target
-        @target
-      end
-
       # Does the proxy or its \target respond to +symbol+?
       def respond_to?(*args)
         proxy_respond_to?(*args) || (load_target && @target.respond_to?(*args))
@@ -143,9 +138,10 @@ module ActiveRecord
       end
 
       # Returns the target of this proxy, same as +proxy_target+.
-      def target
-        @target
-      end
+      attr_reader :target
+
+      # Returns the \target of the proxy, same as +target+.
+      alias :proxy_target :target
 
       # Sets the target of this proxy to <tt>\target</tt>, and the \loaded flag to +true+.
       def target=(target)
