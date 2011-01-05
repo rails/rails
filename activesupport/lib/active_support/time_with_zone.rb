@@ -138,11 +138,7 @@ module ActiveSupport
     end
 
     def to_yaml(options = {})
-      if options.kind_of?(YAML::Emitter)
-        utc.to_yaml(options)
-      else
-        time.to_yaml(options).gsub('Z', formatted_offset(true, 'Z'))
-      end
+      utc.to_yaml(options)
     end
 
     def httpdate
