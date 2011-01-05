@@ -28,6 +28,7 @@ require 'arel/nodes/and'
 require 'arel/nodes/function'
 require 'arel/nodes/count'
 require 'arel/nodes/values'
+require 'arel/nodes/named_function'
 
 # joins
 require 'arel/nodes/inner_join'

@@ -28,6 +28,7 @@ lib/arel/nodes/inner_join.rb
 lib/arel/nodes/insert_statement.rb
 lib/arel/nodes/join_source.rb
 lib/arel/nodes/lock.rb
+lib/arel/nodes/named_function.rb
 lib/arel/nodes/node.rb
 lib/arel/nodes/ordering.rb
 lib/arel/nodes/outer_join.rb
@@ -52,6 +53,7 @@ lib/arel/visitors.rb
 lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
 lib/arel/visitors/join_sql.rb
+lib/arel/visitors/mssql.rb
 lib/arel/visitors/mysql.rb
 lib/arel/visitors/oracle.rb
 lib/arel/visitors/order_clauses.rb
@@ -67,6 +69,7 @@ test/nodes/test_count.rb
 test/nodes/test_delete_statement.rb
 test/nodes/test_equality.rb
 test/nodes/test_insert_statement.rb
+test/nodes/test_named_function.rb
 test/nodes/test_node.rb
 test/nodes/test_not.rb
 test/nodes/test_or.rb
@@ -88,6 +91,7 @@ test/test_update_manager.rb
 test/visitors/test_depth_first.rb
 test/visitors/test_dot.rb
 test/visitors/test_join_sql.rb
+test/visitors/test_mssql.rb
 test/visitors/test_mysql.rb
 test/visitors/test_oracle.rb
 test/visitors/test_postgres.rb

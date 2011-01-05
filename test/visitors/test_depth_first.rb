@@ -52,8 +52,14 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           func = klass.new(:a, :b)
           @visitor.accept func
-          assert_equal [:a, :b, func], @collector.calls
+          assert_equal [:a, :b, false, func], @collector.calls
         end
+      end
+
+      def test_named_function
+        func = Arel::Nodes::NamedFunction.new(:a, :b, :c)
+        @visitor.accept func
+        assert_equal [:a, :b, false, :c, func], @collector.calls
       end
 
       def test_lock

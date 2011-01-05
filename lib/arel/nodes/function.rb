@@ -2,11 +2,12 @@ module Arel
   module Nodes
     class Function < Arel::Nodes::Node
       include Arel::Expression
-      attr_accessor :expressions, :alias
+      attr_accessor :expressions, :alias, :distinct
 
       def initialize expr, aliaz = nil
         @expressions = expr
         @alias       = aliaz
+        @distinct    = false
       end
 
       def as aliaz

@@ -183,6 +183,12 @@ eowarn
         visit o.expr
       end
 
+      def visit_Arel_Nodes_NamedFunction o
+        "#{o.name}(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
+          visit x
+        }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
+      end
+
       def visit_Arel_Nodes_Count o
         "COUNT(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
           visit x

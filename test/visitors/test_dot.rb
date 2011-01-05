@@ -7,6 +7,25 @@ module Arel
         @visitor = Visitors::Dot.new
       end
 
+      # functions
+      [
+        Nodes::Sum,
+        Nodes::Exists,
+        Nodes::Max,
+        Nodes::Min,
+        Nodes::Avg,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          op = klass.new(:a, :z)
+          @visitor.accept op
+        end
+      end
+
+      def test_named_function
+        func = Nodes::NamedFunction.new 'omg', 'omg'
+        @visitor.accept func
+      end
+
       # unary ops
       [
         Arel::Nodes::Not,

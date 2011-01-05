@@ -15,6 +15,16 @@ module Arel
         sql.must_be_like '"users".*'
       end
 
+      it 'should visit named functions' do
+        function = Nodes::NamedFunction.new('omg', [Arel.star])
+        assert_equal 'omg(*)', @visitor.accept(function)
+      end
+
+      it 'works with lists' do
+        function = Nodes::NamedFunction.new('omg', [Arel.star, Arel.star])
+        assert_equal 'omg(*, *)', @visitor.accept(function)
+      end
+
       describe 'equality' do
         it 'should handle false' do
           sql = @visitor.accept Nodes::Equality.new(false, false)

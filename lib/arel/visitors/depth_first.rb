@@ -28,12 +28,20 @@ module Arel
       def function o
         visit o.expressions
         visit o.alias
+        visit o.distinct
       end
       alias :visit_Arel_Nodes_Avg    :function
       alias :visit_Arel_Nodes_Exists :function
       alias :visit_Arel_Nodes_Max    :function
       alias :visit_Arel_Nodes_Min    :function
       alias :visit_Arel_Nodes_Sum    :function
+
+      def visit_Arel_Nodes_NamedFunction o
+        visit o.name
+        visit o.expressions
+        visit o.distinct
+        visit o.alias
+      end
 
       def visit_Arel_Nodes_Count o
         visit o.expressions

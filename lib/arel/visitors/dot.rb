@@ -38,13 +38,6 @@ module Arel
         visit_edge o, "relation"
       end
 
-      def visit_Arel_Nodes_Sum o
-        visit_edge o, "expressions"
-        visit_edge o, "alias"
-      end
-      alias :visit_Arel_Nodes_Max :visit_Arel_Nodes_Sum
-      alias :visit_Arel_Nodes_Avg :visit_Arel_Nodes_Sum
-
       def visit_Arel_Nodes_Count o
         visit_edge o, "expressions"
         visit_edge o, "distinct"
@@ -81,6 +74,24 @@ module Arel
       alias :visit_Arel_Nodes_On                :unary
       alias :visit_Arel_Nodes_Top               :unary
       alias :visit_Arel_Nodes_UnqualifiedColumn :unary
+
+      def function o
+        visit_edge o, "expressions"
+        visit_edge o, "distinct"
+        visit_edge o, "alias"
+      end
+      alias :visit_Arel_Nodes_Exists :function
+      alias :visit_Arel_Nodes_Min    :function
+      alias :visit_Arel_Nodes_Max    :function
+      alias :visit_Arel_Nodes_Avg    :function
+      alias :visit_Arel_Nodes_Sum    :function
+
+      def visit_Arel_Nodes_NamedFunction o
+        visit_edge o, "name"
+        visit_edge o, "expressions"
+        visit_edge o, "distinct"
+        visit_edge o, "alias"
+      end
 
       def visit_Arel_Nodes_InsertStatement o
         visit_edge o, "relation"
