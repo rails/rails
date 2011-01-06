@@ -18,8 +18,6 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class AssociationCollection < AssociationProxy #:nodoc:
-      include HasAssociation
-
       delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
 
       def select(select = nil)

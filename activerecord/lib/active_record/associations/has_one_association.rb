@@ -2,8 +2,6 @@ module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
     class HasOneAssociation < AssociationProxy #:nodoc:
-      include HasAssociation
-
       def create(attrs = {})
         new_record do |reflection|
           attrs = merge_with_conditions(attrs)

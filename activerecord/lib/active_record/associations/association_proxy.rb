@@ -9,11 +9,11 @@ module ActiveRecord
     #   AssociationProxy
     #     BelongsToAssociation
     #       BelongsToPolymorphicAssociation
-    #     AssociationCollection + HasAssociation
+    #     AssociationCollection
     #       HasAndBelongsToManyAssociation
     #       HasManyAssociation
     #         HasManyThroughAssociation + ThroughAssociation
-    #     HasOneAssociation + HasAssociation
+    #     HasOneAssociation
     #       HasOneThroughAssociation + ThroughAssociation
     #
     # Association proxies in Active Record are middlemen between the object that
@@ -250,6 +250,13 @@ module ActiveRecord
             table[attr].eq(value)
           end
           table.create_and(conditions)
+        end
+
+        # Sets the owner attributes on the given record
+        def set_owner_attributes(record)
+          if @owner.persisted?
+            construct_owner_attributes.each { |key, value| record[key] = value }
+          end
         end
 
       private

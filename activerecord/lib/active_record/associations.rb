@@ -120,7 +120,6 @@ module ActiveRecord
     # So there is no need to eager load them.
     autoload :AssociationCollection, 'active_record/associations/association_collection'
     autoload :AssociationProxy, 'active_record/associations/association_proxy'
-    autoload :HasAssociation, 'active_record/associations/has_association'
     autoload :ThroughAssociation, 'active_record/associations/through_association'
     autoload :BelongsToAssociation, 'active_record/associations/belongs_to_association'
     autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
