@@ -134,7 +134,7 @@ module ActiveRecord
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
-      end if self.persisted?
+      end if persisted?
     end
 
     private
