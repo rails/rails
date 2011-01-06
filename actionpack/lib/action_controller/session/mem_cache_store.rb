@@ -13,7 +13,7 @@ begin
           @default_options = {
             :namespace => 'rack:session',
             :memcache_server => 'localhost:11211'
-          }.merge(@default_options)
+          }.merge(options)
 
           @pool = options[:cache] || MemCache.new(@default_options[:memcache_server], @default_options)
           unless @pool.servers.any? { |s| s.alive? }
