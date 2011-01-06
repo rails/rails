@@ -870,6 +870,16 @@ module ActiveRecord #:nodoc:
         reset_scoped_methods
       end
 
+      # Specifies how the record is loaded by +Marshal+.
+      #
+      # +_load+ sets an instance variable for each key in the hash it takes as input.
+      # Override this method if you require more complex marshalling.
+      def _load(data)
+        record = allocate
+        record.init_with(Marshal.load(data))
+        record
+      end
+
       private
 
         def relation #:nodoc:
@@ -1423,6 +1433,16 @@ MSG
         @new_record = false
         _run_find_callbacks
         _run_initialize_callbacks
+      end
+
+      # Specifies how the record is dumped by +Marshal+.
+      #
+      # +_dump+ emits a marshalled hash which has been passed to +encode_with+. Override this
+      # method if you require more complex marshalling.
+      def _dump(level)
+        dump = {}
+        encode_with(dump)
+        Marshal.dump(dump)
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this

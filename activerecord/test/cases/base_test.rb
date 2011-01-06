@@ -1503,4 +1503,11 @@ class BasicsTest < ActiveRecord::TestCase
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end
+
+  def test_marshal_round_trip
+    expected = posts(:welcome)
+    actual   = Marshal.load(Marshal.dump(expected))
+
+    assert_equal expected.attributes, actual.attributes
+  end
 end
