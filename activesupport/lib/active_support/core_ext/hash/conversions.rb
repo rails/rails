@@ -26,10 +26,22 @@ class Hash
   #
   # * If +value+ is a callable object it must expect one or two arguments. Depending
   #   on the arity, the callable is invoked with the +options+ hash as first argument
-  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. Its
-  #   return value becomes a new node.
+  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The 
+  #   callable can add nodes by using <tt>options[:builder]</tt>.
+  #
+  #     "foo".to_xml(lambda { |options, key| options[:builder].b(key) })
+  #     # => "<b>foo</b>"
   #
   # * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
+  #     
+  #     class Foo
+  #       def to_xml(options)
+  #         options[:builder].bar "fooing!"
+  #       end
+  #     end
+  #          
+  #     {:foo => Foo.new}.to_xml(:skip_instruct => true)
+  #     # => "<hash><bar>fooing!</bar></hash>"
   #
   # * Otherwise, a node with +key+ as tag is created with a string representation of
   #   +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added.
