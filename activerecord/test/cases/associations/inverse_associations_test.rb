@@ -161,7 +161,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
   def test_parent_instance_should_be_shared_with_replaced_via_method_child
     m = Man.find(:first)
     f = Face.new(:description => 'haunted')
-    m.face.replace(f, false)
+    m.face.replace(f)
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'

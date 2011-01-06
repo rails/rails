@@ -14,11 +14,11 @@ module ActiveRecord
         new_record(:build_association, attributes)
       end
 
-      def replace(obj, dont_save = false)
+      def replace(obj, save = true)
         load_target
 
         unless @target.nil? || @target == obj
-          if @reflection.options[:dependent] && !dont_save
+          if @reflection.options[:dependent] && save
             case @reflection.options[:dependent]
             when :delete
               @target.delete if @target.persisted?
@@ -45,7 +45,7 @@ module ActiveRecord
         set_inverse_instance(obj)
         loaded
 
-        unless !@owner.persisted? || obj.nil? || dont_save
+        unless !@owner.persisted? || obj.nil? || !save
           return (obj.save ? self : false)
         else
           return (obj.nil? ? nil : self)
@@ -65,7 +65,7 @@ module ActiveRecord
 
         def new_record(method, attributes)
           record = scoped.scoping { @reflection.send(method, attributes) }
-          replace(record, true)
+          replace(record, false)
           record
         end
     end
