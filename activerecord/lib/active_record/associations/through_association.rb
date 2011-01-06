@@ -9,12 +9,12 @@ module ActiveRecord
         super & @reflection.through_reflection.klass.scoped
       end
 
-      def finder_options
-        super.merge(
-          :joins   => construct_joins,
-          :include => @reflection.options[:include] ||
-                      @reflection.source_reflection.options[:include]
-        )
+      def association_scope
+        scope = super.joins(construct_joins).where(conditions)
+        unless @reflection.options[:include]
+          scope = scope.includes(@reflection.source_reflection.options[:include])
+        end
+        scope
       end
 
       # This scope affects the creation of the associated records (not the join records). At the
@@ -98,18 +98,13 @@ module ActiveRecord
       end
 
       def build_conditions
-        association_conditions = @reflection.options[:conditions]
         through_conditions = build_through_conditions
         source_conditions = @reflection.source_reflection.options[:conditions]
         uses_sti = !@reflection.through_reflection.klass.descends_from_active_record?
 
-        if association_conditions || through_conditions || source_conditions || uses_sti
+        if through_conditions || source_conditions || uses_sti
           all = []
-
-          [association_conditions, source_conditions].each do |conditions|
-            all << interpolate_sql(sanitize_sql(conditions)) if conditions
-          end
-
+          all << interpolate_sql(sanitize_sql(source_conditions)) if source_conditions
           all << through_conditions  if through_conditions
           all << build_sti_condition if uses_sti
 

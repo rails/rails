@@ -165,9 +165,7 @@ module ActiveRecord
       end
 
       def scoped
-        target_scope.
-          apply_finder_options(@finder_options).
-          create_with(@creation_attributes)
+        target_scope & @association_scope
       end
 
       protected
@@ -180,27 +178,32 @@ module ActiveRecord
           @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
-        # Construct the data used for the scope for this association
+        # Construct the scope for this association.
         #
-        # Note that we don't actually build the scope here, we just construct the options and
-        # attributes. We must only build the scope when it's actually needed, because at that
-        # point the call may be surrounded by scope.scoping { ... } or with_scope { ... } etc,
-        # which affects the scope which actually gets built.
+        # Note that the association_scope is merged into the targed_scope only when the
+        # scoped method is called. This is because at that point the call may be surrounded
+        # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
+        # actually gets built.
         def construct_scope
-          if target_klass
-            @finder_options      = finder_options
-            @creation_attributes = creation_attributes
-          end
+          @association_scope = association_scope if target_klass
         end
 
-        # Implemented by subclasses
-        def finder_options
-          raise NotImplementedError
+        def association_scope
+          scope = target_klass.unscoped
+          scope = scope.create_with(creation_attributes)
+          scope = scope.apply_finder_options(@reflection.options.slice(:conditions, :readonly, :include))
+          scope = scope.where(construct_owner_conditions)
+          scope = scope.select(select_value) if select_value = self.select_value
+          scope
+        end
+
+        def select_value
+          @reflection.options[:select]
         end
 
         # Implemented by (some) subclasses
         def creation_attributes
-          {}
+          { }
         end
 
         def aliased_table
@@ -224,6 +227,29 @@ module ActiveRecord
         # through association's scope)
         def target_scope
           target_klass.scoped
+        end
+
+        # Returns a hash linking the owner to the association represented by the reflection
+        def construct_owner_attributes(reflection = @reflection)
+          attributes = {}
+          if reflection.macro == :belongs_to
+            attributes[reflection.association_primary_key] = @owner[reflection.foreign_key]
+          else
+            attributes[reflection.foreign_key] = @owner[reflection.active_record_primary_key]
+
+            if reflection.options[:as]
+              attributes["#{reflection.options[:as]}_type"] = @owner.class.base_class.name
+            end
+          end
+          attributes
+        end
+
+        # Builds an array of arel nodes from the owner attributes hash
+        def construct_owner_conditions(table = aliased_table, reflection = @reflection)
+          conditions = construct_owner_attributes(reflection).map do |attr, value|
+            table[attr].eq(value)
+          end
+          table.create_and(conditions)
         end
 
       private

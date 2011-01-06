@@ -69,9 +69,7 @@ module ActiveRecord
           end
         end
 
-        def creation_attributes
-          construct_owner_attributes
-        end
+        alias creation_attributes construct_owner_attributes
     end
   end
 end

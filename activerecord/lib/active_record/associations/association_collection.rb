@@ -333,23 +333,16 @@ module ActiveRecord
 
       protected
 
-        def finder_options
-          {
-            :conditions => construct_conditions,
-            :select     => construct_select,
-            :readonly   => @reflection.options[:readonly],
-            :order      => @reflection.options[:order],
-            :limit      => @reflection.options[:limit],
-            :include    => @reflection.options[:include],
-            :joins      => @reflection.options[:joins],
-            :group      => @reflection.options[:group],
-            :having     => @reflection.options[:having],
-            :offset     => @reflection.options[:offset]
-          }
+        def association_scope
+          options = @reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
+          super.apply_finder_options(options)
         end
 
-        def construct_select
-          @reflection.options[:select] ||
+        def select_value
+          super || uniq_select_value
+        end
+
+        def uniq_select_value
           @reflection.options[:uniq] && "DISTINCT #{@reflection.quoted_table_name}.*"
         end
 

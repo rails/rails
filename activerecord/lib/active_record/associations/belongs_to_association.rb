@@ -58,23 +58,6 @@ module ActiveRecord
           scoped.first.tap { |record| set_inverse_instance(record) }
         end
 
-        def finder_options
-          {
-            :conditions => construct_conditions,
-            :select     => @reflection.options[:select],
-            :include    => @reflection.options[:include],
-            :readonly   => @reflection.options[:readonly]
-          }
-        end
-
-        def construct_conditions
-          conditions = aliased_table[@reflection.association_primary_key].
-                       eq(@owner[@reflection.foreign_key])
-
-          conditions = conditions.and(Arel.sql(sql_conditions)) if sql_conditions
-          conditions
-        end
-
         def foreign_key_present?
           !@owner[@reflection.foreign_key].nil?
         end

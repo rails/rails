@@ -68,19 +68,11 @@ module ActiveRecord
           scoped.first.tap { |record| set_inverse_instance(record) }
         end
 
-        def finder_options
-          {
-            :conditions => construct_conditions,
-            :select     => @reflection.options[:select],
-            :include    => @reflection.options[:include],
-            :readonly   => @reflection.options[:readonly],
-            :order      => @reflection.options[:order]
-          }
+        def association_scope
+          super.order(@reflection.options[:order])
         end
 
-        def creation_attributes
-          construct_owner_attributes
-        end
+        alias creation_attributes construct_owner_attributes
 
         def new_record
           record = scoped.scoping { yield @reflection }

@@ -88,14 +88,14 @@ module ActiveRecord
           super(join_table)
         end
 
-        def finder_options
-          super.merge(
-            :joins    => construct_joins,
-            :readonly => ambiguous_select?(@reflection.options[:select]),
-            :select   => @reflection.options[:select] || [
-                @reflection.klass.arel_table[Arel.star],
-                join_table[Arel.star]]
-          )
+        def association_scope
+          scope = super.joins(construct_joins)
+          scope = scope.readonly if ambiguous_select?(@reflection.options[:select])
+          scope
+        end
+
+        def select_value
+          super || [@reflection.klass.arel_table[Arel.star], join_table[Arel.star]]
         end
 
         # Join tables with additional columns on top of the two foreign keys must be considered
