@@ -23,6 +23,10 @@ module ActiveRecord
         @updated
       end
 
+      def conditions
+       	@conditions ||= interpolate_sql(association_class.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]
+      end
+
       private
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
