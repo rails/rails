@@ -2,22 +2,16 @@ module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
     class HasOneAssociation < AssociationProxy #:nodoc:
-      def create(attrs = {})
-        new_record do |reflection|
-          reflection.create_association(attrs)
-        end
+      def create(attributes = {})
+        new_record(:create_association, attributes)
       end
 
-      def create!(attrs = {})
-        new_record do |reflection|
-          reflection.create_association!(attrs)
-        end
+      def create!(attributes = {})
+        new_record(:create_association!, attributes)
       end
 
-      def build(attrs = {})
-        new_record do |reflection|
-          reflection.build_association(attrs)
-        end
+      def build(attributes = {})
+        new_record(:build_association, attributes)
       end
 
       def replace(obj, dont_save = false)
@@ -69,8 +63,8 @@ module ActiveRecord
 
         alias creation_attributes construct_owner_attributes
 
-        def new_record
-          record = scoped.scoping { yield @reflection }
+        def new_record(method, attributes)
+          record = scoped.scoping { @reflection.send(method, attributes) }
           replace(record, true)
           record
         end
