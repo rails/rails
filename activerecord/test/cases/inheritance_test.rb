@@ -203,7 +203,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_something_inherited
     account = Account.find(1, :include => :firm)
-    assert_not_nil account.instance_variable_get("@firm"), "nil proves eager load failed"
+    assert account.association_cache.key?(:firm), "nil proves eager load failed"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting

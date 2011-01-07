@@ -176,7 +176,7 @@ module ActiveRecord
 
             join_part = join_parts.detect { |j|
               j.reflection.name.to_s == name &&
-                j.parent_table_name    == parent.class.table_name }
+                j.parent_table_name == parent.class.table_name }
 
               raise(ConfigurationError, "No such association") unless join_part
 
@@ -201,7 +201,7 @@ module ActiveRecord
 
           macro = join_part.reflection.macro
           if macro == :has_one
-            return if record.instance_variable_defined?("@#{join_part.reflection.name}")
+            return if record.association_cache.key?(join_part.reflection.name)
             association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
             set_target_and_inverse(join_part, association, record)
           else

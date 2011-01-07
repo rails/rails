@@ -1368,6 +1368,7 @@ MSG
       # hence you can't have attributes that aren't part of the table columns.
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
+        @association_cache = {}
         @attributes_cache = {}
         @new_record = true
         @readonly = false
@@ -1415,6 +1416,7 @@ MSG
       def init_with(coder)
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
+        @association_cache = {}
         @readonly = @destroyed = @marked_for_destruction = false
         @new_record = false
         _run_find_callbacks
@@ -1627,8 +1629,9 @@ MSG
         end
 
         clear_aggregation_cache
-        clear_association_cache
-        @attributes_cache   = {}
+
+        @association_cache = {}
+        @attributes_cache = {}
         @new_record  = true
 
         ensure_proper_type

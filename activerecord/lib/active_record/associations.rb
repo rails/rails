@@ -132,24 +132,24 @@ module ActiveRecord
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
-      self.class.reflect_on_all_associations.to_a.each do |assoc|
-        instance_variable_set "@#{assoc.name}", nil
-      end if persisted?
+      @association_cache.clear if persisted?
     end
+
+    # :nodoc:
+    attr_reader :association_cache
 
     private
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
-        ivar = "@#{name}"
-        if instance_variable_defined?(ivar)
-          association = instance_variable_get(ivar)
+        if @association_cache.key? name
+          association = @association_cache[name]
           association if association.respond_to?(:loaded?)
         end
       end
 
       # Set the specified association instance.
       def association_instance_set(name, association)
-        instance_variable_set("@#{name}", association)
+        @association_cache[name] = association
       end
 
     # Associations are a set of macro-like class methods for tying objects together through
