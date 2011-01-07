@@ -224,14 +224,9 @@ module ActiveRecord
             define_method(name) do
               if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
                 attrs = mapping.collect {|pair| read_attribute(pair.first)}
-                object = case constructor
-                  when Symbol
-                    class_name.constantize.send(constructor, *attrs)
-                  when Proc, Method
-                    constructor.call(*attrs)
-                  else
-                    raise ArgumentError, 'Constructor must be a symbol denoting the constructor method to call or a Proc to be invoked.'
-                  end
+                object = constructor.respond_to?(:call) ?
+                         constructor.call(*attrs) :
+                         class_name.constantize.send(constructor, *attrs)
                 @aggregation_cache[name] = object
               end
               @aggregation_cache[name]
@@ -248,14 +243,9 @@ module ActiveRecord
                 @aggregation_cache[name] = nil
               else
                 unless part.is_a?(class_name.constantize) || converter.nil?
-                  part = case converter
-                    when Symbol
-                     class_name.constantize.send(converter, part)
-                    when Proc, Method
-                      converter.call(part)
-                    else
-                      raise ArgumentError, 'Converter must be a symbol denoting the converter method to call or a Proc to be invoked.'
-                    end
+                  part = converter.respond_to?(:call) ?
+                         converter.call(part) :
+                         class_name.constantize.send(converter, part)
                 end
 
                 mapping.each { |pair| self[pair.first] = part.send(pair.last) }
