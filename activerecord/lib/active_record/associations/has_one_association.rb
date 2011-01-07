@@ -14,41 +14,27 @@ module ActiveRecord
         new_record(:build_association, attributes)
       end
 
-      def replace(obj, save = true)
+      def replace(record, save = true)
+        record = record.target if AssociationProxy === record
+        raise_on_type_mismatch(record) unless record.nil?
         load_target
 
-        unless @target.nil? || @target == obj
-          if @reflection.options[:dependent] && save
-            case @reflection.options[:dependent]
-            when :delete
-              @target.delete if @target.persisted?
-            when :destroy
-              @target.destroy if @target.persisted?
-            when :nullify
-              @target[@reflection.foreign_key] = nil
-              @target.save if @owner.persisted? && @target.persisted?
-            end
-          else
-            @target[@reflection.foreign_key] = nil
-            @target.save if @owner.persisted? && @target.persisted?
-          end
+        if @target && @target != record
+          remove_target(save && @reflection.options[:dependent])
         end
 
-        if obj.nil?
-          @target = nil
-        else
-          raise_on_type_mismatch(obj)
-          set_owner_attributes(obj)
-          @target = (AssociationProxy === obj ? obj.target : obj)
+        if record
+          set_owner_attributes(record)
+          set_inverse_instance(record)
         end
 
-        set_inverse_instance(obj)
+        @target = record
         loaded
 
-        unless !@owner.persisted? || obj.nil? || !save
-          return (obj.save ? self : false)
+        if @owner.persisted? && record && save
+          record.save && self
         else
-          return (obj.nil? ? nil : self)
+          record && self
         end
       end
 
@@ -67,6 +53,16 @@ module ActiveRecord
           record = scoped.scoping { @reflection.send(method, attributes) }
           replace(record, false)
           record
+        end
+
+        def remove_target(method)
+          case method
+          when :delete, :destroy
+            @target.send(method)
+          else
+            @target[@reflection.foreign_key] = nil
+            @target.save if @target.persisted? && @owner.persisted?
+          end
         end
     end
   end
