@@ -1493,7 +1493,6 @@ module ActiveRecord
             end
 
             association.replace(record)
-            association.target.nil? ? nil : association
           end
 
           redefine_method("set_#{reflection.name}_target") do |target|
