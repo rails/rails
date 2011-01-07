@@ -332,26 +332,26 @@ module ActiveRecord
     # === One-to-one associations
     #
     # * Assigning an object to a +has_one+ association automatically saves that object and
-    # the object being replaced (if there is one), in order to update their primary
-    # keys - except if the parent object is unsaved (<tt>new_record? == true</tt>).
+    #   the object being replaced (if there is one), in order to update their primary
+    #   keys - except if the parent object is unsaved (<tt>new_record? == true</tt>).
     # * If either of these saves fail (due to one of the objects being invalid) the assignment
-    # statement returns +false+ and the assignment is cancelled.
+    #   statement returns +false+ and the assignment is cancelled.
     # * If you wish to assign an object to a +has_one+ association without saving it,
-    # use the <tt>association.build</tt> method (documented below).
+    #   use the <tt>association.build</tt> method (documented below).
     # * Assigning an object to a +belongs_to+ association does not save the object, since
-    # the foreign key field belongs on the parent. It does not save the parent either.
+    #   the foreign key field belongs on the parent. It does not save the parent either.
     #
     # === Collections
     #
     # * Adding an object to a collection (+has_many+ or +has_and_belongs_to_many+) automatically
-    # saves that object, except if the parent object (the owner of the collection) is not yet
-    # stored in the database.
+    #   saves that object, except if the parent object (the owner of the collection) is not yet
+    #   stored in the database.
     # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar)
-    # fails, then <tt>push</tt> returns +false+.
+    #   fails, then <tt>push</tt> returns +false+.
     # * You can add an object to a collection without automatically saving it by using the
-    # <tt>collection.build</tt> method (documented below).
+    #   <tt>collection.build</tt> method (documented below).
     # * All unsaved (<tt>new_record? == true</tt>) members of the collection are automatically
-    # saved when the parent is saved.
+    #   saved when the parent is saved.
     #
     # === Association callbacks
     #
