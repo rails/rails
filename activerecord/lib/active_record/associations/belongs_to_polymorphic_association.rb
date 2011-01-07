@@ -4,6 +4,11 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       private
 
+        def conditions
+          @conditions ||= interpolate_sql(target_klass.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]
+        end
+        alias :sql_conditions :conditions
+
         def replace_keys(record)
           super
           @owner[@reflection.foreign_type] = record && record.class.base_class.name
