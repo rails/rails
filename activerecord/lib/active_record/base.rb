@@ -1369,6 +1369,7 @@ MSG
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
         @association_cache = {}
+        @aggregation_cache = {}
         @attributes_cache = {}
         @new_record = true
         @readonly = false
@@ -1417,6 +1418,7 @@ MSG
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @association_cache = {}
+        @aggregation_cache = {}
         @readonly = @destroyed = @marked_for_destruction = false
         @new_record = false
         _run_find_callbacks
@@ -1628,8 +1630,7 @@ MSG
           @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
         end
 
-        clear_aggregation_cache
-
+        @aggregation_cache = {}
         @association_cache = {}
         @attributes_cache = {}
         @new_record  = true
