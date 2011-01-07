@@ -222,7 +222,7 @@ module ActiveRecord
         def reader_method(name, class_name, mapping, allow_nil, constructor)
           module_eval do
             define_method(name) do
-              if (@aggregation_cache[name].nil?) && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
+              if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
                 attrs = mapping.collect {|pair| read_attribute(pair.first)}
                 object = case constructor
                   when Symbol
