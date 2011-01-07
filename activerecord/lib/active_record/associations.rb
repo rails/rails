@@ -1021,8 +1021,7 @@ module ActiveRecord
       # [build_association(attributes = {})]
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but has not
-      #   yet been saved. <b>Note:</b> This ONLY works if an association already exists.
-      #   It will NOT work if the association is +nil+.
+      #   yet been saved.
       # [create_association(attributes = {})]
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+, linked to this object through a foreign key, and that
