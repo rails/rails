@@ -364,9 +364,14 @@ module ActiveRecord
         # statement API.  For those queries, we need to use this method. :'(
         log(sql, name) do
           result = @connection.query(sql)
-          cols = result.fetch_fields.map { |field| field.name }
-          rows = result.to_a
-          result.free
+          cols = []
+          rows = []
+
+          if result
+            cols = result.fetch_fields.map { |field| field.name }
+            rows = result.to_a
+            result.free
+          end
           ActiveRecord::Result.new(cols, rows)
         end
       end
@@ -400,7 +405,7 @@ module ActiveRecord
 
       def begin_db_transaction #:nodoc:
         exec_without_stmt "BEGIN"
-      rescue Exception
+      rescue Mysql::Error
         # Transactions aren't supported
       end
 
