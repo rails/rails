@@ -337,7 +337,7 @@ module ActiveRecord
     # * If either of these saves fail (due to one of the objects being invalid) the assignment
     #   statement returns +false+ and the assignment is cancelled.
     # * If you wish to assign an object to a +has_one+ association without saving it,
-    #   use the <tt>association.build</tt> method (documented below).
+    #   use the <tt>build_association</tt> method (documented below).
     # * Assigning an object to a +belongs_to+ association does not save the object, since
     #   the foreign key field belongs on the parent. It does not save the parent either.
     #
