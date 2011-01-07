@@ -2,9 +2,11 @@ require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
+require 'models/ship'
+require 'models/pirate'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates
 
   def setup
     Account.destroyed_account_ids.clear
@@ -164,15 +166,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
   end
 
-  def test_build_association_twice_without_saving_affects_nothing
-    count_of_account = Account.count
-    firm = Firm.find(:first)
-    firm.build_account("credit_limit" => 1000)
-    firm.build_account("credit_limit" => 2000)
-
-    assert_equal count_of_account, Account.count
-  end
-
   def test_create_association
     firm = Firm.create(:name => "GlobalMegaCorp")
     account = firm.create_account(:credit_limit => 1000)
@@ -292,5 +285,27 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_attributes_are_being_set_when_initialized_from_has_one_association_with_where_clause
     new_account = companies(:first_firm).build_account(:firm_name => 'Account')
     assert_equal new_account.firm_name, "Account"
+  end
+
+  def test_creation_failure_without_dependent_option
+    pirate = pirates(:blackbeard)
+    orig_ship = pirate.ship.target
+
+    assert_equal ships(:black_pearl), orig_ship
+    new_ship = pirate.create_ship
+    assert_not_equal ships(:black_pearl), new_ship
+    assert_equal new_ship, pirate.ship
+    assert new_ship.new_record?
+    assert_nil orig_ship.pirate_id
+    assert !orig_ship.changed? # check it was saved
+  end
+
+  def test_creation_failure_with_dependent_option
+    pirate = pirates(:blackbeard).becomes(DestructivePirate)
+    orig_ship = pirate.dependent_ship.target
+
+    new_ship = pirate.create_dependent_ship
+    assert new_ship.new_record?
+    assert orig_ship.destroyed?
   end
 end

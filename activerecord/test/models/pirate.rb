@@ -78,3 +78,7 @@ class Pirate < ActiveRecord::Base
       ship_log << "#{callback}_#{record.class.name.downcase}_#{record.id || '<new>'}"
     end
 end
+
+class DestructivePirate < Pirate
+  has_one :dependent_ship, :class_name => 'Ship', :foreign_key => :pirate_id, :dependent => :destroy
+end

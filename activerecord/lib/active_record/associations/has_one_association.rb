@@ -20,7 +20,7 @@ module ActiveRecord
         load_target
 
         if @target && @target != record
-          remove_target(save && @reflection.options[:dependent])
+          remove_target(@reflection.options[:dependent])
         end
 
         if record
