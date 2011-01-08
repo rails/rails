@@ -39,7 +39,7 @@ module ActiveRecord
             if serialized_attributes.include?(attr_name)
               define_read_method_for_serialized_attribute(attr_name)
             else
-              define_read_method(attr_name.to_sym, attr_name, columns_hash[attr_name])
+              define_read_method(attr_name, attr_name, columns_hash[attr_name])
             end
 
             if attr_name == primary_key && attr_name != "id"
