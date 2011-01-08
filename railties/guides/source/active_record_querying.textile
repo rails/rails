@@ -440,7 +440,7 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at)
+SELECT * FROM orders GROUP BY date(created_at) ORDER BY created_at
 </sql>
 
 h3. Having
@@ -664,7 +664,7 @@ Eager loading is the mechanism for loading the associated records of the objects
 Consider the following code, which finds 10 clients and prints their postcodes:
 
 <ruby>
-clients = Client.all(:limit => 10)
+clients = Client.limit(10)
 
 clients.each do |client|
   puts client.address.postcode
