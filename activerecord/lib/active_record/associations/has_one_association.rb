@@ -20,7 +20,7 @@ module ActiveRecord
         load_target
 
         if @target && @target != record
-          remove_target(@reflection.options[:dependent])
+          remove_target!(@reflection.options[:dependent])
         end
 
         if record
@@ -55,13 +55,19 @@ module ActiveRecord
           record
         end
 
-        def remove_target(method)
-          case method
-          when :delete, :destroy
+        def remove_target!(method)
+          if [:delete, :destroy].include?(method)
             @target.send(method)
           else
             @target[@reflection.foreign_key] = nil
-            @target.save if @target.persisted? && @owner.persisted?
+
+            if @target.persisted? && @owner.persisted?
+              unless @target.save
+                @target[@reflection.foreign_key] = @target.send("#{@reflection.foreign_key}_was")
+                raise RecordNotSaved, "Failed to remove the existing associated #{@reflection.name}. " +
+                                      "The record failed to save when after its foreign key was set to nil."
+              end
+            end
           end
         end
     end

@@ -308,4 +308,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert new_ship.new_record?
     assert orig_ship.destroyed?
   end
+
+  def test_replacement_failure_due_to_existing_record_should_raise_error
+    pirate = pirates(:blackbeard)
+    pirate.ship.name = nil
+
+    assert !pirate.ship.valid?
+    assert_raise(ActiveRecord::RecordNotSaved) do
+      pirate.ship = ships(:interceptor)
+    end
+    assert_equal ships(:black_pearl), pirate.ship
+    assert_equal pirate.id, pirate.ship.pirate_id
+  end
 end
