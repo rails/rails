@@ -252,13 +252,13 @@ end
 
 # TODO: The Sybase, and OpenBase adapters currently have no support for pessimistic locking
 
-unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers
 
     def setup
-      Person.connection_pool.clear_reloadable_connections!
+      Person.connection_pool.clear_reloadable_connections
       # Avoid introspection queries during tests.
       Person.columns; Reader.columns
     end

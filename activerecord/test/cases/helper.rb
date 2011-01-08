@@ -26,6 +26,11 @@ def current_adapter?(*types)
   end
 end
 
+def in_memory_db?
+  current_adapter?(:SQLiteAdapter) &&
+  ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
+end
+
 def with_env_tz(new_tz = 'US/Eastern')
   old_tz, ENV['TZ'] = ENV['TZ'], new_tz
   yield
@@ -100,11 +105,11 @@ class ActiveSupport::TestCase
   end
 end
 
-# silence verbose schema loading
-original_stdout = $stdout
-$stdout = StringIO.new
+def load_schema
+  # silence verbose schema loading
+  original_stdout = $stdout
+  $stdout = StringIO.new
 
-begin
   adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
   adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
@@ -116,6 +121,8 @@ begin
 ensure
   $stdout = original_stdout
 end
+
+load_schema
 
 class << Time
   unless method_defined? :now_before_time_travel
@@ -133,4 +140,3 @@ class << Time
     @now = nil
   end
 end
-
