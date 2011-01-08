@@ -247,6 +247,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # puts ""
   end
 
+  def test_read_overridden_attribute
+    topic = Topic.new(:title => 'a')
+    def topic.title() 'b' end
+    assert_equal 'a', topic[:title]
+  end
+
   def test_query_attribute_string
     [nil, "", " "].each do |value|
       assert_equal false, Topic.new(:author_name => value).author_name?
