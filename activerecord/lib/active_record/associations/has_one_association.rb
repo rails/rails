@@ -32,9 +32,9 @@ module ActiveRecord
         loaded
 
         if @owner.persisted? && record && save
-          record.save && self
-        else
-          record && self
+          unless record.save
+            raise RecordNotSaved, "Failed to save the new associated #{@reflection.name}."
+          end
         end
       end
 

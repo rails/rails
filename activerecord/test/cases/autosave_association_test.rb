@@ -90,7 +90,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     firm = Firm.find(:first)
     assert firm.valid?
 
-    firm.account = Account.new
+    firm.build_account
 
     assert !firm.account.valid?
     assert !firm.valid?
@@ -102,7 +102,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     firm = Firm.find(:first)
     assert firm.valid?
 
-    firm.unvalidated_account = Account.new
+    firm.build_unvalidated_account
 
     assert !firm.unvalidated_account.valid?
     assert firm.valid?
