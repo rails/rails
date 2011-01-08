@@ -64,7 +64,7 @@ module ActiveRecord
             access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
 
             unless attr_name.to_s == self.primary_key.to_s
-              access_code = access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
+              access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
             end
 
             if cache_attribute?(attr_name)
