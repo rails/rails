@@ -20,7 +20,7 @@ module ActiveRecord
         # be cached. Usually caching only pays off for attributes with expensive conversion
         # methods, like time related columns (e.g. +created_at+, +updated_at+).
         def cache_attributes(*attribute_names)
-          attribute_names.each {|attr| cached_attributes << attr.to_s}
+          cached_attributes.merge attribute_names.map { |attr| attr.to_s }
         end
 
         # Returns the attributes which are cached. By default time related columns
