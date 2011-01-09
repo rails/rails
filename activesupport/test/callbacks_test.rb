@@ -14,7 +14,7 @@ module CallbacksTest
     def after_save1; self.history << :after; end
 
     def save
-      self.send(:_run_save_callbacks) do
+      run_callbacks :save do
         raise 'boom'
       end
     end

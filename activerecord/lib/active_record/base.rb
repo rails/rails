@@ -1400,7 +1400,7 @@ MSG
         self.attributes = attributes unless attributes.nil?
 
         result = yield self if block_given?
-        _run_initialize_callbacks
+        run_callbacks :initialize
         result
       end
 
@@ -1437,8 +1437,8 @@ MSG
         @aggregation_cache = {}
         @readonly = @destroyed = @marked_for_destruction = false
         @new_record = false
-        _run_find_callbacks
-        _run_initialize_callbacks
+        run_callbacks :find
+        run_callbacks :initialize
       end
 
       # Specifies how the record is dumped by +Marshal+.

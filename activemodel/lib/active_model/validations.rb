@@ -207,7 +207,7 @@ module ActiveModel
   protected
 
     def run_validations!
-      _run_validate_callbacks
+      run_callbacks :validate
       errors.empty?
     end
   end
