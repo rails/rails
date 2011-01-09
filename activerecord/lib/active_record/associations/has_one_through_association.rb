@@ -13,9 +13,8 @@ module ActiveRecord
       private
 
       def create_through_record(new_value)
-        proxy  = @owner.send(@reflection.through_reflection.name) ||
-                 @owner.send(:association_instance_get, @reflection.through_reflection.name)
-        record = proxy.target
+        proxy  = @owner.send(:association_proxy, @reflection.through_reflection.name)
+        record = proxy.send(:load_target)
 
         if record && !new_value
           record.destroy

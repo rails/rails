@@ -259,23 +259,6 @@ module ActiveRecord
           end
         end
 
-      private
-        # Forwards any missing method call to the \target.
-        def method_missing(method, *args)
-          if load_target
-            unless @target.respond_to?(method)
-              message = "undefined method `#{method.to_s}' for \"#{@target}\":#{@target.class.to_s}"
-              raise NoMethodError, message
-            end
-
-            if block_given?
-              @target.send(method, *args)  { |*block_args| yield(*block_args) }
-            else
-              @target.send(method, *args)
-            end
-          end
-        end
-
         # Loads the \target if needed and returns it.
         #
         # This method is abstract in the sense that it relies on +find_target+,
@@ -297,6 +280,24 @@ module ActiveRecord
           @target
         rescue ActiveRecord::RecordNotFound
           reset
+        end
+
+      private
+
+        # Forwards any missing method call to the \target.
+        def method_missing(method, *args)
+          if load_target
+            unless @target.respond_to?(method)
+              message = "undefined method `#{method.to_s}' for \"#{@target}\":#{@target.class.to_s}"
+              raise NoMethodError, message
+            end
+
+            if block_given?
+              @target.send(method, *args)  { |*block_args| yield(*block_args) }
+            else
+              @target.send(method, *args)
+            end
+          end
         end
 
         # Should be true if there is a foreign key present on the @owner which
