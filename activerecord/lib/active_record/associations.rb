@@ -1132,8 +1132,7 @@ module ActiveRecord
           reflection = create_has_one_through_reflection(association_id, options)
         else
           reflection = create_has_one_reflection(association_id, options)
-          association_constructor_method(:build,  reflection)
-          association_constructor_method(:create, reflection)
+          association_constructor_methods(reflection)
           configure_dependency_for_has_one(reflection)
         end
         association_accessor_methods(reflection)
@@ -1256,8 +1255,7 @@ module ActiveRecord
         association_accessor_methods(reflection)
 
         unless reflection.options[:polymorphic]
-          association_constructor_method(:build,  reflection)
-          association_constructor_method(:create, reflection)
+          association_constructor_methods(reflection)
         end
 
         add_counter_cache_callbacks(reflection)          if options[:counter_cache]
@@ -1533,10 +1531,17 @@ module ActiveRecord
           end
         end
 
-        def association_constructor_method(constructor, reflection)
-          redefine_method("#{constructor}_#{reflection.name}") do |*params|
-            attributes  = params.first unless params.empty?
-            association_proxy(reflection.name).send(constructor, attributes)
+        def association_constructor_methods(reflection)
+          constructors = {
+            "build_#{reflection.name}"  => "build",
+            "create_#{reflection.name}" => "create"
+          }
+
+          constructors.each do |name, proxy_name|
+            redefine_method(name) do |*params|
+              attributes = params.first unless params.empty?
+              association_proxy(reflection.name).send(proxy_name, attributes)
+            end
           end
         end
 
