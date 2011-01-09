@@ -1536,6 +1536,7 @@ module ActiveRecord
             "build_#{reflection.name}"  => "build",
             "create_#{reflection.name}" => "create"
           }
+          constructors["create_#{reflection.name}!"] = "create!" if reflection.macro == :has_one
 
           constructors.each do |name, proxy_name|
             redefine_method(name) do |*params|

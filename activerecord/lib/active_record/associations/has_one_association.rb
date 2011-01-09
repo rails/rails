@@ -7,7 +7,7 @@ module ActiveRecord
       end
 
       def create!(attributes = {})
-        new_record(:create_association!, attributes)
+        build(attributes).tap { |record| record.save! }
       end
 
       def build(attributes = {})
@@ -51,6 +51,9 @@ module ActiveRecord
 
         alias creation_attributes construct_owner_attributes
 
+        # The reason that the save param for replace is false, if for create (not just build),
+        # is because the setting of the foreign keys is actually handled by the scoping, and
+        # so they are set straight away and do not need to be updated within replace.
         def new_record(method, attributes)
           record = scoped.scoping { @reflection.send(method, attributes) }
           replace(record, false)

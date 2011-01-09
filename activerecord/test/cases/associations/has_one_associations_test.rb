@@ -173,6 +173,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.reload.account
   end
 
+  def test_create_association_with_bang
+    firm = Firm.create(:name => "GlobalMegaCorp")
+    account = firm.create_account!(:credit_limit => 1000)
+    assert_equal account, firm.reload.account
+  end
+
+  def test_create_association_with_bang_failing
+    firm = Firm.create(:name => "GlobalMegaCorp")
+    assert_raise ActiveRecord::RecordInvalid do
+      firm.create_account!
+    end
+    account = firm.account
+    assert_not_nil account
+    account.credit_limit = 5
+    account.save
+    assert_equal account, firm.reload.account
+  end
+
   def test_build
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
