@@ -31,6 +31,10 @@ def in_memory_db?
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
+def supports_savepoints?
+  ActiveRecord::Base.connection.supports_savepoints?
+end
+
 def with_env_tz(new_tz = 'US/Eastern')
   old_tz, ENV['TZ'] = ENV['TZ'], new_tz
   yield

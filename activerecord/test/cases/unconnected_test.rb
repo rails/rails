@@ -4,7 +4,7 @@ class TestRecord < ActiveRecord::Base
 end
 
 class TestUnconnectedAdapter < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
 
   def setup
     @underlying = ActiveRecord::Base.connection
