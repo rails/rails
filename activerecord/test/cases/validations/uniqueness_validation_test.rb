@@ -6,19 +6,6 @@ require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
 
-# The following methods in Topic are used in test_conditional_validation_*
-class Topic
-  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-end
-
-class UniqueReply < Reply
-  validates_uniqueness_of :content, :scope => 'parent_id'
-end
-
-class SillyUniqueReply < UniqueReply
-end
-
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
 

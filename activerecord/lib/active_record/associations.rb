@@ -137,6 +137,22 @@ module ActiveRecord
     # :nodoc:
     attr_reader :association_cache
 
+    protected
+
+      # Returns the proxy for the given association name, instantiating it if it doesn't
+      # already exist
+      def association_proxy(name)
+        association = association_instance_get(name)
+
+        if association.nil?
+          reflection  = self.class.reflect_on_association(name)
+          association = reflection.proxy_class.new(self, reflection)
+          association_instance_set(name, association)
+        end
+
+        association
+      end
+
     private
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
@@ -1468,12 +1484,7 @@ module ActiveRecord
         def association_accessor_methods(reflection, association_proxy_class)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association = association_instance_get(reflection.name)
-
-            if association.nil?
-              association = association_proxy_class.new(self, reflection)
-              association_instance_set(reflection.name, association)
-            end
+            association  = association_proxy(reflection.name)
 
             if force_reload
               reflection.klass.uncached { association.reload }
@@ -1485,38 +1496,26 @@ module ActiveRecord
           end
 
           redefine_method("loaded_#{reflection.name}?") do
-            association = association_instance_get(reflection.name)
+            association = association_proxy(reflection.name)
             association && association.loaded?
           end
 
           redefine_method("#{reflection.name}=") do |record|
-            association = association_instance_get(reflection.name)
-
-            if association.nil?
-              association = association_proxy_class.new(self, reflection)
-              association_instance_set(reflection.name, association)
-            end
-
-            association.replace(record)
+            association_proxy(reflection.name).replace(record)
           end
 
           redefine_method("set_#{reflection.name}_target") do |target|
-            association = association_proxy_class.new(self, reflection)
+            association = association_proxy(reflection.name)
             association.target = target
             association.loaded
-            association_instance_set(reflection.name, association)
+            association
           end
         end
 
         def collection_reader_method(reflection, association_proxy_class)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association = association_instance_get(reflection.name)
-
-            unless association
-              association = association_proxy_class.new(self, reflection)
-              association_instance_set(reflection.name, association)
-            end
+            association  = association_proxy(reflection.name)
 
             if force_reload
               reflection.klass.uncached { association.reload }
@@ -1541,10 +1540,7 @@ module ActiveRecord
 
           if writer
             redefine_method("#{reflection.name}=") do |new_value|
-              # Loads proxy class instance (defined in collection_reader_method) if not already loaded
-              association = send(reflection.name)
-              association.replace(new_value)
-              association
+              association_proxy(reflection.name).replace(new_value)
             end
 
             redefine_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
@@ -1559,14 +1555,7 @@ module ActiveRecord
         def association_constructor_method(constructor, reflection, association_proxy_class)
           redefine_method("#{constructor}_#{reflection.name}") do |*params|
             attributes  = params.first unless params.empty?
-            association = association_instance_get(reflection.name)
-
-            unless association
-              association = association_proxy_class.new(self, reflection)
-              association_instance_set(reflection.name, association)
-            end
-
-            association.send(constructor, attributes)
+            association_proxy(reflection.name).send(constructor, attributes)
           end
         end
 

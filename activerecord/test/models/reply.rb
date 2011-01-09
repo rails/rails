@@ -10,6 +10,13 @@ class Reply < Topic
   attr_accessible :title, :author_name, :author_email_address, :written_on, :content, :last_read, :parent_title
 end
 
+class UniqueReply < Reply
+  validates_uniqueness_of :content, :scope => 'parent_id'
+end
+
+class SillyUniqueReply < UniqueReply
+end
+
 class WrongReply < Reply
   validate :errors_on_empty_content
   validate :title_is_wrong_create, :on => :create
