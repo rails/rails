@@ -1019,12 +1019,7 @@ module ActiveRecord
         reflection = create_has_many_reflection(association_id, options, &extension)
         configure_dependency_for_has_many(reflection)
         add_association_callbacks(reflection.name, reflection.options)
-
-        if options[:through]
-          collection_accessor_methods(reflection, HasManyThroughAssociation)
-        else
-          collection_accessor_methods(reflection, HasManyAssociation)
-        end
+        collection_accessor_methods(reflection)
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1135,14 +1130,13 @@ module ActiveRecord
       def has_one(association_id, options = {})
         if options[:through]
           reflection = create_has_one_through_reflection(association_id, options)
-          association_accessor_methods(reflection, ActiveRecord::Associations::HasOneThroughAssociation)
         else
           reflection = create_has_one_reflection(association_id, options)
-          association_accessor_methods(reflection, HasOneAssociation)
-          association_constructor_method(:build,  reflection, HasOneAssociation)
-          association_constructor_method(:create, reflection, HasOneAssociation)
+          association_constructor_method(:build,  reflection)
+          association_constructor_method(:create, reflection)
           configure_dependency_for_has_one(reflection)
         end
+        association_accessor_methods(reflection)
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1259,12 +1253,11 @@ module ActiveRecord
       def belongs_to(association_id, options = {})
         reflection = create_belongs_to_reflection(association_id, options)
 
-        if reflection.options[:polymorphic]
-          association_accessor_methods(reflection, BelongsToPolymorphicAssociation)
-        else
-          association_accessor_methods(reflection, BelongsToAssociation)
-          association_constructor_method(:build,  reflection, BelongsToAssociation)
-          association_constructor_method(:create, reflection, BelongsToAssociation)
+        association_accessor_methods(reflection)
+
+        unless reflection.options[:polymorphic]
+          association_constructor_method(:build,  reflection)
+          association_constructor_method(:create, reflection)
         end
 
         add_counter_cache_callbacks(reflection)          if options[:counter_cache]
@@ -1449,7 +1442,7 @@ module ActiveRecord
       #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(association_id, options = {}, &extension)
         reflection = create_has_and_belongs_to_many_reflection(association_id, options, &extension)
-        collection_accessor_methods(reflection, HasAndBelongsToManyAssociation)
+        collection_accessor_methods(reflection)
 
         # Don't use a before_destroy callback since users' before_destroy
         # callbacks will be executed after the association is wiped out.
@@ -1481,7 +1474,7 @@ module ActiveRecord
           table_name_prefix + join_table + table_name_suffix
         end
 
-        def association_accessor_methods(reflection, association_proxy_class)
+        def association_accessor_methods(reflection)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
             association  = association_proxy(reflection.name)
@@ -1500,7 +1493,7 @@ module ActiveRecord
           end
         end
 
-        def collection_reader_method(reflection, association_proxy_class)
+        def collection_reader_method(reflection)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
             association  = association_proxy(reflection.name)
@@ -1523,8 +1516,8 @@ module ActiveRecord
           end
         end
 
-        def collection_accessor_methods(reflection, association_proxy_class, writer = true)
-          collection_reader_method(reflection, association_proxy_class)
+        def collection_accessor_methods(reflection, writer = true)
+          collection_reader_method(reflection)
 
           if writer
             redefine_method("#{reflection.name}=") do |new_value|
@@ -1540,7 +1533,7 @@ module ActiveRecord
           end
         end
 
-        def association_constructor_method(constructor, reflection, association_proxy_class)
+        def association_constructor_method(constructor, reflection)
           redefine_method("#{constructor}_#{reflection.name}") do |*params|
             attributes  = params.first unless params.empty?
             association_proxy(reflection.name).send(constructor, attributes)
