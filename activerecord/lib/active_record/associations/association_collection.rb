@@ -314,7 +314,11 @@ module ActiveRecord
 
         transaction do
           delete(@target - other_array)
-          concat(other_array - @target)
+
+          unless concat(other_array - @target)
+            raise RecordNotSaved, "Failed to replace #{@reflection.name} because one or more of the "
+                                  "new records could not be saved."
+          end
         end
       end
 
