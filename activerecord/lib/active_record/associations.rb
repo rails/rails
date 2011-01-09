@@ -1495,20 +1495,8 @@ module ActiveRecord
             association.target.nil? ? nil : association
           end
 
-          redefine_method("loaded_#{reflection.name}?") do
-            association = association_proxy(reflection.name)
-            association && association.loaded?
-          end
-
           redefine_method("#{reflection.name}=") do |record|
             association_proxy(reflection.name).replace(record)
-          end
-
-          redefine_method("set_#{reflection.name}_target") do |target|
-            association = association_proxy(reflection.name)
-            association.target = target
-            association.loaded
-            association
           end
         end
 

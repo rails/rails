@@ -223,7 +223,8 @@ module ActiveRecord
         end
 
         def set_target_and_inverse(join_part, association, record)
-          association_proxy = record.send("set_#{join_part.reflection.name}_target", association)
+          association_proxy = record.send(:association_proxy, join_part.reflection.name)
+          association_proxy.target = association
           association_proxy.send(:set_inverse_instance, association)
         end
       end

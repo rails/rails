@@ -133,7 +133,7 @@ module ActiveRecord
 
       def add_preloaded_record_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
-          parent_record.send("set_#{reflection_name}_target", associated_record)
+          parent_record.send(:association_proxy, reflection_name).target = associated_record
         end
       end
 
@@ -158,14 +158,17 @@ module ActiveRecord
           seen_keys[seen_key] = true
           mapped_records = id_to_record_map[seen_key]
           mapped_records.each do |mapped_record|
-            association_proxy = mapped_record.send("set_#{reflection_name}_target", associated_record)
+            association_proxy = mapped_record.send(:association_proxy, reflection_name)
+            association_proxy.target = associated_record
             association_proxy.send(:set_inverse_instance, associated_record)
           end
         end
 
         id_to_record_map.each do |id, records|
           next if seen_keys.include?(id.to_s)
-          records.each {|record| record.send("set_#{reflection_name}_target", nil) }
+          records.each do |record|
+            record.send(:association_proxy, reflection_name).target = nil
+          end
         end
       end
 
@@ -232,10 +235,14 @@ module ActiveRecord
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
-        return if records.first.send("loaded_#{reflection.name}?")
+        return if records.first.send(:association_proxy, reflection.name).loaded?
         id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
         options = reflection.options
-        records.each {|record| record.send("set_#{reflection.name}_target", nil)}
+
+        records.each do |record|
+          record.send(:association_proxy, reflection.name).target = nil
+        end
+
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
 
@@ -317,7 +324,7 @@ module ActiveRecord
       end
 
       def preload_belongs_to_association(records, reflection, preload_options={})
-        return if records.first.send("loaded_#{reflection.name}?")
+        return if records.first.send(:association_proxy, reflection.name).loaded?
         options = reflection.options
 
         klasses_and_ids = {}

@@ -213,7 +213,8 @@ module ActiveRecord
         # Set the inverse association, if possible
         def set_inverse_instance(record)
           if record && invertible_for?(record)
-            record.send("set_#{inverse_reflection_for(record).name}_target", @owner)
+            inverse = record.send(:association_proxy, inverse_reflection_for(record).name)
+            inverse.target = @owner
           end
         end
 
