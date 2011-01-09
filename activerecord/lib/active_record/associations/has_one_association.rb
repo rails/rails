@@ -19,23 +19,25 @@ module ActiveRecord
         raise_on_type_mismatch(record) unless record.nil?
         load_target
 
-        if @target && @target != record
-          remove_target!(@reflection.options[:dependent])
-        end
+        @reflection.klass.transaction do
+          if @target && @target != record
+            remove_target!(@reflection.options[:dependent])
+          end
 
-        if record
-          set_owner_attributes(record)
-          set_inverse_instance(record)
+          if record
+            set_inverse_instance(record)
+            set_owner_attributes(record)
+
+            if @owner.persisted? && save && !record.save
+              nullify_owner_attributes(record)
+              set_owner_attributes(@target)
+              raise RecordNotSaved, "Failed to save the new associated #{@reflection.name}."
+            end
+          end
         end
 
         @target = record
         loaded
-
-        if @owner.persisted? && record && save
-          unless record.save
-            raise RecordNotSaved, "Failed to save the new associated #{@reflection.name}."
-          end
-        end
       end
 
       private
@@ -59,16 +61,18 @@ module ActiveRecord
           if [:delete, :destroy].include?(method)
             @target.send(method)
           else
-            @target[@reflection.foreign_key] = nil
+            nullify_owner_attributes(@target)
 
-            if @target.persisted? && @owner.persisted?
-              unless @target.save
-                @target[@reflection.foreign_key] = @target.send("#{@reflection.foreign_key}_was")
-                raise RecordNotSaved, "Failed to remove the existing associated #{@reflection.name}. " +
-                                      "The record failed to save when after its foreign key was set to nil."
-              end
+            if @target.persisted? && @owner.persisted? && !@target.save
+              set_owner_attributes(@target)
+              raise RecordNotSaved, "Failed to remove the existing associated #{@reflection.name}. " +
+                                    "The record failed to save when after its foreign key was set to nil."
             end
           end
+        end
+
+        def nullify_owner_attributes(record)
+          record[@reflection.foreign_key] = nil
         end
     end
   end

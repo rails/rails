@@ -6,6 +6,7 @@ require 'models/ship'
 require 'models/pirate'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates
 
   def setup
@@ -317,7 +318,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotSaved) do
       pirate.ship = new_ship
     end
-    assert_equal new_ship, pirate.ship
-    assert_equal pirate.id, new_ship.pirate_id
+    assert_equal ships(:black_pearl), pirate.ship
+    assert_equal pirate.id, pirate.ship.pirate_id
+    assert_equal pirate.id, ships(:black_pearl).reload.pirate_id
+    assert_nil new_ship.pirate_id
   end
 end
