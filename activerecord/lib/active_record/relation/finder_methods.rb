@@ -189,7 +189,7 @@ module ActiveRecord
       including = (@eager_load_values + @includes_values).uniq
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, [])
       relation = construct_relation_for_association_find(join_dependency)
-      rows = connection.exec_query(relation.to_sql, 'SQL', relation.bind_values)
+      rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
       join_dependency.instantiate(rows)
     rescue ThrowResult
       []
