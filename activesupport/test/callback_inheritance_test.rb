@@ -70,7 +70,7 @@ class EmptyParent
   end
 
   def dispatch
-    _run_dispatch_callbacks
+    run_callbacks :dispatch
     self
   end
 end

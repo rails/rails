@@ -25,7 +25,7 @@ module ActionDispatch
     end
 
     def call(env)
-      _run_call_callbacks do
+      run_callbacks :call do
         @app.call(env)
       end
     end

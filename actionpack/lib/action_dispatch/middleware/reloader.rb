@@ -43,12 +43,12 @@ module ActionDispatch
 
     # Execute all prepare callbacks.
     def self.prepare!
-      new(nil).send(:_run_prepare_callbacks)
+      new(nil).run_callbacks :prepare
     end
 
     # Execute all cleanup callbacks.
     def self.cleanup!
-      new(nil).send(:_run_cleanup_callbacks)
+      new(nil).run_callbacks :cleanup
     end
 
     def initialize(app)
@@ -64,12 +64,12 @@ module ActionDispatch
     end
 
     def call(env)
-      _run_prepare_callbacks
+      run_callbacks :prepare
       response = @app.call(env)
       response[2].extend(CleanupOnClose)
       response
     rescue Exception
-      _run_cleanup_callbacks
+      run_callbacks :cleanup
       raise
     end
   end
