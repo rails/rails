@@ -332,12 +332,14 @@ module ActiveRecord
     # === One-to-one associations
     #
     # * Assigning an object to a +has_one+ association automatically saves that object and
-    #   the object being replaced (if there is one), in order to update their primary
+    #   the object being replaced (if there is one), in order to update their foreign
     #   keys - except if the parent object is unsaved (<tt>new_record? == true</tt>).
-    # * If either of these saves fail (due to one of the objects being invalid) the assignment
-    #   statement returns +false+ and the assignment is cancelled.
+    # * If either of these saves fail (due to one of the objects being invalid), an
+    #   <tt>ActiveRecord::RecordNotSaved</tt> exception is raised and the assignment is
+    #   cancelled.
     # * If you wish to assign an object to a +has_one+ association without saving it,
-    #   use the <tt>build_association</tt> method (documented below).
+    #   use the <tt>build_association</tt> method (documented below). The object being
+    #   replaced will still be saved to update its foreign key.
     # * Assigning an object to a +belongs_to+ association does not save the object, since
     #   the foreign key field belongs on the parent. It does not save the parent either.
     #
@@ -348,6 +350,9 @@ module ActiveRecord
     #   stored in the database.
     # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar)
     #   fails, then <tt>push</tt> returns +false+.
+    # * If saving fails while replacing the collection (via <tt>association=</tt>), an
+    #   <tt>ActiveRecord::RecordNotSaved</tt> exception is raised and the assignment is
+    #   cancelled.
     # * You can add an object to a collection without automatically saving it by using the
     #   <tt>collection.build</tt> method (documented below).
     # * All unsaved (<tt>new_record? == true</tt>) members of the collection are automatically
