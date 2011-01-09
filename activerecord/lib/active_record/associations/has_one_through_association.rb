@@ -31,10 +31,6 @@ module ActiveRecord
           end
         end
       end
-
-      def find_target
-        scoped.first
-      end
     end
   end
 end
