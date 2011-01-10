@@ -7,4 +7,9 @@ class BigDecimalTest < Test::Unit::TestCase
     assert_equal("--- .NaN\n", BigDecimal.new('NaN').to_yaml)
     assert_equal("--- -.Inf\n", BigDecimal.new('-Infinity').to_yaml)
   end
+
+  def test_to_d
+    bd = BigDecimal.new '10'
+    assert_equal bd, bd.to_d
+  end
 end
