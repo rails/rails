@@ -523,7 +523,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_through_collection_size_uses_counter_cache_if_it_exists
     author = authors(:david)
-    author.stubs(:read_attribute).with('comments_count').returns(100)
+    author.stubs(:_read_attribute).with('comments_count').returns(100)
     assert_equal 100, author.comments.size
     assert !author.comments.loaded?
   end
