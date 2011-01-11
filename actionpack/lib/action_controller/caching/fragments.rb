@@ -59,7 +59,7 @@ module ActionController #:nodoc:
 
         key = fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
-          content = content.html_safe.to_str if content.respond_to?(:html_safe)
+          content = content.to_str
           cache_store.write(key, content, options)
         end
         content
