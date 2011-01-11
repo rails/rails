@@ -415,7 +415,7 @@ module ActiveRecord
         in_clause_length = connection.in_clause_length || ids.size
         records = []
         ids.each_slice(in_clause_length) do |some_ids|
-          records += yield(some_ids)
+          records.concat yield(some_ids)
         end
         records
       end
