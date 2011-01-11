@@ -880,6 +880,16 @@ module ActiveRecord #:nodoc:
         record
       end
 
+
+      # Finder methods must instantiate through this method to work with the
+      # single-table inheritance model that makes it possible to create
+      # objects of different types from the same table.
+      def instantiate(record) # :nodoc:
+        model = find_sti_class(record[inheritance_column]).allocate
+        model.init_with('attributes' => record)
+        model
+      end
+
       private
 
         def relation #:nodoc:
@@ -890,15 +900,6 @@ module ActiveRecord #:nodoc:
           else
             @relation
           end
-        end
-
-        # Finder methods must instantiate through this method to work with the
-        # single-table inheritance model that makes it possible to create
-        # objects of different types from the same table.
-        def instantiate(record)
-          model = find_sti_class(record[inheritance_column]).allocate
-          model.init_with('attributes' => record)
-          model
         end
 
         def find_sti_class(type_name)

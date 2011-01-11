@@ -137,9 +137,9 @@ module ActiveRecord
         end
       end
 
-      def set_association_collection_records(id_to_record_map, reflection_name, associated_records, key)
+      def set_association_collection_records(id_to_parent_map, reflection_name, associated_records, key)
         associated_records.each do |associated_record|
-          parent_records = id_to_record_map[associated_record[key].to_s]
+          parent_records = id_to_parent_map[associated_record[key].to_s]
           add_preloaded_records_to_collection(parent_records, reflection_name, associated_record)
         end
       end
@@ -199,7 +199,6 @@ module ActiveRecord
 
         right = Arel::Table.new(options[:join_table]).alias('t0')
 
-
         join_condition = left[reflection.klass.primary_key].eq(
           right[reflection.association_foreign_key])
 
@@ -221,17 +220,24 @@ module ActiveRecord
 
         custom_conditions = append_conditions(reflection, preload_options)
 
-        all_associated_records = associated_records(ids) do |some_ids|
+        klass = associated_records_proxy.klass
+
+        associated_records(ids) { |some_ids|
           method     = in_or_equal(some_ids)
           conditions = right[reflection.foreign_key].send(*method)
           conditions = custom_conditions.inject(conditions) do |ast, cond|
             ast.and cond
           end
 
-          associated_records_proxy.where(conditions).to_a
-        end
-
-        set_association_collection_records(id_to_record_map, reflection.name, all_associated_records, 'the_parent_record_id')
+          relation = associated_records_proxy.where(conditions)
+          klass.connection.select_all(relation.arel.to_sql, 'SQL', relation.bind_values)
+        }.map! { |row|
+          parent_records = id_to_record_map[row['the_parent_record_id'].to_s]
+          associated_record = klass.instantiate row
+          add_preloaded_records_to_collection(
+            parent_records, reflection.name, associated_record)
+          associated_record
+        }
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
