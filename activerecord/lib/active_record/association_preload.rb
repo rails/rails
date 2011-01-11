@@ -126,7 +126,7 @@ module ActiveRecord
         parent_records.each do |parent_record|
           association_proxy = parent_record.send(reflection_name)
           association_proxy.loaded
-          association_proxy.target.push(*Array.wrap(associated_record))
+          association_proxy.target.concat(Array.wrap(associated_record))
           association_proxy.send(:set_inverse_instance, associated_record)
         end
       end
@@ -139,8 +139,8 @@ module ActiveRecord
 
       def set_association_collection_records(id_to_record_map, reflection_name, associated_records, key)
         associated_records.each do |associated_record|
-          mapped_records = id_to_record_map[associated_record[key].to_s]
-          add_preloaded_records_to_collection(mapped_records, reflection_name, associated_record)
+          parent_records = id_to_record_map[associated_record[key].to_s]
+          add_preloaded_records_to_collection(parent_records, reflection_name, associated_record)
         end
       end
 
