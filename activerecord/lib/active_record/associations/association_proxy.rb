@@ -82,8 +82,7 @@ module ActiveRecord
       # Forwards <tt>===</tt> explicitly to the \target because the instance method
       # removal above doesn't catch it. Loads the \target if needed.
       def ===(other)
-        load_target
-        other === @target
+        other === load_target
       end
 
       # Returns the name of the table of the related class:
