@@ -157,6 +157,7 @@ module ActionView
       def view
         @view ||= begin
           view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
+          view.singleton_class.send :include, @controller._helpers
           view.singleton_class.send :include, _helpers
           view.singleton_class.send :include, @controller._routes.url_helpers
           view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
