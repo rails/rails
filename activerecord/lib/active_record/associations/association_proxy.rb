@@ -270,8 +270,6 @@ module ActiveRecord
         # ActiveRecord::RecordNotFound is rescued within the method, and it is
         # not reraised. The proxy is \reset and +nil+ is the return value.
         def load_target
-          return nil unless defined?(@loaded)
-
           if !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
             @target = find_target
           end
