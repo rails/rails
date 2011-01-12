@@ -53,8 +53,8 @@ module ActionDispatch
            exception = ActionController::RoutingError.new("No route matches #{env['PATH_INFO'].inspect}")
         end
       rescue Exception => exception
+        raise exception if env['action_dispatch.show_exceptions'] == false
       end
-      raise exception if env['action_dispatch.show_exceptions'] == false
 
       exception ? render_exception(env, exception) : [status, headers, body]
     end
