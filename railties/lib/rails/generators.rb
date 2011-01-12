@@ -158,7 +158,7 @@ module Rails
     # commands.
     def self.invoke(namespace, args=ARGV, config={})
       names = namespace.to_s.split(':')
-      if klass = find_by_namespace(names.pop, names.shift)
+      if klass = find_by_namespace(names.pop, names.any? && names.join(':'))
         args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }
         klass.start(args, config)
       else

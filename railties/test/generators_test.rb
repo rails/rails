@@ -94,6 +94,14 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_match /Rails 2\.x generator/, output
   end
 
+  def test_invoke_with_nested_namespaces
+    model_generator = mock('ModelGenerator') do
+      expects(:start).with(["Account"], {})
+    end
+    Rails::Generators.expects(:find_by_namespace).with('namespace', 'my:awesome').returns(model_generator)
+    Rails::Generators.invoke 'my:awesome:namespace', ["Account"]
+  end
+
   def test_rails_generators_help_with_builtin_information
     output = capture(:stdout){ Rails::Generators.help }
     assert_match /Rails:/, output
