@@ -14,6 +14,7 @@ gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 gem "rdoc",  "~> 3.4"
 gem "horo",  "= 1.0.3"
+gem "RedCloth", "~> 4.2"
 
 # for perf tests
 gem "faker"
