@@ -286,19 +286,13 @@ module ActiveRecord
       private
 
         # Forwards any missing method call to the \target.
-        def method_missing(method, *args)
+        def method_missing(method, *args, &block)
           if load_target
-            unless @target.respond_to?(method)
-              message = "undefined method `#{method.to_s}' for \"#{@target}\":#{@target.class.to_s}"
-              raise NoMethodError, message
-            end
-
-            if block_given?
-              @target.send(method, *args)  { |*block_args| yield(*block_args) }
-            else
-              @target.send(method, *args)
-            end
+            return super unless @target.respond_to?(method)
+            @target.send(method, *args, &block)
           end
+        rescue NoMethodError => e
+          raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@target}")
         end
 
         # Should be true if there is a foreign key present on the @owner which
