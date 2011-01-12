@@ -518,7 +518,7 @@ module ActiveRecord
 
         def fetch_first_or_last_using_find?(args)
           (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
-            @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
+            @target.any? { |record| record.new_record? || record.changed? } || args.first.kind_of?(Integer))
         end
 
         def include_in_memory?(record)
