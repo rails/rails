@@ -331,7 +331,6 @@ module ActiveRecord
         #
         # This is only relevant to certain associations, which is why it returns nil by default.
         def stale_state
-          nil
         end
     end
   end
