@@ -137,16 +137,14 @@ module ActiveRecord
 
       # Forwards the call to the target. Loads the \target if needed.
       def inspect
-        load_target
-        @target.inspect
+        load_target.inspect
       end
 
       def send(method, *args)
         if proxy_respond_to?(method)
           super
         else
-          load_target
-          @target.send(method, *args)
+          load_target.send(method, *args)
         end
       end
 
