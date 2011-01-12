@@ -147,6 +147,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.ship_attributes = { :id => "" }
     assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
   end
+
+  def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(:name => "John")
+    interest = Interest.create :topic => 'gardning', :man => man
+    man = Man.first
+    man.interests_attributes = [{:id => interest.id, :topic => 'gardening'}]
+    assert_equal man.interests.first.topic, man.interests[0].topic
+  end  
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
