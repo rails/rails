@@ -313,6 +313,31 @@ module ActiveRecord
         macro == :belongs_to
       end
 
+      def proxy_class
+        case macro
+        when :belongs_to
+          if options[:polymorphic]
+            Associations::BelongsToPolymorphicAssociation
+          else
+            Associations::BelongsToAssociation
+          end
+        when :has_and_belongs_to_many
+          Associations::HasAndBelongsToManyAssociation
+        when :has_many
+          if options[:through]
+            Associations::HasManyThroughAssociation
+          else
+            Associations::HasManyAssociation
+          end
+        when :has_one
+          if options[:through]
+            Associations::HasOneThroughAssociation
+          else
+            Associations::HasOneAssociation
+          end
+        end
+      end
+
       private
         def derive_class_name
           class_name = name.to_s.camelize

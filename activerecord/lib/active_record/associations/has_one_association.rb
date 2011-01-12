@@ -7,7 +7,7 @@ module ActiveRecord
       end
 
       def create!(attributes = {})
-        new_record(:create_association!, attributes)
+        build(attributes).tap { |record| record.save! }
       end
 
       def build(attributes = {})
@@ -19,23 +19,25 @@ module ActiveRecord
         raise_on_type_mismatch(record) unless record.nil?
         load_target
 
-        if @target && @target != record
-          remove_target(save && @reflection.options[:dependent])
-        end
+        @reflection.klass.transaction do
+          if @target && @target != record
+            remove_target!(@reflection.options[:dependent])
+          end
 
-        if record
-          set_owner_attributes(record)
-          set_inverse_instance(record)
+          if record
+            set_inverse_instance(record)
+            set_owner_attributes(record)
+
+            if @owner.persisted? && save && !record.save
+              nullify_owner_attributes(record)
+              set_owner_attributes(@target)
+              raise RecordNotSaved, "Failed to save the new associated #{@reflection.name}."
+            end
+          end
         end
 
         @target = record
         loaded
-
-        if @owner.persisted? && record && save
-          record.save && self
-        else
-          record && self
-        end
       end
 
       private
@@ -49,20 +51,31 @@ module ActiveRecord
 
         alias creation_attributes construct_owner_attributes
 
+        # The reason that the save param for replace is false, if for create (not just build),
+        # is because the setting of the foreign keys is actually handled by the scoping, and
+        # so they are set straight away and do not need to be updated within replace.
         def new_record(method, attributes)
           record = scoped.scoping { @reflection.send(method, attributes) }
           replace(record, false)
           record
         end
 
-        def remove_target(method)
-          case method
-          when :delete, :destroy
+        def remove_target!(method)
+          if [:delete, :destroy].include?(method)
             @target.send(method)
           else
-            @target[@reflection.foreign_key] = nil
-            @target.save if @target.persisted? && @owner.persisted?
+            nullify_owner_attributes(@target)
+
+            if @target.persisted? && @owner.persisted? && !@target.save
+              set_owner_attributes(@target)
+              raise RecordNotSaved, "Failed to remove the existing associated #{@reflection.name}. " +
+                                    "The record failed to save when after its foreign key was set to nil."
+            end
           end
+        end
+
+        def nullify_owner_attributes(record)
+          record[@reflection.foreign_key] = nil
         end
     end
   end

@@ -197,7 +197,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       MemberDetail.find(:all, :include => :member_type)
     end
     @new_detail = @member_details[0]
-    assert @new_detail.loaded_member_type?
+    assert @new_detail.send(:association_proxy, :member_type).loaded?
     assert_not_nil assert_no_queries { @new_detail.member_type }
   end
 

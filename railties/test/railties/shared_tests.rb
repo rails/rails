@@ -294,7 +294,7 @@ YAML
 
       boot_rails
 
-      expected = %W(
+      expected_locales = %W(
         #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
@@ -304,11 +304,11 @@ YAML
         #{app_path}/app/locales/en.yml
       ).map { |path| File.expand_path(path) }
 
-      actual = I18n.load_path.map { |path| File.expand_path(path) }.find_all do |p|
-        p =~ /^#{RAILS_FRAMEWORK_ROOT}/ || p =~ /^#{@plugin.path}/ || p =~ /^#{app_path}/
-      end
+      actual_locales = I18n.load_path.map { |path|
+        File.expand_path(path)
+      } & expected_locales # remove locales external to Rails
 
-      assert_equal expected, actual
+      assert_equal expected_locales, actual_locales
 
       assert_equal "2", I18n.t(:foo)
       assert_equal "1", I18n.t(:bar)

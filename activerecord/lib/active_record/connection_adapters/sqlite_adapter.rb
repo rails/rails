@@ -62,6 +62,10 @@ module ActiveRecord
         sqlite_version >= '2.0.0'
       end
 
+      def supports_savepoints?
+        sqlite_version >= '3.6.8'
+      end
+
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+
       def supports_statement_cache?
@@ -187,6 +191,18 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         exec_query(sql, name).rows
+      end
+
+      def create_savepoint
+        execute("SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def rollback_to_savepoint
+        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def release_savepoint
+        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
       def begin_db_transaction #:nodoc:

@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
 class TestJSONEncoding < Test::Unit::TestCase

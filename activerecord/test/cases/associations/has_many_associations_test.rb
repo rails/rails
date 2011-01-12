@@ -975,6 +975,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !firm.clients.include?(:first_client)
   end
 
+  def test_replace_failure
+    firm = companies(:first_firm)
+    account = Account.new
+    orig_accounts = firm.accounts.to_a
+
+    assert !account.valid?
+    assert !orig_accounts.empty?
+    assert_raise ActiveRecord::RecordNotSaved do
+      firm.accounts = [account]
+    end
+    assert_equal orig_accounts, firm.accounts
+  end
+
   def test_get_ids
     assert_equal [companies(:first_client).id, companies(:second_client).id], companies(:first_firm).client_ids
   end
