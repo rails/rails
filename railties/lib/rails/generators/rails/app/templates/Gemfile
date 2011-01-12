@@ -26,3 +26,6 @@ source 'http://rubygems.org'
 # group :development, :test do
 #   gem 'webrat'
 # end
+
+# Needed to for guides generation
+# gem "RedCloth", "~> 4.2"
