@@ -1,4 +1,4 @@
-require 'active_support/inflector'
+require 'active_support/inflector/methods'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/calculations'
 require 'active_support/values/time_zone'
