@@ -116,6 +116,27 @@ module ActionView
     end
   end
 
+  class ControllerHelperMethod < ActionView::TestCase
+    module SomeHelper
+      def some_method
+        render :partial => 'test/from_helper'
+      end
+    end
+
+    helper SomeHelper
+
+    test "can call a helper method defined on the current controller from a helper" do
+      @controller.singleton_class.class_eval <<-EOF, __FILE__, __LINE__ + 1
+        def render_from_helper
+          'controller_helper_method'
+        end
+      EOF
+      @controller.class.helper_method :render_from_helper
+
+      assert_equal 'controller_helper_method', some_method
+    end
+  end
+
   class AssignsTest < ActionView::TestCase
     setup do
       ActiveSupport::Deprecation.stubs(:warn)
