@@ -19,6 +19,7 @@ module ActionView #:nodoc:
     include BenchmarkHelper
     include CacheHelper
     include CaptureHelper
+    include CsrfHelper
     include DateHelper
     include DebugHelper
     include FormHelper
