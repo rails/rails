@@ -7,6 +7,7 @@ require 'models/subscriber'
 require 'models/ship'
 require 'models/pirate'
 require 'models/price_estimate'
+require 'models/author'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
