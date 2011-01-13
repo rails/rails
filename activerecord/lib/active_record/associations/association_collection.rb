@@ -558,11 +558,10 @@ module ActiveRecord
 
         def include_in_memory?(record)
           if @reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
-            @owner.send(proxy_reflection.through_reflection.name.to_sym).map do |source|
-              source_reflection_target = source.send(proxy_reflection.source_reflection.name)
-              return true if source_reflection_target.respond_to?(:include?) ? source_reflection_target.include?(record) : source_reflection_target == record
-            end
-            false
+            @owner.send(proxy_reflection.through_reflection.name).any? { |source|
+              target = source.send(proxy_reflection.source_reflection.name)
+              target.respond_to?(:include?) ? target.include?(record) : target == record
+            } || @target.include?(record)
           else
             @target.include?(record)
           end
