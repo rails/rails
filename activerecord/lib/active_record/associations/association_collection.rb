@@ -518,10 +518,10 @@ module ActiveRecord
 
         def include_in_memory?(record)
           if @reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
-            @owner.send(proxy_reflection.through_reflection.name).any? do |source|
+            @owner.send(proxy_reflection.through_reflection.name).any? { |source|
               target = source.send(proxy_reflection.source_reflection.name)
               target.respond_to?(:include?) ? target.include?(record) : target == record
-            end
+            } || @target.include?(record)
           else
             @target.include?(record)
           end
