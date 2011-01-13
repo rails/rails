@@ -549,8 +549,9 @@ module ActiveSupport
       #   halts the chain.
       #
       # * <tt>:rescuable</tt> - By default, after filters are not executed if
-      #   the given block or a before filter raises an error. Set this option to
-      #   true to change this behavior.
+      #   the given block or a before filter raises an error. By setting this option
+      #   to <tt>true</tt> exception raised by given block is stored and after
+      #   executing all the after callbacks the stored exception is raised.
       #
       # * <tt>:scope</tt> - Indicates which methods should be executed when an object
       #   is used as a callback.
