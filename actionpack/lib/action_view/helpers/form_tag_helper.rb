@@ -457,7 +457,7 @@ module ActionView
           options[option] = "button" unless options[option]
         end
 
-        content_tag :button, label.to_s.html_safe, { "type" => options.delete("type") }.update(options)
+        content_tag :button, label, { "type" => options.delete("type") }.update(options)
       end
 
       # Displays an image which when clicked will submit the form.
