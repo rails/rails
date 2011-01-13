@@ -62,7 +62,7 @@ end
     (Dir["test/cases/**/*_test.rb"].reject {
       |x| x =~ /\/adapters\//
     } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      system(ruby, "-Ilib:test:#{connection_path}", file)
+      sh(ruby, "-Ilib:test:#{connection_path}", file)
     end or raise "Failures"
   end
 
