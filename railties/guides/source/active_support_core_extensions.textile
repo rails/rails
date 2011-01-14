@@ -1264,7 +1264,7 @@ Active Support adds that functionality to <tt>%</tt> in previous versions of Rub
 
 NOTE: Defined in +active_support/core_ext/string/interpolation.rb+.
 
-h4. +starts_with?+ and +ends_width?+
+h4. +starts_with?+ and +ends_with?+
 
 Active Support defines 3rd person aliases of +String#start_with?+ and +String#end_with?+:
 
