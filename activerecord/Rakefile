@@ -72,6 +72,15 @@ end
   end
 end
 
+rule '.sqlite3' do |t|
+  sh %Q{sqlite3 "#{t.name}" "create table a (a integer); drop table a;"}
+end
+
+task :test_sqlite3 => [
+  'test/fixtures/fixture_database.sqlite3',
+  'test/fixtures/fixture_database_2.sqlite3'
+]
+
 namespace :mysql do
   desc 'Build the MySQL test databases'
   task :build_databases do
