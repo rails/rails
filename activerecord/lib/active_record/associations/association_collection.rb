@@ -350,8 +350,8 @@ module ActiveRecord
 
         def load_target
           if !@owner.new_record? || foreign_key_present?
-            begin
-              unless loaded?
+            unless loaded?
+              begin
                 if @target.is_a?(Array) && @target.any?
                   @target = find_target.map do |f|
                     i = @target.index(f)
@@ -371,9 +371,9 @@ module ActiveRecord
                 else
                   @target = find_target
                 end
+              rescue ActiveRecord::RecordNotFound
+                reset
               end
-            rescue ActiveRecord::RecordNotFound
-              reset
             end
           end
 
