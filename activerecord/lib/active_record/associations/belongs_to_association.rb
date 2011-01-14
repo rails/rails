@@ -12,7 +12,7 @@ module ActiveRecord
 
       def replace(record)
         record = record.target if AssociationProxy === record
-        raise_on_type_mismatch(record) unless record.nil?
+        raise_on_type_mismatch(record) if record
 
         update_counters(record)
         replace_keys(record)
@@ -59,7 +59,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          !@owner[@reflection.foreign_key].nil?
+          @owner[@reflection.foreign_key]
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
