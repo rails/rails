@@ -829,7 +829,7 @@ module ActiveRecord #:nodoc:
       def arel_engine
         @arel_engine ||= begin
           if self == ActiveRecord::Base
-            Arel::Table.engine
+            ActiveRecord::Base
           else
             connection_handler.connection_pools[name] ? self : superclass.arel_engine
           end
