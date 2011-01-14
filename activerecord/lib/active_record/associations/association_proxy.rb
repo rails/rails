@@ -51,7 +51,7 @@ module ActiveRecord
     # instantiation of the actual post records.
     class AssociationProxy #:nodoc:
       alias_method :proxy_extend, :extend
-      delegate :to_param, :to => :proxy_target
+
       instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id|to_a)$|^__|^respond_to|proxy_/ }
 
       def initialize(owner, reflection)
@@ -61,6 +61,10 @@ module ActiveRecord
         Array.wrap(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset
         construct_scope
+      end
+
+      def to_param
+        proxy_target.to_param
       end
 
       # Returns the owner of the proxy.
