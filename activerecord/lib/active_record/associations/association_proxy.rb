@@ -185,9 +185,8 @@ module ActiveRecord
           scope = target_klass.unscoped
           scope = scope.create_with(creation_attributes)
           scope = scope.apply_finder_options(@reflection.options.slice(:conditions, :readonly, :include))
-          scope = scope.where(construct_owner_conditions)
           scope = scope.select(select_value) if select_value = self.select_value
-          scope
+          scope.where(construct_owner_conditions)
         end
 
         def select_value
