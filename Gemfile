@@ -9,6 +9,7 @@ else
 end
 
 gem "rack", :git => "git://github.com/rack/rack.git"
+gem "rack-test", :git => "git://github.com/brynary/rack-test.git"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
