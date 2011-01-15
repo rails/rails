@@ -61,6 +61,13 @@ module ActiveRecord
 
     alias :& :merge
 
+    # Removes from the query the condition(s) specified in +skips+.
+    #
+    # Example:
+    #
+    #   Post.order('id asc').except(:order)                  # discards the order condition
+    #   Post.where('id > 10').order('id asc').except(:where) # discards the where condition but keeps the order
+    #
     def except(*skips)
       result = self.class.new(@klass, table)
 
@@ -75,6 +82,13 @@ module ActiveRecord
       result
     end
 
+    # Removes any condition from the query other than the one(s) specified in +onlies+.
+    #
+    # Example:
+    #
+    #   Post.order('id asc').only(:where)         # discards the order condition
+    #   Post.order('id asc').only(:where, :order) # uses the specified order
+    #
     def only(*onlies)
       result = self.class.new(@klass, table)
 
