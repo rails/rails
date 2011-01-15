@@ -16,7 +16,7 @@ module Rails
     end
 
     def readme
-      copy_file "README.rdoc"
+      template "README.rdoc"
     end
 
     def gemfile

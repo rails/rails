@@ -40,6 +40,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_generating_without_options
     run_generator
+    assert_file "README.rdoc", /Bukkits/
     assert_no_file "config/routes.rb"
     assert_file "test/test_helper.rb"
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
