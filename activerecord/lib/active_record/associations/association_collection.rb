@@ -359,11 +359,7 @@ module ActiveRecord
                 reset
               end
 
-              if @target.any?
-                @target = merge_target_lists(targets, @target)
-              else
-                @target = targets
-              end
+              @target = merge_target_lists(targets, @target)
             end
           end
 
@@ -441,6 +437,9 @@ module ActiveRecord
 
       private
         def merge_target_lists(loaded, existing)
+          return loaded if existing.empty?
+          return existing if loaded.empty?
+
           loaded.map do |f|
             i = existing.index(f)
             if i
