@@ -119,5 +119,5 @@ end
 
 # Has to set the RAILS_ENV before config/application is required
 if ARGV.first && !ARGV.first.index("-") && env = ARGV.first
-  ENV['RAILS_ENV'] = %w(production development test).find { |e| e.index(env) } || env
+  ENV['RAILS_ENV'] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
 end
