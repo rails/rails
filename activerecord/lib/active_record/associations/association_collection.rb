@@ -352,7 +352,7 @@ module ActiveRecord
           if !@owner.new_record? || foreign_key_present?
             unless loaded?
               begin
-                if @target.is_a?(Array) && @target.any?
+                if @target.any?
                   @target = merge_target_lists(find_target, @target)
                 else
                   @target = find_target
