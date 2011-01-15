@@ -363,7 +363,7 @@ module ActiveRecord
             end
           end
 
-          loaded if target
+          loaded
           target
         end
 
