@@ -401,7 +401,7 @@ module ActiveRecord
         end
 
         def reset_target!
-          @target = Array.new
+          @target = []
         end
 
         def reset_scopes_cache!
