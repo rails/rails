@@ -353,21 +353,7 @@ module ActiveRecord
             unless loaded?
               begin
                 if @target.is_a?(Array) && @target.any?
-                  @target = find_target.map do |f|
-                    i = @target.index(f)
-                    if i
-                      @target.delete_at(i).tap do |t|
-                        keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                        # FIXME: this call to attributes causes many NoMethodErrors
-                        attributes = f.attributes
-                        (attributes.keys - keys).each do |k|
-                          t.send("#{k}=", attributes[k])
-                        end
-                      end
-                    else
-                      f
-                    end
-                  end + @target
+                  @target = merge_target_lists(find_target, @target)
                 else
                   @target = find_target
                 end
@@ -450,6 +436,24 @@ module ActiveRecord
         end
 
       private
+        def merge_target_lists(loaded, existing)
+          loaded.map do |f|
+            i = existing.index(f)
+            if i
+              existing.delete_at(i).tap do |t|
+                keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
+                # FIXME: this call to attributes causes many NoMethodErrors
+                attributes = f.attributes
+                (attributes.keys - keys).each do |k|
+                  t.send("#{k}=", attributes[k])
+                end
+              end
+            else
+              f
+            end
+          end + existing
+        end
+
         # Do the relevant stuff to insert the given record into the association collection. The
         # force param specifies whether or not an exception should be raised on failure. The
         # validate param specifies whether validation should be performed (if force is false).
