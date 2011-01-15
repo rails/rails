@@ -19,8 +19,6 @@ Code examples throughout this guide will refer to one or more of the following m
 
 TIP: All of the following models use +id+ as the primary key, unless specified otherwise.
 
-<br />
-
 <ruby>
 class Client < ActiveRecord::Base
   has_one :address
@@ -460,6 +458,36 @@ SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
 </sql>
 
 This will return single order objects for each day, but only for the last month.
+
+h3. Overriding Conditions
+
+You can specify certain conditions to be excepted by using the +except+ method.
+
+For example:
+
+<ruby>
+Post.where('id > 10').limit(20).order('id asc').except(:order)
+</ruby>
+
+The SQL that would be executed:
+
+<sql>
+SELECT * FROM posts WHERE id > 10 LIMIT 20
+</sql>
+
+You can also override conditions using the +only+ method.
+
+For example:
+
+<ruby>
+Post.where('id > 10').limit(20).order('id desc').only(:order, :where)
+</ruby>
+
+The SQL that would be executed:
+
+<sql>
+SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+</sql>
 
 h3. Readonly Objects
 
