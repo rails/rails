@@ -44,7 +44,7 @@ module Rails
     end
 
     def config
-      template "config/routes.rb" if mountable?
+      template "config/routes.rb" if full?
     end
 
     def test

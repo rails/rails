@@ -38,8 +38,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/lib/things-43.rb", /module Things43/
   end
 
-  def test_generating_test_files
+  def test_generating_without_options
     run_generator
+    assert_no_file "config/routes.rb"
     assert_file "test/test_helper.rb"
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
   end
@@ -151,6 +152,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
+    assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
