@@ -351,14 +351,18 @@ module ActiveRecord
         def load_target
           if !@owner.new_record? || foreign_key_present?
             unless loaded?
+              targets = []
+
               begin
-                if @target.any?
-                  @target = merge_target_lists(find_target, @target)
-                else
-                  @target = find_target
-                end
+                targets = find_target
               rescue ActiveRecord::RecordNotFound
                 reset
+              end
+
+              if @target.any?
+                @target = merge_target_lists(targets, @target)
+              else
+                @target = targets
               end
             end
           end
