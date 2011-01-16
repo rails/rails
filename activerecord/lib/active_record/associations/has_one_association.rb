@@ -27,10 +27,6 @@ module ActiveRecord
       end
 
       private
-        def find_target
-          scoped.first.tap { |record| set_inverse_instance(record) }
-        end
-
         def association_scope
           super.order(@reflection.options[:order])
         end

@@ -43,10 +43,6 @@ module ActiveRecord
           @owner[@reflection.foreign_key] = record && record[@reflection.association_primary_key]
         end
 
-        def find_target
-          scoped.first.tap { |record| set_inverse_instance(record) }
-        end
-
         def foreign_key_present?
           @owner[@reflection.foreign_key]
         end
