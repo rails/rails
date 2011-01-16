@@ -68,7 +68,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_database_entry_is_assed_by_default_in_full_mode
     run_generator([destination_root, "--full"])
     assert_file "test/dummy/config/database.yml", /sqlite/
-    assert_file "Gemfile", /^gem\s+["']sqlite3-ruby["'],\s+:require\s+=>\s+["']sqlite3["']$/
+    assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
   end
 
   def test_config_another_database
