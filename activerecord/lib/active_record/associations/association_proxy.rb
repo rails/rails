@@ -7,14 +7,15 @@ module ActiveRecord
     # This is the root class of all association proxies ('+ Foo' signifies an included module Foo):
     #
     #   AssociationProxy
-    #     BelongsToAssociation
-    #       BelongsToPolymorphicAssociation
+    #     SingularAssociaton
+    #       HasOneAssociation
+    #         HasOneThroughAssociation + ThroughAssociation
+    #       BelongsToAssociation
+    #         BelongsToPolymorphicAssociation
     #     AssociationCollection
     #       HasAndBelongsToManyAssociation
     #       HasManyAssociation
     #         HasManyThroughAssociation + ThroughAssociation
-    #     HasOneAssociation
-    #       HasOneThroughAssociation + ThroughAssociation
     #
     # Association proxies in Active Record are middlemen between the object that
     # holds the association, known as the <tt>@owner</tt>, and the actual associated

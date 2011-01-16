@@ -1,19 +1,7 @@
 module ActiveRecord
   # = Active Record Belongs To Associations
   module Associations
-    class BelongsToAssociation < AssociationProxy #:nodoc:
-      def create(attributes = {})
-        new_record(:create_association, attributes)
-      end
-
-      def create!(attributes = {})
-        build(attributes).tap { |record| record.save! }
-      end
-
-      def build(attributes = {})
-        new_record(:build_association, attributes)
-      end
-
+    class BelongsToAssociation < SingularAssociation #:nodoc:
       def replace(record)
         record = record.target if AssociationProxy === record
         raise_on_type_mismatch(record) if record
@@ -34,12 +22,6 @@ module ActiveRecord
       end
 
       private
-        def new_record(method, attributes)
-          record = scoped.scoping { @reflection.send(method, attributes) }
-          replace(record)
-          record
-        end
-
         def update_counters(record)
           counter_cache_name = @reflection.counter_cache_column
 

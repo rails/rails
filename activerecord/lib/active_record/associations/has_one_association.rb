@@ -1,19 +1,7 @@
 module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
-    class HasOneAssociation < AssociationProxy #:nodoc:
-      def create(attributes = {})
-        new_record(:create_association, attributes)
-      end
-
-      def create!(attributes = {})
-        build(attributes).tap { |record| record.save! }
-      end
-
-      def build(attributes = {})
-        new_record(:build_association, attributes)
-      end
-
+    class HasOneAssociation < SingularAssociation #:nodoc:
       def replace(record, save = true)
         record = record.target if AssociationProxy === record
         raise_on_type_mismatch(record) unless record.nil?
@@ -52,12 +40,11 @@ module ActiveRecord
         alias creation_attributes construct_owner_attributes
 
         # The reason that the save param for replace is false, if for create (not just build),
-        # is because the setting of the foreign keys is actually handled by the scoping, and
-        # so they are set straight away and do not need to be updated within replace.
-        def new_record(method, attributes)
-          record = scoped.scoping { @reflection.send(method, attributes) }
+        # is because the setting of the foreign keys is actually handled by the scoping when
+        # the record is instantiated, and so they are set straight away and do not need to be
+        # updated within replace.
+        def set_new_record(record)
           replace(record, false)
-          record
         end
 
         def remove_target!(method)

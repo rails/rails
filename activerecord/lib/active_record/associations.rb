@@ -119,6 +119,7 @@ module ActiveRecord
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
     autoload :AssociationCollection, 'active_record/associations/association_collection'
+    autoload :SingularAssociation, 'active_record/associations/singular_association'
     autoload :AssociationProxy, 'active_record/associations/association_proxy'
     autoload :ThroughAssociation, 'active_record/associations/through_association'
     autoload :BelongsToAssociation, 'active_record/associations/belongs_to_association'
