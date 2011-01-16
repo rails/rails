@@ -123,6 +123,7 @@ class Client < Company
   belongs_to :firm_with_primary_key, :class_name => "Firm", :primary_key => "name", :foreign_key => "firm_name"
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
   belongs_to :readonly_firm, :class_name => "Firm", :foreign_key => "firm_id", :readonly => true
+  belongs_to :bob_firm, :class_name => "Firm", :foreign_key => "client_of", :conditions => { :name => "Bob" }
   has_many :accounts, :through => :firm
   belongs_to :account
 

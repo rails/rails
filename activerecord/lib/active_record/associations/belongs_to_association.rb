@@ -3,7 +3,7 @@ module ActiveRecord
   module Associations
     class BelongsToAssociation < AssociationProxy #:nodoc:
       def create(attributes = {})
-        replace(@reflection.create_association(attributes))
+        new_record(:create_association, attributes)
       end
 
       def create!(attributes = {})
@@ -11,7 +11,7 @@ module ActiveRecord
       end
 
       def build(attributes = {})
-        replace(@reflection.build_association(attributes))
+        new_record(:build_association, attributes)
       end
 
       def replace(record)
@@ -34,6 +34,12 @@ module ActiveRecord
       end
 
       private
+        def new_record(method, attributes)
+          record = scoped.scoping { @reflection.send(method, attributes) }
+          replace(record)
+          record
+        end
+
         def update_counters(record)
           counter_cache_name = @reflection.counter_cache_column
 

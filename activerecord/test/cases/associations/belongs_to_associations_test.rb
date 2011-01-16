@@ -608,4 +608,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal groucho, sponsor.sponsorable
     assert_equal groucho, sponsor.thing
   end
+
+  def test_build_with_conditions
+    client = companies(:second_client)
+    firm   = client.build_bob_firm
+
+    assert_equal "Bob", firm.name
+  end
+
+  def test_create_with_conditions
+    client = companies(:second_client)
+    firm   = client.create_bob_firm
+
+    assert_equal "Bob", firm.name
+  end
+
+  def test_create_bang_with_conditions
+    client = companies(:second_client)
+    firm   = client.create_bob_firm!
+
+    assert_equal "Bob", firm.name
+  end
 end
