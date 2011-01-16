@@ -4,10 +4,9 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation
       include ThroughAssociation
 
-      def replace(new_value)
-        create_through_record(new_value)
-        @target = new_value
-        loaded
+      def replace(record)
+        create_through_record(record)
+        self.target = record
       end
 
       private
