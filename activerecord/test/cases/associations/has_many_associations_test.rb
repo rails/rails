@@ -430,7 +430,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
     assert_raise(ActiveRecord::RecordNotSaved) do
-      Developer.new("name" => "Aredridel").projects.create!
+      ActiveSupport::Deprecation.silence do
+        Developer.new("name" => "Aredridel").projects.create!
+      end
     end
   end
 
@@ -776,14 +778,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_deleting_type_mismatch
     david = Developer.find(1)
-    david.projects.reload
-    assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
+    ActiveSupport::Deprecation.silence do
+      david.projects.reload
+      assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
+    end
   end
 
   def test_deleting_self_type_mismatch
     david = Developer.find(1)
-    david.projects.reload
-    assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
+    ActiveSupport::Deprecation.silence do
+      david.projects.reload
+      assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
+    end
   end
 
   def test_destroying

@@ -12,6 +12,14 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     @thinking = posts(:thinking)
     @authorless = posts(:authorless)
     assert @david.post_log.empty?
+
+    # Silence deprecation warnings to avoid the warning about attributes on the join table, which
+    # would otherwise appear in most of these tests.
+    ActiveSupport::Deprecation.silenced = true
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.silenced = false
   end
 
   def test_adding_macro_callbacks

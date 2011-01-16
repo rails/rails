@@ -103,8 +103,10 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
-    scoped_developers = Developer.send(:with_scope, :find => { :include => :projects }) do
-      Developer.find(:all, :conditions => 'projects.id = 2')
+    scoped_developers = ActiveSupport::Deprecation.silence do
+      Developer.send(:with_scope, :find => { :include => :projects }) do
+        Developer.find(:all, :conditions => 'projects.id = 2')
+      end
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
@@ -339,44 +341,50 @@ class NestedScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_scoped_find_include
-    Developer.send(:with_scope, :find => { :include => :projects }) do
-      Developer.send(:with_scope, :find => { :conditions => "projects.id = 2" }) do
-        assert_nothing_raised { Developer.find(1) }
-        assert_equal('David', Developer.find(:first).name)
+    ActiveSupport::Deprecation.silence do
+      Developer.send(:with_scope, :find => { :include => :projects }) do
+        Developer.send(:with_scope, :find => { :conditions => "projects.id = 2" }) do
+          assert_nothing_raised { Developer.find(1) }
+          assert_equal('David', Developer.find(:first).name)
+        end
       end
     end
   end
 
   def test_nested_scoped_find_merged_include
     # :include's remain unique and don't "double up" when merging
-    Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
-      Developer.send(:with_scope, :find => { :include => :projects }) do
-        assert_equal 1, Developer.scoped.includes_values.uniq.length
-        assert_equal 'David', Developer.find(:first).name
+    ActiveSupport::Deprecation.silence do
+      Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
+        Developer.send(:with_scope, :find => { :include => :projects }) do
+          assert_equal 1, Developer.scoped.includes_values.uniq.length
+          assert_equal 'David', Developer.find(:first).name
+        end
       end
-    end
 
-    # the nested scope doesn't remove the first :include
-    Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
-      Developer.send(:with_scope, :find => { :include => [] }) do
-        assert_equal 1, Developer.scoped.includes_values.uniq.length
-        assert_equal('David', Developer.find(:first).name)
+      # the nested scope doesn't remove the first :include
+      Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
+        Developer.send(:with_scope, :find => { :include => [] }) do
+          assert_equal 1, Developer.scoped.includes_values.uniq.length
+          assert_equal('David', Developer.find(:first).name)
+        end
       end
-    end
 
-    # mixing array and symbol include's will merge correctly
-    Developer.send(:with_scope, :find => { :include => [:projects], :conditions => "projects.id = 2" }) do
-      Developer.send(:with_scope, :find => { :include => :projects }) do
-        assert_equal 1, Developer.scoped.includes_values.uniq.length
-        assert_equal('David', Developer.find(:first).name)
+      # mixing array and symbol include's will merge correctly
+      Developer.send(:with_scope, :find => { :include => [:projects], :conditions => "projects.id = 2" }) do
+        Developer.send(:with_scope, :find => { :include => :projects }) do
+          assert_equal 1, Developer.scoped.includes_values.uniq.length
+          assert_equal('David', Developer.find(:first).name)
+        end
       end
     end
   end
 
   def test_nested_scoped_find_replace_include
-    Developer.send(:with_scope, :find => { :include => :projects }) do
-      Developer.send(:with_exclusive_scope, :find => { :include => [] }) do
-        assert_equal 0, Developer.scoped.includes_values.length
+    ActiveSupport::Deprecation.silence do
+      Developer.send(:with_scope, :find => { :include => :projects }) do
+        Developer.send(:with_exclusive_scope, :find => { :include => [] }) do
+          assert_equal 0, Developer.scoped.includes_values.length
+        end
       end
     end
   end

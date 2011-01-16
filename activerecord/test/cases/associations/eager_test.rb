@@ -773,11 +773,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_conditions_on_join_table_with_include_and_limit
-    assert_equal 3, Developer.find(:all, :include => 'projects', :conditions => 'developers_projects.access_level = 1', :limit => 5).size
+    ActiveSupport::Deprecation.silence do
+      assert_equal 3, Developer.find(:all, :include => 'projects', :conditions => 'developers_projects.access_level = 1', :limit => 5).size
+    end
   end
 
   def test_order_on_join_table_with_include_and_limit
-    assert_equal 5, Developer.find(:all, :include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).size
+    ActiveSupport::Deprecation.silence do
+      assert_equal 5, Developer.find(:all, :include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).size
+    end
   end
 
   def test_eager_loading_with_order_on_joined_table_preloads

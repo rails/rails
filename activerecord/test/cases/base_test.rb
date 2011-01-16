@@ -1209,8 +1209,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_order_including_has_many_association
-    developers = Developer.send(:with_scope, :find => { :order => 'developers.salary DESC', :include => :projects }) do
-      Developer.find(:all)
+    developers = ActiveSupport::Deprecation.silence do
+      Developer.send(:with_scope, :find => { :order => 'developers.salary DESC', :include => :projects }) do
+        Developer.find(:all)
+      end
     end
     assert developers.size >= 2
     for i in 1...developers.size

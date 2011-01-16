@@ -52,10 +52,12 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_habtm_find_readonly
     dev = Developer.find(1)
-    assert !dev.projects.empty?
-    assert dev.projects.all?(&:readonly?)
-    assert dev.projects.find(:all).all?(&:readonly?)
-    assert dev.projects.readonly(true).all?(&:readonly?)
+    ActiveSupport::Deprecation.silence do
+      assert !dev.projects.empty?
+      assert dev.projects.all?(&:readonly?)
+      assert dev.projects.find(:all).all?(&:readonly?)
+      assert dev.projects.readonly(true).all?(&:readonly?)
+    end
   end
 
   def test_has_many_find_readonly
@@ -102,7 +104,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_association_collection_method_missing_scoping_not_readonly
-    assert !Developer.find(1).projects.foo.readonly?
+    ActiveSupport::Deprecation.silence { assert !Developer.find(1).projects.foo.readonly? }
     assert !Post.find(1).comments.foo.readonly?
   end
 end

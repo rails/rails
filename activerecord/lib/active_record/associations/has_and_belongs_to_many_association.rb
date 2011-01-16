@@ -1,7 +1,16 @@
+require 'active_support/deprecation'
+
 module ActiveRecord
   # = Active Record Has And Belongs To Many Association
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
+      def initialize(owner, reflection)
+        super
+        if columns.size > 2
+          ActiveSupport::Deprecation.warn "Having additional attributes on the join table of a has_and_belongs_to_many association is deprecated and will be removed in Rails 3.1. Please use a has_many :through association instead."
+        end
+      end
+
       def create(attributes = {})
         create_record(attributes) { |record| insert_record(record) }
       end

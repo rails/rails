@@ -1,3 +1,9 @@
+*Rails 3.0.4 (unreleased)*
+
+* Added deprecation warning for has_and_belongs_to_many associations where the join table has
+  additional attributes other than the keys. Access to these attributes is removed in 3.1.
+  Please use has_many :through instead. [Jon Leighton]
+
 *Rails 3.0.3 (November 16, 2010)*
 
 * Support find by class like this: Post.where(:name => Post)
