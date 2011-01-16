@@ -11,21 +11,21 @@ module ActiveRecord
 
       private
 
-      def create_through_record(new_value)
-        proxy  = @owner.send(:association_proxy, @reflection.through_reflection.name)
-        record = proxy.send(:load_target)
+      def create_through_record(record)
+        through_proxy  = @owner.send(:association_proxy, @reflection.through_reflection.name)
+        through_record = through_proxy.send(:load_target)
 
-        if record && !new_value
-          record.destroy
-        elsif new_value
-          attributes = construct_join_attributes(new_value)
+        if through_record && !record
+          through_record.destroy
+        elsif record
+          attributes = construct_join_attributes(record)
 
-          if record
-            record.update_attributes(attributes)
+          if through_record
+            through_record.update_attributes(attributes)
           elsif @owner.new_record?
-            proxy.build(attributes)
+            through_proxy.build(attributes)
           else
-            proxy.create(attributes)
+            through_proxy.create(attributes)
           end
         end
       end
