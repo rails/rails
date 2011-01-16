@@ -4,6 +4,8 @@
   documented as deprecated behaviour since April 2006. Please use has_many :through instead.
   [Jon Leighton]
 
+* Added a create_association! method for has_one and belongs_to associations. [Jon Leighton]
+
 * Migration files generated from model and constructive migration generators
   (for example, add_name_to_users) use the reversible migration's `change`
   method instead of the ordinary `up` and `down` methods. [Prem Sichanugrist]
