@@ -44,15 +44,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
     Developer.joins(', projects').readonly(false).each { |d| assert !d.readonly? }
   end
 
-
-  def test_habtm_find_readonly
-    dev = Developer.find(1)
-    assert !dev.projects.empty?
-    assert dev.projects.all?(&:readonly?)
-    assert dev.projects.find(:all).all?(&:readonly?)
-    assert dev.projects.readonly(true).all?(&:readonly?)
-  end
-
   def test_has_many_find_readonly
     post = Post.find(1)
     assert !post.comments.empty?

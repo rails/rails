@@ -1,5 +1,9 @@
 *Rails 3.1.0 (unreleased)*
 
+* Removed support for accessing attributes on a has_and_belongs_to_many join table. This has been
+  documented as deprecated behaviour since April 2006. Please use has_many :through instead.
+  [Jon Leighton]
+
 * Migration files generated from model and constructive migration generators
   (for example, add_name_to_users) use the reversible migration's `change`
   method instead of the ordinary `up` and `down` methods. [Prem Sichanugrist]
@@ -26,7 +30,7 @@ along with attribute conditionals as a replacement.
     User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
 
 
-* When a model is generated add_index is added by default for belongs_to or references columns 
+* When a model is generated add_index is added by default for belongs_to or references columns
 
   rails g model post user:belongs_to will generate the following:
 

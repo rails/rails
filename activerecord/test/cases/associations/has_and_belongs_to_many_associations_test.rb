@@ -101,38 +101,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 't1', record[1]
   end
 
-  def test_should_record_timestamp_for_join_table
-    setup_data_for_habtm_case
-
-    con = ActiveRecord::Base.connection
-    sql = 'select * from countries_treaties'
-    record = con.select_rows(sql).last
-    assert_not_nil record[2]
-    assert_not_nil record[3]
-    if current_adapter?(:Mysql2Adapter, :OracleAdapter)
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2].to_s(:db)
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3].to_s(:db)
-    else
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2]
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3]
-    end
-  end
-
-  def test_should_record_timestamp_for_join_table_only_if_timestamp_should_be_recorded
-    begin
-      Treaty.record_timestamps = false
-      setup_data_for_habtm_case
-
-      con = ActiveRecord::Base.connection
-      sql = 'select * from countries_treaties'
-      record = con.select_rows(sql).last
-      assert_nil record[2]
-      assert_nil record[3]
-    ensure
-      Treaty.record_timestamps = true
-    end
-  end
-
   def test_has_and_belongs_to_many
     david = Developer.find(1)
 
@@ -216,34 +184,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     aredridel.projects.concat([Project.find(1), Project.find(2)])
     assert_equal 2, aredridel.projects.size
     assert_equal 2, aredridel.projects(true).size
-  end
-
-  def test_adding_uses_default_values_on_join_table
-    ac = projects(:action_controller)
-    assert !developers(:jamis).projects.include?(ac)
-    developers(:jamis).projects << ac
-
-    assert developers(:jamis, :reload).projects.include?(ac)
-    project = developers(:jamis).projects.detect { |p| p == ac }
-    assert_equal 1, project.access_level.to_i
-  end
-
-  def test_habtm_attribute_access_and_respond_to
-    project = developers(:jamis).projects[0]
-    assert project.has_attribute?("name")
-    assert project.has_attribute?("joined_on")
-    assert project.has_attribute?("access_level")
-    assert project.respond_to?("name")
-    assert project.respond_to?("name=")
-    assert project.respond_to?("name?")
-    assert project.respond_to?("joined_on")
-    # given that the 'join attribute' won't be persisted, I don't
-    # think we should define the mutators
-    #assert project.respond_to?("joined_on=")
-    assert project.respond_to?("joined_on?")
-    assert project.respond_to?("access_level")
-    #assert project.respond_to?("access_level=")
-    assert project.respond_to?("access_level?")
   end
 
   def test_habtm_adding_before_save
@@ -428,10 +368,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(RuntimeError) { david.destroy }
     assert david.projects.empty?
     assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
-  end
-
-  def test_additional_columns_from_join_table
-    assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on.to_date
   end
 
   def test_destroying
@@ -673,25 +609,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       assert_respond_to o, :correctness_marker
     end
     assert_respond_to categories(:technology).select_testing_posts.find(:first), :correctness_marker
-  end
-
-  def test_updating_attributes_on_rich_associations
-    david = projects(:action_controller).developers.first
-    david.name = "DHH"
-    assert_raise(ActiveRecord::ReadOnlyRecord) { david.save! }
-  end
-
-  def test_updating_attributes_on_rich_associations_with_limited_find_from_reflection
-    david = projects(:action_controller).selected_developers.first
-    david.name = "DHH"
-    assert_nothing_raised { david.save! }
-  end
-
-
-  def test_updating_attributes_on_rich_associations_with_limited_find
-    david = projects(:action_controller).developers.find(:all, :select => "developers.*").first
-    david.name = "DHH"
-    assert david.save!
   end
 
   def test_join_table_alias
