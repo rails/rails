@@ -10,11 +10,9 @@ module ActiveRecord
         replace_keys(record)
         set_inverse_instance(record)
 
-        @target  = record
         @updated = true if record
 
-        loaded
-        record
+        self.target = record
       end
 
       def updated?

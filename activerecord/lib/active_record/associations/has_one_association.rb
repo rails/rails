@@ -24,8 +24,7 @@ module ActiveRecord
           end
         end
 
-        @target = record
-        loaded
+        self.target = record
       end
 
       private
