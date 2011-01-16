@@ -3,8 +3,7 @@ module ActiveRecord
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
       def replace(record, save = true)
-        record = record.target if AssociationProxy === record
-        raise_on_type_mismatch(record) unless record.nil?
+        record = check_record(record)
         load_target
 
         @reflection.klass.transaction do

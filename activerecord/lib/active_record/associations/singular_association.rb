@@ -26,6 +26,12 @@ module ActiveRecord
         def set_new_record(record)
           replace(record)
         end
+
+        def check_record(record)
+          record = record.target if AssociationProxy === record
+          raise_on_type_mismatch(record) if record
+          record
+        end
     end
   end
 end
