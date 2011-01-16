@@ -120,6 +120,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.name, client.firm_name
   end
 
+  def test_create!
+    client  = Client.create!(:name => "Jimmy")
+    account = client.create_account!(:credit_limit => 10)
+    assert_equal account, client.account
+    assert account.persisted?
+    client.save
+    client.reload
+    assert_equal account, client.account
+  end
+
+  def test_failing_create!
+    client  = Client.create!(:name => "Jimmy")
+    assert_raise(ActiveRecord::RecordInvalid) { client.create_account! }
+    assert_not_nil client.account
+    assert client.account.new_record?
+  end
+
   def test_natural_assignment_to_nil
     client = Client.find(3)
     client.firm = nil

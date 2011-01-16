@@ -1533,10 +1533,10 @@ module ActiveRecord
 
         def association_constructor_methods(reflection)
           constructors = {
-            "build_#{reflection.name}"  => "build",
-            "create_#{reflection.name}" => "create"
+            "build_#{reflection.name}"   => "build",
+            "create_#{reflection.name}"  => "create",
+            "create_#{reflection.name}!" => "create!"
           }
-          constructors["create_#{reflection.name}!"] = "create!" if reflection.macro == :has_one
 
           constructors.each do |name, proxy_name|
             redefine_method(name) do |*params|

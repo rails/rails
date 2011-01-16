@@ -124,6 +124,7 @@ class Client < Company
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
   belongs_to :readonly_firm, :class_name => "Firm", :foreign_key => "firm_id", :readonly => true
   has_many :accounts, :through => :firm
+  belongs_to :account
 
   # Record destruction so we can test whether firm.clients.clear has
   # is calling client.destroy, deleting from the database, or setting

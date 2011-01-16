@@ -6,6 +6,10 @@ module ActiveRecord
         replace(@reflection.create_association(attributes))
       end
 
+      def create!(attributes = {})
+        build(attributes).tap { |record| record.save! }
+      end
+
       def build(attributes = {})
         replace(@reflection.build_association(attributes))
       end

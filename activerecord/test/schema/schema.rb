@@ -154,6 +154,7 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.integer :client_of
     t.integer :rating, :default => 1
+    t.integer :account_id
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
