@@ -208,7 +208,7 @@ module ActiveRecord
     #   other=(other)                     |     X      |      X       |    X
     #   build_other(attributes={})        |     X      |              |    X
     #   create_other(attributes={})       |     X      |              |    X
-    #   other.create!(attributes={})      |            |              |    X
+    #   create_other!(attributes={})      |     X      |              |    X
     #
     # ===Collection associations (one-to-many / many-to-many)
     #                                     |       |          | has_many
@@ -1042,6 +1042,9 @@ module ActiveRecord
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+, linked to this object through a foreign key, and that
       #   has already been saved (if it passed the validation).
+      # [create_association!(attributes = {})]
+      #   Does the same as <tt>create_association</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   if the record is invalid.
       #
       # (+association+ is replaced with the symbol passed as the first argument, so
       # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.)
@@ -1053,6 +1056,7 @@ module ActiveRecord
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
+      # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
       #
       # === Options
       #
@@ -1157,6 +1161,9 @@ module ActiveRecord
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+, linked to this object through a foreign key, and that
       #   has already been saved (if it passed the validation).
+      # [create_association!(attributes = {})]
+      #   Does the same as <tt>create_association</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   if the record is invalid.
       #
       # (+association+ is replaced with the symbol passed as the first argument, so
       # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.)
@@ -1168,6 +1175,7 @@ module ActiveRecord
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
+      # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       #
       # === Options
