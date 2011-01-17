@@ -9,11 +9,16 @@ else
 end
 
 gem "rack", :git => "git://github.com/rack/rack.git"
+gem "rack-test", :git => "git://github.com/brynary/rack-test.git"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
-gem "rdoc",  "~> 3.0"
-gem "horo",  "= 1.0.3"
+
+group :doc do
+  gem "rdoc",  "~> 3.4"
+  gem "horo",  "= 1.0.3"
+  gem "RedCloth", "~> 4.2"
+end
 
 # for perf tests
 gem "faker"
@@ -43,7 +48,7 @@ platforms :ruby do
   gem "nokogiri", ">= 1.4.4"
 
   # AR
-  gem "sqlite3-ruby", "~> 1.3.1", :require => 'sqlite3'
+  gem "sqlite3", "~> 1.3.3"
 
   group :db do
     gem "pg", ">= 0.9.0"

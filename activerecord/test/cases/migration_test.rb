@@ -14,7 +14,7 @@ if ActiveRecord::Base.connection.supports_migrations?
   class Reminder < ActiveRecord::Base; end
 
   class ActiveRecord::Migration
-    class <<self
+    class << self
       attr_accessor :message_count
     end
 
@@ -2083,4 +2083,3 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 end
-

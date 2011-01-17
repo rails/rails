@@ -111,8 +111,8 @@ module ActionView
     end 
 
     def find_template(path=@path, locals=@locals.keys)
-      prefix = @view.controller_prefix unless path.include?(?/)
-      @lookup_context.find_template(path, prefix, true, locals)
+      prefixes = path.include?(?/) ? [] : @view.controller_prefixes
+      @lookup_context.find_template(path, prefixes, true, locals)
     end
 
     def collection_with_template
@@ -152,7 +152,7 @@ module ActionView
         object = object.to_model if object.respond_to?(:to_model)
 
         object.class.model_name.partial_path.dup.tap do |partial|
-          path = @view.controller_prefix
+          path = @view.controller_prefixes.first
           partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
         end
       end

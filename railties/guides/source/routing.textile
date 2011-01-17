@@ -85,6 +85,9 @@ creates seven different routes in your application, all mapping to the +Photos+ 
 |PUT          |/photos/:id       |update   |update a specific photo                      |
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
+
+NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
+
 h4. Paths and URLs
 
 Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of +resources :photos+:
@@ -701,7 +704,7 @@ resources :photos
 
 This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
-To prefix a group of routes, use +:as+ with +scope+:
+To prefix a group of route helpers, use +:as+ with +scope+:
 
 <ruby>
 scope "admin", :as => "admin" do
@@ -711,7 +714,19 @@ end
 resources :photos, :accounts
 </ruby>
 
+This will generate routes such as +admin_photos_path+ and +admin_accounts_path+ which map to +/admin/photos+ and +/admin/accounts+ respectively.
+
 NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ and +:path+ prefixes.
+
+You can prefix routes with a named parameter also:
+
+<ruby>
+scope ":username" do
+  resources :posts
+end
+</ruby>
+
+This will provide you with URLs such as +/bob/posts/1+ and will allow you to reference the +username+ part of the path as +params[:username]+ in controllers, helpers and views.
 
 h4. Restricting the Routes Created
 

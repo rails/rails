@@ -18,6 +18,10 @@ class BigDecimal
     end
   end
 
+  def to_d
+    self
+  end
+
   DEFAULT_STRING_FORMAT = 'F'
   def to_formatted_s(format = DEFAULT_STRING_FORMAT)
     _original_to_s(format)

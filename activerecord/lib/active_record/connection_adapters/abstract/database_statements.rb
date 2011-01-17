@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/deprecation'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
@@ -229,6 +231,8 @@ module ActiveRecord
       #
       # This method *modifies* the +sql+ parameter.
       #
+      # This method is deprecated!! Stop using it!
+      #
       # ===== Examples
       #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
       # generates
@@ -243,6 +247,7 @@ module ActiveRecord
         end
         sql
       end
+      deprecate :add_limit_offset!
 
       def default_sequence_name(table, column)
         nil

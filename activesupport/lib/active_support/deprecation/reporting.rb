@@ -2,7 +2,7 @@ module ActiveSupport
   module Deprecation
     class << self
       attr_accessor :silenced
-      
+
       # Outputs a deprecation warning to the output configured by <tt>ActiveSupport::Deprecation.behavior</tt>
       #
       # Example:

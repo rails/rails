@@ -163,7 +163,7 @@ module ActionView
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, pieces.join('/'), partial, @locals)
+        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
       end
     end
 

@@ -106,7 +106,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_to_yaml
-    assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
+    assert_equal "--- 2000-01-01 00:00:00 Z\n", @twz.to_yaml
   end
 
   def test_ruby_to_yaml

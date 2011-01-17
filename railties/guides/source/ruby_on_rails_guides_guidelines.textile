@@ -45,7 +45,7 @@ h3. HTML Generation
 To generate all the guides just cd into the +railties+ directory and execute
 
 <plain>
-rake generate_guides
+bundle exec rake generate_guides
 </plain>
 
 You'll need the gems erubis, i18n, and RedCloth.
@@ -53,7 +53,7 @@ You'll need the gems erubis, i18n, and RedCloth.
 To process +my_guide.textile+ and nothing else use the +ONLY+ environment variable:
 
 <plain>
-rake generate_guides ONLY=my_guide
+bundle exec rake generate_guides ONLY=my_guide
 </plain>
 
 Although by default guides that have not been modified are not processed, so +ONLY+ is rarely needed in practice.

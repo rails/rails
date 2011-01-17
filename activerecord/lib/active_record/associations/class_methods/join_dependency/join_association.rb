@@ -193,11 +193,11 @@ module ActiveRecord
             first_key = second_key = nil
 
             if through_reflection.macro == :belongs_to
-              jt_primary_key = through_reflection.primary_key_name
+              jt_primary_key = through_reflection.foreign_key
               jt_foreign_key = through_reflection.association_primary_key
             else
               jt_primary_key = through_reflection.active_record_primary_key
-              jt_foreign_key = through_reflection.primary_key_name
+              jt_foreign_key = through_reflection.foreign_key
 
               if through_reflection.options[:as] # has_many :through against a polymorphic join
                 jt_conditions <<
@@ -228,10 +228,10 @@ module ActiveRecord
                 second_key = source_reflection.association_foreign_key
 
                 jt_conditions <<
-                join_table[reflection.source_reflection.options[:foreign_type]].
+                join_table[reflection.source_reflection.foreign_type].
                   eq(reflection.options[:source_type])
               else
-                second_key = source_reflection.primary_key_name
+                second_key = source_reflection.foreign_key
               end
             end
 
@@ -262,7 +262,7 @@ module ActiveRecord
           end
 
           def join_belongs_to_to(relation)
-            foreign_key = options[:foreign_key] || reflection.primary_key_name
+            foreign_key = options[:foreign_key] || reflection.foreign_key
             primary_key = options[:primary_key] || reflection.klass.primary_key
 
             join_target_table(

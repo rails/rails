@@ -239,14 +239,14 @@ class OrderedHashTest < Test::Unit::TestCase
 
   def test_each_after_yaml_serialization
     values = []
-    @deserialized_ordered_hash = YAML::load(YAML::dump(@ordered_hash))
+    @deserialized_ordered_hash = YAML.load(YAML.dump(@ordered_hash))
 
     @deserialized_ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
   end
 
   def test_order_after_yaml_serialization
-    @deserialized_ordered_hash = YAML::load(YAML::dump(@ordered_hash))
+    @deserialized_ordered_hash = YAML.load(YAML.dump(@ordered_hash))
 
     assert_equal @keys,   @deserialized_ordered_hash.keys
     assert_equal @values, @deserialized_ordered_hash.values
@@ -255,10 +255,32 @@ class OrderedHashTest < Test::Unit::TestCase
   def test_order_after_yaml_serialization_with_nested_arrays
     @ordered_hash[:array] = %w(a b c)
 
-    @deserialized_ordered_hash = YAML::load(YAML::dump(@ordered_hash))
+    @deserialized_ordered_hash = YAML.load(YAML.dump(@ordered_hash))
 
     assert_equal @ordered_hash.keys,   @deserialized_ordered_hash.keys
     assert_equal @ordered_hash.values, @deserialized_ordered_hash.values
+  end
+
+  begin
+    require 'psych'
+
+    def test_psych_serialize
+      @deserialized_ordered_hash = Psych.load(Psych.dump(@ordered_hash))
+
+      values = @deserialized_ordered_hash.map { |_, value| value }
+      assert_equal @values, values
+    end
+
+    def test_psych_serialize_tag
+      yaml = Psych.dump(@ordered_hash)
+      assert_match '!omap', yaml
+    end
+  rescue LoadError
+  end
+
+  def test_has_yaml_tag
+    @ordered_hash[:array] = %w(a b c)
+    assert_match '!omap', YAML.dump(@ordered_hash)
   end
 
   def test_update_sets_keys

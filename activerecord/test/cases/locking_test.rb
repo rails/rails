@@ -19,11 +19,6 @@ end
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references
 
-  # need to disable transactional fixtures, because otherwise the sqlite3
-  # adapter (at least) chokes when we try and change the schema in the middle
-  # of a test (see test_increment_counter_*).
-  self.use_transactional_fixtures = false
-
   def test_lock_existing
     p1 = Person.find(1)
     p2 = Person.find(1)
@@ -152,6 +147,33 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "unchangeable name", p.first_name
   end
 
+  def test_quote_table_name
+    ref = references(:michael_magician)
+    ref.favourite = !ref.favourite
+    assert ref.save
+  end
+
+  # Useful for partial updates, don't only update the lock_version if there
+  # is nothing else being updated.
+  def test_update_without_attributes_does_not_only_update_lock_version
+    assert_nothing_raised do
+      p1 = Person.create!(:first_name => 'anika')
+      lock_version = p1.lock_version
+      p1.save
+      p1.reload
+      assert_equal lock_version, p1.lock_version
+    end
+  end
+end
+
+class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
+  fixtures :people, :legacy_things, :references
+
+  # need to disable transactional fixtures, because otherwise the sqlite3
+  # adapter (at least) chokes when we try and change the schema in the middle
+  # of a test (see test_increment_counter_*).
+  self.use_transactional_fixtures = false
+
   { :lock_version => Person, :custom_lock_version => LegacyThing }.each do |name, model|
     define_method("test_increment_counter_updates_#{name}") do
       counter_test model, 1 do |id|
@@ -198,24 +220,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
   end
 
-  def test_quote_table_name
-    ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
-    assert ref.save
-  end
-
-  # Useful for partial updates, don't only update the lock_version if there
-  # is nothing else being updated.
-  def test_update_without_attributes_does_not_only_update_lock_version
-    assert_nothing_raised do
-      p1 = Person.create!(:first_name => 'anika')
-      lock_version = p1.lock_version
-      p1.save
-      p1.reload
-      assert_equal lock_version, p1.lock_version
-    end
-  end
-
   private
 
     def add_counter_column_to(model, col='test_count')
@@ -252,9 +256,9 @@ end
 
 # TODO: The Sybase, and OpenBase adapters currently have no support for pessimistic locking
 
-unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_fixtures = false unless supports_savepoints?
     fixtures :people, :readers
 
     def setup

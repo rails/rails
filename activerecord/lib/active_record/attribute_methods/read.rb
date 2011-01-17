@@ -20,7 +20,7 @@ module ActiveRecord
         # be cached. Usually caching only pays off for attributes with expensive conversion
         # methods, like time related columns (e.g. +created_at+, +updated_at+).
         def cache_attributes(*attribute_names)
-          attribute_names.each {|attr| cached_attributes << attr.to_s}
+          cached_attributes.merge attribute_names.map { |attr| attr.to_s }
         end
 
         # Returns the attributes which are cached. By default time related columns
@@ -39,7 +39,7 @@ module ActiveRecord
             if serialized_attributes.include?(attr_name)
               define_read_method_for_serialized_attribute(attr_name)
             else
-              define_read_method(attr_name.to_sym, attr_name, columns_hash[attr_name])
+              define_read_method(attr_name, attr_name, columns_hash[attr_name])
             end
 
             if attr_name == primary_key && attr_name != "id"
@@ -55,7 +55,7 @@ module ActiveRecord
           # Define read method for serialized attribute.
           def define_read_method_for_serialized_attribute(attr_name)
             access_code = "@attributes_cache['#{attr_name}'] ||= unserialize_attribute('#{attr_name}')"
-            generated_attribute_methods.module_eval("def #{attr_name}; #{access_code}; end", __FILE__, __LINE__)
+            generated_attribute_methods.module_eval("def _#{attr_name}; #{access_code}; end; alias #{attr_name} _#{attr_name}", __FILE__, __LINE__)
           end
 
           # Define an attribute reader method.  Cope with nil column.
@@ -64,7 +64,7 @@ module ActiveRecord
             access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
 
             unless attr_name.to_s == self.primary_key.to_s
-              access_code = access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
+              access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
             end
 
             if cache_attribute?(attr_name)

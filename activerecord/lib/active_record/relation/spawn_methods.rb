@@ -46,12 +46,14 @@ module ActiveRecord
 
       merged_relation.where_values = merged_wheres
 
-      (Relation::SINGLE_VALUE_METHODS - [:lock]).each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with]).each do |method|
         value = r.send(:"#{method}_value")
         merged_relation.send(:"#{method}_value=", value) unless value.nil?
       end
 
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
+
+      merged_relation = merged_relation.create_with(r.create_with_value) if r.create_with_value
 
       # Apply scope extension modules
       merged_relation.send :apply_modules, r.extensions
@@ -98,7 +100,7 @@ module ActiveRecord
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)
       finders = options.dup
-      finders.delete_if { |key, value| value.nil? }
+      finders.delete_if { |key, value| value.nil? && key != :limit }
 
       ([:joins, :select, :group, :order, :having, :limit, :offset, :from, :lock, :readonly] & finders.keys).each do |finder|
         relation = relation.send(finder, finders[finder])

@@ -1,42 +1,28 @@
 module ActiveRecord
-  # = Active Record Through Association Scope
+  # = Active Record Through Association
   module Associations
-    module ThroughAssociationScope
-
-      def scoped
-        with_scope(@scope) do
-          @reflection.klass.scoped &
-          @reflection.through_reflection.klass.scoped
-        end
-      end
-
-      def stale_target?
-        if @target && @reflection.through_reflection.macro == :belongs_to && defined?(@through_foreign_key)
-          previous_key = @through_foreign_key.to_s
-          current_key  = @owner.send(@reflection.through_reflection.primary_key_name).to_s
-
-          previous_key != current_key
-        else
-          false
-        end
-      end
+    module ThroughAssociation
 
       protected
 
-      def construct_find_scope
-        {
-          :conditions => construct_conditions,
-          :joins      => construct_joins,
-          :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include],
-          :select     => construct_select,
-          :order      => @reflection.options[:order],
-          :limit      => @reflection.options[:limit],
-          :readonly   => @reflection.options[:readonly]
-        }
+      def target_scope
+        super & @reflection.through_reflection.klass.scoped
       end
 
-      def construct_create_scope
-        construct_owner_attributes(@reflection)
+      def association_scope
+        scope = super.joins(construct_joins).where(conditions)
+        unless @reflection.options[:include]
+          scope = scope.includes(@reflection.source_reflection.options[:include])
+        end
+        scope
+      end
+
+      # This scope affects the creation of the associated records (not the join records). At the
+      # moment we only support creating on a :through association when the source reflection is a
+      # belongs_to. Thus it's not necessary to set a foreign key on the associated record(s), so
+      # this scope has can legitimately be empty.
+      def creation_attributes
+        { }
       end
 
       def aliased_through_table
@@ -47,35 +33,8 @@ module ActiveRecord
           @reflection.through_reflection.klass.arel_table
       end
 
-      # Build SQL conditions from attributes, qualified by table name.
-      def construct_conditions
-        table = aliased_through_table
-        conditions = construct_owner_attributes(@reflection.through_reflection).map do |attr, value|
-          table[attr].eq(value)
-        end
-        conditions << Arel.sql(sql_conditions) if sql_conditions
-        table.create_and(conditions)
-      end
-
-      # Associate attributes pointing to owner
-      def construct_owner_attributes(reflection)
-        if as = reflection.options[:as]
-          { "#{as}_id"   => @owner[reflection.active_record_primary_key],
-            "#{as}_type" => @owner.class.base_class.name }
-        elsif reflection.macro == :belongs_to
-          { reflection.klass.primary_key => @owner[reflection.primary_key_name] }
-        else
-          { reflection.primary_key_name => @owner[reflection.active_record_primary_key] }
-        end
-      end
-
-      def construct_from
-        @reflection.table_name
-      end
-
-      def construct_select(custom_select = nil)
-        distinct = "DISTINCT #{@reflection.quoted_table_name}.*" if @reflection.options[:uniq]
-        custom_select || @reflection.options[:select] || distinct
+      def construct_owner_conditions
+        super(aliased_through_table, @reflection.through_reflection)
       end
 
       def construct_joins
@@ -87,14 +46,14 @@ module ActiveRecord
         if @reflection.source_reflection.macro == :belongs_to
           reflection_primary_key = @reflection.source_reflection.options[:primary_key] ||
                                    @reflection.klass.primary_key
-          source_primary_key     = @reflection.source_reflection.primary_key_name
+          source_primary_key     = @reflection.source_reflection.foreign_key
           if @reflection.options[:source_type]
-            column = @reflection.source_reflection.options[:foreign_type]
+            column = @reflection.source_reflection.foreign_type
             conditions <<
               right[column].eq(@reflection.options[:source_type])
           end
         else
-          reflection_primary_key = @reflection.source_reflection.primary_key_name
+          reflection_primary_key = @reflection.source_reflection.foreign_key
           source_primary_key     = @reflection.source_reflection.options[:primary_key] ||
                                    @reflection.through_reflection.klass.primary_key
           if @reflection.source_reflection.options[:as]
@@ -117,15 +76,13 @@ module ActiveRecord
         # TODO: revisit this to allow it for deletion, supposing dependent option is supported
         raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
 
-        join_attributes = construct_owner_attributes(@reflection.through_reflection)
-
-        join_attributes.merge!(
-          @reflection.source_reflection.primary_key_name =>
+        join_attributes = {
+          @reflection.source_reflection.foreign_key =>
             associate.send(@reflection.source_reflection.association_primary_key)
-        )
+        }
 
         if @reflection.options[:source_type]
-          join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name)
+          join_attributes.merge!(@reflection.source_reflection.foreign_type => associate.class.base_class.name)
         end
 
         if @reflection.through_reflection.options[:conditions].is_a?(Hash)
@@ -141,18 +98,13 @@ module ActiveRecord
       end
 
       def build_conditions
-        association_conditions = @reflection.options[:conditions]
         through_conditions = build_through_conditions
         source_conditions = @reflection.source_reflection.options[:conditions]
         uses_sti = !@reflection.through_reflection.klass.descends_from_active_record?
 
-        if association_conditions || through_conditions || source_conditions || uses_sti
+        if through_conditions || source_conditions || uses_sti
           all = []
-
-          [association_conditions, source_conditions].each do |conditions|
-            all << interpolate_sql(sanitize_sql(conditions)) if conditions
-          end
-
+          all << interpolate_sql(sanitize_sql(source_conditions)) if source_conditions
           all << through_conditions  if through_conditions
           all << build_sti_condition if uses_sti
 
@@ -177,12 +129,15 @@ module ActiveRecord
 
       alias_method :sql_conditions, :conditions
 
-      def update_stale_state
-        construct_scope if stale_target?
-
+      def stale_state
         if @reflection.through_reflection.macro == :belongs_to
-          @through_foreign_key = @owner.send(@reflection.through_reflection.primary_key_name)
+          @owner[@reflection.through_reflection.foreign_key].to_s
         end
+      end
+
+      def foreign_key_present?
+        @reflection.through_reflection.macro == :belongs_to &&
+        !@owner[@reflection.through_reflection.foreign_key].nil?
       end
     end
   end

@@ -24,14 +24,14 @@ rescue LoadError
 end
 
 begin
-  gem 'RedCloth', '>= 4.1.1'
   require 'redcloth'
 rescue Gem::LoadError
+  # This can happen if doc:guides is executed in an application.
   $stderr.puts('Generating guides requires RedCloth 4.1.1+.')
   $stderr.puts(<<ERROR) if bundler?
 Please add
 
-  gem 'RedCloth', '>= 4.1.1'
+  gem 'RedCloth', '~> 4.2'
 
 to the Gemfile, run
 

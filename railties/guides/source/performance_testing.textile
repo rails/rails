@@ -60,8 +60,8 @@ Let's assume your application has the following controller and model:
 
 <ruby>
 # routes.rb
-map.root :controller => 'home'
-map.resources :posts
+root :to => 'home#index'
+resources :posts
 
 # home_controller.rb
 class HomeController < ApplicationController
@@ -436,7 +436,7 @@ h4. Model
 Project.benchmark("Creating project") do
   project = Project.create("name" => "stuff")
   project.create_manager("name" => "David")
-  project.milestones << Milestone.find(:all)
+  project.milestones << Milestone.all
 end
 </ruby>
 

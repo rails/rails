@@ -18,7 +18,7 @@ namespace :test do
     Dir["test/#{dir}/*_test.rb"].each do |file|
       next true if file.include?("fixtures")
       ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-      system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
+      sh(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
     end
   end
 end
@@ -46,8 +46,8 @@ task :generate_guides do
 end
 
 task :update_ujs do
-  system "curl http://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/prototype_ujs.js"
-  system "curl http://github.com/rails/jquery-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/jquery_ujs.js"
+  system "curl https://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/prototype_ujs.js"
+  system "curl https://github.com/rails/jquery-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/jquery_ujs.js"
 end
 
 # Validate guides -------------------------------------------------------------------------

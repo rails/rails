@@ -99,14 +99,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["product", "name:string", "supplier_id:integer"]
 
     assert_migration "db/migrate/create_products.rb" do |m|
-      assert_method :up, m do |up|
+      assert_method :change, m do |up|
         assert_match /create_table :products/, up
         assert_match /t\.string :name/, up
         assert_match /t\.integer :supplier_id/, up
-      end
-
-      assert_method :down, m do |down|
-        assert_match /drop_table :products/, down
       end
     end
   end
@@ -141,7 +137,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "--no-timestamps"]
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :up, m do |up|
+      assert_method :change, m do |up|
         assert_no_match /t.timestamps/, up
       end
     end

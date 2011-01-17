@@ -77,8 +77,8 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support savepoints? PostgreSQL and MySQL do, SQLite
-      # does not.
+      # Does this adapter support savepoints? PostgreSQL and MySQL do,
+      # SQLite < 3.6.8 does not.
       def supports_savepoints?
         false
       end

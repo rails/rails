@@ -153,6 +153,12 @@ class Object
   end
 end
 
+class Struct
+  def as_json(options = nil) #:nodoc:
+    Hash[members.zip(values)]
+  end
+end
+
 class TrueClass
   AS_JSON = ActiveSupport::JSON::Variable.new('true').freeze
   def as_json(options = nil) AS_JSON end #:nodoc:

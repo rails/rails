@@ -156,10 +156,8 @@ module ActionView
       # The instance of ActionView::Base that is used by +render+.
       def view
         @view ||= begin
-          view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
+          view = @controller.view_context
           view.singleton_class.send :include, _helpers
-          view.singleton_class.send :include, @controller._routes.url_helpers
-          view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
           view.extend(Locals)
           view.locals = self.locals
           view.output_buffer = self.output_buffer
@@ -171,6 +169,7 @@ module ActionView
 
       INTERNAL_IVARS = %w{
         @__name__
+        @__io__
         @_assertion_wrapped
         @_assertions
         @_result

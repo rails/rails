@@ -411,7 +411,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
     @pirate.stubs(:id).returns('ABC1X')
-    @ship.stubs(:pirate_id).returns(@pirate.id) # prevents pirate from being reloaded due to non-matching foreign key
     @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
 
     assert_equal 'Arr', @ship.pirate.catchphrase
@@ -860,7 +859,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
 
   def setup
     @pirate = Pirate.create!(:catchphrase => "My baby takes tha mornin' train!")
@@ -900,7 +899,7 @@ class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRe
 end
 
 class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
 
   def setup
     @ship = Ship.create!(:name => "The good ship Dollypop")

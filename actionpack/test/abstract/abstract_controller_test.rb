@@ -30,14 +30,14 @@ module AbstractController
     class RenderingController < AbstractController::Base
       include ::AbstractController::Rendering
 
-      def _prefix() end
+      def _prefixes
+        []
+      end
 
       def render(options = {})
         if options.is_a?(String)
           options = {:_template_name => options}
         end
-
-        options[:_prefix] = _prefix
         super
       end
 
@@ -116,8 +116,8 @@ module AbstractController
         name.underscore
       end
 
-      def _prefix
-        self.class.prefix
+      def _prefixes
+        [self.class.prefix]
       end
     end
 
@@ -157,10 +157,10 @@ module AbstractController
       private
       def self.layout(formats)
         begin
-          find_template(name.underscore, {:formats => formats}, :_prefix => "layouts")
+          find_template(name.underscore, {:formats => formats}, :_prefixes => ["layouts"])
         rescue ActionView::MissingTemplate
           begin
-            find_template("application", {:formats => formats}, :_prefix => "layouts")
+            find_template("application", {:formats => formats}, :_prefixes => ["layouts"])
           rescue ActionView::MissingTemplate
           end
         end

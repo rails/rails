@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/author'
 require 'models/project'
 require 'models/developer'
+require 'models/company'
 
 class AssociationCallbacksTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :projects, :developers
@@ -79,6 +80,14 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert jack.save
     assert_equal 1, jack.posts_with_callbacks.count
     assert_equal callback_log, jack.post_log
+  end
+
+  def test_has_many_callbacks_for_destroy_on_parent
+    firm = Firm.create! :name => "Firm"
+    client = firm.clients.create! :name => "Client"
+    firm.destroy
+
+    assert_equal ["before_remove#{client.id}", "after_remove#{client.id}"], firm.log
   end
 
   def test_has_and_belongs_to_many_add_callback

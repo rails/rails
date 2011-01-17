@@ -38,7 +38,9 @@ end
 class Firm < Company
   has_many :clients, :order => "id", :dependent => :destroy, :counter_sql =>
       "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
-      "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )"
+      "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
+      :before_remove => :log_before_remove,
+      :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
   has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
   has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
@@ -47,7 +49,6 @@ class Firm < Company
   has_many :exclusively_dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all
   has_many :limited_clients, :class_name => "Client", :limit => 1
   has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
-  has_many :clients_with_interpolated_conditions, :class_name => "Client", :conditions => 'rating > #{rating}'
   has_many :clients_like_ms_with_hash_conditions, :conditions => { :name => 'Microsoft' }, :class_name => "Client", :order => "id"
   has_many :clients_using_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}'
   has_many :clients_using_multiline_sql, :class_name => "Client", :finder_sql => '
@@ -88,6 +89,19 @@ class Firm < Company
   has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
   has_many :accounts
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
+
+  def log
+    @log ||= []
+  end
+
+  private
+    def log_before_remove(record)
+      log << "before_remove#{record.id}"
+    end
+
+    def log_after_remove(record)
+      log << "after_remove#{record.id}"
+    end
 end
 
 class DependentFirm < Company
@@ -109,6 +123,9 @@ class Client < Company
   belongs_to :firm_with_primary_key, :class_name => "Firm", :primary_key => "name", :foreign_key => "firm_name"
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
   belongs_to :readonly_firm, :class_name => "Firm", :foreign_key => "firm_id", :readonly => true
+  belongs_to :bob_firm, :class_name => "Firm", :foreign_key => "client_of", :conditions => { :name => "Bob" }
+  has_many :accounts, :through => :firm
+  belongs_to :account
 
   # Record destruction so we can test whether firm.clients.clear has
   # is calling client.destroy, deleting from the database, or setting

@@ -57,7 +57,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_partial_with_implicit_path
-    @view.stubs(:controller_prefix).returns("test")
+    @view.stubs(:controller_prefixes).returns(%w(test))
     @view.render(Customer.new("david"), :greeting => "hi")
     wait
 
@@ -74,7 +74,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_with_implicit_path
-    @view.stubs(:controller_prefix).returns("test")
+    @view.stubs(:controller_prefixes).returns(%w(test))
     @view.render([ Customer.new("david"), Customer.new("mary") ], :greeting => "hi")
     wait
 
@@ -83,7 +83,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_template_without_path
-    @view.stubs(:controller_prefix).returns("test")
+    @view.stubs(:controller_prefixes).returns(%w(test))
     @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
     wait
 

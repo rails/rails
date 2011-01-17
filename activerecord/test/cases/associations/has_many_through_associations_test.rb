@@ -32,6 +32,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create :person_id => 0, :post_id => 0
   end
 
+  def test_include?
+    person = Person.new
+    post = Post.new
+    person.posts << post
+    assert person.posts.include?(post)
+  end
+
   def test_associate_existing
     assert_queries(2) { posts(:thinking); people(:david) }
 

@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'active_support/json'
 
 class DurationTest < ActiveSupport::TestCase
   def test_is_a
@@ -136,6 +137,10 @@ class DurationTest < ActiveSupport::TestCase
       1.minute.times {counter += 1}
     end
     assert_equal counter, 60
+  end
+
+  def test_to_json
+    assert_equal '172800', 2.days.to_json
   end
 
   protected

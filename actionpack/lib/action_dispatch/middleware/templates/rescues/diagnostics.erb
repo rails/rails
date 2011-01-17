@@ -6,5 +6,5 @@
 </h1>
 <pre><%=h @exception.message %></pre>
 
-<%= render :file => "rescues/_trace.erb" %>
-<%= render :file => "rescues/_request_and_response.erb" %>
+<%= render :template => "rescues/_trace" %>
+<%= render :template => "rescues/_request_and_response" %>

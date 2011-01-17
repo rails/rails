@@ -15,6 +15,11 @@ class Comment < ActiveRecord::Base
   def self.search_by_type(q)
     self.find(:all, :conditions => ["#{QUOTED_TYPE} = ?", q])
   end
+
+  def self.all_as_method
+    all
+  end
+  scope :all_as_scope, {}
 end
 
 class SpecialComment < Comment

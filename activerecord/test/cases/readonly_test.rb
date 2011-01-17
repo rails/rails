@@ -6,11 +6,6 @@ require 'models/project'
 require 'models/reader'
 require 'models/person'
 
-# Dummy class methods to test implicit association scoping.
-def Comment.foo() find :first end
-def Project.foo() find :first end
-
-
 class ReadOnlyTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
 
@@ -47,15 +42,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
     # Others do.
     Developer.joins(', projects').each { |d| assert d.readonly? }
     Developer.joins(', projects').readonly(false).each { |d| assert !d.readonly? }
-  end
-
-
-  def test_habtm_find_readonly
-    dev = Developer.find(1)
-    assert !dev.projects.empty?
-    assert dev.projects.all?(&:readonly?)
-    assert dev.projects.find(:all).all?(&:readonly?)
-    assert dev.projects.readonly(true).all?(&:readonly?)
   end
 
   def test_has_many_find_readonly
@@ -114,7 +100,13 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_association_collection_method_missing_scoping_not_readonly
-    assert !Developer.find(1).projects.foo.readonly?
-    assert !Post.find(1).comments.foo.readonly?
+    developer = Developer.find(1)
+    project   = Post.find(1)
+
+    assert !developer.projects.all_as_method.first.readonly?
+    assert !developer.projects.all_as_scope.first.readonly?
+
+    assert !project.comments.all_as_method.first.readonly?
+    assert !project.comments.all_as_scope.first.readonly?
   end
 end

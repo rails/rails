@@ -38,8 +38,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/lib/things-43.rb", /module Things43/
   end
 
-  def test_generating_test_files
+  def test_generating_without_options
     run_generator
+    assert_file "README.rdoc", /Bukkits/
+    assert_no_file "config/routes.rb"
     assert_file "test/test_helper.rb"
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
   end
@@ -66,7 +68,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_database_entry_is_assed_by_default_in_full_mode
     run_generator([destination_root, "--full"])
     assert_file "test/dummy/config/database.yml", /sqlite/
-    assert_file "Gemfile", /^gem\s+["']sqlite3-ruby["'],\s+:require\s+=>\s+["']sqlite3["']$/
+    assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
   end
 
   def test_config_another_database
@@ -151,6 +153,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
+    assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end

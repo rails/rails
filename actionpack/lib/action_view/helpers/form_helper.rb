@@ -858,8 +858,7 @@ module ActionView
         end
     end
 
-    module InstanceTagMethods #:nodoc:
-      extend ActiveSupport::Concern
+    class InstanceTag
       include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :object, :method_name, :object_name
@@ -1025,7 +1024,7 @@ module ActionView
         self.class.value_before_type_cast(object, @method_name)
       end
 
-      module ClassMethods
+      class << self
         def value(object, method_name)
           object.send method_name if object
         end
@@ -1109,10 +1108,6 @@ module ActionView
         def sanitized_method_name
           @sanitized_method_name ||= @method_name.sub(/\?$/,"")
         end
-    end
-
-    class InstanceTag
-      include InstanceTagMethods
     end
 
     class FormBuilder

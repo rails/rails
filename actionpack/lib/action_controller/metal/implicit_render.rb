@@ -12,7 +12,7 @@ module ActionController
 
     def method_for_action(action_name)
       super || begin
-        if template_exists?(action_name.to_s, _prefix)
+        if template_exists?(action_name.to_s, _prefixes)
           "default_render"
         end
       end

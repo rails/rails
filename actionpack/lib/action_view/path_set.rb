@@ -11,13 +11,15 @@ module ActionView #:nodoc:
     end
 
     def find(*args)
-      find_all(*args).first || raise(MissingTemplate.new(self, "#{args[1]}/#{args[0]}", args[3], args[2]))
+      find_all(*args).first || raise(MissingTemplate.new(self, *args))
     end
 
-    def find_all(*args)
-      each do |resolver|
-        templates = resolver.find_all(*args)
-        return templates unless templates.empty?
+    def find_all(path, prefixes = [], *args)
+      prefixes.each do |prefix|
+        each do |resolver|
+          templates = resolver.find_all(path, prefix, *args)
+          return templates unless templates.empty?
+        end
       end
       []
     end

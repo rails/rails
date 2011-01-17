@@ -829,7 +829,7 @@ module ActiveRecord #:nodoc:
       def arel_engine
         @arel_engine ||= begin
           if self == ActiveRecord::Base
-            Arel::Table.engine
+            ActiveRecord::Base
           else
             connection_handler.connection_pools[name] ? self : superclass.arel_engine
           end
@@ -870,20 +870,36 @@ module ActiveRecord #:nodoc:
         reset_scoped_methods
       end
 
+      # Specifies how the record is loaded by +Marshal+.
+      #
+      # +_load+ sets an instance variable for each key in the hash it takes as input.
+      # Override this method if you require more complex marshalling.
+      def _load(data)
+        record = allocate
+        record.init_with(Marshal.load(data))
+        record
+      end
+
+
+      # Finder methods must instantiate through this method to work with the
+      # single-table inheritance model that makes it possible to create
+      # objects of different types from the same table.
+      def instantiate(record) # :nodoc:
+        model = find_sti_class(record[inheritance_column]).allocate
+        model.init_with('attributes' => record)
+        model
+      end
+
       private
 
         def relation #:nodoc:
           @relation ||= Relation.new(self, arel_table)
-          finder_needs_type_condition? ? @relation.where(type_condition) : @relation
-        end
 
-        # Finder methods must instantiate through this method to work with the
-        # single-table inheritance model that makes it possible to create
-        # objects of different types from the same table.
-        def instantiate(record)
-          model = find_sti_class(record[inheritance_column]).allocate
-          model.init_with('attributes' => record)
-          model
+          if finder_needs_type_condition?
+            @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          else
+            @relation
+          end
         end
 
         def find_sti_class(type_name)
@@ -914,10 +930,9 @@ module ActiveRecord #:nodoc:
 
         def type_condition
           sti_column = arel_table[inheritance_column.to_sym]
-          condition = sti_column.eq(sti_name)
-          descendants.each { |subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
+          sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
-          condition
+          sti_column.in(sti_names)
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -1364,6 +1379,8 @@ MSG
       # hence you can't have attributes that aren't part of the table columns.
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
+        @association_cache = {}
+        @aggregation_cache = {}
         @attributes_cache = {}
         @new_record = true
         @readonly = false
@@ -1382,6 +1399,22 @@ MSG
         result
       end
 
+      # Populate +coder+ with attributes about this record that should be
+      # serialized.  The structure of +coder+ defined in this method is
+      # guaranteed to match the structure of +coder+ passed to the +init_with+
+      # method.
+      #
+      # Example:
+      #
+      #   class Post < ActiveRecord::Base
+      #   end
+      #   coder = {}
+      #   Post.new.encode_with(coder)
+      #   coder # => { 'id' => nil, ... }
+      def encode_with(coder)
+        coder['attributes'] = attributes
+      end
+
       # Initialize an empty model object from +coder+.  +coder+ must contain
       # the attributes necessary for initializing an empty model object.  For
       # example:
@@ -1395,10 +1428,22 @@ MSG
       def init_with(coder)
         @attributes = coder['attributes']
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
+        @association_cache = {}
+        @aggregation_cache = {}
         @readonly = @destroyed = @marked_for_destruction = false
         @new_record = false
         _run_find_callbacks
         _run_initialize_callbacks
+      end
+
+      # Specifies how the record is dumped by +Marshal+.
+      #
+      # +_dump+ emits a marshalled hash which has been passed to +encode_with+. Override this
+      # method if you require more complex marshalling.
+      def _dump(level)
+        dump = {}
+        encode_with(dump)
+        Marshal.dump(dump)
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
@@ -1490,8 +1535,10 @@ MSG
         attributes.each do |k, v|
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
+          elsif respond_to?("#{k}=")
+            send("#{k}=", v)
           else
-            respond_to?(:"#{k}=") ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
+            raise(UnknownAttributeError, "unknown attribute: #{k}")
           end
         end
 
@@ -1531,7 +1578,7 @@ MSG
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
-        !read_attribute(attribute).blank?
+        !_read_attribute(attribute).blank?
       end
 
       # Returns the column object for the named attribute.
@@ -1604,9 +1651,9 @@ MSG
           @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
         end
 
-        clear_aggregation_cache
-        clear_association_cache
-        @attributes_cache   = {}
+        @aggregation_cache = {}
+        @association_cache = {}
+        @attributes_cache = {}
         @new_record  = true
 
         ensure_proper_type
@@ -1628,7 +1675,7 @@ MSG
       # Returns the contents of the record as a nicely formatted string.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name) || new_record?
+          if has_attribute?(name)
             "#{name}: #{attribute_for_inspect(name)}"
           end
         }.compact.join(", ")
@@ -1816,7 +1863,7 @@ MSG
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
           create_with.each { |att,value|
-            respond_to?(:"#{att}=") && send("#{att}=", value)
+            respond_to?("#{att}=") && send("#{att}=", value)
           }
         end
       end

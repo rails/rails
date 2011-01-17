@@ -343,8 +343,8 @@ module ActiveRecord
           association.destroy
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-          if autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != key || autosave)
-            association[reflection.primary_key_name] = key
+          if autosave != false && (new_record? || association.new_record? || association[reflection.foreign_key] != key || autosave)
+            association[reflection.foreign_key] = key
             saved = association.save(:validate => !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
             saved
@@ -367,7 +367,8 @@ module ActiveRecord
 
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
-            self[reflection.primary_key_name] = association_id
+            self[reflection.foreign_key] = association_id
+            association.loaded
           end
 
           saved if autosave

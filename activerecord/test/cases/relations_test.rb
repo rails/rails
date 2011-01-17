@@ -27,6 +27,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal van.id, Minivan.where(:minivan_id => van).to_a.first.minivan_id
   end
 
+  def test_do_not_double_quote_string_id_with_array
+    van = Minivan.last
+    assert van
+    assert_equal van, Minivan.where(:minivan_id => [van]).to_a.first
+  end
+
   def test_bind_values
     relation = Post.scoped
     assert_equal [], relation.bind_values
@@ -634,6 +640,14 @@ class RelationTest < ActiveRecord::TestCase
   def test_any
     posts = Post.scoped
 
+    # This test was failing when run on its own (as opposed to running the entire suite).
+    # The second line in the assert_queries block was causing visit_Arel_Attributes_Attribute
+    # in Arel::Visitors::ToSql to trigger a SHOW TABLES query. Running that line here causes
+    # the SHOW TABLES result to be cached so we don't have to do it again in the block.
+    #
+    # This is obviously a rubbish fix but it's the best I can come up with for now...
+    posts.where(:id => nil).any?
+
     assert_queries(3) do
       assert posts.any? # Uses COUNT()
       assert ! posts.where(:id => nil).any?
@@ -791,5 +805,13 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal [rails_author], [rails_author] & relation
     assert_equal [rails_author], relation & [rails_author]
+  end
+
+  def test_removing_limit_with_options
+    assert_not_equal 1, Post.limit(1).all(:limit => nil).count
+  end
+
+  def test_primary_key
+    assert_equal "id", Post.scoped.primary_key
   end
 end

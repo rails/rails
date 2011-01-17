@@ -565,7 +565,7 @@ class RespondWithController < ActionController::Base
 
   def using_resource_with_action
     respond_with(resource, :action => :foo) do |format|
-      format.html { raise ActionView::MissingTemplate.new([], "foo/bar", {}, false) }
+      format.html { raise ActionView::MissingTemplate.new([], "bar", ["foo"], {}, false) }
     end
   end
 
@@ -658,7 +658,7 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/json"
     get :using_hash_resource
     assert_equal "application/json", @response.content_type
-    assert_equal %Q[{"result":["david",13]}], @response.body
+    assert_equal %Q[{"result":{"name":"david","id":13}}], @response.body
   end
 
   def test_using_resource_with_block

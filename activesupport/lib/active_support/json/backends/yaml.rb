@@ -7,13 +7,20 @@ module ActiveSupport
         ParseError = ::StandardError
         extend self
 
+        EXCEPTIONS = [::ArgumentError] # :nodoc:
+        begin
+          require 'psych'
+          EXCEPTIONS << Psych::SyntaxError
+        rescue LoadError
+        end
+
         # Parses a JSON string or IO and converts it into an object
         def decode(json)
           if json.respond_to?(:read)
             json = json.read
           end
           YAML.load(convert_json_to_yaml(json))
-        rescue ArgumentError
+        rescue *EXCEPTIONS
           raise ParseError, "Invalid JSON string"
         end
 

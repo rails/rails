@@ -9,7 +9,7 @@ module ActiveSupport
       # The version the deprecated behavior will be removed, by default.
       attr_accessor :deprecation_horizon
     end
-    self.deprecation_horizon = '3.0'
+    self.deprecation_horizon = '3.1'
 
     # By default, warnings are not silenced and debugging is off.
     self.silenced = false

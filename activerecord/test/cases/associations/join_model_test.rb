@@ -13,7 +13,8 @@ require 'models/book'
 require 'models/citation'
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
+
   fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
     # Reload edges table from fixtures as otherwise repeated test was failing
     :edges
@@ -81,13 +82,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection_with_find
     assert_equal tags(:general), tag = posts(:welcome).funky_tags.find(:first)
     assert_no_queries do
-      tag.tagging
-    end
-  end
-
-  def test_polymorphic_has_many_going_through_join_model_with_disabled_include
-    assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
-    assert_queries 1 do
       tag.tagging
     end
   end
@@ -529,7 +523,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_through_collection_size_uses_counter_cache_if_it_exists
     author = authors(:david)
-    author.stubs(:read_attribute).with('comments_count').returns(100)
+    author.stubs(:_read_attribute).with('comments_count').returns(100)
     assert_equal 100, author.comments.size
     assert !author.comments.loaded?
   end

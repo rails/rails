@@ -47,7 +47,7 @@ module ActionView
       path
     end
 
-    # Hnadles templates caching. If a key is given and caching is on
+    # Handles templates caching. If a key is given and caching is on
     # always check the cache before hitting the resolver. Otherwise,
     # it always hits the resolver but check if the resolver is fresher
     # before returning it.

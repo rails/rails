@@ -7,14 +7,6 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
       protected
-        def owner_quoted_id
-          if @reflection.options[:primary_key]
-            @owner.class.quote_value(@owner.send(@reflection.options[:primary_key]))
-          else
-            @owner.quoted_id
-          end
-        end
-
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
@@ -34,7 +26,7 @@ module ActiveRecord
           elsif @reflection.options[:counter_sql] || @reflection.options[:finder_sql]
             @reflection.klass.count_by_sql(custom_counter_sql)
           else
-            @reflection.klass.count(@scope[:find].slice(:conditions, :joins, :include))
+            scoped.count
           end
 
           # If there's nothing in the database and @target has no new records
@@ -54,7 +46,7 @@ module ActiveRecord
         end
 
         def insert_record(record, force = false, validate = true)
-          set_belongs_to_association_for(record)
+          set_owner_attributes(record)
           save_record(record, force, validate)
         end
 
@@ -66,12 +58,10 @@ module ActiveRecord
             when :delete_all
               @reflection.klass.delete(records.map { |r| r.id })
             else
-              updates    = { @reflection.primary_key_name => nil }
+              updates    = { @reflection.foreign_key => nil }
               conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
-              with_scope(@scope) do
-                @reflection.klass.update_all(updates, conditions)
-              end
+              scoped.where(conditions).update_all(updates)
           end
 
           if has_cached_counter? && @reflection.options[:dependent] != :destroy
@@ -79,41 +69,7 @@ module ActiveRecord
           end
         end
 
-        def target_obsolete?
-          false
-        end
-
-        def construct_conditions
-          if @reflection.options[:as]
-            sql =
-              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
-              "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
-          else
-            sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
-          end
-          sql << " AND (#{conditions})" if conditions
-          sql
-        end
-
-        def construct_find_scope
-          {
-            :conditions => construct_conditions,
-            :readonly   => false,
-            :order      => @reflection.options[:order],
-            :limit      => @reflection.options[:limit],
-            :include    => @reflection.options[:include]
-          }
-        end
-
-        def construct_create_scope
-          create_scoping = {}
-          set_belongs_to_association_for(create_scoping)
-          create_scoping
-        end
-
-        def we_can_set_the_inverse_on_this?(record)
-          @reflection.inverse_of
-        end
+        alias creation_attributes construct_owner_attributes
     end
   end
 end

@@ -1,6 +1,4 @@
 #!/usr/bin/env rake
-gem 'rdoc', '~> 3.0'
-require 'rdoc'
 
 require 'rdoc/task'
 require 'net/http'

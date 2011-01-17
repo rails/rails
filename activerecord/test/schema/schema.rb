@@ -143,6 +143,7 @@ ActiveRecord::Schema.define do
       t.text    :body, :null => false
     end
     t.string  :type
+    t.integer :taggings_count, :default => 0
   end
 
   create_table :companies, :force => true do |t|
@@ -153,6 +154,7 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.integer :client_of
     t.integer :rating, :default => 1
+    t.integer :account_id
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
