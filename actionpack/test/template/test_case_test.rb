@@ -167,7 +167,7 @@ module ActionView
       end
     end
   end
-  
+
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
