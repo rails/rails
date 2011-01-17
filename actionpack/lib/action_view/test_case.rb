@@ -169,6 +169,7 @@ module ActionView
 
       INTERNAL_IVARS = %w{
         @__name__
+        @__io__
         @_assertion_wrapped
         @_assertions
         @_result
