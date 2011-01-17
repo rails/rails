@@ -76,7 +76,11 @@ module ActionController #:nodoc:
     protected
       # The actual before_filter that is used.  Modify this to change how you handle unverified requests.
       def verify_authenticity_token
-        verified_request? || raise(ActionController::InvalidAuthenticityToken)
+        verified_request? || handle_unverified_request
+      end
+
+      def handle_unverified_request
+        reset_session
       end
       
       # Returns true or false if a request is verified.  Checks:
@@ -85,11 +89,10 @@ module ActionController #:nodoc:
       # * is it a GET request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
       def verified_request?
-        !protect_against_forgery?     ||
-          request.method == :get      ||
-          request.xhr?                ||
-          !verifiable_request_format? ||
-          form_authenticity_token == form_authenticity_param
+        !protect_against_forgery?                            ||
+          request.get?                                       ||
+          form_authenticity_token == form_authenticity_param ||
+          form_authenticity_token == request.headers['X-CSRF-Token']
       end
 
       def form_authenticity_param
