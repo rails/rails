@@ -140,7 +140,19 @@ class HttpMockTest < ActiveSupport::TestCase
     assert_equal 2, ActiveResource::HttpMock.responses.length
   end
 
-  test "allows you to replace the existing reponse with the same request" do
+  test "allows you to replace the existing reponse with the same request by calling a block" do
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.send(:get, "/people/1", {}, "XML1")
+    end
+    assert_equal 1, ActiveResource::HttpMock.responses.length
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.send(:get, "/people/1", {}, "XML2")
+    end
+    assert_equal 1, ActiveResource::HttpMock.responses.length
+  end
+
+  test "allows you to replace the existing reponse with the same request by passing pairs" do
     ActiveResource::HttpMock.respond_to do |mock|
       mock.send(:get, "/people/1", {}, "XML1")
     end
@@ -151,11 +163,22 @@ class HttpMockTest < ActiveSupport::TestCase
     ok_response = ActiveResource::Response.new(matz, 200, {})
 
     ActiveResource::HttpMock.respond_to({get_matz => ok_response}, false)
-
     assert_equal 1, ActiveResource::HttpMock.responses.length
   end
 
-  test "do not replace the response with the same path but different method" do
+  test "do not replace the response with the same path but different method by calling a block" do
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.send(:get, "/people/1", {}, "XML1")
+    end
+    assert_equal 1, ActiveResource::HttpMock.responses.length
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.send(:put, "/people/1", {}, "XML2")
+    end
+    assert_equal 2, ActiveResource::HttpMock.responses.length
+  end
+
+  test "do not replace the response with the same path but different method by passing pairs" do
     ActiveResource::HttpMock.respond_to do |mock|
       mock.send(:get, "/people/1", {}, "XML1")
     end
