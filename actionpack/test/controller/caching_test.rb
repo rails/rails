@@ -257,7 +257,6 @@ class ActionCachingMockController
   end
 
   def request
-    mocked_path = @mock_path
     Object.new.instance_eval(<<-EVAL)
       def path; '#{@mock_path}' end
       def format; 'all' end
@@ -416,7 +415,6 @@ class ActionCacheTest < ActionController::TestCase
 
     get :index
     assert_response :success
-    new_cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
   end
 

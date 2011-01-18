@@ -185,7 +185,11 @@ module ActiveSupport
           # end
           filter = <<-RUBY_EVAL
             unless halted
-              result = #{@filter}
+              # This double assignment is to prevent warnings in 1.9.3.  I would
+              # remove the `result` variable, but apparently some other
+              # generated code is depending on this variable being set sometimes
+              # and sometimes not.
+              result = result = #{@filter}
               halted = (#{chain.config[:terminator]})
             end
           RUBY_EVAL
