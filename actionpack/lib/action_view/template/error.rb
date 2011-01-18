@@ -56,6 +56,7 @@ module ActionView
       attr_reader :original_exception, :backtrace
 
       def initialize(template, assigns, original_exception)
+        super(original_exception.message)
         @template, @assigns, @original_exception = template, assigns.dup, original_exception
         @sub_templates = nil
         @backtrace = original_exception.backtrace
@@ -63,10 +64,6 @@ module ActionView
 
       def file_name
         @template.identifier
-      end
-
-      def message
-        ActiveSupport::Deprecation.silence { original_exception.message }
       end
 
       def sub_template_message
