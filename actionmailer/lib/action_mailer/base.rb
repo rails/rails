@@ -404,7 +404,7 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def respond_to?(method, *args) #:nodoc:
+      def respond_to?(method, include_private = false) #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
