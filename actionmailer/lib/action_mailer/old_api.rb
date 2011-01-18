@@ -242,7 +242,7 @@ module ActionMailer
       ct.to_s.split("/")
     end
 
-    def parse_content_type(defaults=nil)
+    def parse_content_type
       if @content_type.blank?
         [ nil, {} ]
       else
