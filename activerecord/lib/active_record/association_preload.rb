@@ -165,7 +165,7 @@ module ActiveRecord
         end
 
         id_to_record_map.each do |id, records|
-          next if seen_keys.include?(id.to_s)
+          next if seen_keys.include?(id)
           records.each do |record|
             record.send(:association_proxy, reflection_name).target = nil
           end
