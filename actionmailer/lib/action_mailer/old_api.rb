@@ -247,7 +247,7 @@ module ActionMailer
         [ nil, {} ]
       else
         ctype, *attrs = @content_type.split(/;\s*/)
-        attrs = Hash[attrs.map { |attr| attr.split(/\=/, 2) }]
+        attrs = Hash[attrs.map { |attr| attr.split(/=/, 2) }]
         [ctype, {"charset" => @charset}.merge!(attrs)]
       end
     end
