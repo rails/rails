@@ -108,7 +108,7 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
   # Bundle edge Rails instead:
   # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-  gem 'sqlite3-ruby', :require => 'sqlite3'
+  gem 'sqlite3'
 
   # Use unicorn as the web server
   # gem 'unicorn'
@@ -119,7 +119,7 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
   # Bundle the extra gems:
   # gem 'bj'
   # gem 'nokogiri'
-  # gem 'sqlite3-ruby', :require => 'sqlite3'
+  # gem 'sqlite3'
   # gem 'aws-s3', :require => 'aws/s3'
 
   # Bundle gems for certain environments:
@@ -130,7 +130,7 @@ Now with Rails 3 we have a Gemfile which defines the basics our application need
 
 </ruby>
 
-Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This is until you run +bundle pack+. This command freezes all the gems required by your application into _vendor/cache_. The gems installed by default are:
+Here the only two gems we need are +rails+ and +sqlite3+, so it seems. This is until you run +bundle pack+. This command freezes all the gems required by your application into _vendor/cache_. The gems installed by default are:
 
 * abstract-1.0.0.gem
 * actionmailer-3.0.0.gem
@@ -155,7 +155,7 @@ Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This
 * rails-3.0.0.gem
 * railties-3.0.0.gem
 * rake-0.8.7.gem
-* sqlite3-ruby-1.3.1.gem
+* sqlite3-1.3.3.gem
 * text-format-1.0.0.gem
 * text-hyphen-1.0.0.gem
 * thor-0.13.7.gem
