@@ -385,7 +385,7 @@ module ActiveRecord
           conditions << table["#{interface}_type"].eq(base_class.sti_name)
         end
 
-        conditions += append_conditions(reflection, preload_options)
+        conditions.concat append_conditions(reflection, preload_options)
 
         find_options = {
           :select => preload_options[:select] || options[:select] || table[Arel.star],
@@ -397,9 +397,7 @@ module ActiveRecord
 
         associated_records(ids) do |some_ids|
           method = in_or_equal(some_ids)
-          where = conditions.inject(table[key].send(*method)) do |ast, cond|
-            ast.and cond
-          end
+          where = table.create_and(conditions + [table[key].send(*method)])
 
           reflection.klass.scoped.apply_finder_options(find_options.merge(:conditions => where)).to_a
         end
