@@ -177,16 +177,11 @@ module ActiveRecord
       # <tt>(id_to_record_map, ids)</tt> where +id_to_record_map+ is the Hash,
       # and +ids+ is an Array of record IDs.
       def construct_id_map(records, primary_key=nil)
-        id_to_record_map = {}
-        ids = []
-        records.each do |record|
+        id_to_record_map = records.group_by do |record|
           primary_key ||= record.class.primary_key
-          ids << record[primary_key]
-          mapped_records = (id_to_record_map[ids.last.to_s] ||= [])
-          mapped_records << record
+          record[primary_key].to_s
         end
-        ids.uniq!
-        return id_to_record_map, ids
+        return id_to_record_map, id_to_record_map.keys
       end
 
       def preload_has_and_belongs_to_many_association(records, reflection, preload_options={})
