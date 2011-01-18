@@ -219,10 +219,9 @@ module ActiveRecord
 
         associated_records(id_to_record_map.keys) { |some_ids|
           method     = in_or_equal(some_ids)
-          conditions = right[reflection.foreign_key].send(*method)
-          conditions = custom_conditions.inject(conditions) do |ast, cond|
-            ast.and cond
-          end
+          conditions = right.create_and(
+            [right[reflection.foreign_key].send(*method)] +
+            custom_conditions)
 
           relation = associated_records_proxy.where(conditions)
           klass.connection.select_all(relation.arel.to_sql, 'SQL', relation.bind_values)
