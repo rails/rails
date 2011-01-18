@@ -234,9 +234,16 @@ class TestJSONEncoding < Test::Unit::TestCase
       json_custom = custom.to_json
     end
 
-    assert_equal %({"name":"David","email":"sample@example.com"}), json_strings
-    assert_equal %({"name":"David","date":"2010/01/01"}), json_string_and_date
-    assert_equal %({"sub":{"name":"David","date":"2010/01/01"},"name":"David"}), json_custom
+    assert_equal({"name" => "David",
+                  "sub" => {
+                    "name" => "David",
+                    "date" => "2010/01/01" }}, JSON.parse(json_custom))
+
+    assert_equal({"name" => "David", "email" => "sample@example.com"},
+                 JSON.parse(json_strings))
+
+    assert_equal({"name" => "David", "date" => "2010/01/01"},
+                 JSON.parse(json_string_and_date))
   end
 
   protected
