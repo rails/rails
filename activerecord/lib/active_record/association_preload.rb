@@ -177,18 +177,18 @@ module ActiveRecord
       # <tt>(id_to_record_map, ids)</tt> where +id_to_record_map+ is the Hash,
       # and +ids+ is an Array of record IDs.
       def construct_id_map(records, primary_key=nil)
-        id_to_record_map = records.group_by do |record|
+        records.group_by do |record|
           primary_key ||= record.class.primary_key
           record[primary_key].to_s
         end
-        return id_to_record_map, id_to_record_map.keys
       end
 
       def preload_has_and_belongs_to_many_association(records, reflection, preload_options={})
 
         left = reflection.klass.arel_table
 
-        id_to_record_map, ids = construct_id_map(records)
+        id_to_record_map = construct_id_map(records)
+
         records.each {|record| record.send(reflection.name).loaded}
         options = reflection.options
 
@@ -217,7 +217,7 @@ module ActiveRecord
 
         klass = associated_records_proxy.klass
 
-        associated_records(ids) { |some_ids|
+        associated_records(id_to_record_map.keys) { |some_ids|
           method     = in_or_equal(some_ids)
           conditions = right[reflection.foreign_key].send(*method)
           conditions = custom_conditions.inject(conditions) do |ast, cond|
@@ -237,7 +237,7 @@ module ActiveRecord
 
       def preload_has_one_association(records, reflection, preload_options={})
         return if records.first.send(:association_proxy, reflection.name).loaded?
-        id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
+        id_to_record_map = construct_id_map(records, reflection.options[:primary_key])
         options = reflection.options
 
         records.each do |record|
@@ -253,7 +253,7 @@ module ActiveRecord
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             if through_reflection.macro == :belongs_to
-              id_to_record_map    = construct_id_map(records, through_primary_key).first
+              id_to_record_map    = construct_id_map(records, through_primary_key)
               through_primary_key = through_reflection.klass.primary_key
             end
 
@@ -263,7 +263,7 @@ module ActiveRecord
             end
           end
         else
-          set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.foreign_key)
+          set_association_single_records(id_to_record_map, reflection.name, find_associated_records(id_to_record_map.keys, reflection, preload_options), reflection.foreign_key)
         end
       end
 
@@ -272,7 +272,7 @@ module ActiveRecord
         options = reflection.options
 
         foreign_key = reflection.through_reflection_foreign_key
-        id_to_record_map, ids = construct_id_map(records, foreign_key || reflection.options[:primary_key])
+        id_to_record_map = construct_id_map(records, foreign_key || reflection.options[:primary_key])
         records.each {|record| record.send(reflection.name).loaded}
 
         if options[:through]
@@ -288,7 +288,7 @@ module ActiveRecord
           end
 
         else
-          set_association_collection_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options),
+          set_association_collection_records(id_to_record_map, reflection.name, find_associated_records(id_to_record_map.keys, reflection, preload_options),
                                              reflection.foreign_key)
         end
       end
