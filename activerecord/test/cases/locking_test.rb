@@ -258,7 +258,7 @@ end
 
 unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false unless supports_savepoints?
+    self.use_transactional_fixtures = false
     fixtures :people, :readers
 
     def setup

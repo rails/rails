@@ -139,20 +139,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 4, logs.size
-    assert_match(/Exist fragment\? views\/foo/, logs[1])
+    assert_match /Read fragment views\/foo/, logs[1]
     assert_match(/Write fragment views\/foo/, logs[2])
   ensure
     @controller.config.perform_caching = true
   end
-  
+
   def test_with_fragment_cache_and_percent_in_key
     @controller.config.perform_caching = true
     get :with_fragment_cache_and_percent_in_key
     wait
 
     assert_equal 4, logs.size
-    assert_match(/Exist fragment\? views\/foo%bar/, logs[1])
-    assert_match(/Write fragment views\/foo%bar/, logs[2])
+    assert_match /Read fragment views\/foo/, logs[1]
+    assert_match /Write fragment views\/foo/, logs[2]
   ensure
     @controller.config.perform_caching = true
   end

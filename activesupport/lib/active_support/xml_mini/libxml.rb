@@ -1,5 +1,6 @@
 require 'libxml'
 require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 # = XmlMini LibXML implementation
 module ActiveSupport

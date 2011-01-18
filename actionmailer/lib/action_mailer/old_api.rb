@@ -242,12 +242,12 @@ module ActionMailer
       ct.to_s.split("/")
     end
 
-    def parse_content_type(defaults=nil)
+    def parse_content_type
       if @content_type.blank?
         [ nil, {} ]
       else
         ctype, *attrs = @content_type.split(/;\s*/)
-        attrs = Hash[attrs.map { |attr| attr.split(/\=/, 2) }]
+        attrs = Hash[attrs.map { |attr| attr.split(/=/, 2) }]
         [ctype, {"charset" => @charset}.merge!(attrs)]
       end
     end
