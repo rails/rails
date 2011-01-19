@@ -166,9 +166,7 @@ module ActiveRecord
 
         id_to_record_map.each do |id, records|
           next if seen_keys.include?(id)
-          records.each do |record|
-            record.send(:association_proxy, reflection_name).target = nil
-          end
+          add_preloaded_record_to_collection(records, reflection_name, nil)
         end
       end
 
@@ -239,9 +237,7 @@ module ActiveRecord
         id_to_record_map = construct_id_map(records, reflection.options[:primary_key])
         options = reflection.options
 
-        records.each do |record|
-          record.send(:association_proxy, reflection.name).target = nil
-        end
+        add_preloaded_record_to_collection(records, reflection.name, nil)
 
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
