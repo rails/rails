@@ -1,4 +1,10 @@
 require 'bigdecimal'
+
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 
 class BigDecimal
