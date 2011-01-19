@@ -14,14 +14,15 @@ module AbstractController
   # it will trigger the lookup_context and consequently expire the cache.
   # TODO Add some deprecation warnings to remove I18n.locale from controllers
   class I18nProxy < ::I18n::Config #:nodoc:
-    attr_reader :i18n_config, :lookup_context
+    attr_reader :original_config, :lookup_context
 
-    def initialize(i18n_config, lookup_context)
-      @i18n_config, @lookup_context = i18n_config, lookup_context
+    def initialize(original_config, lookup_context)
+      original_config = original_config.original_config if original_config.respond_to?(:original_config)
+      @original_config, @lookup_context = original_config, lookup_context
     end
 
     def locale
-      @i18n_config.locale
+      @original_config.locale
     end
 
     def locale=(value)

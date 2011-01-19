@@ -167,11 +167,11 @@ module ActionView
       end
 
       # Overload locale= to also set the I18n.locale. If the current I18n.config object responds
-      # to i18n_config, it means that it's has a copy of the original I18n configuration and it's
+      # to original_config, it means that it's has a copy of the original I18n configuration and it's
       # acting as proxy, which we need to skip.
       def locale=(value)
         if value
-          config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
+          config = I18n.config.respond_to?(:original_config) ? I18n.config.original_config : I18n.config
           config.locale = value
         end
 
