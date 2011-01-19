@@ -23,9 +23,8 @@ class BigDecimal
   end
 
   DEFAULT_STRING_FORMAT = 'F'
-  def to_formatted_s(format = DEFAULT_STRING_FORMAT)
-    _original_to_s(format)
+  def to_s_with_plain_format(format = DEFAULT_STRING_FORMAT)
+    to_s_without_plain_format(format)
   end
-  alias_method :_original_to_s, :to_s
-  alias_method :to_s, :to_formatted_s
+  alias_method_chain :to_s, :plain_format
 end
