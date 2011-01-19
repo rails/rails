@@ -10,7 +10,7 @@ class BigDecimal
   #
   # Note that reconstituting YAML floats to native floats may lose precision.
   def to_yaml(opts = {})
-    YAML.quick_emit(nil, opts) do |out|
+    YAML::Emitter.new.reset(opts).emit(nil) do |out|
       string = to_s
       out.scalar(YAML_TAG, YAML_MAPPING[string] || string, :plain)
     end
