@@ -6,6 +6,7 @@ require 'active_support/testing/declarative'
 require 'active_support/testing/pending'
 require 'active_support/testing/isolation'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/testing/garbage_collection'
 
 begin
   silence_warnings { require 'mocha' }
@@ -38,5 +39,6 @@ module ActiveSupport
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::Pending
     extend ActiveSupport::Testing::Declarative
+    include ActiveSupport::Testing::GarbageCollection
   end
 end

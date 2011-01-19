@@ -74,5 +74,23 @@ module ActiveSupport
 
       assert_match %r{oh noes}, exception.message
     end
+
+    def test_teardown_should_scrub_instance_variables
+      tc = Class.new(TestCase) do
+        def test_true; @alpha = "a"; assert_equal "a", @alpha; end
+      end
+
+      test_name = 'test_true'
+      fr = FakeRunner.new
+
+      test = tc.new test_name
+      test.run(fr) {}
+
+      passed_var = IS_MINITEST ? :@passed : :@test_passed
+      ivars = test.instance_variables.map(&:to_sym)
+
+      assert ivars.include?(passed_var), "#{passed_var} should not have been scrubbed"
+      assert !ivars.include?(:@alpha), "@alpha should have been scrubbed"
+    end
   end
 end
