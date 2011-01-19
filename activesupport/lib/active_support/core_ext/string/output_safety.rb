@@ -1,5 +1,6 @@
 require 'erb'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/core_ext/yaml'
 
 class ERB
   module Util
@@ -101,8 +102,10 @@ module ActiveSupport #:nodoc:
       self
     end
 
-    def to_yaml(*args)
-      to_str.to_yaml(*args)
+    unless defined?(Psych)
+      def to_yaml(*args)
+        to_str.to_yaml(*args)
+      end
     end
   end
 end
