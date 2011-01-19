@@ -142,9 +142,9 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   teardown :foo, :sentinel, :foo
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo], self.class._setup_callbacks.map(&:raw_filter)
+    assert_equal [:begin_gc_deferment, :reset_callback_record, :foo], self.class._setup_callbacks.map(&:raw_filter)
     assert_equal [:foo], @called_back
-    assert_equal [:scrub_leftover_instance_variables, :foo, :sentinel, :foo], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:scrub_leftover_instance_variables, :reconsider_gc_deferment, :foo, :sentinel, :foo], self.class._teardown_callbacks.map(&:raw_filter)
   end
 
   def setup
@@ -174,9 +174,9 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   teardown :bar
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:raw_filter)
+    assert_equal [:begin_gc_deferment, :reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:raw_filter)
     assert_equal [:foo, :bar], @called_back
-    assert_equal [:scrub_leftover_instance_variables, :foo, :sentinel, :foo, :bar], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:scrub_leftover_instance_variables, :reconsider_gc_deferment, :foo, :sentinel, :foo, :bar], self.class._teardown_callbacks.map(&:raw_filter)
   end
 
   protected
