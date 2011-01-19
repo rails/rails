@@ -3,7 +3,6 @@ require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
-require 'active_support/testing/garbage_collection'
 
 begin
   gem 'mocha', ">= 0.9.7"
@@ -37,6 +36,5 @@ module ActiveSupport
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     extend ActiveSupport::Testing::Declarative
-    include ActiveSupport::Testing::GarbageCollection
   end
 end

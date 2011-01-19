@@ -143,7 +143,7 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   def test_inherited_setup_callbacks
     assert_equal [:reset_callback_record, :foo], self.class.setup_callback_chain.map(&:method)
     assert_equal [:foo], @called_back
-    assert_equal [:scrub_leftover_instance_variables, :foo, :sentinel, :foo], self.class.teardown_callback_chain.map(&:method)
+    assert_equal [:foo, :sentinel, :foo], self.class.teardown_callback_chain.map(&:method)
   end
 
   def setup
@@ -174,7 +174,7 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   def test_inherited_setup_callbacks
     assert_equal [:reset_callback_record, :foo, :bar], self.class.setup_callback_chain.map(&:method)
     assert_equal [:foo, :bar], @called_back
-    assert_equal [:scrub_leftover_instance_variables, :foo, :sentinel, :foo, :bar], self.class.teardown_callback_chain.map(&:method)
+    assert_equal [:foo, :sentinel, :foo, :bar], self.class.teardown_callback_chain.map(&:method)
   end
 
   protected
