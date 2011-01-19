@@ -713,12 +713,12 @@ end
 Then Active Record will look for messages in this order:
 
 <ruby>
-activerecord.errors.models.admin.attributes.title.blank
+activerecord.errors.models.admin.attributes.name.blank
 activerecord.errors.models.admin.blank
-activerecord.errors.models.user.attributes.title.blank
+activerecord.errors.models.user.attributes.name.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
-errors.attributes.title.blank
+errors.attributes.name.blank
 errors.messages.blank
 </ruby>
 
