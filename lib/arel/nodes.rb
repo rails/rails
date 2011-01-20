@@ -9,6 +9,7 @@ require 'arel/nodes/update_statement'
 # unary
 require 'arel/nodes/unary'
 require 'arel/nodes/unqualified_column'
+require 'arel/nodes/with'
 
 # binary
 require 'arel/nodes/binary'

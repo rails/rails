@@ -178,6 +178,79 @@ module Arel
       end
     end
 
+    describe 'union' do
+    	before do
+				table = Table.new :users
+				@m1 = Arel::SelectManager.new Table.engine, table
+				@m1.project Arel.star
+				@m1.where(table[:age].lt(18))
+
+				@m2 = Arel::SelectManager.new Table.engine, table
+				@m2.project Arel.star
+				@m2.where(table[:age].gt(99))
+
+
+			end
+
+    	it 'should union two managers' do
+				# FIXME should this union "managers" or "statements" ?
+				# FIXME this probably shouldn't return a node
+				node = @m1.union @m2
+
+				# maybe FIXME: decide when wrapper parens are needed
+				node.to_sql.must_be_like %{
+					( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION SELECT * FROM "users"  WHERE "users"."age" > 99 )
+				}
+			end
+
+			it 'should union all' do
+				node = @m1.union :all, @m2
+
+				node.to_sql.must_be_like %{
+					( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users"  WHERE "users"."age" > 99 )
+				}
+			end
+
+		end
+
+		describe 'with' do
+
+      it "should support WITH RECURSIVE" do
+        comments           = Table.new(:comments)
+        comments_id        = comments[:id]
+        comments_parent_id = comments[:parent_id]
+
+        replies            = Table.new(:replies)
+        replies_id         = replies[:id]
+
+        recursive_term = Arel::SelectManager.new Table.engine
+        recursive_term.from(comments).project(comments_id, comments_parent_id).where(comments_id.eq 42)
+
+        non_recursive_term = Arel::SelectManager.new Table.engine
+        non_recursive_term.from(comments).project(comments_id, comments_parent_id).join(replies).on(comments_parent_id.eq replies_id)
+
+        union = recursive_term.union(non_recursive_term)
+
+        as_statement = Arel::Nodes::As.new replies, union
+
+        manager = Arel::SelectManager.new Table.engine
+        manager.from replies
+        manager.with :recursive, as_statement
+        manager.project Arel.star
+
+        sql = manager.to_sql
+        sql.must_be_like %{
+          WITH RECURSIVE "replies" AS (
+              SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42
+            UNION
+              SELECT "comments"."id", "comments"."parent_id" FROM "comments" INNER JOIN "replies" ON "comments"."parent_id" = "replies"."id"
+          )
+          SELECT * FROM "replies"
+        }
+      end
+
+		end
+
     describe 'ast' do
       it 'should return the ast' do
         table   = Table.new :users

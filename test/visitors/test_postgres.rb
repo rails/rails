@@ -22,6 +22,7 @@ module Arel
         assert_match(/LIMIT 'omg'/, sql)
         assert_equal 1, sql.scan(/LIMIT/).length, 'should have one limit'
       end
+
     end
   end
 end

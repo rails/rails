@@ -129,6 +129,8 @@ eowarn
 
       def visit_Arel_Nodes_SelectStatement o
         [
+        	(visit(o.with) if o.with),
+        	(visit(o.with_recursive) if o.with_recursive),
           o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
           (visit(o.limit) if o.limit),
@@ -148,6 +150,22 @@ eowarn
           (visit(o.having) if o.having),
         ].compact.join ' '
       end
+
+      def visit_Arel_Nodes_With o
+				"WITH #{visit o.children}"
+			end
+
+			def visit_Arel_Nodes_WithRecursive o
+				"WITH RECURSIVE #{visit o.children}"
+			end
+
+			def visit_Arel_Nodes_Union o
+				"( #{visit o.left} UNION #{visit o.right} )"
+			end
+
+			def visit_Arel_Nodes_UnionAll o
+				"( #{visit o.left} UNION ALL #{visit o.right} )"
+			end
 
       def visit_Arel_Nodes_Having o
         "HAVING #{visit o.expr}"

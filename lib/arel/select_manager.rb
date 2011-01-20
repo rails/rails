@@ -134,6 +134,35 @@ module Arel
       Nodes::SqlLiteral.new viz.accept @ctx
     end
 
+    def union operation, other = nil
+    	if operation.is_a? Symbol
+    		if operation === :all
+					node_class = Nodes::UnionAll
+				else
+					raise "Only supported UNION operation is :all"
+				end
+			else
+				other = operation
+				node_class = Nodes::Union
+			end
+
+    	node_class.new self.ast, other.ast
+		end
+
+    def with *subqueries
+    	if subqueries.first.is_a? Symbol
+				if subqueries.shift == :recursive
+					node_class = Nodes::WithRecursive
+				else
+					raise "Only supported WITH modifier is :recursive"
+				end
+			else
+				node_class = Nodes::With
+			end
+			@ast.with = node_class.new(*subqueries)
+		end
+
+
     def take limit
       @ast.limit = Nodes::Limit.new(limit)
       @ctx.top   = Nodes::Top.new(limit)

@@ -2,15 +2,17 @@ module Arel
   module Nodes
     class SelectStatement < Arel::Nodes::Node
       attr_reader :cores
-      attr_accessor :limit, :orders, :lock, :offset
+      attr_accessor :limit, :orders, :lock, :offset, :with, :with_recursive
 
       def initialize cores = [SelectCore.new]
         #puts caller
-        @cores  = cores
-        @orders = []
-        @limit  = nil
-        @lock   = nil
-        @offset = nil
+        @cores          = cores
+        @orders         = []
+        @limit          = nil
+        @lock           = nil
+        @offset         = nil
+        @with           = nil
+        @with_recursive = nil
       end
 
       def initialize_copy other
