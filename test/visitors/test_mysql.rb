@@ -29,11 +29,16 @@ module Arel
         sql.must_be_like "SELECT FROM DUAL"
       end
 
-      it 'uses FOR UPDATE when locking' do
-        stmt = Nodes::SelectStatement.new
-        stmt.lock = Nodes::Lock.new
-        sql = @visitor.accept(stmt)
-        sql.must_be_like "SELECT FROM DUAL FOR UPDATE"
+      describe 'locking' do
+        it 'defaults to FOR UPDATE when locking' do
+          node = Nodes::Lock.new
+          @visitor.accept(node).must_be_like "FOR UPDATE"
+        end
+
+        it 'allows a custom string to be used as a lock' do
+          node = Nodes::Lock.new('LOCK IN SHARE MODE')
+          @visitor.accept(node).must_be_like "LOCK IN SHARE MODE"
+        end
       end
     end
   end
