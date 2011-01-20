@@ -397,6 +397,15 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 * +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
+
+h3. Using Initializer Files
+
+After loading the framework and any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of Ruby code stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks, plugins and gems are loaded, such as options to configure settings for these parts.
+
+NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
+
+TIP: If you have any ordering dependency in your initializers, you can control the load order by naming. For example, +01_critical.rb+ will be loaded before +02_normal.rb+.
+
 h3. Initialization events
 
 Rails has 5 initialization events which can be hooked into (listed in order that they are ran):
@@ -551,8 +560,7 @@ TIP: If you have any ordering dependency in your initializers, you can control t
 
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
-*+disable_dependency_loading+*
-
+*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to +true+ and +config.dependency_loading+ is set to +false+.
 
 h3. Changelog
 
