@@ -1144,10 +1144,10 @@ MSG
           default_scoping = self.default_scoping.dup
           previous = default_scoping.pop
 
-          if previous.kind_of?(Proc) or options.kind_of?(Proc)
+          if previous.respond_to?(:call) or options.respond_to?(:call)
             new_default_scope = lambda do
-              sane_options = options.kind_of?(Proc) ? options.call : options
-              sane_previous = previous.kind_of?(Proc) ? previous.call : previous
+              sane_options = options.respond_to?(:call) ? options.call : options
+              sane_previous = previous.respond_to?(:call) ? previous.call : previous
               construct_finder_arel sane_options, sane_previous
             end
           else
