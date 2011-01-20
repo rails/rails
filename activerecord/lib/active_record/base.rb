@@ -1140,8 +1140,21 @@ MSG
         #   Article.create.published # => true
         def default_scope(options = {})
           reset_scoped_methods
+
           default_scoping = self.default_scoping.dup
-          self.default_scoping = default_scoping << construct_finder_arel(options, default_scoping.pop)
+          previous = default_scoping.pop
+
+          if previous.kind_of?(Proc) or options.kind_of?(Proc)
+            new_default_scope = lambda do
+              sane_options = options.kind_of?(Proc) ? options.call : options
+              sane_previous = previous.kind_of?(Proc) ? previous.call : previous
+              construct_finder_arel sane_options, sane_previous
+            end
+          else
+            new_default_scope = construct_finder_arel options, previous
+          end
+
+          self.default_scoping = default_scoping << new_default_scope
         end
 
         def current_scoped_methods #:nodoc:
