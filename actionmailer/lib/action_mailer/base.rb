@@ -29,7 +29,6 @@ module ActionMailer #:nodoc:
   #      @account = recipient
   #      mail(:to => recipient.email_address_with_name,
   #           :bcc => ["bcc@example.com", "Order Watcher <watcher@example.com>"])
-  #      end
   #    end
   #
   # Within the mailer method, you have access to the following methods:
