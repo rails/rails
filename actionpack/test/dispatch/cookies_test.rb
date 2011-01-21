@@ -95,6 +95,16 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_cookie_with_domain_and_tld
+      cookies[:user_name] = {:value => "rizwanreza", :domain => :all, :tld_length => 2}
+      head :ok
+    end
+
+    def delete_cookie_with_domain_and_tld
+      cookies.delete(:user_name, :domain => :all, :tld_length => 2)
+      head :ok
+    end
+
     def set_cookie_with_domains
       cookies[:user_name] = {:value => "rizwanreza", :domain => %w(example1.com example2.com .example3.com)}
       head :ok
@@ -328,6 +338,32 @@ class CookiesTest < ActionController::TestCase
 
   def test_deleting_cookie_with_all_domain_option
     get :delete_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+  end
+
+  def test_cookie_with_all_domain_option_and_tld_length
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_a_non_standard_tld_and_tld_length
+    @request.host = "two.subdomains.nextangle.local"
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_host_with_port_and_tld_length
+    @request.host = "nextangle.local:3000"
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+  end
+
+  def test_deleting_cookie_with_all_domain_option_and_tld_length
+    get :delete_cookie_with_domain_and_tld
     assert_response :success
     assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
