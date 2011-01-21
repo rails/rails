@@ -57,9 +57,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
         ActiveSupport.parse_json_times = true
         silence_warnings do
           ActiveSupport::JSON.with_backend backend do
-            assert_nothing_raised do
-              assert_equal expected, ActiveSupport::JSON.decode(json)
-            end
+            assert_equal expected, ActiveSupport::JSON.decode(json)
           end
         end
       end
