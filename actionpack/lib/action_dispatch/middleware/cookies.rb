@@ -136,6 +136,9 @@ module ActionDispatch
           options[:domain] = if (@host !~ /^[\d.]+$/) && (@host =~ DOMAIN_REGEXP)
             ".#{$1}.#{$2}"
           end
+        elsif options[:domain].is_a? Array
+          # if host matches one of the supplied domains without a dot in front of it
+          options[:domain] = options[:domain].find {|domain| @host.include? domain[/^\.?(.*)$/, 1] }
         end
       end
 
