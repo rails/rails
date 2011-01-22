@@ -213,6 +213,60 @@ module Arel
 
     end
 
+    describe 'intersect' do
+      before do
+        table = Table.new :users
+        @m1 = Arel::SelectManager.new Table.engine, table
+        @m1.project Arel.star
+        @m1.where(table[:age].gt(18))
+
+        @m2 = Arel::SelectManager.new Table.engine, table
+        @m2.project Arel.star
+        @m2.where(table[:age].lt(99))
+
+
+      end
+
+      it 'should interect two managers' do
+        # FIXME should this intersect "managers" or "statements" ?
+        # FIXME this probably shouldn't return a node
+        node = @m1.intersect @m2
+
+        # maybe FIXME: decide when wrapper parens are needed
+        node.to_sql.must_be_like %{
+          ( SELECT * FROM "users"  WHERE "users"."age" > 18 INTERSECT SELECT * FROM "users"  WHERE "users"."age" < 99 )
+        }
+      end
+
+    end
+
+    describe 'except' do
+      before do
+        table = Table.new :users
+        @m1 = Arel::SelectManager.new Table.engine, table
+        @m1.project Arel.star
+        @m1.where(table[:age].in(18..60))
+
+        @m2 = Arel::SelectManager.new Table.engine, table
+        @m2.project Arel.star
+        @m2.where(table[:age].in(40..99))
+
+
+      end
+
+      it 'should except two managers' do
+        # FIXME should this except "managers" or "statements" ?
+        # FIXME this probably shouldn't return a node
+        node = @m1.except @m2
+
+        # maybe FIXME: decide when wrapper parens are needed
+        node.to_sql.must_be_like %{
+          ( SELECT * FROM "users"  WHERE "users"."age" BETWEEN 18 AND 60 EXCEPT SELECT * FROM "users"  WHERE "users"."age" BETWEEN 40 AND 99 )
+        }
+      end
+
+    end
+
     describe 'with' do
 
       it "should support WITH RECURSIVE" do

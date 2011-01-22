@@ -145,6 +145,16 @@ module Arel
       node_class.new self.ast, other.ast
     end
 
+    def intersect other = nil
+      node_class = Nodes::Intersect
+      node_class.new self.ast, other.ast
+    end
+
+    def except other = nil
+      node_class = Nodes::Except
+      node_class.new self.ast, other.ast
+    end
+
     def with *subqueries
       if subqueries.first.is_a? Symbol
         node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")

@@ -31,6 +31,8 @@ module Arel
       Or
       Union
       UnionAll
+      Intersect
+      Except
     }.each do |name|
       const_set name, Class.new(Binary)
     end

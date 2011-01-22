@@ -166,6 +166,14 @@ key on UpdateManager using UpdateManager#key=
         "( #{visit o.left} UNION ALL #{visit o.right} )"
       end
 
+      def visit_Arel_Nodes_Intersect o
+        "( #{visit o.left} INTERSECT #{visit o.right} )"
+      end
+
+      def visit_Arel_Nodes_Except o
+        "( #{visit o.left} EXCEPT #{visit o.right} )"
+      end
+
       def visit_Arel_Nodes_Having o
         "HAVING #{visit o.expr}"
       end
