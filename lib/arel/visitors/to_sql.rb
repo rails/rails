@@ -130,7 +130,6 @@ eowarn
       def visit_Arel_Nodes_SelectStatement o
         [
         	(visit(o.with) if o.with),
-        	(visit(o.with_recursive) if o.with_recursive),
           o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
           (visit(o.limit) if o.limit),
