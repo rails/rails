@@ -145,14 +145,12 @@ module Arel
       node_class.new self.ast, other.ast
     end
 
-    def intersect other = nil
-      node_class = Nodes::Intersect
-      node_class.new self.ast, other.ast
+    def intersect other
+      Nodes::Intersect.new ast, other.ast
     end
 
-    def except other = nil
-      node_class = Nodes::Except
-      node_class.new self.ast, other.ast
+    def except other
+      Nodes::Except.new ast, other.ast
     end
 
     def with *subqueries
