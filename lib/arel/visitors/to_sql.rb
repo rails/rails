@@ -151,11 +151,11 @@ eowarn
       end
 
       def visit_Arel_Nodes_With o
-				"WITH #{visit o.children}"
+				"WITH #{o.children.map { |x| visit x }.join(', ')}"
 			end
 
 			def visit_Arel_Nodes_WithRecursive o
-				"WITH RECURSIVE #{visit o.children}"
+				"WITH RECURSIVE #{o.children.map { |x| visit x }.join(', ')}"
 			end
 
 			def visit_Arel_Nodes_Union o
