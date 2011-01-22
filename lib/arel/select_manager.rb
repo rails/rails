@@ -135,7 +135,7 @@ module Arel
     end
 
     def union operation, other = nil
-      if operation.is_a? Symbol
+      if other
         node_class = Nodes.const_get("Union#{operation.to_s.capitalize}")
       else
         other = operation
