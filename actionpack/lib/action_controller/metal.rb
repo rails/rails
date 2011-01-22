@@ -133,7 +133,7 @@ module ActionController
     end
 
     def response_body=(val)
-      body = val.respond_to?(:each) ? val : [val]
+      body = val.nil? ? nil : (val.respond_to?(:each) ? val : [val])
       super body
     end
 
