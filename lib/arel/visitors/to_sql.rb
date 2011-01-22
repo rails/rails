@@ -48,7 +48,7 @@ module Arel
 (#{caller.first}) Using UpdateManager without setting UpdateManager#key is
 deprecated and support will be removed in ARel 3.0.0.  Please set the primary
 key on UpdateManager using UpdateManager#key=
-eowarn
+            eowarn
             key = o.relation.primary_key
           end
 
@@ -75,8 +75,8 @@ eowarn
           "INSERT INTO #{visit o.relation}",
 
           ("(#{o.columns.map { |x|
-                quote_column_name x.name
-            }.join ', '})" unless o.columns.empty?),
+          quote_column_name x.name
+        }.join ', '})" unless o.columns.empty?),
 
           (visit o.values if o.values),
         ].compact.join ' '
@@ -129,7 +129,7 @@ eowarn
 
       def visit_Arel_Nodes_SelectStatement o
         [
-        	(visit(o.with) if o.with),
+          (visit(o.with) if o.with),
           o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
           ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
           (visit(o.limit) if o.limit),
@@ -151,20 +151,20 @@ eowarn
       end
 
       def visit_Arel_Nodes_With o
-				"WITH #{o.children.map { |x| visit x }.join(', ')}"
-			end
+        "WITH #{o.children.map { |x| visit x }.join(', ')}"
+      end
 
-			def visit_Arel_Nodes_WithRecursive o
-				"WITH RECURSIVE #{o.children.map { |x| visit x }.join(', ')}"
-			end
+      def visit_Arel_Nodes_WithRecursive o
+        "WITH RECURSIVE #{o.children.map { |x| visit x }.join(', ')}"
+      end
 
-			def visit_Arel_Nodes_Union o
-				"( #{visit o.left} UNION #{visit o.right} )"
-			end
+      def visit_Arel_Nodes_Union o
+        "( #{visit o.left} UNION #{visit o.right} )"
+      end
 
-			def visit_Arel_Nodes_UnionAll o
-				"( #{visit o.left} UNION ALL #{visit o.right} )"
-			end
+      def visit_Arel_Nodes_UnionAll o
+        "( #{visit o.left} UNION ALL #{visit o.right} )"
+      end
 
       def visit_Arel_Nodes_Having o
         "HAVING #{visit o.expr}"
@@ -303,11 +303,11 @@ eowarn
       end
 
       def visit_Arel_Nodes_In o
-      "#{visit o.left} IN (#{visit o.right})"
+        "#{visit o.left} IN (#{visit o.right})"
       end
 
       def visit_Arel_Nodes_NotIn o
-      "#{visit o.left} NOT IN (#{visit o.right})"
+        "#{visit o.left} NOT IN (#{visit o.right})"
       end
 
       def visit_Arel_Nodes_And o

@@ -48,9 +48,9 @@ module Arel
 
   describe 'select manager' do
     def test_join_sources
-       manager = Arel::SelectManager.new Table.engine
-       manager.join_sources << Arel::Nodes::StringJoin.new('foo')
-       assert_equal "SELECT  FROM 'foo'", manager.to_sql
+      manager = Arel::SelectManager.new Table.engine
+      manager.join_sources << Arel::Nodes::StringJoin.new('foo')
+      assert_equal "SELECT  FROM 'foo'", manager.to_sql
     end
 
     describe 'backwards compatibility' do
@@ -179,41 +179,41 @@ module Arel
     end
 
     describe 'union' do
-    	before do
-				table = Table.new :users
-				@m1 = Arel::SelectManager.new Table.engine, table
-				@m1.project Arel.star
-				@m1.where(table[:age].lt(18))
+      before do
+        table = Table.new :users
+        @m1 = Arel::SelectManager.new Table.engine, table
+        @m1.project Arel.star
+        @m1.where(table[:age].lt(18))
 
-				@m2 = Arel::SelectManager.new Table.engine, table
-				@m2.project Arel.star
-				@m2.where(table[:age].gt(99))
+        @m2 = Arel::SelectManager.new Table.engine, table
+        @m2.project Arel.star
+        @m2.where(table[:age].gt(99))
 
 
-			end
+      end
 
-    	it 'should union two managers' do
-				# FIXME should this union "managers" or "statements" ?
-				# FIXME this probably shouldn't return a node
-				node = @m1.union @m2
+      it 'should union two managers' do
+        # FIXME should this union "managers" or "statements" ?
+        # FIXME this probably shouldn't return a node
+        node = @m1.union @m2
 
-				# maybe FIXME: decide when wrapper parens are needed
-				node.to_sql.must_be_like %{
-					( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION SELECT * FROM "users"  WHERE "users"."age" > 99 )
-				}
-			end
+        # maybe FIXME: decide when wrapper parens are needed
+        node.to_sql.must_be_like %{
+          ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION SELECT * FROM "users"  WHERE "users"."age" > 99 )
+        }
+      end
 
-			it 'should union all' do
-				node = @m1.union :all, @m2
+      it 'should union all' do
+        node = @m1.union :all, @m2
 
-				node.to_sql.must_be_like %{
-					( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users"  WHERE "users"."age" > 99 )
-				}
-			end
+        node.to_sql.must_be_like %{
+          ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users"  WHERE "users"."age" > 99 )
+        }
+      end
 
-		end
+    end
 
-		describe 'with' do
+    describe 'with' do
 
       it "should support WITH RECURSIVE" do
         comments           = Table.new(:comments)
@@ -249,7 +249,7 @@ module Arel
         }
       end
 
-		end
+    end
 
     describe 'ast' do
       it 'should return the ast' do
