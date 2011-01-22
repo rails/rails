@@ -1,4 +1,10 @@
 require 'erb'
+
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 require 'csv'
 require 'zlib'
