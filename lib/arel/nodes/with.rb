@@ -1,14 +1,7 @@
 module Arel
 	module Nodes
 		class With < Arel::Nodes::Unary
-			attr_reader :children
-			alias value children
-			alias expr  children
-
-			def initialize *children
-				@children = children
-			end
-
+			alias children expr
 		end
 
 		class WithRecursive < With; end

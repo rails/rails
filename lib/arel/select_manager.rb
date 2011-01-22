@@ -136,11 +136,7 @@ module Arel
 
     def union operation, other = nil
     	if operation.is_a? Symbol
-    		if operation === :all
-					node_class = Nodes::UnionAll
-				else
-					raise "Only supported UNION operation is :all"
-				end
+    		node_class = Nodes.const_get("Union#{operation.to_s.capitalize}")
 			else
 				other = operation
 				node_class = Nodes::Union
@@ -151,11 +147,7 @@ module Arel
 
     def with *subqueries
     	if subqueries.first.is_a? Symbol
-				if subqueries.shift == :recursive
-					node_class = Nodes::WithRecursive
-				else
-					raise "Only supported WITH modifier is :recursive"
-				end
+    		node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
 			else
 				node_class = Nodes::With
 			end
