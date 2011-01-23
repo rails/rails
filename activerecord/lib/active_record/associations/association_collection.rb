@@ -466,17 +466,14 @@ module ActiveRecord
           force ? record.save! : record.save(:validate => validate)
         end
 
-        def create_record(attrs, &block)
+        def create_record(attributes, &block)
           ensure_owner_is_persisted!
-
-          transaction do
-            scoped.scoping { build_record(attrs, &block) }
-          end
+          transaction { build_record(attributes, &block) }
         end
 
-        def build_record(attrs, &block)
-          attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
-          record = @reflection.build_association(attrs)
+        def build_record(attributes, &block)
+          attributes = scoped.scope_for_create.merge(attributes)
+          record = @reflection.build_association(attributes)
           add_record_to_target_with_callbacks(record, &block)
         end
 

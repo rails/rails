@@ -43,7 +43,7 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings
+           :people, :posts, :readers, :taggings, :cars
 
   def setup
     Client.destroyed_client_ids.clear
@@ -64,6 +64,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create(:name => 'exotic')
     assert_equal 'exotic', bulb.name
+  end
+
+  # When creating objects on the association, we must not do it within a scope (even though it
+  # would be convenient), because this would cause that scope to be applied to any callbacks etc.
+  def test_build_and_create_should_not_happen_within_scope
+    car = cars(:honda)
+    original_scoped_methods = Bulb.scoped_methods
+
+    bulb = car.bulbs.build
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = car.bulbs.create
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = car.bulbs.create!
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
   end
 
   def test_no_sql_should_be_fired_if_association_already_loaded

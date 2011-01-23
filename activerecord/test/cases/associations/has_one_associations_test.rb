@@ -4,6 +4,7 @@ require 'models/project'
 require 'models/company'
 require 'models/ship'
 require 'models/pirate'
+require 'models/bulb'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false unless supports_savepoints?
@@ -165,6 +166,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     account = firm.build_account("credit_limit" => 1000)
     assert account.save
     assert_equal account, firm.account
+  end
+
+  def test_build_and_create_should_not_happen_within_scope
+    pirate = pirates(:blackbeard)
+    original_scoped_methods = Bulb.scoped_methods.dup
+
+    bulb = pirate.build_bulb
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = pirate.create_bulb
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = pirate.create_bulb!
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
   end
 
   def test_create_association
