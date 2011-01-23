@@ -95,6 +95,26 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_cookie_with_domain_and_tld
+      cookies[:user_name] = {:value => "rizwanreza", :domain => :all, :tld_length => 2}
+      head :ok
+    end
+
+    def delete_cookie_with_domain_and_tld
+      cookies.delete(:user_name, :domain => :all, :tld_length => 2)
+      head :ok
+    end
+
+    def set_cookie_with_domains
+      cookies[:user_name] = {:value => "rizwanreza", :domain => %w(example1.com example2.com .example3.com)}
+      head :ok
+    end
+
+    def delete_cookie_with_domains
+      cookies.delete(:user_name, :domain => %w(example1.com example2.com .example3.com))
+      head :ok
+    end
+
     def symbol_key
       cookies[:user_name] = "david"
       head :ok
@@ -320,6 +340,67 @@ class CookiesTest < ActionController::TestCase
     get :delete_cookie_with_domain
     assert_response :success
     assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+  end
+
+  def test_cookie_with_all_domain_option_and_tld_length
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_a_non_standard_tld_and_tld_length
+    @request.host = "two.subdomains.nextangle.local"
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+  end
+
+  def test_cookie_with_all_domain_option_using_host_with_port_and_tld_length
+    @request.host = "nextangle.local:3000"
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+  end
+
+  def test_deleting_cookie_with_all_domain_option_and_tld_length
+    get :delete_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+  end
+
+  def test_cookie_with_several_preset_domains_using_one_of_these_domains
+    @request.host = "example1.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/"
+  end
+
+  def test_cookie_with_several_preset_domains_using_other_domain
+    @request.host = "other-domain.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/"
+  end
+
+  def test_cookie_with_several_preset_domains_using_shared_domain
+    @request.host = "example3.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.example3.com; path=/"
+  end
+
+  def test_deletings_cookie_with_several_preset_domains_using_one_of_these_domains
+    @request.host = "example2.com"
+    get :delete_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=; domain=example2.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+  end
+
+  def test_deletings_cookie_with_several_preset_domains_using_other_domain
+    @request.host = "other-domain.com"
+    get :delete_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
   def test_cookies_hash_is_indifferent_access

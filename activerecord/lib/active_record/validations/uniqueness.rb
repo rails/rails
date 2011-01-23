@@ -85,11 +85,16 @@ module ActiveRecord
       # can be named "davidhh".
       #
       #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #     validates_uniqueness_of :user_name
       #   end
       #
-      # It can also validate whether the value of the specified attributes are unique based on multiple
-      # scope parameters.  For example, making sure that a teacher can only be on the schedule once
+      # It can also validate whether the value of the specified attributes are unique based on a scope parameter:
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #   end 
+      #
+      # Or even multiple scope parameters.  For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
       #
       #   class TeacherSchedule < ActiveRecord::Base

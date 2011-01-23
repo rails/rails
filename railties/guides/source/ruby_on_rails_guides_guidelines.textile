@@ -62,7 +62,13 @@ To force process of all the guides, pass +ALL=1+.
 
 It is also recommended that you work with +WARNINGS=1+, this detects duplicate IDs and warns about broken internal links.
 
-h3. HTML validation
+If you want to generate guides in languages other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +LANGUAGE+ environment variable.
+
+<plain>
+rake generate_guides LANGUAGE=es
+</plain>
+
+h3. HTML Validation
 
 Please do validate the generated HTML with
 

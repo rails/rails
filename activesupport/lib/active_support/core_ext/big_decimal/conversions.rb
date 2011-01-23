@@ -1,4 +1,10 @@
 require 'bigdecimal'
+
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 
 class BigDecimal
@@ -12,10 +18,17 @@ class BigDecimal
   #
   # Note that reconstituting YAML floats to native floats may lose precision.
   def to_yaml(opts = {})
+    return super if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+
     YAML.quick_emit(nil, opts) do |out|
       string = to_s
       out.scalar(YAML_TAG, YAML_MAPPING[string] || string, :plain)
     end
+  end
+
+  def encode_with(coder)
+    string = to_s
+    coder.represent_scalar(nil, YAML_MAPPING[string] || string)
   end
 
   def to_d

@@ -20,8 +20,8 @@ module ActiveSupport
             json = json.read
           end
           YAML.load(convert_json_to_yaml(json))
-        rescue *EXCEPTIONS
-          raise ParseError, "Invalid JSON string"
+        rescue *EXCEPTIONS => e
+          raise ParseError, "Invalid JSON string: '%s'" % json
         end
 
         protected
@@ -39,7 +39,7 @@ module ActiveSupport
                   if json[pos..scanner.pos-2] =~ DATE_REGEX
                     # found a date, track the exact positions of the quotes so we can
                     # overwrite them with spaces later.
-                    times << pos << scanner.pos
+                    times << pos
                   end
                   quoting = false
                 end
@@ -70,7 +70,7 @@ module ActiveSupport
                 chunk = scanner.peek(right_pos[i] - scanner.pos + 1)
                 # overwrite the quotes found around the dates with spaces
                 while times.size > 0 && times[0] <= right_pos[i]
-                  chunk[times.shift - scanner.pos - 1] = ' '
+                  chunk.insert(times.shift - scanner.pos - 1, '! ')
                 end
                 chunk.gsub!(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                   ustr = $1

@@ -13,14 +13,18 @@ module ActiveModel
       #
       # Activates the observers assigned. Examples:
       #
+      #   class ORM
+      #     include ActiveModel::Observing
+      #   end
+      #
       #   # Calls PersonObserver.instance
-      #   ActiveRecord::Base.observers = :person_observer
+      #   ORM.observers = :person_observer
       #
       #   # Calls Cacher.instance and GarbageCollector.instance
-      #   ActiveRecord::Base.observers = :cacher, :garbage_collector
+      #   ORM.observers = :cacher, :garbage_collector
       #
       #   # Same as above, just using explicit class references
-      #   ActiveRecord::Base.observers = Cacher, GarbageCollector
+      #   ORM.observers = Cacher, GarbageCollector
       #
       # Note: Setting this does not instantiate the observers yet.
       # +instantiate_observers+ is called during startup, and before
