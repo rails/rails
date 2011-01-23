@@ -737,15 +737,11 @@ GET /clients/1.pdf
 
 h3. Parameter Filtering
 
-Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The +filter_parameter_logging+ method can be used to filter out sensitive information from the log. It works by replacing certain values in the +params+ hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":
+Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to <tt>config.filter_parameters</tt> in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 <ruby>
-class ApplicationController < ActionController::Base
-  filter_parameter_logging :password
-end
+config.filter_parameters << :password
 </ruby>
-
-The method works recursively through all levels of the +params+ hash and takes an optional second parameter which is used as the replacement string if present. It can also take a block which receives each key in turn and replaces those for which the block returns true.
 
 h3. Rescue
 
