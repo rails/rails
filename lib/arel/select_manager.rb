@@ -152,6 +152,7 @@ module Arel
     def except other
       Nodes::Except.new ast, other.ast
     end
+    alias :minus :except
 
     def with *subqueries
       if subqueries.first.is_a? Symbol

@@ -61,6 +61,10 @@ module Arel
         "raw_rnum_ > #{visit o.expr}"
       end
 
+      def visit_Arel_Nodes_Except o
+        "( #{visit o.left} MINUS #{visit o.right} )"
+      end
+
       ###
       # Hacks for the order clauses specific to Oracle
       def order_hacks o
