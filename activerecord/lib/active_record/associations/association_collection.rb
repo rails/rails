@@ -125,9 +125,9 @@ module ActiveRecord
       # Calculate sum using SQL, not Enumerable
       def sum(*args)
         if block_given?
-          calculate(:sum, *args) { |*block_args| yield(*block_args) }
+          scoped.sum(*args) { |*block_args| yield(*block_args) }
         else
-          calculate(:sum, *args)
+          scoped.sum(*args)
         end
       end
 
