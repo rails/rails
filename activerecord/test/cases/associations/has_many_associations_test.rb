@@ -662,8 +662,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_delete_all
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    assert_equal 2, companies(:first_firm).clients_of_firm.size
-    companies(:first_firm).clients_of_firm.delete_all
+    clients = companies(:first_firm).clients_of_firm.to_a
+    assert_equal 2, clients.count
+    deleted = companies(:first_firm).clients_of_firm.delete_all
+    assert_equal clients.sort_by(&:id), deleted.sort_by(&:id)
     assert_equal 0, companies(:first_firm).clients_of_firm.size
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
@@ -683,11 +685,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_id = firm.clients_of_firm.first.id
     assert_equal 1, firm.clients_of_firm.size
 
-    firm.clients_of_firm.clear
+    cleared = firm.clients_of_firm.clear
 
     assert_equal 0, firm.clients_of_firm.size
     assert_equal 0, firm.clients_of_firm(true).size
     assert_equal [], Client.destroyed_client_ids[firm.id]
+    assert_equal firm.clients_of_firm.object_id, cleared.object_id
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do

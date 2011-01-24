@@ -112,6 +112,13 @@ module ActiveRecord
         end
       end
 
+      # Identical to delete_all, except that the return value is the association (for chaining)
+      # rather than the records which have been removed.
+      def clear
+        delete_all
+        self
+      end
+
       # Destroy all the records from this association.
       #
       # See destroy for more info.
@@ -189,19 +196,6 @@ module ActiveRecord
         end
 
         load_target
-      end
-
-      # Removes all records from this association.  Returns +self+ so method calls may be chained.
-      def clear
-        unless length.zero? # forces load_target if it hasn't happened already
-          if @reflection.options[:dependent] == :destroy
-            destroy_all
-          else
-            delete_all
-          end
-        end
-
-        self
       end
 
       def create(attrs = {})
