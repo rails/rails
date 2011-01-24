@@ -30,13 +30,6 @@ module ActiveRecord
       end
 
       protected
-        def target_reflection_has_associated_record?
-          if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.foreign_key].blank?
-            false
-          else
-            true
-          end
-        end
 
         def insert_record(record, force = true, validate = true)
           if record.new_record?
@@ -45,6 +38,16 @@ module ActiveRecord
 
           through_association = @owner.send(@reflection.through_reflection.name)
           through_association.create!(construct_join_attributes(record))
+        end
+
+      private
+
+        def target_reflection_has_associated_record?
+          if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.foreign_key].blank?
+            false
+          else
+            true
+          end
         end
 
         # TODO - add dependent option support

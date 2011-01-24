@@ -7,6 +7,14 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
       protected
+
+        def insert_record(record, force = false, validate = true)
+          set_owner_attributes(record)
+          save_record(record, force, validate)
+        end
+
+      private
+
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
@@ -43,11 +51,6 @@ module ActiveRecord
 
         def cached_counter_attribute_name
           "#{@reflection.name}_count"
-        end
-
-        def insert_record(record, force = false, validate = true)
-          set_owner_attributes(record)
-          save_record(record, force, validate)
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.

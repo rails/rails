@@ -84,6 +84,16 @@ module ActiveRecord
         super || (load_target && @target.respond_to?(*args))
       end
 
+      # Forwards any missing method call to the \target.
+      def method_missing(method, *args, &block)
+        if load_target
+          return super unless @target.respond_to?(method)
+          @target.send(method, *args, &block)
+        end
+      rescue NoMethodError => e
+        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@target}")
+      end
+
       # Forwards <tt>===</tt> explicitly to the \target because the instance method
       # removal above doesn't catch it. Loads the \target if needed.
       def ===(other)
@@ -167,14 +177,6 @@ module ActiveRecord
       end
 
       protected
-        def interpolate_sql(sql, record = nil)
-          @owner.send(:interpolate_sql, sql, record)
-        end
-
-        # Forwards the call to the reflection class.
-        def sanitize_sql(sql, table_name = @reflection.klass.table_name)
-          @reflection.klass.send(:sanitize_sql, sql, table_name)
-        end
 
         # Construct the scope for this association.
         #
@@ -190,17 +192,10 @@ module ActiveRecord
           scope = target_klass.unscoped
           scope = scope.create_with(creation_attributes)
           scope = scope.apply_finder_options(@reflection.options.slice(:conditions, :readonly, :include))
-          scope = scope.select(select_value) if select_value = self.select_value
+          if select = select_value
+            scope = scope.select(select)
+          end
           scope.where(construct_owner_conditions)
-        end
-
-        def select_value
-          @reflection.options[:select]
-        end
-
-        # Implemented by (some) subclasses
-        def creation_attributes
-          { }
         end
 
         def aliased_table
@@ -225,6 +220,47 @@ module ActiveRecord
         # through association's scope)
         def target_scope
           target_klass.scoped
+        end
+
+        # Loads the \target if needed and returns it.
+        #
+        # This method is abstract in the sense that it relies on +find_target+,
+        # which is expected to be provided by descendants.
+        #
+        # If the \target is already \loaded it is just returned. Thus, you can call
+        # +load_target+ unconditionally to get the \target.
+        #
+        # ActiveRecord::RecordNotFound is rescued within the method, and it is
+        # not reraised. The proxy is \reset and +nil+ is the return value.
+        def load_target
+          if !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
+            @target = find_target
+          end
+
+          loaded
+          @target
+        rescue ActiveRecord::RecordNotFound
+          reset
+        end
+
+      private
+
+        def interpolate_sql(sql, record = nil)
+          @owner.send(:interpolate_sql, sql, record)
+        end
+
+        # Forwards the call to the reflection class.
+        def sanitize_sql(sql, table_name = @reflection.klass.table_name)
+          @reflection.klass.send(:sanitize_sql, sql, table_name)
+        end
+
+        def select_value
+          @reflection.options[:select]
+        end
+
+        # Implemented by (some) subclasses
+        def creation_attributes
+          { }
         end
 
         # Returns a hash linking the owner to the association represented by the reflection
@@ -255,39 +291,6 @@ module ActiveRecord
           if @owner.persisted?
             construct_owner_attributes.each { |key, value| record[key] = value }
           end
-        end
-
-        # Loads the \target if needed and returns it.
-        #
-        # This method is abstract in the sense that it relies on +find_target+,
-        # which is expected to be provided by descendants.
-        #
-        # If the \target is already \loaded it is just returned. Thus, you can call
-        # +load_target+ unconditionally to get the \target.
-        #
-        # ActiveRecord::RecordNotFound is rescued within the method, and it is
-        # not reraised. The proxy is \reset and +nil+ is the return value.
-        def load_target
-          if !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
-            @target = find_target
-          end
-
-          loaded
-          @target
-        rescue ActiveRecord::RecordNotFound
-          reset
-        end
-
-      private
-
-        # Forwards any missing method call to the \target.
-        def method_missing(method, *args, &block)
-          if load_target
-            return super unless @target.respond_to?(method)
-            @target.send(method, *args, &block)
-          end
-        rescue NoMethodError => e
-          raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@target}")
         end
 
         # Should be true if there is a foreign key present on the @owner which

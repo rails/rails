@@ -12,10 +12,6 @@ module ActiveRecord
 
       protected
 
-        def count_records
-          load_target.size
-        end
-
         def insert_record(record, force = true, validate = true)
           if record.new_record?
             return false unless save_record(record, force, validate)
@@ -33,6 +29,16 @@ module ActiveRecord
           end
 
           true
+        end
+
+        def association_scope
+          super.joins(construct_joins)
+        end
+
+      private
+
+        def count_records
+          load_target.size
         end
 
         def delete_records(records)
@@ -61,15 +67,10 @@ module ActiveRecord
           super(join_table)
         end
 
-        def association_scope
-          super.joins(construct_joins)
-        end
-
         def select_value
           super || @reflection.klass.arel_table[Arel.star]
         end
 
-      private
         def invertible_for?(record)
           false
         end

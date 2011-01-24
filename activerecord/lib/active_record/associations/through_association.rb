@@ -3,6 +3,13 @@ module ActiveRecord
   module Associations
     module ThroughAssociation
 
+      def conditions
+        @conditions = build_conditions unless defined?(@conditions)
+        @conditions
+      end
+
+      alias_method :sql_conditions, :conditions
+
       protected
 
       def target_scope
@@ -16,6 +23,8 @@ module ActiveRecord
         end
         scope
       end
+
+      private
 
       # This scope affects the creation of the associated records (not the join records). At the
       # moment we only support creating on a :through association when the source reflection is a
@@ -92,11 +101,6 @@ module ActiveRecord
         join_attributes
       end
 
-      def conditions
-        @conditions = build_conditions unless defined?(@conditions)
-        @conditions
-      end
-
       def build_conditions
         through_conditions = build_through_conditions
         source_conditions = @reflection.source_reflection.options[:conditions]
@@ -126,8 +130,6 @@ module ActiveRecord
       def build_sti_condition
         @reflection.through_reflection.klass.send(:type_condition).to_sql
       end
-
-      alias_method :sql_conditions, :conditions
 
       def stale_state
         if @reflection.through_reflection.macro == :belongs_to

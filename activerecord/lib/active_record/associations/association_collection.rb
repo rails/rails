@@ -333,19 +333,29 @@ module ActiveRecord
         super || @reflection.klass.respond_to?(method, include_private)
       end
 
+      def method_missing(method, *args, &block)
+        match = DynamicFinderMatch.match(method)
+        if match && match.creator?
+          attributes = match.attribute_names
+          return send(:"find_by_#{attributes.join('_and_')}", *args) || create(Hash[attributes.zip(args)])
+        end
+
+        if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
+          super
+        elsif @reflection.klass.scopes[method]
+          @_scopes_cache ||= {}
+          @_scopes_cache[method] ||= {}
+          @_scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
+        else
+          scoped.readonly(nil).send(method, *args, &block)
+        end
+      end
+
       protected
 
         def association_scope
           options = @reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
           super.apply_finder_options(options)
-        end
-
-        def select_value
-          super || uniq_select_value
-        end
-
-        def uniq_select_value
-          @reflection.options[:uniq] && "DISTINCT #{@reflection.quoted_table_name}.*"
         end
 
         def load_target
@@ -365,22 +375,28 @@ module ActiveRecord
           target
         end
 
-        def method_missing(method, *args, &block)
-          match = DynamicFinderMatch.match(method)
-          if match && match.creator?
-            attributes = match.attribute_names
-            return send(:"find_by_#{attributes.join('_and_')}", *args) || create(Hash[attributes.zip(args)])
-          end
-
-          if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            super
-          elsif @reflection.klass.scopes[method]
-            @_scopes_cache ||= {}
-            @_scopes_cache[method] ||= {}
-            @_scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
+        def add_record_to_target_with_callbacks(record)
+          callback(:before_add, record)
+          yield(record) if block_given?
+          @target ||= [] unless loaded?
+          if @reflection.options[:uniq] && index = @target.index(record)
+            @target[index] = record
           else
-            scoped.readonly(nil).send(method, *args, &block)
+            @target << record
           end
+          callback(:after_add, record)
+          set_inverse_instance(record)
+          record
+        end
+
+      private
+
+        def select_value
+          super || uniq_select_value
+        end
+
+        def uniq_select_value
+          @reflection.options[:uniq] && "DISTINCT #{@reflection.quoted_table_name}.*"
         end
 
         def custom_counter_sql
@@ -419,21 +435,6 @@ module ActiveRecord
           records
         end
 
-        def add_record_to_target_with_callbacks(record)
-          callback(:before_add, record)
-          yield(record) if block_given?
-          @target ||= [] unless loaded?
-          if @reflection.options[:uniq] && index = @target.index(record)
-            @target[index] = record
-          else
-            @target << record
-          end
-          callback(:after_add, record)
-          set_inverse_instance(record)
-          record
-        end
-
-      private
         def merge_target_lists(loaded, existing)
           return loaded if existing.empty?
           return existing if loaded.empty?
