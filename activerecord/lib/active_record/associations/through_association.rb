@@ -3,13 +3,6 @@ module ActiveRecord
   module Associations
     module ThroughAssociation
 
-      def conditions
-        @conditions = build_conditions unless defined?(@conditions)
-        @conditions
-      end
-
-      alias_method :sql_conditions, :conditions
-
       protected
 
         def target_scope
@@ -17,7 +10,8 @@ module ActiveRecord
         end
 
         def association_scope
-          scope = super.joins(construct_joins).where(conditions)
+          scope = super.joins(construct_joins)
+          scope = add_conditions(scope)
           unless @reflection.options[:include]
             scope = scope.includes(@reflection.source_reflection.options[:include])
           end
@@ -101,34 +95,35 @@ module ActiveRecord
           join_attributes
         end
 
-        def build_conditions
-          through_conditions = build_through_conditions
-          source_conditions = @reflection.source_reflection.options[:conditions]
-          uses_sti = !@reflection.through_reflection.klass.descends_from_active_record?
-
-          if through_conditions || source_conditions || uses_sti
-            all = []
-            all << interpolate_sql(sanitize_sql(source_conditions)) if source_conditions
-            all << through_conditions  if through_conditions
-            all << build_sti_condition if uses_sti
-
-            all.map { |sql| "(#{sql})" } * ' AND '
+        # The reason that we are operating directly on the scope here (rather than passing
+        # back some arel conditions to be added to the scope) is because scope.where([x, y])
+        # has a different meaning to scope.where(x).where(y) - the first version might
+        # perform some substitution if x is a string.
+        def add_conditions(scope)
+          unless @reflection.through_reflection.klass.descends_from_active_record?
+            scope = scope.where(@reflection.through_reflection.klass.send(:type_condition))
           end
+
+          scope = scope.where(@reflection.source_reflection.options[:conditions])
+          scope.where(through_conditions)
         end
 
-        def build_through_conditions
+        # If there is a hash of conditions then we make sure the keys are scoped to the
+        # through table name if left ambiguous.
+        def through_conditions
           conditions = @reflection.through_reflection.options[:conditions]
-          if conditions.is_a?(Hash)
-            interpolate_sql(@reflection.through_reflection.klass.send(:sanitize_sql, conditions)).gsub(
-              @reflection.quoted_table_name,
-              @reflection.through_reflection.quoted_table_name)
-          elsif conditions
-            interpolate_sql(sanitize_sql(conditions))
-          end
-        end
 
-        def build_sti_condition
-          @reflection.through_reflection.klass.send(:type_condition).to_sql
+          if conditions.is_a?(Hash)
+            Hash[conditions.map { |key, value|
+              unless value.is_a?(Hash) || key.to_s.include?('.')
+                key = aliased_through_table.name + '.' + key.to_s
+              end
+
+              [key, value]
+            }]
+          else
+            conditions
+          end
         end
 
         def stale_state
