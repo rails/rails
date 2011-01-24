@@ -371,7 +371,7 @@ module ActiveRecord
             @target = merge_target_lists(targets, @target)
           end
 
-          loaded
+          loaded!
           target
         end
 

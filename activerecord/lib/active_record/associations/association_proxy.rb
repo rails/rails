@@ -128,7 +128,7 @@ module ActiveRecord
       end
 
       # Asserts the \target has been loaded setting the \loaded flag to +true+.
-      def loaded
+      def loaded!
         @loaded      = true
         @stale_state = stale_state
       end
@@ -152,7 +152,7 @@ module ActiveRecord
       # Sets the target of this proxy to <tt>\target</tt>, and the \loaded flag to +true+.
       def target=(target)
         @target = target
-        loaded
+        loaded!
       end
 
       # Forwards the call to the target. Loads the \target if needed.
@@ -227,7 +227,7 @@ module ActiveRecord
         # not reraised. The proxy is \reset and +nil+ is the return value.
         def load_target
           @target = find_target if find_target?
-          loaded
+          loaded!
           target
         rescue ActiveRecord::RecordNotFound
           reset

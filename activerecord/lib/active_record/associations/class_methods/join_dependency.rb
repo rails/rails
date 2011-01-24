@@ -210,7 +210,7 @@ module ActiveRecord
             case macro
             when :has_many, :has_and_belongs_to_many
               collection = record.send(join_part.reflection.name)
-              collection.loaded
+              collection.loaded!
               collection.target.push(association)
               collection.send(:set_inverse_instance, association)
             when :belongs_to

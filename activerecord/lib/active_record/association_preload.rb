@@ -125,7 +125,7 @@ module ActiveRecord
       def add_preloaded_records_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
           association_proxy = parent_record.send(reflection_name)
-          association_proxy.loaded
+          association_proxy.loaded!
           association_proxy.target.concat(Array.wrap(associated_record))
           association_proxy.send(:set_inverse_instance, associated_record)
         end
@@ -187,7 +187,7 @@ module ActiveRecord
 
         id_to_record_map = construct_id_map(records)
 
-        records.each {|record| record.send(reflection.name).loaded}
+        records.each { |record| record.send(reflection.name).loaded! }
         options = reflection.options
 
         right = Arel::Table.new(options[:join_table]).alias('t0')
@@ -268,7 +268,7 @@ module ActiveRecord
 
         foreign_key = reflection.through_reflection_foreign_key
         id_to_record_map = construct_id_map(records, foreign_key || reflection.options[:primary_key])
-        records.each {|record| record.send(reflection.name).loaded}
+        records.each { |record| record.send(reflection.name).loaded! }
 
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])

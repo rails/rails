@@ -368,7 +368,7 @@ module ActiveRecord
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
             self[reflection.foreign_key] = association_id
-            association.loaded
+            association.loaded!
           end
 
           saved if autosave
