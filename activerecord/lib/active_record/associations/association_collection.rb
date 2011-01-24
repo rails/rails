@@ -146,7 +146,7 @@ module ActiveRecord
         else
           if @reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-            column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" unless column_name
+            column_name ||= @reflection.klass.primary_key
             options.merge!(:distinct => true)
           end
 
