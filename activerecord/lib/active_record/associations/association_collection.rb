@@ -553,9 +553,8 @@ module ActiveRecord
           if fetch_first_or_last_using_find?(args)
             scoped.send(type, *args)
           else
-            load_target unless loaded?
             args.shift if args.first.kind_of?(Hash) && args.first.empty?
-            @target.send(type, *args)
+            load_target.send(type, *args)
           end
         end
     end
