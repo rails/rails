@@ -85,8 +85,10 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
-    scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where('projects.id = 2').all
+    scoped_developers = ActiveSupport::Deprecation.silence do
+      Developer.includes(:projects).scoping do
+        Developer.where('projects.id = 2').all
+      end
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
@@ -351,7 +353,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_called_twice_merges_conditions
-    Developer.destroy_all
+    ActiveSupport::Deprecation.silence { Developer.destroy_all }
     Developer.create!(:name => "David", :salary => 80000)
     Developer.create!(:name => "David", :salary => 100000)
     Developer.create!(:name => "Brian", :salary => 100000)
@@ -365,7 +367,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_called_twice_in_different_place_merges_where_clause
-    Developer.destroy_all
+    ActiveSupport::Deprecation.silence { Developer.destroy_all }
     Developer.create!(:name => "David", :salary => 80000)
     Developer.create!(:name => "David", :salary => 100000)
     Developer.create!(:name => "Brian", :salary => 100000)

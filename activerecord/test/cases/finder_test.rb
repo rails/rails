@@ -119,8 +119,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_scoped_include
-    Developer.send(:with_scope, :find => { :include => :projects, :order => "projects.name" }) do
-      assert Developer.exists?
+    ActiveSupport::Deprecation.silence do
+      Developer.send(:with_scope, :find => { :include => :projects, :order => "projects.name" }) do
+        assert Developer.exists?
+      end
     end
   end
 

@@ -8,6 +8,16 @@ require 'models/company_in_module'
 class AssociationsExtensionsTest < ActiveRecord::TestCase
   fixtures :projects, :developers, :developers_projects, :comments, :posts
 
+  # Silence deprecation warnings to avoid the warning about attributes on the join table, which
+  # would otherwise appear in most of these tests.
+  def setup
+    ActiveSupport::Deprecation.silenced = true
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.silenced = false
+  end
+
   def test_extension_on_has_many
     assert_equal comments(:more_greetings), posts(:welcome).comments.find_most_recent
   end

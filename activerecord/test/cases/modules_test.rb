@@ -34,8 +34,10 @@ class ModulesTest < ActiveRecord::TestCase
 
   def test_module_spanning_has_and_belongs_to_many_associations
     project = MyApplication::Business::Project.find(:first)
-    project.developers << MyApplication::Business::Developer.create("name" => "John")
-    assert_equal "John", project.developers.last.name
+    ActiveSupport::Deprecation.silence do
+      project.developers << MyApplication::Business::Developer.create("name" => "John")
+      assert_equal "John", project.developers.last.name
+    end
   end
 
   def test_associations_spanning_cross_modules

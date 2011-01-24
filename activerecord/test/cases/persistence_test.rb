@@ -421,7 +421,7 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_destroyed_returns_boolean
     developer = Developer.first
     assert_equal false, developer.destroyed?
-    developer.destroy
+    ActiveSupport::Deprecation.silence { developer.destroy }
     assert_equal true, developer.destroyed?
 
     developer = Developer.last
@@ -438,7 +438,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
     developer = Developer.first
     assert_equal true, developer.persisted?
-    developer.destroy
+    ActiveSupport::Deprecation.silence { developer.destroy }
     assert_equal false, developer.persisted?
 
     developer = Developer.last

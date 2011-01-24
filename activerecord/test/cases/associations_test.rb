@@ -188,9 +188,11 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_save_on_parent_does_not_load_target
     david = developers(:david)
 
-    assert !david.projects.loaded?
-    david.update_attribute(:created_at, Time.now)
-    assert !david.projects.loaded?
+    ActiveSupport::Deprecation.silence do
+      assert !david.projects.loaded?
+      david.update_attribute(:created_at, Time.now)
+      assert !david.projects.loaded?
+    end
   end
 
   def test_inspect_does_not_reload_a_not_yet_loaded_target
@@ -229,7 +231,9 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_reload_returns_assocition
     david = developers(:david)
     assert_nothing_raised do
-      assert_equal david.projects, david.projects.reload.reload
+      ActiveSupport::Deprecation.silence do
+        assert_equal david.projects, david.projects.reload.reload
+      end
     end
   end
 
