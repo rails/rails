@@ -22,8 +22,7 @@ module ActiveRecord
 
       def select(select = nil)
         if block_given?
-          load_target
-          @target.select.each { |e| yield e }
+          load_target.select.each { |e| yield e }
         else
           scoped.select(select)
         end
