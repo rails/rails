@@ -257,7 +257,7 @@ module ActiveRecord
 
       def any?
         if block_given?
-          method_missing(:any?) { |*block_args| yield(*block_args) }
+          load_target.any? { |*block_args| yield(*block_args) }
         else
           !empty?
         end
@@ -266,7 +266,7 @@ module ActiveRecord
       # Returns true if the collection has more than 1 record. Equivalent to collection.size > 1.
       def many?
         if block_given?
-          method_missing(:many?) { |*block_args| yield(*block_args) }
+          load_target.many? { |*block_args| yield(*block_args) }
         else
           size > 1
         end
