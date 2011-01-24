@@ -32,7 +32,7 @@ module ActiveRecord
         if @reflection.options[:finder_sql]
           find_by_scan(*args)
         else
-          find_by_sql(*args)
+          scoped.find(*args)
         end
       end
 
@@ -559,10 +559,6 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id) }
           end
-        end
-
-        def find_by_sql(*args)
-          scoped.find(*args)
         end
     end
   end
