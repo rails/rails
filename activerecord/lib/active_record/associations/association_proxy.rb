@@ -226,17 +226,18 @@ module ActiveRecord
         # ActiveRecord::RecordNotFound is rescued within the method, and it is
         # not reraised. The proxy is \reset and +nil+ is the return value.
         def load_target
-          if !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
-            @target = find_target
-          end
-
+          @target = find_target if find_target?
           loaded
-          @target
+          target
         rescue ActiveRecord::RecordNotFound
           reset
         end
 
       private
+
+        def find_target?
+          !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
+        end
 
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)

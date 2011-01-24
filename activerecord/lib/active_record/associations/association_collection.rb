@@ -359,7 +359,7 @@ module ActiveRecord
         end
 
         def load_target
-          if (!@owner.new_record? || foreign_key_present?) && !loaded?
+          if find_target?
             targets = []
 
             begin
