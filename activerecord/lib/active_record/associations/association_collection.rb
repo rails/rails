@@ -45,7 +45,7 @@ module ActiveRecord
       end
 
       def to_ary
-        load_target
+        load_target.dup
       end
       alias_method :to_a, :to_ary
 
@@ -289,13 +289,13 @@ module ActiveRecord
       # This will perform a diff and delete/add only records that have changed.
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch(val) }
-
-        load_target
+        original_target = load_target.dup
 
         transaction do
           delete(@target - other_array)
 
           unless concat(other_array - @target)
+            @target = original_target
             raise RecordNotSaved, "Failed to replace #{@reflection.name} because one or more of the "
                                   "new records could not be saved."
           end

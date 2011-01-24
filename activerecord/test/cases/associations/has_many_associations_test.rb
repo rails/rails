@@ -1349,4 +1349,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal reply.id, first.id
     assert_equal true, first.approved?
   end
+
+  def test_to_a_should_dup_target
+    ary    = topics(:first).replies.to_a
+    target = topics(:first).replies.target
+
+    assert_not_equal target.object_id, ary.object_id
+  end
 end
