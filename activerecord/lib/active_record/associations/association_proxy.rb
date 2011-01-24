@@ -108,13 +108,6 @@ module ActiveRecord
         @reflection.klass.table_name
       end
 
-      # Returns the SQL string that corresponds to the <tt>:conditions</tt>
-      # option of the macro, if given, or +nil+ otherwise.
-      def conditions
-        @conditions ||= interpolate_sql(@reflection.sanitized_conditions) if @reflection.sanitized_conditions
-      end
-      alias :sql_conditions :conditions
-
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
@@ -247,11 +240,6 @@ module ActiveRecord
 
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
-        end
-
-        # Forwards the call to the reflection class.
-        def sanitize_sql(sql, table_name = @reflection.klass.table_name)
-          @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
         def select_value
