@@ -86,9 +86,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Car.create(:name => 'honda')
     bulbs = Car.first.bulbs
     bulbs.inspect # to load all instances of bulbs
+
     assert_no_queries do
       bulbs.first()
       bulbs.first({})
+    end
+
+    assert_no_queries do
+      bulbs.last()
+      bulbs.last({})
     end
   end
 

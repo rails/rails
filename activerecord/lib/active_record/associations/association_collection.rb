@@ -36,25 +36,12 @@ module ActiveRecord
         end
       end
 
-      # Fetches the first one using SQL if possible.
       def first(*args)
-        if fetch_first_or_last_using_find?(args)
-          scoped.first(*args)
-        else
-          load_target unless loaded?
-          args.shift if args.first.kind_of?(Hash) && args.first.empty?
-          @target.first(*args)
-        end
+        first_or_last(:first, *args)
       end
 
-      # Fetches the last one using SQL if possible.
       def last(*args)
-        if fetch_first_or_last_using_find?(args)
-          scoped.last(*args)
-        else
-          load_target unless loaded?
-          @target.last(*args)
-        end
+        first_or_last(:last, *args)
       end
 
       def to_ary
@@ -558,6 +545,17 @@ module ActiveRecord
             expects_array ? [ record ] : record
           else
             load_target.select { |r| ids.include?(r.id) }
+          end
+        end
+
+        # Fetches the first/last using SQL if possible, otherwise from the target array.
+        def first_or_last(type, *args)
+          if fetch_first_or_last_using_find?(args)
+            scoped.send(type, *args)
+          else
+            load_target unless loaded?
+            args.shift if args.first.kind_of?(Hash) && args.first.empty?
+            @target.send(type, *args)
           end
         end
     end
