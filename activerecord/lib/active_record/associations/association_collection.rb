@@ -513,9 +513,27 @@ module ActiveRecord
           end
         end
 
+        # Should we deal with assoc.first or assoc.last by issuing an independent query to
+        # the database, or by getting the target, and then taking the first/last item from that?
+        #
+        # If the args is just a non-empty options hash, go to the database.
+        #
+        # Otherwise, go to the database only if none of the following are true:
+        #   * target already loaded
+        #   * owner is new record
+        #   * custom :finder_sql exists
+        #   * target contains new or changed record(s)
+        #   * the first arg is an integer (which indicates the number of records to be returned)
         def fetch_first_or_last_using_find?(args)
-          (args.first.kind_of?(Hash) && !args.first.empty?) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
-            @target.any? { |record| record.new_record? || record.changed? } || args.first.kind_of?(Integer))
+          if args.first.kind_of?(Hash) && !args.first.empty?
+            true
+          else
+            !(loaded? ||
+              @owner.new_record? ||
+              @reflection.options[:finder_sql] ||
+              @target.any? { |record| record.new_record? || record.changed? } ||
+              args.first.kind_of?(Integer))
+          end
         end
 
         def include_in_memory?(record)
