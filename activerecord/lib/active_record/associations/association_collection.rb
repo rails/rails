@@ -46,11 +46,6 @@ module ActiveRecord
 
       def to_ary
         load_target
-        if @target.is_a?(Array)
-          @target
-        else
-          Array.wrap(@target)
-        end
       end
       alias_method :to_a, :to_ary
 
