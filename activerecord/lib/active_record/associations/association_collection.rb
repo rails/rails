@@ -39,7 +39,7 @@ module ActiveRecord
       # Fetches the first one using SQL if possible.
       def first(*args)
         if fetch_first_or_last_using_find?(args)
-          find(:first, *args)
+          scoped.first(*args)
         else
           load_target unless loaded?
           args.shift if args.first.kind_of?(Hash) && args.first.empty?
@@ -50,7 +50,7 @@ module ActiveRecord
       # Fetches the last one using SQL if possible.
       def last(*args)
         if fetch_first_or_last_using_find?(args)
-          find(:last, *args)
+          scoped.last(*args)
         else
           load_target unless loaded?
           @target.last(*args)
