@@ -50,9 +50,9 @@ module ActiveRecord
       alias_method :to_a, :to_ary
 
       def reset
-        reset_target!
-        reset_scopes_cache!
-        @loaded = false
+        @_scopes_cache = {}
+        @loaded        = false
+        @target        = []
       end
 
       def build(attributes = {}, &block)
@@ -106,10 +106,20 @@ module ActiveRecord
       #
       # See delete for more info.
       def delete_all
-        load_target
-        delete(@target)
-        reset_target!
-        reset_scopes_cache!
+        delete(load_target).tap do
+          reset
+          loaded!
+        end
+      end
+
+      # Destroy all the records from this association.
+      #
+      # See destroy for more info.
+      def destroy_all
+        destroy(load_target).tap do
+          reset
+          loaded!
+        end
       end
 
       # Calculate sum using SQL, not Enumerable
@@ -192,17 +202,6 @@ module ActiveRecord
         end
 
         self
-      end
-
-      # Destroy all the records from this association.
-      #
-      # See destroy for more info.
-      def destroy_all
-        load_target
-        destroy(@target).tap do
-          reset_target!
-          reset_scopes_cache!
-        end
       end
 
       def create(attrs = {})
@@ -393,14 +392,6 @@ module ActiveRecord
 
         def custom_finder_sql
           interpolate_sql(@reflection.options[:finder_sql])
-        end
-
-        def reset_target!
-          @target = []
-        end
-
-        def reset_scopes_cache!
-          @_scopes_cache = {}
         end
 
         def find_target
