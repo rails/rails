@@ -297,10 +297,16 @@ module ActiveRecord
       end
 
       def include?(record)
-        return false unless record.is_a?(@reflection.klass)
-        return include_in_memory?(record) if record.new_record?
-        load_target if @reflection.options[:finder_sql] && !loaded?
-        loaded? ? @target.include?(record) : exists?(record)
+        if record.is_a?(@reflection.klass)
+          if record.new_record?
+            include_in_memory?(record)
+          else
+            load_target if @reflection.options[:finder_sql]
+            loaded? ? @target.include?(record) : scoped.exists?(record)
+          end
+        else
+          false
+        end
       end
 
       def respond_to?(method, include_private = false)
