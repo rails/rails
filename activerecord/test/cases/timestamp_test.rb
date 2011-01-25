@@ -140,4 +140,9 @@ class TimestampTest < ActiveRecord::TestCase
   ensure
     Toy.belongs_to :pet
   end
+
+  def test_timestamp_attributes_for_create
+    toy = Toy.first
+    assert_equal toy.send(:timestamp_attributes_for_create), [:created_at, :created_on]
+  end
 end
