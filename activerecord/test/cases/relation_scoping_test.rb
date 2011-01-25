@@ -24,6 +24,12 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoped_find_first_only_queries_one_record
+    scoped = Developer.scoped
+    scoped.expects(:limit).with(1).returns(['record'])
+    assert_equal 'record', scoped.first
+  end
+
   def test_scoped_find_last
     highest_salary = Developer.order("salary DESC").first
 

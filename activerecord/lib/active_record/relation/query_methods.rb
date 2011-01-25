@@ -138,6 +138,10 @@ module ActiveRecord
       relation
     end
 
+    def first
+      limit(1).to_a.first
+    end
+
     def extending(*modules)
       modules << Module.new(&Proc.new) if block_given?
 
