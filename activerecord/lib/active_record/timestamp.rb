@@ -66,6 +66,10 @@ module ActiveRecord
       self.record_timestamps && (!partial_updates? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
     end
 
+    def timestamp_attributes_for_create_in_model
+      timestamp_attributes_for_create.select { |c| self.class.column_names.include?(c.to_s) }
+    end
+
     def timestamp_attributes_for_update_in_model
       timestamp_attributes_for_update.select { |c| self.class.column_names.include?(c.to_s) }
     end
