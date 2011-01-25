@@ -165,4 +165,9 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     assert_equal toy.send(:timestamp_attributes_for_update_in_model), [:updated_at]
   end
+
+  def test_all_timestamp_attributes_in_model
+    toy = Toy.first
+    assert_equal toy.send(:all_timestamp_attributes_in_model), [:created_at, :updated_at]
+  end
 end
