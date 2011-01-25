@@ -161,6 +161,8 @@ module Arel
         node_class = Nodes::With
       end
       @ast.with = node_class.new(subqueries.flatten)
+
+      self
     end
 
     def take limit

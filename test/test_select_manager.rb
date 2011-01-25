@@ -288,9 +288,7 @@ module Arel
         as_statement = Arel::Nodes::As.new replies, union
 
         manager = Arel::SelectManager.new Table.engine
-        manager.from replies
-        manager.with :recursive, as_statement
-        manager.project Arel.star
+        manager.with(:recursive, as_statement).from(replies).project(Arel.star)
 
         sql = manager.to_sql
         sql.must_be_like %{
@@ -302,7 +300,6 @@ module Arel
           SELECT * FROM "replies"
         }
       end
-
     end
 
     describe 'ast' do
