@@ -1898,11 +1898,9 @@ MSG
 
       # Clear attributes and changed_attributes
       def clear_timestamp_attributes
-        %w(created_at created_on updated_at updated_on).each do |attribute_name|
-          if has_attribute?(attribute_name)
-            self[attribute_name] = nil
-            changed_attributes.delete(attribute_name)
-          end
+        all_timestamp_attributes_in_model.each do |attribute_name|
+          self[attribute_name] = nil
+          changed_attributes.delete(attribute_name)
         end
       end
   end
