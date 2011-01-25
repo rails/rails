@@ -74,6 +74,10 @@ module ActiveRecord
       timestamp_attributes_for_update.select { |c| self.class.column_names.include?(c.to_s) }
     end
 
+    def all_timestamp_attributes_in_model
+      timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model
+    end
+
     def timestamp_attributes_for_update #:nodoc:
       [:updated_at, :updated_on]
     end
