@@ -33,12 +33,16 @@ module ActiveModel
         attr_reader   :password
         attr_accessor :password_confirmation
 
-        attr_protected(:password_digest) if respond_to?(:attr_protected)
-
         validates_confirmation_of :password
         validates_presence_of     :password_digest
         
         include InstanceMethodsOnActivation
+
+        if respond_to?(:attributes_protected_by_default)
+          def self.attributes_protected_by_default
+            super + ['password_digest']
+          end
+        end
       end
     end
 
