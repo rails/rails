@@ -5,8 +5,7 @@ module ActiveRecord
       attr_reader :join_table
 
       def initialize(owner, reflection)
-        @join_table_name = reflection.options[:join_table]
-        @join_table      = Arel::Table.new(@join_table_name)
+        @join_table = Arel::Table.new(reflection.options[:join_table])
         super
       end
 
