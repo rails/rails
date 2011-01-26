@@ -88,10 +88,6 @@ module ActiveRecord
             join_attributes.merge!(@reflection.source_reflection.foreign_type => associate.class.base_class.name)
           end
 
-          if @reflection.through_reflection.options[:conditions].is_a?(Hash)
-            join_attributes.merge!(@reflection.through_reflection.options[:conditions])
-          end
-
           join_attributes
         end
 

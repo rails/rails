@@ -20,10 +20,13 @@ require 'models/subscription'
 require 'models/categorization'
 require 'models/category'
 require 'models/essay'
+require 'models/member'
+require 'models/membership'
+require 'models/club'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories,
-           :owners, :pets, :toys, :jobs, :references, :companies,
+           :owners, :pets, :toys, :jobs, :references, :companies, :members,
            :subscribers, :books, :subscriptions, :developers, :categorizations
 
   # Dummies to force column loads so query counts are clean.
@@ -556,5 +559,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert proxy.stale_target?
     assert_equal authors(:david).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
+  end
+
+  def test_create_with_conditions_hash_on_through_association
+    member = members(:groucho)
+    club   = member.clubs.create!
+
+    assert_equal true, club.reload.membership.favourite
   end
 end
