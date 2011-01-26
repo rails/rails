@@ -47,9 +47,9 @@ module ActiveRecord
           conditions = []
 
           if @reflection.source_reflection.macro == :belongs_to
-            reflection_primary_key = @reflection.source_reflection.options[:primary_key] ||
-                                     @reflection.klass.primary_key
+            reflection_primary_key = @reflection.source_reflection.association_primary_key
             source_primary_key     = @reflection.source_reflection.foreign_key
+
             if @reflection.options[:source_type]
               column = @reflection.source_reflection.foreign_type
               conditions <<
@@ -57,8 +57,8 @@ module ActiveRecord
             end
           else
             reflection_primary_key = @reflection.source_reflection.foreign_key
-            source_primary_key     = @reflection.source_reflection.options[:primary_key] ||
-                                     @reflection.through_reflection.klass.primary_key
+            source_primary_key     = @reflection.source_reflection.active_record_primary_key
+
             if @reflection.source_reflection.options[:as]
               column = "#{@reflection.source_reflection.options[:as]}_type"
               conditions <<
