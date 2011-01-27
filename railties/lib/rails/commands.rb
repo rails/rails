@@ -62,6 +62,7 @@ when 'application', 'runner'
 when 'new'
   puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
   puts "Type 'rails' for help."
+  exit(false)
 
 when '--version', '-v'
   ARGV.unshift '--version'
@@ -91,4 +92,5 @@ In addition to those, there are:
 
 All commands can be run with -h for more information.
   EOT
+  exit(false)
 end
