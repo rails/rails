@@ -237,7 +237,7 @@ module ActiveModel
         end
       end
 
-      # Declares a the attributes that should be prefixed and suffixed by
+      # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
       # To use, pass in an array of attribute names (as strings or symbols),
