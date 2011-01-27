@@ -827,7 +827,8 @@ module ActionDispatch
 
           alias :member_name :singular
 
-          # Checks for uncountable plurals, and appends "_index" if they're.
+          # Checks for uncountable plurals, and appends "_index" if the plural 
+          # and singular form are the same.
           def collection_name
             singular == plural ? "#{plural}_index" : plural
           end
