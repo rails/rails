@@ -24,9 +24,8 @@ module I18n
       end
     end
 
-    # Set the i18n configuration only after initialization since a lot of
-    # configuration is still usually done in application initializers.
-    config.after_initialize do |app|
+    # Proc to set up i18n configuration
+    init_load_path = Proc.new do |app|
       fallbacks = app.config.i18n.delete(:fallbacks)
 
       app.config.i18n.each do |setting, value|
@@ -45,6 +44,14 @@ module I18n
       reloader.paths.concat I18n.load_path
       reloader.execute_if_updated
     end
+
+    # Set the i18n configuration only after initialization since a lot of
+    # configuration is still usually done in application initializers.
+    config.after_initialize(&init_load_path)
+
+    # Trigger i18n config before any eager loading has happened
+    # so it's ready if any classes require it when eager loaded
+    config.before_eager_load(&init_load_path)
 
   protected
 
