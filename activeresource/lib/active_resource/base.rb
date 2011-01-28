@@ -200,7 +200,7 @@ module ActiveResource
   # an ActiveResource::MissingPrefixParam will be raised.
   #
   #  class Comment < ActiveResource::Base
-  #   self.site = "http://someip.com/posts/:post_id/"
+  #    self.site = "http://someip.com/posts/:post_id/"
   #  end
   #
   #  Comment.find(1)
