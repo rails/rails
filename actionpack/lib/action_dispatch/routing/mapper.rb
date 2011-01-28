@@ -349,7 +349,7 @@ module ActionDispatch
 
       module HttpHelpers
         # Define a route that only recognizes HTTP GET.
-        # For supported arguments, see +match+.
+        # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
         #
@@ -359,7 +359,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP POST.
-        # For supported arguments, see +match+.
+        # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
         #
@@ -369,7 +369,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PUT.
-        # For supported arguments, see +match+.
+        # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
         #
@@ -379,7 +379,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PUT.
-        # For supported arguments, see +match+.
+        # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
         #
