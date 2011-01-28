@@ -1,6 +1,5 @@
 require 'erb'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/yaml'
 
 class ERB
   module Util
@@ -102,10 +101,14 @@ module ActiveSupport #:nodoc:
       self
     end
 
-    unless defined?(Psych)
-      def to_yaml(*args)
-        to_str.to_yaml(*args)
-      end
+    def encode_with(coder)
+      coder.represent_scalar nil, to_str
+    end
+
+    def to_yaml(*args)
+      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+
+      to_str.to_yaml(*args)
     end
   end
 end
