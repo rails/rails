@@ -64,6 +64,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/config/application.rb", /^module Things43$/
   end
 
+  def test_application_new_exits_with_non_zero_code_on_failure
+    Dir.chdir(destination_root) do
+      `rails new test`
+    end
+    assert_equal false, $?.success?
+  end
+
   def test_application_name_is_detected_if_it_exists_and_app_folder_renamed
     app_root       = File.join(destination_root, "myapp")
     app_moved_root = File.join(destination_root, "myapp_moved")
