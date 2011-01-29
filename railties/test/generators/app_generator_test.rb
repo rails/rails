@@ -64,10 +64,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/config/application.rb", /^module Things43$/
   end
 
-  def test_application_new_exits_with_non_zero_code_on_failure
-    Dir.chdir(destination_root) do
-      `rails new test`
-    end
+  def test_application_new_exits_with_non_zero_code_on_invalid_application_name
+    # TODO: Suppress the output of this (it's because of a Thor::Error)
+    `rails new test`
     assert_equal false, $?.success?
   end
 
