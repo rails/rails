@@ -1095,7 +1095,7 @@ module ActiveResource
     end
 
     # Delegates to id in order to allow two resources of the same type and \id to work with something like:
-    #   [Person.find(1), Person.find(2)] & [Person.find(1), Person.find(4)] # => [Person.find(1)]
+    #   [(a = Person.find 1), (b = Person.find 2)] & [(c = Person.find 1), (d = Person.find 4)] # => [a]
     def hash
       id.hash
     end
