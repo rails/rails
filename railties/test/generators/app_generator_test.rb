@@ -70,6 +70,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal false, $?.success?
   end
 
+  def test_application_new_exits_with_message_and_non_zero_code_when_generating_inside_existing_rails_directory
+    app_root = File.join(destination_root, 'myfirstapp')
+    run_generator [app_root]
+    output = nil
+    Dir.chdir(app_root) do
+      output = `rails new mysecondapp`
+    end
+    assert_equal "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\nType 'rails' for help.\n", output
+    assert_equal false, $?.success?
+  end
+
   def test_application_name_is_detected_if_it_exists_and_app_folder_renamed
     app_root       = File.join(destination_root, "myapp")
     app_moved_root = File.join(destination_root, "myapp_moved")
