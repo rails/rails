@@ -395,6 +395,22 @@ key on UpdateManager using UpdateManager#key=
       alias :visit_Time                          :quoted
       alias :visit_TrueClass                     :quoted
 
+      def visit_Arel_Nodes_Multiplication o
+        "#{visit o.left} * #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_Division o
+        "#{visit o.left} / #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_Addition o
+        "(#{visit o.left} + #{visit o.right})"
+      end
+
+      def visit_Arel_Nodes_Subtraction o
+        "(#{visit o.left} - #{visit o.right})"
+      end
+
       def visit_Array o
         o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
       end

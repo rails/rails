@@ -6,13 +6,17 @@ module FakeRecord
     attr_reader :tables
 
     def initialize
-      @tables = %w{ users photos developers }
+      @tables = %w{ users photos developers products}
       @columns = {
         'users' => [
           Column.new('id', :integer),
           Column.new('name', :string),
           Column.new('bool', :boolean),
-          Column.new('created_at', :date),
+          Column.new('created_at', :date)
+        ],
+        'products' => [
+          Column.new('id', :integer),
+          Column.new('price', :decimal)
         ]
       }
       @primary_keys = {

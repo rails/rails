@@ -74,6 +74,23 @@ The `AND` operator behaves similarly.
 
 The examples above are fairly simple and other libraries match or come close to matching the expressiveness of Arel (e.g., `Sequel` in Ruby).
 
+#### Inline math operations
+
+Suppose we have a table `products` with prices in different currencies. And we have a table currency_rates, of constantly changing currency rates. In Arel:
+
+    products = Arel::Table.new(:products)
+    products.columns # => [products[:id], products[:name], products[:price], products[:currency_id]]
+
+    currency_rates = Arel::Table.new(:currency_rates)
+    currency_rates.columns # => [currency_rates[:from_id], currency_rates[:to_id], currency_rates[:date], currency_rates[:rate]]
+
+Now, to order products by price in user preferred currency simply call:
+
+    products.
+      join(:currency_rates).on(products[:currency_id].eq(currency_rates[:from_id])).
+      where(currency_rates[:to_id].eq(user_preferred_currency), currency_rates[:date].eq(Date.today)).
+      order(products[:price] * currency_rates[:rate])
+
 #### Complex Joins
 
 Where Arel really shines in its ability to handle complex joins and aggregations. As a first example, let's consider an "adjacency list", a tree represented in a table. Suppose we have a table `comments`, representing a threaded discussion:
