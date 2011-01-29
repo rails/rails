@@ -114,7 +114,7 @@ module Rails
       end
       alias :assert_no_directory :assert_no_file
 
-      # Asserts a given file does not exist. You need to supply an absolute path or a
+      # Asserts a given migration exists. You need to supply an absolute path or a
       # path relative to the configured destination:
       #
       #   assert_migration "db/migrate/create_products.rb"
