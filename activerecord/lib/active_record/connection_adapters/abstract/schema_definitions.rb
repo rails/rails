@@ -98,7 +98,7 @@ module ActiveRecord
           when :date      then "#{self.class.name}.string_to_date(#{var_name})"
           when :binary    then "#{self.class.name}.binary_to_string(#{var_name})"
           when :boolean   then "#{self.class.name}.value_to_boolean(#{var_name})"
-          else nil
+          else var_name
         end
       end
 
