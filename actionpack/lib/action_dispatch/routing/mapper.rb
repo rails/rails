@@ -265,6 +265,78 @@ module ActionDispatch
         # controller in your application, and :action maps to the name of an
         # action within that controller. Anything other than :controller or
         # :action will be available to the action as part of params.
+        #
+        # === Supported options
+        #
+        # [:controller]
+        #   The route's controller.
+        #
+        # [:action]
+        #   The route's action.
+        #
+        # [:path]
+        #   The path prefix for the routes.
+        #
+        # [:module]
+        #   The namespace for :controller.
+        #
+        #     match 'path' => 'c#a', :module => 'sekret', :controller => 'posts'
+        #     #=> Sekret::PostsController
+        #
+        #   See <tt>Scoping#namespace</tt> for its scope equivalent.
+        #
+        # [:as]
+        #   The name used to generate routing helpers.
+        #
+        # [:via]
+        #   Allowed HTTP verb(s) for route.
+        #
+        #      match 'path' => 'c#a', :via => :get
+        #      match 'path' => 'c#a', :via => [:get, :post]
+        #
+        # [:to]
+        #   Shorthand for specifying :controller and :action.
+        #
+        #      match 'path' => 'c#a', :to => 'controller#action'
+        #
+        # [:on]
+        #   Shorthand for wrapping routes in a specific RESTful context. Valid
+        #   values are :member, :collection, and :new.  Only use within
+        #   <tt>resource(s)</tt> block. For example:
+        #
+        #      resource :bar do
+        #        match 'foo' => 'c#a', :on => :member, :via => [:get, :post]
+        #      end
+        #
+        #   Is equivalent to:
+        #
+        #      resource :bar do
+        #        member do
+        #          match 'foo' => 'c#a', :via => [:get, :post]
+        #        end
+        #      end
+        #
+        # [:constraints]
+        #   Constrains parameters with a hash of regular expressions or an
+        #   object that responds to #matches?
+        #
+        #     match 'path/:id', :constraints => { :id => /[A-Z]\d{5}/ }
+        #
+        #     class Blacklist
+        #       def matches?(request) request.remote_ip == '1.2.3.4' end
+        #     end
+        #     match 'path' => 'c#a', :constraints => Blacklist.new
+        #
+        #   See <tt>Scoping#constraints</tt> for more examples with its scope
+        #   equivalent.
+        #
+        # [:defaults]
+        #   Sets defaults for parameters
+        #
+        #     # Sets params[:format] to 'jpg' by default
+        #     match 'path' => 'c#a', :defaults => { :format => 'jpg' }
+        #
+        #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         def match(path, options=nil)
           mapping = Mapping.new(@set, @scope, path, options || {}).to_route
           @set.add_route(*mapping)
@@ -458,7 +530,7 @@ module ActionDispatch
           super
         end
 
-        # Used to scope a set of routes to particular constraints.
+        # Scopes a set of routes to the given default options.
         #
         # Take the following route definition as an example:
         #
@@ -471,50 +543,25 @@ module ActionDispatch
         # rather than /accounts/rails/projects/2.
         #
         # === Supported options
-        # [:module]
-        #   If you want to route /posts (without the prefix /admin) to
-        #   Admin::PostsController, you could use
         #
-        #     scope :module => "admin" do
-        #       resources :posts
-        #     end
+        # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
-        # [:path]
-        #   If you want to prefix the route, you could use
+        # === Examples
         #
-        #     scope :path => "/admin" do
-        #       resources :posts
-        #     end
+        #   # route /posts (without the prefix /admin) to Admin::PostsController
+        #   scope :module => "admin" do
+        #     resources :posts
+        #   end
         #
-        #   This will prefix all of the +posts+ resource's requests with '/admin'
+        #   # prefix the posts resource's requests with '/admin'
+        #   scope :path => "/admin" do
+        #     resources :posts
+        #   end
         #
-        # [:as]
-        #  Prefixes the routing helpers in this scope with the specified label.
-        #
-        #    scope :as => "sekret" do
-        #      resources :posts
-        #    end
-        #
-        # Helpers such as +posts_path+ will now be +sekret_posts_path+
-        #
-        # [:shallow_path]
-        #
-        #   Prefixes nested shallow routes with the specified path.
-        #
-        #   scope :shallow_path => "sekret" do
-        #     resources :posts do
-        #       resources :comments, :shallow => true
-        #     end
-        #
-        #   The +comments+ resource here will have the following routes generated for it:
-        #
-        #     post_comments    GET    /sekret/posts/:post_id/comments(.:format)
-        #     post_comments    POST   /sekret/posts/:post_id/comments(.:format)
-        #     new_post_comment GET    /sekret/posts/:post_id/comments/new(.:format)
-        #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
-        #     comment          GET    /sekret/comments/:id(.:format)
-        #     comment          PUT    /sekret/comments/:id(.:format)
-        #     comment          DELETE /sekret/comments/:id(.:format)
+        #   # prefix the routing helper name: sekret_posts_path instead of posts_path
+        #   scope :as => "sekret" do
+        #     resources :posts
+        #   end
         def scope(*args)
           options = args.extract_options!
           options = options.dup
@@ -577,43 +624,31 @@ module ActionDispatch
         #        admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
         #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
         #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        #
         # === Supported options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+ options all default to the name of the namespace.
+        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+
+        # options all default to the name of the namespace.
         #
-        # [:path]
-        #   The path prefix for the routes.
+        # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
+        # <tt>Resources#resources</tt>.
         #
-        #     namespace :admin, :path => "sekret" do
-        #       resources :posts
-        #     end
+        # === Examples
         #
-        #   All routes for the above +resources+ will be accessible through +/sekret/posts+, rather than +/admin/posts+
+        #   # accessible through /sekret/posts rather than /admin/posts
+        #   namespace :admin, :path => "sekret" do
+        #     resources :posts
+        #   end
         #
-        # [:module]
-        #   The namespace for the controllers.
+        #   # maps to Sekret::PostsController rather than Admin::PostsController
+        #   namespace :admin, :module => "sekret" do
+        #     resources :posts
+        #   end
         #
-        #     namespace :admin, :module => "sekret" do
-        #       resources :posts
-        #     end
-        #
-        #   The +PostsController+ here should go in the +Sekret+ namespace and so it should be defined like this:
-        #
-        #     class Sekret::PostsController < ApplicationController
-        #       # code go here
-        #     end
-        #
-        # [:as]
-        #   Changes the name used in routing helpers for this namespace.
-        #
-        #     namespace :admin, :as => "sekret" do
-        #       resources :posts
-        #     end
-        #
-        # Routing helpers such as +admin_posts_path+ will now be +sekret_posts_path+.
-        #
-        # [:shallow_path]
-        #   See the +scope+ method.
+        #   # generates sekret_posts_path rather than admin_posts_path
+        #   namespace :admin, :as => "sekret" do
+        #     resources :posts
+        #   end
         def namespace(path, options = {})
           path = path.to_s
           options = { :path => path, :as => path, :module => path,
@@ -680,9 +715,9 @@ module ActionDispatch
         end
 
         # Allows you to set default parameters for a route, such as this:
-        # defaults :id => 'home' do
-        #   match 'scoped_pages/(:id)', :to => 'pages#show'
-        # end
+        #   defaults :id => 'home' do
+        #     match 'scoped_pages/(:id)', :to => 'pages#show'
+        #   end
         # Using this, the +:id+ parameter here will default to 'home'.
         def defaults(defaults = {})
           scope(:defaults => defaults) { yield }
@@ -907,6 +942,9 @@ module ActionDispatch
         #   GET     /geocoder/edit
         #   PUT     /geocoder
         #   DELETE  /geocoder
+        #
+        # === Supported options
+        # Takes same options as +resources+.
         def resource(*resources, &block)
           options = resources.extract_options!
 
@@ -969,6 +1007,8 @@ module ActionDispatch
         #   DELETE  /photos/:id/comments/:id
         #
         # === Supported options
+        # Takes same options as <tt>Base#match</tt> as well as:
+        #
         # [:path_names]
         #   Allows you to change the paths of the seven default actions.
         #   Paths not specified are not changed.
@@ -977,20 +1017,60 @@ module ActionDispatch
         #
         #   The above example will now change /posts/new to /posts/brand_new
         #
-        # [:module]
-        #   Set the module where the controller can be found. Defaults to nothing.
+        # [:only]
+        #   Only generate routes for the given actions.
         #
-        #     resources :posts, :module => "admin"
+        #     resources :cows, :only => :show
+        #     resources :cows, :only => [:show, :index]
         #
-        #   All requests to the posts resources will now go to +Admin::PostsController+.
+        # [:except]
+        #   Generate all routes except for the given actions.
         #
-        # [:path]
+        #     resources :cows, :except => :show
+        #     resources :cows, :except => [:show, :index]
         #
-        #  Set a path prefix for this resource.
+        # [:shallow]
+        #   Generates shallow routes for nested resource(s). When placed on a parent resource,
+        #   generates shallow routes for all nested resources.
         #
-        #     resources :posts, :path => "admin"
+        #     resources :posts, :shallow => true do
+        #       resources :comments
+        #     end
         #
-        #  All actions for this resource will now be at +/admin/posts+.
+        #   Is the same as:
+        #
+        #     resources :posts do
+        #       resources :comments
+        #     end
+        #     resources :comments
+        #
+        # [:shallow_path]
+        #   Prefixes nested shallow routes with the specified path.
+        #
+        #   scope :shallow_path => "sekret" do
+        #     resources :posts do
+        #       resources :comments, :shallow => true
+        #     end
+        #   end
+        #
+        #   The +comments+ resource here will have the following routes generated for it:
+        #
+        #     post_comments    GET    /sekret/posts/:post_id/comments(.:format)
+        #     post_comments    POST   /sekret/posts/:post_id/comments(.:format)
+        #     new_post_comment GET    /sekret/posts/:post_id/comments/new(.:format)
+        #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
+        #     comment          GET    /sekret/comments/:id(.:format)
+        #     comment          PUT    /sekret/comments/:id(.:format)
+        #     comment          DELETE /sekret/comments/:id(.:format)
+        #
+        # === Examples
+        #
+        #   # routes call Admin::PostsController
+        #   resources :posts, :module => "admin"
+        #
+        #   # resource actions are at /admin/posts.
+        #   resources :posts, :path => "admin"
+        #
         def resources(*resources, &block)
           options = resources.extract_options!
 
