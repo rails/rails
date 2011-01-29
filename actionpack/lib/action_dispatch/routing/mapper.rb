@@ -256,15 +256,22 @@ module ActionDispatch
           match '/', options.reverse_merge(:as => :root)
         end
 
-        # When you set up a regular route, you supply a series of symbols that
-        # Rails maps to parts of an incoming HTTP request.
+        # Matches a pattern to one or more urls. Any symbols in a pattern are
+        # interpreted as url parameters:
         #
-        #   match ':controller/:action/:id/:user_id'
+        #   # sets parameters :controller, :action and :id
+        #   match ':controller/:action/:id'
         #
-        # Two of these symbols are special: :controller maps to the name of a
-        # controller in your application, and :action maps to the name of an
-        # action within that controller. Anything other than :controller or
-        # :action will be available to the action as part of params.
+        # Two of these symbols are special: <tt>:controller</tt> maps to the
+        # controller name and <tt>:action</tt> to the action name within that
+        # controller. Anything other than <tt>:controller</tt> or
+        # <tt>:action</tt> will be available to the action as part of +params+.
+        # If a pattern does not have :controller and :action symbols, then they
+        # must be set in options or shorthand. For example:
+        #
+        #   match 'photos/:id' => 'photos#show'
+        #   match 'photos/:id', :to => 'photos#show'
+        #   match 'photos/:id', :controller => 'photos', :action => 'show'
         #
         # === Supported options
         #
