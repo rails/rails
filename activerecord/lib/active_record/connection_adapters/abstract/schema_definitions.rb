@@ -87,8 +87,8 @@ module ActiveRecord
 
       def type_cast_code(var_name)
         case type
-          when :string    then nil
-          when :text      then nil
+          when :string    then var_name
+          when :text      then var_name
           when :integer   then "(#{var_name}.to_i rescue #{var_name} ? 1 : 0)"
           when :float     then "#{var_name}.to_f"
           when :decimal   then "#{self.class.name}.value_to_decimal(#{var_name})"

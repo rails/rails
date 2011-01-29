@@ -60,8 +60,8 @@ module ActiveRecord
 
           # Define an attribute reader method.  Cope with nil column.
           def define_read_method(symbol, attr_name, column)
-            cast_code = column.type_cast_code('v') if column
-            access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
+            cast_code = column.type_cast_code('v')
+            access_code = "(v=@attributes['#{attr_name}']) && #{cast_code}"
 
             unless attr_name.to_s == self.primary_key.to_s
               access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
