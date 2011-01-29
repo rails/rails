@@ -188,6 +188,9 @@ module ActiveRecord
           if select = select_value
             scope = scope.select(select)
           end
+          if Relation === scope
+            scope = scope.extending(*Array.wrap(@reflection.options[:extend]))
+          end
           scope.where(construct_owner_conditions)
         end
 
