@@ -1146,12 +1146,17 @@ MSG
 
           if previous.respond_to?(:call) or options.respond_to?(:call)
             new_default_scope = lambda do
-              sane_options = options.respond_to?(:call) ? options.call : options
-              sane_previous = previous.respond_to?(:call) ? previous.call : previous
-              construct_finder_arel sane_options, sane_previous
+              sane_options = options.respond_to?(:call) ? relation.scoping{ options.call } : options
+              sane_options = sane_options.without_default if sane_options.respond_to? :without_default
+              sane_previous = previous.respond_to?(:call) ? relation.scoping{ previous.call } : previous
+
+              new_scope = construct_finder_arel sane_options, sane_previous
+              new_scope.without_default = relation
+              new_scope
             end
           else
             new_default_scope = construct_finder_arel options, previous
+            new_default_scope.without_default = relation
           end
 
           self.default_scoping = default_scoping << new_default_scope

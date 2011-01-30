@@ -17,6 +17,7 @@ module ActiveRecord
 
       relation = clone
       relation.includes_values = (relation.includes_values + args).flatten.uniq
+      relation.without_default = without_default.includes(*args) if without_default?
       relation
     end
 
@@ -25,6 +26,7 @@ module ActiveRecord
 
       relation = clone
       relation.eager_load_values += args
+      relation.without_default = without_default.eager_load(*args) if without_default?
       relation
     end
 
@@ -33,6 +35,7 @@ module ActiveRecord
 
       relation = clone
       relation.preload_values += args
+      relation.without_default = without_default.preload(*args) if without_default?
       relation
     end
 
@@ -42,6 +45,7 @@ module ActiveRecord
       else
         relation = clone
         relation.select_values += Array.wrap(value)
+        relation.without_default = without_default.select(value) if without_default?
         relation
       end
     end
@@ -51,6 +55,7 @@ module ActiveRecord
 
       relation = clone
       relation.group_values += args.flatten
+      relation.without_default = without_default.group(*args) if without_default?
       relation
     end
 
@@ -59,6 +64,7 @@ module ActiveRecord
 
       relation = clone
       relation.order_values += args.flatten
+      relation.without_default = without_default.order(*args) if without_default?
       relation
     end
 
@@ -70,12 +76,14 @@ module ActiveRecord
       args.flatten!
       relation.joins_values += args
 
+      relation.without_default = without_default.joins(*args) if without_default?
       relation
     end
 
     def bind(value)
       relation = clone
       relation.bind_values += [value]
+      relation.without_default = without_default.bind(value) if without_default?
       relation
     end
 
@@ -84,6 +92,7 @@ module ActiveRecord
 
       relation = clone
       relation.where_values += build_where(opts, rest)
+      relation.without_default = without_default.where(opts, *rest) if without_default?
       relation
     end
 
@@ -92,18 +101,21 @@ module ActiveRecord
 
       relation = clone
       relation.having_values += build_where(*args)
+      relation.without_default = without_default.having(*args) if without_default?
       relation
     end
 
     def limit(value)
       relation = clone
       relation.limit_value = value
+      relation.without_default = without_default.limit(value) if without_default?
       relation
     end
 
     def offset(value)
       relation = clone
       relation.offset_value = value
+      relation.without_default = without_default.offset(value) if without_default?
       relation
     end
 
@@ -117,24 +129,28 @@ module ActiveRecord
         relation.lock_value = false
       end
 
+      relation.without_default = without_default.lock(locks) if without_default?
       relation
     end
 
     def readonly(value = true)
       relation = clone
       relation.readonly_value = value
+      relation.without_default = without_default.readonly(value) if without_default?
       relation
     end
 
     def create_with(value)
       relation = clone
       relation.create_with_value = value && (@create_with_value || {}).merge(value)
+      relation.without_default = without_default.create_with(value) if without_default?
       relation
     end
 
     def from(value)
       relation = clone
       relation.from_value = value
+      relation.without_default = without_default.from(value) if without_default?
       relation
     end
 
@@ -145,6 +161,7 @@ module ActiveRecord
 
       relation = clone
       relation.send(:apply_modules, modules.flatten)
+      relation.without_default = without_default.extending(*modules) if without_default?
       relation
     end
 
@@ -155,7 +172,9 @@ module ActiveRecord
         "#{table_name}.#{primary_key} DESC" :
         reverse_sql_order(order_clause).join(', ')
 
-      except(:order).order(Arel.sql(order))
+      relation = except(:order).order(Arel.sql(order))
+      relation.without_default = without_default.reverse_order if without_default?
+      relation
     end
 
     def arel

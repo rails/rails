@@ -111,7 +111,11 @@ module ActiveRecord
           relation = if options.is_a?(Hash)
             scoped.apply_finder_options(options)
           elsif options
-            scoped.merge(options)
+            if options.respond_to? :without_default
+              scoped.merge(options.without_default)
+            else
+              scoped.merge(options)
+            end
           else
             scoped
           end

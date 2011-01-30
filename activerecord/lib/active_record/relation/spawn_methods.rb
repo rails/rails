@@ -58,6 +58,10 @@ module ActiveRecord
       # Apply scope extension modules
       merged_relation.send :apply_modules, r.extensions
 
+      if without_default? or r.without_default?
+        merged_relation.without_default = without_default.merge r.without_default
+      end
+
       merged_relation
     end
 
@@ -74,6 +78,7 @@ module ActiveRecord
         result.send(:"#{method}_value=", send(:"#{method}_value"))
       end
 
+      result.without_default = without_default.except(*skips) if without_default?
       result
     end
 
@@ -88,6 +93,7 @@ module ActiveRecord
         result.send(:"#{method}_value=", send(:"#{method}_value"))
       end
 
+      result.without_default = without_default.only(*onlies) if without_default?
       result
     end
 
@@ -110,6 +116,7 @@ module ActiveRecord
       relation = relation.includes(finders[:include]) if options.has_key?(:include)
       relation = relation.extending(finders[:extend]) if options.has_key?(:extend)
 
+      relation.without_default = without_default.apply_finder_options(options) if without_default?
       relation
     end
 
