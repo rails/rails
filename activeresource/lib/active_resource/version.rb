@@ -3,7 +3,7 @@ module ActiveResource
     MAJOR = 3
     MINOR = 0
     TINY  = 4
-    PRE   = "rc"
+    PRE   = "rc1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
