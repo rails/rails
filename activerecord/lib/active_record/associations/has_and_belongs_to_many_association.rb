@@ -40,7 +40,7 @@ module ActiveRecord
           load_target.size
         end
 
-        def delete_records(records)
+        def delete_records(records, method = nil)
           if sql = @reflection.options[:delete_sql]
             records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
           else

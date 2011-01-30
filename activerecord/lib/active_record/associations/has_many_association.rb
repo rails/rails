@@ -54,20 +54,20 @@ module ActiveRecord
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
-        def delete_records(records)
-          case @reflection.options[:dependent]
-            when :destroy
-              records.each { |r| r.destroy }
-            when :delete_all
-              @reflection.klass.delete(records.map { |r| r.id })
-            else
-              updates    = { @reflection.foreign_key => nil }
-              conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
+        def delete_records(records, method = @reflection.options[:dependent])
+          case method
+          when :destroy
+            records.each { |r| r.destroy }
+          when :delete_all
+            @reflection.klass.delete(records.map { |r| r.id })
+          else
+            updates    = { @reflection.foreign_key => nil }
+            conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
 
-              scoped.where(conditions).update_all(updates)
+            scoped.where(conditions).update_all(updates)
           end
 
-          if has_cached_counter? && @reflection.options[:dependent] != :destroy
+          if has_cached_counter? && method != :destroy
             @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size)
           end
         end

@@ -372,26 +372,33 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_destroying
     david = Developer.find(1)
-    active_record = Project.find(1)
+    project = Project.find(1)
     david.projects.reload
     assert_equal 2, david.projects.size
-    assert_equal 3, active_record.developers.size
+    assert_equal 3, project.developers.size
 
-    assert_difference "Project.count", -1 do
-      david.projects.destroy(active_record)
+    assert_no_difference "Project.count" do
+      david.projects.destroy(project)
     end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
+    assert join_records.empty?
 
     assert_equal 1, david.reload.projects.size
     assert_equal 1, david.projects(true).size
   end
 
-  def test_destroying_array
+  def test_destroying_many
     david = Developer.find(1)
     david.projects.reload
+    projects = Project.all
 
-    assert_difference "Project.count", -Project.count do
-      david.projects.destroy(Project.find(:all))
+    assert_no_difference "Project.count" do
+      david.projects.destroy(*projects)
     end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    assert join_records.empty?
 
     assert_equal 0, david.reload.projects.size
     assert_equal 0, david.projects(true).size
@@ -401,7 +408,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     david.projects.reload
     assert !david.projects.empty?
-    david.projects.destroy_all
+
+    assert_no_difference "Project.count" do
+      david.projects.destroy_all
+    end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    assert join_records.empty?
+
     assert david.projects.empty?
     assert david.projects(true).empty?
   end

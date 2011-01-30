@@ -128,8 +128,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_association
-    assert_difference ["Person.count", "Reader.count"], -1 do
-      posts(:welcome).people.destroy(people(:michael))
+    assert_no_difference "Person.count" do
+      assert_difference "Reader.count", -1 do
+        posts(:welcome).people.destroy(people(:michael))
+      end
     end
 
     assert posts(:welcome).reload.people.empty?
@@ -137,8 +139,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    assert_difference ["Person.count", "Reader.count"], -1 do
-      posts(:welcome).people.destroy_all
+    assert_no_difference "Person.count" do
+      assert_difference "Reader.count", -1 do
+        posts(:welcome).people.destroy_all
+      end
     end
 
     assert posts(:welcome).reload.people.empty?

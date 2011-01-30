@@ -192,7 +192,7 @@ module ActiveRecord
       def destroy(*records)
         records = find(records) if records.any? {|record| record.kind_of?(Fixnum) || record.kind_of?(String)}
         remove_records(records) do |_records, old_records|
-          old_records.each { |record| record.destroy }
+          delete_records(old_records, :destroy) if old_records.any?
         end
 
         load_target
@@ -460,6 +460,12 @@ module ActiveRecord
             yield(records, old_records)
             records.each { |record| callback(:after_remove, record) }
           end
+        end
+
+        # Delete the given records from the association, using one of the methods :destroy,
+        # :delete_all or :nullify. The default method used is given by the :dependent option.
+        def delete_records(records, method = @reflection.options[:dependent])
+          raise NotImplementedError
         end
 
         def callback(method, record)

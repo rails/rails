@@ -8,13 +8,6 @@ module ActiveRecord
 
       alias_method :new, :build
 
-      def destroy(*records)
-        transaction do
-          delete_records(records.flatten)
-          super
-        end
-      end
-
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been
       # loaded and calling collection.size if it has. If it's more likely than not that the collection does
       # have a size larger than zero, and you need to fetch that collection afterwards, it'll take one fewer
@@ -51,10 +44,18 @@ module ActiveRecord
         end
 
         # TODO - add dependent option support
-        def delete_records(records)
+        def delete_records(records, method = @reflection.options[:dependent])
           through_association = @owner.send(@reflection.through_reflection.name)
-          records.each do |associate|
-            through_association.where(construct_join_attributes(associate)).delete_all
+
+          case method
+          when :destroy
+            records.each do |record|
+              through_association.where(construct_join_attributes(record)).destroy_all
+            end
+          else
+            records.each do |record|
+              through_association.where(construct_join_attributes(record)).delete_all
+            end
           end
         end
 

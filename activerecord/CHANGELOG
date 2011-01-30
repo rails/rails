@@ -1,5 +1,24 @@
 *Rails 3.1.0 (unreleased)*
 
+* Changed the behaviour of association.destroy for has_and_belongs_to_many and has_many :through.
+  From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link',
+  not (necessarily) 'get rid of the associated records'.
+
+  Previously, has_and_belongs_to_many.destroy(*records) would destroy the records themselves. It
+  would not delete any records in the join table. Now, it deletes the records in the join table.
+
+  Previously, has_many_through.destroy(*records) would destroy the records themselves, and the
+  records in the join table. [Note: This has not always been the case; previous version of Rails
+  only deleted the records themselves.] Now, it destroys only the records in the join table.
+
+  Note that this change is backwards-incompatible to an extent, but there is unfortunately no
+  way to 'deprecate' it before changing it. The change is being made in order to have
+  consistency as to the meaning of 'destroy' or 'delete' across the different types of associations.
+
+  If you wish to destroy the records themselves, you can do records.association.each(&:destroy)
+
+  [Jon Leighton]
+
 * Add :bulk => true option to change_table to make all the schema changes defined in change_table block using a single ALTER statement. [Pratik Naik]
 
   Example:
