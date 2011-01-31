@@ -56,52 +56,49 @@ module ActiveRecord
       # Returns the Ruby class that corresponds to the abstract data type.
       def klass
         case type
-          when :integer       then Fixnum
-          when :float         then Float
-          when :decimal       then BigDecimal
-          when :datetime      then Time
-          when :date          then Date
-          when :timestamp     then Time
-          when :time          then Time
-          when :text, :string then String
-          when :binary        then String
-          when :boolean       then Object
+        when :integer                     then Fixnum
+        when :float                       then Float
+        when :decimal                     then BigDecimal
+        when :datetime, :timestamp, :time then Time
+        when :date                        then Date
+        when :text, :string, :binary      then String
+        when :boolean                     then Object
         end
       end
 
       # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
         return nil if value.nil?
+        klass = self.class
+
         case type
-          when :string    then value
-          when :text      then value
-          when :integer   then value.to_i rescue value ? 1 : 0
-          when :float     then value.to_f
-          when :decimal   then self.class.value_to_decimal(value)
-          when :datetime  then self.class.string_to_time(value)
-          when :timestamp then self.class.string_to_time(value)
-          when :time      then self.class.string_to_dummy_time(value)
-          when :date      then self.class.string_to_date(value)
-          when :binary    then self.class.binary_to_string(value)
-          when :boolean   then self.class.value_to_boolean(value)
-          else value
+        when :string, :text        then value
+        when :integer              then value.to_i rescue value ? 1 : 0
+        when :float                then value.to_f
+        when :decimal              then klass.value_to_decimal(value)
+        when :datetime, :timestamp then klass.string_to_time(value)
+        when :time                 then klass.string_to_dummy_time(value)
+        when :date                 then klass.string_to_date(value)
+        when :binary               then klass.binary_to_string(value)
+        when :boolean              then klass.value_to_boolean(value)
+        else value
         end
       end
 
       def type_cast_code(var_name)
+        klass = self.class.name
+
         case type
-          when :string    then var_name
-          when :text      then var_name
-          when :integer   then "(#{var_name}.to_i rescue #{var_name} ? 1 : 0)"
-          when :float     then "#{var_name}.to_f"
-          when :decimal   then "#{self.class.name}.value_to_decimal(#{var_name})"
-          when :datetime  then "#{self.class.name}.string_to_time(#{var_name})"
-          when :timestamp then "#{self.class.name}.string_to_time(#{var_name})"
-          when :time      then "#{self.class.name}.string_to_dummy_time(#{var_name})"
-          when :date      then "#{self.class.name}.string_to_date(#{var_name})"
-          when :binary    then "#{self.class.name}.binary_to_string(#{var_name})"
-          when :boolean   then "#{self.class.name}.value_to_boolean(#{var_name})"
-          else var_name
+        when :string, :text        then var_name
+        when :integer              then "(#{var_name}.to_i rescue #{var_name} ? 1 : 0)"
+        when :float                then "#{var_name}.to_f"
+        when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
+        when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
+        when :time                 then "#{klass}.string_to_dummy_time(#{var_name})"
+        when :date                 then "#{klass}.string_to_date(#{var_name})"
+        when :binary               then "#{klass}.binary_to_string(#{var_name})"
+        when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
+        else var_name
         end
       end
 
