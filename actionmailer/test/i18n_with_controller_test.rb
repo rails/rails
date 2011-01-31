@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'action_controller'
+require 'action_dispatch/testing/integration'
 
 class I18nTestMailer < ActionMailer::Base
   configure do |c|
@@ -15,6 +16,16 @@ class I18nTestMailer < ActionMailer::Base
 end
 
 class TestController < ActionController::Base
+  Routes = ActionDispatch::Routing::RouteSet.new
+
+  Routes.draw do
+    match ':controller(/:action(/:id))'
+  end
+
+  def self._routes
+    Routes
+  end
+
   def send_mail
     I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver
     render :text => 'Mail sent'
@@ -22,13 +33,8 @@ class TestController < ActionController::Base
 end
 
 class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
-  Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw do
-    match ':controller(/:action(/:id))'
-  end
-
   def app
-    Routes
+    TestController::Routes
   end
 
   def setup
