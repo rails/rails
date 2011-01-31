@@ -17,7 +17,9 @@ module ActiveRecord
       end
 
       attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
-      attr_accessor :primary
+      attr_accessor :primary, :coder
+
+      alias :encoded? :coder
 
       # Instantiates a new column in the table.
       #
@@ -37,6 +39,7 @@ module ActiveRecord
         @type      = simplified_type(sql_type)
         @default   = extract_default(default)
         @primary   = nil
+        @coder     = nil
       end
 
       # Returns +true+ if the column is either of type string or text.
