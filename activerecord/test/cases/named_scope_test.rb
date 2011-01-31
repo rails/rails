@@ -6,9 +6,10 @@ require 'models/comment'
 require 'models/reply'
 require 'models/author'
 require 'models/developer'
+require 'models/note'
 
 class NamedScopeTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :topics, :comments, :author_addresses
+  fixtures :posts, :authors, :topics, :comments, :author_addresses, :notes
 
   def test_implements_enumerable
     assert !Topic.find(:all).empty?
@@ -457,6 +458,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_nothing_raised do
       require "models/without_table"
     end
+  end
+
+  def test_named_scopes_dont_force_default_scopes
+    assert_equal 3, Note.english.count
+    assert_equal 4, Note.unscoped.english.count
   end
 end
 

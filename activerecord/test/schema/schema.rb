@@ -366,6 +366,13 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :notes, :force => true do |t|
+    t.boolean :deleted, :default => 0
+    t.string  :content
+    t.string  :language
+    t.datetime :due_date, :default => nil
+  end
+
   create_table :orders, :force => true do |t|
     t.string  :name
     t.integer :billing_customer_id

@@ -1,0 +1,23 @@
+first:
+  deleted: 0
+  content: First note
+  language: en
+second:
+  deleted: 0
+  content: Second note
+  language: pl
+  due_date: "2009-10-10"
+deleted_note:
+  deleted: 1
+  content: deleted_note
+  language: en
+a_todo:
+  deleted: 0
+  content: a_todo
+  language: en
+  due_date: "2011-11-10"
+an_old_todo:
+  deleted: 0
+  content: an_old_todo
+  language: en
+  due_date: "2010-10-10"

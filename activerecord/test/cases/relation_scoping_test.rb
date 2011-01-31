@@ -302,7 +302,7 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
 end
 
 class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :posts
+  fixtures :developers, :posts, :notes
 
   def test_default_scope
     expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
@@ -319,6 +319,51 @@ class DefaultScopingTest < ActiveRecord::TestCase
     PostForAuthor.selected_author = 1
     received = PostForAuthor.all
     assert_equal expected, received
+  end
+
+  def test_lambda_default_scopes_can_be_combined
+    user_language = 'en'
+    date_holder = Date.new(2011,1,1)
+
+    klass = Class.new(ActiveRecord::Base) do
+      set_table_name 'notes'
+      default_scope lambda { where("due_date > ?", date_holder.to_s ) }
+      default_scope lambda { where(:language => user_language) }
+    end
+
+    assert_equal 1, klass.scoped.count
+    date_holder -= 2*365
+    assert_equal 2, klass.scoped.count
+    user_language = 'pl'
+    assert_equal 1, klass.scoped.count
+  end
+
+  def test_relation_default_scopes_dont_overwrite_lambdas
+    date_holder = Date.new(2011,1,1)
+
+    klass = Class.new(ActiveRecord::Base) do
+      set_table_name 'notes'
+      default_scope lambda { where("due_date > ?", date_holder.to_s ) }
+      default_scope where(:deleted => 0)
+    end
+
+    assert_equal 1, klass.scoped.count
+    date_holder -= 365
+    assert_equal 2, klass.scoped.count
+  end
+
+  def test_relation_named_scopes_dont_overwrite_lambda_default_scopes
+    date_holder = Date.new(2011,1,1)
+
+    klass = Class.new(ActiveRecord::Base) do
+      set_table_name 'notes'
+      default_scope lambda { where("due_date > ?", date_holder.to_s ) }
+      scope :active, where(:deleted => 0)
+    end
+
+    assert_equal 1, klass.active.count
+    date_holder -= 365
+    assert_equal 2, klass.active.count
   end
 
   def test_default_scope_with_thing_that_responds_to_call
