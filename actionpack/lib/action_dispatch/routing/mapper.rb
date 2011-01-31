@@ -985,11 +985,11 @@ module ActionDispatch
         #
         # [:path]
         #
-        #  Set a path prefix for this resource.
+        #  Set a path for this resource.
         #
-        #     resources :posts, :path => "admin"
+        #     resources :posts, :path => "entries"
         #
-        #  All actions for this resource will now be at +/admin/posts+.
+        #  All actions for this resource will now be at +/entries+.
         def resources(*resources, &block)
           options = resources.extract_options!
 
