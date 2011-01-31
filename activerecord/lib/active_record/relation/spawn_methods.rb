@@ -116,7 +116,6 @@ module ActiveRecord
       relation = relation.includes(finders[:include]) if options.has_key?(:include)
       relation = relation.extending(finders[:extend]) if options.has_key?(:extend)
 
-      relation.without_default = without_default.apply_finder_options(options) if without_default?
       relation
     end
 
