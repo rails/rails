@@ -72,6 +72,8 @@ module ActiveRecord
       # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
         return nil if value.nil?
+        return coder.load(value) if encoded?
+
         klass = self.class
 
         case type

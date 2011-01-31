@@ -24,6 +24,12 @@ module ActiveRecord
         assert column.encoded?
       end
 
+      def test_type_case_coded_column
+        column = Column.new("title", nil, "varchar(20)")
+        column.coder = YAML
+        assert_equal "hello", column.type_cast("--- hello")
+      end
+
       # Avoid column definitions in create table statements like:
       # `title` varchar(255) DEFAULT NULL
       def test_should_not_include_default_clause_when_default_is_null
