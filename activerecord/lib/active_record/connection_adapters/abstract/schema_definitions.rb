@@ -28,12 +28,15 @@ module ActiveRecord
       # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
-        @name, @sql_type, @null = name, sql_type, null
-        @limit, @precision, @scale = extract_limit(sql_type), extract_precision(sql_type), extract_scale(sql_type)
-        @type = simplified_type(sql_type)
-        @default = extract_default(default)
-
-        @primary = nil
+        @name      = name
+        @sql_type  = sql_type
+        @null      = null
+        @limit     = extract_limit(sql_type)
+        @precision = extract_precision(sql_type)
+        @scale     = extract_scale(sql_type)
+        @type      = simplified_type(sql_type)
+        @default   = extract_default(default)
+        @primary   = nil
       end
 
       # Returns +true+ if the column is either of type string or text.
