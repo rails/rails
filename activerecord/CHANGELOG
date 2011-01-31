@@ -1,5 +1,18 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add :bulk => true option to change_table to make all the schema changes defined in change_table block using a single ALTER statement. [Pratik Naik]
+
+  Example:
+
+  change_table(:users, :bulk => true) do |t|
+    t.string :company_name
+    t.change :birthdate, :datetime
+  end
+
+  This will now result in:
+
+    ALTER TABLE `users` ADD COLUMN `company_name` varchar(255), CHANGE `updated_at` `updated_at` datetime DEFAULT NULL
+
 * Removed support for accessing attributes on a has_and_belongs_to_many join table. This has been
   documented as deprecated behaviour since April 2006. Please use has_many :through instead.
   [Jon Leighton]

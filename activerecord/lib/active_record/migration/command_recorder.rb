@@ -40,7 +40,7 @@ module ActiveRecord
         @commands.reverse.map { |name, args|
           method = :"invert_#{name}"
           raise IrreversibleMigration unless respond_to?(method, true)
-          __send__(method, args)
+          send(method, args)
         }
       end
 
@@ -48,12 +48,16 @@ module ActiveRecord
         super || delegate.respond_to?(*args)
       end
 
-      def send(method, *args) # :nodoc:
-        return super unless respond_to?(method)
-        record(method, args)
+      [:create_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
+        class_eval <<-EOV, __FILE__, __LINE__ + 1
+          def #{method}(*args)
+            record(:"#{method}", args)
+          end
+        EOV
       end
 
       private
+
       def invert_create_table(args)
         [:drop_table, args]
       end
@@ -86,6 +90,14 @@ module ActiveRecord
       def invert_add_timestamps(args)
         [:remove_timestamps, args]
       end
+
+      # Forwards any missing method call to the \target.
+      def method_missing(method, *args, &block)
+        @delegate.send(method, *args, &block)
+      rescue NoMethodError => e
+        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
+      end
+
     end
   end
 end
