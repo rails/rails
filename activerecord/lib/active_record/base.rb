@@ -671,7 +671,11 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @columns_hash ||= Hash[columns.map { |column| [column.name, column] }]
+        @@columns_cache[table_name] ||= Hash[columns.map { |column| [column.name, column] }]
+      end
+
+      def columns_hash=(value)
+        @@columns_cache[table_name] = value
       end
 
       # Returns an array of column names as strings.
@@ -728,7 +732,8 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        self.columns_hash = nil
+        @column_names = @columns = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = @arel_table = nil
       end
 
@@ -1376,6 +1381,7 @@ MSG
           quoted_value
         end
     end
+    @@columns_cache = {}
 
     public
       # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with
