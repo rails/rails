@@ -536,7 +536,13 @@ module ActiveRecord #:nodoc:
       #     serialize :preferences
       #   end
       def serialize(attr_name, class_name = Object)
-        serialized_attributes[attr_name.to_s] = Coders::YAMLColumn.new(class_name)
+        coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
+                  class_name
+                else
+                  Coders::YAMLColumn.new(class_name)
+                end
+
+        serialized_attributes[attr_name.to_s] = coder
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the

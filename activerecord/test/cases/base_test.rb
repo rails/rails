@@ -1018,6 +1018,27 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal topic.content, false
   end
 
+  def test_serialize_with_coder
+    coder = Class.new {
+      # Identity
+      def load(thing)
+        thing
+      end
+
+      # base 64
+      def dump(thing)
+        [thing].pack('m')
+      end
+    }.new
+
+    Topic.serialize(:content, coder)
+    s = 'hello world'
+    topic = Topic.new(:content => s)
+    assert topic.save
+    topic = topic.reload
+    assert_equal [s].pack('m'), topic.content
+  end
+
   def test_quote
     author_name = "\\ \001 ' \n \\n \""
     topic = Topic.create('author_name' => author_name)
