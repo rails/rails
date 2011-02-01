@@ -1,4 +1,8 @@
 class Contact < ActiveRecord::Base
+  def self.columns
+    @columns
+  end
+
   # mock out self.columns so no pesky db is needed for these tests
   def self.column(name, sql_type = nil, options = {})
     @columns ||= []

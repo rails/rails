@@ -662,20 +662,16 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        unless defined?(@columns) && @columns
-          @columns = connection.columns(table_name, "#{name} Columns")
-          @columns.each { |column| column.primary = column.name == primary_key }
-        end
-        @columns
+        @@columns[table_name] ||= connection.columns(
+          table_name, "#{name} Columns"
+        ).tap { |columns|
+          columns.each { |column| column.primary = column.name == primary_key }
+        }
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @@columns_cache[table_name] ||= Hash[columns.map { |column| [column.name, column] }]
-      end
-
-      def columns_hash=(value)
-        @@columns_cache[table_name] = value
+        @@columns_hash[table_name] ||= Hash[columns.map { |column| [column.name, column] }]
       end
 
       # Returns an array of column names as strings.
@@ -732,9 +728,14 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        self.columns_hash = nil
-        @column_names = @columns = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        reset_column_cache
+        @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = @arel_table = nil
+      end
+
+      def reset_column_cache # :nodoc:
+        @@columns.delete table_name
+        @@columns_hash.delete table_name
       end
 
       def attribute_method?(attribute)
@@ -1381,7 +1382,8 @@ MSG
           quoted_value
         end
     end
-    @@columns_cache = {}
+    @@columns_hash = {}
+    @@columns      = {}
 
     public
       # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with

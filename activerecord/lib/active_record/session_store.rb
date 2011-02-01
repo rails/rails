@@ -59,12 +59,12 @@ module ActiveRecord
       end
 
       def drop_table!
-        self.columns_hash = nil
+        reset_column_cache
         connection.drop_table table_name
       end
 
       def create_table!
-        self.columns_hash = nil
+        reset_column_cache
         connection.create_table(table_name) do |t|
           t.string session_id_column, :limit => 255
           t.text data_column_name
