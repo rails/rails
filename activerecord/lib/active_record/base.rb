@@ -1739,18 +1739,25 @@ MSG
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
       # an Arel insert/update method.
       def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
-        attrs = {}
+        attrs      = {}
+        klass      = self.class
+        arel_table = klass.arel_table
+
         attribute_names.each do |name|
           if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
-              value = read_attribute(name)
 
-              coder = self.class.serialized_attributes[name]
-              if !value.nil? && coder
-                value = coder.dump value
-              end
-              attrs[self.class.arel_table[name]] = value
+              value = if klass.serialized_attributes[name]
+                        @attributes[name]
+                      else
+                        # FIXME: we need @attributes to be used consistently.
+                        # If the values stored in @attributes were already type
+                        # casted, this code could be simplified
+                        read_attribute(name)
+                      end
+
+              attrs[arel_table[name]] = value
             end
           end
         end

@@ -23,7 +23,8 @@ module ActiveRecord
         if (column = column_for_attribute(attr_name)) && column.number?
           @attributes[attr_name] = convert_number_column_value(value)
         else
-          @attributes[attr_name] = value
+          coder = self.class.serialized_attributes[attr_name]
+          @attributes[attr_name] = coder ? coder.dump(value) : value
         end
       end
 

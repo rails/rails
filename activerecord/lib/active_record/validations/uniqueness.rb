@@ -15,12 +15,6 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
 
-        coder = record.class.serialized_attributes[attribute.to_s]
-
-        if value && coder
-          value = coder.dump value
-        end
-
         sql, params = mount_sql_and_params(finder_class, record.class.quoted_table_name, attribute, value)
 
         relation = finder_class.unscoped.where(sql, *params)
