@@ -1446,6 +1446,12 @@ MSG
       #   post.title # => 'hello world'
       def init_with(coder)
         @attributes = coder['attributes']
+
+        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
+          coder = self.class.serialized_attributes[key]
+          @attributes[key] = coder.load @attributes[key]
+        end
+
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @association_cache = {}
         @aggregation_cache = {}
@@ -1748,8 +1754,8 @@ MSG
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
 
-              value = if klass.serialized_attributes[name]
-                        @attributes[name]
+              value = if coder = klass.serialized_attributes[name]
+                        coder.dump @attributes[name]
                       else
                         # FIXME: we need @attributes to be used consistently.
                         # If the values stored in @attributes were already type
