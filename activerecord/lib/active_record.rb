@@ -81,6 +81,10 @@ module ActiveRecord
     autoload :Validations
   end
 
+  module Coders
+    autoload :YAMLColumn, 'active_record/coders/yaml_column'
+  end
+
   module AttributeMethods
     extend ActiveSupport::Autoload
 
