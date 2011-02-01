@@ -536,7 +536,7 @@ module ActiveRecord #:nodoc:
       #     serialize :preferences
       #   end
       def serialize(attr_name, class_name = Object)
-        serialized_attributes[attr_name.to_s] = class_name
+        serialized_attributes[attr_name.to_s] = Coders::YAMLColumn.new(class_name)
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -1738,8 +1738,9 @@ MSG
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
               value = read_attribute(name)
 
-              if !value.nil? && self.class.serialized_attributes.key?(name)
-                value = YAML.dump value
+              coder = self.class.serialized_attributes[name]
+              if !value.nil? && coder
+                value = coder.dump value
               end
               attrs[self.class.arel_table[name]] = value
             end
@@ -1863,11 +1864,6 @@ MSG
         else
           value
         end
-      end
-
-      def object_from_yaml(string)
-        return string unless string.is_a?(String) && string =~ /^---/
-        YAML::load(string) rescue string
       end
 
       def populate_with_current_scope_attributes

@@ -106,14 +106,10 @@ module ActiveRecord
 
       # Returns the unserialized object of the attribute.
       def unserialize_attribute(attr_name)
-        unserialized_object = object_from_yaml(@attributes[attr_name])
+        coder = self.class.serialized_attributes[attr_name]
+        unserialized_object = coder.load(@attributes[attr_name])
 
-        if unserialized_object.is_a?(self.class.serialized_attributes[attr_name]) || unserialized_object.nil?
-          @attributes.frozen? ? unserialized_object : @attributes[attr_name] = unserialized_object
-        else
-          raise SerializationTypeMismatch,
-            "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, but was a #{unserialized_object.class.to_s}"
-        end
+        @attributes.frozen? ? unserialized_object : @attributes[attr_name] = unserialized_object
       end
 
       private
