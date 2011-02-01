@@ -43,19 +43,18 @@ module ActiveRecord
           end
         end
 
-        # TODO - add dependent option support
-        def delete_records(records, method = @reflection.options[:dependent])
-          through_association = @owner.send(@reflection.through_reflection.name)
+        def deletion_scope(records)
+          @owner.send(@reflection.through_reflection.name).where(construct_join_attributes(*records))
+        end
 
+        def delete_records(records, method = @reflection.options[:dependent])
           case method
           when :destroy
-            records.each do |record|
-              through_association.where(construct_join_attributes(record)).destroy_all
-            end
+            deletion_scope(records).destroy_all
+          when :nullify
+            deletion_scope(records).update_all(@reflection.source_reflection.foreign_key => nil)
           else
-            records.each do |record|
-              through_association.where(construct_join_attributes(record)).delete_all
-            end
+            deletion_scope(records).delete_all
           end
         end
 

@@ -1,5 +1,13 @@
 *Rails 3.1.0 (unreleased)*
 
+* Support the :dependent option on has_many :through associations. For historical and practical
+  reasons, :delete_all is the default deletion strategy employed by association.delete(*records),
+  despite the fact that the default strategy is :nullify for regular has_many. Also, this only
+  works at all if the source reflection is a belongs_to. For other situations, you should directly
+  modify the through association.
+
+  [Jon Leighton]
+
 * Changed the behaviour of association.destroy for has_and_belongs_to_many and has_many :through.
   From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link',
   not (necessarily) 'get rid of the associated records'.

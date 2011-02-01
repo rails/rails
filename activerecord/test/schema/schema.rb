@@ -425,6 +425,7 @@ ActiveRecord::Schema.define do
     t.string     :gender, :limit => 1
     t.references :number1_fan
     t.integer    :lock_version, :null => false, :default => 0
+    t.string     :comments
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|

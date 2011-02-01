@@ -155,6 +155,106 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_delete_through_belongs_to_with_dependent_nullify
+    Reference.make_comments = true
+
+    person    = people(:michael)
+    job       = jobs(:magician)
+    reference = Reference.where(:job_id => job.id, :person_id => person.id).first
+
+    assert_no_difference ['Job.count', 'Reference.count'] do
+      assert_difference 'person.jobs.count', -1 do
+        person.jobs_with_dependent_nullify.delete(job)
+      end
+    end
+
+    assert_equal nil, reference.reload.job_id
+  ensure
+    Reference.make_comments = false
+  end
+
+  def test_delete_through_belongs_to_with_dependent_delete_all
+    Reference.make_comments = true
+
+    person = people(:michael)
+    job    = jobs(:magician)
+
+    # Make sure we're not deleting everything
+    assert person.jobs.count >= 2
+
+    assert_no_difference 'Job.count' do
+      assert_difference ['person.jobs.count', 'Reference.count'], -1 do
+        person.jobs_with_dependent_delete_all.delete(job)
+      end
+    end
+
+    # Check that the destroy callback on Reference did not run
+    assert_equal nil, person.reload.comments
+  ensure
+    Reference.make_comments = false
+  end
+
+  def test_delete_through_belongs_to_with_dependent_destroy
+    Reference.make_comments = true
+
+    person = people(:michael)
+    job    = jobs(:magician)
+
+    # Make sure we're not deleting everything
+    assert person.jobs.count >= 2
+
+    assert_no_difference 'Job.count' do
+      assert_difference ['person.jobs.count', 'Reference.count'], -1 do
+        person.jobs_with_dependent_destroy.delete(job)
+      end
+    end
+
+    # Check that the destroy callback on Reference ran
+    assert_equal "Reference destroyed", person.reload.comments
+  ensure
+    Reference.make_comments = false
+  end
+
+  def test_belongs_to_with_dependent_destroy
+    person = PersonWithDependentDestroyJobs.find(1)
+
+    # Create a reference which is not linked to a job. This should not be destroyed.
+    person.references.create!
+
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -person.jobs.count do
+        person.destroy
+      end
+    end
+  end
+
+  def test_belongs_to_with_dependent_delete_all
+    person = PersonWithDependentDeleteAllJobs.find(1)
+
+    # Create a reference which is not linked to a job. This should not be destroyed.
+    person.references.create!
+
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -person.jobs.count do
+        person.destroy
+      end
+    end
+  end
+
+  def test_belongs_to_with_dependent_nullify
+    person = PersonWithDependentNullifyJobs.find(1)
+
+    references = person.references.to_a
+
+    assert_no_difference ['Reference.count', 'Job.count'] do
+      person.destroy
+    end
+
+    references.each do |reference|
+      assert_equal nil, reference.reload.job_id
+    end
+  end
+
   def test_replace_association
     assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people(true)}
 

@@ -74,21 +74,40 @@ module ActiveRecord
             right.create_on(right.create_and(conditions)))
         end
 
-        # Construct attributes for :through pointing to owner and associate.
-        def construct_join_attributes(associate)
-          # TODO: revisit this to allow it for deletion, supposing dependent option is supported
-          raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
+        # Construct attributes for :through pointing to owner and associate. This is used by the
+        # methods which create and delete records on the association.
+        #
+        # We only support indirectly modifying through associations which has a belongs_to source.
+        # This is the "has_many :tags, :through => :taggings" situation, where the join model
+        # typically has a belongs_to on both side. In other words, associations which could also
+        # be represented as has_and_belongs_to_many associations.
+        #
+        # We do not support creating/deleting records on the association where the source has
+        # some other type, because this opens up a whole can of worms, and in basically any
+        # situation it is more natural for the user to just create or modify their join records
+        # directly as required.
+        def construct_join_attributes(*records)
+          if @reflection.source_reflection.macro != :belongs_to
+            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection)
+          end
 
           join_attributes = {
             @reflection.source_reflection.foreign_key =>
-              associate.send(@reflection.source_reflection.association_primary_key)
+              records.map { |record|
+                record.send(@reflection.source_reflection.association_primary_key)
+              }
           }
 
           if @reflection.options[:source_type]
-            join_attributes.merge!(@reflection.source_reflection.foreign_type => associate.class.base_class.name)
+            join_attributes[@reflection.source_reflection.foreign_type] =
+              records.map { |record| record.class.base_class.name }
           end
 
-          join_attributes
+          if records.count == 1
+            Hash[join_attributes.map { |k, v| [k, v.first] }]
+          else
+            join_attributes
+          end
         end
 
         # The reason that we are operating directly on the scope here (rather than passing
