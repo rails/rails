@@ -24,8 +24,24 @@ module I18n
       end
     end
 
-    # Proc to set up i18n configuration
-    init_load_path = Proc.new do |app|
+    # Set the i18n configuration after initialization since a lot of
+    # configuration is still usually done in application initializers.
+    config.after_initialize do |app|
+      I18n::Railtie.initialize_i18n(app)
+    end
+
+    # Trigger i18n config before any eager loading has happened
+    # so it's ready if any classes require it when eager loaded
+    config.before_eager_load do |app|
+      I18n::Railtie.initialize_i18n(app)
+    end
+
+  protected
+
+    # Setup i18n configuration
+    def self.initialize_i18n(app)
+      return if @i18n_inited
+
       fallbacks = app.config.i18n.delete(:fallbacks)
 
       app.config.i18n.each do |setting, value|
@@ -43,17 +59,9 @@ module I18n
 
       reloader.paths.concat I18n.load_path
       reloader.execute_if_updated
+
+      @i18n_inited = true
     end
-
-    # Set the i18n configuration only after initialization since a lot of
-    # configuration is still usually done in application initializers.
-    config.after_initialize(&init_load_path)
-
-    # Trigger i18n config before any eager loading has happened
-    # so it's ready if any classes require it when eager loaded
-    config.before_eager_load(&init_load_path)
-
-  protected
 
     def self.include_fallbacks_module
       I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
