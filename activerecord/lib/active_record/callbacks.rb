@@ -31,7 +31,7 @@ module ActiveRecord
   #
   # That's a total of twelve callbacks, which gives you immense power to react and prepare for each state in the
   # Active Record life cycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar,
-  # except that each <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
+  # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
