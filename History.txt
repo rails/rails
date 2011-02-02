@@ -7,6 +7,10 @@
   * SQL Literals may be used as Attribute names
   * Added Arel::Nodes::NamedFunction for representing generic SQL functions
 
+* Bug fixes
+
+  * MSSQL adds TOP to sub selects
+
 * Deprecations
 
   * Calls to `insert` are deprecated. Please use `compile_insert` then call

@@ -38,6 +38,17 @@ module Arel
         ].compact.join ' '
       end
 
+      # FIXME: we should probably have a 2-pass visitor for this
+      def build_subselect key, o
+        stmt             = Nodes::SelectStatement.new
+        core             = stmt.cores.first
+        core.froms       = o.relation
+        core.projections = [key]
+        stmt.limit       = o.limit
+        stmt.orders      = o.orders
+        stmt
+      end
+
       def visit_Arel_Nodes_UpdateStatement o
         if o.orders.empty? && o.limit.nil?
           wheres = o.wheres
@@ -52,15 +63,7 @@ key on UpdateManager using UpdateManager#key=
             key = o.relation.primary_key
           end
 
-          wheres = o.wheres
-          stmt             = Nodes::SelectStatement.new
-          core             = stmt.cores.first
-          core.froms       = o.relation
-          core.projections = [key]
-          stmt.limit       = o.limit
-          stmt.orders      = o.orders
-
-          wheres = [Nodes::In.new(key, [stmt])]
+          wheres = [Nodes::In.new(key, [build_subselect(key, o)])]
         end
 
         [
