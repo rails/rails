@@ -20,6 +20,12 @@ module Arel
         assert_equal 'omg(*)', @visitor.accept(function)
       end
 
+      it 'should chain predications on named functions' do
+        function = Nodes::NamedFunction.new('omg', [Arel.star])
+        sql = @visitor.accept(function.eq(2))
+        sql.must_be_like %{ omg(*) = 2 }
+      end
+
       it 'works with lists' do
         function = Nodes::NamedFunction.new('omg', [Arel.star, Arel.star])
         assert_equal 'omg(*, *)', @visitor.accept(function)
