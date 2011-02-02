@@ -1,3 +1,4 @@
+
 require "cases/helper"
 
 module ActiveRecord
@@ -20,9 +21,9 @@ module ActiveRecord
         assert_nil coder.load "--- "
       end
 
-      def test_nil_is_ok_with_different_class
+      def test_returns_new_with_different_class
         coder = YAMLColumn.new SerializationTypeMismatch
-        assert_nil coder.load "--- "
+        assert_equal SerializationTypeMismatch, coder.load("--- ").class
       end
 
       def test_returns_string_unless_starts_with_dash

@@ -249,6 +249,17 @@ module ActiveRecord #:nodoc:
   #   user = User.create(:preferences => %w( one two three ))
   #   User.find(user.id).preferences    # raises SerializationTypeMismatch
   #
+  # When you specify a class option, the default value for that attribute will be a new
+  # instance of that class.
+  #
+  #   class User < ActiveRecord::Base
+  #     serialize :preferences, OpenStruct
+  #   end
+  #
+  #   user = User.new
+  #   user.preferences.theme_color = "red"
+  #
+  #
   # == Single table inheritance
   #
   # Active Record allows inheritance by storing the name of the class in a column that by
@@ -1409,6 +1420,7 @@ MSG
         @changed_attributes = {}
 
         ensure_proper_type
+        set_serialized_attributes
 
         populate_with_current_scope_attributes
         self.attributes = attributes unless attributes.nil?
@@ -1447,10 +1459,7 @@ MSG
       def init_with(coder)
         @attributes = coder['attributes']
 
-        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
-          coder = self.class.serialized_attributes[key]
-          @attributes[key] = coder.load @attributes[key]
-        end
+        set_serialized_attributes
 
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @association_cache = {}
@@ -1459,6 +1468,13 @@ MSG
         @new_record = false
         run_callbacks :find
         run_callbacks :initialize
+      end
+
+      def set_serialized_attributes
+        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
+          coder = self.class.serialized_attributes[key]
+          @attributes[key] = coder.load @attributes[key]
+        end
       end
 
       # Specifies how the record is dumped by +Marshal+.

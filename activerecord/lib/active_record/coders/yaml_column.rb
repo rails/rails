@@ -19,6 +19,7 @@ module ActiveRecord
       end
 
       def load(yaml)
+        return object_class.new if object_class != Object && yaml.nil?
         return yaml unless yaml.is_a?(String) && yaml =~ /^---/
         begin
           obj = YAML.load(yaml)
@@ -27,6 +28,7 @@ module ActiveRecord
             raise SerializationTypeMismatch,
               "Attribute was supposed to be a #{object_class}, but was a #{obj.class}"
           end
+          obj ||= object_class.new if object_class != Object
 
           obj
         rescue *RESCUE_ERRORS

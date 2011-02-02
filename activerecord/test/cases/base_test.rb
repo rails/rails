@@ -1002,6 +1002,25 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.serialize(:content)
   end
 
+  def test_serialized_default_class
+    Topic.serialize(:content, Hash)
+    topic = Topic.new
+    assert_equal Hash, topic.content.class
+    assert_equal Hash, topic.read_attribute(:content).class
+    topic.content["beer"] = "MadridRb"
+    assert topic.save
+    topic.reload
+    assert_equal Hash, topic.content.class
+    assert_equal "MadridRb", topic.content["beer"]
+  ensure
+    Topic.serialize(:content)
+  end
+
+  def test_serialized_no_default_class_for_object
+    topic = Topic.new
+    assert_nil topic.content
+  end
+
   def test_serialized_boolean_value_true
     Topic.serialize(:content)
     topic = Topic.new(:content => true)
