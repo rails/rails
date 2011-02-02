@@ -13,7 +13,7 @@ module Arel
         sql = @visitor.accept(stmt)
         sql.must_be_like "SELECT TOP 1"
       end
-      
+
       it 'uses TOP in updates with a limit' do
         stmt = Nodes::UpdateStatement.new
         stmt.limit = Nodes::Limit.new(1)
