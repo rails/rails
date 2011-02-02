@@ -118,8 +118,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_read_attributes_before_type_cast_on_datetime
     developer = Developer.find(:first)
-    if current_adapter?(:Mysql2Adapter)
-      # Mysql2 keeps the value in Time instance
+    if current_adapter?(:Mysql2Adapter, :OracleAdapter)
+      # Mysql2 and Oracle adapters keep the value in Time instance
       assert_equal developer.created_at.to_s(:db), developer.attributes_before_type_cast["created_at"].to_s(:db)
     else
       assert_equal developer.created_at.to_s(:db), developer.attributes_before_type_cast["created_at"].to_s
