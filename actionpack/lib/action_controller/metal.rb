@@ -43,11 +43,11 @@ module ActionController
     end
   end
 
-  # ActionController::Metal is the simplest possible controller, providing a
+  # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
-  # ActionController::Base.
+  # <tt>ActionController::Base</tt>.
   #
-  # A sample Metal controller might look like this:
+  # A sample metal controller might look like this:
   #
   #   class HelloController < ActionController::Metal
   #     def index
@@ -55,26 +55,25 @@ module ActionController
   #     end
   #   end
   #
-  # And then to route requests to your Metal controller, you would add
+  # And then to route requests to your metal controller, you would add
   # something like this to <tt>config/routes.rb</tt>:
   #
-  #   match '/hello', :to => HelloController.action(:index),
-  #     :as => 'hello'
+  #   match 'hello', :to => HelloController.action(:index)
   #
-  # The action method returns a valid Rack application for the \Rails
+  # The +action+ method returns a valid Rack application for the \Rails
   # router to dispatch to.
   #
   # == Rendering Helpers
   #
-  # ActionController::Metal by default provides no utilities for rendering
+  # <tt>ActionController::Metal</tt> by default provides no utilities for rendering
   # views, partials, or other responses aside from explicitly calling of
-  # response_body=, content_type=, and status=. To
+  # <tt>response_body=</tt>, <tt>content_type=</tt>, and <tt>status=</tt>. To
   # add the render helpers you're used to having in a normal controller, you
   # can do the following:
   #
   #   class HelloController < ActionController::Metal
   #     include ActionController::Rendering
-  #     append_view_path Rails.root + "app/views"
+  #     append_view_path "#{Rails.root}/app/views"
   #
   #     def index
   #       render "hello/index"
@@ -83,21 +82,21 @@ module ActionController
   #
   # == Redirection Helpers
   #
-  # To add redirection helpers to your Metal controller, do the following:
+  # To add redirection helpers to your metal controller, do the following:
   #
   #   class HelloController < ActionController::Metal
   #     include ActionController::Redirecting
   #
   #     def index
-  #       redirect_to root_url
+  #       redirect_to "http://www.example.com"
   #     end
   #   end
   #
   # == Other Helpers
   #
   # You can refer to the modules defined in ActionController to see
-  # the other features in ActionController::Base that you can bring
-  # into your Metal controller.
+  # the other features in <tt>ActionController::Base</tt> that you can bring
+  # into your metal controller.
   #
   class Metal < AbstractController::Base
     abstract!
