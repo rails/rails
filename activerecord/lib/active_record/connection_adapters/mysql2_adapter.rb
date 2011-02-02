@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require 'mysql2' unless defined? Mysql2
+require 'mysql2'
 
 module ActiveRecord
   class Base
