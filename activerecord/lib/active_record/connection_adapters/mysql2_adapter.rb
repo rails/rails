@@ -85,7 +85,7 @@ module ActiveRecord
         when :datetime, :timestamp  then "#{var_name}.class == Time ? #{var_name} : #{self.class.name}.string_to_time(#{var_name})"
         when :time                  then "#{var_name}.class == Time ? #{var_name} : #{self.class.name}.string_to_dummy_time(#{var_name})"
         when :date                  then "#{var_name}.class == Date ? #{var_name} : #{self.class.name}.string_to_date(#{var_name})"
-        when :binary                then nil
+        when :binary                then var_name
         when :boolean               then "#{self.class.name}.value_to_boolean(#{var_name})"
         else var_name
         end
