@@ -86,17 +86,17 @@ module ActionController
   #
   #   class HelloController < ActionController::Metal
   #     include ActionController::Redirecting
+  #     include Rails.application.routes.url_helpers
   #
   #     def index
-  #       redirect_to "http://www.example.com"
+  #       redirect_to root_url
   #     end
   #   end
   #
   # == Other Helpers
   #
-  # You can refer to the modules defined in ActionController to see
-  # the other features in <tt>ActionController::Base</tt> that you can bring
-  # into your metal controller.
+  # You can refer to the modules included in <tt>ActionController::Base</tt> to see
+  # other features you can bring into your metal controller.
   #
   class Metal < AbstractController::Base
     abstract!
