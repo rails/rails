@@ -56,6 +56,18 @@ module ActionDispatch
   #     resources :posts, :comments
   #   end
   #
+  # Alternately, you can add prefixes to your path without using a separate
+  # directory by using +scope+. +scope+ takes additional options which
+  # apply to all enclosed routes.
+  #
+  #   scope :path => "/cpanel", :as => 'admin' do
+  #     resources :posts, :comments
+  #   end
+  #
+  # For more, see <tt>Routing::Mapper::Resources#resources</tt>,
+  # <tt>Routing::Mapper::Scoping#namespace</tt>, and
+  # <tt>Routing::Mapper::Scoping#scope</tt>.
+  #
   # == Named routes
   #
   # Routes can be named by passing an <tt>:as</tt> option,

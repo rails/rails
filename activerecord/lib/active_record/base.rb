@@ -779,7 +779,7 @@ module ActiveRecord #:nodoc:
         :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
       end
 
-      # Returns a string like 'Post id:integer, title:string, body:text'
+      # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect
         if self == Base
           super

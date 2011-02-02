@@ -43,12 +43,62 @@ module ActionController
     end
   end
 
-  # Provides a way to get a valid Rack application from a controller.
+  # ActionController::Metal is the simplest possible controller, providing a
+  # valid Rack interface without the additional niceties provided by
+  # ActionController::Base.
   #
-  # In AbstractController, dispatching is triggered directly by calling #process on a new controller.
-  # <tt>ActionController::Metal</tt> provides an <tt>action</tt> method that returns a valid Rack application for a
-  # given action. Other rack builders, such as Rack::Builder, Rack::URLMap, and the \Rails router,
-  # can dispatch directly to actions returned by controllers in your application.
+  # A sample Metal controller might look like this:
+  #
+  #   class HelloController < ActionController::Metal
+  #     def index
+  #       self.response_body = "Hello World!"
+  #     end
+  #   end
+  #
+  # And then to route requests to your Metal controller, you would add
+  # something like this to <tt>config/routes.rb</tt>:
+  #
+  #   match '/hello', :to => HelloController.action(:index),
+  #     :as => 'hello'
+  #
+  # The action method returns a valid Rack application for the \Rails
+  # router to dispatch to.
+  #
+  # == Rendering Helpers
+  #
+  # ActionController::Metal by default provides no utilities for rendering
+  # views, partials, or other responses aside from explicitly calling of
+  # response_body=, content_type=, and status=. To
+  # add the render helpers you're used to having in a normal controller, you
+  # can do the following:
+  #
+  #   class HelloController < ActionController::Metal
+  #     include ActionController::Rendering
+  #     append_view_path Rails.root + "app/views"
+  #
+  #     def index
+  #       render "hello/index"
+  #     end
+  #   end
+  #
+  # == Redirection Helpers
+  #
+  # To add redirection helpers to your Metal controller, do the following:
+  #
+  #   class HelloController < ActionController::Metal
+  #     include ActionController::Redirecting
+  #
+  #     def index
+  #       redirect_to root_url
+  #     end
+  #   end
+  #
+  # == Other Helpers
+  #
+  # You can refer to the modules defined in ActionController to see
+  # the other features in ActionController::Base that you can bring
+  # into your Metal controller.
+  #
   class Metal < AbstractController::Base
     abstract!
 
