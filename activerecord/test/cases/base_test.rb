@@ -1553,6 +1553,14 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_clear_cache!
+    # preheat cache
+    c1 = Post.columns
+    ActiveRecord::Base.clear_cache!
+    c2 = Post.columns
+    assert_not_equal c1, c2
+  end
+
   def test_default_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
     UnloadablePost.table_name = 'posts'

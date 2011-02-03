@@ -72,6 +72,7 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.to_cleanup do
           ActiveRecord::Base.clear_reloadable_connections!
+          ActiveRecord::Base.clear_cache!
         end
       end
     end

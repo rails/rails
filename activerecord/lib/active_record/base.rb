@@ -750,6 +750,12 @@ module ActiveRecord #:nodoc:
         @arel_engine = @relation = nil
       end
 
+      def clear_cache! # :nodoc:
+        @@columns.clear
+        @@columns_hash.clear
+        @@arel_tables.clear
+      end
+
       def reset_column_cache # :nodoc:
         @@columns.delete table_name
         @@columns_hash.delete table_name
