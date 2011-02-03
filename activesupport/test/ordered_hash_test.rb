@@ -80,7 +80,7 @@ class OrderedHashTest < Test::Unit::TestCase
     keys = []
     assert_equal @ordered_hash, @ordered_hash.each_key { |k| keys << k }
     assert_equal @keys, keys
-    expected_class = RUBY_VERSION < '1.9.1' ? Enumerable::Enumerator : Enumerator
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
     assert_kind_of expected_class, @ordered_hash.each_key
   end
 
@@ -88,7 +88,7 @@ class OrderedHashTest < Test::Unit::TestCase
     values = []
     assert_equal @ordered_hash, @ordered_hash.each_value { |v| values << v }
     assert_equal @values, values
-    expected_class = RUBY_VERSION < '1.9.1' ? Enumerable::Enumerator : Enumerator
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
     assert_kind_of expected_class, @ordered_hash.each_value
   end
 
@@ -96,7 +96,7 @@ class OrderedHashTest < Test::Unit::TestCase
     values = []
     assert_equal @ordered_hash, @ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
-    expected_class = RUBY_VERSION < '1.9.1' ? Enumerable::Enumerator : Enumerator
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
     assert_kind_of expected_class, @ordered_hash.each
   end
 
