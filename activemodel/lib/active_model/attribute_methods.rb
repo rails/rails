@@ -229,11 +229,9 @@ module ActiveModel
 
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
-          module_eval <<-STR, __FILE__, __LINE__ + 1
-            define_method('#{matcher.method_name(new_name)}') do |*args|
-              send('#{matcher.method_name(old_name)}', *args)
-            end
-          STR
+          define_method(matcher.method_name(new_name)) do |*args|
+            send(matcher.method_name(old_name), *args)
+          end
         end
       end
 
