@@ -747,12 +747,13 @@ module ActiveRecord #:nodoc:
         undefine_attribute_methods
         reset_column_cache
         @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @relation = @arel_table = nil
+        @arel_engine = @relation = nil
       end
 
       def reset_column_cache # :nodoc:
         @@columns.delete table_name
         @@columns_hash.delete table_name
+        @@arel_tables.delete table_name
       end
 
       def attribute_method?(attribute)
@@ -851,7 +852,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        @arel_table ||= Arel::Table.new(table_name, arel_engine)
+        @@arel_tables[table_name] ||= Arel::Table.new(table_name, arel_engine)
       end
 
       def arel_engine
@@ -1401,6 +1402,7 @@ MSG
     end
     @@columns_hash = {}
     @@columns      = {}
+    @@arel_tables  = {}
 
     public
       # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with
