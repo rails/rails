@@ -630,7 +630,7 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
-      "<input name='commit' id='post_submit' type='submit' value='Create post' />"
+      "<input name='commit' type='submit' value='Create post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -709,7 +709,7 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='other_name[secret]' value='0' type='hidden' />" +
       "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" +
-      "<input name='commit' id='other_name_submit' value='Create post' type='submit' />"
+      "<input name='commit' value='Create post' type='submit' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -843,7 +843,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form('/posts', 'new_post', 'new_post') do
-      "<input name='commit' id='post_submit' type='submit' value='Create Post' />"
+      "<input name='commit' type='submit' value='Create Post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -859,7 +859,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
-      "<input name='commit' id='post_submit' type='submit' value='Confirm Post changes' />"
+      "<input name='commit' type='submit' value='Confirm Post changes' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -875,7 +875,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form do
-      "<input name='commit' class='extra' id='post_submit' type='submit' value='Save changes' />"
+      "<input name='commit' class='extra' type='submit' value='Save changes' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -891,7 +891,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form('/posts/123', 'another_post_edit', 'another_post_edit', :method => 'put') do
-      "<input name='commit' id='another_post_submit' type='submit' value='Update your Post' />"
+      "<input name='commit' type='submit' value='Update your Post' />"
     end
 
     assert_dom_equal expected, output_buffer
