@@ -229,6 +229,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :cold_jokes, :force => true do |t|
+    t.string :name
+  end
+
   create_table :goofy_string_id, :force => true, :id => false do |t|
     t.string :id, :null => false
     t.string :info

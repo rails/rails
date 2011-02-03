@@ -20,6 +20,7 @@ require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/loose_person'
 require 'models/edge'
+require 'models/joke'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -1154,6 +1155,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "foo", k.table_name
     k.set_table_name "bar"
     assert_equal "bar", k.table_name
+  end
+
+  def test_switching_between_table_name
+    assert_difference("GoodJoke.count") do
+      Joke.set_table_name "cold_jokes"
+      Joke.create
+
+      Joke.set_table_name "funny_jokes"
+      Joke.create
+    end
   end
 
   def test_quoted_table_name_after_set_table_name
