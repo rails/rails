@@ -50,34 +50,34 @@ module ActiveRecord
     # may be returned on an error.
     def self.establish_connection(spec = nil)
       case spec
-      when nil
-        raise AdapterNotSpecified unless defined?(Rails.env)
-        establish_connection(Rails.env)
-      when ConnectionSpecification
-        self.connection_handler.establish_connection(name, spec)
-      when Symbol, String
-        if configuration = configurations[spec.to_s]
-          establish_connection(configuration)
+        when nil
+          raise AdapterNotSpecified unless defined?(Rails.env)
+          establish_connection(Rails.env)
+        when ConnectionSpecification
+          self.connection_handler.establish_connection(name, spec)
+        when Symbol, String
+          if configuration = configurations[spec.to_s]
+            establish_connection(configuration)
+          else
+            raise AdapterNotSpecified, "#{spec} database is not configured"
+          end
         else
-          raise AdapterNotSpecified, "#{spec} database is not configured"
-        end
-      else
-        spec = spec.symbolize_keys
-        unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
+          spec = spec.symbolize_keys
+          unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
 
-        begin
-          require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
-        rescue LoadError => e
-          raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e})"
-        end
+          begin
+            require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+          rescue LoadError => e
+            raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e})"
+          end
 
-        adapter_method = "#{spec[:adapter]}_connection"
-        unless respond_to?(adapter_method)
-          raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
-        end
+          adapter_method = "#{spec[:adapter]}_connection"
+          unless respond_to?(adapter_method)
+            raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
+          end
 
-        remove_connection
-        establish_connection(ConnectionSpecification.new(spec, adapter_method))
+          remove_connection
+          establish_connection(ConnectionSpecification.new(spec, adapter_method))
       end
     end
 
