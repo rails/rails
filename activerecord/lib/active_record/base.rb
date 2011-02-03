@@ -1470,13 +1470,6 @@ MSG
         run_callbacks :initialize
       end
 
-      def set_serialized_attributes
-        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
-          coder = self.class.serialized_attributes[key]
-          @attributes[key] = coder.load @attributes[key]
-        end
-      end
-
       # Specifies how the record is dumped by +Marshal+.
       #
       # +_dump+ emits a marshalled hash which has been passed to +encode_with+. Override this
@@ -1739,6 +1732,13 @@ MSG
       end
 
     private
+
+      def set_serialized_attributes
+        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
+          coder = self.class.serialized_attributes[key]
+          @attributes[key] = coder.load @attributes[key]
+        end
+      end
 
       # Sets the attribute used for single table inheritance to this class name if this is not the
       # ActiveRecord::Base descendant.
