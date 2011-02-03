@@ -42,55 +42,6 @@ module ActiveRecord
         super
       end
 
-      # Returns the Ruby class that corresponds to the abstract data type.
-      def klass
-        case type
-          when :integer       then Fixnum
-          when :float         then Float
-          when :decimal       then BigDecimal
-          when :datetime      then Time
-          when :date          then Date
-          when :timestamp     then Time
-          when :time          then Time
-          when :text, :string then String
-          when :binary        then String
-          when :boolean       then Object
-        end
-      end
-
-      def type_cast(value)
-        return nil if value.nil?
-        case type
-          when :string                then value
-          when :text                  then value
-          when :integer               then value.to_i rescue value ? 1 : 0
-          when :float                 then value.to_f # returns self if it's already a Float
-          when :decimal               then self.class.value_to_decimal(value)
-          when :datetime, :timestamp  then value.class == Time ? value : self.class.string_to_time(value)
-          when :time                  then value.class == Time ? value : self.class.string_to_dummy_time(value)
-          when :date                  then value.class == Date ? value : self.class.string_to_date(value)
-          when :binary                then value
-          when :boolean               then self.class.value_to_boolean(value)
-          else value
-        end
-      end
-
-      def type_cast_code(var_name)
-        case type
-        when :string                then var_name
-        when :text                  then var_name
-        when :integer               then "#{var_name}.to_i rescue #{var_name} ? 1 : 0"
-        when :float                 then "#{var_name}.to_f"
-        when :decimal               then "#{self.class.name}.value_to_decimal(#{var_name})"
-        when :datetime, :timestamp  then "#{var_name}.class == Time ? #{var_name} : #{self.class.name}.string_to_time(#{var_name})"
-        when :time                  then "#{var_name}.class == Time ? #{var_name} : #{self.class.name}.string_to_dummy_time(#{var_name})"
-        when :date                  then "#{var_name}.class == Date ? #{var_name} : #{self.class.name}.string_to_date(#{var_name})"
-        when :binary                then var_name
-        when :boolean               then "#{self.class.name}.value_to_boolean(#{var_name})"
-        else var_name
-        end
-      end
-
       private
         def simplified_type(field_type)
           return :boolean if Mysql2Adapter.emulate_booleans && field_type.downcase.index(BOOL)
