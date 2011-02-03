@@ -230,8 +230,8 @@ module ActiveModel
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
           module_eval <<-STR, __FILE__, __LINE__ + 1
-            def #{matcher.method_name(new_name)}(*args)
-              send(:#{matcher.method_name(old_name)}, *args)
+            define_method(:'#{matcher.method_name(new_name)}') do |*args|
+              send(:'#{matcher.method_name(old_name)}', *args)
             end
           STR
         end
@@ -277,8 +277,8 @@ module ActiveModel
                   if method_defined?(:'#{method_name}')
                     undef :'#{method_name}'
                   end
-                  def #{method_name}(*args)
-                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
+                  define_method(:'#{method_name}') do |*args|
+                    send(:'#{matcher.method_missing_target}', '#{attr_name}', *args)
                   end
                 STR
               end
