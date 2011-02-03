@@ -195,6 +195,11 @@ module RenderTestCases
     @view.formats = nil
   end
 
+  def test_render_layout_with_block_and_other_partial_inside
+    render = @view.render(:layout => "test/layout_with_partial_and_yield.html.erb") { "Yield!" }
+    assert_equal "Before\npartial html\nYield!\nAfter\n", render
+  end
+
   def test_render_inline
     assert_equal "Hello, World!", @view.render(:inline => "Hello, World!")
   end
