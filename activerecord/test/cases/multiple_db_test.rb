@@ -84,8 +84,8 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_equal "Ruby Developer", Entrant.find(1).name
   end
 
-  def test_arel_table_engines
-    assert_not_equal Entrant.arel_engine, Course.arel_engine
-    assert_equal Entrant.arel_engine, Bird.arel_engine
+  def test_connections
+    assert_not_equal Entrant.connection, Course.connection
+    assert_equal Entrant.connection, Bird.connection
   end
 end

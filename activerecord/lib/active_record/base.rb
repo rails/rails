@@ -747,7 +747,7 @@ module ActiveRecord #:nodoc:
         undefine_attribute_methods
         reset_column_cache
         @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @relation = nil
+        @relation = nil
       end
 
       def reset_column_cache # :nodoc:
@@ -856,13 +856,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_engine
-        @arel_engine ||= begin
-          if self == ActiveRecord::Base
-            ActiveRecord::Base
-          else
-            connection_handler.connection_pools[name] ? self : superclass.arel_engine
-          end
-        end
+        self
       end
 
       # Returns a scope for this class without taking into account the default_scope.
