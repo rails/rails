@@ -177,7 +177,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     old_migration = Dir["#{destination_root}/db/migrate/*_create_accounts.rb"].first
     error = capture(:stderr) { run_generator ["Account", "--force"] }
-    assert_no_match /Another migration is already named create_foos/, error
+    assert_no_match /Another migration is already named create_accounts/, error
     assert_no_file old_migration
     assert_migration 'db/migrate/create_accounts.rb'
   end
