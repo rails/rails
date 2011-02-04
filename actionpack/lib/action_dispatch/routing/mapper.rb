@@ -273,7 +273,7 @@ module ActionDispatch
         #   match 'photos/:id', :to => 'photos#show'
         #   match 'photos/:id', :controller => 'photos', :action => 'show'
         #
-        # === Supported options
+        # === Options
         #
         # [:controller]
         #   The route's controller.
@@ -549,7 +549,7 @@ module ActionDispatch
         # The difference here being that the routes generated are like /rails/projects/2,
         # rather than /accounts/rails/projects/2.
         #
-        # === Supported options
+        # === Options
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
@@ -632,7 +632,7 @@ module ActionDispatch
         #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
         #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         #
-        # === Supported options
+        # === Options
         #
         # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+
         # options all default to the name of the namespace.
@@ -950,7 +950,7 @@ module ActionDispatch
         #   PUT     /geocoder
         #   DELETE  /geocoder
         #
-        # === Supported options
+        # === Options
         # Takes same options as +resources+.
         def resource(*resources, &block)
           options = resources.extract_options!
@@ -1013,7 +1013,7 @@ module ActionDispatch
         #   PUT     /photos/:id/comments/:id
         #   DELETE  /photos/:id/comments/:id
         #
-        # === Supported options
+        # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
         #
         # [:path_names]
