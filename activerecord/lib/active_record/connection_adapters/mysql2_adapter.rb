@@ -45,10 +45,14 @@ module ActiveRecord
       private
         def simplified_type(field_type)
           return :boolean if Mysql2Adapter.emulate_booleans && field_type.downcase.index(BOOL)
-          return :string  if field_type =~ /enum/i or field_type =~ /set/i
-          return :integer if field_type =~ /year/i
-          return :binary  if field_type =~ /bit/i
-          super
+
+          case field_type
+          when /enum/i, /set/i then :string
+          when /year/i         then :integer
+          when /bit/i          then :binary
+          else
+            super
+          end
         end
 
         def extract_limit(sql_type)
