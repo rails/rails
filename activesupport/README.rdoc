@@ -1,5 +1,4 @@
 = Active Support -- Utility classes and Ruby extensions from Rails
-fasdf
 
 Active Support is a collection of utility classes and standard library
 extensions that were found useful for the Rails framework. These additions
