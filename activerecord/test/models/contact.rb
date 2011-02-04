@@ -1,12 +1,14 @@
 class Contact < ActiveRecord::Base
-  def self.columns
-    @columns
-  end
+  establish_connection(:adapter => 'fake')
+
+  connection.tables = ['contacts']
+  connection.primary_keys = {
+    'contacts' => 'id'
+  }
 
   # mock out self.columns so no pesky db is needed for these tests
   def self.column(name, sql_type = nil, options = {})
-    @columns ||= []
-    @columns << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, options[:default], sql_type.to_s, options[:null])
+    connection.merge_column('contacts', name, sql_type, options)
   end
 
   column :name,        :string
