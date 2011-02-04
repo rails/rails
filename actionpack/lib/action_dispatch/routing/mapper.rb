@@ -1199,7 +1199,7 @@ module ActionDispatch
         end
 
         def shallow
-          scope(:shallow => true) do
+          scope(:shallow => true, :shallow_path => @scope[:path]) do
             yield
           end
         end

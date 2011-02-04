@@ -205,6 +205,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      scope '/hello' do
+        shallow do
+          resources :notes do
+            resources :trackbacks
+          end
+        end
+      end
+
       resources :threads, :shallow => true do
         resource :owner
         resources :messages do
@@ -1673,6 +1681,60 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/comments/3/preview'
       assert_equal 'comments#preview', @response.body
       assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
+    end
+  end
+
+  def test_shallow_nested_resources_within_scope
+    with_test_routes do
+
+      get '/hello/notes/1/trackbacks'
+      assert_equal 'trackbacks#index', @response.body
+      assert_equal '/hello/notes/1/trackbacks', note_trackbacks_path(:note_id => 1)
+
+      get '/hello/notes/1/edit'
+      assert_equal 'notes#edit', @response.body
+      assert_equal '/hello/notes/1/edit', edit_note_path(:id => '1')
+
+      get '/hello/notes/1/trackbacks/new'
+      assert_equal 'trackbacks#new', @response.body
+      assert_equal '/hello/notes/1/trackbacks/new', new_note_trackback_path(:note_id => 1)
+
+      get '/hello/trackbacks/1'
+      assert_equal 'trackbacks#show', @response.body
+      assert_equal '/hello/trackbacks/1', trackback_path(:id => '1')
+
+      get '/hello/trackbacks/1/edit'
+      assert_equal 'trackbacks#edit', @response.body
+      assert_equal '/hello/trackbacks/1/edit', edit_trackback_path(:id => '1')
+
+      put '/hello/trackbacks/1'
+      assert_equal 'trackbacks#update', @response.body
+
+      post '/hello/notes/1/trackbacks'
+      assert_equal 'trackbacks#create', @response.body
+
+      delete '/hello/trackbacks/1'
+      assert_equal 'trackbacks#destroy', @response.body
+
+      get '/hello/notes'
+      assert_equal 'notes#index', @response.body
+
+      post '/hello/notes'
+      assert_equal 'notes#create', @response.body
+
+      get '/hello/notes/new'
+      assert_equal 'notes#new', @response.body
+      assert_equal '/hello/notes/new', new_note_path
+
+      get '/hello/notes/1'
+      assert_equal 'notes#show', @response.body
+      assert_equal '/hello/notes/1', note_path(:id => 1)
+
+      put '/hello/notes/1'
+      assert_equal 'notes#update', @response.body
+
+      delete '/hello/notes/1'
+      assert_equal 'notes#destroy', @response.body
     end
   end
 
