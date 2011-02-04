@@ -193,7 +193,7 @@ db_namespace = namespace :db do
       file_list = []
       Dir.foreach(File.join(Rails.root, 'db', 'migrate')) do |file|
         # only files matching "20091231235959_some_name.rb" pattern
-        if match_data = /(\d{14})_(.+)\.rb/.match(file)
+        if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
           status = db_list.delete(match_data[1]) ? 'up' : 'down'
           file_list << [status, match_data[1], match_data[2]]
         end
