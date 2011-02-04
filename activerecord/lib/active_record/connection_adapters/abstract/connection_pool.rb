@@ -125,6 +125,13 @@ module ActiveRecord
         @primary_keys.clear
       end
 
+      # Clear out internal caches for table with +table_name+
+      def clear_table_cache!(table_name)
+        @columns.delete table_name
+        @columns_hash.delete table_name
+        @primary_keys.delete table_name
+      end
+
       # Retrieve the connection associated with the current thread, or call
       # #checkout to obtain one if necessary.
       #

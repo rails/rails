@@ -679,16 +679,12 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @@columns[table_name] ||= connection.columns(
-          table_name, "#{name} Columns"
-        ).tap { |columns|
-          columns.each { |column| column.primary = column.name == primary_key }
-        }
+        connection_pool.columns[table_name]
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @@columns_hash[table_name] ||= Hash[columns.map { |column| [column.name, column] }]
+        connection_pool.columns_hash[table_name]
       end
 
       # Returns an array of column names as strings.
@@ -745,21 +741,14 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        reset_column_cache
+        connection_pool.clear_table_cache!(table_name) if table_exists?
+
         @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = nil
       end
 
       def clear_cache! # :nodoc:
-        @@columns.clear
-        @@columns_hash.clear
-        @@arel_tables.clear
-      end
-
-      def reset_column_cache # :nodoc:
-        @@columns.delete table_name
-        @@columns_hash.delete table_name
-        @@arel_tables.delete table_name
+        connection_pool.clear_cache!
       end
 
       def attribute_method?(attribute)
@@ -858,7 +847,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        @@arel_tables[table_name] ||= Arel::Table.new(table_name, arel_engine)
+        Arel::Table.new(table_name, arel_engine)
       end
 
       def arel_engine
@@ -1406,9 +1395,6 @@ MSG
           quoted_value
         end
     end
-    @@columns_hash = {}
-    @@columns      = {}
-    @@arel_tables  = {}
 
     public
       # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with
