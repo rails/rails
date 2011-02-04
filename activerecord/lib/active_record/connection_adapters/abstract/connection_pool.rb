@@ -58,6 +58,7 @@ module ActiveRecord
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
       attr_reader :spec, :connections
+      attr_reader :columns, :columns_hash, :primary_keys
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -81,6 +82,39 @@ module ActiveRecord
 
         @connections = []
         @checked_out = []
+
+        @columns     = Hash.new do |h, table_name|
+          h[table_name] = with_connection do |conn|
+            conn.columns(table_name, "#{table_name} Columns")
+          end
+        end
+
+        @columns_hash = Hash.new do |h, table_name|
+          h[table_name] = Hash[columns[table_name].map { |col|
+            [col.name, col]
+          }]
+        end
+
+        @primary_keys = Hash.new do |h, table_name|
+          h[table_name] = with_connection do |conn|
+            if conn.table_exists?(table_name)
+              conn.primary_key(table_name)
+            else
+              'id'
+            end
+          end
+        end
+      end
+
+      # Clears out internal caches:
+      #
+      #   * columns
+      #   * columns_hash
+      #   * primary_keys
+      def clear_cache!
+        @columns.clear
+        @columns_hash.clear
+        @primary_keys.clear
       end
 
       # Retrieve the connection associated with the current thread, or call

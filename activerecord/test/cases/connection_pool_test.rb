@@ -3,6 +3,41 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPoolTest < ActiveRecord::TestCase
+      def setup
+        # Keep a duplicate pool so we do not bother others
+        @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+      end
+
+      def test_pool_caches_columns
+        columns = @pool.columns['posts']
+        assert_equal columns, @pool.columns['posts']
+      end
+
+      def test_pool_caches_columns_hash
+        columns_hash = @pool.columns_hash['posts']
+        assert_equal columns_hash, @pool.columns_hash['posts']
+      end
+
+      def test_clearing_cache
+        @pool.columns['posts']
+        @pool.columns_hash['posts']
+        @pool.primary_keys['posts']
+
+        @pool.clear_cache!
+
+        assert_equal 0, @pool.columns.size
+        assert_equal 0, @pool.columns_hash.size
+        assert_equal 0, @pool.primary_keys.size
+      end
+
+      def test_primary_key
+        assert_equal 'id', @pool.primary_keys['posts']
+      end
+
+      def test_primary_key_for_non_existent_table
+        assert_equal 'id', @pool.primary_keys['omgponies']
+      end
+
       def test_clear_stale_cached_connections!
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
 
