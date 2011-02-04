@@ -257,6 +257,15 @@ ActiveRecord::Schema.define do
     t.integer :version, :null => false, :default => 0
   end
 
+  create_table :lessons, :force => true do |t|
+    t.string :name
+  end
+
+  create_table :lessons_students, :id => false, :force => true do |t|
+    t.references :lesson
+    t.references :student
+  end
+
   create_table :line_items, :force => true do |t|
     t.integer :invoice_id
     t.integer :amount
@@ -485,6 +494,10 @@ ActiveRecord::Schema.define do
     t.integer :club_id
     t.integer :sponsorable_id
     t.string :sponsorable_type
+  end
+
+  create_table :students, :force => true do |t|
+    t.string :name
   end
 
   create_table :subscribers, :force => true, :id => false do |t|
