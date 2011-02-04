@@ -57,6 +57,7 @@ module ActiveRecord
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
+      attr_accessor :automatic_reconnect
       attr_reader :spec, :connections
       attr_reader :columns, :columns_hash, :primary_keys
 
@@ -82,6 +83,7 @@ module ActiveRecord
 
         @connections = []
         @checked_out = []
+        @automatic_reconnect = true
 
         @columns     = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
@@ -281,6 +283,8 @@ module ActiveRecord
       end
 
       def checkout_new_connection
+        raise ConnectionNotEstablished unless @automatic_reconnect
+
         c = new_connection
         @connections << c
         checkout_and_verify(c)
@@ -379,7 +383,7 @@ module ActiveRecord
         pool = @connection_pools[klass.name]
         return nil unless pool
 
-        @connection_pools.delete_if { |key, value| value == pool }
+        pool.automatic_reconnect = false
         pool.disconnect!
         pool.spec.config
       end

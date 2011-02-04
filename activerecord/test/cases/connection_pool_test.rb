@@ -99,6 +99,26 @@ module ActiveRecord
         end.join()
 
       end
+
+      def test_automatic_reconnect=
+        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        assert pool.automatic_reconnect
+        assert pool.connection
+
+        pool.disconnect!
+        assert pool.connection
+
+        pool.disconnect!
+        pool.automatic_reconnect = false
+
+        assert_raises(ConnectionNotEstablished) do
+          pool.connection
+        end
+
+        assert_raises(ConnectionNotEstablished) do
+          pool.with_connection
+        end
+      end
     end
   end
 end
