@@ -85,7 +85,15 @@ module ActiveRecord
 
         @columns     = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
-            conn.columns(table_name, "#{table_name} Columns")
+
+            # Fetch a list of columns
+            conn.columns(table_name, "#{table_name} Columns").tap do |columns|
+
+              # set primary key information
+              columns.each do |column|
+                column.primary = column.name == primary_keys[table_name]
+              end
+            end
           end
         end
 
