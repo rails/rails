@@ -156,6 +156,17 @@ class PageCachingTest < ActionController::TestCase
     assert_page_not_cached :ok
   end
 
+  def test_page_caching_directory_set_as_pathname
+    begin
+      ActionController::Base.page_cache_directory = Pathname.new(FILE_STORE_PATH)
+      get :ok
+      assert_response :ok
+      assert_page_cached :ok
+    ensure
+      ActionController::Base.page_cache_directory = FILE_STORE_PATH
+    end
+  end
+
   private
     def assert_page_cached(action, message = "#{action} should have been cached")
       assert page_cached?(action), message
