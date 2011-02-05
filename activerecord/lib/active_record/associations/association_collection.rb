@@ -290,7 +290,7 @@ module ActiveRecord
 
           unless concat(other_array - @target)
             @target = original_target
-            raise RecordNotSaved, "Failed to replace #{@reflection.name} because one or more of the "
+            raise RecordNotSaved, "Failed to replace #{@reflection.name} because one or more of the " \
                                   "new records could not be saved."
           end
         end
