@@ -247,7 +247,7 @@ module ActionDispatch
         #
         #   root :to => 'pages#main'
         #
-        # For options, see the +match+ method's documentation, as +root+ uses it internally.
+        # For options, see +match+, as +root+ uses it internally.
         #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
@@ -256,24 +256,41 @@ module ActionDispatch
           match '/', options.reverse_merge(:as => :root)
         end
 
-        # Matches a pattern to one or more urls. Any symbols in a pattern are
-        # interpreted as url parameters:
+        # Matches a url pattern to one or more routes. Any symbols in a pattern
+        # are interpreted as url query parameters and thus available as +params+
+        # in an action:
         #
-        #   # sets parameters :controller, :action and :id
+        #   # sets :controller, :action and :id in params
         #   match ':controller/:action/:id'
         #
-        # Two of these symbols are special: <tt>:controller</tt> maps to the
-        # controller name and <tt>:action</tt> to the action name within that
-        # controller. Anything other than <tt>:controller</tt> or
-        # <tt>:action</tt> will be available to the action as part of +params+.
-        # If a pattern does not have :controller and :action symbols, then they
-        # must be set in options or shorthand. For example:
+        # Two of these symbols are special, +:controller+ maps to the controller
+        # and +:action+ to the controller's action. A pattern can also map
+        # wildcard segments (globs) to params:
+        #
+        #   match 'songs/*category/:title' => 'songs#show'
+        #
+        #   # 'songs/rock/classic/stairway-to-heaven' sets
+        #   #  params[:category] = 'rock/classic'
+        #   #  params[:title] = 'stairway-to-heaven'
+        #
+        # When a pattern points to an internal route, the route's +:action+ and
+        # +:controller+ should be set in options or hash shorthand. Examples:
         #
         #   match 'photos/:id' => 'photos#show'
         #   match 'photos/:id', :to => 'photos#show'
         #   match 'photos/:id', :controller => 'photos', :action => 'show'
         #
-        # === Supported options
+        # A pattern can also point to a +Rack+ endpoint i.e. anything that
+        # responds to +call+:
+        #
+        #   match 'photos/:id' => lambda {|hash| [200, {}, "Coming soon" }
+        #   match 'photos/:id' => PhotoRackApp
+        #   # Yes, controller actions are just rack endpoints
+        #   match 'photos/:id' => PhotosController.action(:show)
+        #
+        # === Options
+        #
+        # Any options not seen here are passed on as params with the url.
         #
         # [:controller]
         #   The route's controller.
@@ -302,9 +319,12 @@ module ActionDispatch
         #      match 'path' => 'c#a', :via => [:get, :post]
         #
         # [:to]
-        #   Shorthand for specifying :controller and :action.
+        #   Points to a +Rack+ endpoint. Can be an object that responds to
+        #   +call+ or a string representing a controller's action.
         #
-        #      match 'path' => 'c#a', :to => 'controller#action'
+        #      match 'path', :to => 'controller#action'
+        #      match 'path', :to => lambda { [200, {}, "Success!"] }
+        #      match 'path', :to => RackApp
         #
         # [:on]
         #   Shorthand for wrapping routes in a specific RESTful context. Valid
@@ -357,6 +377,8 @@ module ActionDispatch
         # Alternatively:
         #
         #   mount(SomeRackApp => "some_route")
+        #
+        # For options, see +match+, as +mount+ uses it internally.
         #
         # All mounted applications come with routing helpers to access them.
         # These are named after the class specified, so for the above example
@@ -549,7 +571,7 @@ module ActionDispatch
         # The difference here being that the routes generated are like /rails/projects/2,
         # rather than /accounts/rails/projects/2.
         #
-        # === Supported options
+        # === Options
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
@@ -632,7 +654,7 @@ module ActionDispatch
         #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
         #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         #
-        # === Supported options
+        # === Options
         #
         # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+
         # options all default to the name of the namespace.
@@ -950,7 +972,7 @@ module ActionDispatch
         #   PUT     /geocoder
         #   DELETE  /geocoder
         #
-        # === Supported options
+        # === Options
         # Takes same options as +resources+.
         def resource(*resources, &block)
           options = resources.extract_options!
@@ -1013,7 +1035,7 @@ module ActionDispatch
         #   PUT     /photos/:id/comments/:id
         #   DELETE  /photos/:id/comments/:id
         #
-        # === Supported options
+        # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
         #
         # [:path_names]

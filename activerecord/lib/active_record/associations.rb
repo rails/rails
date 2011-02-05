@@ -912,7 +912,7 @@ module ActiveRecord
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       #
-      # === Supported options
+      # === Options
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_many :products</tt> will by default be linked

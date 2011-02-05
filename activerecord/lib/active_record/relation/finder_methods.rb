@@ -19,7 +19,7 @@ module ActiveRecord
     #
     # All approaches accept an options hash as their last parameter.
     #
-    # ==== Parameters
+    # ==== Options
     #
     # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>["user_name = ?", username]</tt>,
     #   or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
