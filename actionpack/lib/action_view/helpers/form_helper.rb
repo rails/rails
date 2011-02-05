@@ -298,6 +298,24 @@ module ActionView
       #
       # If you don't need to attach a form to a model instance, then check out
       # FormTagHelper#form_tag.
+      #
+      # === Form to external resources
+      #
+      # When you build forms to external resources sometimes you need to set an authenticity token or just render a form
+      # without it, for example when you submit data to a payment gateway number and types of fields could be limited.
+      #
+      # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter in the <tt>:html</tt>
+      # options section:
+      #
+      #   <%= form_for @invoice, :url => external_url, :html => { :authenticity_token => 'external_token' } do |f|
+      #     ...
+      #   <% end %>
+      #
+      # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
+      #
+      #   <%= form_for @invoice, :url => external_url, :html => { :authenticity_token => false } do |f|
+      #     ...
+      #   <% end %>
       def form_for(record, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 

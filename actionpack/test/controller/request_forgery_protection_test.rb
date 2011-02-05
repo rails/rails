@@ -28,6 +28,14 @@ module RequestForgeryProtectionActions
     render :inline => "<%= csrf_meta_tags %>"
   end
 
+  def external_form_for
+    render :inline => "<%= form_for(:some_resource, :html => { :authenticity_token => 'external_token' }) {} %>"
+  end
+
+  def form_for_without_protection
+    render :inline => "<%= form_for(:some_resource, :html => { :authenticity_token => false }) {} %>"
+  end
+
   def rescue_action(e) raise e end
 end
 
@@ -66,6 +74,16 @@ module RequestForgeryProtectionTests
   def test_should_render_form_with_token_tag
     get :index
     assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
+  end
+
+  def test_should_render_external_form_for_with_external_token
+    get :external_form_for
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', 'external_token'
+  end
+
+  def test_should_render_form_for_without_token_tag
+    get :form_for_without_protection
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
   end
 
   def test_should_render_button_to_with_token_tag
