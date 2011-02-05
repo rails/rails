@@ -537,7 +537,7 @@ module ActiveRecord
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql, :skip_logging)
+        result = execute(sql)
         result.each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
         result.free
         columns

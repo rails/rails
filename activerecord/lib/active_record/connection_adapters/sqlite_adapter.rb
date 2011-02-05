@@ -152,8 +152,11 @@ module ActiveRecord
 
           # Don't cache statements without bind values
           if binds.empty?
-            stmt = @connection.prepare(sql)
-            cols = stmt.columns
+            stmt    = @connection.prepare(sql)
+            cols    = stmt.columns
+            records = stmt.to_a
+            stmt.close
+            stmt = records
           else
             cache = @statements[sql] ||= {
               :stmt => @connection.prepare(sql)
@@ -233,6 +236,15 @@ module ActiveRecord
 
       def columns(table_name, name = nil) #:nodoc:
         table_structure(table_name).map do |field|
+          case field["dflt_value"]
+          when /^null$/i
+            field["dflt_value"] = nil
+          when /^'(.*)'$/
+            field["dflt_value"] = $1.gsub(/''/, "'")
+          when /^"(.*)"$/
+            field["dflt_value"] = $1.gsub(/""/, '"')
+          end
+
           SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
         end
       end
@@ -334,7 +346,7 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          structure = @connection.table_info(quote_table_name(table_name))
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})").to_hash
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           structure
         end

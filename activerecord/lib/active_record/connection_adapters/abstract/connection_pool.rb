@@ -85,6 +85,12 @@ module ActiveRecord
         @checked_out = []
         @automatic_reconnect = true
 
+        @tables = Hash.new do |h, table_name|
+          with_connection do |conn|
+            h[table_name] = conn.table_exists?(table_name)
+          end
+        end
+
         @columns     = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
 
@@ -107,11 +113,7 @@ module ActiveRecord
 
         @primary_keys = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
-            if conn.table_exists?(table_name)
-              conn.primary_key(table_name)
-            else
-              'id'
-            end
+            @tables[table_name] ? conn.primary_key(table_name) : 'id'
           end
         end
       end
@@ -121,10 +123,12 @@ module ActiveRecord
       #   * columns
       #   * columns_hash
       #   * primary_keys
+      #   * tables
       def clear_cache!
         @columns.clear
         @columns_hash.clear
         @primary_keys.clear
+        @tables.clear
       end
 
       # Clear out internal caches for table with +table_name+

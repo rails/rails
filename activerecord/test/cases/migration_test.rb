@@ -2022,7 +2022,10 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert ! column(:name).default
         assert_equal :date, column(:birthdate).type
 
-        assert_queries(1) do
+        # One query for columns (delete_me table)
+        # One query for primary key (delete_me table)
+        # One query to do the bulk change
+        assert_queries(3) do
           with_bulk_change_table do |t|
             t.change :name, :string, :default => 'NONAME'
             t.change :birthdate, :datetime
