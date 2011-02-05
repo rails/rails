@@ -31,6 +31,9 @@ module ActiveRecord
 
           through_association = @owner.send(@reflection.through_reflection.name)
           through_association.create!(construct_join_attributes(record))
+
+          update_counter(1)
+          true
         end
 
       private
@@ -43,19 +46,35 @@ module ActiveRecord
           end
         end
 
-        def deletion_scope(records)
-          @owner.send(@reflection.through_reflection.name).where(construct_join_attributes(*records))
+        def update_through_counter?(method)
+          case method
+          when :destroy
+            !inverse_updates_counter_cache?(@reflection.through_reflection)
+          when :nullify
+            false
+          else
+            true
+          end
         end
 
         def delete_records(records, method = @reflection.options[:dependent])
+          through = @owner.send(:association_proxy, @reflection.through_reflection.name)
+          scope   = through.scoped.where(construct_join_attributes(*records))
+
           case method
           when :destroy
-            deletion_scope(records).destroy_all
+            count = scope.destroy_all.length
           when :nullify
-            deletion_scope(records).update_all(@reflection.source_reflection.foreign_key => nil)
+            count = scope.update_all(@reflection.source_reflection.foreign_key => nil)
           else
-            deletion_scope(records).delete_all
+            count = scope.delete_all
           end
+
+          if @reflection.through_reflection.macro == :has_many && update_through_counter?(method)
+            update_counter(-count, @reflection.through_reflection)
+          end
+
+          update_counter(-count)
         end
 
         def find_target

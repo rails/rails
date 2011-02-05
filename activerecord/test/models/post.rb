@@ -39,6 +39,7 @@ class Post < ActiveRecord::Base
 
   has_many :author_favorites, :through => :author
   has_many :author_categorizations, :through => :author, :source => :categorizations
+  has_many :author_addresses, :through => :author
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
@@ -57,6 +58,10 @@ class Post < ActiveRecord::Base
   end
 
   has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
+  has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy
+
+  has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy
+  has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify
 
   has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => "tags.name = 'Misc'"
   has_many :funky_tags, :through => :taggings, :source => :tag

@@ -45,30 +45,54 @@ module ActiveRecord
           [@reflection.options[:limit], count].compact.min
         end
 
-        def has_cached_counter?
-          @owner.attribute_present?(cached_counter_attribute_name)
+        def has_cached_counter?(reflection = @reflection)
+          @owner.attribute_present?(cached_counter_attribute_name(reflection))
         end
 
-        def cached_counter_attribute_name
-          "#{@reflection.name}_count"
+        def cached_counter_attribute_name(reflection = @reflection)
+          "#{reflection.name}_count"
+        end
+
+        def update_counter(difference, reflection = @reflection)
+          if has_cached_counter?(reflection)
+            counter = cached_counter_attribute_name(reflection)
+            @owner.class.update_counters(@owner.id, counter => difference)
+            @owner[counter] += difference
+            @owner.changed_attributes.delete(counter) # eww
+          end
+        end
+
+        # This shit is nasty. We need to avoid the following situation:
+        #
+        #   * An associated record is deleted via record.destroy
+        #   * Hence the callbacks run, and they find a belongs_to on the record with a
+        #     :counter_cache options which points back at our @owner. So they update the
+        #     counter cache.
+        #   * In which case, we must make sure to *not* update the counter cache, or else
+        #     it will be decremented twice.
+        #
+        # Hence this method.
+        def inverse_updates_counter_cache?(reflection = @reflection)
+          counter_name = cached_counter_attribute_name(reflection)
+          reflection.klass.reflect_on_all_associations(:belongs_to).any? { |inverse_reflection|
+            inverse_reflection.counter_cache_column == counter_name
+          }
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
         def delete_records(records, method = @reflection.options[:dependent])
-          case method
-          when :destroy
+          if method == :destroy
             records.each { |r| r.destroy }
-          when :delete_all
-            @reflection.klass.delete(records.map { |r| r.id })
+            update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            updates    = { @reflection.foreign_key => nil }
-            conditions = { @reflection.association_primary_key => records.map { |r| r.id } }
+            keys  = records.map { |r| r[@reflection.association_primary_key] }
+            scope = scoped.where(@reflection.association_primary_key => keys)
 
-            scoped.where(conditions).update_all(updates)
-          end
-
-          if has_cached_counter? && method != :destroy
-            @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size)
+            if method == :delete_all
+              update_counter(-scope.delete_all)
+            else
+              update_counter(-scope.update_all(@reflection.foreign_key => nil))
+            end
           end
         end
 

@@ -455,6 +455,10 @@ ActiveRecord::Schema.define do
     t.integer :comments_count, :default => 0
     t.integer :taggings_count, :default => 0
     t.integer :taggings_with_delete_all_count, :default => 0
+    t.integer :taggings_with_destroy_count, :default => 0
+    t.integer :tags_count, :default => 0
+    t.integer :tags_with_destroy_count, :default => 0
+    t.integer :tags_with_nullify_count, :default => 0
   end
 
   create_table :price_estimates, :force => true do |t|

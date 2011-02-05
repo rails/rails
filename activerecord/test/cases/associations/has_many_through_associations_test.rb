@@ -25,8 +25,8 @@ require 'models/membership'
 require 'models/club'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :categories,
-           :owners, :pets, :toys, :jobs, :references, :companies, :members,
+  fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
+           :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations
 
   # Dummies to force column loads so query counts are clean.
@@ -252,6 +252,37 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     references.each do |reference|
       assert_equal nil, reference.reload.job_id
+    end
+  end
+
+  def test_update_counter_caches_on_delete
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+
+    assert_difference ['post.reload.taggings_count', 'post.reload.tags_count'], -1 do
+      posts(:welcome).tags.delete(tag)
+    end
+  end
+
+  def test_update_counter_caches_on_delete_with_dependent_destroy
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+    post.update_attribute(:tags_with_destroy_count, post.tags.count)
+
+    assert_difference ['post.reload.taggings_count', 'post.reload.tags_with_destroy_count'], -1 do
+      posts(:welcome).tags_with_destroy.delete(tag)
+    end
+  end
+
+  def test_update_counter_caches_on_delete_with_dependent_nullify
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+    post.update_attribute(:tags_with_nullify_count, post.tags.count)
+
+    assert_no_difference 'post.reload.taggings_count' do
+      assert_difference 'post.reload.tags_with_nullify_count', -1 do
+        posts(:welcome).tags_with_nullify.delete(tag)
+      end
     end
   end
 
@@ -670,5 +701,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     club   = member.clubs.create!
 
     assert_equal true, club.reload.membership.favourite
+  end
+
+  def test_deleting_from_has_many_through_a_belongs_to_should_not_try_to_update_counter
+    post    = posts(:welcome)
+    address = author_addresses(:david_address)
+
+    assert post.author_addresses.include?(address)
+    post.author_addresses.delete(address)
+    assert post[:author_count].nil?
   end
 end

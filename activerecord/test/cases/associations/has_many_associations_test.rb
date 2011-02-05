@@ -630,7 +630,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal topic.replies.to_a.size, topic.replies_count
   end
 
-  def test_deleting_updates_counter_cache_without_dependent_destroy
+  def test_deleting_updates_counter_cache_without_dependent_option
     post = posts(:welcome)
 
     assert_difference "post.reload.taggings_count", -1 do
@@ -640,13 +640,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_deleting_updates_counter_cache_with_dependent_delete_all
     post = posts(:welcome)
-
-    # Manually update the count as the tagging will have been added to the taggings association,
-    # rather than to the taggings_with_delete_all one (which is just a 'shadow' of the former)
-    post.update_attribute(:taggings_with_delete_all_count, post.taggings_with_delete_all.to_a.count)
+    post.update_attribute(:taggings_with_delete_all_count, post.taggings_count)
 
     assert_difference "post.reload.taggings_with_delete_all_count", -1 do
       post.taggings_with_delete_all.delete(post.taggings_with_delete_all.first)
+    end
+  end
+
+  def test_deleting_updates_counter_cache_with_dependent_destroy
+    post = posts(:welcome)
+    post.update_attribute(:taggings_with_destroy_count, post.taggings_count)
+
+    assert_difference "post.reload.taggings_with_destroy_count", -1 do
+      post.taggings_with_destroy.delete(post.taggings_with_destroy.first)
     end
   end
 
@@ -701,9 +707,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_clearing_updates_counter_cache
     topic = Topic.first
 
-    topic.replies.clear
-    topic.reload
-    assert_equal 0, topic.replies_count
+    assert_difference 'topic.reload.replies_count', -1 do
+      topic.replies.clear
+    end
   end
 
   def test_clearing_a_dependent_association_collection
