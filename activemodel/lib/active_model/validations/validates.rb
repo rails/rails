@@ -84,7 +84,6 @@ module ActiveModel
         validations = defaults.slice!(:if, :unless, :on, :allow_blank, :allow_nil)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
-        raise ArgumentError, "Attribute names must be symbols" if attributes.any?{ |attribute| !attribute.is_a?(Symbol) }
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
 
         defaults.merge!(:attributes => attributes)

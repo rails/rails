@@ -21,6 +21,17 @@ class ValidatesTest < ActiveModel::TestCase
     assert_equal ['is not a number'], person.errors[:title]
   end
 
+  def test_validates_with_attribute_specified_as_string
+    Person.validates "title", :numericality => true
+    person = Person.new
+    person.valid?
+    assert_equal ['is not a number'], person.errors[:title]
+
+    person = Person.new
+    person.title = 123
+    assert person.valid?
+  end
+
   def test_validates_with_built_in_validation_and_options
     Person.validates :salary, :numericality => { :message => 'my custom message' }
     person = Person.new
