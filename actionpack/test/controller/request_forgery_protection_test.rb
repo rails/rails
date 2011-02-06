@@ -29,11 +29,11 @@ module RequestForgeryProtectionActions
   end
 
   def external_form_for
-    render :inline => "<%= form_for(:some_resource, :html => { :authenticity_token => 'external_token' }) {} %>"
+    render :inline => "<%= form_for(:some_resource, :authenticity_token => 'external_token') {} %>"
   end
 
   def form_for_without_protection
-    render :inline => "<%= form_for(:some_resource, :html => { :authenticity_token => false }) {} %>"
+    render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
   end
 
   def rescue_action(e) raise e end
