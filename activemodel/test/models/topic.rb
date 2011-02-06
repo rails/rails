@@ -2,6 +2,10 @@ class Topic
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
 
+  def self._validates_default_keys
+    super | [ :message ]
+  end
+
   attr_accessor :title, :author_name, :content, :approved
   attr_accessor :after_validation_performed
 

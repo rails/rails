@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'cases/helper'
 require 'models/person'
+require 'models/topic'
 require 'models/person_with_validator'
 require 'validators/email_validator'
 require 'validators/namespace/email_validator'
@@ -11,6 +12,7 @@ class ValidatesTest < ActiveModel::TestCase
 
   def reset_callbacks
     Person.reset_callbacks(:validate)
+    Topic.reset_callbacks(:validate)
     PersonWithValidator.reset_callbacks(:validate)
   end
 
@@ -138,5 +140,14 @@ class ValidatesTest < ActiveModel::TestCase
     person.title = "Ms. Pacman"
     person.valid?
     assert_equal ['does not appear to be like Mr.'], person.errors[:title]
+  end
+
+  def test_defining_extra_default_keys_for_validates
+    Topic.validates :title, :confirmation => true, :message => 'Y U NO CONFIRM'
+    topic = Topic.new
+    topic.title = "What's happening"
+    topic.title_confirmation = "Not this"
+    assert !topic.valid?
+    assert_equal ['Y U NO CONFIRM'], topic.errors[:title]
   end
 end

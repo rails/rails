@@ -81,7 +81,7 @@ module ActiveModel
       #
       def validates(*attributes)
         defaults = attributes.extract_options!
-        validations = defaults.slice!(:if, :unless, :on, :allow_blank, :allow_nil)
+        validations = defaults.slice!(*_validates_default_keys)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
@@ -102,6 +102,12 @@ module ActiveModel
       end
 
     protected
+
+      # When creating custom validators, it might be useful to be able to specify
+      # additional default keys. This can be done by overwriting this method.
+      def _validates_default_keys
+        [ :if, :unless, :on, :allow_blank, :allow_nil ]
+      end
 
       def _parse_validates_options(options) #:nodoc:
         case options
