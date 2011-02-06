@@ -57,7 +57,7 @@ module ActiveRecord
           end
         end
 
-        def delete_records(records, method = @reflection.options[:dependent])
+        def delete_records(records, method)
           through = @owner.send(:association_proxy, @reflection.through_reflection.name)
           scope   = through.scoped.where(construct_join_attributes(*records))
 

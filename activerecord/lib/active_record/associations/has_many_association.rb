@@ -80,7 +80,7 @@ module ActiveRecord
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
-        def delete_records(records, method = @reflection.options[:dependent])
+        def delete_records(records, method)
           if method == :destroy
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?

@@ -837,7 +837,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
     assert @pirate.save
 
-    assert_queries(1) do
+    assert_no_queries do
       assert @pirate.save
     end
   end
