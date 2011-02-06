@@ -146,8 +146,10 @@ module ActiveModel
       end
 
       # List all validators that being used to validate a specific attribute.
-      def validators_on(attribute)
-        _validators[attribute.to_sym]
+      def validators_on(*attributes)
+        attributes.inject([]) do |all, attribute|
+          all |= _validators[attribute.to_sym] || []
+        end
       end
 
       # Check if method is an attribute method or not.
