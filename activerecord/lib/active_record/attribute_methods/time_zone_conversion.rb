@@ -38,7 +38,7 @@ module ActiveRecord
             if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
               method_body, line = <<-EOV, __LINE__ + 1
                 def #{attr_name}=(original_time)
-                  time = original_time.dup
+                  time = original_time.dup unless original_time.nil?
                   unless time.acts_like?(:time)
                     time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
                   end

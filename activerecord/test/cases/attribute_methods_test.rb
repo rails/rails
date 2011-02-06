@@ -459,6 +459,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_write_nil_to_time_attributes
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      record.written_on = nil
+      assert_nil record.written_on
+    end
+  end
+
   def test_time_attributes_are_retrieved_in_current_time_zone
     in_time_zone "Pacific Time (US & Canada)" do
       utc_time = Time.utc(2008, 1, 1)
