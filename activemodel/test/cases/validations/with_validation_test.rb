@@ -183,4 +183,13 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert !topic.valid?
     assert_equal ['is missing'], topic.errors[:title]
   end
+
+  test "optionally pass in the attribute being validated when validating with an instance method" do
+    Topic.validates :title, :content, :with => :my_validation_with_arg
+
+    topic = Topic.new :title => "foo"
+    assert !topic.valid?
+    assert topic.errors[:title].empty?
+    assert_equal ['is missing'], topic.errors[:content]
+  end
 end
