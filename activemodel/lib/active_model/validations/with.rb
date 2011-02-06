@@ -8,6 +8,12 @@ module ActiveModel
         end
     end
 
+    class WithValidator < EachValidator
+      def validate_each(record, attr, val)
+        record.send options[:with]
+      end
+    end
+
     module ClassMethods
       # Passes the record off to the class or classes specified and allows them
       # to add errors based on more complex conditions.

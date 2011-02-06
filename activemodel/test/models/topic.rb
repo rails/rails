@@ -29,4 +29,8 @@ class Topic
     self.after_validation_performed = true
   end
 
+  def my_validation
+    errors.add :title, "is missing" unless title
+  end
+
 end
