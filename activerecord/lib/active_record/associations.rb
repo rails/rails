@@ -232,10 +232,9 @@ module ActiveRecord
     #   others.empty?                     |   X   |    X     |    X
     #   others.clear                      |   X   |    X     |    X
     #   others.delete(other,other,...)    |   X   |    X     |    X
-    #   others.delete_all                 |   X   |    X     |
+    #   others.delete_all                 |   X   |    X     |    X
     #   others.destroy_all                |   X   |    X     |    X
     #   others.find(*args)                |   X   |    X     |    X
-    #   others.find_first                 |   X   |          |
     #   others.exists?                    |   X   |    X     |    X
     #   others.uniq                       |   X   |    X     |    X
     #   others.reset                      |   X   |    X     |    X
@@ -833,6 +832,73 @@ module ActiveRecord
     # * does not work with <tt>:polymorphic</tt> associations.
     # * for +belongs_to+ associations +has_many+ inverse associations are ignored.
     #
+    # == Deleting from associations
+    #
+    # === Dependent associations
+    #
+    # +has_many+, +has_one+ and +belongs_to+ associations support the <tt>:dependent</tt> option.
+    # This allows you to specify that associated records should be deleted when the owner is
+    # deleted.
+    #
+    # For example:
+    #
+    #     class Author
+    #       has_many :posts, :dependent => :destroy
+    #     end
+    #     Author.find(1).destroy # => Will destroy all of the author's posts, too
+    #
+    # The <tt>:dependent</tt> option can have different values which specify how the deletion
+    # is done. For more information, see the documentation for this option on the different
+    # specific association types.
+    #
+    # === Delete or destroy?
+    #
+    # +has_many+ and +has_and_belongs_to_many+ associations have the methods <tt>destroy</tt>,
+    # <tt>delete</tt>, <tt>destroy_all</tt> and <tt>delete_all</tt>.
+    #
+    # For +has_and_belongs_to_many+, <tt>delete</tt> and <tt>destroy</tt> are the same: they
+    # cause the records in the join table to be removed.
+    #
+    # For +has_many+, <tt>destroy</tt> will always call the <tt>destroy</tt> method of the
+    # record(s) being removed so that callbacks are run. However <tt>delete</tt> will either
+    # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
+    # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
+    # The default strategy is <tt>:nullify</tt> (set the foreign keys to <tt>nil</tt>), except for
+    # +has_many+ <tt>:through</tt>, where the default strategy is <tt>delete_all</tt> (delete
+    # the join records, without running their callbacks).
+    #
+    # There is also a <tt>clear</tt> method which is the same as <tt>delete_all</tt>, except that
+    # it returns the association rather than the records which have been deleted.
+    #
+    # === What gets deleted?
+    #
+    # There is a potential pitfall here: +has_and_belongs_to_many+ and +has_many+ <tt>:through</tt>
+    # associations have records in join tables, as well as the associated records. So when we
+    # call one of these deletion methods, what exactly should be deleted?
+    #
+    # The answer is that it is assumed that deletion on an association is about removing the
+    # <i>link</i> between the owner and the associated object(s), rather than necessarily the
+    # associated objects themselves. So with +has_and_belongs_to_many+ and +has_many+
+    # <tt>:through</tt>, the join records will be deleted, but the associated records won't.
+    #
+    # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by_name('food'))</tt>
+    # you would want the 'food' tag to be unlinked from the post, rather than for the tag itself
+    # to be removed from the database.
+    #
+    # However, there are examples where this strategy doesn't make sense. For example, suppose
+    # a person has many projects, and each project has many tasks. If we deleted one of a person's
+    # tasks, we would probably not want the project to be deleted. In this scenario, the delete method
+    # won't actually work: it can only be used if the association on the join model is a
+    # +belongs_to+. In other situations you are expected to perform operations directly on
+    # either the associated records or the <tt>:through</tt> association.
+    #
+    # With a regular +has_many+ there is no distinction between the "associated records"
+    # and the "link", so there is only one choice for what gets deleted.
+    #
+    # With +has_and_belongs_to_many+ and +has_many+ <tt>:through</tt>, if you want to delete the
+    # associated records themselves, you can always do something along the lines of
+    # <tt>person.tasks.each(&:destroy)</tt>.
+    #
     # == Type safety with <tt>ActiveRecord::AssociationTypeMismatch</tt>
     #
     # If you attempt to assign an object to an association that doesn't match the inferred
@@ -857,6 +923,10 @@ module ActiveRecord
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
       #   Objects will be in addition destroyed if they're associated with <tt>:dependent => :destroy</tt>,
       #   and deleted if they're associated with <tt>:dependent => :delete_all</tt>.
+      #
+      #   If the <tt>:through</tt> option is used, then the join records are deleted (rather than
+      #   nullified) by default, but you can specify <tt>:dependent => :destroy</tt> or
+      #   <tt>:dependent => :nullify</tt> to override this.
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
       #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
@@ -940,7 +1010,9 @@ module ActiveRecord
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
       #   <tt>:restrict</tt> this object cannot be deleted if it has any associated object.
       #
-      #   *Warning:* This option is ignored when used with <tt>:through</tt> option.
+      #   If using with the <tt>:through</tt> option, the association on the join model must be
+      #   a +belongs_to+, and the records which get deleted are the join records, rather than
+      #   the associated records.
       #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
