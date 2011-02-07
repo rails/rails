@@ -30,6 +30,10 @@ module Arel
       @engine.connection.columns table, message
     end
 
+    def columns_hash
+      @engine.connection.columns_hash
+    end
+
     def table_exists? name
       @engine.connection.table_exists? name
     end

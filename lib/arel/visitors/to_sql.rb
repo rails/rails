@@ -11,14 +11,6 @@ module Arel
         @last_column    = nil
         @quoted_tables  = {}
         @quoted_columns = {}
-        @column_cache   = Hash.new { |h,pool|
-          h[pool] = Hash.new { |conn_h,column|
-            conn_h[column] = {}
-          }
-        }
-        @table_exists   = Hash.new { |h,pool|
-          h[pool] = {}
-        }
       end
 
       def accept object
@@ -91,37 +83,20 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def table_exists? name
-        return true if table_exists.key? name
-
-        @connection.tables.each do |table|
-          table_exists[table] = true
-        end
-
-        table_exists.key? name
-      end
-
-      def table_exists
-        @table_exists[@pool]
+        @pool.table_exists? name
       end
 
       def column_for attr
-        name    = attr.name.to_sym
+        name    = attr.name.to_s
         table   = attr.relation.name
 
         return nil unless table_exists? table
-
-        # If we don't have this column cached, get a list of columns and
-        # cache them for this table
-        unless column_cache.key? table
-          columns = @connection.columns(table, "#{table}(#{name}) Columns")
-          column_cache[table] = Hash[columns.map { |c| [c.name.to_sym, c] }]
-        end
 
         column_cache[table][name]
       end
 
       def column_cache
-        @column_cache[@pool]
+        @pool.columns_hash
       end
 
       def visit_Arel_Nodes_Values o

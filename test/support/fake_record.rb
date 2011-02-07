@@ -3,7 +3,7 @@ module FakeRecord
   end
 
   class Connection
-    attr_reader :tables
+    attr_reader :tables, :columns_hash
 
     def initialize
       @tables = %w{ users photos developers }
@@ -14,6 +14,9 @@ module FakeRecord
           Column.new('bool', :boolean),
           Column.new('created_at', :date),
         ]
+      }
+      @columns_hash = {
+        'users' => Hash[@columns['users'].map { |x| [x.name, x] }]
       }
       @primary_keys = {
         'users' => 'id'
@@ -74,6 +77,14 @@ module FakeRecord
 
     def with_connection
       yield connection
+    end
+
+    def table_exists? name
+      connection.tables.include? name.to_s
+    end
+
+    def columns_hash
+      connection.columns_hash
     end
   end
 
