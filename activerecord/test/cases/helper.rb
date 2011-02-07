@@ -49,28 +49,29 @@ ensure
   ActiveRecord::Base.default_timezone = old_zone
 end
 
-ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SQL = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/]
+module ActiveRecord
+  class SQLCounter
+    IGNORED_SQL = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/]
 
-  # FIXME: this needs to be refactored so specific database can add their own
-  # ignored SQL.  This ignored SQL is for Oracle.
-  IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from ((all|user)_tab_columns|(all|user)_triggers|(all|user)_constraints)/im]
+    # FIXME: this needs to be refactored so specific database can add their own
+    # ignored SQL.  This ignored SQL is for Oracle.
+    IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from ((all|user)_tab_columns|(all|user)_triggers|(all|user)_constraints)/im]
 
-  def execute_with_query_record(sql, name = nil, &block)
-    $queries_executed ||= []
-    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    execute_without_query_record(sql, name, &block)
+    def initialize
+      $queries_executed = []
+    end
+
+    def call(name, start, finish, message_id, values)
+      sql = values[:sql]
+
+      # FIXME: this seems bad. we should probably have a better way to indicate
+      # the query was cached
+      unless 'CACHE' == values[:name]
+        $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
+      end
+    end
   end
-
-  alias_method_chain :execute, :query_record
-
-  def exec_query_with_query_record(sql, name = nil, binds = [], &block)
-    $queries_executed ||= []
-    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    exec_query_without_query_record(sql, name, binds, &block)
-  end
-
-  alias_method_chain :exec_query, :query_record
+  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
 
 ActiveRecord::Base.connection.class.class_eval {
