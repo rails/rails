@@ -418,7 +418,7 @@ module ActiveRecord
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql, :skip_logging)
+        result = execute(sql)
         result.each(:symbolize_keys => true, :as => :hash) { |field|
           columns << Mysql2Column.new(field[:Field], field[:Default], field[:Type], field[:Null] == "YES")
         }
