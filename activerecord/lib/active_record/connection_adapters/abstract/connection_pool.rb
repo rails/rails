@@ -59,7 +59,7 @@ module ActiveRecord
     class ConnectionPool
       attr_accessor :automatic_reconnect
       attr_reader :spec, :connections
-      attr_reader :columns, :columns_hash, :primary_keys
+      attr_reader :columns, :columns_hash, :primary_keys, :tables
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -84,12 +84,7 @@ module ActiveRecord
         @connections = []
         @checked_out = []
         @automatic_reconnect = true
-
-        @tables = Hash.new do |h, table_name|
-          with_connection do |conn|
-            h[table_name] = conn.table_exists?(table_name)
-          end
-        end
+        @tables = {}
 
         @columns     = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
@@ -113,9 +108,20 @@ module ActiveRecord
 
         @primary_keys = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
-            @tables[table_name] ? conn.primary_key(table_name) : 'id'
+            table_exists?(table_name) ? conn.primary_key(table_name) : 'id'
           end
         end
+      end
+
+      # A cached lookup for table existence
+      def table_exists?(name)
+        return true if @tables.key? name
+
+        with_connection do |conn|
+          conn.tables.each { |table| @tables[table] = true }
+        end
+
+        @tables.key? name
       end
 
       # Clears out internal caches:

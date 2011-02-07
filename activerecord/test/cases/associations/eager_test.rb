@@ -851,6 +851,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
+    Author.columns
+
     authors = assert_queries(2) do
       Author.find(:all, :include => :author_address, :joins => :comments, :conditions => "posts.title like 'Welcome%'")
     end
