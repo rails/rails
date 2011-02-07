@@ -782,10 +782,10 @@ Sometimes when you submit data to an external resource, like payment gateway, fi
 <% end %>
 </erb>
 
-The same technique is available for the +form_for+ too. You need just to set an +authenticity_token+ through +html+ options:
+The same technique is available for the +form_for+ too:
 
 <erb>
-<%= form_for @invoice, :url => external_url, :html => { :authenticity_token => 'external_token' } do |f|
+<%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
   Form contents
 <% end %>
 </erb>
@@ -793,7 +793,7 @@ The same technique is available for the +form_for+ too. You need just to set an 
 Or if you don't want to render an +authenticity_token+ field:
 
 <erb>
-<%= form_for @invoice, :url => external_url, :html => { :authenticity_token => false } do |f|
+<%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
   Form contents
 <% end %>
 </erb>
