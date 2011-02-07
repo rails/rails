@@ -131,7 +131,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal developer.created_at, nil
 
     developer.created_at = "2010-03-21 21:23:32"
-    assert_equal developer.created_at_before_type_cast.to_s, "2010-03-21 21:23:32"
+    assert_equal developer.created_at_before_type_cast, "2010-03-21 21:23:32"
     assert_equal developer.created_at, Time.parse("2010-03-21 21:23:32")
   end
 
