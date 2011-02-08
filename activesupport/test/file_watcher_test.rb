@@ -21,6 +21,16 @@ class FileWatcherTest < ActiveSupport::TestCase
     end
   end
 
+  def test_use_triple_equals
+    fw = ActiveSupport::FileWatcher.new
+    called = []
+    fw.watch("some_arbitrary_file.rb") do |file|
+      called << "omg"
+    end
+    fw.trigger(%w{ some_arbitrary_file.rb })
+    assert_equal ['omg'], called
+  end
+
   def test_one_change
     @backend.trigger("app/assets/main.scss" => :changed)
     assert_equal({:changed => ["app/assets/main.scss"]}, @payload.first)
