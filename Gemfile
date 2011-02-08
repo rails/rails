@@ -20,11 +20,6 @@ group :doc do
   gem "RedCloth", "~> 4.2"
 end
 
-# for perf tests
-gem "faker"
-gem "rbench"
-gem "addressable"
-
 # AS
 gem "memcache-client", ">= 1.8.5"
 
