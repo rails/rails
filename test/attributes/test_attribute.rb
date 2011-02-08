@@ -366,6 +366,14 @@ module Arel
             SELECT "users"."id" FROM "users" WHERE ("users"."id" = 1 OR "users"."id" = 2)
           }
         end
+
+        it 'should not eat input' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          values = [1,2]
+          mgr.where relation[:id].eq_any(values)
+          values.must_equal [1,2]
+        end
       end
 
       describe '#eq_all' do
@@ -381,6 +389,14 @@ module Arel
           mgr.to_sql.must_be_like %{
             SELECT "users"."id" FROM "users" WHERE ("users"."id" = 1 AND "users"."id" = 2)
           }
+        end
+
+        it 'should not eat input' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          values = [1,2]
+          mgr.where relation[:id].eq_all(values)
+          values.must_equal [1,2]
         end
       end
 

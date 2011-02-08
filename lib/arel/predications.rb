@@ -163,6 +163,7 @@ module Arel
     private
 
     def grouping_any method_id, others
+      others = others.dup
       first = send method_id, others.shift
 
       Nodes::Grouping.new others.inject(first) { |memo,expr|
@@ -171,6 +172,7 @@ module Arel
     end
 
     def grouping_all method_id, others
+      others = others.dup
       first = send method_id, others.shift
 
       Nodes::Grouping.new others.inject(first) { |memo,expr|
