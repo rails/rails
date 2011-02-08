@@ -147,7 +147,9 @@ module ActionController
         if value.is_a? Fixnum
           value = value.to_s
         elsif value.is_a? Array
-          value = Result.new(value)
+          value = Result.new(value.map { |v| v.is_a?(String) ? v.dup : v })
+        elsif value.is_a? String
+          value = value.dup
         end
 
         if extra_keys.include?(key.to_sym)

@@ -493,6 +493,18 @@ XML
     )
   end
 
+  def test_params_passing_with_frozen_values
+    assert_nothing_raised do
+      get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze
+    end
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_test/test', 'action' => 'test_params',
+       'frozen' => 'icy', 'frozens' => ['icy']},
+      parsed_params
+    )
+  end
+
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
     assert_kind_of String, @request.path_parameters['id']
