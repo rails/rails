@@ -44,6 +44,7 @@ module InflectorTestCases
 
     "datum"       => "data",
     "medium"      => "media",
+    "stadium"     => "stadia",
     "analysis"    => "analyses",
 
     "node_child"  => "node_children",
