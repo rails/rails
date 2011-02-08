@@ -55,11 +55,11 @@ module Rails
         end
 
         def singular_table_name
-          @singular_table_name ||= table_name.singularize
+          @singular_table_name ||= (pluralize_table_names? ? table_name.singularize : table_name)
         end
 
         def plural_table_name
-          @plural_table_name ||= table_name.pluralize
+          @plural_table_name ||= (pluralize_table_names? ? table_name : table_name.pluralize)
         end
 
         def plural_file_name
