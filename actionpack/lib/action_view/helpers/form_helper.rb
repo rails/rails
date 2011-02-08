@@ -549,8 +549,11 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
-      def fields_for(record, record_object = nil, options = nil, &block)
-        capture(instantiate_builder(record, record_object, options, &block), &block)
+      def fields_for(record, record_object = nil, options = {}, &block)
+        builder = instantiate_builder(record, record_object, options, &block)
+        output = capture(builder, &block)
+        output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
+        output
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -1323,14 +1326,8 @@ module ActionView
         def fields_for_nested_model(name, object, options, block)
           object = convert_to_model(object)
 
-          if object.persisted?
-            @template.fields_for(name, object, options) do |builder|
-              block.call(builder)
-              @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
-            end
-          else
-            @template.fields_for(name, object, options, &block)
-          end
+          options[:hidden_field_id] = object.persisted?
+          @template.fields_for(name, object, options, &block)
         end
 
         def nested_child_index(name)
