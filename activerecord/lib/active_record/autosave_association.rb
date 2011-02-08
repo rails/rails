@@ -306,6 +306,8 @@ module ActiveRecord
           records.each do |record|
             next if record.destroyed?
 
+            saved = true
+
             if autosave && record.marked_for_destruction?
               association.destroy(record)
             elsif autosave != false && (@new_record_before_save || record.new_record?)
@@ -318,7 +320,7 @@ module ActiveRecord
               saved = record.save(:validate => false)
             end
 
-            raise ActiveRecord::Rollback if saved == false
+            raise ActiveRecord::Rollback unless saved
           end
         end
 

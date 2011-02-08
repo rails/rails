@@ -26,14 +26,14 @@ module ActiveRecord
 
         def insert_record(record, force = true, validate = true)
           if record.new_record?
-            return false unless save_record(record, force, validate)
+            return unless save_record(record, force, validate)
           end
 
           through_association = @owner.send(@reflection.through_reflection.name)
           through_association.create!(construct_join_attributes(record))
 
           update_counter(1)
-          true
+          record
         end
 
       private
