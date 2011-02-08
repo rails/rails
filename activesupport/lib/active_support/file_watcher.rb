@@ -15,17 +15,16 @@ module ActiveSupport
       @regex_matchers = {}
     end
 
-    def watch_regex(regex, &block)
-      @regex_matchers[regex] = block
+    def watch(pattern, &block)
+      @regex_matchers[pattern] = block
     end
-    alias :watch :watch_regex
 
     def trigger(files)
       trigger_files = Hash.new { |h,k| h[k] = Hash.new { |h2,k2| h2[k2] = [] } }
 
       files.each do |file, state|
-        @regex_matchers.each do |regex, block|
-          trigger_files[block][state] << file if regex === file
+        @regex_matchers.each do |pattern, block|
+          trigger_files[block][state] << file if pattern === file
         end
       end
 
