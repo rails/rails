@@ -81,7 +81,7 @@ The +rails generate+ command uses templates to create a whole lot of things. You
 
 <shell>
 $ rails generate
-Usage: rails generate generator [options] [args]
+Usage: rails generate generator [args] [options]
 
 ...
 ...
@@ -105,7 +105,7 @@ INFO: All Rails console utilities have help text. As with most *nix utilities, y
 
 <shell>
 $ rails generate controller
-Usage: rails generate controller ControllerName [options]
+Usage: rails generate controller NAME [action action] [options]
 
 ...
 ...
@@ -122,7 +122,7 @@ Example:
 Modules Example:
     rails generate controller 'admin/credit_card' suspend late_fee
 
-    Credit card admin controller with URLs /admin/credit_card/suspend.
+    Credit card admin controller with URLs like /admin/credit_card/suspend.
         Controller: app/controllers/admin/credit_card_controller.rb
         Views:      app/views/admin/credit_card/debit.html.erb [...]
         Helper:     app/helpers/admin/credit_card_helper.rb
@@ -138,10 +138,13 @@ $ rails generate controller Greetings hello
      invoke  erb
      create    app/views/greetings
      create    app/views/greetings/hello.html.erb
-      error  rspec [not found]
+     invoke  test_unit
+     create    test/functional/greetings_controller_test.rb
      invoke  helper
      create    app/helpers/greetings_helper.rb
-      error    rspec [not found]
+     invoke    test_unit
+     create      test/unit/helpers/greetings_helper_test.rb
+
 </shell>
 
 What all did this generate?  It made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
@@ -153,7 +156,6 @@ class GreetingsController < ApplicationController
   def hello
     @message = "Hello, how are you today?"
   end
-
 end
 </ruby>
 
@@ -164,7 +166,7 @@ Then the view, to display our message (in +app/views/greetings/hello.html.erb+):
 <p><%= @message %></p>
 </html>
 
-Deal. Go check it out in your browser. Fire up your server. Remember? +rails server+ at the root of your Rails application should do it.
+Deal. Go check it out in your browser. Fire up your server using +rails server+.
 
 <shell>
 $ rails server
@@ -181,7 +183,7 @@ Rails comes with a generator for data models too:
 
 <shell>
 $ rails generate model
-Usage: rails generate model ModelName [field:type, field:type]
+Usage: rails generate model NAME [field:type field:type] [options]
 
 ...
 
@@ -223,7 +225,7 @@ $ rails generate scaffold HighScore game:string score:integer
     create  app/controllers/high_scores_controller.rb
     create  test/functional/high_scores_controller_test.rb
     create  app/helpers/high_scores_helper.rb
-     route  map.resources :high_scores
+     route  resources :high_scores
 dependency  model
     exists    app/models/
     exists    test/unit/
@@ -284,7 +286,7 @@ Let's say you're creating a website for a client who wants a small accounting sy
 There is such a thing! The plugin we're installing is called +acts_as_paranoid+, and it lets models implement a +deleted_at+ column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
 
 <shell>
-$ rails plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
+$ rails plugin install https://github.com/technoweenie/acts_as_paranoid.git
 + ./CHANGELOG
 + ./MIT-LICENSE
 ...
