@@ -35,7 +35,7 @@ module BareMetalTest
 
   class HeadTest < ActiveSupport::TestCase
     test "head works on its own" do
-      status, headers, body = HeadController.action(:index).call(Rack::MockRequest.env_for("/"))
+      status = HeadController.action(:index).call(Rack::MockRequest.env_for("/")).first
       assert_equal 404, status
     end
   end
