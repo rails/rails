@@ -84,6 +84,11 @@ module ActiveModel
       messages.clear
     end
 
+    # Do the error messages include an error with key +error+?
+    def include?(error)
+      messages.include? error
+    end
+
     # Get messages for +key+
     def get(key)
       messages[key]
