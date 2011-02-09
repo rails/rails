@@ -128,12 +128,10 @@ module ActiveRecord
       #
       #   * columns
       #   * columns_hash
-      #   * primary_keys
       #   * tables
       def clear_cache!
         @columns.clear
         @columns_hash.clear
-        @primary_keys.clear
         @tables.clear
       end
 

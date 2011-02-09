@@ -18,16 +18,14 @@ module ActiveRecord
         assert_equal columns_hash, @pool.columns_hash['posts']
       end
 
-      def test_clearing_cache
+      def test_clearing_column_cache
         @pool.columns['posts']
         @pool.columns_hash['posts']
-        @pool.primary_keys['posts']
 
         @pool.clear_cache!
 
         assert_equal 0, @pool.columns.size
         assert_equal 0, @pool.columns_hash.size
-        assert_equal 0, @pool.primary_keys.size
       end
 
       def test_primary_key

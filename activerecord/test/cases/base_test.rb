@@ -50,6 +50,11 @@ class Boolean < ActiveRecord::Base; end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def test_columns_should_obey_set_primary_key
+    pk = Subscriber.columns.find { |x| x.name == 'nick' }
+    assert pk.primary, 'nick should be primary key'
+  end
+
   def test_primary_key_with_no_id
     assert_nil Edge.primary_key
   end

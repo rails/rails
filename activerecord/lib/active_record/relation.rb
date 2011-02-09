@@ -32,7 +32,14 @@ module ActiveRecord
     def insert(values)
       im = arel.compile_insert values
       im.into @table
-      primary_key_value = primary_key && Hash === values ? values[table[primary_key]] : nil
+
+      primary_key_value = nil
+
+      if primary_key && Hash === values
+        primary_key_value = values[values.keys.find { |k|
+          k.name == primary_key
+        }]
+      end
 
       @klass.connection.insert(
         im.to_sql,
