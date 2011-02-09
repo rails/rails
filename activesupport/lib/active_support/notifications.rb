@@ -64,8 +64,8 @@ module ActiveSupport
         end
       end
 
-      def unsubscribe(*args)
-        notifier.unsubscribe(*args)
+      def unsubscribe(args)
+        notifier.unsubscribe(args)
         @instrumenters.clear
       end
 
