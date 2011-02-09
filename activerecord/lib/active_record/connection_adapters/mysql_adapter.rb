@@ -331,7 +331,7 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        log(sql, name) do
+        log(sql, name, binds) do
           result = nil
 
           cache = {}

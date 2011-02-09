@@ -148,7 +148,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def exec_query(sql, name = nil, binds = [])
-        log(sql, name) do
+        log(sql, name, binds) do
 
           # Don't cache statements without bind values
           if binds.empty?

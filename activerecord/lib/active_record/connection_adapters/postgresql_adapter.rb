@@ -532,7 +532,7 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [])
         return exec_no_cache(sql, name) if binds.empty?
 
-        log(sql, name) do
+        log(sql, name, binds) do
           unless @statements.key? sql
             nextkey = "a#{@statements.length + 1}"
             @connection.prepare nextkey, sql
