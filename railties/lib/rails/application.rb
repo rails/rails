@@ -149,7 +149,10 @@ module Rails
         require "action_dispatch/http/rack_cache" if rack_cache
         middleware.use ::Rack::Cache, rack_cache  if rack_cache
 
-        middleware.use ::ActionDispatch::Static, config.static_asset_paths if config.serve_static_assets
+        if config.serve_static_assets
+          asset_paths = ActiveSupport::OrderedHash[config.static_asset_paths.to_a.reverse]
+          middleware.use ::ActionDispatch::Static, asset_paths
+        end
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rails::Rack::Logger
