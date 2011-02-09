@@ -109,9 +109,9 @@ module ActionView
     def query(path, exts, formats)
       query = File.join(@path, path)
 
-      exts.each do |ext|
-        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << ',}'
-      end
+      query << exts.map { |ext|
+        "{#{ext.compact.map { |e| ".#{e}" }.join(',')},}"
+      }.join
 
       query.gsub!(/\{\.html,/, "{.html,.text.html,")
       query.gsub!(/\{\.text,/, "{.text,.text.plain,")
