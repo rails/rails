@@ -59,9 +59,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  def test_limit_with_comma
-    assert_nothing_raised do
-      Topic.limit("1,2").all
+  unless current_adapter?(:PostgreSQLAdapter) || current_adapter?(:OracleAdapter)
+    def test_limit_with_comma
+      assert_nothing_raised do
+        Topic.limit("1,2").all
+      end
     end
   end
 
