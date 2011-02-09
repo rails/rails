@@ -95,8 +95,10 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_limit_should_allow_sql_literal
-    assert_equal 1, Topic.limit(Arel.sql('(2 - 1)')).all.length
+  unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+    def test_limit_should_allow_sql_literal
+      assert_equal 1, Topic.limit(Arel.sql('2-1')).all.length
+    end
   end
 
   def test_select_symbol
