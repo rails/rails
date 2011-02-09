@@ -24,7 +24,7 @@ namespace :rails do
       begin
         chdir("vendor/rails") do
           rails.dependencies.select { |g| deps.include? g.name }.each do |g|
-            Gem::GemRunner.new.run(["unpack", g.name, "--version", g.version_requirements.to_s])
+            Gem::GemRunner.new.run(["unpack", g.name, "--version", g.respond_to?(:requirement) ? g.requirement.to_s : g.version_requirements.to_s])
             mv(Dir.glob("#{g.name}*").first, g.name)
           end
 
