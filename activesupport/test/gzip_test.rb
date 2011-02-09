@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/object/blank'
 
 class GzipTest < Test::Unit::TestCase
   def test_compress_should_decompress_to_the_same_value
