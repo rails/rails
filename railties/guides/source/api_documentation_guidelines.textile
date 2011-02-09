@@ -27,7 +27,7 @@ Communicate to the reader the current way of doing things, both explicitly and i
 
 Documentation has to be concise but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
 
-The proper names of Rails components have a space in between the words, like "Active Support". +ActiveRecord+ is a Ruby module, whereas Active Record is an ORM. Historically there has been lack of consistency regarding this, but we checked with David when docrails started. All Rails documentation consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be fenomenal :).
+The proper names of Rails components have a space in between the words, like "Active Support". +ActiveRecord+ is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be fenomenal :).
 
 Spell names correctly: HTML, MySQL, JavaScript, ERb. Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
