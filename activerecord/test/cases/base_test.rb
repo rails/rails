@@ -48,9 +48,11 @@ class Boolean < ActiveRecord::Base; end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
-  def test_limit_with_comma
-    assert_nothing_raised do
-      Topic.limit("1,2").all
+  unless current_adapter?(:PostgreSQLAdapter) || current_adapter?(:OracleAdapter)
+    def test_limit_with_comma
+      assert_nothing_raised do
+        Topic.limit("1,2").all
+      end
     end
   end
 
