@@ -553,7 +553,9 @@ module ActiveRecord #:nodoc:
                   Coders::YAMLColumn.new(class_name)
                 end
 
-        serialized_attributes[attr_name.to_s] = coder
+        # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
+        # has its own hash of own serialized attributes
+        self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the

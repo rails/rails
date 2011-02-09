@@ -8,6 +8,7 @@ require 'models/topic'
 require 'models/company'
 require 'models/category'
 require 'models/reply'
+require 'models/contact'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
@@ -609,6 +610,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Object.send(:undef_method, :title) # remove test method from object
   end
 
+  def test_list_of_serialized_attributes
+    assert_equal %w(content), Topic.serialized_attributes.keys
+    assert_equal %w(preferences), Contact.serialized_attributes.keys
+  end
 
   private
   def cached_columns
