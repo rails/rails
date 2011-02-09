@@ -233,11 +233,7 @@ module ActiveRecord
           changes[column.to_s] = write_attribute(column.to_s, current_time)
         end
 
-        if locking_enabled?
-          lock_col = self.class.locking_column.to_s
-          previous_value = send(lock_col).to_i
-          changes[lock_col] = write_attribute(lock_col, previous_value + 1)
-        end
+        changes[self.class.locking_column] = increment_lock if locking_enabled?
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
