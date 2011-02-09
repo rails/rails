@@ -245,21 +245,20 @@ module ActiveModel
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
     def full_messages
-      map { |attribute, messages|
-        messages = Array.wrap(messages)
-
+      map { |attribute, message|
         if attribute == :base
-          messages
+          message
         else
           attr_name = attribute.to_s.gsub('.', '_').humanize
           attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
-          options = { :default => "%{attribute} %{message}", :attribute => attr_name }
 
-          messages.map { |m|
-            I18n.t(:"errors.format", options.merge(:message => m))
-          }
+          I18n.t(:"errors.format", {
+            :default   => "%{attribute} %{message}",
+            :attribute => attr_name,
+            :message   => message
+          })
         end
-      }.flatten
+      }
     end
 
     # Translates an error message in its default scope
