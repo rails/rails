@@ -27,7 +27,6 @@ platforms :mri_18 do
   gem "system_timer"
   gem "ruby-debug", ">= 0.10.3"
   gem 'ruby-prof'
-  gem "text-format", "~> 1.0.0"
 end
 
 platforms :mri_19 do
