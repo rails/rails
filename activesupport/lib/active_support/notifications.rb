@@ -45,7 +45,10 @@ module ActiveSupport
 
     class << self
       attr_writer :notifier
-      delegate :publish, :to => :notifier
+
+      def publish(name, *args)
+        notifier.publish(name, *args)
+      end
 
       def instrument(name, payload = {})
         if @instrumenters[name]
