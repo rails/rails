@@ -234,6 +234,10 @@ module ActionView
       #
       # You can pass any HTML attributes into <tt>html_options</tt>.  These
       # will be added to all created paragraphs.
+      #
+      # ==== Options
+      # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
       #
@@ -247,6 +251,9 @@ module ActionView
       #
       #   simple_format("Look ma! A class!", :class => 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
+      #
+      #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
+      #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
         text = ''.html_safe if text.nil?
         start_tag = tag('p', html_options, true)
