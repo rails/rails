@@ -187,7 +187,7 @@ output:
 
 Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript.
 
-TIP: If you're using password input fields (for any purpose), you might want to prevent their values showing up in application logs by activating +filter_parameter_logging(:password)+ in your ApplicationController.
+TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged.
 
 
 h3. Dealing with Model Objects
@@ -594,7 +594,7 @@ NOTE: If the user has not selected a file the corresponding parameter will be an
 
 h4. Dealing with Ajax
 
-Unlike other forms making an asynchronous file upload form is not as simple as replacing +form_for+ with +remote_form_for+. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
+Unlike other forms making an asynchronous file upload form is not as simple as providing +form_for+ with <tt>:remote => true</tt>. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
 h3. Customizing Form Builders
 
