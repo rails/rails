@@ -124,17 +124,32 @@ class String
 end
 
 class Array
-
-  alias_method :original_join, :join
-
-  def join(sep=$,)
+  # If the separator and all the items in the array are html safe
+  # then an html safe string is returned using <tt>Array#join</tt>,
+  # otherwise the result of <tt>Array#join</tt> is returned without
+  # marking it as html safe.
+  #
+  #   ["Mr", "Bojangles"].join.html_safe?
+  #   # => false
+  #
+  #   ["Mr".html_safe, "Bojangles".html_safe].join.html_safe?
+  #   # => true
+  #
+  def safe_join(sep=$,)
     sep ||= "".html_safe
-    str = original_join(sep)
+    str = join(sep)
     (sep.html_safe? && html_safe?) ? str.html_safe : str
   end
 
+  # Returns +true+ if all items in the array are html safe.
+  #
+  #   [""].html_safe?
+  #   # => false
+  #
+  #   ["".html_safe].html_safe?
+  #   # => true
+  #
   def html_safe?
-    self.detect {|e| !e.html_safe?}.nil?
+    detect { |e| !e.html_safe? }.nil?
   end
-
 end

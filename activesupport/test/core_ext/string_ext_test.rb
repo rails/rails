@@ -435,36 +435,36 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Joining safe elements without a separator is safe" do
-    array = 5.times.collect {"some string".html_safe}
-    assert array.join.html_safe?
+    array = 5.times.collect { "some string".html_safe }
+    assert array.safe_join.html_safe?
   end
 
   test "Joining safe elements with a safe separator is safe" do
-    array = 5.times.collect {"some string".html_safe}
-    assert array.join("-".html_safe).html_safe?
+    array = 5.times.collect { "some string".html_safe }
+    assert array.safe_join("-".html_safe).html_safe?
   end
 
   test "Joining safe elements with an unsafe separator is unsafe" do
-    array = 5.times.collect {"some string".html_safe}
-    assert_false array.join("-").html_safe?
+    array = 5.times.collect { "some string".html_safe }
+    assert !array.safe_join("-").html_safe?
   end
 
   test "Joining is unsafe if any element is unsafe even with a safe separator" do
-    array = 5.times.collect {"some string".html_safe}
+    array = 5.times.collect { "some string".html_safe }
     array << "some string"
-    assert_false array.join("-".html_safe).html_safe?
+    assert !array.safe_join("-".html_safe).html_safe?
   end
 
   test "Joining is unsafe if any element is unsafe and no separator is given" do
-    array = 5.times.collect {"some string".html_safe}
+    array = 5.times.collect { "some string".html_safe }
     array << "some string"
-    assert_false array.join.html_safe?
+    assert !array.safe_join.html_safe?
   end
 
   test "Joining is unsafe if any element is unsafe and the separator is unsafe" do
-    array = 5.times.collect {"some string".html_safe}
+    array = 5.times.collect { "some string".html_safe }
     array << "some string"
-    assert_false array.join("-").html_safe?
+    assert !array.safe_join("-").html_safe?
   end
 
   test "Array is safe if all elements are safe" do
@@ -475,7 +475,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "Array is unsafe if any element is unsafe" do
     array = 5.times.collect { "some string".html_safe }
     array << "some string"
-    assert_false array.html_safe?
+    assert !array.html_safe?
   end
 
   test 'emits normal string yaml' do
