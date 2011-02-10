@@ -434,50 +434,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert string.html_safe?
   end
 
-  test "Joining safe elements without a separator is safe" do
-    array = 5.times.collect { "some string".html_safe }
-    assert array.safe_join.html_safe?
-  end
-
-  test "Joining safe elements with a safe separator is safe" do
-    array = 5.times.collect { "some string".html_safe }
-    assert array.safe_join("-".html_safe).html_safe?
-  end
-
-  test "Joining safe elements with an unsafe separator is unsafe" do
-    array = 5.times.collect { "some string".html_safe }
-    assert !array.safe_join("-").html_safe?
-  end
-
-  test "Joining is unsafe if any element is unsafe even with a safe separator" do
-    array = 5.times.collect { "some string".html_safe }
-    array << "some string"
-    assert !array.safe_join("-".html_safe).html_safe?
-  end
-
-  test "Joining is unsafe if any element is unsafe and no separator is given" do
-    array = 5.times.collect { "some string".html_safe }
-    array << "some string"
-    assert !array.safe_join.html_safe?
-  end
-
-  test "Joining is unsafe if any element is unsafe and the separator is unsafe" do
-    array = 5.times.collect { "some string".html_safe }
-    array << "some string"
-    assert !array.safe_join("-").html_safe?
-  end
-
-  test "Array is safe if all elements are safe" do
-    array = 5.times.collect { "some string".html_safe }
-    assert array.html_safe?
-  end
-
-  test "Array is unsafe if any element is unsafe" do
-    array = 5.times.collect { "some string".html_safe }
-    array << "some string"
-    assert !array.html_safe?
-  end
-
   test 'emits normal string yaml' do
     assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
   end
