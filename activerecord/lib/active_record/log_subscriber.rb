@@ -28,9 +28,7 @@ module ActiveRecord
       binds   = nil
 
       unless (payload[:binds] || []).empty?
-        binds = " {" + payload[:binds].map { |col,v|
-          "#{col.name.inspect} => #{v.inspect}"
-        }.join(", ") + "}"
+        binds = " #{Hash[payload[:binds].map { |col,v| [col.name, v] }]}"
       end
 
       if odd?

@@ -84,7 +84,7 @@ module ActiveRecord
         }.new
 
         logger.sql event
-        assert_match("{#{pk.name.inspect} => #{10.inspect}}", logger.debugs.first)
+        assert_match({pk.name => 10}.inspect, logger.debugs.first)
     end
   end
 end
