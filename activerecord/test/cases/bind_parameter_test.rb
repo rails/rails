@@ -3,6 +3,8 @@ require 'models/topic'
 
 module ActiveRecord
   class BindParameterTest < ActiveRecord::TestCase
+    fixtures :topics
+
     class LogListener
       attr_accessor :calls
 
@@ -14,8 +16,6 @@ module ActiveRecord
         calls << args
       end
     end
-
-    fixtures :topics
 
     def setup
       super
@@ -51,6 +51,40 @@ module ActiveRecord
       binds = [[@pk, 1]]
       message = @listener.calls.find { |args| args[4][:binds] == binds }
       assert message, 'expected a message with binds'
+    end
+
+    def test_logs_bind_vars
+      # FIXME: use skip with minitest
+      return unless @connection.supports_statement_cache?
+
+      pk = Topic.columns.find { |x| x.primary }
+
+      payload = {
+        :name  => 'SQL',
+        :sql   => 'select * from topics where id = ?',
+        :binds => [[pk, 10]]
+      }
+      event  = ActiveSupport::Notifications::Event.new(
+        'foo',
+        Time.now,
+        Time.now,
+        123,
+        payload)
+
+        logger = Class.new(ActiveRecord::LogSubscriber) {
+          attr_reader :debugs
+          def initialize
+            super
+            @debugs = []
+          end
+
+          def debug str
+            @debugs << str
+          end
+        }.new
+
+        logger.sql event
+        assert_match("{#{pk.name.inspect} => #{10.inspect}}", logger.debugs.first)
     end
   end
 end
