@@ -122,3 +122,19 @@ class String
     ActiveSupport::SafeBuffer.new(self)
   end
 end
+
+class Array
+
+  alias_method :original_join, :join
+
+  def join(sep=$,)
+    sep ||= "".html_safe
+    str = original_join(sep)
+    (sep.html_safe? && html_safe?) ? str.html_safe : str
+  end
+
+  def html_safe?
+    self.detect {|e| !e.html_safe?}.nil?
+  end
+
+end
