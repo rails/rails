@@ -229,7 +229,7 @@ class MethodScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_join_and_merge
-    (Comment.where(:body => "but Who's Buying?").joins(:post) & Post.where(:body => 'Peace Sells...')).with_scope do
+    Comment.where(:body => "but Who's Buying?").joins(:post).merge(Post.where(:body => 'Peace Sells...')).with_scope do
       assert_equal({:body => "but Who's Buying?"}, Comment.scoped.scope_for_create)
     end
   end
