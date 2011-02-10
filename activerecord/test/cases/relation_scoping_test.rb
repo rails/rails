@@ -488,8 +488,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_with_merge
-    aaron = (PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20) &
-             PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
+    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).merge(
+              PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
     assert_equal 20, aaron.salary
     assert_equal 'Aaron', aaron.name
 

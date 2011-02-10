@@ -545,17 +545,17 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging
-    devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
+    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order('id ASC').where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*')
+    dev_with_count = Developer.limit(1).merge(Developer.order('id DESC')).merge(Developer.select('developers.*'))
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << (Post.order('comments.id DESC') & Post.eager_load(:last_comment) & Post.scoped)
-    relations << (Post.eager_load(:last_comment) & Post.order('comments.id DESC') & Post.scoped)
+    relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.scoped)
+    relations << Post.eager_load(:last_comment).merge(Post.order('comments.id DESC')).merge(Post.scoped)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -564,18 +564,18 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_locks
-    devs = Developer.lock.where("salary >= 80000").order("id DESC") & Developer.limit(2)
+    devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
     assert_present devs.locked
   end
 
   def test_relation_merging_with_preload
-    [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
+    [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
       assert_queries(2) { assert posts.first.author }
     end
   end
 
   def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome') & Post.where(:body => 'Such a lovely day')
+    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
   end
 

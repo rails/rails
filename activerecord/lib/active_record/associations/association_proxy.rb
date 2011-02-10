@@ -166,7 +166,7 @@ module ActiveRecord
       end
 
       def scoped
-        target_scope & @association_scope
+        target_scope.merge(@association_scope)
       end
 
       protected

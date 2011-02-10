@@ -6,7 +6,7 @@ module ActiveRecord
       protected
 
         def target_scope
-          super & @reflection.through_reflection.klass.scoped
+          super.merge(@reflection.through_reflection.klass.scoped)
         end
 
         def association_scope
