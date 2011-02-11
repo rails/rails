@@ -448,7 +448,7 @@ class Fixtures
   MAX_ID = 2 ** 30 - 1
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
-  @@all_cached_fixtures = {}
+  @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
   def self.find_table_name(table_name) # :nodoc:
     ActiveRecord::Base.pluralize_table_names ?
@@ -458,11 +458,10 @@ class Fixtures
 
   def self.reset_cache(connection = nil)
     connection ||= ActiveRecord::Base.connection
-    @@all_cached_fixtures[connection.object_id] = {}
+    @@all_cached_fixtures.delete connection.object_id
   end
 
   def self.cache_for_connection(connection)
-    @@all_cached_fixtures[connection.object_id] ||= {}
     @@all_cached_fixtures[connection.object_id]
   end
 
@@ -486,13 +485,11 @@ class Fixtures
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances = true)
     object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
     if load_instances
-      ActiveRecord::Base.silence do
-        fixtures.each do |name, fixture|
-          begin
-            object.instance_variable_set "@#{name}", fixture.find
-          rescue FixtureClassNotFound
-            nil
-          end
+      fixtures.each do |name, fixture|
+        begin
+          object.instance_variable_set "@#{name}", fixture.find
+        rescue FixtureClassNotFound
+          nil
         end
       end
     end
@@ -515,30 +512,28 @@ class Fixtures
     table_names_to_fetch = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
 
     unless table_names_to_fetch.empty?
-      ActiveRecord::Base.silence do
-        connection.disable_referential_integrity do
-          fixtures_map = {}
+      connection.disable_referential_integrity do
+        fixtures_map = {}
 
-          fixtures = table_names_to_fetch.map do |table_name|
-            fixtures_map[table_name] = Fixtures.new(connection, table_name.tr('/', '_'), class_names[table_name.tr('/', '_').to_sym], File.join(fixtures_directory, table_name))
-          end
+        fixtures = table_names_to_fetch.map do |table_name|
+          fixtures_map[table_name] = Fixtures.new(connection, table_name.tr('/', '_'), class_names[table_name.tr('/', '_').to_sym], File.join(fixtures_directory, table_name))
+        end
 
-          all_loaded_fixtures.update(fixtures_map)
+        all_loaded_fixtures.update(fixtures_map)
 
-          connection.transaction(:requires_new => true) do
-            fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
-            fixtures.each { |fixture| fixture.insert_fixtures }
+        connection.transaction(:requires_new => true) do
+          fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
+          fixtures.each { |fixture| fixture.insert_fixtures }
 
-            # Cap primary key sequences to max(pk).
-            if connection.respond_to?(:reset_pk_sequence!)
-              table_names.each do |table_name|
-                connection.reset_pk_sequence!(table_name.tr('/', '_'))
-              end
+          # Cap primary key sequences to max(pk).
+          if connection.respond_to?(:reset_pk_sequence!)
+            table_names.each do |table_name|
+              connection.reset_pk_sequence!(table_name.tr('/', '_'))
             end
           end
-
-          cache_fixtures(connection, fixtures_map)
         end
+
+        cache_fixtures(connection, fixtures_map)
       end
     end
     cached_fixtures(connection, table_names)
