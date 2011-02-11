@@ -509,14 +509,20 @@ class Fixtures
     table_names.each { |n| class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/') }
     connection  = block_given? ? yield : ActiveRecord::Base.connection
 
-    table_names_to_fetch = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
+    files_to_read = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
 
-    unless table_names_to_fetch.empty?
+    unless files_to_read.empty?
       connection.disable_referential_integrity do
         fixtures_map = {}
 
-        fixtures = table_names_to_fetch.map do |table_name|
-          fixtures_map[table_name] = Fixtures.new(connection, table_name.tr('/', '_'), class_names[table_name.tr('/', '_').to_sym], File.join(fixtures_directory, table_name))
+        fixtures = files_to_read.map do |path|
+          table_name = path.tr '/', '_'
+
+          fixtures_map[path] = Fixtures.new(
+            connection,
+            table_name,
+            class_names[table_name.to_sym],
+            File.join(fixtures_directory, path))
         end
 
         all_loaded_fixtures.update(fixtures_map)
