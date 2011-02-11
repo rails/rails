@@ -467,7 +467,7 @@ class RelationTest < ActiveRecord::TestCase
     authors = Author.find_by_id([author])
     assert_equal author, authors
   end
-
+  
   def test_find_all_using_where_twice_should_or_the_relation
     david = authors(:david)
     relation = Author.unscoped
@@ -487,6 +487,33 @@ class RelationTest < ActiveRecord::TestCase
       memo.where(param)
     end
     assert_equal [david], relation.all
+  end
+  
+  def test_find_all_using_where_with_relation
+    david = authors(:david)
+    # switching the lines below would succeed in current rails
+    # assert_queries(2) {
+    assert_queries(1) {
+      relation = Author.where(:id => Author.where(:id => david.id))
+      assert_equal [david], relation.all
+    }
+  end
+
+  def test_find_all_using_where_with_relation_with_joins
+    david = authors(:david)
+    assert_queries(1) {
+      relation = Author.where(:id => Author.joins(:posts).where(:id => david.id))
+      assert_equal [david], relation.all
+    }
+  end
+
+  
+  def test_find_all_using_where_with_relation_with_select_to_build_subquery
+    david = authors(:david)
+    assert_queries(1) {
+      relation = Author.where(:name => Author.where(:id => david.id).select(:name))
+      assert_equal [david], relation.all
+    }
   end
 
   def test_exists
