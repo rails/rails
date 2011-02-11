@@ -450,6 +450,12 @@ class Fixtures
 
   @@all_cached_fixtures = {}
 
+  def self.find_table_name(table_name) # :nodoc:
+    ActiveRecord::Base.pluralize_table_names ?
+      table_name.to_s.singularize.camelize :
+      table_name.to_s.camelize
+  end
+
   def self.reset_cache(connection = nil)
     connection ||= ActiveRecord::Base.connection
     @@all_cached_fixtures[connection.object_id] = {}
@@ -547,14 +553,16 @@ class Fixtures
   attr_reader :table_name, :name, :fixtures
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
-    @fixtures = ActiveSupport::OrderedHash.new
-    @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
-    @name = table_name # preserve fixture base name
-    @class_name = class_name ||
-                  (ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize)
-    @table_name = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
-    @table_name = class_name.table_name if class_name.respond_to?(:table_name)
-    @connection = class_name.connection if class_name.respond_to?(:connection)
+    @fixtures     = ActiveSupport::OrderedHash.new
+    @connection   = connection
+    @table_name   = table_name
+    @fixture_path = fixture_path
+    @file_filter  = file_filter
+    @name         = table_name # preserve fixture base name
+    @class_name   = class_name
+    @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
+    @table_name   = class_name.table_name if class_name.respond_to?(:table_name)
+    @connection   = class_name.connection if class_name.respond_to?(:connection)
     read_fixture_files
   end
 
@@ -587,7 +595,10 @@ class Fixtures
 
     # track any join tables we need to insert later
     habtm_fixtures = Hash.new do |h, habtm|
-      h[habtm] = HabtmFixtures.new(@connection, habtm.options[:join_table], nil, nil)
+      h[habtm] = HabtmFixtures.new(
+        @connection,
+        habtm.options[:join_table],
+        Fixtures.find_table_name(habtm.options[:join_table]), nil)
     end
 
     fixtures.each do |label, fixture|
@@ -843,7 +854,9 @@ module ActiveRecord
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
 
-      self.fixture_class_names = {}
+      self.fixture_class_names = Hash.new do |h, table_name|
+        h[table_name] = Fixtures.find_table_name(table_name)
+      end
     end
 
     module ClassMethods
