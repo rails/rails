@@ -6,6 +6,16 @@ module ActiveRecord
       def setup
         # Keep a duplicate pool so we do not bother others
         @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+
+        if in_memory_db?
+          # Separate connections to an in-memory database create an entirely new database,
+          # with an empty schema etc, so we just stub out this schema on the fly.
+          @pool.with_connection do |connection|
+            connection.create_table :posts do |t|
+              t.integer :cololumn
+            end
+          end
+        end
       end
 
       def test_pool_caches_columns
