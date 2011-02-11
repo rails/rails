@@ -107,7 +107,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize yaml" do
-    assert_match %r{<preferences type=\"yaml\">--- !ruby/struct:Customer \nname: John\n</preferences>}, @contact.to_xml
+    assert_match %r{<preferences type=\"yaml\">--- !ruby/struct:Customer\s?\nname: John\n</preferences>}, @contact.to_xml
   end
 
   test "should call proc on object" do
