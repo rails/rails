@@ -25,7 +25,6 @@ end
 
 silence_warnings do
   # These external dependencies have warnings :/
-  require 'text/format'
   require 'mail'
 end
 
