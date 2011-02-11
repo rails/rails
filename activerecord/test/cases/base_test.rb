@@ -83,13 +83,13 @@ class BasicsTest < ActiveRecord::TestCase
       Topic.limit("1, 7 procedure help()").all
     end
   end
-  
-  unless current_adapter?(:MysqlAdapter)
+
+  unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
     def test_limit_should_allow_sql_literal
       assert_equal 1, Topic.limit(Arel.sql('2-1')).all.length
     end
   end
-  
+
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort
     assert_equal Topic.find(:all).map(&:id).sort, topic_ids
