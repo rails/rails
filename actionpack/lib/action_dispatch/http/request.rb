@@ -2,6 +2,7 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
