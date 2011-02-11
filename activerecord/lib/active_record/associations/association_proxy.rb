@@ -184,7 +184,8 @@ module ActiveRecord
         def association_scope
           scope = target_klass.unscoped
           scope = scope.create_with(creation_attributes)
-          scope = scope.apply_finder_options(@reflection.options.slice(:conditions, :readonly, :include))
+          scope = scope.apply_finder_options(@reflection.options.slice(:readonly, :include))
+          scope = scope.where(interpolate(@reflection.options[:conditions]))
           if select = select_value
             scope = scope.select(select)
           end
@@ -240,8 +241,12 @@ module ActiveRecord
           !loaded? && (!@owner.new_record? || foreign_key_present?) && target_klass
         end
 
-        def interpolate_sql(sql, record = nil)
-          @owner.send(:interpolate_sql, sql, record)
+        def interpolate(sql, record = nil)
+          if sql.respond_to?(:to_proc)
+            @owner.send(:instance_exec, record, &sql)
+          else
+            sql
+          end
         end
 
         def select_value

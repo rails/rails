@@ -17,7 +17,7 @@ module ActiveRecord
           end
 
           if @reflection.options[:insert_sql]
-            @owner.connection.insert(interpolate_sql(@reflection.options[:insert_sql], record))
+            @owner.connection.insert(interpolate(@reflection.options[:insert_sql], record))
           else
             stmt = join_table.compile_insert(
               join_table[@reflection.foreign_key]             => @owner.id,
@@ -42,7 +42,7 @@ module ActiveRecord
 
         def delete_records(records, method)
           if sql = @reflection.options[:delete_sql]
-            records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
+            records.each { |record| @owner.connection.delete(interpolate(sql, record)) }
           else
             relation = join_table
             stmt = relation.where(relation[@reflection.foreign_key].eq(@owner.id).

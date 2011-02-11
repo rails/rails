@@ -374,17 +374,15 @@ module ActiveRecord
 
         def custom_counter_sql
           if @reflection.options[:counter_sql]
-            counter_sql = @reflection.options[:counter_sql]
+            interpolate(@reflection.options[:counter_sql])
           else
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            counter_sql = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+            interpolate(@reflection.options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
-
-          interpolate_sql(counter_sql)
         end
 
         def custom_finder_sql
-          interpolate_sql(@reflection.options[:finder_sql])
+          interpolate(@reflection.options[:finder_sql])
         end
 
         def find_target

@@ -399,10 +399,18 @@ module ActiveRecord
         end
       end
 
+      def process_conditions(conditions, klass = self)
+        if conditions.respond_to?(:to_proc)
+          conditions = instance_eval(&conditions)
+        end
+
+        klass.send(:sanitize_sql, conditions)
+      end
+
       def append_conditions(reflection, preload_options)
         [
-          ("(#{reflection.sanitized_conditions})" if reflection.sanitized_conditions),
-          ("(#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]),
+          ('(' + process_conditions(reflection.options[:conditions], reflection.klass) + ')' if reflection.options[:conditions]),
+          ('(' + process_conditions(preload_options[:conditions]) + ')' if preload_options[:conditions]),
         ].compact.map { |x| Arel.sql x }
       end
 

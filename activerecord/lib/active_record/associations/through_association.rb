@@ -119,14 +119,14 @@ module ActiveRecord
             scope = scope.where(@reflection.through_reflection.klass.send(:type_condition))
           end
 
-          scope = scope.where(@reflection.source_reflection.options[:conditions])
+          scope = scope.where(interpolate(@reflection.source_reflection.options[:conditions]))
           scope.where(through_conditions)
         end
 
         # If there is a hash of conditions then we make sure the keys are scoped to the
         # through table name if left ambiguous.
         def through_conditions
-          conditions = @reflection.through_reflection.options[:conditions]
+          conditions = interpolate(@reflection.through_reflection.options[:conditions])
 
           if conditions.is_a?(Hash)
             Hash[conditions.map { |key, value|
