@@ -12,15 +12,7 @@ require 'active_support/dependencies'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
-
-if RUBY_VERSION < '1.9'
-  module YAML #:nodoc:
-    class Omap #:nodoc:
-      def keys;   map { |k, v| k } end
-      def values; map { |k, v| v } end
-    end
-  end
-end
+require 'active_support/ordered_hash'
 
 if defined? ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -452,7 +444,7 @@ class FixturesFileNotFound < StandardError; end
 #
 # Any fixture labeled "DEFAULTS" is safely ignored.
 
-class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
+class Fixtures
   MAX_ID = 2 ** 30 - 1
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
@@ -552,9 +544,10 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     Zlib.crc32(label.to_s) % MAX_ID
   end
 
-  attr_reader :table_name, :name
+  attr_reader :table_name, :name, :fixtures
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
+    @fixtures = ActiveSupport::OrderedHash.new
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
     @name = table_name # preserve fixture base name
     @class_name = class_name ||
@@ -563,6 +556,22 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     @table_name = class_name.table_name if class_name.respond_to?(:table_name)
     @connection = class_name.connection if class_name.respond_to?(:connection)
     read_fixture_files
+  end
+
+  def [](x)
+    fixtures[x]
+  end
+
+  def []=(k,v)
+    fixtures[k] = v
+  end
+
+  def each(&block)
+    fixtures.each(&block)
+  end
+
+  def size
+    fixtures.size
   end
 
   def delete_existing_fixtures
@@ -574,18 +583,14 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     now = now.to_s(:db)
 
     # allow a standard key to be used for doing defaults in YAML
-    if is_a?(Hash)
-      delete('DEFAULTS')
-    else
-      delete(assoc('DEFAULTS'))
-    end
+    fixtures.delete('DEFAULTS')
 
     # track any join tables we need to insert later
     habtm_fixtures = Hash.new do |h, habtm|
       h[habtm] = HabtmFixtures.new(@connection, habtm.options[:join_table], nil, nil)
     end
 
-    each do |label, fixture|
+    fixtures.each do |label, fixture|
       row = fixture.to_hash
 
       if model_class && model_class < ActiveRecord::Base
@@ -725,7 +730,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
               raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
             end
 
-            self[name] = Fixture.new(data, model_class, @connection)
+            fixtures[name] = Fixture.new(data, model_class, @connection)
           end
         end
       end
@@ -738,7 +743,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
       reader.each do |row|
         data = {}
         row.each_with_index { |cell, j| data[header[j].to_s.strip] = cell.to_s.strip }
-        self["#{@class_name.to_s.underscore}_#{i+=1}"] = Fixture.new(data, model_class, @connection)
+        fixtures["#{@class_name.to_s.underscore}_#{i+=1}"] = Fixture.new(data, model_class, @connection)
       end
     end
 
