@@ -77,8 +77,6 @@ module ActionController #:nodoc:
   #
   #   respond_with(@project, :manager, @task)
   #
-  # Check <code>polymorphic_url</code> documentation for more examples.
-  #
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
