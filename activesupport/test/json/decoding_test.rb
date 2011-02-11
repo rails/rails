@@ -19,6 +19,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %({"a": "2007-01-01 01:12:34 Z"})            => {'a' => Time.utc(2007, 1, 1, 1, 12, 34)},
     # no time zone
     %({"a": "2007-01-01 01:12:34"})              => {'a' => "2007-01-01 01:12:34"},
+    # invalid date
+    %({"a": "1089-10-40"})                       => {'a' => "1089-10-40"},
     # needs to be *exact*
     %({"a": " 2007-01-01 01:12:34 Z "})          => {'a' => " 2007-01-01 01:12:34 Z "},
     %({"a": "2007-01-01 : it's your birthday"})  => {'a' => "2007-01-01 : it's your birthday"},

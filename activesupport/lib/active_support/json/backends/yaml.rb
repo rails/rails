@@ -29,7 +29,7 @@ module ActiveSupport
                   quoting = char
                   pos = scanner.pos
                 elsif quoting == char
-                  if json[pos..scanner.pos-2] =~ DATE_REGEX
+                  if valid_date?(json[pos..scanner.pos-2])
                     # found a date, track the exact positions of the quotes so we can
                     # overwrite them with spaces later.
                     times << pos << scanner.pos
@@ -83,6 +83,16 @@ module ActiveSupport
               output
             end
           end
+
+        private
+          def valid_date?(date_string)
+            begin
+              date_string =~ DATE_REGEX && DateTime.parse(date_string)
+            rescue ArgumentError
+              false
+            end
+          end
+
       end
     end
   end
