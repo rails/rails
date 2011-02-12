@@ -566,6 +566,25 @@ module ActionView
       def select_year(date, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_year
       end
+      
+      # Returns an html time tag for the given date or time.
+      #
+      # ==== Examples
+      #   time_tag Date.today  # =>
+      #     <time datetime="2010-11-04">November 04, 2010</time>
+      #   time_tag Time.now  # =>
+      #     <time datetime="2010-11-04T17:55:45+01:00">November 04, 2010 17:55</time>
+      #   time_tag Date.yesterday, 'Yesterday'  # =>
+      #     <time datetime="2010-11-03">Yesterday</time>
+      #   time_tag Date.today, :pubdate => true  # =>
+      #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
+      #
+      def time_tag(date_or_time, *args)
+        options  = args.extract_options!
+        content  = args.first || I18n.l(date_or_time, :format => :long)
+        datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.rfc3339
+        content_tag :time, content, options.reverse_merge(:datetime => datetime)
+      end
     end
 
     class DateTimeSelector #:nodoc:

@@ -2699,7 +2699,27 @@ class DateHelperTest < ActionView::TestCase
     assert date_select("post", "written_on", :default => Time.local(2006, 9, 19, 15, 16, 35), :include_blank => true).html_safe?
     assert time_select("post", "written_on", :ignore_date => true).html_safe?
   end
-
+    
+  def test_time_tag_with_date
+    date = Date.today
+    expected = "<time datetime=\"#{date.rfc3339}\">#{I18n.l(date, :format => :long)}</time>"
+    assert_equal expected, time_tag(date)
+  end
+  
+  def test_time_tag_with_time
+    time = Time.now
+    expected = "<time datetime=\"#{time.xmlschema}\">#{I18n.l(time, :format => :long)}</time>"
+    assert_equal expected, time_tag(time)
+  end
+    
+  def test_time_tag_pubdate_option
+    assert_match /<time.*pubdate="pubdate">.*<\/time>/, time_tag(Time.now, :pubdate => true)
+  end
+    
+  def test_time_tag_with_given_text
+    assert_match /<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now')
+  end
+  
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
