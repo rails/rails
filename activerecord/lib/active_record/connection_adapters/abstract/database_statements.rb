@@ -261,7 +261,15 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+        columns = Hash[columns(table_name).map { |c| [c.name, c] }]
+
+        key_list   = []
+        value_list = fixture.map do |name, value|
+          key_list << quote_column_name(name)
+          quote(value, columns[name])
+        end
+
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
 
       def empty_insert_statement_value
