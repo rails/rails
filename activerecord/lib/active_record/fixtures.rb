@@ -456,13 +456,12 @@ class Fixtures
       table_name.to_s.camelize
   end
 
-  def self.reset_cache(connection = nil)
-    connection ||= ActiveRecord::Base.connection
-    @@all_cached_fixtures.delete connection.object_id
+  def self.reset_cache
+    @@all_cached_fixtures.clear
   end
 
   def self.cache_for_connection(connection)
-    @@all_cached_fixtures[connection.object_id]
+    @@all_cached_fixtures[connection]
   end
 
   def self.fixture_is_cached?(connection, table_name)
