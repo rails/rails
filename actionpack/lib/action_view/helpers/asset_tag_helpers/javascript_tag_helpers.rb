@@ -42,17 +42,6 @@ module ActionView
             end
           end
 
-          def update_source_list(list, source)
-            case source
-            when String
-              list.delete(source)
-              list << source
-            when Array
-              updated_sources = source - list
-              list.concat(updated_sources)
-            end
-          end
-
           def add_application_js(expanded_sources, sources)
             if sources.include?(:defaults) && File.exist?(File.join(custom_dir, "application.#{extension}"))
               expanded_sources.delete('application')

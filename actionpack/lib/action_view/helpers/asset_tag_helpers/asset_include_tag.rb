@@ -71,9 +71,21 @@ module ActionView
             if sources.first == :all
               collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}")
             else
-              sources.collect do |source|
-                determine_source(source, expansions)
-              end.flatten
+              sources.inject([]) do |list, source|
+                determined_source = determine_source(source, expansions)
+                update_source_list(list, determined_source)
+              end
+            end
+          end
+
+          def update_source_list(list, source)
+            case source
+            when String
+              list.delete(source)
+              list << source
+            when Array
+              updated_sources = source - list
+              list.concat(updated_sources)
             end
           end
 

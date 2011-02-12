@@ -356,6 +356,29 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal  %(<link href="/stylesheets/version.1.0.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('version.1.0', :robbery, 'subdir/subdir')
   end
 
+  def test_custom_stylesheet_expansions_return_unique_set
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :cities => %w(wellington amsterdam london)
+    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/london.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:cities)
+  end
+
+  def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('wellington', 'wellington', 'amsterdam')
+  end
+
+  def test_stylesheet_link_tag_should_not_output_the_same_expansion_twice
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :cities => %w(wellington amsterdam london)
+    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/london.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:cities, :cities)
+  end
+
+  def test_single_stylesheet_asset_keys_should_take_precedence_over_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :cities => %w(wellington amsterdam london)
+    assert_dom_equal  %(<link href="/stylesheets/london.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('london', :cities)
+  end
+
   def test_custom_stylesheet_expansions_with_undefined_symbol
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => nil
     assert_raise(ArgumentError) { stylesheet_link_tag('first', :monkey, 'last') }
