@@ -661,7 +661,7 @@ class Fixtures
                 join_fixtures["#{label}_#{target}"] = Fixture.new(
                   { association.foreign_key             => row[primary_key_name],
                     association.association_foreign_key => Fixtures.identify(target) },
-                  nil, @connection)
+                  nil)
               end
             end
           end
@@ -740,7 +740,7 @@ class Fixtures
               raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
             end
 
-            fixtures[name] = Fixture.new(data, model_class, @connection)
+            fixtures[name] = Fixture.new(data, model_class)
           end
         end
       end
@@ -753,7 +753,7 @@ class Fixtures
       reader.each do |row|
         data = {}
         row.each_with_index { |cell, j| data[header[j].to_s.strip] = cell.to_s.strip }
-        fixtures["#{@class_name.to_s.underscore}_#{i+=1}"] = Fixture.new(data, model_class, @connection)
+        fixtures["#{@class_name.to_s.underscore}_#{i+=1}"] = Fixture.new(data, model_class)
       end
     end
 
@@ -791,8 +791,7 @@ class Fixture #:nodoc:
 
   attr_reader :model_class
 
-  def initialize(fixture, model_class, connection = ActiveRecord::Base.connection)
-    @connection  = connection
+  def initialize(fixture, model_class)
     @fixture     = fixture
     @model_class = model_class
   end
@@ -811,17 +810,6 @@ class Fixture #:nodoc:
 
   def to_hash
     @fixture
-  end
-
-  def key_list
-    @fixture.keys.map { |column_name| @connection.quote_column_name(column_name) }.join(', ')
-  end
-
-  def value_list
-    cols = (model_class && model_class < ActiveRecord::Base) ? model_class.columns_hash : {}
-    @fixture.map do |key, value|
-      @connection.quote(value, cols[key])
-    end.join(', ')
   end
 
   def find
