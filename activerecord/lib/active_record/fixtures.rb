@@ -955,8 +955,7 @@ module ActiveRecord
         if @@already_loaded_fixtures[self.class]
           @loaded_fixtures = @@already_loaded_fixtures[self.class]
         else
-          load_fixtures
-          @@already_loaded_fixtures[self.class] = @loaded_fixtures
+          @@already_loaded_fixtures[self.class] = load_fixtures
         end
         ActiveRecord::Base.connection.increment_open_transactions
         ActiveRecord::Base.connection.transaction_joinable = false
@@ -989,15 +988,8 @@ module ActiveRecord
 
     private
       def load_fixtures
-        @loaded_fixtures = {}
         fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
-        unless fixtures.nil?
-          if fixtures.instance_of?(Fixtures)
-            @loaded_fixtures[fixtures.name] = fixtures
-          else
-            fixtures.each { |f| @loaded_fixtures[f.name] = f }
-          end
-        end
+        @loaded_fixtures = Hash[fixtures.map { |f| [f.name, f] }]
       end
 
       # for pre_loaded_fixtures, only require the classes once. huge speed improvement
