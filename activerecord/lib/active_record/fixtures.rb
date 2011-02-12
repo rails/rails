@@ -602,11 +602,11 @@ class Fixtures
     fixtures.delete('DEFAULTS')
 
     # track any join tables we need to insert later
-    habtm_fixtures = Hash.new do |h, habtm|
-      h[habtm] = HabtmFixtures.new(
+    habtm_fixtures = Hash.new do |h, path|
+      h[path] = HabtmFixtures.new(
         @connection,
-        habtm.options[:join_table],
-        Fixtures.find_table_name(habtm.options[:join_table]), nil)
+        path,
+        Fixtures.find_table_name(path), nil)
     end
 
     rows = fixtures.map do |label, fixture|
@@ -655,7 +655,7 @@ class Fixtures
           when :has_and_belongs_to_many
             if (targets = row.delete(association.name.to_s))
               targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-              join_fixtures = habtm_fixtures[association]
+              join_fixtures = habtm_fixtures[association.options[:join_table]]
 
               targets.each do |target|
                 join_fixtures["#{label}_#{target}"] = Fixture.new(
