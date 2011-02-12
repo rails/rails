@@ -816,7 +816,7 @@ class Fixture #:nodoc:
   def value_list
     cols = (model_class && model_class < ActiveRecord::Base) ? model_class.columns_hash : {}
     @fixture.map do |key, value|
-      @connection.quote(value, cols[key]).gsub('[^\]\\n', "\n").gsub('[^\]\\r', "\r")
+      @connection.quote(value, cols[key])
     end.join(', ')
   end
 
