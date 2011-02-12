@@ -549,7 +549,7 @@ class Fixtures
     Zlib.crc32(label.to_s) % MAX_ID
   end
 
-  attr_reader :table_name, :name, :fixtures
+  attr_reader :table_name, :name, :fixtures, :model_class
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection   = connection
@@ -561,8 +561,16 @@ class Fixtures
 
     @fixtures     = ActiveSupport::OrderedHash.new
     @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
-    @table_name   = class_name.table_name if class_name.respond_to?(:table_name)
-    @connection   = class_name.connection if class_name.respond_to?(:connection)
+
+    # Should be an AR::Base type class
+    if class_name.is_a?(Class)
+      @table_name   = class_name.table_name
+      @connection   = class_name.connection
+      @model_class  = class_name
+    else
+      @model_class  = class_name.constantize rescue nil
+    end
+
     read_fixture_files
   end
 
@@ -673,19 +681,6 @@ class Fixtures
   private
     class HabtmFixtures < ::Fixtures #:nodoc:
       def read_fixture_files; end
-    end
-
-    def model_class
-      unless defined?(@model_class)
-        @model_class =
-          if @class_name.nil? || @class_name.is_a?(Class)
-            @class_name
-          else
-            @class_name.constantize rescue nil
-          end
-      end
-
-      @model_class
     end
 
     def primary_key_name
