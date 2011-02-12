@@ -82,11 +82,11 @@ module ActiveRecord
               connection = active_record.connection
 
               name = connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
-              table_index = aliases[name] + 1
-              name = name[0, connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
+              aliases[name] += 1
+              name = name[0, connection.table_alias_length-3] + "_#{aliases[name]}" if aliases[name] > 1
+            else
+              aliases[name] += 1
             end
-
-            aliases[name] += 1
 
             name
           end
