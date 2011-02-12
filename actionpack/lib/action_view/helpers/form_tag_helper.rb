@@ -414,7 +414,8 @@ module ActionView
       # <tt>reset</tt>button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular
       # submit tag but it isn't supported in legacy browsers. However,
-      # button tag allows richer labels such as images and emphasis.
+      # the button tag allows richer labels such as images and emphasis,
+      # so this helper will also accept a block.
       #
       # ==== Options
       # * <tt>:confirm => 'question?'</tt> - If present, the
@@ -433,7 +434,9 @@ module ActionView
       #   button_tag
       #   # => <button name="button" type="submit">Button</button>
       #
-      #   button_tag "<strong>Ask me!</strong>", :type => 'button'
+      #   button_tag(:type => 'button') do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
       #   # => <button name="button" type="button">
       #          <strong>Ask me!</strong>
       #        </button>
@@ -442,7 +445,9 @@ module ActionView
       #   # => <button data-disable-with="Please wait..." name="button"
       #                type="submit">Checkout</button>
       #
-      def button_tag(label = "Button", options = {})
+      def button_tag(content_or_options = nil, options = nil, &block)
+        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
+        options ||= {}
         options.stringify_keys!
 
         if disable_with = options.delete("disable_with")
@@ -455,7 +460,7 @@ module ActionView
 
         options.reverse_merge! 'name' => 'button', 'type' => 'submit'
 
-        content_tag :button, label, { "type" => options.delete("type") }.update(options)
+        content_tag :button, content_or_options || 'Button', options, &block
       end
 
       # Displays an image which when clicked will submit the form.
