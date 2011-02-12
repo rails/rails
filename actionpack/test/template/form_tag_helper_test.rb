@@ -427,6 +427,15 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_button_tag_with_block
+    assert_dom_equal('<button name="button" type="submit">Content</button>', button_tag { 'Content' })
+  end
+
+  def test_button_tag_with_block_and_options
+    output = button_tag(:name => 'temptation', :type => 'button') { content_tag(:strong, 'Do not press me') }
+    assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
+  end
+
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
       %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
