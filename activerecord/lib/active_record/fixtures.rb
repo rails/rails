@@ -609,7 +609,7 @@ class Fixtures
         Fixtures.find_table_name(habtm.options[:join_table]), nil)
     end
 
-    fixtures.each do |label, fixture|
+    rows = fixtures.map do |label, fixture|
       row = fixture.to_hash
 
       if model_class && model_class < ActiveRecord::Base
@@ -668,7 +668,11 @@ class Fixtures
         end
       end
 
-      @connection.insert_fixture(fixture, @table_name)
+      row
+    end
+
+    rows.each do |row|
+      @connection.insert_fixture(row, table_name)
     end
 
     # insert any HABTM join tables we discovered
