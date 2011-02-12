@@ -788,9 +788,9 @@ class Fixture #:nodoc:
   attr_reader :model_class
 
   def initialize(fixture, model_class, connection = ActiveRecord::Base.connection)
-    @connection = connection
-    @fixture = fixture
-    @model_class = model_class.is_a?(Class) ? model_class : model_class.constantize rescue nil
+    @connection  = connection
+    @fixture     = fixture
+    @model_class = model_class
   end
 
   def class_name
