@@ -471,11 +471,10 @@ class Fixtures
 
   def self.cached_fixtures(connection, keys_to_fetch = nil)
     if keys_to_fetch
-      fixtures = cache_for_connection(connection).values_at(*keys_to_fetch)
+      cache_for_connection(connection).values_at(*keys_to_fetch)
     else
-      fixtures = cache_for_connection(connection).values
+      cache_for_connection(connection).values
     end
-    fixtures.size > 1 ? fixtures : fixtures.first
   end
 
   def self.cache_fixtures(connection, fixtures_map)
@@ -554,13 +553,14 @@ class Fixtures
   attr_reader :table_name, :name, :fixtures
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
-    @fixtures     = ActiveSupport::OrderedHash.new
     @connection   = connection
     @table_name   = table_name
     @fixture_path = fixture_path
     @file_filter  = file_filter
     @name         = table_name # preserve fixture base name
     @class_name   = class_name
+
+    @fixtures     = ActiveSupport::OrderedHash.new
     @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
     @table_name   = class_name.table_name if class_name.respond_to?(:table_name)
     @connection   = class_name.connection if class_name.respond_to?(:connection)
