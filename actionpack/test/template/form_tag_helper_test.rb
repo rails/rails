@@ -387,7 +387,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_button_tag
     assert_dom_equal(
-      %(<button name="button" type="button">Button</button>),
+      %(<button name="button" type="submit">Button</button>),
       button_tag
     )
   end
@@ -396,6 +396,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<button name="button" type="submit">Save</button>),
       button_tag("Save", :type => "submit")
+    )
+  end
+
+  def test_button_tag_with_button_type
+    assert_dom_equal(
+      %(<button name="button" type="button">Button</button>),
+      button_tag("Button", :type => "button")
     )
   end
 

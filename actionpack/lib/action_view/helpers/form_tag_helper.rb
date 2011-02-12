@@ -431,16 +431,16 @@ module ActionView
       #
       # ==== Examples
       #   button_tag
-      #   # => <button name="button" type="button">Button</button>
+      #   # => <button name="button" type="submit">Button</button>
       #
-      #   button_tag "<strong>Ask me!</strong>"
+      #   button_tag "<strong>Ask me!</strong>", :type => 'button'
       #   # => <button name="button" type="button">
       #          <strong>Ask me!</strong>
       #        </button>
       #
       #   button_tag "Checkout", :disable_with => "Please wait..."
       #   # => <button data-disable-with="Please wait..." name="button"
-      #                type="button">Checkout</button>
+      #                type="submit">Checkout</button>
       #
       def button_tag(label = "Button", options = {})
         options.stringify_keys!
@@ -453,9 +453,7 @@ module ActionView
           options["data-confirm"] = confirm
         end
 
-        ["type", "name"].each do |option|
-          options[option] = "button" unless options[option]
-        end
+        options.reverse_merge! 'name' => 'button', 'type' => 'submit'
 
         content_tag :button, label, { "type" => options.delete("type") }.update(options)
       end
