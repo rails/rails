@@ -566,7 +566,7 @@ module ActionView
       def select_year(date, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_year
       end
-      
+
       # Returns an html time tag for the given date or time.
       #
       # ==== Examples
@@ -581,9 +581,11 @@ module ActionView
       #
       def time_tag(date_or_time, *args)
         options  = args.extract_options!
-        content  = args.first || I18n.l(date_or_time, :format => :long)
+        format   = options.delete(:format) || :long
+        content  = args.first || I18n.l(date_or_time, :format => format)
         datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.rfc3339
-        content_tag :time, content, options.reverse_merge(:datetime => datetime)
+
+        content_tag(:time, content, options.reverse_merge(:datetime => datetime))
       end
     end
 
