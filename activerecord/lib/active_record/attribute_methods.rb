@@ -10,7 +10,18 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
+        return if attribute_methods_generated?
         super(column_names)
+        @attribute_methods_generated = true
+      end
+
+      def attribute_methods_generated?
+        @attribute_methods_generated ||= false
+      end
+
+      def undefine_attribute_methods(*args)
+        super
+        @attribute_methods_generated = false
       end
 
       # Checks whether the method is defined in the model or any of its subclasses

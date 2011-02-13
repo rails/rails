@@ -2,6 +2,8 @@
 
 * Added ActiveModel::SecurePassword to encapsulate dead-simple password usage with BCrypt encryption and salting [DHH]
 
+* ActiveModel::AttributeMethods allows attributes to be defined on demand [Alexander Uvarov]
+
 
 *Rails 3.0.2 (unreleased)*
 
