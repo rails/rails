@@ -22,18 +22,22 @@ module ActionDispatch
           @app, @constraints, @request = app, constraints, request
         end
 
-        def call(env)
+        def matches?(env)
           req = @request.new(env)
 
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
-              return [ 404, {'X-Cascade' => 'pass'}, [] ]
+              return false
             elsif constraint.respond_to?(:call) && !constraint.call(*constraint_args(constraint, req))
-              return [ 404, {'X-Cascade' => 'pass'}, [] ]
+              return false
             end
           }
 
-          @app.call(env)
+          return true
+        end
+
+        def call(env)
+          matches?(env) ? @app.call(env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
         end
 
         private
