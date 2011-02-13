@@ -197,10 +197,7 @@ module ActiveRecord
 
       def active?
         return false unless @connection
-        @connection.query 'select 1'
-        true
-      rescue Mysql2::Error
-        false
+        @connection.ping
       end
 
       def reconnect!
