@@ -37,9 +37,6 @@ module ActionDispatch
       #
       #   # Test a custom route
       #   assert_recognizes({:controller => 'items', :action => 'show', :id => '1'}, 'view/item1')
-      #
-      #   # Check a Simply RESTful generated route
-      #   assert_recognizes list_items_url, 'items/list'
       def assert_recognizes(expected_options, path, extras={}, message=nil)
         request = recognized_request_for(path)
 
