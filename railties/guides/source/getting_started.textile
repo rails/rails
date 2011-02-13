@@ -195,7 +195,7 @@ h4. Installing the Required Gems
 Rails applications manage gem dependencies with "Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
-# bundle install
+$ bundle install
 </shell>
 
 to have them ready.
