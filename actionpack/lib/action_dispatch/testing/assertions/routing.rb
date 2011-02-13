@@ -124,7 +124,8 @@ module ActionDispatch
           options[:controller] = "/#{controller}"
         end
 
-        assert_generates(path.is_a?(Hash) ? path[:path] : path, options, defaults, extras, message)
+        generate_options = options.dup.delete_if{ |k,v| defaults.key?(k) }
+        assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 
       # A helper to make it easier to test different route configurations.
