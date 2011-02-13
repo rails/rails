@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/author'
 require 'models/category'
 require 'models/categorization'
+require 'models/person'
 require 'models/tagging'
 require 'models/tag'
 
