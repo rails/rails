@@ -123,7 +123,7 @@ module ActiveRecord
           all = []
 
           [association_conditions, source_conditions].each do |conditions|
-            all << interpolate_sql(sanitize_sql(conditions)) if conditions
+            all << interpolate_and_sanitize_sql(conditions) if conditions
           end
 
           all << through_conditions  if through_conditions
@@ -136,11 +136,11 @@ module ActiveRecord
       def build_through_conditions
         conditions = @reflection.through_reflection.options[:conditions]
         if conditions.is_a?(Hash)
-          interpolate_sql(@reflection.through_reflection.klass.send(:sanitize_sql, conditions)).gsub(
+          interpolate_and_sanitize_sql(conditions, nil, @reflection.through_reflection.klass).gsub(
             @reflection.quoted_table_name,
             @reflection.through_reflection.quoted_table_name)
         elsif conditions
-          interpolate_sql(sanitize_sql(conditions))
+          interpolate_and_sanitize_sql(conditions)
         end
       end
 

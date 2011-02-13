@@ -41,6 +41,8 @@ class Post < ActiveRecord::Base
   has_many :author_categorizations, :through => :author, :source => :categorizations
 
   has_many :comments_with_interpolated_conditions, :class_name => 'Comment',
+      :conditions => proc { ["#{"#{aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome'] }
+  has_many :comments_with_deprecated_interpolated_conditions, :class_name => 'Comment',
       :conditions => ['#{"#{aliased_table_name}." rescue ""}body = ?', 'Thank you for the welcome']
 
   has_one  :very_special_comment
@@ -66,6 +68,13 @@ class Post < ActiveRecord::Base
 
   has_many :invalid_taggings, :as => :taggable, :class_name => "Tagging", :conditions => 'taggings.id < 0'
   has_many :invalid_tags, :through => :invalid_taggings, :source => :tag
+
+  has_many :interpolated_taggings, :class_name => 'Tagging', :as => :taggable, :conditions => proc { "1 = #{1}" }
+  has_many :deprecated_interpolated_taggings, :class_name => 'Tagging', :as => :taggable, :conditions => '1 = #{1}'
+  has_many :interpolated_tags, :through => :taggings
+  has_many :deprecated_interpolated_tags, :through => :taggings
+  has_many :interpolated_tags_2, :through => :interpolated_taggings, :source => :tag
+  has_many :deprecated_interpolated_tags_2, :through => :deprecated_interpolated_taggings, :source => :tag
 
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations

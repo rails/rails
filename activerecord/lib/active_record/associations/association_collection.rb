@@ -185,9 +185,11 @@ module ActiveRecord
       def count(column_name = nil, options = {})
         column_name, options = nil, column_name if column_name.is_a?(Hash)
 
-        if @reflection.options[:counter_sql] && !options.blank?
-          raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
-        elsif @reflection.options[:counter_sql]
+        if @reflection.options[:finder_sql] || @reflection.options[:counter_sql]
+          unless options.blank?
+            raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
+          end
+
           @reflection.klass.count_by_sql(@counter_sql)
         else
 
@@ -379,11 +381,10 @@ module ActiveRecord
 
         def construct_counter_sql
           if @reflection.options[:counter_sql]
-            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+            @counter_sql = interpolate_and_sanitize_sql(@reflection.options[:counter_sql])
           elsif @reflection.options[:finder_sql]
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
-            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+            @counter_sql = interpolate_and_sanitize_sql(@reflection.options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           else
             @counter_sql = @finder_sql
           end

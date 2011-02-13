@@ -24,7 +24,7 @@ module ActiveRecord
       end
 
       def conditions
-       	@conditions ||= interpolate_sql(association_class.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]
+        @conditions ||= @reflection.options[:conditions] && interpolate_and_sanitize_sql(@reflection.options[:conditions], nil, association_class)
       end
 
       private

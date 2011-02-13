@@ -387,15 +387,27 @@ module ActiveRecord
         end
       end
 
+      def process_conditions_for_preload(conditions, klass = self)
+        sanitized = klass.send(:sanitize_sql, conditions)
 
-      def interpolate_sql_for_preload(sql)
-        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
+        if sanitized =~ /\#\{.*\}/
+          ActiveSupport::Deprecation.warn(
+            'String-based interpolation of association conditions is deprecated. Please use a ' \
+            'proc instead. So, for example, has_many :older_friends, :conditions => \'age > #{age}\' ' \
+            'should be changed to has_many :older_friends, :conditions => proc { "age > #{age}" }.'
+          )
+          instance_eval("%@#{sanitized.gsub('@', '\@')}@", __FILE__, __LINE__)
+        elsif conditions.respond_to?(:to_proc)
+          klass.send(:sanitize_sql, instance_eval(&conditions))
+        else
+          sanitized
+        end
       end
 
       def append_conditions(reflection, preload_options)
         sql = ""
-        sql << " AND (#{interpolate_sql_for_preload(reflection.sanitized_conditions)})" if reflection.sanitized_conditions
-        sql << " AND (#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]
+        sql << " AND (#{process_conditions_for_preload(reflection.options[:conditions], reflection.klass)})" if reflection.options[:conditions]
+        sql << " AND (#{process_conditions_for_preload(preload_options[:conditions])})" if preload_options[:conditions]
         sql
       end
 

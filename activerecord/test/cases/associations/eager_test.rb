@@ -651,7 +651,23 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_interpolation
-    assert_equal [comments(:greetings)], Post.find(posts(:welcome).id, :include => :comments_with_interpolated_conditions).comments_with_interpolated_conditions
+    post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+
+    post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+  end
+
+  def test_preload_with_deprecated_interpolation
+    post = assert_deprecated do
+      Post.includes(:comments_with_deprecated_interpolated_conditions).find(posts(:welcome).id)
+    end
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+
+    post = assert_deprecated do
+      Post.joins(:comments_with_deprecated_interpolated_conditions).find(posts(:welcome).id)
+    end
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
   end
 
   def test_polymorphic_type_condition

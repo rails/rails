@@ -1,4 +1,31 @@
-*Rails 3.0.4 (unreleased)*
+*Rails 3.0.5 (unreleased)*
+
+* Deprecated support for interpolated association conditions in the form of :conditions => 'foo = #{bar}'.
+
+  Instead, you should use a proc, like so:
+
+  Before:
+
+    has_many :things, :conditions => 'foo = #{bar}'
+
+  After:
+
+    has_many :things, :conditions => proc { "foo = #{bar}" }
+
+  Inside the proc, 'self' is the object which is the owner of the association, unless you are
+  eager loading the association, in which case 'self' is the class which the association is within.
+
+  You can have any "normal" conditions inside the proc, so the following will work too:
+
+    has_many :things, :conditions => proc { ["foo = ?", bar] }
+
+  Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call
+  'record' to get the record being inserted or deleted. This is now passed as an argument to
+  the proc.
+
+  [Jon Leighton]
+
+*Rails 3.0.4*
 
 * Added deprecation warning for has_and_belongs_to_many associations where the join table has
   additional attributes other than the keys. Access to these attributes is removed in 3.1.
