@@ -504,8 +504,12 @@ class Fixtures
 
   def self.create_fixtures(fixtures_directory, table_names, class_names = {})
     table_names = [table_names].flatten.map { |n| n.to_s }
-    table_names.each { |n| class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/') }
-    connection  = block_given? ? yield : ActiveRecord::Base.connection
+    table_names.each { |n|
+      class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/')
+    }
+
+    # FIXME: Apparently JK uses this.
+    connection = block_given? ? yield : ActiveRecord::Base.connection
 
     files_to_read = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
 
@@ -513,7 +517,7 @@ class Fixtures
       connection.disable_referential_integrity do
         fixtures_map = {}
 
-        fixtures = files_to_read.map do |path|
+        fixture_files = files_to_read.map do |path|
           table_name = path.tr '/', '_'
 
           fixtures_map[path] = Fixtures.new(
@@ -526,8 +530,20 @@ class Fixtures
         all_loaded_fixtures.update(fixtures_map)
 
         connection.transaction(:requires_new => true) do
-          fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
-          fixtures.each { |fixture| fixture.insert_fixtures }
+          fixture_files.each do |ff|
+            conn = ff.model_class.respond_to?(:connection) ? ff.model_class.connection : connection
+            table_rows = ff.table_rows
+
+            table_rows.keys.each do |table|
+              conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
+            end
+
+            table_rows.each do |table_name,rows|
+              rows.each do |row|
+                conn.insert_fixture(row, table_name)
+              end
+            end
+          end
 
           # Cap primary key sequences to max(pk).
           if connection.respond_to?(:reset_pk_sequence!)
@@ -619,7 +635,7 @@ class Fixtures
 
   # Return a hash of rows to be inserted.  The key is the table, the value is
   # a list of rows to insert to that table.
-  def rows
+  def table_rows
     now = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
     now = now.to_s(:db)
 
@@ -691,7 +707,7 @@ class Fixtures
   end
 
   def insert_fixtures
-    rows.each do |table_name, rows|
+    table_rows.each do |table_name, rows|
       rows.each do |row|
         @connection.insert_fixture(row, table_name)
       end
