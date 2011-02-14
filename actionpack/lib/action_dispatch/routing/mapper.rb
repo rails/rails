@@ -847,6 +847,14 @@ module ActionDispatch
       #     resources :posts, :comments
       #   end
       #
+      # By default the :id parameter doesn't accept dots. If you need to
+      # use dots as part of the :id parameter add a constraint which
+      # overrides this restriction, e.g:
+      #
+      #   resources :articles, :id => /[^\/]+/
+      #
+      # This allows any character other than a slash as part of your :id.
+      #
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
@@ -1103,7 +1111,6 @@ module ActionDispatch
         #
         #   # resource actions are at /admin/posts.
         #   resources :posts, :path => "admin"
-        #
         def resources(*resources, &block)
           options = resources.extract_options!
 
