@@ -617,7 +617,9 @@ class Fixtures
     }.flatten.uniq
   end
 
-  def insert_fixtures
+  # Return a hash of rows to be inserted.  The key is the table, the value is
+  # a list of rows to insert to that table.
+  def rows
     now = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
     now = now.to_s(:db)
 
@@ -625,9 +627,9 @@ class Fixtures
     fixtures.delete('DEFAULTS')
 
     # track any join tables we need to insert later
-    habtm_fixtures = Hash.new { |h,k| h[k] = [] }
+    rows = Hash.new { |h,table| h[table] = [] }
 
-    rows = fixtures.map do |label, fixture|
+    rows[table_name] = fixtures.map do |label, fixture|
       row = fixture.to_hash
 
       if model_class && model_class < ActiveRecord::Base
@@ -674,7 +676,7 @@ class Fixtures
             if (targets = row.delete(association.name.to_s))
               targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
               table_name = association.options[:join_table]
-              habtm_fixtures[table_name].concat targets.map { |target|
+              rows[table_name].concat targets.map { |target|
                 { association.foreign_key             => row[primary_key_name],
                   association.association_foreign_key => Fixtures.identify(target) }
               }
@@ -685,15 +687,13 @@ class Fixtures
 
       row
     end
+    rows
+  end
 
-    rows.each do |row|
-      @connection.insert_fixture(row, table_name)
-    end
-
-    # insert any HABTM join tables we discovered
-    habtm_fixtures.each do |table, fixtures|
-      fixtures.each do |row|
-        @connection.insert_fixture(row, table)
+  def insert_fixtures
+    rows.each do |table_name, rows|
+      rows.each do |row|
+        @connection.insert_fixture(row, table_name)
       end
     end
   end
