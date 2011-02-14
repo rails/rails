@@ -590,8 +590,8 @@ class Fixtures
     fixtures.size
   end
 
-  def delete_existing_fixtures
-    @connection.delete "DELETE FROM #{@connection.quote_table_name(table_name)}", 'Fixture Delete'
+  def delete_existing_fixtures(table = table_name)
+    @connection.delete "DELETE FROM #{@connection.quote_table_name(table)}", 'Fixture Delete'
   end
 
   def insert_fixtures
@@ -602,12 +602,7 @@ class Fixtures
     fixtures.delete('DEFAULTS')
 
     # track any join tables we need to insert later
-    habtm_fixtures = Hash.new do |h, path|
-      h[path] = HabtmFixtures.new(
-        @connection,
-        path,
-        Fixtures.find_table_name(path), nil)
-    end
+    habtm_fixtures = Hash.new { |h,k| h[k] = [] }
 
     rows = fixtures.map do |label, fixture|
       row = fixture.to_hash
@@ -655,14 +650,11 @@ class Fixtures
           when :has_and_belongs_to_many
             if (targets = row.delete(association.name.to_s))
               targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-              join_fixtures = habtm_fixtures[association.options[:join_table]]
-
-              targets.each do |target|
-                join_fixtures["#{label}_#{target}"] = Fixture.new(
-                  { association.foreign_key             => row[primary_key_name],
-                    association.association_foreign_key => Fixtures.identify(target) },
-                  nil)
-              end
+              table_name = association.options[:join_table]
+              habtm_fixtures[table_name].concat targets.map { |target|
+                { association.foreign_key             => row[primary_key_name],
+                  association.association_foreign_key => Fixtures.identify(target) }
+              }
             end
           end
         end
@@ -675,18 +667,19 @@ class Fixtures
       @connection.insert_fixture(row, table_name)
     end
 
+    habtm_fixtures.keys.each do |table|
+      delete_existing_fixtures(table)
+    end
+
     # insert any HABTM join tables we discovered
-    habtm_fixtures.values.each do |fixture|
-      fixture.delete_existing_fixtures
-      fixture.insert_fixtures
+    habtm_fixtures.each do |table, fixtures|
+      fixtures.each do |row|
+        @connection.insert_fixture(row, table)
+      end
     end
   end
 
   private
-    class HabtmFixtures < ::Fixtures #:nodoc:
-      def read_fixture_files; end
-    end
-
     def primary_key_name
       @primary_key_name ||= model_class && model_class.primary_key
     end
@@ -789,7 +782,7 @@ class Fixture #:nodoc:
   class FormatError < FixtureError #:nodoc:
   end
 
-  attr_reader :model_class
+  attr_reader :model_class, :fixture
 
   def initialize(fixture, model_class)
     @fixture     = fixture
@@ -797,24 +790,22 @@ class Fixture #:nodoc:
   end
 
   def class_name
-    @model_class.name if @model_class
+    model_class.name if model_class
   end
 
   def each
-    @fixture.each { |item| yield item }
+    fixture.each { |item| yield item }
   end
 
   def [](key)
-    @fixture[key]
+    fixture[key]
   end
 
-  def to_hash
-    @fixture
-  end
+  alias :to_hash :fixture
 
   def find
     if model_class
-      model_class.find(self[model_class.primary_key])
+      model_class.find(fixture[model_class.primary_key])
     else
       raise FixtureClassNotFound, "No class attached to find."
     end
