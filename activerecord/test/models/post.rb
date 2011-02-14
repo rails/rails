@@ -41,6 +41,9 @@ class Post < ActiveRecord::Base
   has_many :author_categorizations, :through => :author, :source => :categorizations
   has_many :author_addresses, :through => :author
 
+  has_many :comments_with_interpolated_conditions, :class_name => 'Comment',
+    :conditions => proc { ["#{"#{aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome'] }
+
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
   has_many :special_comments
@@ -56,6 +59,10 @@ class Post < ActiveRecord::Base
         :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
     end
   end
+
+  has_many :interpolated_taggings, :class_name => 'Tagging', :as => :taggable, :conditions => proc { "1 = #{1}" }
+  has_many :interpolated_tags, :through => :taggings
+  has_many :interpolated_tags_2, :through => :interpolated_taggings, :source => :tag
 
   has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
   has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy

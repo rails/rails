@@ -11,13 +11,11 @@ module ActiveRecord
 
       protected
 
-        def insert_record(record, force = true, validate = true)
-          if record.new_record?
-            return false unless save_record(record, force, validate)
-          end
+        def insert_record(record, validate = true)
+          return if record.new_record? && !record.save(:validate => validate)
 
           if @reflection.options[:insert_sql]
-            @owner.connection.insert(interpolate_sql(@reflection.options[:insert_sql], record))
+            @owner.connection.insert(interpolate(@reflection.options[:insert_sql], record))
           else
             stmt = join_table.compile_insert(
               join_table[@reflection.foreign_key]             => @owner.id,
@@ -27,7 +25,7 @@ module ActiveRecord
             @owner.connection.insert stmt.to_sql
           end
 
-          true
+          record
         end
 
         def association_scope
@@ -42,7 +40,7 @@ module ActiveRecord
 
         def delete_records(records, method)
           if sql = @reflection.options[:delete_sql]
-            records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
+            records.each { |record| @owner.connection.delete(interpolate(sql, record)) }
           else
             relation = join_table
             stmt = relation.where(relation[@reflection.foreign_key].eq(@owner.id).

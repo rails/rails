@@ -108,6 +108,10 @@ module ActiveRecord
           end
 
           def process_conditions(conditions, table_name)
+            if conditions.respond_to?(:to_proc)
+              conditions = instance_eval(&conditions)
+            end
+
             Arel.sql(sanitize_sql(conditions, table_name))
           end
 

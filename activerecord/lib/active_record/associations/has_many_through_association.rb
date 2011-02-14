@@ -22,12 +22,21 @@ module ActiveRecord
         end
       end
 
+      def <<(*records)
+        unless @owner.new_record?
+          records.flatten.each do |record|
+            raise_on_type_mismatch(record)
+            record.save! if record.new_record?
+          end
+        end
+
+        super
+      end
+
       protected
 
-        def insert_record(record, force = true, validate = true)
-          if record.new_record?
-            return unless save_record(record, force, validate)
-          end
+        def insert_record(record, validate = true)
+          return if record.new_record? && !record.save(:validate => validate)
 
           through_association = @owner.send(@reflection.through_reflection.name)
           through_association.create!(construct_join_attributes(record))

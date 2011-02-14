@@ -56,14 +56,21 @@ module ActiveRecord
       end
 
       def build(attributes = {}, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr, &block) }
-        else
-          build_record(attributes) do |record|
-            block.call(record) if block_given?
-            set_owner_attributes(record)
-          end
+        build_or_create(attributes, :build, &block)
+      end
+
+      def create(attributes = {}, &block)
+        unless @owner.persisted?
+          raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
         end
+
+        build_or_create(attributes, :create, &block)
+      end
+
+      def create!(attrs = {}, &block)
+        record = create(attrs, &block)
+        Array.wrap(record).each(&:save!)
+        record
       end
 
       # Add +records+ to this association.  Returns +self+ so method calls may be chained.
@@ -75,7 +82,7 @@ module ActiveRecord
         transaction do
           records.flatten.each do |record|
             raise_on_type_mismatch(record)
-            add_record_to_target_with_callbacks(record) do |r|
+            add_to_target(record) do |r|
               result &&= insert_record(record) unless @owner.new_record?
             end
           end
@@ -189,24 +196,6 @@ module ActiveRecord
       def destroy(*records)
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
-      end
-
-      def create(attrs = {})
-        if attrs.is_a?(Array)
-          attrs.collect { |attr| create(attr) }
-        else
-          create_record(attrs) do |record|
-            yield(record) if block_given?
-            insert_record(record, false)
-          end
-        end
-      end
-
-      def create!(attrs = {})
-        create_record(attrs) do |record|
-          yield(record) if block_given?
-          insert_record(record, true)
-        end
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*)
@@ -348,17 +337,21 @@ module ActiveRecord
           target
         end
 
-        def add_record_to_target_with_callbacks(record)
-          callback(:before_add, record)
-          yield(record) if block_given?
-          @target ||= [] unless loaded?
-          if @reflection.options[:uniq] && index = @target.index(record)
-            @target[index] = record
-          else
-            @target << record
+        def add_to_target(record)
+          transaction do
+            callback(:before_add, record)
+            yield(record) if block_given?
+
+            if @reflection.options[:uniq] && index = @target.index(record)
+              @target[index] = record
+            else
+              @target << record
+            end
+
+            callback(:after_add, record)
+            set_inverse_instance(record)
           end
-          callback(:after_add, record)
-          set_inverse_instance(record)
+
           record
         end
 
@@ -374,17 +367,15 @@ module ActiveRecord
 
         def custom_counter_sql
           if @reflection.options[:counter_sql]
-            counter_sql = @reflection.options[:counter_sql]
+            interpolate(@reflection.options[:counter_sql])
           else
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            counter_sql = @reflection.options[:finder_sql].sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+            interpolate(@reflection.options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
-
-          interpolate_sql(counter_sql)
         end
 
         def custom_finder_sql
-          interpolate_sql(@reflection.options[:finder_sql])
+          interpolate(@reflection.options[:finder_sql])
         end
 
         def find_target
@@ -421,26 +412,26 @@ module ActiveRecord
           end + existing
         end
 
-        # Do the relevant stuff to insert the given record into the association collection. The
-        # force param specifies whether or not an exception should be raised on failure. The
-        # validate param specifies whether validation should be performed (if force is false).
-        def insert_record(record, force = true, validate = true)
+        def build_or_create(attributes, method)
+          records = Array.wrap(attributes).map do |attrs|
+            record = build_record(attrs)
+
+            add_to_target(record) do
+              yield(record) if block_given?
+              insert_record(record) if method == :create
+            end
+          end
+
+          attributes.is_a?(Array) ? records : records.first
+        end
+
+        # Do the relevant stuff to insert the given record into the association collection.
+        def insert_record(record, validate = true)
           raise NotImplementedError
         end
 
-        def save_record(record, force, validate)
-          force ? record.save! : record.save(:validate => validate)
-        end
-
-        def create_record(attributes, &block)
-          ensure_owner_is_persisted!
-          transaction { build_record(attributes, &block) }
-        end
-
-        def build_record(attributes, &block)
-          attributes = scoped.scope_for_create.merge(attributes)
-          record = @reflection.build_association(attributes)
-          add_record_to_target_with_callbacks(record, &block)
+        def build_record(attributes)
+          @reflection.build_association(scoped.scope_for_create.merge(attributes))
         end
 
         def delete_or_destroy(records, method)
@@ -480,12 +471,6 @@ module ActiveRecord
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.send(full_callback_name.to_sym) || []
-        end
-
-        def ensure_owner_is_persisted!
-          unless @owner.persisted?
-            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
-          end
         end
 
         # Should we deal with assoc.first or assoc.last by issuing an independent query to

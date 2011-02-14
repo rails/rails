@@ -1295,12 +1295,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal res6, res7
   end
 
-  def test_interpolate_sql
-    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo@bar') }
-    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar) baz') }
-    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar} baz') }
-  end
-
   def test_scoped_find_conditions
     scoped_developers = Developer.send(:with_scope, :find => { :conditions => 'salary > 90000' }) do
       Developer.find(:all, :conditions => 'id < 5')

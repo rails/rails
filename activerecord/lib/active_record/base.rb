@@ -1790,12 +1790,6 @@ MSG
         self.class.connection.quote(value, column)
       end
 
-      # Interpolate custom SQL string in instance context.
-      # Optional record argument is meant for custom insert_sql.
-      def interpolate_sql(sql, record = nil)
-        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
-      end
-
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
       # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
       # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate

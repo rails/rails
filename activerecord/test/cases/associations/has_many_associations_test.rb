@@ -279,7 +279,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_counting_using_finder_sql
     assert_equal 2, Firm.find(4).clients_using_sql.count
-    assert_equal 2, Firm.find(4).clients_using_multiline_sql.count
   end
 
   def test_belongs_to_sanity

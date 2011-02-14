@@ -72,7 +72,7 @@ class DeveloperWithCounterSQL < ActiveRecord::Base
     :join_table => "developers_projects",
     :association_foreign_key => "project_id",
     :foreign_key => "developer_id",
-    :counter_sql => 'SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}'
+    :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase

@@ -711,4 +711,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.author_addresses.delete(address)
     assert post[:author_count].nil?
   end
+
+  def test_interpolated_conditions
+    post = posts(:welcome)
+    assert !post.tags.empty?
+    assert_equal post.tags, post.interpolated_tags
+    assert_equal post.tags, post.interpolated_tags_2
+  end
 end

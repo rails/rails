@@ -8,9 +8,9 @@ module ActiveRecord
     class HasManyAssociation < AssociationCollection #:nodoc:
       protected
 
-        def insert_record(record, force = false, validate = true)
+        def insert_record(record, validate = true)
           set_owner_attributes(record)
-          save_record(record, force, validate)
+          record.save(:validate => validate)
         end
 
       private

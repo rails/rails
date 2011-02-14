@@ -668,6 +668,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal people(:david, :susan), Person.find(:all, :include => [:readers, :primary_contact, :number1_fan], :conditions => "number1_fans_people.first_name like 'M%'", :order => 'people.id', :limit => 2, :offset => 0)
   end
 
+  def test_preload_with_interpolation
+    post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+
+    post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+  end
+
   def test_polymorphic_type_condition
     post = Post.find(posts(:thinking).id, :include => :taggings)
     assert post.taggings.include?(taggings(:thinking_general))
