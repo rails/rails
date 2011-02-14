@@ -37,15 +37,43 @@ module ActiveRecord
 
         def insert_record(record, validate = true)
           return if record.new_record? && !record.save(:validate => validate)
-
-          through_association = @owner.send(@reflection.through_reflection.name)
-          through_association.create!(construct_join_attributes(record))
-
+          through_record(record).save!
           update_counter(1)
           record
         end
 
       private
+
+        def through_record(record)
+          through_association = @owner.send(:association_proxy, @reflection.through_reflection.name)
+          attributes = construct_join_attributes(record)
+
+          through_record = Array.wrap(through_association.target).find { |candidate|
+            candidate.attributes.slice(*attributes.keys) == attributes
+          }
+
+          unless through_record
+            through_record = through_association.build(attributes)
+            through_record.send("#{@reflection.source_reflection.name}=", record)
+          end
+
+          through_record
+        end
+
+        def build_record(attributes)
+          record = super(attributes)
+
+          inverse = @reflection.source_reflection.inverse_of
+          if inverse
+            if inverse.macro == :has_many
+              record.send(inverse.name) << through_record(record)
+            elsif inverse.macro == :has_one
+              record.send("#{inverse.name}=", through_record(record))
+            end
+          end
+
+          record
+        end
 
         def target_reflection_has_associated_record?
           if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.foreign_key].blank?
@@ -79,11 +107,25 @@ module ActiveRecord
             count = scope.delete_all
           end
 
+          delete_through_records(through, records)
+
           if @reflection.through_reflection.macro == :has_many && update_through_counter?(method)
             update_counter(-count, @reflection.through_reflection)
           end
 
           update_counter(-count)
+        end
+
+        def delete_through_records(through, records)
+          if @reflection.through_reflection.macro == :has_many
+            records.each do |record|
+              through.target.delete(through_record(record))
+            end
+          else
+            records.each do |record|
+              through.target = nil if through.target == through_record(record)
+            end
+          end
         end
 
         def find_target

@@ -523,6 +523,22 @@ module ActiveRecord
     #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
     #   @group.avatars.delete(@group.avatars.last)  # so would this
     #
+    # If you are using a +belongs_to+ on the join model, it is a good idea to set the
+    # <tt>:inverse_of</tt> option on the +belongs_to+, which will mean that the following example
+    # works correctly (where <tt>tags</tt> is a +has_many+ <tt>:through</tt> association):
+    #
+    #   @post = Post.first
+    #   @tag = @post.tags.build :name => "ruby"
+    #   @tag.save
+    #
+    # The last line ought to save the through record (a <tt>Taggable</tt>). This will only work if the
+    # <tt>:inverse_of</tt> is set:
+    #
+    #   class Taggable < ActiveRecord::Base
+    #     belongs_to :post
+    #     belongs_to :tag, :inverse_of => :taggings
+    #   end
+    #
     # === Polymorphic Associations
     #
     # Polymorphic associations on models are not restricted on what types of models they
@@ -1043,13 +1059,21 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt>
-      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You
-      #   can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>, <tt>has_one</tt>
-      #   or <tt>has_many</tt> association on the join model. The collection of join models
-      #   can be managed via the collection API. For example, new join models are created for
-      #   newly associated objects, and if some are gone their rows are deleted (directly,
-      #   no destroy callbacks are triggered).
+      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt>,
+      #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
+      #   source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>,
+      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model.
+      #
+      #   If the association on the join model is a +belongs_to+, the collection can be modified
+      #   and the records on the <tt>:through</tt> model will be automatically created and removed
+      #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
+      #   <tt>:through</tt> association directly.
+      #
+      #   If you are going to modify the association (rather than just read from it), then it is
+      #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+      #   join model. This allows associated records to be built which will automatically create
+      #   the appropriate join model records when they are saved. (See the 'Association Join Models'
+      #   section above.)
       # [:source]
       #   Specifies the source association name used by <tt>has_many :through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.

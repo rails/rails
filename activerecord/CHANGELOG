@@ -1,5 +1,29 @@
 *Rails 3.1.0 (unreleased)*
 
+* Make has_many :through associations work correctly when you build a record and then save it. This
+  requires you to set the :inverse_of option on the source reflection on the join model, like so:
+
+  class Post < ActiveRecord::Base
+    has_many :taggings
+    has_many :tags, :through => :taggings
+  end
+
+  class Tagging < ActiveRecord::Base
+    belongs_to :post
+    belongs_to :tag, :inverse_of => :tagging # :inverse_of must be set!
+  end
+
+  class Tag < ActiveRecord::Base
+    has_many :taggings
+    has_many :posts, :through => :taggings
+  end
+
+  post = Post.first
+  tag = post.tags.build :name => "ruby"
+  tag.save # will save a Taggable linking to the post
+
+  [Jon Leighton]
+
 * Support the :dependent option on has_many :through associations. For historical and practical
   reasons, :delete_all is the default deletion strategy employed by association.delete(*records),
   despite the fact that the default strategy is :nullify for regular has_many. Also, this only

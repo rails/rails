@@ -113,6 +113,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Ted")
   end
 
+  def test_build_then_save_with_has_many_inverse
+    post   = posts(:thinking)
+    person = post.people.build(:first_name => "Bob")
+    person.save
+    post.reload
+
+    assert post.people.include?(person)
+  end
+
+  def test_build_then_save_with_has_one_inverse
+    post   = posts(:thinking)
+    person = post.single_people.build(:first_name => "Bob")
+    person.save
+    post.reload
+
+    assert post.single_people.include?(person)
+  end
+
   def test_delete_association
     assert_queries(2){posts(:welcome);people(:michael); }
 
