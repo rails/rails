@@ -59,21 +59,21 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
-          build_record(attributes) do |record|
-            block.call(record) if block_given?
+          add_record_to_target_with_callbacks(build_record(attributes)) do |record|
+            yield(record) if block_given?
             set_owner_attributes(record)
           end
         end
       end
 
-      def create(attrs = {})
-        if attrs.is_a?(Array)
-          attrs.collect { |attr| create(attr) }
+      def create(attributes = {})
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create(attr) }
         else
           ensure_owner_is_persisted!
 
           transaction do
-            build_record(attrs) do |record|
+            add_record_to_target_with_callbacks(build_record(attributes)) do |record|
               yield(record) if block_given?
               insert_record(record)
             end
@@ -427,10 +427,8 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def build_record(attributes, &block)
-          attributes = scoped.scope_for_create.merge(attributes)
-          record = @reflection.build_association(attributes)
-          add_record_to_target_with_callbacks(record, &block)
+        def build_record(attributes)
+          @reflection.build_association(scoped.scope_for_create.merge(attributes))
         end
 
         def delete_or_destroy(records, method)
