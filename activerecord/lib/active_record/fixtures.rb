@@ -590,8 +590,31 @@ class Fixtures
     fixtures.size
   end
 
-  def delete_existing_fixtures(table = table_name)
-    @connection.delete "DELETE FROM #{@connection.quote_table_name(table)}", 'Fixture Delete'
+  def delete_existing_fixtures
+    tables.each do |table|
+      @connection.delete "DELETE FROM #{@connection.quote_table_name(table)}", 'Fixture Delete'
+    end
+  end
+
+  # Return a list of tables this fixture effect.  This is typically the +table_name+
+  # along with any habtm tables specified via Foxy Fixtures.
+  def tables
+    [table_name] + fixtures.values.map { |fixture|
+      row = fixture.to_hash
+
+      # If STI is used, find the correct subclass for association reflection
+      associations = []
+      if model_class && model_class < ActiveRecord::Base
+        reflection_class = row[inheritance_column_name].constantize rescue model_class
+        associations = reflection_class.reflect_on_all_associations
+      end
+
+      foxy_habtms = associations.find_all { |assoc|
+        assoc.macro == :has_and_belongs_to_many && row.key?(assoc.name.to_s)
+      }
+
+      foxy_habtms.map { |assoc| assoc.options[:join_table] }
+    }.flatten.uniq
   end
 
   def insert_fixtures
@@ -665,10 +688,6 @@ class Fixtures
 
     rows.each do |row|
       @connection.insert_fixture(row, table_name)
-    end
-
-    habtm_fixtures.keys.each do |table|
-      delete_existing_fixtures(table)
     end
 
     # insert any HABTM join tables we discovered
