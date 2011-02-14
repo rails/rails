@@ -188,11 +188,6 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
-  def test_tables
-    fixtures = Fixtures.new(Parrot.connection, 'parrots', 'Parrot', FIXTURES_ROOT + "/parrots")
-    assert_equal %w{parrots parrots_treasures}, fixtures.tables
-  end
-
   def test_yml_file_in_subdirectory
     assert_equal(categories(:sub_special_1).name, "A special category in a subdir file")
     assert_equal(categories(:sub_special_1).class, SpecialCategory)
