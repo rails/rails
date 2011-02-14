@@ -718,4 +718,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal post.tags, post.interpolated_tags
     assert_equal post.tags, post.interpolated_tags_2
   end
+
+  def test_primary_key_option_on_source
+    post     = posts(:welcome)
+    category = categories(:general)
+    categorization = Categorization.create!(:post_id => post.id, :named_category_name => category.name)
+
+    assert_equal [category], post.named_categories
+    assert_equal [category.name], post.named_category_ids # checks when target loaded
+    assert_equal [category.name], post.reload.named_category_ids # checks when target no loaded
+  end
 end

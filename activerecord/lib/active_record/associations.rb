@@ -1582,9 +1582,12 @@ module ActiveRecord
 
           redefine_method("#{reflection.name.to_s.singularize}_ids") do
             if send(reflection.name).loaded? || reflection.options[:finder_sql]
-              send(reflection.name).map { |r| r.id }
+              records = send(reflection.name)
+              records.map { |r| r.send(reflection.association_primary_key) }
             else
-              send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map! { |r| r.id }
+              column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
+              records = send(reflection.name).select(column).except(:includes)
+              records.map! { |r| r.send(reflection.association_primary_key) }
             end
           end
         end

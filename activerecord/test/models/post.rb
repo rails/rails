@@ -90,6 +90,7 @@ class Post < ActiveRecord::Base
   has_many :standard_categorizations, :class_name => 'Categorization', :foreign_key => :post_id
   has_many :author_using_custom_pk,  :through => :standard_categorizations
   has_many :authors_using_custom_pk, :through => :standard_categorizations
+  has_many :named_categories, :through => :standard_categorizations
 
   has_many :readers
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
