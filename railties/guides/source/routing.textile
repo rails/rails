@@ -837,12 +837,6 @@ You can supply a +:method+ argument to specify the HTTP verb:
 assert_recognizes({ :controller => "photos", :action => "create" }, { :path => "photos", :method => :post })
 </ruby>
 
-You can also use the resourceful helpers to test recognition of a RESTful route:
-
-<ruby>
-assert_recognizes new_photo_url, { :path => "photos", :method => :post }
-</ruby>
-
 h5. The +assert_routing+ Assertion
 
 The +assert_routing+ assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of +assert_generates+ and +assert_recognizes+.
