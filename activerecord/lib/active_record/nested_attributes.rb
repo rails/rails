@@ -413,7 +413,7 @@ module ActiveRecord
             if target_record
               existing_record = target_record
             else
-              association.send(:add_record_to_target_with_callbacks, existing_record)
+              association.send(:add_to_target, existing_record)
             end
           end
 

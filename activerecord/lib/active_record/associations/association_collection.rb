@@ -59,7 +59,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
-          add_record_to_target_with_callbacks(build_record(attributes)) do |record|
+          add_to_target(build_record(attributes)) do |record|
             yield(record) if block_given?
             set_owner_attributes(record)
           end
@@ -73,7 +73,7 @@ module ActiveRecord
           ensure_owner_is_persisted!
 
           transaction do
-            add_record_to_target_with_callbacks(build_record(attributes)) do |record|
+            add_to_target(build_record(attributes)) do |record|
               yield(record) if block_given?
               insert_record(record)
             end
@@ -96,7 +96,7 @@ module ActiveRecord
         transaction do
           records.flatten.each do |record|
             raise_on_type_mismatch(record)
-            add_record_to_target_with_callbacks(record) do |r|
+            add_to_target(record) do |r|
               result &&= insert_record(record) unless @owner.new_record?
             end
           end
@@ -351,7 +351,7 @@ module ActiveRecord
           target
         end
 
-        def add_record_to_target_with_callbacks(record)
+        def add_to_target(record)
           callback(:before_add, record)
           yield(record) if block_given?
           @target ||= [] unless loaded?
