@@ -197,16 +197,15 @@ module ActiveRecord
         else
           create_record(attrs) do |record|
             yield(record) if block_given?
-            insert_record(record, false)
+            insert_record(record)
           end
         end
       end
 
-      def create!(attrs = {})
-        create_record(attrs) do |record|
-          yield(record) if block_given?
-          insert_record(record, true)
-        end
+      def create!(attrs = {}, &block)
+        record = create(attrs, &block)
+        Array.wrap(record).each(&:save!)
+        record
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*)
@@ -419,15 +418,9 @@ module ActiveRecord
           end + existing
         end
 
-        # Do the relevant stuff to insert the given record into the association collection. The
-        # force param specifies whether or not an exception should be raised on failure. The
-        # validate param specifies whether validation should be performed (if force is false).
-        def insert_record(record, force = true, validate = true)
+        # Do the relevant stuff to insert the given record into the association collection.
+        def insert_record(record, validate = true)
           raise NotImplementedError
-        end
-
-        def save_record(record, force, validate)
-          force ? record.save! : record.save(:validate => validate)
         end
 
         def create_record(attributes, &block)

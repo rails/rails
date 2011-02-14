@@ -11,10 +11,8 @@ module ActiveRecord
 
       protected
 
-        def insert_record(record, force = true, validate = true)
-          if record.new_record?
-            return false unless save_record(record, force, validate)
-          end
+        def insert_record(record, validate = true)
+          return if record.new_record? && !record.save(:validate => validate)
 
           if @reflection.options[:insert_sql]
             @owner.connection.insert(interpolate(@reflection.options[:insert_sql], record))
@@ -27,7 +25,7 @@ module ActiveRecord
             @owner.connection.insert stmt.to_sql
           end
 
-          true
+          record
         end
 
         def association_scope

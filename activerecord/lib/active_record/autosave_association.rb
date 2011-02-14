@@ -312,7 +312,7 @@ module ActiveRecord
               association.destroy(record)
             elsif autosave != false && (@new_record_before_save || record.new_record?)
               if autosave
-                saved = association.send(:insert_record, record, false, false)
+                saved = association.send(:insert_record, record, false)
               else
                 association.send(:insert_record, record)
               end
