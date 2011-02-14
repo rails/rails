@@ -879,8 +879,8 @@ module ActiveRecord #:nodoc:
       # It is recommended to use block form of unscoped because chaining unscoped with <tt>named_scope</tt>
       # does not work. Assuming that <tt>published</tt> is a <tt>named_scope</tt> following two statements are same.
       #
-      # Post.unscoped.published 
-      # Post.published 
+      # Post.unscoped.published
+      # Post.published
       def unscoped #:nodoc:
         block_given? ? relation.scoping { yield } : relation
       end
@@ -1606,7 +1606,7 @@ MSG
         self.class.columns_hash[name.to_s]
       end
 
-      # Returns true if +comparison_object+ is the same exact object, or +comparison_object+ 
+      # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
       # is of the same type and +self+ has an ID and it is equal to +comparison_object.id+.
       #
       # Note that new records are different from any other record by definition, unless the
@@ -1730,10 +1730,21 @@ MSG
         self.class.connection.quote(value, column)
       end
 
-      # Interpolate custom SQL string in instance context.
-      # Optional record argument is meant for custom insert_sql.
-      def interpolate_sql(sql, record = nil)
-        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
+      def interpolate_and_sanitize_sql(sql, record = nil, sanitize_klass = self.class)
+        sanitized = sanitize_klass.send(:sanitize_sql, sql)
+
+        if sanitized =~ /\#\{.*\}/
+          ActiveSupport::Deprecation.warn(
+            'String-based interpolation of association conditions is deprecated. Please use a ' \
+            'proc instead. So, for example, has_many :older_friends, :conditions => \'age > #{age}\' ' \
+            'should be changed to has_many :older_friends, :conditions => proc { "age > #{age}" }.'
+          )
+          instance_eval("%@#{sanitized.gsub('@', '\@')}@", __FILE__, __LINE__)
+        elsif sql.respond_to?(:to_proc)
+          sanitize_klass.send(:sanitize_sql, instance_exec(record, &sql))
+        else
+          sanitized
+        end
       end
 
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done

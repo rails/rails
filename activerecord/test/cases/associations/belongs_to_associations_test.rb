@@ -151,7 +151,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal Company.find(1).name, Company.find(3).firm_with_condition.name
     assert_not_nil Company.find(3).firm_with_condition, "Microsoft should have a firm"
   end
-  
+
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create :name => "Bert"

@@ -87,7 +87,7 @@ module ActiveRecord
         def construct_sql
           case
             when @reflection.options[:finder_sql]
-              @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
+              @finder_sql = interpolate_and_sanitize_sql(@reflection.options[:finder_sql])
 
               @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
               @finder_sql << " AND (#{conditions})" if conditions

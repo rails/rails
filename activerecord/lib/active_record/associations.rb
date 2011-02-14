@@ -2221,7 +2221,7 @@ module ActiveRecord
 
               [through_reflection, reflection].each do |ref|
                 if ref && ref.options[:conditions]
-                  @join << interpolate_sql(sanitize_sql(ref.options[:conditions], aliased_table_name))
+                  @join << process_conditions(ref.options[:conditions], aliased_table_name)
                 end
               end
 
@@ -2282,8 +2282,21 @@ module ActiveRecord
                 table_alias_for table_name, @aliased_table_name
               end
 
-              def interpolate_sql(sql)
-                instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
+              def process_conditions(conditions, table_name)
+                sanitized = sanitize_sql(conditions, table_name)
+
+                if sanitized =~ /\#\{.*\}/
+                  ActiveSupport::Deprecation.warn(
+                    'String-based interpolation of association conditions is deprecated. Please use a ' \
+                    'proc instead. So, for example, has_many :older_friends, :conditions => \'age > #{age}\' ' \
+                    'should be changed to has_many :older_friends, :conditions => proc { "age > #{age}" }.'
+                  )
+                  instance_eval("%@#{sanitized.gsub('@', '\@')}@", __FILE__, __LINE__)
+                elsif conditions.respond_to?(:to_proc)
+                  conditions = sanitize_sql(instance_eval(&conditions), table_name)
+                else
+                  sanitized
+                end
               end
           end
         end

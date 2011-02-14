@@ -21,7 +21,7 @@ require 'models/category'
 require 'models/categorization'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :categories,
+  fixtures :posts, :readers, :people, :comments, :authors, :categories, :tags, :taggings,
            :owners, :pets, :toys, :jobs, :references, :companies,
            :subscribers, :books, :subscriptions, :developers, :categorizations
 
@@ -476,5 +476,23 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  where('categorizations.id' => categorizations(:mary_thinking_sti).id)
 
     assert_equal [posts(:eager_other)], posts
+  end
+
+  def test_interpolated_conditions
+    post = posts(:welcome)
+    assert !post.tags.empty?
+    assert_equal post.tags, post.interpolated_tags
+    assert_equal post.tags, post.interpolated_tags_2
+  end
+
+  def test_deprecated_interpolated_conditions
+    post = posts(:welcome)
+    assert !post.tags.empty?
+    assert_deprecated do
+      assert_equal post.tags, post.deprecated_interpolated_tags
+    end
+    assert_deprecated do
+      assert_equal post.tags, post.deprecated_interpolated_tags_2
+    end
   end
 end

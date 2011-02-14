@@ -35,7 +35,7 @@ module ActiveRecord
         def count_records
           count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif @reflection.options[:counter_sql]
+          elsif @reflection.options[:finder_sql] || @reflection.options[:counter_sql]
             @reflection.klass.count_by_sql(@counter_sql)
           else
             @reflection.klass.count(:conditions => @counter_sql, :include => @reflection.options[:include])
@@ -90,7 +90,7 @@ module ActiveRecord
         def construct_sql
           case
             when @reflection.options[:finder_sql]
-              @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
+              @finder_sql = interpolate_and_sanitize_sql(@reflection.options[:finder_sql])
 
             when @reflection.options[:as]
               @finder_sql =
