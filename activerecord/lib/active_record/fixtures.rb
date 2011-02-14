@@ -504,8 +504,12 @@ class Fixtures
 
   def self.create_fixtures(fixtures_directory, table_names, class_names = {})
     table_names = [table_names].flatten.map { |n| n.to_s }
-    table_names.each { |n| class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/') }
-    connection  = block_given? ? yield : ActiveRecord::Base.connection
+    table_names.each { |n|
+      class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/')
+    }
+
+    # FIXME: Apparently JK uses this.
+    connection = block_given? ? yield : ActiveRecord::Base.connection
 
     files_to_read = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
 
@@ -513,7 +517,7 @@ class Fixtures
       connection.disable_referential_integrity do
         fixtures_map = {}
 
-        fixtures = files_to_read.map do |path|
+        fixture_files = files_to_read.map do |path|
           table_name = path.tr '/', '_'
 
           fixtures_map[path] = Fixtures.new(
@@ -526,8 +530,20 @@ class Fixtures
         all_loaded_fixtures.update(fixtures_map)
 
         connection.transaction(:requires_new => true) do
-          fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
-          fixtures.each { |fixture| fixture.insert_fixtures }
+          fixture_files.each do |ff|
+            conn = ff.model_class.respond_to?(:connection) ? ff.model_class.connection : connection
+            table_rows = ff.table_rows
+
+            table_rows.keys.each do |table|
+              conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
+            end
+
+            table_rows.each do |table_name,rows|
+              rows.each do |row|
+                conn.insert_fixture(row, table_name)
+              end
+            end
+          end
 
           # Cap primary key sequences to max(pk).
           if connection.respond_to?(:reset_pk_sequence!)
@@ -590,11 +606,9 @@ class Fixtures
     fixtures.size
   end
 
-  def delete_existing_fixtures(table = table_name)
-    @connection.delete "DELETE FROM #{@connection.quote_table_name(table)}", 'Fixture Delete'
-  end
-
-  def insert_fixtures
+  # Return a hash of rows to be inserted.  The key is the table, the value is
+  # a list of rows to insert to that table.
+  def table_rows
     now = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
     now = now.to_s(:db)
 
@@ -602,9 +616,9 @@ class Fixtures
     fixtures.delete('DEFAULTS')
 
     # track any join tables we need to insert later
-    habtm_fixtures = Hash.new { |h,k| h[k] = [] }
+    rows = Hash.new { |h,table| h[table] = [] }
 
-    rows = fixtures.map do |label, fixture|
+    rows[table_name] = fixtures.map do |label, fixture|
       row = fixture.to_hash
 
       if model_class && model_class < ActiveRecord::Base
@@ -651,7 +665,7 @@ class Fixtures
             if (targets = row.delete(association.name.to_s))
               targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
               table_name = association.options[:join_table]
-              habtm_fixtures[table_name].concat targets.map { |target|
+              rows[table_name].concat targets.map { |target|
                 { association.foreign_key             => row[primary_key_name],
                   association.association_foreign_key => Fixtures.identify(target) }
               }
@@ -662,21 +676,7 @@ class Fixtures
 
       row
     end
-
-    rows.each do |row|
-      @connection.insert_fixture(row, table_name)
-    end
-
-    habtm_fixtures.keys.each do |table|
-      delete_existing_fixtures(table)
-    end
-
-    # insert any HABTM join tables we discovered
-    habtm_fixtures.each do |table, fixtures|
-      fixtures.each do |row|
-        @connection.insert_fixture(row, table)
-      end
-    end
+    rows
   end
 
   private
