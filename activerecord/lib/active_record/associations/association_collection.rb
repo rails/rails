@@ -195,9 +195,13 @@ module ActiveRecord
         if attrs.is_a?(Array)
           attrs.collect { |attr| create(attr) }
         else
-          create_record(attrs) do |record|
-            yield(record) if block_given?
-            insert_record(record)
+          ensure_owner_is_persisted!
+
+          transaction do
+            build_record(attrs) do |record|
+              yield(record) if block_given?
+              insert_record(record)
+            end
           end
         end
       end
@@ -421,11 +425,6 @@ module ActiveRecord
         # Do the relevant stuff to insert the given record into the association collection.
         def insert_record(record, validate = true)
           raise NotImplementedError
-        end
-
-        def create_record(attributes, &block)
-          ensure_owner_is_persisted!
-          transaction { build_record(attributes, &block) }
         end
 
         def build_record(attributes, &block)
