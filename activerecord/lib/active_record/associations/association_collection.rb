@@ -67,11 +67,13 @@ module ActiveRecord
       end
 
       def create(attributes = {})
+        unless @owner.persisted?
+          raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+        end
+
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
-          ensure_owner_is_persisted!
-
           transaction do
             add_to_target(build_record(attributes)) do |record|
               yield(record) if block_given?
@@ -469,12 +471,6 @@ module ActiveRecord
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.send(full_callback_name.to_sym) || []
-        end
-
-        def ensure_owner_is_persisted!
-          unless @owner.persisted?
-            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
-          end
         end
 
         # Should we deal with assoc.first or assoc.last by issuing an independent query to
