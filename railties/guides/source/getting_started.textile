@@ -274,7 +274,7 @@ TIP: Rake is a general-purpose command-runner that Rails uses for many things. Y
 
 h3. Hello, Rails!
 
-One of the traditional places to start with a new language is by getting some text up on screen quickly, to do this, you need to get your Rails application server running.
+One of the traditional places to start with a new language is by getting some text up on screen quickly. To do this, you need to get your Rails application server running.
 
 h4. Starting up the Web Server
 
@@ -468,6 +468,8 @@ To see your validations in action, you can use the console. The console is a com
 <shell>
 $ rails console
 </shell>
+
+TIP: The default console will make changes to your database. You can instead open a console that will roll back any changes you make by using +rails console --sandbox+.
 
 After the console loads, you can use it to work with your application's models:
 
