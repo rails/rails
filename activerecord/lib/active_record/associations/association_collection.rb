@@ -56,31 +56,15 @@ module ActiveRecord
       end
 
       def build(attributes = {}, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr, &block) }
-        else
-          add_to_target(build_record(attributes)) do |record|
-            yield(record) if block_given?
-            set_owner_attributes(record)
-          end
-        end
+        build_or_create(attributes, :build, &block)
       end
 
-      def create(attributes = {})
+      def create(attributes = {}, &block)
         unless @owner.persisted?
           raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
         end
 
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
-        else
-          transaction do
-            add_to_target(build_record(attributes)) do |record|
-              yield(record) if block_given?
-              insert_record(record)
-            end
-          end
-        end
+        build_or_create(attributes, :create, &block)
       end
 
       def create!(attrs = {}, &block)
@@ -354,17 +338,20 @@ module ActiveRecord
         end
 
         def add_to_target(record)
-          callback(:before_add, record)
-          yield(record) if block_given?
+          transaction do
+            callback(:before_add, record)
+            yield(record) if block_given?
 
-          if @reflection.options[:uniq] && index = @target.index(record)
-            @target[index] = record
-          else
-            @target << record
+            if @reflection.options[:uniq] && index = @target.index(record)
+              @target[index] = record
+            else
+              @target << record
+            end
+
+            callback(:after_add, record)
+            set_inverse_instance(record)
           end
 
-          callback(:after_add, record)
-          set_inverse_instance(record)
           record
         end
 
@@ -423,6 +410,19 @@ module ActiveRecord
               f
             end
           end + existing
+        end
+
+        def build_or_create(attributes, method)
+          records = Array.wrap(attributes).map do |attrs|
+            record = build_record(attrs)
+
+            add_to_target(record) do
+              yield(record) if block_given?
+              insert_record(record) if method == :create
+            end
+          end
+
+          attributes.is_a?(Array) ? records : records.first
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
