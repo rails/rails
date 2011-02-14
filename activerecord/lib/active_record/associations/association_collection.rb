@@ -66,6 +66,27 @@ module ActiveRecord
         end
       end
 
+      def create(attrs = {})
+        if attrs.is_a?(Array)
+          attrs.collect { |attr| create(attr) }
+        else
+          ensure_owner_is_persisted!
+
+          transaction do
+            build_record(attrs) do |record|
+              yield(record) if block_given?
+              insert_record(record)
+            end
+          end
+        end
+      end
+
+      def create!(attrs = {}, &block)
+        record = create(attrs, &block)
+        Array.wrap(record).each(&:save!)
+        record
+      end
+
       # Add +records+ to this association.  Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
@@ -189,27 +210,6 @@ module ActiveRecord
       def destroy(*records)
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
-      end
-
-      def create(attrs = {})
-        if attrs.is_a?(Array)
-          attrs.collect { |attr| create(attr) }
-        else
-          ensure_owner_is_persisted!
-
-          transaction do
-            build_record(attrs) do |record|
-              yield(record) if block_given?
-              insert_record(record)
-            end
-          end
-        end
-      end
-
-      def create!(attrs = {}, &block)
-        record = create(attrs, &block)
-        Array.wrap(record).each(&:save!)
-        record
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*)
