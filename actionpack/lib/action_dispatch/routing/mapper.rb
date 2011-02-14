@@ -1331,7 +1331,7 @@ module ActionDispatch
 
             name = case @scope[:scope_level]
             when :nested
-              [member_name, prefix]
+              [name_prefix, prefix]
             when :collection
               [prefix, name_prefix, collection_name]
             when :new
